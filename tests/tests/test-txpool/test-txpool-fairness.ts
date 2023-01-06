@@ -1,0 +1,145 @@
+import "@moonbeam-network/api-augment";
+
+import { expect } from "chai";
+import Web3 from "web3";
+
+import {
+  alith,
+  baltathar,
+  charleth,
+  CHARLETH_PRIVATE_KEY,
+  dorothy,
+  DOROTHY_PRIVATE_KEY,
+  ethan,
+  generateKeyringPair,
+} from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { MILLIGLMR, GLMR, WEIGHT_PER_GAS } from "../../util/constants";
+import { createTransfer } from "../../util/transactions";
+
+describeDevMoonbeam("Tip should be respected", (context) => {
+  it("should prefer txn with higher tip", async function () {
+    const NO_TIP = 0n;
+    const MED_TIP = 5n * MILLIGLMR;
+    const HIGH_TIP = 20n * MILLIGLMR;
+
+    await context.polkadotApi.tx.balances
+      .transfer(dorothy.address, GLMR)
+      .signAndSend(alith, { tip: NO_TIP });
+
+    await context.polkadotApi.tx.balances
+      .transfer(dorothy.address, GLMR)
+      .signAndSend(baltathar, { tip: MED_TIP });
+
+    await context.polkadotApi.tx.balances
+      .transfer(dorothy.address, GLMR)
+      .signAndSend(charleth, { tip: HIGH_TIP });
+
+    const result = await context.createBlock();
+    const hash = result.block.hash;
+    const apiAt = await context.polkadotApi.at(hash);
+    const { block } = await context.polkadotApi.rpc.chain.getBlock(hash);
+
+    // filter out inherent extrinsics, which should leave us with the ones we sent in their
+    // inclusion order
+    let transferExts = block.extrinsics.filter(ext => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000");
+
+    expect(transferExts.length).to.eq(3);
+    console.log(`transferEvents[0]: ${transferExts[0]}`);
+    expect(transferExts[0].tip.toBigInt()).to.eq(HIGH_TIP);
+    expect(transferExts[1].tip.toBigInt()).to.eq(MED_TIP);
+    expect(transferExts[2].tip.toBigInt()).to.eq(NO_TIP);
+  });
+
+  it("should treat eth and substrate txns fairly", async function () {
+    this.timeout(10000000000);
+
+    context.ethTransactionType = "EIP1559";
+
+    // tip 1 and 3 will be substrate txns, we express their tip above as per-gas but must send them
+    // expressed as a flat tip. So we query the weight and convert to gas, then multiply by the
+    // per-gas tip. We do this because it's the inverse of the txpool algo, and we want to show that
+    // this algo will order txns by tip in this test.
+    //
+    // so the expected order is:
+    // tip_0 (eth)
+    // tip_1 (substrate)
+    // tip_2 (eth)
+    // tip_3 (substrate)
+    const TIP_PER_GAS_0 = 10000n;
+    const TIP_PER_GAS_1 = 20000n;
+    const TIP_PER_GAS_2 = 30000n;
+    const TIP_PER_GAS_3 = 40000n;
+
+    // here we query the weight of a substrate balance transfer
+    const dummyTransfer = context.polkadotApi.tx.balances.transfer(alith.address, GLMR);
+    const info = await context.polkadotApi.rpc.payment
+      .queryInfo(dummyTransfer.toHex());
+    const weight = info.weight.toBigInt();
+    const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
+
+    // for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
+    // However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to 
+    // be used as-is, e.g. it must be at least (block.baseFee + maxPriorityFeePerGas)
+    const maxFeePerGas = "0x"+GLMR.toString(16);
+
+    // tx0 is an eth txn
+    const tx0 = await createTransfer(context, ethan.address, 1, {
+      from: charleth.address,
+      privateKey: CHARLETH_PRIVATE_KEY,
+      maxFeePerGas,
+      maxPriorityFeePerGas: "0x"+TIP_PER_GAS_0.toString(16),
+    });
+
+    // tx1 is a substrate txn
+    const tx1 = await context.polkadotApi.tx.balances
+      .transfer(ethan.address, GLMR)
+      .signAsync(alith, { tip: TIP_PER_GAS_1 * balances_transfer_effective_gas });
+
+    // tx2 is an eth txn
+    const tx2 = await createTransfer(context, ethan.address, 1, {
+      from: dorothy.address,
+      privateKey: DOROTHY_PRIVATE_KEY,
+      maxFeePerGas,
+      maxPriorityFeePerGas: "0x"+TIP_PER_GAS_2.toString(16),
+    });
+
+    // tx3 is a substrate txn
+    const tx3 = await context.polkadotApi.tx.balances
+      .transfer(ethan.address, GLMR)
+      .signAsync(baltathar, { tip: TIP_PER_GAS_3 * balances_transfer_effective_gas });
+
+    const result = await context.createBlock([
+      // use an order other than by priority
+      tx2, tx3, tx0, tx1,
+    ]);
+
+    // get and filter the block's extrinsics
+    const hash = result.block.hash;
+    const apiAt = await context.polkadotApi.at(hash);
+    const { block } = await context.polkadotApi.rpc.chain.getBlock(hash);
+    let transferExts = block.extrinsics.filter(ext => {
+      return (ext.method.section == "balances" && ext.method.method == "transfer")
+        || (ext.method.section == "ethereum" && ext.method.method == "transact");
+    });
+
+    console.log(`tips: ${transferExts.map((ext) => ext.tip)}`);
+
+    expect(transferExts.length).to.eq(4);
+    // TODO: these asserts fail. It would appear that the txns are executed in this order:
+    // balances, balances, ethereum, ethereum
+    //
+    // Some notes:
+    // * I have verified that the appropriate priority values are set in `validate_transaction`.
+    // * They are not simply executed in the order they are sent
+    // * Block production seems to always favor the substrate txns, perhaps because their
+    //   pre-dispatch weight is less
+    // * I'm assuming that the `block.extrinsics` above are in inclusion order, this could be wrong
+    expect(transferExts[0].method.section).to.eq("ethereum");
+    expect(transferExts[1].method.section).to.eq("balances");
+    expect(transferExts[2].method.section).to.eq("ethereum");
+    expect(transferExts[3].method.section).to.eq("balances");
+  });
+});
