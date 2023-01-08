@@ -151,6 +151,20 @@ jobs:
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
+  check-forbid-evm-reentrancy:
+    name: "Check 'forbid-evm-reentrancy'"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
+        run: ./scripts/check-forbid-evm-reentrancy.sh
+
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest

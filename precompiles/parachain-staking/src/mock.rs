@@ -143,10 +143,11 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-
+const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
+const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
+const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
@@ -154,11 +155,9 @@ parameter_types! {
 	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxTopDelegationsPerCandidate: u32 = 4;
+	pub const MaxTopDelegationsPerCandidate: u32 = 2;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
@@ -283,9 +282,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
-			collator_commission: DefaultCollatorCommission::get(),
-			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
-			blocks_per_round: DefaultBlocksPerRound::get(),
+			collator_commission: GENESIS_COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: GENESIS_PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: GENESIS_BLOCKS_PER_ROUND,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -317,7 +316,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) {
-	let block = (round - 1) * DefaultBlocksPerRound::get();
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
 }
 

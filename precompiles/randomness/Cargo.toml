@@ -32,7 +32,6 @@ nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moo
 [dev-dependencies]
 derive_more = "0.99"
 hex-literal = "0.3.4"
-serde = "1.0.100"
 
 # Moonbeam
 pallet-author-mapping = { path = "../../pallets/author-mapping" }
