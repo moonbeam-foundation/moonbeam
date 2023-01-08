@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { createTransaction } from "../../util/transactions";
+import { createTransaction, DEFAULT_TXN_MAX_BASE_FEE } from "../../util/transactions";
 import { ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 chaiUse(chaiAsPromised);
 
@@ -49,7 +49,7 @@ describeDevMoonbeamAllEthTxTypes("Moon RPC Methods - moon_isTxFinalized", (conte
         privateKey: ALITH_PRIVATE_KEY,
         to: BALTATHAR_ADDRESS,
         gas: 12_000_000,
-        gasPrice: 1_000_000_000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         value: 1_000_000,
       }),
       { finalize: true }
@@ -66,7 +66,7 @@ describeDevMoonbeamAllEthTxTypes("Moon RPC Methods - moon_isTxFinalized", (conte
         privateKey: ALITH_PRIVATE_KEY,
         to: BALTATHAR_ADDRESS,
         gas: 12_000_000,
-        gasPrice: 1_000_000_000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         value: 1_000_000,
       }),
       { finalize: false }
@@ -89,7 +89,7 @@ describeDevMoonbeamAllEthTxTypes("Moon RPC Methods - moon_isTxFinalized", (conte
         privateKey: ALITH_PRIVATE_KEY,
         to: BALTATHAR_ADDRESS,
         gas: 12_000_000,
-        gasPrice: 1_000_000_000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         value: 1_000_000,
       }),
       { finalize: false }
@@ -108,7 +108,7 @@ describeDevMoonbeamAllEthTxTypes("Moon RPC Methods - moon_isTxFinalized", (conte
           privateKey: ALITH_PRIVATE_KEY,
           to: BALTATHAR_ADDRESS,
           gas: 12_000_000,
-          gasPrice: 1_000_000_000,
+          gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
           value: 1_000_000,
         }),
         { finalize: false }
