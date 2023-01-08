@@ -66,10 +66,7 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
-use sp_runtime::{
-	traits::{Convert, One},
-	DispatchError, ModuleError, TokenError,
-};
+use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -2113,33 +2110,6 @@ fn multiplier_can_grow_from_zero() {
 			minimum_multiplier
 		);
 	})
-}
-
-#[test]
-#[ignore] // test runs for a very long time
-fn multiplier_growth_simulator() {
-	use frame_support::traits::Get;
-
-	// assume the multiplier is initially set to its minimum. We update it with values twice the
-	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
-	let block_weight = moonbase_runtime::TargetBlockFullness::get()
-		* RuntimeBlockWeights::get()
-			.get(DispatchClass::Normal)
-			.max_total
-			.unwrap()
-		* 2;
-	let mut blocks = 0;
-	while multiplier <= Multiplier::one() {
-		run_with_system_weight(block_weight, || {
-			let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
-			// ensure that it is growing as well.
-			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
-			multiplier = next;
-		});
-		blocks += 1;
-		println!("block = {} multiplier {:?}", blocks, multiplier);
-	}
 }
 
 #[test]
