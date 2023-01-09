@@ -44,6 +44,7 @@ interface XcmUtils {
         returns (uint256 unitsPerSecond);
 
     /// Execute custom xcm message
+    /// @dev This function CANNOT be called from a smart contract
     /// @custom:selector 34334a02
     /// @param message The versioned message to be executed scale encoded
     /// @param maxWeight The maximum weight to be consumed
