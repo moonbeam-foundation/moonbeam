@@ -1,6 +1,8 @@
 import fs from "fs";
 import chalk from "chalk";
 
+import type { WeightV2 } from "@polkadot/types/interfaces";
+
 import { ApiPromise } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
@@ -125,8 +127,17 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
             code.length / 1024
           )} kb])...`
         );
+        const isWeightV1 = !api.registry.createType<WeightV2>("Weight").proofSize;
         await api.tx.sudo
-          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), "1")
+          .sudoUncheckedWeight(
+            await api.tx.system.setCodeWithoutChecks(code),
+            isWeightV1
+              ? "1"
+              : {
+                  proofSize: 1,
+                  refTime: 1,
+                }
+          )
           .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       }
