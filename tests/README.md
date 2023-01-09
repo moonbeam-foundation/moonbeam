@@ -125,6 +125,15 @@ Before debugging, you need to build the node with debug symbols with command
 the left bar of VSCode and make sure **Launch Moonbeam Node (Linux)** is selected in the top
 dropdown. **Build & Launch Moonbeam Node (Linux)** will trigger the build before launching the node.
 
+Depending on what exactly you're attempting to debug, you may need other build configurations. The
+most straightforward is a debug build (omit `--release`), but this will produce a binary which is
+extremely large and performs very poorly. A `--release` build can provide some middle ground, and
+you may need some or all of:
+
+* `-g` (alias for `-C debuginfo=2`, the max)
+* `-C force-frame-pointers=yes`
+* `-Copt-level=0` (or 1, etc. This one has a big impact)
+
 To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
 time before the node starts, but the terminal containing the node output will appear when it is
 really starting. The node is listening on ports 19931 (p2p), 19932 (rpc) and 19933 (ws).
