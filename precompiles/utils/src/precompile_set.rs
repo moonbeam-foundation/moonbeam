@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::{revert, StatefulPrecompile};
+use crate::revert;
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -29,67 +29,96 @@ use sp_std::{
 	vec::Vec,
 };
 
-// CONFIGURATION TYPES
-
-mod sealed {
-	pub trait Sealed {}
-}
-
-/// How much recursion is allows for a precompile.
-pub trait RecursionLimit: sealed::Sealed {
-	fn recursion_limit() -> Option<u16>;
-}
-
-/// There is no limit to the amount times a precompiles can
-/// call itself recursively.
-/// Should be used with care as it could cause stack overflows.
-pub struct UnlimitedRecursion;
-impl sealed::Sealed for UnlimitedRecursion {}
-impl RecursionLimit for UnlimitedRecursion {
+/// Trait representing checks that can be made on a precompile call.
+/// Types implementing this trait are made to be chained in a tuple.
+/// For that reason every method returns an Option, None meaning that
+/// the implementor have no constraint and the decision is left to
+/// latter elements in the chain. If None is returned by all elements of
+/// the chain then sensible defaults are used.
+pub trait PrecompileChecks {
 	#[inline(always)]
-	fn recursion_limit() -> Option<u16> {
+	fn recursion_limit() -> Option<Option<u16>> {
+		None
+	}
+
+	#[inline(always)]
+	fn supports_delegate_call() -> Option<bool> {
+		None
+	}
+
+	#[inline(always)]
+	fn callable_by_smart_contract() -> Option<bool> {
+		None
+	}
+
+	#[inline(always)]
+	fn allow_subcalls() -> Option<bool> {
 		None
 	}
 }
 
-/// A precompile can (even indirectly) call itself with N levels of nesting.
-/// 0 = anyone can call the precompile but a subcall of the precompile will not be able to call it
-/// back (re-entrancy protection).
-pub struct LimitRecursionTo<const N: u16>;
-impl<const N: u16> sealed::Sealed for LimitRecursionTo<N> {}
-impl<const N: u16> RecursionLimit for LimitRecursionTo<N> {
+#[impl_for_tuples(0, 20)]
+impl PrecompileChecks for Tuple {
 	#[inline(always)]
-	fn recursion_limit() -> Option<u16> {
-		Some(N)
+	fn recursion_limit() -> Option<Option<u16>> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::recursion_limit() {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
+
+	#[inline(always)]
+	fn supports_delegate_call() -> Option<bool> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::supports_delegate_call() {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
+
+	#[inline(always)]
+	fn callable_by_smart_contract() -> Option<bool> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::callable_by_smart_contract() {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
+
+	#[inline(always)]
+	fn allow_subcalls() -> Option<bool> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::allow_subcalls() {
+				return Some(check);
+			}
+		)*);
+
+		None
 	}
 }
 
-pub type ForbidRecursion = LimitRecursionTo<0>;
+pub struct DelegateCallable;
 
-/// Is DELEGATECALL allowed to use for a precompile.
-pub trait DelegateCallSupport: sealed::Sealed {
-	fn allow_delegate_call() -> bool;
-}
-
-/// DELEGATECALL is forbiden.
-pub struct ForbidDelegateCall;
-impl sealed::Sealed for ForbidDelegateCall {}
-impl DelegateCallSupport for ForbidDelegateCall {
+impl PrecompileChecks for DelegateCallable {
 	#[inline(always)]
-	fn allow_delegate_call() -> bool {
-		false
+	fn supports_delegate_call() -> Option<bool> {
+		Some(true)
 	}
 }
 
-/// DELEGATECALL is allowed.
-/// Should be used with care if the precompile use
-/// custom storage, as the caller could impersonate its own caller.
-pub struct AllowDelegateCall;
-impl sealed::Sealed for AllowDelegateCall {}
-impl DelegateCallSupport for AllowDelegateCall {
+pub struct LimitRecursionTo<const R: u16>;
+
+impl<const R: u16> PrecompileChecks for LimitRecursionTo<R> {
 	#[inline(always)]
-	fn allow_delegate_call() -> bool {
-		true
+	fn recursion_limit() -> Option<Option<u16>> {
+		Some(Some(R))
 	}
 }
 
@@ -125,17 +154,16 @@ pub trait PrecompileSetFragment {
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - D: If DELEGATECALL is supported (default to no)
-pub struct PrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
+pub struct PrecompileAt<A, P, C = ()> {
 	current_recursion_level: RefCell<u16>,
-	_phantom: PhantomData<(A, P, R, D)>,
+	_phantom: PhantomData<(A, P, C)>,
 }
 
-impl<A, P, R, D> PrecompileSetFragment for PrecompileAt<A, P, R, D>
+impl<A, P, C> PrecompileSetFragment for PrecompileAt<A, P, C>
 where
 	A: Get<H160>,
 	P: Precompile,
-	R: RecursionLimit,
-	D: DelegateCallSupport,
+	C: PrecompileChecks,
 {
 	#[inline(always)]
 	fn new() -> Self {
@@ -155,14 +183,16 @@ where
 		}
 
 		// Check DELEGATECALL config.
-		if !D::allow_delegate_call() && code_address != handle.context().address {
+		let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
+		if !allow_delegate_call && code_address != handle.context().address {
 			return Some(Err(revert(
 				"Cannot be called with DELEGATECALL or CALLCODE",
 			)));
 		}
 
 		// Check and increase recursion level if needed.
-		if let Some(max_recursion_level) = R::recursion_limit() {
+		let recursion_limit = C::recursion_limit().unwrap_or(Some(0));
+		if let Some(max_recursion_level) = recursion_limit {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
 					if *recursion_level > max_recursion_level {
@@ -178,11 +208,13 @@ where
 				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
 			}
 		}
+
+		// TODO: Check called by contract + subcall protection
 
 		let res = P::execute(handle);
 
 		// Decrease recursion level if needed.
-		if R::recursion_limit().is_some() {
+		if recursion_limit.is_some() {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
 					*recursion_level -= 1;
@@ -190,96 +222,6 @@ where
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
 				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
-			}
-		}
-
-		Some(res)
-	}
-
-	#[inline(always)]
-	fn is_precompile(&self, address: H160) -> bool {
-		address == A::get()
-	}
-
-	#[inline(always)]
-	fn used_addresses(&self) -> Vec<H160> {
-		vec![A::get()]
-	}
-}
-
-/// Wraps a stateful precompile: a type implementing the `StatefulPrecompile` trait.
-/// Type parameters allow to define:
-/// - A: The address of the precompile
-/// - R: The recursion limit (defaults to 1)
-/// - D: If DELEGATECALL is supported (default to no)
-pub struct StatefulPrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
-	precompile: P,
-	current_recursion_level: RefCell<u16>,
-	_phantom: PhantomData<(A, R, D)>,
-}
-
-impl<A, P, R, D> PrecompileSetFragment for StatefulPrecompileAt<A, P, R, D>
-where
-	A: Get<H160>,
-	P: StatefulPrecompile,
-	R: RecursionLimit,
-	D: DelegateCallSupport,
-{
-	#[inline(always)]
-	fn new() -> Self {
-		Self {
-			precompile: P::new(),
-			current_recursion_level: RefCell::new(0),
-			_phantom: PhantomData,
-		}
-	}
-
-	#[inline(always)]
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
-		let code_address = handle.code_address();
-
-		// Check if this is the address of the precompile.
-		if A::get() != code_address {
-			return None;
-		}
-
-		// Check DELEGATECALL config.
-		if !D::allow_delegate_call() && code_address != handle.context().address {
-			return Some(Err(revert(
-				"Cannot be called with DELEGATECALL or CALLCODE",
-			)
-			.into()));
-		}
-
-		// Check and increase recursion level if needed.
-		if let Some(max_recursion_level) = R::recursion_limit() {
-			match self.current_recursion_level.try_borrow_mut() {
-				Ok(mut recursion_level) => {
-					if *recursion_level > max_recursion_level {
-						return Some(Err(
-							revert("Precompile is called with too high nesting").into()
-						));
-					}
-
-					*recursion_level += 1;
-				}
-				// We don't hold the borrow and are in single-threaded code, thus we should
-				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
-			}
-		}
-
-		let res = self.precompile.execute(handle);
-
-		// Decrease recursion level if needed.
-		if R::recursion_limit().is_some() {
-			match self.current_recursion_level.try_borrow_mut() {
-				Ok(mut recursion_level) => {
-					*recursion_level -= 1;
-				}
-				// We don't hold the borrow and are in single-threaded code, thus we should
-				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 
@@ -302,18 +244,17 @@ where
 /// Type parameters allow to define:
 /// - A: The common prefix
 /// - D: If DELEGATECALL is supported (default to no)
-pub struct PrecompileSetStartingWith<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
+pub struct PrecompileSetStartingWith<A, P, C = ()> {
 	precompile_set: P,
 	current_recursion_level: RefCell<BTreeMap<H160, u16>>,
-	_phantom: PhantomData<(A, R, D)>,
+	_phantom: PhantomData<(A, C)>,
 }
 
-impl<A, P, R, D> PrecompileSetFragment for PrecompileSetStartingWith<A, P, R, D>
+impl<A, P, C> PrecompileSetFragment for PrecompileSetStartingWith<A, P, C>
 where
 	A: Get<&'static [u8]>,
 	P: PrecompileSet + Default,
-	R: RecursionLimit,
-	D: DelegateCallSupport,
+	C: PrecompileChecks,
 {
 	#[inline(always)]
 	fn new() -> Self {
@@ -333,14 +274,16 @@ where
 		}
 
 		// Check DELEGATECALL config.
-		if !D::allow_delegate_call() && code_address != handle.context().address {
+		let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
+		if !allow_delegate_call && code_address != handle.context().address {
 			return Some(Err(revert(
 				"Cannot be called with DELEGATECALL or CALLCODE",
 			)));
 		}
 
 		// Check and increase recursion level if needed.
-		if let Some(max_recursion_level) = R::recursion_limit() {
+		let recursion_limit = C::recursion_limit().unwrap_or(Some(0));
+		if let Some(max_recursion_level) = recursion_limit {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level_map) => {
 					let recursion_level = recursion_level_map.entry(code_address).or_insert(0);
@@ -360,7 +303,7 @@ where
 		let res = self.precompile_set.execute(handle);
 
 		// Decrease recursion level if needed.
-		if R::recursion_limit().is_some() {
+		if recursion_limit.is_some() {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level_map) => {
 					let recursion_level = match recursion_level_map.get_mut(&code_address) {

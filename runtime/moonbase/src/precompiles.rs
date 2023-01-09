@@ -100,15 +100,15 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 			(
 				// Ethereum precompiles:
 				// We allow DELEGATECALL to stay compliant with Ethereum behavior.
-				PrecompileAt<AddressU64<1>, ECRecover, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<2>, Sha256, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<3>, Ripemd160, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<4>, Identity, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<5>, Modexp, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<6>, Bn128Add, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<7>, Bn128Mul, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<8>, Bn128Pairing, ForbidRecursion, AllowDelegateCall>,
-				PrecompileAt<AddressU64<9>, Blake2F, ForbidRecursion, AllowDelegateCall>,
+				PrecompileAt<AddressU64<1>, ECRecover, DelegateCallable>,
+				PrecompileAt<AddressU64<2>, Sha256, DelegateCallable>,
+				PrecompileAt<AddressU64<3>, Ripemd160, DelegateCallable>,
+				PrecompileAt<AddressU64<4>, Identity, DelegateCallable>,
+				PrecompileAt<AddressU64<5>, Modexp, DelegateCallable>,
+				PrecompileAt<AddressU64<6>, Bn128Add, DelegateCallable>,
+				PrecompileAt<AddressU64<7>, Bn128Mul, DelegateCallable>,
+				PrecompileAt<AddressU64<8>, Bn128Pairing, DelegateCallable>,
+				PrecompileAt<AddressU64<9>, Blake2F, DelegateCallable>,
 				// Non-Moonbeam specific nor Ethereum precompiles :
 				PrecompileAt<AddressU64<1024>, Sha3FIPS256>,
 				// PrecompileAt<AddressU64<1025>, Dispatch<R>>,
