@@ -742,7 +742,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			// WithdrawAsset
 			// BuyExecution
-			// SetAppendix(DepositAsset(sov account))
+			// SetAppendix(RefundSurplus, DepositAsset(sov account))
 			// Transact
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
@@ -796,7 +796,7 @@ pub mod pallet {
 			);
 
 			// The appendix instruction will be a deposit back to a self location
-			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
+			let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				destination,
@@ -806,7 +806,7 @@ pub mod pallet {
 				OriginKind::Native,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				Some(vec![appendix]),
+				Some(vec![RefundSurplus, deposit_appendix]),
 			)?;
 
 			Self::deposit_event(Event::HrmpManagementSent { action });

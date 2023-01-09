@@ -16,7 +16,6 @@
 
 //! Parachain runtime mock.
 
-use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_support::{
 	construct_runtime,
 	dispatch::GetDispatchInfo,
@@ -36,6 +35,7 @@ use sp_runtime::{
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use orml_traits::parameter_type_with_key;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
