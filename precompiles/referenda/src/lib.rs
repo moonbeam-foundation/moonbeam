@@ -54,7 +54,10 @@ pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> ReferendaPrecompile<Runtime>
 where
-	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_referenda::Config
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_governance_origins::Config,
 	OriginOf<Runtime>: From<pallet_governance_origins::Origin>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -147,7 +150,7 @@ where
 	/// * proposal: The proposed runtime call.
 	/// * at: If true then AT block_number, else AFTER block_number
 	/// * block_number: Inner block number for DispatchTime
-	#[precompile::public("submit(uint8,bytes32,bool,uint32)")]
+	#[precompile::public("submit(uint8,bytes,bool,uint32)")]
 	fn submit(
 		handle: &mut impl PrecompileHandle,
 		proposal_origin: u8,

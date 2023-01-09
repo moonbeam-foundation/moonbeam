@@ -18,7 +18,9 @@
 use super::*;
 use frame_support::{
 	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{ConstU32, ConstU64, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
+	traits::{
+		ConstU128, ConstU32, ConstU64, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally,
+	},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
@@ -55,6 +57,7 @@ construct_runtime!(
 		Preimage: pallet_preimage,
 		Scheduler: pallet_scheduler,
 		Referenda: pallet_referenda,
+		GovernanceOrigins: pallet_governance_origins::{Pallet, Origin},
 	}
 );
 
@@ -325,6 +328,14 @@ impl pallet_referenda::Config for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TestTracksInfo;
 	type Preimages = Preimage;
+}
+
+impl pallet_governance_origins::Config for Runtime {
+	type Currency = pallet_balances::Pallet<Self>;
+	type MaxSmallSpenderSpend = ConstU128<1>;
+	type MaxMediumSpenderSpend = ConstU128<1>;
+	type MaxBigSpenderSpend = ConstU128<1>;
+	type MaxTreasurerSpend = ConstU128<1>;
 }
 
 /// Externality builder for pallet referenda mock runtime
