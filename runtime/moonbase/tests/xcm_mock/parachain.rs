@@ -36,6 +36,7 @@ use sp_runtime::{
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use orml_traits::parameter_type_with_key;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
@@ -942,12 +943,26 @@ pub enum RelayCall {
 	#[codec(index = 5u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
+	#[codec(index = 6u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Hrmp(HrmpCall),
 }
 
 #[derive(Encode, Decode)]
 pub enum UtilityCall {
 	#[codec(index = 1u8)]
 	AsDerivative(u16),
+}
+
+// HRMP call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	InitOpenChannel(ParaId, u32, u32),
+	#[codec(index = 1u8)]
+	AcceptOpenChannel(ParaId),
+	#[codec(index = 2u8)]
+	CloseChannel(HrmpChannelId),
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -972,6 +987,26 @@ impl xcm_primitives::RelayEncodeCall for MockTransactors {
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 					call.append(&mut b.clone());
 					call
+				}
+			},
+		}
+	}
+
+	fn hrmp_encode_call(
+		self,
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(
+					RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()))
+						.encode(),
+				),
+				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
+					Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+				}
+				xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
+					Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 				}
 			},
 		}
