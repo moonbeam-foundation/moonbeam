@@ -16,6 +16,7 @@
 
 //! Parachain runtime mock.
 
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_support::{
 	construct_runtime,
 	dispatch::GetDispatchInfo,
@@ -24,7 +25,6 @@ use frame_support::{
 	weights::Weight,
 	PalletId,
 };
-use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
@@ -975,13 +975,16 @@ impl xcm_primitives::RelayEncodeCall for MockTransactors {
 		}
 	}
 
-	fn hrmp_encode_call(self, call: xcm_primitives::HrmpAvailableCalls) -> Result<Vec<u8>, xcm::latest::Error>{
+	fn hrmp_encode_call(
+		self,
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match self {
 			MockTransactors::Relay => match call {
-				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-					HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
-				)
-				.encode()),
+				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(
+					RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()))
+						.encode(),
+				),
 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
 					Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
 				}

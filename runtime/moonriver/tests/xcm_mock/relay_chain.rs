@@ -349,7 +349,6 @@ pub(crate) fn relay_roll_to(n: BlockNumber) {
 	}
 }
 
-
 /// A weight info that is only suitable for testing.
 pub struct TestHrmpWeightInfo;
 

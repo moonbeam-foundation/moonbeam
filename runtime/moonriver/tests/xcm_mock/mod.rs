@@ -23,8 +23,10 @@ use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
+use polkadot_runtime_parachains::configuration::{
+	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
+};
 use polkadot_runtime_parachains::paras::{GenesisConfig as ParasGenesisConfig, ParaGenesisArgs};
-use polkadot_runtime_parachains::configuration::{HostConfiguration, GenesisConfig as ConfigurationGenesisConfig};
 use sp_core::{H160, U256};
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -33,6 +35,10 @@ pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account_truncating()
+}
+
+pub fn para_b_account() -> AccountId32 {
+	ParaId::from(2).into_account_truncating()
 }
 
 pub fn evm_account() -> H160 {
@@ -53,10 +59,10 @@ pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
 		hrmp_channel_max_total_size: u32::MAX,
 		hrmp_max_parachain_inbound_channels: 10,
 		hrmp_max_parachain_outbound_channels: 10,
+		hrmp_channel_max_message_size: u32::MAX,
 		..Default::default()
 	}
 }
-
 
 decl_test_parachain! {
 	pub struct ParaA {
@@ -225,6 +231,7 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 }
 
 pub type RelayChainPalletXcm = pallet_xcm::Pallet<relay_chain::Runtime>;
+pub type Hrmp = polkadot_runtime_parachains::hrmp::Pallet<relay_chain::Runtime>;
 
 pub type StatemineBalances = pallet_balances::Pallet<statemine_like::Runtime>;
 pub type StatemineChainPalletXcm = pallet_xcm::Pallet<statemine_like::Runtime>;
