@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import { GLMR, PRECOMPILE_XCM_UTILS_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes, describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { generateKeyringPair } from "../../util/accounts";
 import { BN } from "@polkadot/util";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
@@ -199,6 +199,51 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     expect(testAccountBalance).to.eq(1n * GLMR);
   });
 });
+
+describeDevMoonbeam(
+  "Precompiles - xcm utils",
+  (context) => {
+    it("moonriver does not allow to execute a custom xcm message", async function () {
+      let random = generateKeyringPair();
+
+      const transferCall = context.polkadotApi.tx.balances.transfer(random.address, 1n * GLMR);
+      const transferCallEncoded = transferCall?.method.toHex();
+
+      const xcmMessage = {
+        V2: [
+          {
+            Transact: {
+              originType: "SovereignAccount",
+              requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)), // 21_000 gas limit
+              call: {
+                encoded: transferCallEncoded,
+              },
+            },
+          },
+        ],
+      };
+
+      const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        xcmMessage
+      ) as any;
+
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_XCM_UTILS_ADDRESS,
+          data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+            receivedMessage.toU8a(),
+            2_000_000_000,
+          ]),
+        })
+      );
+      expectEVMResult(result.events, "Revert");
+    });
+  },
+  "Legacy",
+  "moonriver"
+);
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
   it("allows to execute a custom xcm evm to evm, but reentrancy forbids", async function () {
