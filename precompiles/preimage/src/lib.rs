@@ -51,7 +51,7 @@ where
 	/// Register a preimage on-chain.
 	///
 	/// Parameters:
-	/// * bytes: The preimage registered on-chain
+	/// * encoded_proposal: The preimage registered on-chain
 	#[precompile::public("notePreimage(bytes)")]
 	fn note_preimage(
 		handle: &mut impl PrecompileHandle,
@@ -70,7 +70,7 @@ where
 	/// Clear an unrequested preimage from the runtime storage.
 	///
 	/// Parameters:
-	/// * hash: The preimage cleared from the runtime storage
+	/// * hash: The preimage cleared from storage
 	#[precompile::public("unnotePreimage(bytes32)")]
 	fn unnote_preimage(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult {
 		let hash: Runtime::Hash = hash

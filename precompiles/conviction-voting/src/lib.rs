@@ -128,28 +128,6 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("removeVoteForClass(uint256,uint256)")]
-	fn remove_vote_for_class(
-		handle: &mut impl PrecompileHandle,
-		class: SolidityConvert<U256, u16>,
-		poll_index: SolidityConvert<U256, u32>,
-	) -> EvmResult {
-		let class = Some(Self::u16_to_class(class.converted()).in_field("class")?);
-		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
-
-		log::trace!(
-			target: "conviction-voting-precompile",
-			"Removing vote from poll {:?}",
-			index
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::remove_vote { class, index };
-
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
-	}
 	#[precompile::public("removeOtherVote(address,uint256,uint256)")]
 	fn remove_other_vote(
 		handle: &mut impl PrecompileHandle,
@@ -181,6 +159,7 @@ where
 
 		Ok(())
 	}
+
 	#[precompile::public("delegate(uint256,address,uint256,uint256)")]
 	fn delegate(
 		handle: &mut impl PrecompileHandle,
