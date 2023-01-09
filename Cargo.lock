@@ -14714,6 +14714,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex",
+ "impl-trait-for-tuples",
  "log",
  "orml-traits",
  "parity-scale-codec",
