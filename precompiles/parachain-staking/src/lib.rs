@@ -804,6 +804,23 @@ where
 		Ok(amount.into())
 	}
 
+	#[precompile::public("getCandidateTotalBacked(address)")]
+	#[precompile::view]
+	fn get_candidate_total_backed(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<U256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		let amount = <pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+			.map(|state| state.total_counted)
+			.unwrap_or_default();
+
+		Ok(amount.into())
+	}
+
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
 		value
 			.try_into()
