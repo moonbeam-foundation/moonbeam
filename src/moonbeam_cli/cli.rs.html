@@ -293,6 +293,7 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -423,6 +424,7 @@
 }
 
 <span class="attribute">#[derive(Debug, Parser)]
+#[group(skip)]
 </span><span class="kw">pub struct </span>RunCmd {
 	<span class="attribute">#[clap(flatten)]
 	</span><span class="kw">pub </span>base: cumulus_client_cli::RunCmd,
