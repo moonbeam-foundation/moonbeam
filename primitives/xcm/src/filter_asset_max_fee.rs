@@ -20,7 +20,7 @@ use xcm_builder::Case;
 
 /// Filters max fee for a given multiasset.
 /// It takes self (a multiasset) and runs contains in the argument multiasset
-/// Can be amalgamated into tuples. 
+/// Can be amalgamated into tuples.
 /// If any item returns `true`, it short-circuits, else `false` is returned.
 pub trait FilterMaxAssetFee {
 	/// A filter to be able to compare against a max asset.
