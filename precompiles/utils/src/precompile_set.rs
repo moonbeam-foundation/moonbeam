@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::revert;
+use crate::{revert, substrate::RuntimeHelper};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -37,21 +37,36 @@ use sp_std::{
 /// the chain then sensible defaults are used.
 pub trait PrecompileChecks {
 	#[inline(always)]
+	/// Is there a limit to the amount of recursions this precompile
+	/// can make using subcalls? 0 means this specific precompile will not
+	/// be callable as a subcall of itself, 1 will allow one level of recursion,
+	/// etc...
+	///
+	/// If all checks return None, defaults to `Some(0)` (no recursion allowed).
 	fn recursion_limit() -> Option<Option<u16>> {
 		None
 	}
 
 	#[inline(always)]
+	/// Does this precompile supports being called with DELEGATECALL or CALLCODE?
+	///
+	/// If all checks return None, defaults to `false`.
 	fn supports_delegate_call() -> Option<bool> {
 		None
 	}
 
 	#[inline(always)]
-	fn callable_by_smart_contract() -> Option<bool> {
+	/// Is this precompile callable by a smart contract?
+	///
+	/// If all checks return None, defaults to `false`.
+	fn callable_by_smart_contract(_called_selector: Option<u32>) -> Option<bool> {
 		None
 	}
 
 	#[inline(always)]
+	/// Is this precompile able to do subcalls?
+	///
+	/// If all checks return None, defaults to `false`.
 	fn allow_subcalls() -> Option<bool> {
 		None
 	}
@@ -82,9 +97,9 @@ impl PrecompileChecks for Tuple {
 	}
 
 	#[inline(always)]
-	fn callable_by_smart_contract() -> Option<bool> {
+	fn callable_by_smart_contract(called_selector: Option<u32>) -> Option<bool> {
 		for_tuples!(#(
-			if let Some(check) = Tuple::callable_by_smart_contract() {
+			if let Some(check) = Tuple::callable_by_smart_contract(called_selector) {
 				return Some(check);
 			}
 		)*);
@@ -104,6 +119,7 @@ impl PrecompileChecks for Tuple {
 	}
 }
 
+/// Precompile can be called using DELEGATECALL/CALLCODE.
 pub struct DelegateCallable;
 
 impl PrecompileChecks for DelegateCallable {
@@ -113,6 +129,7 @@ impl PrecompileChecks for DelegateCallable {
 	}
 }
 
+/// Precompile is able to do subcalls with provided nesting limit.
 pub struct SubcallWithMaxNesting<const R: u16>;
 
 impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
@@ -125,6 +142,63 @@ impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
 	fn allow_subcalls() -> Option<bool> {
 		Some(true)
 	}
+}
+
+/// Smart contracts are allowed to call ANY function of this precompile.
+pub struct ContractCanCall;
+
+impl PrecompileChecks for ContractCanCall {
+	#[inline(always)]
+	fn callable_by_smart_contract(_called_selector: Option<u32>) -> Option<bool> {
+		Some(true)
+	}
+}
+
+pub trait CanContractCallSelector {
+	fn can_contract_call_selector(_selector: Option<u32>) -> bool;
+}
+
+/// Smart contracts are allowed to only call functions with selector satisfying `T`.
+pub struct ContractCanCallSelector<T>(PhantomData<T>);
+
+impl<T: CanContractCallSelector> PrecompileChecks for ContractCanCallSelector<T> {
+	#[inline(always)]
+	fn callable_by_smart_contract(called_selector: Option<u32>) -> Option<bool> {
+		Some(T::can_contract_call_selector(called_selector))
+	}
+}
+
+/// Common checks for precompile and precompile sets.
+/// Don't contain recursion check as precompile sets have recursion check for each member.
+fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
+	handle: &mut impl PrecompileHandle,
+) -> Result<(), fp_evm::PrecompileFailure> {
+	let code_address = handle.code_address();
+
+	// Check DELEGATECALL config.
+	let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
+	if !allow_delegate_call && code_address != handle.context().address {
+		return Err(revert("Cannot be called with DELEGATECALL or CALLCODE"));
+	}
+
+	// Callable by smart contract.
+	let selector = handle.input().get(0..4).map(|bytes| {
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(bytes);
+		u32::from_be_bytes(buffer)
+	});
+	let callable_by_smart_contract = C::callable_by_smart_contract(selector).unwrap_or(false);
+	if !callable_by_smart_contract {
+		handle.record_cost(RuntimeHelper::<R>::db_read_gas_cost())?;
+		let caller_code = pallet_evm::Pallet::<R>::account_codes(handle.context().caller);
+		// Check that caller is not a smart contract s.t. no code is inserted into
+		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
+		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
+			return Err(revert("Function not callable by smart contracts"));
+		}
+	}
+
+	Ok(())
 }
 
 pub struct AddressU64<const N: u64>;
@@ -209,7 +283,10 @@ pub trait PrecompileSetFragment {
 	fn new() -> Self;
 
 	/// Execute the fragment.
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult>;
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult>;
 
 	/// Is the provided address a precompile in this fragment?
 	fn is_precompile(&self, address: H160) -> bool;
@@ -243,7 +320,10 @@ where
 	}
 
 	#[inline(always)]
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
 		let code_address = handle.code_address();
 
 		// Check if this is the address of the precompile.
@@ -251,12 +331,9 @@ where
 			return None;
 		}
 
-		// Check DELEGATECALL config.
-		let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
-		if !allow_delegate_call && code_address != handle.context().address {
-			return Some(Err(revert(
-				"Cannot be called with DELEGATECALL or CALLCODE",
-			)));
+		// Perform common checks.
+		if let Err(err) = common_checks::<R, C>(handle) {
+			return Some(Err(err));
 		}
 
 		// Check and increase recursion level if needed.
@@ -278,7 +355,7 @@ where
 			}
 		}
 
-		// TODO: Check called by contract + subcall protection
+		// Subcall protection.
 		let allow_subcalls = C::allow_subcalls().unwrap_or(false);
 		let mut handle = RestrictiveHandle {
 			handle,
@@ -340,19 +417,19 @@ where
 	}
 
 	#[inline(always)]
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
 		let code_address = handle.code_address();
 
 		if !self.is_precompile(code_address) {
 			return None;
 		}
 
-		// Check DELEGATECALL config.
-		let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
-		if !allow_delegate_call && code_address != handle.context().address {
-			return Some(Err(revert(
-				"Cannot be called with DELEGATECALL or CALLCODE",
-			)));
+		// Perform common checks.
+		if let Err(err) = common_checks::<R, C>(handle) {
+			return Some(Err(err));
 		}
 
 		// Check and increase recursion level if needed.
@@ -374,6 +451,7 @@ where
 			}
 		}
 
+		// Subcall protection.
 		let allow_subcalls = C::allow_subcalls().unwrap_or(false);
 		let mut handle = RestrictiveHandle {
 			handle,
@@ -428,7 +506,10 @@ where
 	}
 
 	#[inline(always)]
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
 		if A::get() == handle.code_address() {
 			Some(Err(revert("revert")))
 		} else {
@@ -458,9 +539,12 @@ impl PrecompileSetFragment for Tuple {
 	}
 
 	#[inline(always)]
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
 		for_tuples!(#(
-			if let Some(res) = self.Tuple.execute(handle) {
+			if let Some(res) = self.Tuple.execute::<R>(handle) {
 				return Some(res);
 			}
 		)*);
@@ -514,9 +598,12 @@ where
 		}
 	}
 
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
 		if self.range.contains(&handle.code_address()) {
-			self.inner.execute(handle)
+			self.inner.execute::<R>(handle)
 		} else {
 			None
 		}
@@ -541,9 +628,9 @@ pub struct PrecompileSetBuilder<R, P> {
 	_phantom: PhantomData<R>,
 }
 
-impl<R, P: PrecompileSetFragment> PrecompileSet for PrecompileSetBuilder<R, P> {
+impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSet for PrecompileSetBuilder<R, P> {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
-		self.inner.execute(handle)
+		self.inner.execute::<R>(handle)
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {

@@ -22,8 +22,8 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
-use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
+use precompile_utils::{data::Address, precompile_set::CanContractCallSelector};
 use sp_runtime::{codec::Decode, traits::StaticLookup};
 use sp_std::marker::PhantomData;
 
@@ -31,6 +31,30 @@ use sp_std::marker::PhantomData;
 mod mock;
 #[cfg(test)]
 mod tests;
+
+pub struct ContractSafeSelectors<Runtime>(PhantomData<Runtime>);
+
+impl<Runtime> CanContractCallSelector for ContractSafeSelectors<Runtime>
+where
+	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+{
+	fn can_contract_call_selector(selector: Option<u32>) -> bool {
+		match selector {
+			None => false,
+			Some(selector) => {
+				ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector)
+			}
+		}
+	}
+}
 
 /// A precompile to wrap the functionality from pallet-proxy.
 pub struct ProxyPrecompile<Runtime>(PhantomData<Runtime>);
