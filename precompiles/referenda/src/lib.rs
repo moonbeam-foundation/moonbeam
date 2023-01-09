@@ -26,7 +26,7 @@ use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use precompile_utils::prelude::*;
 use sp_core::U256;
-use sp_std::marker::PhantomData;
+use sp_std::{boxed::Box, marker::PhantomData};
 
 #[cfg(test)]
 mod mock;
