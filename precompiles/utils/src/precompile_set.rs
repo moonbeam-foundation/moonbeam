@@ -23,7 +23,7 @@ use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
 use pallet_evm::AddressMapping;
-use sp_core::H160;
+use sp_core::{H160, H256};
 use sp_std::{
 	cell::RefCell, collections::btree_map::BTreeMap, marker::PhantomData, ops::RangeInclusive, vec,
 	vec::Vec,
@@ -113,12 +113,17 @@ impl PrecompileChecks for DelegateCallable {
 	}
 }
 
-pub struct LimitRecursionTo<const R: u16>;
+pub struct SubcallWithMaxNesting<const R: u16>;
 
-impl<const R: u16> PrecompileChecks for LimitRecursionTo<R> {
+impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
 	#[inline(always)]
 	fn recursion_limit() -> Option<Option<u16>> {
 		Some(Some(R))
+	}
+
+	#[inline(always)]
+	fn allow_subcalls() -> Option<bool> {
+		Some(true)
 	}
 }
 
@@ -127,6 +132,70 @@ impl<const N: u64> Get<H160> for AddressU64<N> {
 	#[inline(always)]
 	fn get() -> H160 {
 		H160::from_low_u64_be(N)
+	}
+}
+
+pub struct RestrictiveHandle<'a, H> {
+	handle: &'a mut H,
+	allow_subcalls: bool,
+}
+
+impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
+	fn call(
+		&mut self,
+		address: H160,
+		transfer: Option<evm::Transfer>,
+		input: Vec<u8>,
+		target_gas: Option<u64>,
+		is_static: bool,
+		context: &evm::Context,
+	) -> (evm::ExitReason, Vec<u8>) {
+		if !self.allow_subcalls {
+			return (
+				evm::ExitReason::Revert(evm::ExitRevert::Reverted),
+				crate::encoded_revert("subcalls disabled for this precompile"),
+			);
+		}
+
+		self.handle
+			.call(address, transfer, input, target_gas, is_static, context)
+	}
+
+	fn record_cost(&mut self, cost: u64) -> Result<(), evm::ExitError> {
+		self.handle.record_cost(cost)
+	}
+
+	fn remaining_gas(&self) -> u64 {
+		self.handle.remaining_gas()
+	}
+
+	fn log(
+		&mut self,
+		address: H160,
+		topics: Vec<H256>,
+		data: Vec<u8>,
+	) -> Result<(), evm::ExitError> {
+		self.handle.log(address, topics, data)
+	}
+
+	fn code_address(&self) -> H160 {
+		self.handle.code_address()
+	}
+
+	fn input(&self) -> &[u8] {
+		self.handle.input()
+	}
+
+	fn context(&self) -> &evm::Context {
+		self.handle.context()
+	}
+
+	fn is_static(&self) -> bool {
+		self.handle.is_static()
+	}
+
+	fn gas_limit(&self) -> Option<u64> {
+		self.handle.gas_limit()
 	}
 }
 
@@ -210,8 +279,13 @@ where
 		}
 
 		// TODO: Check called by contract + subcall protection
+		let allow_subcalls = C::allow_subcalls().unwrap_or(false);
+		let mut handle = RestrictiveHandle {
+			handle,
+			allow_subcalls,
+		};
 
-		let res = P::execute(handle);
+		let res = P::execute(&mut handle);
 
 		// Decrease recursion level if needed.
 		if recursion_limit.is_some() {
@@ -300,7 +374,13 @@ where
 			}
 		}
 
-		let res = self.precompile_set.execute(handle);
+		let allow_subcalls = C::allow_subcalls().unwrap_or(false);
+		let mut handle = RestrictiveHandle {
+			handle,
+			allow_subcalls,
+		};
+
+		let res = self.precompile_set.execute(&mut handle);
 
 		// Decrease recursion level if needed.
 		if recursion_limit.is_some() {

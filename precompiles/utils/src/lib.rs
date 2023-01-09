@@ -34,7 +34,7 @@ pub mod testing;
 mod tests;
 
 use crate::alloc::{borrow::ToOwned, vec::Vec};
-use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
+use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileOutput};
 
 pub mod data;
 

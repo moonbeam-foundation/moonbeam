@@ -99,7 +99,7 @@ impl pallet_balances::Config for Runtime {
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<1>>,
+		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, SubcallWithMaxNesting<1>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;

@@ -119,9 +119,9 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2053>, RelayEncoderPrecompile<R, KusamaEncoder>>,
 				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingPrecompile<R>>,
-				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				PrecompileAt<AddressU64<2057>, RandomnessPrecompile<R>>,
-				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
+				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, SubcallWithMaxNesting<2>>,
+				PrecompileAt<AddressU64<2057>, RandomnessPrecompile<R>, SubcallWithMaxNesting<0>>,
+				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>, SubcallWithMaxNesting<0>>,
 				// PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2060>, XcmUtilsPrecompile<R, XcmExecutorConfig>>,
 				// PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>>, (Moonbase only)
