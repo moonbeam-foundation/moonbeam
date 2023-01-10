@@ -50,7 +50,7 @@
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "tsc; cp -r contracts build/",
-    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-assets-erc20-low-level.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-proxy.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "clean": "rimraf *.log binaries/* runtimes/* specs/*"
