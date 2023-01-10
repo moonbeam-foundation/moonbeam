@@ -78,6 +78,18 @@ impl<'a> EvmDataReader<'a> {
 		Ok(selector)
 	}
 
+	/// Read selector as u32
+	pub fn read_u32_selector(input: &'a [u8]) -> MayRevert<u32> {
+		if input.len() < 4 {
+			return Err(RevertReason::read_out_of_bounds("selector").into());
+		}
+
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(&input[0..4]);
+
+		Ok(u32::from_be_bytes(buffer))
+	}
+
 	/// Create a new input parser from a selector-initial input.
 	pub fn new_skip_selector(input: &'a [u8]) -> MayRevert<Self> {
 		if input.len() < 4 {
