@@ -16,6 +16,7 @@
 
 //! Common functions to access xcm-transactor pallet dispatchables
 
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -34,7 +35,9 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{
+	AccountIdToCurrencyId, HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls,
+};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
@@ -442,5 +445,101 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+
+	pub(crate) fn encode_utility_as_derivative(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let transactor: TransactorOf<Runtime> = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let encoded = RelayEncodeCall::utility_encode_call(
+			transactor,
+			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
+		)
+		.as_slice()
+		.into();
+		Ok(encoded)
+	}
+
+	pub(crate) fn encode_hrmp_init_open_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		recipient: u32,
+		max_capacity: u32,
+		max_message_size: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let transactor: TransactorOf<Runtime> = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let encoded = RelayEncodeCall::hrmp_encode_call(
+			transactor,
+			HrmpAvailableCalls::InitOpenChannel(recipient.into(), max_capacity, max_message_size),
+		)
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
+		Ok(encoded)
+	}
+
+	pub(crate) fn encode_hrmp_accept_open_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		sender: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let transactor: TransactorOf<Runtime> = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let encoded = RelayEncodeCall::hrmp_encode_call(
+			transactor,
+			HrmpAvailableCalls::AcceptOpenChannel(sender.into()),
+		)
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
+		Ok(encoded)
+	}
+
+	pub(crate) fn encode_hrmp_close_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		sender: u32,
+		recipient: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let transactor: TransactorOf<Runtime> = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let encoded = RelayEncodeCall::hrmp_encode_call(
+			transactor,
+			HrmpAvailableCalls::CloseChannel(HrmpChannelId { sender: sender.into(), recipient: recipient.into() }),
+		)
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
+		Ok(encoded)
 	}
 }

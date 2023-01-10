@@ -137,4 +137,46 @@ interface XcmTransactorV2 {
         uint256 feeAmount,
         uint64 overallWeight
     ) external;
+
+    /// @dev Encode 'utility.as_derivative' relay call
+    /// @custom:selector ff86378d
+    /// @param transactor The transactor to be used
+    /// @param index: The derivative index to use
+    /// @param innerCall: The inner call to be executed from the derivated address
+    /// @return result The bytes associated with the encoded call
+    function encodeUtilityAsDerivative(uint8 transactor, uint16 index, bytes memory innerCall)
+        external
+        pure
+        returns (bytes memory result);
+
+    /// @dev Encode 'hrmp.init_open_channel' relay call
+    /// @custom:selector fff7254e
+    /// @param transactor The transactor to be used
+    /// @param recipient: The paraId to whom we want to initiate the open channel
+    /// @param maxCapacity: The maximum capacity for the channel
+    /// @param maxMessageSize: The maximum message size for the channel
+    /// @return result The bytes associated with the encoded call
+    function encodeHrmpInitOpenChannel(uint8 transactor, uint32 recipient, uint32 maxCapacity, uint32 maxMessageSize)
+        external
+        pure
+        returns (bytes memory result);
+    
+    /// @dev Encode 'hrmp.accept_open_channel' relay call
+    /// @custom:selector c49fa6b5
+    /// @param transactor The transactor to be used
+    /// @param sender: The paraId from which we want to accept the channel
+    function encodeHrmpAcceptOpenChannel(uint8 transactor, uint32 sender)
+        external
+        pure
+        returns (bytes memory result);
+
+    /// @dev Encode 'hrmp.close_channel' relay call
+    /// @custom:selector 8f041b72
+    /// @param transactor The transactor to be used
+    /// @param sender: The paraId of the sender
+    /// @param sender: The paraId of the recipient
+    function encodeHrmpCloseChannel(uint8 transactor, uint32 sender, uint32 recipient)
+        external
+        pure
+        returns (bytes memory result);
 }

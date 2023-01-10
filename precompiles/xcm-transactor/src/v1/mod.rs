@@ -165,4 +165,60 @@ where
 			handle, dest, fee_asset, weight, call,
 		)
 	}
+
+	#[precompile::public("encodeUtilityAsDerivative(uint8,uint16,bytes)")]
+	#[precompile::public("encode_utility_as_derivative(uint8,uint16,bytes)")]
+	#[precompile::view]
+	fn encode_utility_as_derivative(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult<UnboundedBytes> {
+		XcmTransactorWrapper::<Runtime>::encode_utility_as_derivative(
+			handle, transactor, index, inner_call,
+		)
+	}
+
+	#[precompile::public("encodeHrmpInitOpenChannel(uint8,uint32,uint32,uint32)")]
+	#[precompile::public("encode_hrmp_init_open_channel(uint8,uint32,uint32,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_init_open_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		recipient: u32,
+		max_capacity: u32,
+		max_message_size: u32,
+	) -> EvmResult<UnboundedBytes> {
+		XcmTransactorWrapper::<Runtime>::encode_hrmp_init_open_channel(
+			handle, transactor, recipient, max_capacity, max_message_size
+		)
+	}
+
+	#[precompile::public("encodeHrmpAcceptOpenChannel(uint8,uint32)")]
+	#[precompile::public("encode_hrmp_accept_open_channel(uint8,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_accept_open_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		sender: u32,
+	) -> EvmResult<UnboundedBytes> {
+		XcmTransactorWrapper::<Runtime>::encode_hrmp_accept_open_channel(
+			handle, transactor, sender
+		)
+	}
+
+	#[precompile::public("encodeHrmpCloseChannel(uint8,uint32,uint32)")]
+	#[precompile::public("encode_hrmp_close_channel(uint8,uint32,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_close_channel(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		sender: u32,
+		recipient: u32
+	) -> EvmResult<UnboundedBytes> {
+		XcmTransactorWrapper::<Runtime>::encode_hrmp_close_channel(
+			handle, transactor, sender, recipient
+		)
+	}
 }
