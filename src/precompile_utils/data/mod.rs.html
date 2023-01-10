@@ -392,6 +392,18 @@
 <span id="392">392</span>
 <span id="393">393</span>
 <span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -470,6 +482,18 @@
 		})<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(selector)
+	}
+
+	<span class="doccomment">/// Read selector as u32
+	</span><span class="kw">pub fn </span>read_u32_selector(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; MayRevert&lt;u32&gt; {
+		<span class="kw">if </span>input.len() &lt; <span class="number">4 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into());
+		}
+
+		<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
+		buffer.copy_from_slice(<span class="kw-2">&amp;</span>input[<span class="number">0</span>..<span class="number">4</span>]);
+
+		<span class="prelude-val">Ok</span>(u32::from_be_bytes(buffer))
 	}
 
 	<span class="doccomment">/// Create a new input parser from a selector-initial input.

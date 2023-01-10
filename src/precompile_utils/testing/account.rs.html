@@ -165,6 +165,20 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -233,6 +247,13 @@
 	</span>}
 }
 
+<span class="kw">impl </span>From&lt;MockAccount&gt; <span class="kw">for </span>[u8; <span class="number">20</span>] {
+	<span class="kw">fn </span>from(account: MockAccount) -&gt; [u8; <span class="number">20</span>] {
+		<span class="kw">let </span>x: H160 = account.into();
+		x.into()
+	}
+}
+
 <span class="kw">impl </span>From&lt;MockAccount&gt; <span class="kw">for </span>H256 {
 	<span class="kw">fn </span>from(x: MockAccount) -&gt; H256 {
 		<span class="kw">let </span>x: H160 = x.into();
@@ -243,6 +264,13 @@
 <span class="kw">impl </span>From&lt;H160&gt; <span class="kw">for </span>MockAccount {
 	<span class="kw">fn </span>from(address: H160) -&gt; MockAccount {
 		MockAccount(address)
+	}
+}
+
+<span class="kw">impl </span>From&lt;[u8; <span class="number">20</span>]&gt; <span class="kw">for </span>MockAccount {
+	<span class="kw">fn </span>from(address: [u8; <span class="number">20</span>]) -&gt; MockAccount {
+		<span class="kw">let </span>x: H160 = address.into();
+		MockAccount(x)
 	}
 }
 

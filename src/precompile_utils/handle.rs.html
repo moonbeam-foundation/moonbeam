@@ -87,6 +87,16 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -130,6 +140,10 @@
 		</span>T: num_enum::TryFromPrimitive&lt;Primitive = u32&gt;;
 
 	<span class="attribute">#[must_use]
+	</span><span class="doccomment">/// Read the selector from the input data.
+	</span><span class="kw">fn </span>read_u32_selector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MayRevert&lt;u32&gt;;
+
+	<span class="attribute">#[must_use]
 	</span><span class="doccomment">/// Returns a reader of the input, skipping the selector.
 	</span><span class="kw">fn </span>read_after_selector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MayRevert&lt;EvmDataReader&gt;;
 }
@@ -168,6 +182,12 @@
 		</span>S: num_enum::TryFromPrimitive&lt;Primitive = u32&gt;,
 	{
 		EvmDataReader::read_selector(<span class="self">self</span>.input())
+	}
+
+	<span class="attribute">#[must_use]
+	</span><span class="doccomment">/// Read the selector from the input data as u32.
+	</span><span class="kw">fn </span>read_u32_selector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MayRevert&lt;u32&gt; {
+		EvmDataReader::read_u32_selector(<span class="self">self</span>.input())
 	}
 
 	<span class="attribute">#[must_use]

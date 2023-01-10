@@ -146,6 +146,94 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -169,13 +257,22 @@
 
 </span><span class="kw">use </span>codec::DecodeLimit;
 <span class="kw">use </span>fp_evm::PrecompileHandle;
+<span class="kw">use </span>frame_support::codec::Decode;
 <span class="kw">use </span>frame_support::traits::ConstU32;
-<span class="kw">use </span>frame_support::{dispatch::Dispatchable, traits::OriginTrait};
+<span class="kw">use </span>frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::OriginTrait,
+};
+<span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
-<span class="kw">use </span>sp_std::{marker::PhantomData, vec, vec::Vec};
+<span class="kw">use </span>sp_std::boxed::Box;
+<span class="kw">use </span>sp_std::marker::PhantomData;
+<span class="kw">use </span>sp_std::vec;
+<span class="kw">use </span>sp_std::vec::Vec;
 <span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 <span class="kw">use </span>xcm_executor::traits::ConvertOrigin;
+
 <span class="kw">use </span>xcm_executor::traits::WeightBounds;
 <span class="kw">use </span>xcm_executor::traits::WeightTrader;
 <span class="kw">pub type </span>XcmOriginOf&lt;XcmConfig&gt; =
@@ -184,6 +281,7 @@
 	&lt;&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;
 		::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::AccountId;
 
+<span class="kw">pub type </span>SystemCallOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall;
 <span class="kw">pub const </span>XCM_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetXcmSizeLimit = ConstU32&lt;XCM_SIZE_LIMIT&gt;;
 
@@ -198,11 +296,35 @@
 <span class="attribute">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime, XcmConfig&gt; XcmUtilsPrecompile&lt;Runtime, XcmConfig&gt;
 <span class="kw">where
-	</span>Runtime: pallet_evm::Config + frame_system::Config,
+	</span>Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
 	XcmOriginOf&lt;XcmConfig&gt;: OriginTrait,
 	XcmAccountIdOf&lt;XcmConfig&gt;: Into&lt;H160&gt;,
 	XcmConfig: xcm_executor::Config,
+	SystemCallOf&lt;Runtime&gt;: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
 {
+	<span class="attribute">#[precompile::pre_check]
+	</span><span class="kw">fn </span>pre_check(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Only avoid calling execute from SC
+		</span><span class="kw">if let </span><span class="prelude-val">Ok</span>(selector) = handle.read_u32_selector() {
+			<span class="kw">if </span>XcmUtilsPrecompileCall::&lt;Runtime, XcmConfig&gt;::xcm_execute_selectors()
+				.contains(<span class="kw-2">&amp;</span>selector)
+			{
+				handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+				<span class="kw">let </span>caller_code =
+					pallet_evm::Pallet::&lt;Runtime&gt;::account_codes(handle.context().caller);
+				<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into
+				// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
+				</span><span class="kw">if </span>!(caller_code.is_empty() || <span class="kw-2">&amp;</span>caller_code == <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;XcmExecute not callable by smart contracts&quot;</span>));
+				}
+			}
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
 	<span class="attribute">#[precompile::public(<span class="string">&quot;multilocationToAddress((uint8,bytes[]))&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>multilocation_to_address(
@@ -292,6 +414,60 @@
 		};
 
 		result
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;xcmExecute(bytes,uint64)&quot;</span>)]
+	</span><span class="kw">fn </span>xcm_execute(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		message: BoundedBytes&lt;GetXcmSizeLimit&gt;,
+		weight: u64,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>message: Vec&lt;u8&gt; = message.into();
+
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		<span class="kw">let </span>message: Vec&lt;<span class="kw">_</span>&gt; = message.to_vec();
+		<span class="kw">let </span>xcm = xcm::VersionedXcm::&lt;SystemCallOf&lt;Runtime&gt;&gt;::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			<span class="kw-2">&amp;mut </span>message.as_slice(),
+		)
+		.map_err(|_e| RevertReason::custom(<span class="string">&quot;Failed xcm decoding&quot;</span>).in_field(<span class="string">&quot;message&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::execute {
+			message: Box::new(xcm),
+			max_weight: weight,
+		};
+
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;xcmSend((uint8,bytes[]),bytes)&quot;</span>)]
+	</span><span class="kw">fn </span>xcm_send(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		dest: MultiLocation,
+		message: BoundedBytes&lt;GetXcmSizeLimit&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>message: Vec&lt;u8&gt; = message.into();
+
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		<span class="kw">let </span>message: Vec&lt;<span class="kw">_</span>&gt; = message.to_vec();
+		<span class="kw">let </span>xcm = xcm::VersionedXcm::&lt;()&gt;::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			<span class="kw-2">&amp;mut </span>message.as_slice(),
+		)
+		.map_err(|_e| RevertReason::custom(<span class="string">&quot;Failed xcm decoding&quot;</span>).in_field(<span class="string">&quot;message&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::send {
+			dest: Box::new(dest.into()),
+			message: Box::new(xcm),
+		};
+
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>
