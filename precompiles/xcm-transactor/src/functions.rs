@@ -36,7 +36,7 @@ use sp_std::{
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::{
-	AccountIdToCurrencyId, HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls,
+	AccountIdToCurrencyId, HrmpAvailableCalls, UtilityEncodeCall, UtilityAvailableCalls,
 };
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -459,7 +459,7 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
 
-		let encoded = RelayEncodeCall::utility_encode_call(
+		let encoded = UtilityEncodeCall::encode_call(
 			transactor,
 			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
 		)
@@ -468,7 +468,7 @@ where
 		Ok(encoded)
 	}
 
-	pub(crate) fn encode_hrmp_init_open_channel(
+	/*pub(crate) fn encode_hrmp_init_open_channel(
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		recipient: u32,
@@ -544,5 +544,5 @@ where
 		.as_slice()
 		.into();
 		Ok(encoded)
-	}
+	}*/
 }

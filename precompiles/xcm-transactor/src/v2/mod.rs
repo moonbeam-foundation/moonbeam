@@ -192,7 +192,7 @@ where
 		)
 	}
 
-	#[precompile::public("encodeHrmpInitOpenChannel(uint8,uint32,uint32,uint32)")]
+	/*#[precompile::public("encodeHrmpInitOpenChannel(uint8,uint32,uint32,uint32)")]
 	#[precompile::public("encode_hrmp_init_open_channel(uint8,uint32,uint32,uint32)")]
 	#[precompile::view]
 	fn encode_hrmp_init_open_channel(
@@ -234,5 +234,5 @@ where
 		XcmTransactorWrapper::<Runtime>::encode_hrmp_close_channel(
 			handle, transactor, sender, recipient,
 		)
-	}
+	}*/
 }
