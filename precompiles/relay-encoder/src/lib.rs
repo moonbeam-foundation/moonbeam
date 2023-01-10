@@ -20,6 +20,7 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
+
 use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -33,6 +34,7 @@ use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
+use xcm_primitives::{HrmpAvailableCalls, HrmpEncodeCall};
 
 #[cfg(test)]
 mod mock;
@@ -74,7 +76,7 @@ pub struct RelayEncoderPrecompile<Runtime, RelayRuntime>(PhantomData<(Runtime, R
 #[precompile_utils::precompile]
 impl<Runtime, RelayRuntime> RelayEncoderPrecompile<Runtime, RelayRuntime>
 where
-	RelayRuntime: StakeEncodeCall,
+	RelayRuntime: StakeEncodeCall + HrmpEncodeCall,
 	Runtime: pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
@@ -266,6 +268,75 @@ where
 			.as_slice()
 			.into();
 
+		Ok(encoded)
+	}
+	#[precompile::public("encodeHrmpInitOpenChannel(uint32,uint32,uint32)")]
+	#[precompile::public("encode_hrmp_init_open_channel(uint32,uint32,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_init_open_channel(
+		handle: &mut impl PrecompileHandle,
+		recipient: u32,
+		max_capacity: u32,
+		max_message_size: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+			recipient.into(),
+			max_capacity,
+			max_message_size,
+		))
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
+		Ok(encoded)
+	}
+
+	#[precompile::public("encodeHrmpAcceptOpenChannel(uint32)")]
+	#[precompile::public("encode_hrmp_accept_open_channel(uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_accept_open_channel(
+		handle: &mut impl PrecompileHandle,
+		sender: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let encoded =
+			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
+				.map_err(|_| {
+					RevertReason::custom("Non-implemented hrmp encoding for transactor")
+						.in_field("transactor")
+				})?
+				.as_slice()
+				.into();
+		Ok(encoded)
+	}
+
+	#[precompile::public("encodeHrmpCloseChannel(uint32,uint32)")]
+	#[precompile::public("encode_hrmp_close_channel(uint32,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_close_channel(
+		handle: &mut impl PrecompileHandle,
+		sender: u32,
+		recipient: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
+			relay_chain::v2::HrmpChannelId {
+				sender: sender.into(),
+				recipient: recipient.into(),
+			},
+		))
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
 		Ok(encoded)
 	}
 }

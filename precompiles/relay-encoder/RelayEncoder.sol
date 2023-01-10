@@ -105,4 +105,32 @@ interface RelayEncoder {
         external
         pure
         returns (bytes memory result);
+
+    /// @dev Encode 'hrmp.init_open_channel' relay call
+    /// @custom:selector e5e20a64
+    /// @param recipient: The paraId to whom we want to initiate the open channel
+    /// @param maxCapacity: The maximum capacity for the channel
+    /// @param maxMessageSize: The maximum message size for the channel
+    /// @return result The bytes associated with the encoded call
+    function encodeHrmpInitOpenChannel(uint32 recipient, uint32 maxCapacity, uint32 maxMessageSize)
+        external
+        pure
+        returns (bytes memory result);
+    
+    /// @dev Encode 'hrmp.accept_open_channel' relay call
+    /// @custom:selector 98a76477
+    /// @param sender: The paraId from which we want to accept the channel
+    function encodeHrmpAcceptOpenChannel(uint32 sender)
+        external
+        pure
+        returns (bytes memory result);
+
+    /// @dev Encode 'hrmp.close_channel' relay call
+    /// @custom:selector 9cfbdfc5
+    /// @param sender: The paraId of the sender
+    /// @param sender: The paraId of the recipient
+    function encodeHrmpCloseChannel(uint32 sender, uint32 recipient)
+        external
+        pure
+        returns (bytes memory result);
 }
