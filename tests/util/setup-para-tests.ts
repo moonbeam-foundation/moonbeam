@@ -266,7 +266,8 @@ export function retrieveParaVersions() {
       `| uniq | grep -A1 "${localVersion}" | tail -1`
   );
   const previousAuthoringVersion = runOrDefault(
-    `git show runtime-${previousVersion}:../runtime/moonbase/src/lib.rs | grep 'authoring_version: [0-9]*' | grep -o '[0-9]*'`
+    `git show runtime-${previousVersion}:../runtime/moonbase/src/lib.rs ` +
+      `| grep 'authoring_version: [0-9]*' | grep -o '[0-9]*'`
   );
 
   // List authoring_version from git commit since the previous runtime being used
