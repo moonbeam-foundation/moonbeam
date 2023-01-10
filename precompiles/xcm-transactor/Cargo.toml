@@ -60,6 +60,7 @@ orml-traits = { git = "https://github.com/purestake/open-runtime-module-library"
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-primitives-core/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",

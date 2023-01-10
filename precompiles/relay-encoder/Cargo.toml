@@ -49,7 +49,7 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32" }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32"}
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
 default = [ "std" ]
