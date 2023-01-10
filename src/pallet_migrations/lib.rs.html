@@ -366,6 +366,49 @@
 <span id="366">366</span>
 <span id="367">367</span>
 <span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -463,6 +506,7 @@
 	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>xcm_primitives::PauseXcmExecution;
 
 	<span class="doccomment">/// Pallet for migrations
 	</span><span class="attribute">#[pallet::pallet]
@@ -478,6 +522,9 @@
 		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// The list of migrations that will be performed
 		</span><span class="kw">type </span>MigrationsList: GetMigrations;
+
+		<span class="doccomment">/// Handler to suspend and resume XCM execution
+		</span><span class="kw">type </span>XcmExecutionManager: PauseXcmExecution;
 
 		<span class="kw">type </span>WeightInfo: WeightInfo;
 	}
@@ -496,6 +543,10 @@
 			migration_name: Vec&lt;u8&gt;,
 			consumed_weight: Weight,
 		},
+		<span class="doccomment">/// XCM execution suspension failed with inner error
+		</span>FailedToSuspendIdleXcmExecution { error: DispatchError },
+		<span class="doccomment">/// XCM execution resume failed with inner error
+		</span>FailedToResumeIdleXcmExecution { error: DispatchError },
 	}
 
 	<span class="attribute">#[pallet::hooks]
@@ -505,6 +556,9 @@
 		/// migrations.
 		</span><span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
 			<span class="macro">log::warn!</span>(<span class="string">&quot;Performing on_runtime_upgrade&quot;</span>);
+
+			<span class="comment">// Store the fact that we should pause xcm execution for this block
+			</span>ShouldPauseXcm::&lt;T&gt;::put(<span class="bool-val">true</span>);
 
 			<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 			<span class="comment">// TODO: derive a suitable value here, which is probably something &lt; max_block
@@ -526,7 +580,33 @@
 				</span>);
 			}
 
-			weight
+			<span class="macro">log::info!</span>(<span class="string">&quot;Migrations consumed weight: {}&quot;</span>, weight);
+
+			<span class="comment">// Consume all block weight to ensure no user transactions inclusion.
+			</span>T::BlockWeights::get().max_block
+		}
+
+		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: T::BlockNumber) -&gt; Weight {
+			<span class="kw">if </span>ShouldPauseXcm::&lt;T&gt;::get() {
+				<span class="comment">// Suspend XCM execution
+				</span><span class="kw">if let </span><span class="prelude-val">Err</span>(error) = T::XcmExecutionManager::suspend_xcm_execution() {
+					&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+				}
+				<span class="comment">// Account on_finalize write
+				</span>T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
+			} <span class="kw">else </span>{
+				T::DbWeight::get().reads(<span class="number">1</span>)
+			}
+		}
+
+		<span class="kw">fn </span>on_finalize(<span class="kw">_</span>: T::BlockNumber) {
+			<span class="kw">if </span>ShouldPauseXcm::&lt;T&gt;::get() {
+				<span class="comment">// Resume XCM execution
+				</span><span class="kw">if let </span><span class="prelude-val">Err</span>(error) = T::XcmExecutionManager::resume_xcm_execution() {
+					&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+				}
+				ShouldPauseXcm::&lt;T&gt;::put(<span class="bool-val">false</span>);
+			}
 		}
 
 		<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
@@ -628,6 +708,12 @@
 	/// Maps name (Vec&lt;u8&gt;) -&gt; whether or not migration has been completed (bool)
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>MigrationState&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, Vec&lt;u8&gt;, bool, ValueQuery&gt;;
+
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>should_pause_xcm)]
+	</span><span class="doccomment">/// Temporary value that is set to true at the beginning of the block during which the execution
+	/// of xcm messages must be paused.
+	</span><span class="kw">type </span>ShouldPauseXcm&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, bool, ValueQuery&gt;;
 
 	<span class="attribute">#[pallet::call]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {

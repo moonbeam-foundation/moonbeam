@@ -1571,6 +1571,23 @@
 <span id="1571">1571</span>
 <span id="1572">1572</span>
 <span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2503,6 +2520,7 @@
 		CouncilCollective,
 		TechCommitteeCollective,
 	&gt;;
+	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
 	<span class="kw">type </span>WeightInfo = pallet_migrations::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
@@ -2586,12 +2604,28 @@
 }
 
 <span class="kw">pub struct </span>XcmExecutionManager;
-<span class="kw">impl </span>pallet_maintenance_mode::PauseXcmExecution <span class="kw">for </span>XcmExecutionManager {
+<span class="kw">impl </span>xcm_primitives::PauseXcmExecution <span class="kw">for </span>XcmExecutionManager {
 	<span class="kw">fn </span>suspend_xcm_execution() -&gt; DispatchResult {
 		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
 	<span class="kw">fn </span>resume_xcm_execution() -&gt; DispatchResult {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
+	}
+}
+
+<span class="kw">pub struct </span>NormalDmpHandler;
+<span class="kw">impl </span>DmpMessageHandler <span class="kw">for </span>NormalDmpHandler {
+	<span class="comment">// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	</span><span class="kw">fn </span>handle_dmp_messages(
+		iter: <span class="kw">impl </span>Iterator&lt;Item = (RelayBlockNumber, Vec&lt;u8&gt;)&gt;,
+		limit: Weight,
+	) -&gt; Weight {
+		(<span class="kw">if </span>Migrations::should_pause_xcm() {
+			DmpQueue::handle_dmp_messages(iter, Weight::zero())
+		} <span class="kw">else </span>{
+			DmpQueue::handle_dmp_messages(iter, limit)
+		}) + &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>)
 	}
 }
 
@@ -2662,7 +2696,7 @@
 	<span class="kw">type </span>MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast&lt;AccountId, TechCommitteeInstance, <span class="number">2</span>, <span class="number">3</span>&gt;;
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
-	<span class="kw">type </span>NormalDmpHandler = DmpQueue;
+	<span class="kw">type </span>NormalDmpHandler = NormalDmpHandler;
 	<span class="kw">type </span>MaintenanceDmpHandler = MaintenanceDmpHandler;
 	<span class="comment">// We use AllPalletsWithSystem because we dont want to change the hooks in normal
 	// operation
