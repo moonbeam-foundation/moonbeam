@@ -206,6 +206,7 @@ where
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
 	#[precompile::public("proxy(address,address,bytes)")]
+	#[precompile::payable]
 	fn proxy(
 		handle: &mut impl PrecompileHandle,
 		real: Address,
@@ -230,6 +231,7 @@ where
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
 	#[precompile::public("proxy_force_type(address,uint8,address,bytes)")]
+	#[precompile::payable]
 	fn proxy_force_type(
 		handle: &mut impl PrecompileHandle,
 		real: Address,
