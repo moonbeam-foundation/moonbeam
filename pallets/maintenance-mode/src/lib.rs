@@ -63,28 +63,15 @@ pub mod pallet {
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 	};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::DispatchResult;
 	#[cfg(feature = "xcm-support")]
 	use sp_std::vec::Vec;
+	#[cfg(feature = "xcm-support")]
+	use xcm_primitives::PauseXcmExecution;
+
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
-
-	/// Pause and resume execution of XCM
-	pub trait PauseXcmExecution {
-		fn suspend_xcm_execution() -> DispatchResult;
-		fn resume_xcm_execution() -> DispatchResult;
-	}
-
-	impl PauseXcmExecution for () {
-		fn suspend_xcm_execution() -> DispatchResult {
-			Ok(())
-		}
-		fn resume_xcm_execution() -> DispatchResult {
-			Ok(())
-		}
-	}
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -105,7 +92,7 @@ pub mod pallet {
 		type MaintenanceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// Handler to suspend and resume XCM execution
 		#[cfg(feature = "xcm-support")]
-		type XcmExecutionManager: PauseXcmExecution;
+		type XcmExecutionManager: xcm_primitives::PauseXcmExecution;
 		/// The DMP handler to be used in normal operating mode
 		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
