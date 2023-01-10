@@ -85,8 +85,8 @@ pub enum HrmpCall {
 
 pub struct WestendEncoder;
 
-impl xcm_primitives::RelayEncodeCall for WestendEncoder {
-	fn utility_encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
@@ -97,6 +97,9 @@ impl xcm_primitives::RelayEncodeCall for WestendEncoder {
 			}
 		}
 	}
+}
+
+impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 	fn hrmp_encode_call(
 		self,
 		call: xcm_primitives::HrmpAvailableCalls,
@@ -115,7 +118,6 @@ impl xcm_primitives::RelayEncodeCall for WestendEncoder {
 		}
 	}
 }
-
 impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for WestendEncoder {
 	fn encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -> Vec<u8> {
 		match call {
@@ -199,7 +201,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::RelayEncodeCall::utility_encode_call(
+			xcm_primitives::UtilityEncodeCall::encode_call(
 				WestendEncoder,
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 			),
@@ -478,7 +480,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
+			WestendEncoder.hrmp_encode_call(
 				WestendEncoder,
 				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
 					1000u32.into(),
@@ -509,8 +511,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
-				WestendEncoder,
+			WestendEncoder.hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
 			),
 			Ok(expected_encoded)
@@ -539,8 +540,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
-				WestendEncoder,
+			WestendEncoder.hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
 					sender: 1000u32.into(),
 					recipient: 1001u32.into()

@@ -32,7 +32,9 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 pub use xcm_primitives::XcmV2Weight;
-use xcm_primitives::{HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
+use xcm_primitives::{
+	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
@@ -248,8 +250,8 @@ impl XcmTransact for Transactors {
 	}
 }
 
-impl RelayEncodeCall for Transactors {
-	fn utility_encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+impl UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			Transactors::Relay => match call {
 				UtilityAvailableCalls::AsDerivative(a, b) => {
@@ -261,20 +263,20 @@ impl RelayEncodeCall for Transactors {
 			},
 		}
 	}
+}
 
-	fn hrmp_encode_call(self, call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
-		match self {
-			Transactors::Relay => match call {
-				HrmpAvailableCalls::InitOpenChannel(_, _, _) => {
-					Ok(RelayCall::Hrmp(HrmpCall::Init()).encode())
-				}
-				HrmpAvailableCalls::AcceptOpenChannel(_) => {
-					Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
-				}
-				HrmpAvailableCalls::CloseChannel(_) => {
-					Ok(RelayCall::Hrmp(HrmpCall::Close()).encode())
-				}
-			},
+pub struct MockHrmpEncoder;
+
+impl HrmpEncodeCall for MockHrmpEncoder {
+	fn hrmp_encode_call(call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
+		match call {
+			HrmpAvailableCalls::InitOpenChannel(_, _, _) => {
+				Ok(RelayCall::Hrmp(HrmpCall::Init()).encode())
+			}
+			HrmpAvailableCalls::AcceptOpenChannel(_) => {
+				Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
+			}
+			HrmpAvailableCalls::CloseChannel(_) => Ok(RelayCall::Hrmp(HrmpCall::Close()).encode()),
 		}
 	}
 }
@@ -359,6 +361,7 @@ impl Config for Test {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
+	type HrmpEncoder = MockHrmpEncoder;
 }
 
 pub(crate) struct ExtBuilder {

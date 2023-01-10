@@ -191,7 +191,11 @@ where
 		max_message_size: u32,
 	) -> EvmResult<UnboundedBytes> {
 		XcmTransactorWrapper::<Runtime>::encode_hrmp_init_open_channel(
-			handle, transactor, recipient, max_capacity, max_message_size
+			handle,
+			transactor,
+			recipient,
+			max_capacity,
+			max_message_size,
 		)
 	}
 
@@ -203,9 +207,7 @@ where
 		transactor: u8,
 		sender: u32,
 	) -> EvmResult<UnboundedBytes> {
-		XcmTransactorWrapper::<Runtime>::encode_hrmp_accept_open_channel(
-			handle, transactor, sender
-		)
+		XcmTransactorWrapper::<Runtime>::encode_hrmp_accept_open_channel(handle, transactor, sender)
 	}
 
 	#[precompile::public("encodeHrmpCloseChannel(uint8,uint32,uint32)")]
@@ -215,10 +217,10 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		sender: u32,
-		recipient: u32
+		recipient: u32,
 	) -> EvmResult<UnboundedBytes> {
 		XcmTransactorWrapper::<Runtime>::encode_hrmp_close_channel(
-			handle, transactor, sender, recipient
+			handle, transactor, sender, recipient,
 		)
 	}
 }

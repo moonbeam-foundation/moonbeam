@@ -532,7 +532,10 @@ where
 
 		let encoded = RelayEncodeCall::hrmp_encode_call(
 			transactor,
-			HrmpAvailableCalls::CloseChannel(HrmpChannelId { sender: sender.into(), recipient: recipient.into() }),
+			HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+				sender: sender.into(),
+				recipient: recipient.into(),
+			}),
 		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")

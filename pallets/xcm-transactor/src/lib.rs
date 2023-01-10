@@ -101,7 +101,8 @@ pub mod pallet {
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
 	use xcm_primitives::{
-		FilterMaxAssetFee, HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact,
+		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
+		UtilityEncodeCall, XcmTransact,
 	};
 
 	#[pallet::pallet]
@@ -172,6 +173,9 @@ pub mod pallet {
 
 		/// The way to filter the max fee to use for HRMP management operations
 		type MaxHrmpFee: FilterMaxAssetFee;
+
+		/// Means of encoding HRMP transact calls
+		type HrmpEncoder: HrmpEncodeCall;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -458,10 +462,9 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = RelayEncodeCall::utility_encode_call(
-				dest.clone(),
-				UtilityAvailableCalls::AsDerivative(index, inner_call),
-			);
+			let call_bytes: Vec<u8> = dest
+				.clone()
+				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			// Grab the destination
 			let dest = dest.destination();
@@ -746,22 +749,19 @@ pub mod pallet {
 			// Transact
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
-				HrmpOperation::InitOpen(params) => RelayEncodeCall::hrmp_encode_call(
-					dest.clone(),
-					HrmpAvailableCalls::InitOpenChannel(
+				HrmpOperation::InitOpen(params) => {
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
-					),
-				),
-				HrmpOperation::Accept(para_id) => RelayEncodeCall::hrmp_encode_call(
-					dest.clone(),
-					HrmpAvailableCalls::AcceptOpenChannel(para_id),
-				),
-				HrmpOperation::Close(close_params) => RelayEncodeCall::hrmp_encode_call(
-					dest.clone(),
-					HrmpAvailableCalls::CloseChannel(close_params),
-				),
+					))
+				}
+				HrmpOperation::Accept(para_id) => {
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+				}
+				HrmpOperation::Close(close_params) => {
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+				}
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
 

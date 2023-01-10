@@ -24,7 +24,7 @@ use frame_support::{
 };
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
-use xcm_primitives::{RelayEncodeCall, UtilityAvailableCalls};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()
@@ -377,7 +377,7 @@ fn test_transact_through_derivative_multilocation_success() {
 					account_id: 1u64,
 					dest: MultiLocation::parent(),
 					call: Transactors::Relay
-						.utility_encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -446,7 +446,7 @@ fn test_transact_through_derivative_success() {
 					account_id: 1u64,
 					dest: MultiLocation::parent(),
 					call: Transactors::Relay
-						.utility_encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -958,7 +958,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 					account_id: 1u64,
 					dest: MultiLocation::parent(),
 					call: Transactors::Relay
-						.utility_encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -977,7 +977,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				origin_type: OriginKind::SovereignAccount,
 				require_weight_at_most: tx_weight,
 				call: Transactors::Relay
-					.utility_encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
+					.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
 					.into(),
 			}));
 		})
