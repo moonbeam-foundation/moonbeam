@@ -79,7 +79,7 @@ fn selectors() {
 	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
 	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
 	assert!(PCall::get_delegator_total_staked_selectors().contains(&0xe6861713));
-	assert!(PCall::get_candidate_total_backed_selectors().contains(&0x670c59e9));
+	assert!(PCall::get_candidate_total_counted_selectors().contains(&0xbc5a1043));
 }
 
 #[test]
@@ -120,7 +120,7 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
 		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
 		tester.test_view_modifier(PCall::get_delegator_total_staked_selectors());
-		tester.test_view_modifier(PCall::get_candidate_total_backed_selectors());
+		tester.test_view_modifier(PCall::get_candidate_total_counted_selectors());
 	});
 }
 
@@ -1518,7 +1518,7 @@ fn get_delegator_total_staked_getter_unknown() {
 }
 
 #[test]
-fn get_candidate_total_backed_getter() {
+fn get_candidate_total_counted_getter() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(Alice.into(), 1_000),
@@ -1536,7 +1536,7 @@ fn get_candidate_total_backed_getter() {
 				.prepare_test(
 					Alice,
 					Precompile1,
-					PCall::get_candidate_total_backed {
+					PCall::get_candidate_total_counted {
 						candidate: Address(Alice.into()),
 					},
 				)

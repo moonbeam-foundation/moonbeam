@@ -277,10 +277,10 @@ interface ParachainStaking {
         returns (uint256);
 
     /// @dev Fetch the total staked towards a candidate.
-    /// @custom:selector 670c59e9
+    /// @custom:selector bc5a1043
     /// @param candidate Address of the candidate.
     /// @return Total amount of stake.
-    function getCandidateTotalBacked(address candidate)
+    function getCandidateTotalCounted(address candidate)
         external
         view
         returns (uint256);

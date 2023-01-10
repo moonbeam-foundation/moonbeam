@@ -804,9 +804,9 @@ where
 		Ok(amount.into())
 	}
 
-	#[precompile::public("getCandidateTotalBacked(address)")]
+	#[precompile::public("getCandidateTotalCounted(address)")]
 	#[precompile::view]
-	fn get_candidate_total_backed(
+	fn get_candidate_total_counted(
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
 	) -> EvmResult<U256> {
