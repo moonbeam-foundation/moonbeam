@@ -52,7 +52,7 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, HrmpAvailableCalls, SignedToAccountId20, UtilityAvailableCalls,
+	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact, XcmV2Weight,
 };
 
