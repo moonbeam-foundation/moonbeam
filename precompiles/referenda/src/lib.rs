@@ -30,8 +30,8 @@ use sp_std::{boxed::Box, marker::PhantomData};
 
 #[cfg(test)]
 mod mock;
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 

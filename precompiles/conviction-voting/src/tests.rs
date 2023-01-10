@@ -18,7 +18,7 @@ use precompile_utils::testing::*;
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Preimage.sol"] {
+	for file in ["ConvictionVoting.sol"] {
 		for solidity_fn in solidity::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),

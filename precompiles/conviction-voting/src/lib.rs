@@ -28,10 +28,10 @@ use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
 
-// #[cfg(test)]
-// mod mock;
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 type BalanceOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -192,7 +192,7 @@ where
 
 		Ok(())
 	}
-	#[precompile::public("unDelegate(uint256)")]
+	#[precompile::public("undelegate(uint256)")]
 	fn undelegate(
 		handle: &mut impl PrecompileHandle,
 		class: SolidityConvert<U256, u16>,

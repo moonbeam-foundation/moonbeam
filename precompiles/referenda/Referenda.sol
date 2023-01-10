@@ -26,21 +26,21 @@ interface Referenda {
     }
 
     /// Return the total referendum count
-    /// @custom:selector 81797566
+    /// @custom:selector 3a42ee31
     function referendumCount() external view returns (uint256);
 
     /// Return the submission deposit for all referenda
-    /// @custom:selector 81797566
+    /// @custom:selector aa14c39a
     function submissionDeposit() external view returns (uint256);
 
     /// Return the total count of deciding referenda per track
     /// @param trackId The track identifier
-    /// @custom:selector 81797566
+    /// @custom:selector 23cbda16
     function decidingCount(uint256 trackId) external view returns (uint256);
 
     /// Return the total count of deciding referenda per track
     /// @param trackId The track identifier
-    /// @custom:selector 81797566
+    /// @custom:selector 35028c55
     function trackInfo(uint256 trackId)
         external
         view
@@ -54,7 +54,7 @@ interface Referenda {
         );
 
     /// @dev Submit a referenda
-    /// @custom:selector 74a34dd3
+    /// @custom:selector d865f8e8
     /// @param origin The origin from which the proposed referenda would be dispatched
     /// @param hash Hash of the proposal preimage
     /// @param at If true then AT block_number, else AFTER block_number
@@ -67,12 +67,12 @@ interface Referenda {
     ) external;
 
     /// @dev Post the Decision Deposit for a referendum
-    /// @custom:selector 74a34dd3
+    /// @custom:selector 245ce18d
     /// @param index The index of the ongoing referendum that is not yet deciding
-    function place_decision_deposit(uint32 index) external;
+    function placeDecisionDeposit(uint32 index) external;
 
     /// @dev Refund the Decision Deposit for a closed referendum back to the depositor
-    /// @custom:selector 74a34dd3
+    /// @custom:selector 1325d528
     /// @param  index The index of a closed referendum with decision deposit still locked
-    function refund_decision_deposit(uint32 index) external;
+    function refundDecisionDeposit(uint32 index) external;
 }

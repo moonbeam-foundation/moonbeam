@@ -16,22 +16,14 @@
 
 //! Test utilities
 use super::*;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
-	weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::{
-	precompile_set::*,
-	testing::{Alice, MockAccount},
-};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
-use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, Percent,
+	Perbill,
 };
 
 pub type AccountId = MockAccount;

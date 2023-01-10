@@ -18,23 +18,16 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{
-		Everything, GenesisBuild, OnFinalize, OnInitialize, PollStatus, Polling, TotalIssuanceOf,
-	},
+	traits::{Everything, PollStatus, Polling, TotalIssuanceOf},
 	weights::Weight,
 };
-use frame_system::EnsureRoot;
 use pallet_conviction_voting::TallyOf;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::{
-	precompile_set::*,
-	testing::{Alice, MockAccount},
-};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
-use sp_io;
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-	DispatchError, Perbill, Percent,
+	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	DispatchError, Perbill,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -183,7 +176,7 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 	}
 	fn access_poll<R>(
 		index: Self::Index,
-		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u64, u8>) -> R,
+		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u32, u8>) -> R,
 	) -> R {
 		let mut polls = Polls::get();
 		let entry = polls.get_mut(&index);
@@ -191,7 +184,10 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 			Some(Ongoing(ref mut tally_mut_ref, class)) => {
 				f(PollStatus::Ongoing(tally_mut_ref, *class))
 			}
-			Some(Completed(when, succeeded)) => f(PollStatus::Completed(*when, *succeeded)),
+			Some(Completed(when, succeeded)) => f(PollStatus::Completed(
+				(*when).try_into().unwrap(),
+				*succeeded,
+			)),
 			None => f(PollStatus::None),
 		};
 		Polls::set(polls);
@@ -199,7 +195,7 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 	}
 	fn try_access_poll<R>(
 		index: Self::Index,
-		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u64, u8>) -> Result<R, DispatchError>,
+		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u32, u8>) -> Result<R, DispatchError>,
 	) -> Result<R, DispatchError> {
 		let mut polls = Polls::get();
 		let entry = polls.get_mut(&index);
@@ -207,7 +203,10 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 			Some(Ongoing(ref mut tally_mut_ref, class)) => {
 				f(PollStatus::Ongoing(tally_mut_ref, *class))
 			}
-			Some(Completed(when, succeeded)) => f(PollStatus::Completed(*when, *succeeded)),
+			Some(Completed(when, succeeded)) => f(PollStatus::Completed(
+				(*when).try_into().unwrap(),
+				*succeeded,
+			)),
 			None => f(PollStatus::None),
 		}?;
 		Polls::set(polls);

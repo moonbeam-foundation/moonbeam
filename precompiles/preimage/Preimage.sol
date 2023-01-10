@@ -13,14 +13,12 @@ Preimage constant Preimage_CONTRACT = Preimage(Preimage_ADDRESS);
 /// @custom:address 0x000000000000000000000000000000000000080b TODO: UPDATE ADDRESS
 interface Preimage {
     /// @dev Register a Preimage on-chain.
-    /// @custom:selector 74a34dd3
-    /// @param encodedProposal
-    function note_preimage(
-        bytes memory encodedProposal,
-    ) external;
+    /// @custom:selector cb00f603
+    /// @param encodedProposal The preimage to be registered on-chain
+    function notePreimage(bytes memory encodedProposal) external;
 
     /// @dev Clear an unrequested preimage from storage.
-    /// @custom:selector 74a34dd3
+    /// @custom:selector 02e71b45
     /// @param hash The preimage to be cleared from storage
-    function unnote_preimage(bytes32 hash) external;
+    function unnotePreimage(bytes32 hash) external;
 }

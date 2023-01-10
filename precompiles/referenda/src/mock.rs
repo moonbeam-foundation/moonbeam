@@ -17,10 +17,8 @@
 //! A minimal precompile runtime including the pallet-randomness pallet
 use super::*;
 use frame_support::{
-	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{
-		ConstU128, ConstU32, ConstU64, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally,
-	},
+	construct_runtime, parameter_types,
+	traits::{ConstU128, ConstU32, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
@@ -375,11 +373,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn events() -> Vec<RuntimeEvent> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
 }
