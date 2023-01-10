@@ -530,7 +530,7 @@ fn fails_if_called_by_smart_contract() {
 						delay: 1,
 					},
 				)
-				.execute_reverts(|output| output == b"Proxy not callable by smart contracts");
+				.execute_reverts(|output| output == b"Function not callable by smart contracts");
 		})
 }
 

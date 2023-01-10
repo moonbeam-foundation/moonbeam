@@ -23,7 +23,10 @@ use frame_support::{
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping};
 use precompile_utils::{
-	precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder, SubcallWithMaxNesting},
+	precompile_set::{
+		AddressU64, ContractCanCallSelector, PrecompileAt, PrecompileSetBuilder,
+		SubcallWithMaxNesting,
+	},
 	testing::MockAccount,
 };
 use scale_info::TypeInfo;
@@ -100,7 +103,16 @@ impl pallet_balances::Config for Runtime {
 
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
-	(PrecompileAt<AddressU64<1>, ProxyPrecompile<R>, SubcallWithMaxNesting<1>>,),
+	(
+		PrecompileAt<
+			AddressU64<1>,
+			ProxyPrecompile<R>,
+			(
+				SubcallWithMaxNesting<1>,
+				ContractCanCallSelector<crate::ContractSafeSelectors<R>>,
+			),
+		>,
+	),
 >;
 
 pub type PCall = ProxyPrecompileCall<Runtime>;
