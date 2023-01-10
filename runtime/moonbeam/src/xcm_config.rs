@@ -49,7 +49,7 @@ use xcm_executor::traits::JustTry;
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, RelayEncodeCall, SignedToAccountId20, UtilityAvailableCalls, XcmTransact,
+	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 	XcmV2Weight,
 };
 
@@ -490,12 +490,12 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl RelayEncodeCall for Transactors {
-	fn utility_encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+impl UtilityEncodeCall for Transactors {
+	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			// The encoder should be polkadot
 			Transactors::Relay => {
-				moonbeam_relay_encoder::polkadot::PolkadotEncoder.utility_encode_call(call)
+				moonbeam_relay_encoder::polkadot::PolkadotEncoder.encode_call(call)
 			}
 		}
 	}
@@ -529,6 +529,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type HrmpEncoder = moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

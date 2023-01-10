@@ -32,7 +32,7 @@ use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_executor::traits::Convert;
 use xcm_mock::*;
-use xcm_primitives::RelayEncodeCall;
+use xcm_primitives::UtilityEncodeCall;
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
@@ -1381,7 +1381,7 @@ fn transact_through_sovereign() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.utility_encode_call(
+	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -1530,7 +1530,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.utility_encode_call(
+	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -3196,7 +3196,6 @@ fn hrmp_init_accept_through_root() {
 		// Root can send hrmp init channel
 		assert_ok!(XcmTransactor::hrmp_manange(
 			parachain::RuntimeOrigin::root(),
-			parachain::MockTransactors::Relay,
 			HrmpOperation::InitOpen(HrmpInitParams {
 				para_id: 2u32.into(),
 				proposed_max_capacity: 1,
@@ -3232,7 +3231,6 @@ fn hrmp_init_accept_through_root() {
 		// Root can send hrmp init channel
 		assert_ok!(XcmTransactor::hrmp_manange(
 			parachain::RuntimeOrigin::root(),
-			parachain::MockTransactors::Relay,
 			HrmpOperation::Accept(1u32.into()),
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
@@ -3285,7 +3283,6 @@ fn hrmp_close_works() {
 		// Root can send hrmp close
 		assert_ok!(XcmTransactor::hrmp_manange(
 			parachain::RuntimeOrigin::root(),
-			parachain::MockTransactors::Relay,
 			HrmpOperation::Close(HrmpChannelId {
 				sender: 1u32.into(),
 				recipient: 2u32.into()

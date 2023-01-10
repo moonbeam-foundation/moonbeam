@@ -16,7 +16,6 @@
 
 //! Common functions to access xcm-transactor pallet dispatchables
 
-use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -35,9 +34,7 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::{
-	AccountIdToCurrencyId, HrmpAvailableCalls, UtilityEncodeCall, UtilityAvailableCalls,
-};
+use xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);

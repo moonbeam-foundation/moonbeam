@@ -1122,7 +1122,6 @@ fn test_hrmp_manipulator_init() {
 
 			assert_ok!(XcmTransactor::hrmp_manange(
 				RuntimeOrigin::root(),
-				Transactors::Relay,
 				HrmpOperation::InitOpen(HrmpInitParams {
 					para_id: 1u32.into(),
 					proposed_max_capacity: 1,
@@ -1171,7 +1170,6 @@ fn test_hrmp_max_fee_errors() {
 			assert_noop!(
 				XcmTransactor::hrmp_manange(
 					RuntimeOrigin::root(),
-					Transactors::Relay,
 					HrmpOperation::InitOpen(HrmpInitParams {
 						para_id: 1u32.into(),
 						proposed_max_capacity: 1,
@@ -1207,7 +1205,6 @@ fn test_hrmp_manipulator_accept() {
 
 			assert_ok!(XcmTransactor::hrmp_manange(
 				RuntimeOrigin::root(),
-				Transactors::Relay,
 				HrmpOperation::Accept(1u32.into()),
 				CurrencyPayment {
 					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
@@ -1253,7 +1250,6 @@ fn test_hrmp_manipulator_close() {
 
 			assert_ok!(XcmTransactor::hrmp_manange(
 				RuntimeOrigin::root(),
-				Transactors::Relay,
 				HrmpOperation::Close(HrmpChannelId {
 					sender: 1u32.into(),
 					recipient: 1u32.into()

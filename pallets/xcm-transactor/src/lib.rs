@@ -735,8 +735,6 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn hrmp_manange(
 			origin: OriginFor<T>,
-			// destination to which the message should be sent
-			dest: T::Transactor,
 			action: HrmpOperation,
 			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
@@ -769,7 +767,8 @@ pub mod pallet {
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
 			// Grab the destination
-			let destination = dest.destination();
+			// For hrmp, it is always parent
+			let destination = MultiLocation::parent();
 
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain

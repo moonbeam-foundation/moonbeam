@@ -2501,10 +2501,10 @@ fn root_can_use_hrmp_manage() {
 		.build()
 		.execute_with(|| {
 			// It fails sending, because the router does not work in test mode
+			// But all rest checks pass
 			assert_noop!(
 				XcmTransactor::hrmp_manange(
 					root_origin(),
-					moonbase_runtime::xcm_config::Transactors::Relay,
 					HrmpOperation::Accept(2000u32.into()),
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(

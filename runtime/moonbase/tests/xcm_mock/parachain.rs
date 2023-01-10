@@ -887,6 +887,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type HrmpEncoder = MockHrmpEncoder;
 }
 
 parameter_types! {
@@ -978,8 +979,8 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	}
 }
 
-impl xcm_primitives::RelayEncodeCall for MockTransactors {
-	fn utility_encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
@@ -991,24 +992,24 @@ impl xcm_primitives::RelayEncodeCall for MockTransactors {
 			},
 		}
 	}
+}
 
+pub struct MockHrmpEncoder;
+impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	fn hrmp_encode_call(
-		self,
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(
-					RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()))
-						.encode(),
-				),
-				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-					Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
-				}
-				xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
-					Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
-				}
-			},
+		match call {
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
+			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
 		}
 	}
 }
