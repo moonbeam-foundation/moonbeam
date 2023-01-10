@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-/// @dev The Referenda contract's address. TODO: UPDATE ADDRESS
-address constant REFERENDA_ADDRESS = 0x000000000000000000000000000000000000080b;
+/// @dev The Referenda contract's address.
+address constant REFERENDA_ADDRESS = 0x0000000000000000000000000000000000000811;
 
 /// @dev The Referenda contract's instance.
 Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
@@ -10,7 +10,7 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @author The Moonbeam Team
 /// @title Pallet Referenda Interface
 /// @title The interface through which solidity contracts will interact with the Referenda pallet
-/// @custom:address 0x000000000000000000000000000000000000080b TODO: UPDATE ADDRESS
+/// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
     /// @dev Defines the referenda origins that have tracks corresponding to uint8 representation
     /// The uint8 representation is defined in pallet-governance-origins Into<u16> for Origin

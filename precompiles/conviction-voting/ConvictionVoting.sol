@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-/// @dev The Conviction Voting contract's address. TODO: UPDATE ADDRESS
-address constant Conviction_Voting_ADDRESS = 0x000000000000000000000000000000000000080b;
+/// @dev The Conviction Voting contract's address.
+address constant Conviction_Voting_ADDRESS = 0x0000000000000000000000000000000000000812;
 
 /// @dev The Conviction Voting contract's instance.
 ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
@@ -12,7 +12,7 @@ ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
 /// @author The Moonbeam Team
 /// @title Pallet Conviction Voting Interface
 /// @title The interface through which solidity contracts will interact with the Conviction Voting pallet
-/// @custom:address 0x000000000000000000000000000000000000080b TODO: UPDATE ADDRESS
+/// @custom:address 0x0000000000000000000000000000000000000812
 interface ConvictionVoting {
     /// @dev Vote in a poll.
     /// @custom:selector 6cd18b0d
