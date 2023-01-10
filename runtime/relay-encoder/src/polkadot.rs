@@ -491,4 +491,64 @@ mod tests {
 			Ok(expected_encoded)
 		);
 	}
+
+	#[test]
+	fn test_hrmp_accept() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+
+		let index = <polkadot_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			polkadot_runtime::Hrmp,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			polkadot_runtime::Runtime
+		>::hrmp_accept_open_channel {
+			sender: 1000u32.into()
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
+				PolkadotEncoder,
+				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
+			),
+			Ok(expected_encoded)
+		);
+	}
+
+	#[test]
+	fn test_hrmp_close() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+
+		let index = <polkadot_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			polkadot_runtime::Hrmp,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			polkadot_runtime::Runtime
+		>::hrmp_close_channel {
+			channel_id: HrmpChannelId {
+				sender: 1000u32.into(),
+				recipient: 1001u32.into()
+			}
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
+				PolkadotEncoder,
+				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+					sender: 1000u32.into(),
+					recipient: 1001u32.into()
+				})
+			),
+			Ok(expected_encoded)
+		);
+	}
 }
