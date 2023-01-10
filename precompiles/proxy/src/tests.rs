@@ -65,8 +65,8 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::add_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxies_selectors());
-		tester.test_default_modifier(PCall::proxy_selectors());
-		tester.test_default_modifier(PCall::proxy_force_type_selectors());
+		tester.test_payable_modifier(PCall::proxy_selectors());
+		tester.test_payable_modifier(PCall::proxy_force_type_selectors());
 		tester.test_view_modifier(PCall::is_proxy_selectors());
 	});
 }
