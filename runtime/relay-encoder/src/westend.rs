@@ -101,7 +101,6 @@ impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
 
 impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 	fn hrmp_encode_call(
-		self,
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
@@ -480,8 +479,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			WestendEncoder.hrmp_encode_call(
-				WestendEncoder,
+			<WestendEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
 					1000u32.into(),
 					100u32.into(),
@@ -511,7 +509,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			WestendEncoder.hrmp_encode_call(
+			<WestendEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
 			),
 			Ok(expected_encoded)
@@ -540,7 +538,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			WestendEncoder.hrmp_encode_call(
+			<WestendEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
 					sender: 1000u32.into(),
 					recipient: 1001u32.into()
