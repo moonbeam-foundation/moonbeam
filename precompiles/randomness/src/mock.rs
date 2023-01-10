@@ -110,7 +110,7 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 		PrecompileAt<
 			AddressU64<1>,
 			RandomnessPrecompile<R>,
-			(SubcallWithMaxNesting<1>, ContractCanCall),
+			(SubcallWithMaxNesting<1>, CallableByContract),
 		>,
 		RevertPrecompile<AddressU64<2>>,
 	),

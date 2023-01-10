@@ -29,6 +29,10 @@ use sp_std::{
 	vec::Vec,
 };
 
+mod sealed {
+	pub trait Sealed {}
+}
+
 /// Trait representing checks that can be made on a precompile call.
 /// Types implementing this trait are made to be chained in a tuple.
 /// For that reason every method returns an Option, None meaning that
@@ -59,7 +63,15 @@ pub trait PrecompileChecks {
 	/// Is this precompile callable by a smart contract?
 	///
 	/// If all checks return None, defaults to `false`.
-	fn callable_by_smart_contract(_called_selector: Option<u32>) -> Option<bool> {
+	fn callable_by_smart_contract(_caller: H160, _called_selector: Option<u32>) -> Option<bool> {
+		None
+	}
+
+	#[inline(always)]
+	/// Is this precompile callable by a precompile?
+	///
+	/// If all checks return None, defaults to `false`.
+	fn callable_by_precompile(_caller: H160, _called_selector: Option<u32>) -> Option<bool> {
 		None
 	}
 
@@ -97,9 +109,20 @@ impl PrecompileChecks for Tuple {
 	}
 
 	#[inline(always)]
-	fn callable_by_smart_contract(called_selector: Option<u32>) -> Option<bool> {
+	fn callable_by_smart_contract(caller: H160, called_selector: Option<u32>) -> Option<bool> {
 		for_tuples!(#(
-			if let Some(check) = Tuple::callable_by_smart_contract(called_selector) {
+			if let Some(check) = Tuple::callable_by_smart_contract(caller, called_selector) {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
+
+	#[inline(always)]
+	fn callable_by_precompile(caller: H160, called_selector: Option<u32>) -> Option<bool> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::callable_by_precompile(caller, called_selector) {
 				return Some(check);
 			}
 		)*);
@@ -120,9 +143,9 @@ impl PrecompileChecks for Tuple {
 }
 
 /// Precompile can be called using DELEGATECALL/CALLCODE.
-pub struct DelegateCallable;
+pub struct AcceptDelegateCall;
 
-impl PrecompileChecks for DelegateCallable {
+impl PrecompileChecks for AcceptDelegateCall {
 	#[inline(always)]
 	fn supports_delegate_call() -> Option<bool> {
 		Some(true)
@@ -144,27 +167,55 @@ impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
 	}
 }
 
-/// Smart contracts are allowed to call ANY function of this precompile.
-pub struct ContractCanCall;
+/// Smart contracts are allowed to call this precompile.
+/// Parameter can either be [`WithFilter`] or [`ForAllSelectors`].
+pub struct CallableByContract<T = ForAllSelectors>(PhantomData<T>);
 
-impl PrecompileChecks for ContractCanCall {
+impl<T: SelectorFilterWrapper> PrecompileChecks for CallableByContract<T> {
 	#[inline(always)]
-	fn callable_by_smart_contract(_called_selector: Option<u32>) -> Option<bool> {
-		Some(true)
+	fn callable_by_smart_contract(caller: H160, called_selector: Option<u32>) -> Option<bool> {
+		Some(T::is_allowed(caller, called_selector))
 	}
 }
 
-pub trait CanContractCallSelector {
-	fn can_contract_call_selector(_selector: Option<u32>) -> bool;
+/// Precompiles are allowed to call this precompile.
+pub struct CallableByPrecompile<T = ForAllSelectors>(PhantomData<T>);
+
+impl<T: SelectorFilterWrapper> PrecompileChecks for CallableByPrecompile<T> {
+	#[inline(always)]
+	fn callable_by_precompile(caller: H160, called_selector: Option<u32>) -> Option<bool> {
+		Some(T::is_allowed(caller, called_selector))
+	}
 }
 
-/// Smart contracts are allowed to only call functions with selector satisfying `T`.
-pub struct ContractCanCallSelector<T>(PhantomData<T>);
+pub trait SelectorFilterWrapper: sealed::Sealed {
+	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool;
+}
 
-impl<T: CanContractCallSelector> PrecompileChecks for ContractCanCallSelector<T> {
-	#[inline(always)]
-	fn callable_by_smart_contract(called_selector: Option<u32>) -> Option<bool> {
-		Some(T::can_contract_call_selector(called_selector))
+pub trait SelectorFilter {
+	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool;
+}
+
+pub struct WithFilter<T>(PhantomData<T>);
+impl<T> sealed::Sealed for WithFilter<T> {}
+impl<T: SelectorFilter> SelectorFilterWrapper for WithFilter<T> {
+	fn is_allowed(caller: H160, selector: Option<u32>) -> bool {
+		T::is_allowed(caller, selector)
+	}
+}
+
+pub struct ForAllSelectors;
+impl sealed::Sealed for ForAllSelectors {}
+impl SelectorFilterWrapper for ForAllSelectors {
+	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool {
+		true
+	}
+}
+
+pub struct OnlyFrom<T>(PhantomData<T>);
+impl<T: Get<H160>> SelectorFilter for OnlyFrom<T> {
+	fn is_allowed(caller: H160, _selector: Option<u32>) -> bool {
+		caller == T::get()
 	}
 }
 
@@ -174,6 +225,7 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 	handle: &mut impl PrecompileHandle,
 ) -> Result<(), fp_evm::PrecompileFailure> {
 	let code_address = handle.code_address();
+	let caller = handle.context().caller;
 
 	// Check DELEGATECALL config.
 	let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
@@ -181,20 +233,31 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 		return Err(revert("Cannot be called with DELEGATECALL or CALLCODE"));
 	}
 
-	// Callable by smart contract.
+	// Extract which selector is called.
 	let selector = handle.input().get(0..4).map(|bytes| {
 		let mut buffer = [0u8; 4];
 		buffer.copy_from_slice(bytes);
 		u32::from_be_bytes(buffer)
 	});
-	let callable_by_smart_contract = C::callable_by_smart_contract(selector).unwrap_or(false);
+
+	// Is this selector callable from a smart contract?
+	let callable_by_smart_contract =
+		C::callable_by_smart_contract(caller, selector).unwrap_or(false);
 	if !callable_by_smart_contract {
 		handle.record_cost(RuntimeHelper::<R>::db_read_gas_cost())?;
-		let caller_code = pallet_evm::Pallet::<R>::account_codes(handle.context().caller);
+		let caller_code = pallet_evm::Pallet::<R>::account_codes(caller);
 		// Check that caller is not a smart contract s.t. no code is inserted into
 		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
 		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
 			return Err(revert("Function not callable by smart contracts"));
+		}
+	}
+
+	// Is this selector callable from a precompile?
+	let callable_by_precompile = C::callable_by_precompile(caller, selector).unwrap_or(false);
+	if !callable_by_precompile {
+		if <R as pallet_evm::Config>::PrecompilesValue::get().is_precompile(caller) {
+			return Err(revert("Function not callable by precompiles"));
 		}
 	}
 

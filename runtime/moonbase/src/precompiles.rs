@@ -83,6 +83,8 @@ parameter_types! {
 	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
+type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
+
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -100,73 +102,123 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 			(
 				// Ethereum precompiles:
 				// We allow DELEGATECALL to stay compliant with Ethereum behavior.
-				PrecompileAt<AddressU64<1>, ECRecover, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<2>, Sha256, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<3>, Ripemd160, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<4>, Identity, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<5>, Modexp, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<6>, Bn128Add, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<7>, Bn128Mul, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<8>, Bn128Pairing, (DelegateCallable, ContractCanCall)>,
-				PrecompileAt<AddressU64<9>, Blake2F, (DelegateCallable, ContractCanCall)>,
+				PrecompileAt<AddressU64<1>, ECRecover, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<2>, Sha256, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<3>, Ripemd160, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<4>, Identity, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<5>, Modexp, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<6>, Bn128Add, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
+				PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
 				// Non-Moonbeam specific nor Ethereum precompiles :
-				PrecompileAt<AddressU64<1024>, Sha3FIPS256, ContractCanCall>,
+				PrecompileAt<
+					AddressU64<1024>,
+					Sha3FIPS256,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				// PrecompileAt<AddressU64<1025>, Dispatch<R>>,
-				PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, ContractCanCall>,
+				PrecompileAt<
+					AddressU64<1026>,
+					ECRecoverPublicKey,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				// Moonbeam specific precompiles:
-				PrecompileAt<AddressU64<2048>, ParachainStakingPrecompile<R>, ContractCanCall>,
-				PrecompileAt<AddressU64<2049>, CrowdloanRewardsPrecompile<R>, ContractCanCall>,
+				PrecompileAt<
+					AddressU64<2048>,
+					ParachainStakingPrecompile<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
+				PrecompileAt<
+					AddressU64<2049>,
+					CrowdloanRewardsPrecompile<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				PrecompileAt<
 					AddressU64<2050>,
 					Erc20BalancesPrecompile<R, NativeErc20Metadata>,
-					ContractCanCall,
+					(CallableByContract, CallableByPrecompile),
 				>,
-				PrecompileAt<AddressU64<2051>, DemocracyPrecompile<R>, ContractCanCall>,
-				PrecompileAt<AddressU64<2052>, XtokensPrecompile<R>, ContractCanCall>,
+				PrecompileAt<
+					AddressU64<2051>,
+					DemocracyPrecompile<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
+				PrecompileAt<
+					AddressU64<2052>,
+					XtokensPrecompile<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				PrecompileAt<
 					AddressU64<2053>,
 					RelayEncoderPrecompile<R, WestendEncoder>,
-					ContractCanCall,
+					(CallableByContract, CallableByPrecompile),
 				>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>, ContractCanCall>,
-				PrecompileAt<AddressU64<2055>, AuthorMappingPrecompile<R>, ContractCanCall>,
-				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, SubcallWithMaxNesting<2>>,
+				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>, CallableByContract>,
+				PrecompileAt<
+					AddressU64<2055>,
+					AuthorMappingPrecompile<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
+				PrecompileAt<
+					AddressU64<2056>,
+					BatchPrecompile<R>,
+					(
+						SubcallWithMaxNesting<2>,
+						// Batch is the only precompile allowed to call Batch.
+						CallableByPrecompile<WithFilter<OnlyFrom<AddressU64<2056>>>>,
+					),
+				>,
 				PrecompileAt<
 					AddressU64<2057>,
 					RandomnessPrecompile<R>,
-					(SubcallWithMaxNesting<0>, ContractCanCall),
+					(SubcallWithMaxNesting<0>, CallableByContract),
 				>,
 				PrecompileAt<
 					AddressU64<2058>,
 					CallPermitPrecompile<R>,
-					(SubcallWithMaxNesting<0>, ContractCanCall),
+					(SubcallWithMaxNesting<0>, CallableByContract),
 				>,
 				PrecompileAt<
 					AddressU64<2059>,
 					ProxyPrecompile<R>,
-					ContractCanCallSelector<pallet_evm_precompile_proxy::ContractSafeSelectors<R>>,
+					CallableByContract<
+						WithFilter<pallet_evm_precompile_proxy::ContractSafeSelectors<R>>,
+					>,
 				>,
 				PrecompileAt<
 					AddressU64<2060>,
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
-					ContractCanCall,
+					CallableByContract,
 				>,
-				PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>, ContractCanCall>,
-				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
-				PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
-				PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
+				PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>, CallableByContract>,
+				PrecompileAt<
+					AddressU64<2062>,
+					CollectivePrecompile<R, CouncilInstance>,
+					(CallableByContract, CallableByPrecompile),
+				>,
+				PrecompileAt<
+					AddressU64<2063>,
+					CollectivePrecompile<R, TechCommitteeInstance>,
+					(CallableByContract, CallableByPrecompile),
+				>,
+				PrecompileAt<
+					AddressU64<2064>,
+					CollectivePrecompile<R, TreasuryCouncilInstance>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
-			ContractCanCall,
+			(CallableByContract, CallableByPrecompile),
 		>,
 		PrecompileSetStartingWith<
 			LocalAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>,
-			ContractCanCall,
+			(CallableByContract, CallableByPrecompile),
 		>,
 	),
 >;

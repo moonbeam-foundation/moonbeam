@@ -24,8 +24,8 @@ use frame_support::{
 use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping};
 use precompile_utils::{
 	precompile_set::{
-		AddressU64, ContractCanCallSelector, PrecompileAt, PrecompileSetBuilder,
-		SubcallWithMaxNesting,
+		AddressU64, CallableByContract, PrecompileAt, PrecompileSetBuilder, SubcallWithMaxNesting,
+		WithFilter,
 	},
 	testing::MockAccount,
 };
@@ -109,7 +109,7 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 			ProxyPrecompile<R>,
 			(
 				SubcallWithMaxNesting<1>,
-				ContractCanCallSelector<crate::ContractSafeSelectors<R>>,
+				CallableByContract<WithFilter<crate::ContractSafeSelectors<R>>>,
 			),
 		>,
 	),

@@ -23,7 +23,8 @@ use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::prelude::*;
-use precompile_utils::{data::Address, precompile_set::CanContractCallSelector};
+use precompile_utils::{data::Address, precompile_set::SelectorFilter};
+use sp_core::H160;
 use sp_runtime::{codec::Decode, traits::StaticLookup};
 use sp_std::marker::PhantomData;
 
@@ -34,7 +35,7 @@ mod tests;
 
 pub struct ContractSafeSelectors<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> CanContractCallSelector for ContractSafeSelectors<Runtime>
+impl<Runtime> SelectorFilter for ContractSafeSelectors<Runtime>
 where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -46,7 +47,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
 {
-	fn can_contract_call_selector(selector: Option<u32>) -> bool {
+	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
 		match selector {
 			None => false,
 			Some(selector) => {
@@ -72,31 +73,6 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
 {
-	#[precompile::pre_check]
-	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
-		// Check if the selector is the one of `isProxy`, which is one which can
-		// be called by smart contrats.
-		if let Some(bytes) = handle.input().get(0..4) {
-			let mut buffer = [0u8; 4];
-			buffer.copy_from_slice(bytes);
-			let selector = u32::from_be_bytes(buffer);
-
-			if ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector) {
-				return Ok(());
-			}
-		}
-
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let caller_code = pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
-		// Check that caller is not a smart contract s.t. no code is inserted into
-		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
-		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
-			Err(revert("Proxy not callable by smart contracts"))
-		} else {
-			Ok(())
-		}
-	}
-
 	/// Register a proxy account for the sender that is able to make calls on its behalf.
 	/// The dispatch origin for this call must be Signed.
 	///
