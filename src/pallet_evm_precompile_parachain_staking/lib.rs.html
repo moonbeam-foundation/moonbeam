@@ -849,6 +849,40 @@
 <span id="849">849</span>
 <span id="850">850</span>
 <span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1692,6 +1726,40 @@
 		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;getDelegatorTotalStaked(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>get_delegator_total_staked(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegator: Address,
+	) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
+
+		<span class="kw">let </span>amount = &lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::delegator_state(<span class="kw-2">&amp;</span>delegator)
+			.map(|state| state.total)
+			.unwrap_or_default();
+
+		<span class="prelude-val">Ok</span>(amount.into())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;getCandidateTotalCounted(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>get_candidate_total_counted(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
+
+		<span class="kw">let </span>amount = &lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::candidate_info(<span class="kw-2">&amp;</span>candidate)
+			.map(|state| state.total_counted)
+			.unwrap_or_default();
+
+		<span class="prelude-val">Ok</span>(amount.into())
 	}
 
 	<span class="kw">fn </span>u256_to_amount(value: U256) -&gt; MayRevert&lt;BalanceOf&lt;Runtime&gt;&gt; {
