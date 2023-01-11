@@ -55,7 +55,6 @@ construct_runtime!(
 		Preimage: pallet_preimage,
 		Scheduler: pallet_scheduler,
 		Referenda: pallet_referenda,
-		GovernanceOrigins: pallet_governance_origins::{Pallet, Origin},
 	}
 );
 
@@ -111,12 +110,12 @@ impl pallet_balances::Config for Runtime {
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, ReferendaPrecompile<R>, LimitRecursionTo<1>>,
+		PrecompileAt<AddressU64<1>, ReferendaPrecompile<R, GovOrigin>, LimitRecursionTo<1>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;
 
-pub type PCall = ReferendaPrecompileCall<Runtime>;
+pub type PCall = ReferendaPrecompileCall<Runtime, GovOrigin>;
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
@@ -328,12 +327,12 @@ impl pallet_referenda::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-impl pallet_governance_origins::Config for Runtime {
-	type Currency = pallet_balances::Pallet<Self>;
-	type MaxSmallSpenderSpend = ConstU128<1>;
-	type MaxMediumSpenderSpend = ConstU128<1>;
-	type MaxBigSpenderSpend = ConstU128<1>;
-	type MaxTreasurerSpend = ConstU128<1>;
+pub struct GovOrigin;
+impl TryFrom<u8> for GovOrigin {
+	type Error = ();
+	fn try_from(_input: u8) -> Result<GovOrigin, ()> {
+		Ok(GovOrigin)
+	}
 }
 
 /// Externality builder for pallet referenda mock runtime

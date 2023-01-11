@@ -8,7 +8,6 @@ members = [
 	"node",
 	"node/cli",
 	"node/service",
-	"pallets/governance-origins",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/moonbeam-orbiters",

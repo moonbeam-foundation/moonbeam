@@ -4903,7 +4903,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
- "pallet-governance-origins",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
@@ -6982,7 +6981,6 @@ dependencies = [
  "pallet-balances",
  "pallet-conviction-voting",
  "pallet-evm",
- "pallet-governance-origins",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
@@ -7112,7 +7110,6 @@ dependencies = [
  "num_enum",
  "pallet-balances",
  "pallet-evm",
- "pallet-governance-origins",
  "pallet-preimage",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -7196,7 +7193,6 @@ dependencies = [
  "num_enum",
  "pallet-balances",
  "pallet-evm",
- "pallet-governance-origins",
  "pallet-preimage",
  "pallet-referenda",
  "pallet-scheduler",
@@ -7420,17 +7416,6 @@ dependencies = [
  "scale-info",
  "sp-arithmetic",
  "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-governance-origins"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
  "sp-std",
 ]
 

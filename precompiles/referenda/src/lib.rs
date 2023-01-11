@@ -49,16 +49,13 @@ type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
 /// A precompile to wrap the functionality from pallet-referenda.
-pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u8>>(PhantomData<(Runtime, GovOrigin)>);
 
 #[precompile_utils::precompile]
-impl<Runtime> ReferendaPrecompile<Runtime>
+impl<Runtime, GovOrigin: TryFrom<u8>> ReferendaPrecompile<Runtime, GovOrigin>
 where
-	Runtime: pallet_referenda::Config
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_governance_origins::Config,
-	OriginOf<Runtime>: From<pallet_governance_origins::Origin>,
+	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
+	OriginOf<Runtime>: From<GovOrigin>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -158,10 +155,9 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		let gov_origin: pallet_governance_origins::Origin =
-			proposal_origin.try_into().map_err(|_| {
-				RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
-			})?;
+		let gov_origin: GovOrigin = proposal_origin.try_into().map_err(|_| {
+			RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
+		})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {

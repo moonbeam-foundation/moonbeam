@@ -170,7 +170,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				_ => Err(()),
 			}
 		} else if let Ok(custom_origin) = governance_origins::Origin::try_from(id.clone()) {
-			// Origins => TrackId defined in Into<u16> for Origin (in pallet-governance-origins)
+			// Origins => TrackId defined in Into<u16> for Origin
 			Ok(custom_origin.into())
 		} else {
 			Err(())

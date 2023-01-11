@@ -13,7 +13,7 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
     /// @dev Defines the referenda origins that have tracks corresponding to uint8 representation
-    /// The uint8 representation is defined in pallet-governance-origins Into<u16> for Origin
+    /// The uint8 representation is defined in origins pallet Into<u16> for Origin
     /// From top to bottom: 1, 10, 11, 12, 13, 14, 15
     enum Origin {
         WhitelistedCaller,
