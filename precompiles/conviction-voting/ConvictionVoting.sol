@@ -15,12 +15,12 @@ ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
 /// @custom:address 0x0000000000000000000000000000000000000812
 interface ConvictionVoting {
     /// @dev Vote in a poll.
-    /// @custom:selector 6cd18b0d
+    /// @custom:selector f56cb3b3
     /// @param pollIndex Index of poll
     /// @param aye Yes or no vote
     /// @param voteAmount Balance locked for vote
     /// @param conviction Conviction multiplier for length of vote lock
-    function standardVote(
+    function vote(
         uint256 pollIndex,
         bool aye,
         uint256 voteAmount,

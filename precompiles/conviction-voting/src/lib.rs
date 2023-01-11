@@ -77,8 +77,8 @@ where
 	/// * aye: Yes or no vote
 	/// * vote_amount: Balance locked for vote
 	/// * conviction: Conviction multiplier for length of vote lock
-	#[precompile::public("standardVote(uint256,bool,uint256,uint256)")]
-	fn standard_vote(
+	#[precompile::public("vote(uint256,bool,uint256,uint256)")]
+	fn vote(
 		handle: &mut impl PrecompileHandle,
 		poll_index: SolidityConvert<U256, u32>,
 		aye: bool,
