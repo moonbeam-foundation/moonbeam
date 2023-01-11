@@ -80,6 +80,8 @@ fn selectors() {
 	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
 	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
 	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
+	assert!(PCall::get_delegator_total_staked_selectors().contains(&0xe6861713));
+	assert!(PCall::get_candidate_total_counted_selectors().contains(&0xbc5a1043));
 }
 
 #[test]
@@ -121,6 +123,8 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
 		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
 		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
+		tester.test_view_modifier(PCall::get_delegator_total_staked_selectors());
+		tester.test_view_modifier(PCall::get_candidate_total_counted_selectors());
 	});
 }
 
@@ -1584,6 +1588,83 @@ fn set_auto_compound_fails_if_not_delegation() {
 					},
 				)
 				.execute_reverts(|output| from_utf8(&output).unwrap().contains("DelegatorDNE"));
+		});
+}
+
+#[test]
+fn get_delegator_total_staked_getter() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 1_000),
+			(Charlie.into(), 1_500),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
+		.with_delegations(vec![
+			(Charlie.into(), Alice.into(), 1_000),
+			(Charlie.into(), Bob.into(), 499),
+		])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::get_delegator_total_staked {
+						delegator: Address(Charlie.into()),
+					},
+				)
+				.execute_returns_encoded(U256::from(1_499));
+		});
+}
+
+#[test]
+fn get_delegator_total_staked_getter_unknown() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 1_000),
+			(Charlie.into(), 1_500),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::get_delegator_total_staked {
+						delegator: Address(Charlie.into()),
+					},
+				)
+				.execute_returns_encoded(U256::zero());
+		});
+}
+
+#[test]
+fn get_candidate_total_counted_getter() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 1_000),
+			(Charlie.into(), 1_500),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
+		.with_delegations(vec![
+			(Charlie.into(), Alice.into(), 1_000),
+			(Charlie.into(), Bob.into(), 499),
+		])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::get_candidate_total_counted {
+						candidate: Address(Alice.into()),
+					},
+				)
+				.execute_returns_encoded(U256::from(2_000));
 		});
 }
 
