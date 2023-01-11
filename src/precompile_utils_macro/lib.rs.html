@@ -95,6 +95,13 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -119,11 +126,13 @@
 <span class="kw">use </span>quote::{quote, quote_spanned};
 <span class="kw">use </span>sha3::{Digest, Keccak256};
 <span class="kw">use </span>syn::{
-	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, Lit, LitStr,
+	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, ItemType, Lit,
+	LitStr,
 };
 
 <span class="kw">mod </span>generate_function_selector;
 <span class="kw">mod </span>precompile;
+<span class="kw">mod </span>precompile_name_from_address;
 
 <span class="kw">struct </span>Bytes(Vec&lt;u8&gt;);
 
@@ -191,6 +200,11 @@
 <span class="attribute">#[proc_macro_attribute]
 </span><span class="kw">pub fn </span>precompile(attr: TokenStream, input: TokenStream) -&gt; TokenStream {
 	precompile::main(attr, input)
+}
+
+<span class="attribute">#[proc_macro_attribute]
+</span><span class="kw">pub fn </span>precompile_name_from_address(attr: TokenStream, input: TokenStream) -&gt; TokenStream {
+	precompile_name_from_address::main(attr, input)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

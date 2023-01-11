@@ -1532,6 +1532,103 @@
 <span id="1532">1532</span>
 <span id="1533">1533</span>
 <span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2311,6 +2408,103 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>ProxyType {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::Any
+	}
+}
+
+<span class="kw">use </span>precompiles::PrecompileName;
+<span class="kw">impl </span>pallet_evm_precompile_proxy::EvmProxyCallFilter <span class="kw">for </span>ProxyType {
+	<span class="comment">// TODO: add opengov precompiles
+	</span><span class="kw">fn </span>is_evm_proxy_call_allowed(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		call: <span class="kw-2">&amp;</span>pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -&gt; bool {
+		<span class="kw">use </span>pallet_evm::PrecompileSet <span class="kw">as _</span>;
+		<span class="kw">match </span><span class="self">self </span>{
+			ProxyType::Any =&gt; {
+				<span class="comment">//
+				</span><span class="kw">match </span>PrecompileName::from_address(call.to.<span class="number">0</span>) {
+					<span class="comment">// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can&#39;t be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					</span><span class="prelude-val">Some</span>(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::DemocracyPrecompile
+						| PrecompileName::ParachainStakingPrecompile
+						| PrecompileName::CouncilInstance
+						| PrecompileName::TechCommitteeInstance
+						| PrecompileName::TreasuryCouncilInstance,
+					) =&gt; <span class="bool-val">true</span>,
+					<span class="comment">// All non-whitelisted precompiles are forbidden
+					</span><span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+					<span class="comment">// Allow evm transfer to &quot;simple&quot; account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					</span><span class="prelude-val">None </span>=&gt; {
+						<span class="comment">// If the address is not recognized, allow only evm transfert to &quot;simple&quot;
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						</span>!recipient_has_code &amp;&amp; !PrecompilesValue::get().is_precompile(call.to.<span class="number">0</span>)
+					}
+				}
+			}
+			ProxyType::NonTransfer =&gt; {
+				call.value == U256::default()
+					&amp;&amp; <span class="macro">matches!</span>(
+						PrecompileName::from_address(call.to.<span class="number">0</span>),
+						<span class="prelude-val">Some</span>(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::DemocracyPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
+					)
+			}
+			ProxyType::Governance =&gt; {
+				call.value == U256::default()
+					&amp;&amp; <span class="macro">matches!</span>(
+						PrecompileName::from_address(call.to.<span class="number">0</span>),
+						<span class="prelude-val">Some</span>(
+							PrecompileName::DemocracyPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
+					)
+			}
+			ProxyType::Staking =&gt; {
+				call.value == U256::default()
+					&amp;&amp; <span class="macro">matches!</span>(
+						PrecompileName::from_address(call.to.<span class="number">0</span>),
+						<span class="prelude-val">Some</span>(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
+					)
+			}
+			<span class="comment">// The proxy precompile does not contain method cancel_proxy
+			</span>ProxyType::CancelProxy =&gt; <span class="bool-val">false</span>,
+			ProxyType::Balances =&gt; {
+				<span class="comment">// Allow only &quot;simple&quot; accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				</span>!recipient_has_code &amp;&amp; !PrecompilesValue::get().is_precompile(call.to.<span class="number">0</span>)
+			}
+			ProxyType::AuthorMapping =&gt; {
+				call.value == U256::default()
+					&amp;&amp; <span class="macro">matches!</span>(
+						PrecompileName::from_address(call.to.<span class="number">0</span>),
+						<span class="prelude-val">Some</span>(PrecompileName::AuthorMappingPrecompile)
+					)
+			}
+			<span class="comment">// There is no identity precompile
+			</span>ProxyType::IdentityJudgement =&gt; <span class="bool-val">false</span>,
+		}
 	}
 }
 

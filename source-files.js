@@ -55,7 +55,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_randomness":["",[],["lib.rs","types.rs","vrf.rs","weights.rs"]],\
 "pallet_xcm_transactor":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "precompile_utils":["",[["data",[],["bytes.rs","mod.rs","native.rs","xcm.rs"]],["testing",[],["account.rs","execution.rs","handle.rs","mod.rs","modifier.rs","solidity.rs"]]],["costs.rs","handle.rs","lib.rs","logs.rs","modifier.rs","precompile_set.rs","revert.rs","substrate.rs"]],\
-"precompile_utils_macro":["",[["precompile",[],["attr.rs","expand.rs","mod.rs","parse.rs"]]],["generate_function_selector.rs","lib.rs"]],\
+"precompile_utils_macro":["",[["precompile",[],["attr.rs","expand.rs","mod.rs","parse.rs"]]],["generate_function_selector.rs","lib.rs","precompile_name_from_address.rs"]],\
 "session_keys_primitives":["",[],["digest.rs","inherent.rs","lib.rs","vrf.rs"]],\
 "xcm_primitives":["",[],["asset_id_conversions.rs","barriers.rs","ethereum_xcm.rs","fee_handlers.rs","lib.rs","location_conversion.rs","origin_conversion.rs","transactor_traits.rs","xcm_execution_traits.rs"]]\
 }');

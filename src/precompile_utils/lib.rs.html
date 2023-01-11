@@ -101,6 +101,8 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -143,7 +145,9 @@
 
 <span class="kw">pub use </span>data::{EvmData, EvmDataReader, EvmDataWriter};
 <span class="kw">pub use </span>fp_evm::Precompile;
-<span class="kw">pub use </span>precompile_utils_macro::{generate_function_selector, keccak256, precompile};
+<span class="kw">pub use </span>precompile_utils_macro::{
+	generate_function_selector, keccak256, precompile, precompile_name_from_address,
+};
 
 <span class="doccomment">/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
 /// If the revert needs improved formatting such as backtraces, `Revert` type should

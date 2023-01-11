@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"moonbase_runtime":[["impl <a class=\"trait\" href=\"pallet_evm_precompile_proxy/trait.EvmProxyCallFilter.html\" title=\"trait pallet_evm_precompile_proxy::EvmProxyCallFilter\">EvmProxyCallFilter</a> for <a class=\"enum\" href=\"moonbase_runtime/enum.ProxyType.html\" title=\"enum moonbase_runtime::ProxyType\">ProxyType</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

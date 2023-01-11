@@ -143,7 +143,6 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-<span id="146">146</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -229,10 +228,46 @@
 	<span class="kw">pub </span>LocalAssetPrefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
+<span class="attribute">#[precompile_utils::precompile_name_from_address]
+</span><span class="kw">type </span>MoonbasePrecompilesAt&lt;R&gt; = (
+	<span class="comment">// Ethereum precompiles:
+	// We allow DELEGATECALL to stay compliant with Ethereum behavior.
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1</span>&gt;, ECRecover, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2</span>&gt;, Sha256, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">3</span>&gt;, Ripemd160, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">4</span>&gt;, Identity, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">5</span>&gt;, Modexp, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">6</span>&gt;, Bn128Add, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">7</span>&gt;, Bn128Mul, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">8</span>&gt;, Bn128Pairing, ForbidRecursion, AllowDelegateCall&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">9</span>&gt;, Blake2F, ForbidRecursion, AllowDelegateCall&gt;,
+	<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1024</span>&gt;, Sha3FIPS256&gt;,
+	<span class="comment">// PrecompileAt&lt;AddressU64&lt;1025&gt;, Dispatch&lt;R&gt;&gt;,
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1026</span>&gt;, ECRecoverPublicKey&gt;,
+	<span class="comment">// Moonbeam specific precompiles:
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">2048</span>&gt;, ParachainStakingPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2049</span>&gt;, CrowdloanRewardsPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2050</span>&gt;, Erc20BalancesPrecompile&lt;R, NativeErc20Metadata&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2051</span>&gt;, DemocracyPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2052</span>&gt;, XtokensPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2053</span>&gt;, RelayEncoderPrecompile&lt;R, WestendEncoder&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2054</span>&gt;, XcmTransactorPrecompileV1&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2055</span>&gt;, AuthorMappingPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2056</span>&gt;, BatchPrecompile&lt;R&gt;, LimitRecursionTo&lt;<span class="number">2</span>&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2057</span>&gt;, RandomnessPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2058</span>&gt;, CallPermitPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2059</span>&gt;, ProxyPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2060</span>&gt;, XcmUtilsPrecompile&lt;R, XcmExecutorConfig&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2061</span>&gt;, XcmTransactorPrecompileV2&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;, CollectivePrecompile&lt;R, CouncilInstance&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;, CollectivePrecompile&lt;R, TechCommitteeInstance&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2064</span>&gt;, CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;&gt;,
+);
+
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
-/// as well as a special precompile for dispatching Substrate extrinsics
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
@@ -241,44 +276,7 @@
 	R,
 	(
 		<span class="comment">// Skip precompiles if out of range.
-		</span>PrecompilesInRangeInclusive&lt;
-			(AddressU64&lt;<span class="number">1</span>&gt;, AddressU64&lt;<span class="number">4095</span>&gt;),
-			(
-				<span class="comment">// Ethereum precompiles:
-				// We allow DELEGATECALL to stay compliant with Ethereum behavior.
-				</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1</span>&gt;, ECRecover, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2</span>&gt;, Sha256, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">3</span>&gt;, Ripemd160, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">4</span>&gt;, Identity, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">5</span>&gt;, Modexp, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">6</span>&gt;, Bn128Add, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">7</span>&gt;, Bn128Mul, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">8</span>&gt;, Bn128Pairing, ForbidRecursion, AllowDelegateCall&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">9</span>&gt;, Blake2F, ForbidRecursion, AllowDelegateCall&gt;,
-				<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :
-				</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1024</span>&gt;, Sha3FIPS256&gt;,
-				<span class="comment">// PrecompileAt&lt;AddressU64&lt;1025&gt;, Dispatch&lt;R&gt;&gt;,
-				</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1026</span>&gt;, ECRecoverPublicKey&gt;,
-				<span class="comment">// Moonbeam specific precompiles:
-				</span>PrecompileAt&lt;AddressU64&lt;<span class="number">2048</span>&gt;, ParachainStakingPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2049</span>&gt;, CrowdloanRewardsPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2050</span>&gt;, Erc20BalancesPrecompile&lt;R, NativeErc20Metadata&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2051</span>&gt;, DemocracyPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2052</span>&gt;, XtokensPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2053</span>&gt;, RelayEncoderPrecompile&lt;R, WestendEncoder&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2054</span>&gt;, XcmTransactorPrecompileV1&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2055</span>&gt;, AuthorMappingPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2056</span>&gt;, BatchPrecompile&lt;R&gt;, LimitRecursionTo&lt;<span class="number">2</span>&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2057</span>&gt;, RandomnessPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2058</span>&gt;, CallPermitPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2059</span>&gt;, ProxyPrecompile&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2060</span>&gt;, XcmUtilsPrecompile&lt;R, XcmExecutorConfig&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2061</span>&gt;, XcmTransactorPrecompileV2&lt;R&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;, CollectivePrecompile&lt;R, CouncilInstance&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;, CollectivePrecompile&lt;R, TechCommitteeInstance&gt;&gt;,
-				PrecompileAt&lt;AddressU64&lt;<span class="number">2064</span>&gt;, CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;&gt;,
-			),
-		&gt;,
+		</span>PrecompilesInRangeInclusive&lt;(AddressU64&lt;<span class="number">1</span>&gt;, AddressU64&lt;<span class="number">4095</span>&gt;), MoonbasePrecompilesAt&lt;R&gt;&gt;,
 		<span class="comment">// Prefixed precompile sets (XC20)
 		</span>PrecompileSetStartingWith&lt;
 			ForeignAssetPrefix,
