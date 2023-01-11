@@ -61,7 +61,7 @@ interface Proxy {
         address real,
         address callTo,
         bytes memory callData
-    ) external;
+    ) external payable;
 
     /// @dev Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender
     /// is authorised for through `add_proxy`
@@ -75,7 +75,7 @@ interface Proxy {
         ProxyType forceProxyType,
         address callTo,
         bytes memory callData
-    ) external;
+    ) external payable;
 
     /// @dev Checks if the caller has an account proxied with a given proxy type
     /// @custom:selector e26d38ed
