@@ -732,7 +732,7 @@ pub mod pallet {
 		}
 
 		/// Manage HRMP operations
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::hrmp_manage())]
 		pub fn hrmp_manage(
 			origin: OriginFor<T>,
 			action: HrmpOperation,
