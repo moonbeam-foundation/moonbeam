@@ -61,7 +61,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     });
 
     expect(extSuccessEvent).to.not.be.eq(null);
-    let eventWeight = (extSuccessEvent.event.data as any).dispatchInfo.weight.toBigInt();
+    let eventWeight = (extSuccessEvent.event.data as any).dispatchInfo.weight.refTime.toBigInt();
     expect(eventWeight).to.eq(EXPECTED_WEIGHT);
   });
 
