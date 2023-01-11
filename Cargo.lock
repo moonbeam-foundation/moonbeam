@@ -7212,6 +7212,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
+ "pallet-xcm",
  "parity-scale-codec",
  "polkadot-parachain",
  "precompile-utils",
@@ -7416,6 +7417,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "xcm-primitives",
 ]
 
 [[package]]
@@ -7455,6 +7457,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "xcm-primitives",
 ]
 
 [[package]]

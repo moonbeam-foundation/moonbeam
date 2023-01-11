@@ -33,8 +33,8 @@ use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_std::borrow::Borrow;
 use xcm::latest::{
 	Error as XcmError,
-	Junction::{AccountKey20, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
+	Junction::{AccountKey20, PalletInstance, Parachain},
+	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm,
 };
 use xcm_builder::AllowUnpaidExecutionFrom;
 use xcm_builder::FixedWeightBounds;
@@ -64,6 +64,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
 
@@ -74,6 +75,32 @@ mock_account!(
 	SiblingParachainAccount(u32),
 	|v: SiblingParachainAccount| { AddressInPrefixedSet(0xffffffff, v.0 as u128).into() }
 );
+
+use frame_system::RawOrigin as SystemRawOrigin;
+use xcm::latest::Junction;
+pub struct MockAccountToAccountKey20<Origin, AccountId>(PhantomData<(Origin, AccountId)>);
+
+impl<Origin: OriginTrait + Clone, AccountId: Into<H160>> Convert<Origin, MultiLocation>
+	for MockAccountToAccountKey20<Origin, AccountId>
+where
+	Origin::PalletsOrigin: From<SystemRawOrigin<AccountId>>
+		+ TryInto<SystemRawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
+{
+	fn convert(o: Origin) -> Result<MultiLocation, Origin> {
+		o.try_with_caller(|caller| match caller.try_into() {
+			Ok(SystemRawOrigin::Signed(who)) => {
+				let account_h160: H160 = who.into();
+				Ok(Junction::AccountKey20 {
+					network: NetworkId::Any,
+					key: account_h160.into(),
+				}
+				.into())
+			}
+			Ok(other) => Err(other.into()),
+			Err(other) => Err(other),
+		})
+	}
+}
 
 pub struct MockParentMultilocationToAccountConverter;
 impl Convert<MultiLocation, AccountId> for MockParentMultilocationToAccountConverter {
@@ -121,6 +148,7 @@ impl Convert<MultiLocation, AccountId> for MockParachainMultilocationToAccountCo
 pub type LocationToAccountId = (
 	MockParachainMultilocationToAccountConverter,
 	MockParentMultilocationToAccountConverter,
+	xcm_builder::AccountKey20Aliases<LocalNetworkId, AccountId>,
 );
 
 pub struct AccountIdToMultiLocation;
@@ -139,6 +167,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub LocalNetworkId: NetworkId = NetworkId::Any;
 }
 
 parameter_types! {
@@ -191,11 +220,33 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub type LocalOriginToLocation = MockAccountToAccountKey20<RuntimeOrigin, AccountId>;
+impl pallet_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
+	type XcmRouter = TestSendXcm;
+	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
+	type XcmExecuteFilter = frame_support::traits::Everything;
+	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
+	// Do not allow teleports
+	type XcmTeleportFilter = Everything;
+	type XcmReserveTransferFilter = Everything;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
+	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
+	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
+	// We use a custom one to test runtime ugprades
+	type AdvertisedXcmVersion = ();
+}
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, XcmUtilsPrecompile<R, XcmConfig>>,
-		(CallableByContract, CallableByPrecompile),
+		PrecompileAt<
+			AddressU64<1>,
+			XcmUtilsPrecompile<R, XcmConfig>,
+			(CallableByContract, CallableByPrecompile),
+		>,
 	),
 >;
 
@@ -263,9 +314,19 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 	}
 }
 
-pub struct DoNothingRouter;
-impl SendXcm for DoNothingRouter {
-	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
+use sp_std::cell::RefCell;
+use xcm::latest::opaque;
+// Simulates sending a XCM message
+thread_local! {
+	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
+}
+pub fn sent_xcm() -> Vec<(MultiLocation, opaque::Xcm)> {
+	SENT_XCM.with(|q| (*q.borrow()).clone())
+}
+pub struct TestSendXcm;
+impl SendXcm for TestSendXcm {
+	fn send_xcm(dest: impl Into<MultiLocation>, msg: opaque::Xcm) -> SendResult {
+		SENT_XCM.with(|q| q.borrow_mut().push((dest.into(), msg)));
 		Ok(())
 	}
 }
@@ -336,7 +397,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
-	type XcmSender = DoNothingRouter;
+	type XcmSender = TestSendXcm;
 	type AssetTransactor = DummyAssetTransactor;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = ();
@@ -352,19 +413,33 @@ impl xcm_executor::Config for XcmConfig {
 	type CallDispatcher = RuntimeCall;
 }
 
-pub(crate) struct ExtBuilder {}
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
+	balances: Vec<(AccountId, Balance)>,
+}
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {}
+		ExtBuilder { balances: vec![] }
 	}
 }
 
 impl ExtBuilder {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
+
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let t = frame_system::GenesisConfig::default()
+		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Runtime> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
