@@ -160,7 +160,7 @@ where
 			<pallet_parachain_staking::Pallet<Runtime>>::auto_compounding_delegations(&candidate)
 				.len() as u32;
 
-		Ok(count.into())
+		Ok(count)
 	}
 
 	#[precompile::public("delegatorDelegationCount(address)")]
