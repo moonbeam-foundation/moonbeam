@@ -1,12 +1,10 @@
 import "@polkadot/api-augment";
-import { EvmCoreErrorExitReason } from "@polkadot/types/lookup";
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "../../util/accounts";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { getCompiled } from "../../util/contracts";
-import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import {
   ALITH_TRANSACTION_TEMPLATE,
