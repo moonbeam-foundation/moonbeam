@@ -39,17 +39,29 @@ pub struct ProxyPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ProxyPrecompile<Runtime>
 where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
-	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: Decode,
-	<Runtime as frame_system::Config>::Call:
+	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
 {
 	#[precompile::pre_check]
 	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
+		// Check if the selector is the one of `isProxy`, which is one which can
+		// be called by smart contrats.
+		if let Some(bytes) = handle.input().get(0..4) {
+			let mut buffer = [0u8; 4];
+			buffer.copy_from_slice(bytes);
+			let selector = u32::from_be_bytes(buffer);
+
+			if ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector) {
+				return Ok(());
+			}
+		}
+
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let caller_code = pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
 		// Check that caller is not a smart contract s.t. no code is inserted into

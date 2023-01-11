@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { MultiLocation } from "@polkadot/types/interfaces";
 import { it } from "mocha";
+import { extractWeight } from "../util/block";
 const debug = require("debug")("smoke:treasury");
 
 describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
@@ -70,16 +71,13 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
       relayRuntime.startsWith("westend")
         ? units / 100n
         : relayRuntime.startsWith("kusama")
-        ? units / 30_000n
+        ? units / 3_000n
         : units / 100n;
     const coef = cent / 10n;
 
-    // the blockWeights structure has been modified around 9300 to include reftime.
-    const relayBaseExtrinsic = relayApiAt.consts.system.blockWeights.perClass.normal
-      .baseExtrinsic as any;
-    const relayBaseWeight = relayBaseExtrinsic.refTime
-      ? relayBaseExtrinsic.refTime.toBigInt()
-      : relayBaseExtrinsic.toBigInt();
+    const relayBaseWeight = extractWeight(
+      relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic
+    ).toBigInt();
 
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 

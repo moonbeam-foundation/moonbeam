@@ -17,14 +17,17 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
   let proposalHash: string;
 
   before("Prepare pre-image and proposal and 3 members TC", async () => {
-    proposalHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+    proposalHash = await notePreimage(context, proposal, alith);
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({
+        Lookup: {
+          hash: proposalHash,
+          len: proposal.method.encodedLength,
+        },
+      } as any)
     );
   });
 
@@ -54,14 +57,17 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
   let proposalHash: string;
 
   before("Prepare pre-image and proposal and 3 members TC", async () => {
-    proposalHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+    proposalHash = await notePreimage(context, proposal, alith);
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({
+        Lookup: {
+          hash: proposalHash,
+          len: proposal.method.encodedLength,
+        },
+      } as any)
     );
   });
 
@@ -91,14 +97,17 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
   let proposalHash: string;
 
   before("Prepare pre-image and proposal and 3 members TC", async () => {
-    proposalHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+    proposalHash = await notePreimage(context, proposal, alith);
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({
+        Lookup: {
+          hash: proposalHash,
+          len: proposal.method.encodedLength,
+        },
+      } as any)
     );
 
     await context.createBlock(

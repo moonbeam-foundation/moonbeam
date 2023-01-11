@@ -16,13 +16,10 @@
 
 use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
-	mock::{
-		Account::{self, Alice, Bob, Charlie, Precompile},
-		ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
-	},
+	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
 use frame_support::{assert_ok, dispatch::Encode};
-use precompile_utils::{data::Address, solidity, testing::*};
+use precompile_utils::{data::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
 
@@ -60,7 +57,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -69,7 +66,7 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -90,10 +87,10 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
 
 			tester.test_default_modifier(PCall::execute_selectors());
 			tester.test_default_modifier(PCall::propose_selectors());
@@ -112,15 +109,15 @@ fn non_member_cannot_propose() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 1,
 					proposal: proposal.into(),
@@ -137,7 +134,7 @@ fn non_member_cannot_vote() {
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash: H256::zero(),
 					proposal_index: 1,
@@ -154,15 +151,15 @@ fn non_member_cannot_execute() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::execute {
 					proposal: proposal.into(),
 				},
@@ -178,7 +175,7 @@ fn cannot_vote_for_unknown_proposal() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash: H256::zero(),
 					proposal_index: 1,
@@ -196,7 +193,7 @@ fn cannot_close_unknown_proposal() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::close {
 					proposal_hash: H256::zero(),
 					proposal_index: 1,
@@ -214,9 +211,9 @@ fn member_can_make_instant_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -225,13 +222,13 @@ fn member_can_make_instant_proposal() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 1,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_executed(Precompile, proposal_hash))
+			.expect_log(log_executed(Precompile1, proposal_hash))
 			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Executed {
@@ -247,26 +244,26 @@ fn member_can_make_delayed_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Proposed {
-			account: Bob,
+			account: Bob.into(),
 			proposal_index: 0,
 			proposal_hash,
 			threshold: 2,
@@ -280,39 +277,39 @@ fn member_can_vote_on_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Charlie,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash,
 					proposal_index: 0,
 					approve: true,
 				},
 			)
-			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
+			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		assert_event_emitted!(pallet_collective::Event::Voted {
-			account: Charlie,
+			account: Charlie.into(),
 			proposal_hash,
 			voted: true,
 			yes: 1,
@@ -327,9 +324,9 @@ fn cannot_close_if_not_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -337,19 +334,19 @@ fn cannot_close_if_not_enough_votes() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::close {
 					proposal_hash,
 					proposal_index: 0,
@@ -367,9 +364,9 @@ fn can_close_execute_if_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -377,45 +374,45 @@ fn can_close_execute_if_enough_votes() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash,
 					proposal_index: 0,
 					approve: true,
 				},
 			)
-			.expect_log(log_voted(Precompile, Bob, proposal_hash, true))
+			.expect_log(log_voted(Precompile1, Bob, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		precompiles()
 			.prepare_test(
 				Charlie,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash,
 					proposal_index: 0,
 					approve: true,
 				},
 			)
-			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
+			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::close {
 					proposal_hash,
 					proposal_index: 0,
@@ -423,7 +420,7 @@ fn can_close_execute_if_enough_votes() {
 					length_bound,
 				},
 			)
-			.expect_log(log_executed(Precompile, proposal_hash))
+			.expect_log(log_executed(Precompile1, proposal_hash))
 			.execute_returns_encoded(true);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
@@ -444,7 +441,7 @@ fn can_close_execute_if_enough_votes() {
 		assert_event_emitted!(pallet_treasury::Event::SpendApproved {
 			proposal_index: 0,
 			amount: 1,
-			beneficiary: Alice,
+			beneficiary: Alice.into(),
 		}
 		.into());
 	});
@@ -455,9 +452,9 @@ fn can_close_refuse_if_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -465,45 +462,45 @@ fn can_close_refuse_if_enough_votes() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash,
 					proposal_index: 0,
 					approve: false,
 				},
 			)
-			.expect_log(log_voted(Precompile, Bob, proposal_hash, false))
+			.expect_log(log_voted(Precompile1, Bob, proposal_hash, false))
 			.execute_returns(vec![]);
 
 		precompiles()
 			.prepare_test(
 				Charlie,
-				Precompile,
+				Precompile1,
 				PCall::vote {
 					proposal_hash,
 					proposal_index: 0,
 					approve: false,
 				},
 			)
-			.expect_log(log_voted(Precompile, Charlie, proposal_hash, false))
+			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, false))
 			.execute_returns(vec![]);
 
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::close {
 					proposal_hash,
 					proposal_index: 0,
@@ -511,7 +508,7 @@ fn can_close_refuse_if_enough_votes() {
 					length_bound,
 				},
 			)
-			.expect_log(log_closed(Precompile, proposal_hash))
+			.expect_log(log_closed(Precompile1, proposal_hash))
 			.execute_returns_encoded(false);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
@@ -530,42 +527,42 @@ fn multiple_propose_increase_index() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 1,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns_encoded(0u32);
 
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 2,
-			beneficiary: Account::Alice,
+			beneficiary: Alice.into(),
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::propose {
 					threshold: 2,
 					proposal: proposal.into(),
 				},
 			)
-			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))
+			.expect_log(log_proposed(Precompile1, Bob, 1, proposal_hash, 2))
 			.execute_returns_encoded(1u32);
 	});
 }
@@ -574,7 +571,7 @@ fn multiple_propose_increase_index() {
 fn view_members() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Bob, Precompile, PCall::members {})
+			.prepare_test(Bob, Precompile1, PCall::members {})
 			.expect_no_logs()
 			.execute_returns_encoded(vec![Address(Bob.into()), Address(Charlie.into())]);
 	});
@@ -584,7 +581,7 @@ fn view_members() {
 fn view_no_prime() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Bob, Precompile, PCall::prime {})
+			.prepare_test(Bob, Precompile1, PCall::prime {})
 			.expect_no_logs()
 			.execute_returns_encoded(Address(H160::zero()));
 	});
@@ -597,11 +594,14 @@ fn view_some_prime() {
 			Runtime,
 			pallet_collective::Instance1,
 		>::set_members(
-			Origin::root(), vec![Alice, Bob], Some(Alice), 2
+			RuntimeOrigin::root(),
+			vec![Alice.into(), Bob.into()],
+			Some(Alice.into()),
+			2
 		));
 
 		precompiles()
-			.prepare_test(Bob, Precompile, PCall::prime {})
+			.prepare_test(Bob, Precompile1, PCall::prime {})
 			.expect_no_logs()
 			.execute_returns_encoded(Address(Alice.into()));
 	});
@@ -613,7 +613,7 @@ fn view_is_member() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::is_member {
 					account: Address(Bob.into()),
 				},
@@ -624,7 +624,7 @@ fn view_is_member() {
 		precompiles()
 			.prepare_test(
 				Bob,
-				Precompile,
+				Precompile1,
 				PCall::is_member {
 					account: Address(Alice.into()),
 				},

@@ -63,16 +63,16 @@ parameter_types! {
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type DbWeight = RocksDbWeight;
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -94,16 +94,18 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 impl block_author::Config for Test {}
+const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
+const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
+const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
@@ -114,14 +116,12 @@ parameter_types! {
 	pub const MaxTopDelegationsPerCandidate: u32 = 4;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
 }
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
@@ -141,6 +141,7 @@ impl Config for Test {
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
+	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }
@@ -235,9 +236,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
-			collator_commission: DefaultCollatorCommission::get(),
-			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
-			blocks_per_round: DefaultBlocksPerRound::get(),
+			collator_commission: GENESIS_COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: GENESIS_PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: GENESIS_BLOCKS_PER_ROUND,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -249,7 +250,7 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-pub(crate) fn roll_one_block() -> BlockNumber {
+fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -261,7 +262,7 @@ pub(crate) fn roll_one_block() -> BlockNumber {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
+pub(crate) fn roll_to(n: BlockNumber) -> u32 {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -271,18 +272,27 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	num_blocks
 }
 
+/// Rolls desired number of blocks. Returns the final block.
+pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
+	let mut block = System::block_number();
+	for _ in 0..num_blocks {
+		block = roll_one_block();
+	}
+	block
+}
+
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
-	let block = (round - 1) * DefaultBlocksPerRound::get();
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
-	let block = round * DefaultBlocksPerRound::get() - 1;
+	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
 	roll_to(block)
 }
 
@@ -291,7 +301,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::ParachainStaking(inner) = e {
+			if let RuntimeEvent::ParachainStaking(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -642,7 +652,7 @@ pub mod block_author {
 #[test]
 fn roll_to_round_begin_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_begin(1);
@@ -662,7 +672,7 @@ fn roll_to_round_begin_works() {
 #[test]
 fn roll_to_round_end_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 5, as established by DefaultBlocksPerRound
+		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_end(1);

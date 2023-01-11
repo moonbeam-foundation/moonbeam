@@ -32,7 +32,7 @@ parameter_types! {
 
 impl pallet_conviction_voting::Config for Runtime {
 	type WeightInfo = pallet_conviction_voting::weights::SubstrateWeight<Runtime>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type MaxVotes = ConstU32<512>;
@@ -56,8 +56,8 @@ impl origins::pallet_custom_origins::Config for Runtime {}
 // purpose of this pallet is to queue calls to be dispatched as by root for later
 impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Runtime>;
-	type Event = Event;
-	type Call = Call;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
 	type WhitelistOrigin = EitherOf<
 		EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>,
 		MapSuccess<
@@ -74,10 +74,12 @@ impl pallet_whitelist::Config for Runtime {
 	type PreimageProvider = Preimage;
 }
 
+pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);
+
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Runtime>;
-	type Call = Call;
-	type Event = Event;
+	type RuntimeCall = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
@@ -91,4 +93,5 @@ impl pallet_referenda::Config for Runtime {
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
+	type Preimages = Preimage;
 }

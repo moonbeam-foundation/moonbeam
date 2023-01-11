@@ -21,20 +21,31 @@
 
 use codec::DecodeLimit;
 use fp_evm::PrecompileHandle;
+use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
-use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::OriginTrait,
+};
+use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::boxed::Box;
+use sp_std::marker::PhantomData;
+use sp_std::vec;
+use sp_std::vec::Vec;
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
+
 use xcm_executor::traits::WeightBounds;
 use xcm_executor::traits::WeightTrader;
 pub type XcmOriginOf<XcmConfig> =
-	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
+	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
 pub type XcmAccountIdOf<XcmConfig> =
-	<<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin as OriginTrait>::AccountId;
+	<<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>
+		::RuntimeOrigin as OriginTrait>::AccountId;
 
+pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
 
@@ -49,11 +60,35 @@ pub struct XcmUtilsPrecompile<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfi
 #[precompile_utils::precompile]
 impl<Runtime, XcmConfig> XcmUtilsPrecompile<Runtime, XcmConfig>
 where
-	Runtime: pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
+	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 {
+	#[precompile::pre_check]
+	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
+		// Only avoid calling execute from SC
+		if let Ok(selector) = handle.read_u32_selector() {
+			if XcmUtilsPrecompileCall::<Runtime, XcmConfig>::xcm_execute_selectors()
+				.contains(&selector)
+			{
+				handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+				let caller_code =
+					pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
+				// Check that caller is not a smart contract s.t. no code is inserted into
+				// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
+				if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
+					return Err(revert("XcmExecute not callable by smart contracts"));
+				}
+			}
+		}
+		Ok(())
+	}
+
 	#[precompile::public("multilocationToAddress((uint8,bytes[]))")]
 	#[precompile::view]
 	fn multilocation_to_address(
@@ -127,11 +162,11 @@ where
 		let message: Vec<u8> = message.into();
 
 		let msg =
-			VersionedXcm::<<XcmConfig as xcm_executor::Config>::Call>::decode_all_with_depth_limit(
+			VersionedXcm::<<XcmConfig as xcm_executor::Config>::RuntimeCall>::decode_all_with_depth_limit(
 				MAX_XCM_DECODE_DEPTH,
 				&mut message.as_slice(),
 			)
-			.map(Xcm::<<XcmConfig as xcm_executor::Config>::Call>::try_from);
+			.map(Xcm::<<XcmConfig as xcm_executor::Config>::RuntimeCall>::try_from);
 
 		let result = match msg {
 			Ok(Ok(mut x)) => {
@@ -143,5 +178,59 @@ where
 		};
 
 		result
+	}
+
+	#[precompile::public("xcmExecute(bytes,uint64)")]
+	fn xcm_execute(
+		handle: &mut impl PrecompileHandle,
+		message: BoundedBytes<GetXcmSizeLimit>,
+		weight: u64,
+	) -> EvmResult {
+		let message: Vec<u8> = message.into();
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let message: Vec<_> = message.to_vec();
+		let xcm = xcm::VersionedXcm::<SystemCallOf<Runtime>>::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			&mut message.as_slice(),
+		)
+		.map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::execute {
+			message: Box::new(xcm),
+			max_weight: weight,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("xcmSend((uint8,bytes[]),bytes)")]
+	fn xcm_send(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		message: BoundedBytes<GetXcmSizeLimit>,
+	) -> EvmResult {
+		let message: Vec<u8> = message.into();
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let message: Vec<_> = message.to_vec();
+		let xcm = xcm::VersionedXcm::<()>::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			&mut message.as_slice(),
+		)
+		.map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::send {
+			dest: Box::new(dest.into()),
+			message: Box::new(xcm),
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 }

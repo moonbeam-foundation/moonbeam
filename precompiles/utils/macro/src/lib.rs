@@ -49,7 +49,7 @@ impl ::std::fmt::Debug for Bytes {
 pub fn keccak256(input: TokenStream) -> TokenStream {
 	let lit_str = parse_macro_input!(input as LitStr);
 
-	let hash = Keccak256::digest(lit_str.value().as_ref());
+	let hash = Keccak256::digest(lit_str.value().as_bytes());
 
 	let bytes = Bytes(hash.to_vec());
 	let eval_str = format!("{:?}", bytes);

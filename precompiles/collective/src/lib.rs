@@ -22,9 +22,10 @@ use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{
 	dispatch::Dispatchable,
+	dispatch::{GetDispatchInfo, Pays, PostDispatchInfo},
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -92,10 +93,10 @@ impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
-	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
+	Runtime::RuntimeCall: From<pallet_collective::Call<Runtime, Instance>>,
+	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::RuntimeCall>,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -113,7 +114,7 @@ where
 				.in_field("proposal")
 		})?;
 
-		let proposal = Runtime::Call::decode(&mut &*proposal)
+		let proposal = Runtime::RuntimeCall::decode(&mut &*proposal)
 			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
 			.into();
 		let proposal = Box::new(proposal);
@@ -153,7 +154,7 @@ where
 
 		let proposal_index = pallet_collective::Pallet::<Runtime, Instance>::proposal_count();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
-		let proposal = Runtime::Call::decode(&mut &*proposal)
+		let proposal = Runtime::RuntimeCall::decode(&mut &*proposal)
 			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
 			.into();
 		let proposal = Box::new(proposal);

@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	ParachainBondConfig, ParachainBondInfo, Points, Range, Round, ScheduledRequest, Staked,
-	TopDelegations,
+	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
+	Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -874,7 +874,7 @@ benchmarks! {
 	}
 
 	get_rewardable_delegators {
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -920,7 +920,7 @@ benchmarks! {
 
 	select_top_candidates {
 		let x in 0..50; // num collators
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -1036,7 +1036,8 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+		// TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid));
 	}
 	verify {
 		// collator should have been paid
@@ -1100,7 +1101,7 @@ benchmarks! {
 		let prime_delegator = create_funded_delegator::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (y+1).into(),
 			prime_candidate.clone(),
 			true,
 			0,
@@ -1192,7 +1193,7 @@ benchmarks! {
 		let (prime_delegator, _) = create_funded_user::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (z+1).into(),
 		);
 
 		// have x-1 distinct delegators delegate to prime collator, of which y are auto-compounding.
@@ -1257,6 +1258,23 @@ benchmarks! {
 			"delegation must have an auto-compound entry",
 		);
 	}
+
+	mint_collator_reward {
+		let mut seed = Seed::new();
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			0u32.into(),
+			true,
+			1,
+		)?;
+		let original_free_balance = T::Currency::free_balance(&collator);
+	}: {
+		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+	}
+	verify {
+		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
+	}
 }
 
 #[cfg(test)]
@@ -1271,20 +1289,6 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
-	}
-
-	#[test]
-	fn bench_hotfix_remove_delegation_requests() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_remove_delegation_requests());
-		});
-	}
-
-	#[test]
-	fn bench_hotfix_update_candidate_pool_value() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_update_candidate_pool_value());
-		});
 	}
 
 	#[test]
@@ -1480,13 +1484,6 @@ mod tests {
 	fn bench_cancel_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_cancel_delegator_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_round_transition_on_initialize() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_round_transition_on_initialize());
 		});
 	}
 

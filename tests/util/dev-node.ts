@@ -96,6 +96,8 @@ export async function startMoonbeamDevNode(
   ];
   if (WASM_RUNTIME_OVERRIDES != "") {
     args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);
+    // For tracing tests now we require to enable archive block pruning.
+    args.push(`--blocks-pruning=archive`);
   } else if (ETHAPI_CMD != "") {
     args.push("--wasm-runtime-overrides=/");
   }

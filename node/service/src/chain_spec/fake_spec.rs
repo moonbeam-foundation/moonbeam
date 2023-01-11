@@ -44,7 +44,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn boot_nodes(&self) -> &[sc_network::config::MultiaddrWithPeerId] {
+	fn boot_nodes(&self) -> &[sc_network_common::config::MultiaddrWithPeerId] {
 		todo!()
 	}
 
@@ -72,7 +72,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn add_boot_node(&mut self, _addr: sc_network::config::MultiaddrWithPeerId) {
+	fn add_boot_node(&mut self, _addr: sc_network_common::config::MultiaddrWithPeerId) {
 		todo!()
 	}
 

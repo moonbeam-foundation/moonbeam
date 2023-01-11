@@ -28,7 +28,7 @@ export const notePreimage = async <
 ): Promise<string> => {
   const encodedProposal = proposal.method.toHex() || "";
   await context.createBlock(
-    context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAsync(account)
+    context.polkadotApi.tx.preimage.notePreimage(encodedProposal).signAsync(account)
   );
 
   return blake2AsHex(encodedProposal);
@@ -45,9 +45,15 @@ export const instantFastTrack = async <
 ): Promise<string> => {
   const proposalHash =
     typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
+
   await execCouncilProposal(
     context,
-    context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+    context.polkadotApi.tx.democracy.externalProposeMajority({
+      Lookup: {
+        hash: proposalHash,
+        len: typeof proposal == "string" ? proposal : proposal.method.encodedLength,
+      },
+    } as any)
   );
   await execTechnicalCommitteeProposal(
     context,
@@ -69,7 +75,7 @@ export const execCouncilProposal = async <
   threshold: number = COUNCIL_THRESHOLD
 ) => {
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
-  let lengthBound = polkadotCall.encodedLength;
+  let lengthBound = polkadotCall.method.encodedLength;
   const { result: proposalResult } = await context.createBlock(
     context.polkadotApi.tx.councilCollective
       .propose(threshold, polkadotCall, lengthBound)
@@ -97,7 +103,15 @@ export const execCouncilProposal = async <
   await context.createBlock();
   return await context.createBlock(
     context.polkadotApi.tx.councilCollective
-      .close(proposalHash, 0, 1_000_000_000, lengthBound)
+      .close(
+        proposalHash,
+        0,
+        {
+          refTime: 1_000_000_000,
+          proofSize: 0,
+        } as any,
+        lengthBound
+      )
       .signAsync(dorothy)
   );
 };
@@ -145,7 +159,15 @@ export const execTechnicalCommitteeProposal = async <
   );
   const { result: closeResult } = await context.createBlock(
     context.polkadotApi.tx.techCommitteeCollective
-      .close(proposalHash, Number(proposalCount) - 1, 1_000_000_000, lengthBound)
+      .close(
+        proposalHash,
+        Number(proposalCount) - 1,
+        {
+          refTime: 1_000_000_000,
+          proofSize: 0,
+        } as any,
+        lengthBound
+      )
       .signAsync(baltathar)
   );
   return closeResult;
@@ -159,6 +181,7 @@ export const executeProposalWithCouncil = async (api: ApiPromise, encodedHash: s
   //   `Sending council motion (${encodedHash} ` +
   //     `[threashold: 1, expected referendum: ${referendumNextIndex}])...`
   // );
+
   let external = api.tx.democracy.externalProposeMajority(encodedHash);
   let fastTrack = api.tx.democracy.fastTrack(encodedHash, 1, 0);
   const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);

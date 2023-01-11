@@ -23,9 +23,9 @@ pub type TechCommitteeInstance = pallet_collective::Instance2;
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
@@ -38,9 +38,9 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 }
 
 impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
@@ -53,9 +53,9 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 }
 
 impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;

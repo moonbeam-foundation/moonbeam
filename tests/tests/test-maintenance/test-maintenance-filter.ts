@@ -129,7 +129,9 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
                   },
                 },
               },
-              4000000000n
+              {
+                Limited: 4000000000,
+              }
             )
             .signAsync(baltathar)
         )

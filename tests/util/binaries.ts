@@ -124,13 +124,11 @@ async function generateSpecs(
   raw: boolean
 ) {
   const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-${raw ? "raw" : "plain"}-specs.json`);
-  if (!fs.existsSync(specPath)) {
-    child_process.execSync(
-      `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain ${runtimeName} ` +
-        `${raw ? "--raw" : ""} --disable-default-bootnode > ${specPath}`
-    );
-  }
+  child_process.execSync(
+    `mkdir -p ${path.dirname(specPath)} && ` +
+      `${binaryPath} build-spec --chain ${runtimeName} ` +
+      `${raw ? "--raw" : ""} --disable-default-bootnode > ${specPath}`
+  );
   return specPath;
 }
 

@@ -22,9 +22,9 @@ use frame_support::{
 };
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
-#[cfg(feature = "try-runtime")]
-use scale_info::prelude::format;
 
+#[cfg(feature = "try-runtime")]
+use sp_std::vec::Vec;
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
 /// via NimbusId.
@@ -61,29 +61,28 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-		use sp_std::vec::Vec;
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
 
 		let mut nimbus_set: Vec<NimbusId> = Vec::new();
+		let mut state_map: BTreeMap<NimbusId, T::AccountId> = BTreeMap::new();
 		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
 			if !nimbus_set.contains(&nimbus_id) {
-				Self::set_temp_storage(
-					info.account,
-					&format!("MappingWithDeposit{:?}Account", nimbus_id)[..],
-				);
+				state_map.insert(nimbus_id.clone(), info.account);
 				nimbus_set.push(nimbus_id);
 			}
 		}
-		Ok(())
+		Ok(state_map.encode())
 	}
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let state_map: BTreeMap<NimbusId, T::AccountId> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
 		for (nimbus_id, _) in <MappingWithDeposit<T>>::iter() {
-			let old_account: T::AccountId =
-				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Account", nimbus_id)[..])
-					.expect("qed");
+			let old_account = state_map.get(&nimbus_id).expect("qed");
 			let maybe_account_of_nimbus = <NimbusLookup<T>>::get(old_account);
 			assert_eq!(
 				Some(nimbus_id),
@@ -131,44 +130,46 @@ impl<T: Config> OnRuntimeUpgrade for AddKeysToRegistrationInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let mut state_map: BTreeMap<NimbusId, (T::AccountId, BalanceOf<T>)> = BTreeMap::new();
+
 		// get total deposited and account for all nimbus_keys
 		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
-			Self::set_temp_storage(
-				info.account,
-				&format!("MappingWithDeposit{:?}Account", nimbus_id)[..],
-			);
-			Self::set_temp_storage(
-				info.deposit,
-				&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..],
-			);
+			state_map.insert(nimbus_id, (info.account, info.deposit));
 		}
-		Ok(())
+		Ok(state_map.encode())
 	}
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let state_map: BTreeMap<NimbusId, (T::AccountId, BalanceOf<T>)> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
 		// ensure new deposit and account are the same as the old ones
 		// ensure new keys are equal to nimbus_id
 		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
-			let old_account: T::AccountId =
-				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Account", nimbus_id)[..])
-					.expect("qed");
+			let (old_account, old_deposit) = state_map.get(&nimbus_id).expect("qed");
+
 			let new_account = info.account;
 			assert_eq!(
-				old_account, new_account,
+				old_account.clone(),
+				new_account,
 				"Old Account {:?} dne New Account {:?} for NimbusID {:?}",
-				old_account, new_account, nimbus_id
+				old_account.clone(),
+				new_account,
+				nimbus_id
 			);
-			let old_deposit: BalanceOf<T> =
-				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..])
-					.expect("qed");
 			let new_deposit = info.deposit;
 			assert_eq!(
-				old_deposit, new_deposit,
+				old_deposit.clone(),
+				new_deposit,
 				"Old Deposit {:?} dne New Deposit {:?} for NimbusID {:?}",
-				old_deposit, new_deposit, nimbus_id
+				old_deposit.clone(),
+				new_deposit,
+				nimbus_id
 			);
 			let nimbus_id_as_keys: T::Keys = nimbus_id.into();
 			assert_eq!(

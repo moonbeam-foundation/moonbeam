@@ -54,20 +54,20 @@ pub struct RuntimeHelper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> RuntimeHelper<Runtime>
 where
 	Runtime: pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
 	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
 		handle: &mut impl PrecompileHandle,
-		origin: <Runtime::Call as Dispatchable>::Origin,
+		origin: <Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin,
 		call: Call,
 	) -> Result<PostDispatchInfo, TryDispatchError>
 	where
-		Runtime::Call: From<Call>,
+		Runtime::RuntimeCall: From<Call>,
 	{
-		let call = Runtime::Call::from(call);
+		let call = Runtime::RuntimeCall::from(call);
 		let dispatch_info = call.get_dispatch_info();
 
 		// Make sure there is enough gas.

@@ -7,10 +7,10 @@
     "/dns4/jpg-moonbeam-boot-1.g.moonbeam.network/tcp/30333/p2p/12D3KooWPwNDUuUVtMRqwHZr2aK498u8gcerRni9jHruFp69W6qA",
     "/dns4/nlg-moonbeam-boot-0.g.moonbeam.network/tcp/30333/p2p/12D3KooWPgkQq2nJyEyB2BDdaqaEcDvRn7KxX9yja9rrrjyDv3yD",
     "/dns4/nlg-moonbeam-boot-1.g.moonbeam.network/tcp/30333/p2p/12D3KooWGvEhGbympsy2eGgsknBqKRXMCT4nS2s95xbYQoF4eG6f",
+    "/dns4/nlg-moonbeam-boot-2.g.moonbeam.network/tcp/30333/p2p/12D3KooWQFMmdyE4XBRdmE8cbp7SPns3SW3xmRzvrRHBToPJxPCH",
     "/dns4/mtla-moonbeam-boot-0.a.moonbeam.network/tcp/30333/p2p/12D3KooWRJfEWQBYSEDhadUQRmtQxNGwVNe4EJxWZJokWwc5EWBh",
     "/dns4/mtla-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWCAYdGegd18orL1HVPYuAzGi68bs2F5ueyZm2DFiS8gZw",
-    "/dns4/para-moonbeam-boot-0.a.moonbeam.network/tcp/30333/p2p/12D3KooWPNMc5CgbramsajfngvmVpmkrnDw86NcnAiexqaXRgZXB",
-    "/dns4/para-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWDFNoNDWKmCpYyyCKHbVFmYF7jBYAKwK1idPqHocSnhvU",
+    "/dns4/mtla-moonbeam-boot-2.a.moonbeam.network/tcp/30333/p2p/12D3KooWJK1pgrFoMbfzSLHbru7hMPkDEQ9zLCe3iEjpnjtHvX8H",
     "/dns4/node-6957220406166982656-0.p2p.onfinality.io/tcp/12137/ws/p2p/12D3KooWBrL3oDXn82sWQboiZy8q3dA5aHSwg9zG2xCykV16t92m"
   ],
   "telemetryEndpoints": [

@@ -63,49 +63,36 @@ pub mod pallet {
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 	};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::DispatchResult;
 	#[cfg(feature = "xcm-support")]
 	use sp_std::vec::Vec;
+	#[cfg(feature = "xcm-support")]
+	use xcm_primitives::PauseXcmExecution;
+
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// Pause and resume execution of XCM
-	pub trait PauseXcmExecution {
-		fn suspend_xcm_execution() -> DispatchResult;
-		fn resume_xcm_execution() -> DispatchResult;
-	}
-
-	impl PauseXcmExecution for () {
-		fn suspend_xcm_execution() -> DispatchResult {
-			Ok(())
-		}
-		fn resume_xcm_execution() -> DispatchResult {
-			Ok(())
-		}
-	}
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The base call filter to be used in normal operating mode
 		/// (When we aren't in the middle of a migration)
-		type NormalCallFilter: Contains<Self::Call>;
+		type NormalCallFilter: Contains<Self::RuntimeCall>;
 		/// The base call filter to be used when we are in the middle of migrations
 		/// This should be very restrictive. Probably not allowing anything except possibly
 		/// something like sudo or other emergency processes
-		type MaintenanceCallFilter: Contains<Self::Call>;
+		type MaintenanceCallFilter: Contains<Self::RuntimeCall>;
 		/// The origin from which the call to enter or exit maintenance mode must come
 		/// Take care when choosing your maintenance call filter to ensure that you'll still be
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
-		type MaintenanceOrigin: EnsureOrigin<Self::Origin>;
+		type MaintenanceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// Handler to suspend and resume XCM execution
 		#[cfg(feature = "xcm-support")]
-		type XcmExecutionManager: PauseXcmExecution;
+		type XcmExecutionManager: xcm_primitives::PauseXcmExecution;
 		/// The DMP handler to be used in normal operating mode
 		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
@@ -115,7 +102,7 @@ pub mod pallet {
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceDmpHandler: DmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		type NormalExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
@@ -123,7 +110,7 @@ pub mod pallet {
 			+ OnFinalize<Self::BlockNumber>
 			+ OffchainWorker<Self::BlockNumber>;
 		/// The executive hooks that will be used in maintenance mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		type MaintenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
@@ -241,8 +228,8 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> Contains<T::Call> for Pallet<T> {
-		fn contains(call: &T::Call) -> bool {
+	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
+		fn contains(call: &T::RuntimeCall) -> bool {
 			if MaintenanceMode::<T>::get() {
 				T::MaintenanceCallFilter::contains(call)
 			} else {

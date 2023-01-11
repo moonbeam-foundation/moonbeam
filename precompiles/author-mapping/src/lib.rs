@@ -57,9 +57,9 @@ impl<R: pallet_author_mapping::Config> Get<u32> for GetKeysSize<R> {
 impl<Runtime> AuthorMappingPrecompile<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<AuthorMappingCall<Runtime>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.

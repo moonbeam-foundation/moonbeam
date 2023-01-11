@@ -120,13 +120,13 @@ benchmarks! {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::mock::Test;
+	use crate::mock::Runtime;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
 
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.unwrap();
 		TestExternalities::new(t)
 	}
@@ -134,21 +134,21 @@ mod tests {
 	#[test]
 	fn bench_add_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_add_association::<Test>());
+			assert_ok!(Pallet::<Runtime>::test_benchmark_add_association());
 		});
 	}
 
 	#[test]
 	fn bench_update_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_update_association::<Test>());
+			assert_ok!(Pallet::<Runtime>::test_benchmark_update_association());
 		});
 	}
 
 	#[test]
 	fn bench_clear_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_clear_association::<Test>());
+			assert_ok!(Pallet::<Runtime>::test_benchmark_clear_association());
 		});
 	}
 }
@@ -156,5 +156,5 @@ mod tests {
 impl_benchmark_test_suite!(
 	Pallet,
 	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
+	crate::mock::Runtime
 );

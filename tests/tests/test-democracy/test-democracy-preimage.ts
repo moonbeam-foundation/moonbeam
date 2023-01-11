@@ -7,6 +7,7 @@ import { alith } from "../../util/accounts";
 import { MICROGLMR } from "../../util/constants";
 import { notePreimage } from "../../util/governance";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { u8aToHex } from "@polkadot/util";
 
 describeDevMoonbeam("Democracy - Preimage", (context) => {
   it("should be notable", async function () {
@@ -15,51 +16,29 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
         .setParachainBondAccount(alith.address)
         .method.toHex() || "";
     const encodedHash = blake2AsHex(encodedProposal);
-    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
+    await context.createBlock(context.polkadotApi.tx.preimage.notePreimage(encodedProposal));
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
     expect(preimageStatus.isSome).to.be.true;
-    expect(preimageStatus.unwrap().isAvailable).to.eq(true, "Preimage should be available");
-    expect(preimageStatus.unwrap().asAvailable.provider.toString()).to.equal(alith.address);
-    expect(preimageStatus.unwrap().asAvailable.deposit.toBigInt()).to.equal(2200n * MICROGLMR);
+    expect(preimageStatus.unwrap().isUnrequested).to.be.true;
+
+    const [proposer, balance] = preimageStatus.unwrap().asUnrequested.deposit;
+    expect(u8aToHex(proposer)).to.eq(alith.address.toLowerCase());
+    expect(balance.toBigInt()).to.eq(5002200n * MICROGLMR);
   });
 });
 
 describeDevMoonbeam("Democracy - Preimage", (context) => {
-  it("should not be forgettable immediately", async function () {
+  it("should be forgettable immediatly", async function () {
     const encodedHash = await notePreimage(
       context,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
       alith
     );
 
-    const {
-      result: { error },
-    } = await context.createBlock(
-      context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000)
-    );
+    await context.createBlock(context.polkadotApi.tx.preimage.unnotePreimage(encodedHash));
 
-    expect(error.name).to.equal("TooEarly");
-
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
-    expect(preimageStatus.isSome).to.be.true;
-  });
-});
-
-describeDevMoonbeam("Democracy - Preimage", (context) => {
-  it("should be forgettable after voting period", async function () {
-    const encodedHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
-
-    await context.createBlock(context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000));
-
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
-    expect(preimageStatus.isSome).to.be.true;
-    expect(preimageStatus.unwrap().isAvailable).to.eq(true, "Preimage should be available");
-    expect(preimageStatus.unwrap().asAvailable.provider.toString()).to.equal(alith.address);
-    expect(preimageStatus.unwrap().asAvailable.deposit.toBigInt()).to.equal(2200n * MICROGLMR);
+    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
+    expect(preimageStatus.isSome).to.be.false;
   });
 });

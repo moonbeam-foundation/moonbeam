@@ -111,13 +111,13 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId>
 			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
-		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
+		type MonetaryGovernanceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
@@ -168,6 +168,9 @@ pub mod pallet {
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
+		/// Handler to distribute a collator's reward.
+		/// To use the default implementation of minting rewards, specify the type `()`.
+		type PayoutCollatorReward: PayoutCollatorReward<Self>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -202,7 +205,7 @@ pub mod pallet {
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		RoundLengthMustBeAtLeastTotalSelectedCollators,
+		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
@@ -451,9 +454,9 @@ pub mod pallet {
 				});
 				// account for Round and Staked writes
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+			} else {
+				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
-
-			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
 			// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
@@ -654,9 +657,8 @@ pub mod pallet {
 					<Pallet<T>>::get_collator_stakable_free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
-				candidate_count = candidate_count.saturating_add(1u32);
 				if let Err(error) = <Pallet<T>>::join_candidates(
-					T::Origin::from(Some(candidate.clone()).into()),
+					T::RuntimeOrigin::from(Some(candidate.clone()).into()),
 					balance,
 					candidate_count,
 				) {
@@ -691,7 +693,7 @@ pub mod pallet {
 					.cloned()
 					.unwrap_or_default();
 				if let Err(error) = <Pallet<T>>::delegate_with_auto_compound(
-					T::Origin::from(Some(delegator.clone()).into()),
+					T::RuntimeOrigin::from(Some(delegator.clone()).into()),
 					target.clone(),
 					balance,
 					auto_compound,
@@ -846,7 +848,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new <= <Round<T>>::get().length,
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet { old, new });
@@ -881,7 +883,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new >= <TotalSelected<T>>::get(),
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
 			// update per-round inflation given new rounds per year
@@ -1273,6 +1275,8 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
+		/// The delegation receives no rewards for the rounds while a revoke is pending.
+		/// A revoke may not be performed if any other scheduled request is pending.
 		pub fn schedule_revoke_delegation(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1305,7 +1309,9 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
-		/// Request bond less for delegators wrt a specific collator candidate.
+		/// Request bond less for delegators wrt a specific collator candidate. The delegation's
+		/// rewards for rounds while the request is pending use the reduced bonded amount.
+		/// A bond less may not be performed if any other scheduled request is pending.
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1385,6 +1391,17 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+	}
+
+	/// Represents a payout made via `pay_one_collator_reward`.
+	pub(crate) enum RewardPayment {
+		/// A collator was paid
+		Paid,
+		/// A collator was skipped for payment. This can happen if they haven't been awarded any
+		/// points, that is, they did not produce any blocks.
+		Skipped,
+		/// All collator payments have been processed.
+		Finished,
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -1518,22 +1535,13 @@ pub mod pallet {
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
 				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
-				if result.0.is_none() {
-					// result.0 indicates whether or not a payout was made
-					// clean up storage items that we no longer need
+
+				// clean up storage items that we no longer need
+				if matches!(result.0, RewardPayment::Finished) {
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
-
-					// remove all candidates that did not produce any blocks for
-					// the given round. The weight is added based on the number of backend
-					// items removed.
-					let remove_result = <AtStake<T>>::clear_prefix(paid_for_round, 20, None);
-					result
-						.1
-						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
-				} else {
-					result.1 // weight consumed by pay_one_collator_reward
 				}
+				result.1 // weight consumed by pay_one_collator_reward
 			} else {
 				Weight::from_ref_time(0u64)
 			}
@@ -1546,10 +1554,16 @@ pub mod pallet {
 		pub(crate) fn pay_one_collator_reward(
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout<BalanceOf<T>>,
-		) -> (Option<(T::AccountId, BalanceOf<T>)>, Weight) {
+		) -> (RewardPayment, Weight) {
+			// 'early_weight' tracks weight used for reads/writes done early in this fn before its
+			// early-exit codepaths.
+			let mut early_weight = Weight::zero();
+
 			// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage
 			// item so that we do fewer reads each block
 			let total_points = <Points<T>>::get(paid_for_round);
+			early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
+
 			if total_points.is_zero() {
 				// TODO: this case is obnoxious... it's a value query, so it could mean one of two
 				// different logic errors:
@@ -1557,29 +1571,43 @@ pub mod pallet {
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
 				log::warn!("pay_one_collator_reward called with no <Points<T>> for the round!");
-				return (None, Weight::zero());
+				return (RewardPayment::Finished, early_weight);
 			}
 
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			if let Some((collator, pts)) =
-				<AwardedPts<T>>::iter_prefix(paid_for_round).drain().next()
+			if let Some((collator, state)) =
+				<AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
+				// read and kill AtStake
+				early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 1));
+
+				// Take the awarded points for the collator
+				let pts = <AwardedPts<T>>::take(paid_for_round, &collator);
+				// read and kill AwardedPts
+				early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 1));
+				if pts == 0 {
+					return (RewardPayment::Skipped, early_weight);
+				}
+
+				// 'extra_weight' tracks weight returned from fns that we delegate to which can't be
+				// known ahead of time.
 				let mut extra_weight = Weight::zero();
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
-				// Take the snapshot of block author and delegations
-
-				let state = <AtStake<T>>::take(paid_for_round, &collator);
 
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					Self::mint(amt_due, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							amt_due,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							amt_due,
@@ -1590,9 +1618,13 @@ pub mod pallet {
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					Self::mint(collator_reward, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							collator_reward,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							collator_reward,
@@ -1608,25 +1640,25 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							Self::mint_and_compound(
+							extra_weight = extra_weight.saturating_add(Self::mint_and_compound(
 								due,
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
-							);
+							));
 						}
 					}
 				}
 
 				(
-					Some((collator, total_paid)),
+					RewardPayment::Paid,
 					T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
 						.saturating_add(extra_weight),
 				)
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				(None, Weight::from_ref_time(0u64.into()))
+				(RewardPayment::Finished, Weight::from_ref_time(0u64.into()))
 			}
 		}
 
@@ -1757,20 +1789,10 @@ pub mod pallet {
 					bond.amount = match requests.get(&bond.owner) {
 						None => bond.amount,
 						Some(DelegationAction::Revoke(_)) => {
-							log::warn!(
-								"reward for delegator '{:?}' set to zero due to pending \
-								revoke request",
-								bond.owner
-							);
 							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
-							log::warn!(
-								"reward for delegator '{:?}' reduced by set amount due to pending \
-								decrease request",
-								bond.owner
-							);
 							uncounted_stake = uncounted_stake.saturating_add(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
@@ -1804,7 +1826,7 @@ pub mod pallet {
 		}
 
 		/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		fn mint(amt: BalanceOf<T>, to: T::AccountId) {
+		pub fn mint(amt: BalanceOf<T>, to: T::AccountId) {
 			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
 				Self::deposit_event(Event::Rewarded {
 					account: to.clone(),
@@ -1813,16 +1835,32 @@ pub mod pallet {
 			}
 		}
 
+		/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
+		pub fn mint_collator_reward(
+			_paid_for_round: RoundIndex,
+			collator_id: T::AccountId,
+			amt: BalanceOf<T>,
+		) -> Weight {
+			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&collator_id, amt) {
+				Self::deposit_event(Event::Rewarded {
+					account: collator_id.clone(),
+					rewards: amount_transferred.peek(),
+				});
+			}
+			T::WeightInfo::mint_collator_reward()
+		}
+
 		/// Mint and compound delegation rewards. The function mints the amount towards the
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
 		/// compounded. Emits the [Compounded] event.
-		fn mint_and_compound(
+		pub fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-		) {
+		) -> Weight {
+			let mut weight = T::WeightInfo::mint_collator_reward();
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
@@ -1833,7 +1871,7 @@ pub mod pallet {
 
 				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				if compound_amount.is_zero() {
-					return;
+					return weight;
 				}
 
 				if let Err(err) = Self::delegation_bond_more_without_event(
@@ -1841,14 +1879,15 @@ pub mod pallet {
 					candidate.clone(),
 					compound_amount.clone(),
 				) {
-					log::error!(
-								"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+					log::debug!(
+								"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
 								candidate,
 								delegator,
 								err
 							);
-					return;
+					return weight;
 				};
+				weight = weight.saturating_add(T::WeightInfo::delegator_bond_more());
 
 				Pallet::<T>::deposit_event(Event::Compounded {
 					delegator,
@@ -1856,6 +1895,8 @@ pub mod pallet {
 					amount: compound_amount.clone(),
 				});
 			};
+
+			weight
 		}
 	}
 

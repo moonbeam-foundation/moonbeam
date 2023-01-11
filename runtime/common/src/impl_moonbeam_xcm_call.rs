@@ -19,19 +19,22 @@ macro_rules! impl_moonbeam_xcm_call {
 	{} => {
 
 		pub struct MoonbeamCall;
-		impl CallDispatcher<Call> for MoonbeamCall {
+		impl CallDispatcher<RuntimeCall> for MoonbeamCall {
 			fn dispatch(
-				call: Call,
-				origin: Origin,
-			) -> Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>> {
+				call: RuntimeCall,
+				origin: RuntimeOrigin,
+			) -> Result<
+					PostDispatchInfoOf<RuntimeCall>,
+					DispatchErrorWithPostInfo<PostDispatchInfoOf<RuntimeCall>>
+				> {
 				if let Ok(raw_origin) = TryInto::<RawOrigin<AccountId>>::try_into(origin.clone().caller) {
 					match (call.clone(), raw_origin) {
 						(
-							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact { .. }) |
-							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { .. }),
+							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { .. }) |
+							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { .. }),
 							RawOrigin::Signed(account_id)
 						) => {
-							return Call::dispatch(
+							return RuntimeCall::dispatch(
 								call,
 								pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
 									account_id.into()
@@ -41,7 +44,7 @@ macro_rules! impl_moonbeam_xcm_call {
 						_ => {}
 					}
 				}
-				Call::dispatch(call, origin)
+				RuntimeCall::dispatch(call, origin)
 			}
 		}
 	}

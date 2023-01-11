@@ -1,4 +1,4 @@
-import { BN, u8aToHex } from "@polkadot/util";
+import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 
 import { customWeb3Request } from "../../util/providers";
@@ -21,7 +21,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // xcmp reserved is BLOCK/4
     const totalDmpWeight =
-      context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
+      context.polkadotApi.consts.system.blockWeights.maxBlock.refTime.toBigInt() / BigInt(4);
 
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);

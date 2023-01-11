@@ -236,9 +236,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		let pallet_prefix: &[u8] = b"XcmTransactor";
 		let storage_item_prefix: &[u8] = b"TransactInfoWithWeightLimit";
 
@@ -254,13 +252,14 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		// Check number of entries, and set it aside in temp storage
 		let stored_data: Vec<_> = storage_key_iter::<
 			MultiLocation,
-			OldRemoteTransactInfo,
+			OldRemoteTransactInfoWithFeePerSecond,
 			Blake2_128Concat,
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u32, "mapping_count");
 
+		let mut state_vec: Vec<(u32, (MultiLocation, OldRemoteTransactInfoWithFeePerSecond))> =
+			Vec::new();
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
 			let example_pair = stored_data
@@ -268,31 +267,29 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 				.next()
 				.expect("We already confirmed that there was at least one item stored");
 
-			Self::set_temp_storage(example_pair, "example_pair");
+			state_vec.push((mapping_count as u32, example_pair.clone()))
 		}
-
-		Ok(())
+		Ok(state_vec.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		// Check number of entries matches what was set aside in pre_upgrade
-		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
-			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count_transact_info =
-			TransactInfoWithWeightLimit::<T>::iter().count() as u64;
-		let new_mapping_count_fee_per_second =
-			DestinationAssetFeePerSecond::<T>::iter().count() as u64;
-
-		assert_eq!(old_mapping_count, new_mapping_count_transact_info);
-		assert_eq!(old_mapping_count, new_mapping_count_fee_per_second);
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		let state_vec: Vec<(u32, (MultiLocation, OldRemoteTransactInfoWithFeePerSecond))> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		// Check that our example pair is still well-mapped after the migration
-		if new_mapping_count_transact_info > 0 {
-			let (location, original_info): (MultiLocation, OldRemoteTransactInfoWithFeePerSecond) =
-				Self::get_temp_storage("example_pair").expect("qed");
+		if state_vec.len() > 0 {
+			let (old_mapping_count, (location, original_info)) =
+				state_vec.first().expect("we should have an element");
+			let new_mapping_count_transact_info =
+				TransactInfoWithWeightLimit::<T>::iter().count() as u32;
+
+			let new_mapping_count_fee_per_second =
+				DestinationAssetFeePerSecond::<T>::iter().count() as u32;
+
+			assert_eq!(*old_mapping_count, new_mapping_count_transact_info);
+			assert_eq!(*old_mapping_count, new_mapping_count_fee_per_second);
+
 			let migrated_info_transact_info =
 				TransactInfoWithWeightLimit::<T>::get(&location).expect("qed");
 			let migrated_info_fee_per_second =
@@ -313,7 +310,6 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			);
 			assert_eq!(original_info.fee_per_second, migrated_info_fee_per_second);
 		}
-
 		Ok(())
 	}
 }

@@ -103,13 +103,15 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
     expect(
-      preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.provider.toString()
+      preimageStatus.unwrap().isUnrequested &&
+        preimageStatus.unwrap().asUnrequested.deposit[0].toString()
     ).to.equal(alith.address);
     expect(
-      preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.deposit.toString()
-    ).to.equal("2200000000000000");
+      preimageStatus.unwrap().isUnrequested &&
+        preimageStatus.unwrap().asUnrequested.deposit[1].toString()
+    ).to.equal("5002200000000000000");
   });
 });
 
@@ -147,9 +149,9 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     expect(publicPropCount.toNumber()).to.equal(1);
 
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
     // depositOf
@@ -200,9 +202,9 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
   // TODO: test getters
   it("second proposal", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
 
@@ -228,8 +230,10 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     expect(publicPropCount.toNumber()).to.equal(1);
 
     // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect(referendumInfoOf.unwrap().asOngoing.proposalHash.toString()).to.equal(encodedHash);
+    const referendumInfoOf = (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any;
+    expect(referendumInfoOf.unwrap().asOngoing.proposal.asLookup.hash_.toString()).to.equal(
+      encodedHash
+    );
   });
 });
 
@@ -261,6 +265,9 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       [encodedHash, numberToHex(Number(PROPOSAL_AMOUNT))]
     );
 
+    const preimage = await context.polkadotApi.query.preimage.preimageFor([encodedHash, 22]);
+    const publicProp = await context.polkadotApi.query.democracy.publicProps();
+
     // second
     await sendPrecompileTx(
       context,
@@ -291,8 +298,10 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       [numberToHex(0), "0x01", numberToHex(Number(VOTE_AMOUNT)), numberToHex(1)]
     );
     // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect(referendumInfoOf.unwrap().asOngoing.proposalHash.toHex()).to.equal(encodedHash);
+    const referendumInfoOf = (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any;
+    expect(referendumInfoOf.unwrap().asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
+      encodedHash
+    );
     expect(referendumInfoOf.unwrap().asOngoing.delay.toNumber()).to.equal(
       enactmentPeriod.toNumber()
     );
@@ -324,8 +333,8 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // taking same referendum with different end & delay
     const modReferendum = `0x00${newEndBlock.toHex(true).slice(2)}${referendumHex.slice(
       12,
-      78
-    )}${delay.toHex(true).slice(2)}${referendumHex.slice(86)}`;
+      88
+    )}${delay.toHex(true).slice(2)}${referendumHex.slice(96)}`;
 
     // Changing storage for the referendum using sudo
     await context.polkadotApi.tx.sudo
@@ -335,16 +344,18 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
         ])
       )
       .signAndSend(alith);
+
     await context.createBlock();
 
     // Waiting extra blocks for the vote to finish
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 10; i++) {
       await context.createBlock();
     }
 
     let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
 
     const referendumDone = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+
     expect(referendumDone.unwrap().isFinished).to.be.true;
     expect(referendumDone.unwrap().asFinished.approved.isTrue).to.be.true;
     expect(parachainBondInfo.account.toString()).to.equal(alith.address);

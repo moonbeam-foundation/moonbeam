@@ -26,15 +26,15 @@ pub enum Action {
 fn test_keccak256() {
 	assert_eq!(
 		&precompile_utils_macro::keccak256!(""),
-		Keccak256::digest(b"").as_ref(),
+		Keccak256::digest(b"").as_slice(),
 	);
 	assert_eq!(
 		&precompile_utils_macro::keccak256!("toto()"),
-		Keccak256::digest(b"toto()").as_ref(),
+		Keccak256::digest(b"toto()").as_slice(),
 	);
 	assert_ne!(
 		&precompile_utils_macro::keccak256!("toto()"),
-		Keccak256::digest(b"tata()").as_ref(),
+		Keccak256::digest(b"tata()").as_slice(),
 	);
 }
 

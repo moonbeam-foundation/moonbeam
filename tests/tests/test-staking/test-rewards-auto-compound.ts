@@ -27,7 +27,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - no auto-compound config",
 
   it("should not compound reward and emit no event", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -53,7 +54,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 0% auto-compound", (conte
 
   it("should not compound reward and emit no event", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -79,7 +81,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 1% auto-compound", (conte
 
   it("should compound 1% reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -108,7 +111,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 50% auto-compound", (cont
 
   it("should compound 50% reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -137,7 +141,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 100% auto-compound", (con
 
   it("should compound 100% reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -166,7 +171,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - no revoke requests", (con
 
   it("should auto-compound full amount", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    await jumpRounds(context, rewardDelay.addn(1).toNumber());
+    const blockHash = (await context.createBlock()).block.hash.toString();
     const events = await getRewardedAndCompoundedEvents(context, blockHash);
     const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
     const compoundedEvent = events.compounded.find(({ delegator }) => delegator === ethan.address);
@@ -207,7 +213,8 @@ describeDevMoonbeam(
     });
 
     it("should reward but not compound", async () => {
-      const blockHash = await jumpRounds(context, 1);
+      await jumpRounds(context, 1);
+      const blockHash = (await context.createBlock()).block.hash.toString();
       const events = await getRewardedAndCompoundedEvents(context, blockHash);
       const rewardedEvent = events.rewarded.find(({ account }) => account === ethan.address);
       const compoundedEvent = events.compounded.find(

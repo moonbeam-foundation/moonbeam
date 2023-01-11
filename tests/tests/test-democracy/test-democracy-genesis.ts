@@ -9,7 +9,7 @@ describeDevMoonbeam("Democracy - genesis", (context) => {
     expect((await context.polkadotApi.query.democracy.referendumCount()).toNumber()).to.equal(0);
   });
   it("should have no preimages", async function () {
-    expect((await context.polkadotApi.query.democracy.preimages.entries()).length).to.equal(0);
+    expect((await context.polkadotApi.query.preimage.preimageFor.entries()).length).to.equal(0);
   });
   it("should have an enactment of 7500", async function () {
     expect(context.polkadotApi.consts.democracy.enactmentPeriod.toNumber()).to.equal(7500);

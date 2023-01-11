@@ -8,14 +8,18 @@ import {
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
+import { u32, u64, u128, Option } from "@polkadot/types";
+
 import { expect } from "chai";
 
-import { WEIGHT_PER_GAS, EXTRINSIC_BASE_WEIGHT } from "./constants";
+import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 
-import type { Block } from "@polkadot/types/interfaces/runtime/types";
+import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
+import type { ITuple } from "@polkadot/types-codec/types";
+import Bottleneck from "bottleneck";
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -190,8 +194,7 @@ export const verifyBlockFees = async (
             ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
-                const gasFee =
-                  (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
+                const gasFee = (dispatchInfo as any).weight.refTime.toBigInt() / WEIGHT_PER_GAS;
                 let ethTxWrapper = extrinsic.method.args[0] as any;
                 let gasPrice;
                 // Transaction is an enum now with as many variants as supported transaction types.
@@ -373,15 +376,89 @@ export const fetchHistoricBlockNum = async (
   blockNumber: number,
   targetTime: number
 ) => {
-  return fetchBlockTime(api, blockNumber).then((time) => {
-    if (time < targetTime) {
-      return blockNumber;
-    } else {
-      return fetchHistoricBlockNum(
-        api,
-        (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
-        targetTime
-      );
-    }
-  });
+  if (blockNumber <= 1) {
+    return 1;
+  }
+  const time = await fetchBlockTime(api, blockNumber);
+
+  if (time <= targetTime) {
+    return blockNumber;
+  }
+
+  return fetchHistoricBlockNum(
+    api,
+    blockNumber - Math.ceil((time - targetTime) / 30_000),
+    targetTime
+  );
 };
+
+export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter?: Bottleneck) => {
+  /**  
+  @brief Returns an sequential array of block numbers from a given period of time in the past
+  @param api Connected ApiPromise to perform queries on
+  @param timePeriod Moment in the past to search until
+  @param limiter Bottleneck rate limiter to throttle requests
+  */
+
+  if (limiter == null) {
+    limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+  }
+  const finalizedHead = await limiter.schedule(() => api.rpc.chain.getFinalizedHead());
+  const signedBlock = await limiter.schedule(() => api.rpc.chain.getBlock(finalizedHead));
+
+  const lastBlockNumber = signedBlock.block.header.number.toNumber();
+  const lastBlockTime = getBlockTime(signedBlock);
+
+  const firstBlockTime = lastBlockTime - timePeriod;
+  debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
+  const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
+    api,
+    lastBlockNumber,
+    firstBlockTime
+  )) as number;
+
+  const length = lastBlockNumber - firstBlockNumber;
+  return Array.from({ length }, (_, i) => firstBlockNumber + i);
+};
+
+export function extractWeight(
+  weightV1OrV2: u64 | Option<u64> | SpWeightsWeightV2Weight | Option<SpWeightsWeightV2Weight>
+) {
+  if ("isSome" in weightV1OrV2) {
+    const weight = weightV1OrV2.unwrap();
+    if ("refTime" in weight) {
+      return weight.refTime.unwrap();
+    }
+    return weight;
+  }
+  if ("refTime" in weightV1OrV2) {
+    return weightV1OrV2.refTime.unwrap();
+  }
+  return weightV1OrV2;
+}
+
+export function extractPreimageDeposit(
+  request:
+    | Option<ITuple<[AccountId20, u128]>>
+    | {
+        readonly deposit: ITuple<[AccountId20, u128]>;
+        readonly len: u32;
+      }
+    | {
+        readonly deposit: Option<ITuple<[AccountId20, u128]>>;
+        readonly count: u32;
+        readonly len: Option<u32>;
+      }
+) {
+  const deposit = "deposit" in request ? request.deposit : request;
+  if ("isSome" in deposit) {
+    return {
+      accountId: deposit.unwrap()[0].toHex(),
+      amount: deposit.unwrap()[1],
+    };
+  }
+  return {
+    accountId: deposit[0].toHex(),
+    amount: deposit[1],
+  };
+}

@@ -74,6 +74,13 @@ export const MINUTES = 60 / 12;
 export const HOURS = MINUTES * 60;
 export const DAYS = HOURS * 24;
 
+export const TWO_MINS = 2 * 60 * 1000;
+export const FIVE_MINS = 5 * 60 * 1000;
+export const TEN_MINS = 10 * 60 * 1000;
+export const THIRTY_MINS = 30 * 60 * 1000;
+export const ONE_HOURS = 60 * 60 * 1000;
+export const TWO_HOURS = 2 * 60 * 60 * 1000;
+
 export const CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS = 0;
 export const CONTRACT_RANDOMNESS_STATUS_PENDING = 1;
 export const CONTRACT_RANDOMNESS_STATUS_READY = 2;

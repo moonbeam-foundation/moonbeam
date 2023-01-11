@@ -17,14 +17,10 @@
 //! Test utilities
 use super::*;
 
-use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
-};
-use precompile_utils::revert;
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::H160;
 use sp_core::H256;
 use sp_runtime::{
@@ -32,15 +28,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-/// To test EIP2612 permits we need to have cryptographic accounts.
-pub const ALICE_PUBLIC_KEY: [u8; 20] =
-	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
-
-/// To test EIP2612 permits we need to have cryptographic accounts.
-pub const ALICE_SECRET_KEY: [u8; 32] =
-	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
-
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
@@ -60,72 +48,6 @@ construct_runtime!(
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	David,
-	Bogus,
-	Precompile,
-	Revert,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl Into<H160> for Account {
-	fn into(self) -> H160 {
-		match self {
-			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::David => H160::repeat_byte(0xDD),
-			Account::Bogus => H160::repeat_byte(0xFF),
-			Account::Precompile => H160::from_low_u64_be(1),
-			Account::Revert => H160::from_low_u64_be(2),
-		}
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::repeat_byte(0xDD) => Self::David,
-			a if a == H160::from_low_u64_be(1) => Self::Precompile,
-			a if a == H160::from_low_u64_be(2) => Self::Revert,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
 	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
@@ -137,16 +59,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -168,40 +90,29 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
+mock_account!(CallPermit, |_| MockAccount::from_u64(1));
+mock_account!(Revert, |_| MockAccount::from_u64(2));
 
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	CallPermitPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Account::Precompile.into() => {
-				Some(CallPermitPrecompile::<R>::execute(handle))
-			}
-			a if a == Account::Revert.into() => Some(EvmResult::Err(revert("revert"))),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Account::Precompile.into()
-	}
-}
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<AddressU64<1>, CallPermitPrecompile<R>>,
+		RevertPrecompile<AddressU64<2>>,
+	),
+>;
 
 pub type PCall = CallPermitPrecompileCall<Runtime>;
 
 parameter_types! {
-	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
-	pub const WeightPerGas: u64 = 1;
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -212,9 +123,9 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = TestPrecompiles<Runtime>;
+	type PrecompilesType = Precompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
@@ -265,7 +176,7 @@ impl ExtBuilder {
 		ext.execute_with(|| {
 			System::set_block_number(1);
 			pallet_evm::Pallet::<Runtime>::create_account(
-				Account::Revert.into(),
+				Revert.into(),
 				hex_literal::hex!("1460006000fd").to_vec(),
 			);
 		});

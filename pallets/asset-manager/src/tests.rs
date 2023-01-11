@@ -29,7 +29,7 @@ use xcm::latest::prelude::*;
 fn registering_foreign_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -61,7 +61,7 @@ fn registering_local_works() {
 			let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
 
 			assert_ok!(AssetManager::register_local_asset(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				1u64,
 				1u64,
 				true,
@@ -89,7 +89,7 @@ fn registering_local_works() {
 fn test_asset_exists_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -102,7 +102,7 @@ fn test_asset_exists_error() {
 		);
 		assert_noop!(
 			AssetManager::register_foreign_asset(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				MockAssetType::MockAsset(1),
 				0u32.into(),
 				1u32.into(),
@@ -117,7 +117,7 @@ fn test_asset_exists_error() {
 fn test_root_can_change_units_per_second() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -125,7 +125,7 @@ fn test_root_can_change_units_per_second() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
@@ -156,7 +156,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			AssetManager::register_foreign_asset(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				MockAssetType::MockAsset(1),
 				0u32.into(),
 				1u32.into(),
@@ -167,7 +167,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 
 		assert_noop!(
 			AssetManager::set_asset_units_per_second(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				MockAssetType::MockAsset(1),
 				200u128.into(),
 				0
@@ -177,7 +177,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 
 		assert_noop!(
 			AssetManager::change_existing_asset_type(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				MockAssetType::MockAsset(2),
 				1
@@ -191,7 +191,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 fn test_root_can_change_asset_id_type() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -199,14 +199,14 @@ fn test_root_can_change_asset_id_type() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
 		));
 
 		assert_ok!(AssetManager::change_existing_asset_type(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			1,
 			MockAssetType::MockAsset(2),
 			1
@@ -256,7 +256,7 @@ fn test_root_can_change_asset_id_type() {
 fn test_change_units_per_second_after_setting_it_once() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -264,7 +264,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
@@ -277,7 +277,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			100u128.into(),
 			1
@@ -311,7 +311,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 fn test_root_can_change_units_per_second_and_then_remove() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -319,7 +319,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
@@ -332,7 +332,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		assert_ok!(AssetManager::remove_supported_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			1,
 		));
@@ -362,7 +362,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 fn test_weight_hint_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -370,14 +370,18 @@ fn test_weight_hint_error() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
 		));
 
 		assert_noop!(
-			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1), 0),
+			AssetManager::remove_supported_asset(
+				RuntimeOrigin::root(),
+				MockAssetType::MockAsset(1),
+				0
+			),
 			Error::<Test>::TooLowNumAssetsWeightHint
 		);
 	});
@@ -388,7 +392,7 @@ fn test_asset_id_non_existent_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			AssetManager::set_asset_units_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				MockAssetType::MockAsset(1),
 				200u128.into(),
 				0
@@ -397,7 +401,7 @@ fn test_asset_id_non_existent_error() {
 		);
 		assert_noop!(
 			AssetManager::change_existing_asset_type(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				1,
 				MockAssetType::MockAsset(2),
 				1
@@ -425,7 +429,7 @@ fn test_populate_supported_fee_payment_assets_works() {
 
 		assert_noop!(
 			AssetManager::set_asset_units_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				MockAssetType::MockAsset(1),
 				200u128.into(),
 				0
@@ -453,7 +457,7 @@ fn test_asset_manager_units_with_asset_type_migration_works() {
 		use parity_scale_codec::Encode;
 
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -569,7 +573,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 
 		// To mimic case 2, we can simply register the asset through the extrinsic
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			statemine_multilocation_2.clone(),
 			0u32.into(),
 			1u32.into(),
@@ -579,7 +583,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		// To mimic case 3, we can simply register the asset through the extrinsic
 		// But we also need to set units per second
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			statemine_multilocation_3.clone(),
 			0u32.into(),
 			1u32.into(),
@@ -587,7 +591,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			statemine_multilocation_3.clone(),
 			1u128,
 			0
@@ -681,7 +685,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 fn test_root_can_remove_asset_association() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -689,14 +693,14 @@ fn test_root_can_remove_asset_association() {
 		));
 
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			200u128.into(),
 			0
 		));
 
 		assert_ok!(AssetManager::remove_existing_asset_type(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			1,
 			1
 		));
@@ -730,7 +734,7 @@ fn test_root_can_remove_asset_association() {
 fn test_removing_without_asset_units_per_second_does_not_panic() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
@@ -738,7 +742,7 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 		));
 
 		assert_ok!(AssetManager::remove_existing_asset_type(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			1,
 			0
 		));
@@ -768,14 +772,19 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 fn test_destroy_foreign_asset_also_removes_everything() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
 			1u32.into(),
 			true
 		));
 
-		assert_ok!(AssetManager::destroy_foreign_asset(Origin::root(), 1, 0, 1));
+		assert_ok!(AssetManager::destroy_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			0,
+			1
+		));
 
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
@@ -807,7 +816,7 @@ fn test_destroy_local_asset_works() {
 			let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
 
 			assert_ok!(AssetManager::register_local_asset(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				1u64,
 				1u64,
 				true,
@@ -821,7 +830,11 @@ fn test_destroy_local_asset_works() {
 				})
 			);
 
-			assert_ok!(AssetManager::destroy_local_asset(Origin::root(), 0, 0));
+			assert_ok!(AssetManager::destroy_local_asset(
+				RuntimeOrigin::root(),
+				0,
+				0
+			));
 
 			assert_eq!(AssetManager::local_asset_counter(), 1);
 			assert_eq!(AssetManager::local_asset_deposit(asset_id), None);

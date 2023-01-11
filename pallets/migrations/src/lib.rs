@@ -19,14 +19,26 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+mod democracy_preimages;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+pub mod weights;
 
 use frame_support::{pallet, weights::Weight};
 
 pub use pallet::*;
+
+#[cfg(feature = "try-runtime")]
+extern crate alloc;
+#[cfg(feature = "try-runtime")]
+use alloc::{
+	format,
+	string::{String, ToString},
+};
 
 #[cfg(test)]
 #[macro_use]
@@ -49,13 +61,13 @@ pub trait Migration {
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		Ok(())
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		Ok(Vec::new())
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), &'static str> {
 		Ok(())
 	}
 }
@@ -80,8 +92,10 @@ impl GetMigrations for Tuple {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::weights::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use xcm_primitives::PauseXcmExecution;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
@@ -90,11 +104,18 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config:
+		frame_system::Config + pallet_democracy::Config + pallet_preimage::Config
+	{
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The list of migrations that will be performed
 		type MigrationsList: GetMigrations;
+
+		/// Handler to suspend and resume XCM execution
+		type XcmExecutionManager: PauseXcmExecution;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::event]
@@ -111,6 +132,10 @@ pub mod pallet {
 			migration_name: Vec<u8>,
 			consumed_weight: Weight,
 		},
+		/// XCM execution suspension failed with inner error
+		FailedToSuspendIdleXcmExecution { error: DispatchError },
+		/// XCM execution resume failed with inner error
+		FailedToResumeIdleXcmExecution { error: DispatchError },
 	}
 
 	#[pallet::hooks]
@@ -120,6 +145,9 @@ pub mod pallet {
 		/// migrations.
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
+
+			// Store the fact that we should pause xcm execution for this block
+			ShouldPauseXcm::<T>::put(true);
 
 			let mut weight = Weight::zero();
 			// TODO: derive a suitable value here, which is probably something < max_block
@@ -141,14 +169,41 @@ pub mod pallet {
 				);
 			}
 
-			weight
+			log::info!("Migrations consumed weight: {}", weight);
+
+			// Consume all block weight to ensure no user transactions inclusion.
+			T::BlockWeights::get().max_block
+		}
+
+		fn on_initialize(_: T::BlockNumber) -> Weight {
+			if ShouldPauseXcm::<T>::get() {
+				// Suspend XCM execution
+				if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
+					<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+				}
+				// Account on_finalize write
+				T::DbWeight::get().reads_writes(1, 1)
+			} else {
+				T::DbWeight::get().reads(1)
+			}
+		}
+
+		fn on_finalize(_: T::BlockNumber) {
+			if ShouldPauseXcm::<T>::get() {
+				// Resume XCM execution
+				if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
+					<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+				}
+				ShouldPauseXcm::<T>::put(false);
+			}
 		}
 
 		#[cfg(feature = "try-runtime")]
-		fn pre_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+			let mut state_map: BTreeMap<String, bool> = BTreeMap::new();
+			let mut migration_states_map: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
-			let mut failed = false;
 			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
@@ -162,35 +217,28 @@ pub mod pallet {
 					"invoking pre_upgrade() on migration {}", migration_name
 				);
 
-				// dump the migration name to temp storage so post_upgrade will know which
+				// dump the migration name to state_map so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
-				Self::set_temp_storage(true, migration_name);
-
-				match migration.pre_upgrade() {
-					Ok(()) => {
-						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
-						failed = true;
-					}
-				}
+				state_map.insert(migration_name.to_string(), true);
+				let state = migration
+					.pre_upgrade()
+					.expect(&format!("migration {} pre_upgrade()", migration_name));
+				migration_states_map.insert(migration_name.to_string(), state);
 			}
-
-			if failed {
-				Err("One or more pre_upgrade tests failed; see output above.")
-			} else {
-				Ok(())
-			}
+			Ok((state_map, migration_states_map).encode())
 		}
 
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		#[cfg(feature = "try-runtime")]
-		fn post_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+
+			let (state_map, migration_states_map): (
+				BTreeMap<String, bool>,
+				BTreeMap<String, Vec<u8>>,
+			) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
-
 			let mut failed = false;
 			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
@@ -198,8 +246,12 @@ pub mod pallet {
 				// we can't query MigrationState because on_runtime_upgrade() would have
 				// unconditionally set it to true, so we read a hint from temp storage which was
 				// left for us by pre_upgrade()
-				match Self::get_temp_storage::<bool>(migration_name) {
-					Some(value) => assert!(true == value, "our dummy value might as well be true"),
+
+				match state_map.get(&migration_name.to_string()) {
+					Some(value) => assert!(
+						true == value.clone(),
+						"our dummy value might as well be true"
+					),
 					None => continue,
 				}
 
@@ -208,18 +260,20 @@ pub mod pallet {
 					"invoking post_upgrade() on migration {}", migration_name
 				);
 
-				let result = migration.post_upgrade();
-				match result {
-					Ok(()) => {
-						log::info!("migration {} post_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!(
-							"migration {} post_upgrade() => Err({})",
-							migration_name,
-							msg
-						);
-						failed = true;
+				if let Some(state) = migration_states_map.get(&migration_name.to_string()) {
+					let result = migration.post_upgrade(state.clone());
+					match result {
+						Ok(()) => {
+							log::info!("migration {} post_upgrade() => Ok()", migration_name);
+						}
+						Err(msg) => {
+							log::error!(
+								"migration {} post_upgrade() => Err({})",
+								migration_name,
+								msg
+							);
+							failed = true;
+						}
 					}
 				}
 			}
@@ -243,6 +297,38 @@ pub mod pallet {
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
 	pub(crate) type MigrationState<T: Config> =
 		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn should_pause_xcm)]
+	/// Temporary value that is set to true at the beginning of the block during which the execution
+	/// of xcm messages must be paused.
+	type ShouldPauseXcm<T: Config> = StorageValue<_, bool, ValueQuery>;
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		#[pallet::weight(
+			<T as Config>::WeightInfo::migrate_democracy_preimage(*proposal_len_upper_bound)
+		)]
+		pub fn migrate_democracy_preimage(
+			origin: OriginFor<T>,
+			proposal_hash: T::Hash,
+			#[pallet::compact] proposal_len_upper_bound: u32,
+		) -> DispatchResultWithPostInfo {
+			Self::migrate_democracy_preimage_inner(origin, proposal_hash, proposal_len_upper_bound)
+		}
+	}
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// Missing preimage in original democracy storage
+		PreimageMissing,
+		/// Provided upper bound is too low.
+		WrongUpperBound,
+		/// Preimage is larger than the new max size.
+		PreimageIsTooBig,
+		/// Preimage already exists in the new storage.
+		PreimageAlreadyExists,
+	}
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
@@ -279,7 +365,7 @@ pub mod pallet {
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
-				let available_for_step = if available_weight > weight {
+				let available_for_step = if available_weight.ref_time() > weight.ref_time() {
 					available_weight - weight
 				} else {
 					log::error!(
@@ -305,7 +391,7 @@ pub mod pallet {
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight = weight.saturating_add(consumed_weight);
-				if weight > available_weight {
+				if weight.ref_time() > available_weight.ref_time() {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
 						migration_name,

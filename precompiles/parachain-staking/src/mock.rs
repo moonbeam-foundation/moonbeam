@@ -16,25 +16,25 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
-};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
-use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256, U256};
+use precompile_utils::{
+	precompile_set::*,
+	testing::{Alice, MockAccount},
+};
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
@@ -55,66 +55,6 @@ construct_runtime!(
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl Into<H160> for Account {
-	fn into(self) -> H160 {
-		match self {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Bogus => H160::repeat_byte(0xDD),
-			Account::Precompile => H160::from_low_u64_be(1),
-		}
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(1) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
 	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
@@ -122,19 +62,20 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
+
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
-	type Lookup = IdentityLookup<Self::AccountId>;
+	type Lookup = IdentityLookup<AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -156,46 +97,23 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
-/// The staking precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	ParachainStakingPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == precompile_address() => {
-				Some(ParachainStakingPrecompile::<R>::execute(handle))
-			}
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == precompile_address()
-	}
-}
-
-pub type PCall = ParachainStakingPrecompileCall<Runtime>;
-
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
-	pub const WeightPerGas: u64 = 1;
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
+
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, ParachainStakingPrecompile<R>>,)>;
+
+pub type PCall = ParachainStakingPrecompileCall<Runtime>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -205,9 +123,9 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = TestPrecompiles<Runtime>;
+	type PrecompilesType = Precompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
@@ -225,10 +143,11 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-
+const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
+const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
+const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
@@ -236,18 +155,16 @@ parameter_types! {
 	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxTopDelegationsPerCandidate: u32 = 4;
+	pub const MaxTopDelegationsPerCandidate: u32 = 2;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
-	pub const BlockAuthor: Account = Account::Alice;
+	pub BlockAuthor: AccountId = Alice.into();
 }
 impl pallet_parachain_staking::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
@@ -266,6 +183,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
+	type PayoutCollatorReward = ();
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
@@ -364,9 +282,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
-			collator_commission: DefaultCollatorCommission::get(),
-			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
-			blocks_per_round: DefaultBlocksPerRound::get(),
+			collator_commission: GENESIS_COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: GENESIS_PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: GENESIS_BLOCKS_PER_ROUND,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -378,9 +296,9 @@ impl ExtBuilder {
 }
 
 // Sets the same storage changes as EventHandler::note_author impl
-pub(crate) fn set_points(round: BlockNumber, acc: Account, pts: u32) {
+pub(crate) fn set_points(round: BlockNumber, acc: impl Into<AccountId>, pts: u32) {
 	<Points<Runtime>>::mutate(round, |p| *p += pts);
-	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
+	<AwardedPts<Runtime>>::mutate(round, acc.into(), |p| *p += pts);
 }
 
 pub(crate) fn roll_to(n: BlockNumber) {
@@ -398,11 +316,11 @@ pub(crate) fn roll_to(n: BlockNumber) {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) {
-	let block = (round - 1) * DefaultBlocksPerRound::get();
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)

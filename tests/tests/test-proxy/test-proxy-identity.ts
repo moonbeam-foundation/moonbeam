@@ -38,7 +38,8 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(
+          // TODO: Remove any casting when api-augment is updated
+          (context.polkadotApi.tx.identity as any).provideJudgement(
             0,
             baltathar.address,
             {
@@ -108,7 +109,8 @@ describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(
+          // TODO: Remove any casting when api-augment is updated
+          (context.polkadotApi.tx.identity as any).provideJudgement(
             0,
             baltathar.address,
             {

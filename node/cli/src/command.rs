@@ -563,6 +563,12 @@ pub fn run() -> Result<()> {
 						_ => panic!("invalid chain spec"),
 					}
 				}
+				#[cfg(not(feature = "runtime-benchmarks"))]
+				BenchmarkCmd::Storage(_) => Err(
+					"Storage benchmarking can be enabled with `--features runtime-benchmarks`."
+						.into(),
+				),
+				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
 					match chain_spec {

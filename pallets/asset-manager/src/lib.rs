@@ -181,7 +181,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// The Asset Id. This will be used to create the asset and to associate it with
 		/// a assetType
@@ -201,10 +201,10 @@ pub mod pallet {
 		type AssetRegistrar: AssetRegistrar<Self>;
 
 		/// Origin that is allowed to create and modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Origin that is allowed to create and modify asset information for local assets
-		type LocalAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type LocalAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Ways of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;

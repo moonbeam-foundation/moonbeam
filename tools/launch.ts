@@ -163,8 +163,18 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.27.0",
   },
+  "moonbase-0.28.0": {
+    relay: "rococo-9320",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.28.0",
+  },
+  "moonbase-0.29.0": {
+    relay: "rococo-9320",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.29.0",
+  },
   local: {
-    relay: "rococo-9290",
+    relay: "rococo-9320",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -371,7 +381,7 @@ async function start() {
       }
       // If it is an array, push the position at which we are
       else if (Array.isArray(argv["parachain-chain"])) {
-        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        parachainsChains.push(argv["parachain-chain"][i] || parachains[parachainName].chain);
       }
       // Else, push the value to the first parachain if it exists, else the default
       else {

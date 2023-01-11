@@ -151,6 +151,20 @@ jobs:
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
+  check-forbid-evm-reentrancy:
+    name: "Check 'forbid-evm-reentrancy'"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
+        run: ./scripts/check-forbid-evm-reentrancy.sh
+
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
@@ -170,6 +184,7 @@ jobs:
   ####### Preparing polkadot binary for parachain tests #######
   ####### For non-official repo, the script will fail if a new version of
   ####### polkadot needs to be pushed.
+  ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
     runs-on: self-hosted
@@ -180,7 +195,8 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Login to DockerHub
-        if: github.repository == 'purestake/moonbeam'
+        # The if must stay on this step (because this job must not be skipped)
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -445,12 +461,26 @@ jobs:
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
           chmod uog+x build/moonbeam
+
+          ####  Preparing the repository
           cd moonbeam-types-bundle
           npm ci
           npm run build
+
+          ####  Preparing the typescript api
+          cd ../typescript-api
+          npm ci
+
           cd ../tests
           npm ci
+          #### Prepares and copies the typescript generated API to include in the tests
+          npm run setup-typescript-api
+
+          #### Compile typescript tests into javascript (more stable for Mocha)
+          #### This also better display typescript issues
           npm run build
+
+          #### Run tracing tests with mocha
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
   typescript-para-tests:
@@ -539,61 +569,10 @@ jobs:
             $DOCKER_TAG \
               node node_modules/.bin/mocha --exit 'build/para-tests/**/test-*.js'
 
-  docker-parachain:
-    runs-on: ubuntu-latest
-    needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: build
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain
-          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push parachain
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/moonbase-parachain.Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

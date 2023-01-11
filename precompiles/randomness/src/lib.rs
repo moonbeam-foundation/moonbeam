@@ -21,7 +21,7 @@
 
 extern crate alloc;
 
-use fp_evm::{Context, ExitReason, Log, PrecompileHandle};
+use fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
 use frame_support::traits::Get;
 use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
@@ -32,8 +32,8 @@ use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 mod solidity_types;
 #[cfg(test)]
 mod tests;
@@ -71,14 +71,13 @@ fn ensure_can_provide_randomness<Runtime>(
 	clean_up_cost: u64,
 ) -> EvmResult<()>
 where
-	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	Runtime: pallet_randomness::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: Into<U256>,
 {
 	// assert fee > gasLimit * base_fee
 	let gas_limit_as_u256: U256 = gas_limit.into();
-	if let Some(gas_limit_times_base_fee) =
-		gas_limit_as_u256.checked_mul(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
-	{
+	let (base_fee, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+	if let Some(gas_limit_times_base_fee) = gas_limit_as_u256.checked_mul(base_fee) {
 		if gas_limit_times_base_fee >= request_fee.into() {
 			return Err(revert(
 				"Gas limit at current price must be less than fees allotted",
@@ -149,7 +148,7 @@ pub struct RandomnessPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> RandomnessPrecompile<Runtime>
 where
-	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	Runtime: pallet_randomness::Config + pallet_evm::Config,
 	<Runtime as frame_system::Config>::BlockNumber: TryInto<u32> + TryFrom<u32>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
@@ -417,8 +416,9 @@ where
 			.ok_or(revert("Before remaining gas < After remaining gas"))?
 			.into();
 		// cost of execution is before_remaining_gas less after_remaining_gas
+		let (base_fee, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
 		let cost_of_execution: BalanceOf<Runtime> = gas_used
-			.checked_mul(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
+			.checked_mul(base_fee)
 			.ok_or(revert("Multiply gas used by base fee overflowed"))?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;

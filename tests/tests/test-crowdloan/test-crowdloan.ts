@@ -12,12 +12,15 @@ import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   baltathar,
   generateKeyringPair,
+  goliath,
 } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
-import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
+import { DEFAULT_GENESIS_BALANCE, GLMR, VOTE_AMOUNT } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { instantFastTrack, notePreimage } from "../../util/governance";
+
 // Relay addresses for crowdloan tests
 export const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
@@ -439,7 +442,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // We are gonna put the initialization and completion in a batch_all utility call
     calls.push(
       context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
-        [RELAYCHAIN_ARBITRARY_ADDRESS_1, baltathar.address, 1_500_000n * GLMR],
+        [RELAYCHAIN_ARBITRARY_ADDRESS_1, goliath.address, 1_500_000n * GLMR],
         [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
       ])
     );
@@ -454,28 +457,32 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Here we build the utility call
     const proposal = context.polkadotApi.tx.utility.batchAll(calls);
 
-    // We encode the proposal
-    const encodedProposal = (proposal as SubmittableExtrinsic)?.method.toHex() || "";
-    const encodedHash = blake2AsHex(encodedProposal);
+    const encodedHash = await instantFastTrack(context, proposal);
 
-    // Propose
-    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
-    await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, 1000n * GLMR));
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
-    // we only use sudo to enact the proposal
+    // vote
     await context.createBlock(
-      context.polkadotApi.tx.sudo.sudoUncheckedWeight(
-        context.polkadotApi.tx.democracy.enactProposal(encodedHash, publicPropCount),
-        1
-      )
+      context.polkadotApi.tx.democracy.vote(0, {
+        Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
+      })
     );
+
+    // referendumInfoOf
+    const referendumInfoOf = (
+      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+    ).unwrap() as any;
+    const onGoing = referendumInfoOf.asOngoing;
+
+    const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
+      await context.createBlock();
+    }
 
     const isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
 
     expect(isInitialized.toHuman()).to.be.true;
 
     // Get reward info of associated
-    const reward_info_associated = await getAccountPayable(context, baltathar.address);
+    const reward_info_associated = await getAccountPayable(context, goliath.address);
 
     // Get reward info of unassociated
     const reward_info_unassociated = (
@@ -491,7 +498,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(reward_info_unassociated.claimedReward.toBigInt()).to.equal(0n);
 
     // check balances
-    const account = await context.polkadotApi.query.system.account(baltathar.address);
+    const account = await context.polkadotApi.query.system.account(goliath.address);
     expect(account.data.free.toBigInt() - DEFAULT_GENESIS_BALANCE).to.equal(
       reward_info_associated.claimedReward.toBigInt()
     );

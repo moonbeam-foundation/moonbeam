@@ -1,6 +1,10 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/rpc-core/types/jsonrpc";
+
 import type { AugmentedRpc } from "@polkadot/rpc-core/types";
 import type { Metadata, StorageKey } from "@polkadot/types";
 import type {
@@ -31,7 +35,7 @@ import type {
   ContractCallRequest,
   ContractExecResult,
   ContractInstantiateResult,
-  InstantiateRequest,
+  InstantiateRequestV1,
 } from "@polkadot/types/interfaces/contracts";
 import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type { CreatedBlock } from "@polkadot/types/interfaces/engine";
@@ -59,7 +63,7 @@ import type {
 } from "@polkadot/types/interfaces/grandpa";
 import type { MmrLeafBatchProof, MmrLeafProof } from "@polkadot/types/interfaces/mmr";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
-import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
+import type { FeeDetails, RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import type { RpcMethods } from "@polkadot/types/interfaces/rpc";
 import type {
   AccountId,
@@ -93,8 +97,10 @@ import type {
 } from "@polkadot/types/interfaces/system";
 import type { IExtrinsic, Observable } from "@polkadot/types/types";
 
+export type __AugmentedRpc = AugmentedRpc<() => unknown>;
+
 declare module "@polkadot/rpc-core/types/jsonrpc" {
-  export interface RpcInterface {
+  interface RpcInterface {
     author: {
       /**
        * Returns true if the keystore has private keys for the given public key
@@ -139,11 +145,15 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       /**
        * Submit and subscribe to watch an extrinsic until unsubscribed
        */
-      submitAndWatchExtrinsic: AugmentedRpc<(extrinsic: IExtrinsic) => Observable<ExtrinsicStatus>>;
+      submitAndWatchExtrinsic: AugmentedRpc<
+        (extrinsic: Extrinsic | IExtrinsic | string | Uint8Array) => Observable<ExtrinsicStatus>
+      >;
       /**
        * Submit a fully formatted extrinsic for block inclusion
        */
-      submitExtrinsic: AugmentedRpc<(extrinsic: IExtrinsic) => Observable<Hash>>;
+      submitExtrinsic: AugmentedRpc<
+        (extrinsic: Extrinsic | IExtrinsic | string | Uint8Array) => Observable<Hash>
+      >;
     };
     babe: {
       /**
@@ -262,7 +272,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     contracts: {
       /**
-       * Executes a call to a contract
+       * @deprecated Use the runtime interface `api.call.contractsApi.call`
+       *   instead Executes a call to a contract
        */
       call: AugmentedRpc<
         (
@@ -282,7 +293,9 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<ContractExecResult>
       >;
       /**
-       * Returns the value under a specified storage key in a contract
+       * @deprecated Use the runtime interface
+       *   `api.call.contractsApi.getStorage` instead Returns the value under a
+       *   specified storage key in a contract
        */
       getStorage: AugmentedRpc<
         (
@@ -292,29 +305,23 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<Option<Bytes>>
       >;
       /**
-       * Instantiate a new contract
+       * @deprecated Use the runtime interface
+       *   `api.call.contractsApi.instantiate` instead Instantiate a new contract
        */
       instantiate: AugmentedRpc<
         (
           request:
-            | InstantiateRequest
-            | {
-                origin?: any;
-                value?: any;
-                gasLimit?: any;
-                storageDepositLimit?: any;
-                code?: any;
-                data?: any;
-                salt?: any;
-              }
+            | InstantiateRequestV1
+            | { origin?: any; value?: any; gasLimit?: any; code?: any; data?: any; salt?: any }
             | string
             | Uint8Array,
           at?: BlockHash | string | Uint8Array
         ) => Observable<ContractInstantiateResult>
       >;
       /**
-       * Returns the projected time a given contract will be able to sustain
-       * paying its rent
+       * @deprecated Not available in newer versions of the contracts interfaces
+       *   Returns the projected time a given contract will be able to sustain
+       *   paying its rent
        */
       rentProjection: AugmentedRpc<
         (
@@ -323,7 +330,9 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<Option<BlockNumber>>
       >;
       /**
-       * Upload new code without instantiating a contract from it
+       * @deprecated Use the runtime interface
+       *   `api.call.contractsApi.uploadCode` instead Upload new code without
+       *   instantiating a contract from it
        */
       uploadCode: AugmentedRpc<
         (
@@ -429,7 +438,7 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         (
           blockCount: U256 | AnyNumber | Uint8Array,
           newestBlock: BlockNumber | AnyNumber | Uint8Array,
-          rewardPercentiles: Option<Vec<f64>> | null | object | string | Uint8Array
+          rewardPercentiles: Option<Vec<f64>> | null | Uint8Array | Vec<f64> | f64[]
         ) => Observable<EthFeeHistory>
       >;
       /**
@@ -792,7 +801,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     payment: {
       /**
-       * Query the detailed fee of a given encoded extrinsic
+       * @deprecated Use `api.call.transactionPaymentApi.queryFeeDetails`
+       *   instead Query the detailed fee of a given encoded extrinsic
        */
       queryFeeDetails: AugmentedRpc<
         (
@@ -801,13 +811,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<FeeDetails>
       >;
       /**
-       * Retrieves the fee information for an encoded extrinsic
+       * @deprecated Use `api.call.transactionPaymentApi.queryInfo` instead
+       *   Retrieves the fee information for an encoded extrinsic
        */
       queryInfo: AugmentedRpc<
         (
           extrinsic: Bytes | string | Uint8Array,
           at?: BlockHash | string | Uint8Array
-        ) => Observable<RuntimeDispatchInfo>
+        ) => Observable<RuntimeDispatchInfoV1>
       >;
     };
     rpc: {
@@ -886,7 +897,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<u64>
       >;
       /**
-       * Retrieves the keys with a certain prefix
+       * @deprecated Use `api.rpc.state.getKeysPaged` to retrieve keys Retrieves
+       *   the keys with a certain prefix
        */
       getKeys: AugmentedRpc<
         (
@@ -910,8 +922,9 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
        */
       getMetadata: AugmentedRpc<(at?: BlockHash | string | Uint8Array) => Observable<Metadata>>;
       /**
-       * Returns the keys with prefix, leave empty to get all the keys
-       * (deprecated: Use getKeysPaged)
+       * @deprecated Use `api.rpc.state.getKeysPaged` to retrieve keys Returns
+       *   the keys with prefix, leave empty to get all the keys (deprecated:
+       *   Use getKeysPaged)
        */
       getPairs: AugmentedRpc<
         (
@@ -999,9 +1012,9 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       traceBlock: AugmentedRpc<
         (
           block: Hash | string | Uint8Array,
-          targets: Option<Text> | null | object | string | Uint8Array,
-          storageKeys: Option<Text> | null | object | string | Uint8Array,
-          methods: Option<Text> | null | object | string | Uint8Array
+          targets: Option<Text> | null | Uint8Array | Text | string,
+          storageKeys: Option<Text> | null | Uint8Array | Text | string,
+          methods: Option<Text> | null | Uint8Array | Text | string
         ) => Observable<TraceBlockResponse>
       >;
       /**

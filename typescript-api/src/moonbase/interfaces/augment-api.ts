@@ -7,3 +7,4 @@ import "./augment-api-events";
 import "./augment-api-query";
 import "./augment-api-tx";
 import "./augment-api-rpc";
+import "./augment-api-runtime";

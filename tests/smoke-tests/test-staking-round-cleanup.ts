@@ -53,10 +53,15 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
         debug(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
         this.skip();
       }
+      const currentBlock = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+      if (currentBlock < 1000) {
+        debug(`Current block is < 1000 (probably for Fork test), skipping test`);
+        this.skip();
+      }
 
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+        : currentBlock;
 
       const atBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
       const apiAtBlock = await context.polkadotApi.at(atBlockHash);

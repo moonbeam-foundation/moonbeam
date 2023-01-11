@@ -18,7 +18,7 @@ use std::str::FromStr;
 pub mod account_key;
 
 /// Block authoring scheme to be used by the dev service.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Sealing {
 	/// Author a block immediately upon receiving a transaction into the transaction pool
 	Instant,
