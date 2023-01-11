@@ -733,7 +733,7 @@ pub mod pallet {
 
 		/// Manage HRMP operations
 		#[pallet::weight(0)]
-		pub fn hrmp_manange(
+		pub fn hrmp_manage(
 			origin: OriginFor<T>,
 			action: HrmpOperation,
 			// fee to be used

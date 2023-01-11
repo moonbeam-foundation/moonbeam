@@ -2503,7 +2503,7 @@ fn root_can_use_hrmp_manage() {
 			// It fails sending, because the router does not work in test mode
 			// But all rest checks pass
 			assert_noop!(
-				XcmTransactor::hrmp_manange(
+				XcmTransactor::hrmp_manage(
 					root_origin(),
 					HrmpOperation::Accept(2000u32.into()),
 					CurrencyPayment {

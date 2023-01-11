@@ -2649,7 +2649,7 @@ fn hrmp_init_accept_through_root() {
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
 		// Root can send hrmp init channel
-		assert_ok!(XcmTransactor::hrmp_manange(
+		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::InitOpen(HrmpInitParams {
 				para_id: 2u32.into(),
@@ -2684,7 +2684,7 @@ fn hrmp_init_accept_through_root() {
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
 		// Root can send hrmp init channel
-		assert_ok!(XcmTransactor::hrmp_manange(
+		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Accept(1u32.into()),
 			CurrencyPayment {
@@ -2736,7 +2736,7 @@ fn hrmp_close_works() {
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
 		// Root can send hrmp close
-		assert_ok!(XcmTransactor::hrmp_manange(
+		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Close(HrmpChannelId {
 				sender: 1u32.into(),

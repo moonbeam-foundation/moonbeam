@@ -1120,7 +1120,7 @@ fn test_hrmp_manipulator_init() {
 			let tx_weight = 100_u64;
 			let total_fee = 100u128;
 
-			assert_ok!(XcmTransactor::hrmp_manange(
+			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
 				HrmpOperation::InitOpen(HrmpInitParams {
 					para_id: 1u32.into(),
@@ -1168,7 +1168,7 @@ fn test_hrmp_max_fee_errors() {
 			let total_fee = 10_000_000_000_000u128;
 
 			assert_noop!(
-				XcmTransactor::hrmp_manange(
+				XcmTransactor::hrmp_manage(
 					RuntimeOrigin::root(),
 					HrmpOperation::InitOpen(HrmpInitParams {
 						para_id: 1u32.into(),
@@ -1203,7 +1203,7 @@ fn test_hrmp_manipulator_accept() {
 			let tx_weight = 100_u64;
 			let total_fee = 100u128;
 
-			assert_ok!(XcmTransactor::hrmp_manange(
+			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
 				HrmpOperation::Accept(1u32.into()),
 				CurrencyPayment {
@@ -1248,7 +1248,7 @@ fn test_hrmp_manipulator_close() {
 			let tx_weight = 100_u64;
 			let total_fee = 100u128;
 
-			assert_ok!(XcmTransactor::hrmp_manange(
+			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
 				HrmpOperation::Close(HrmpChannelId {
 					sender: 1u32.into(),
