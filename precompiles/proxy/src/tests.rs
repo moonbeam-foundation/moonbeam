@@ -559,3 +559,27 @@ fn succeed_if_called_by_precompile() {
 				.execute_returns(vec![]);
 		})
 }
+
+#[test]
+fn succeed_if_is_proxy_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
+				)
+				.execute_returns_encoded(false);
+		})
+}

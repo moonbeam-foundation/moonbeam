@@ -12,6 +12,13 @@ jobs:
           REQUIRED_LABELS_ANY: "B0-silent,B5-clientnoteworthy,B7-runtimenoteworthy"
           REQUIRED_LABELS_ALL: ""
           BANNED_LABELS: ""
+      - name: Verify breaking changes label
+        if: contains(github.event.pull_request.labels.*.name, 'B5-clientnoteworthy') || contains(github.event.pull_request.labels.*.name, 'B7-runtimenoteworthy')
+        uses: yogevbd/enforce-label-action@2.2.2
+        with:
+          REQUIRED_LABELS_ANY: "breaking,not-breaking"
+          REQUIRED_LABELS_ALL: ""
+          BANNED_LABELS: ""
   enforce-auditability-label:
     runs-on: ubuntu-latest
     steps:

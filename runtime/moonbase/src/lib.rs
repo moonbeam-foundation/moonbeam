@@ -871,6 +871,7 @@ impl pallet_migrations::Config for Runtime {
 		CouncilCollective,
 		TechCommitteeCollective,
 	>;
+	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
 
@@ -925,12 +926,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::destroy { .. } => false,
 				_ => true,
 			},
-			// We just want to enable this in case of live chains, since the default version
-			// is populated at genesis
-			RuntimeCall::PolkadotXcm(method) => match method {
-				pallet_xcm::Call::force_default_xcm_version { .. } => true,
-				_ => false,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
@@ -952,12 +947,28 @@ impl Contains<RuntimeCall> for NormalFilter {
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
-impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
+impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
 		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
 	fn resume_xcm_execution() -> DispatchResult {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
+	}
+}
+
+pub struct NormalDmpHandler;
+impl DmpMessageHandler for NormalDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		limit: Weight,
+	) -> Weight {
+		(if Migrations::should_pause_xcm() {
+			DmpQueue::handle_dmp_messages(iter, Weight::zero())
+		} else {
+			DmpQueue::handle_dmp_messages(iter, limit)
+		}) + <Runtime as frame_system::Config>::DbWeight::get().reads(1)
 	}
 }
 
@@ -1028,7 +1039,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type NormalDmpHandler = DmpQueue;
+	type NormalDmpHandler = NormalDmpHandler;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
 	// operation
