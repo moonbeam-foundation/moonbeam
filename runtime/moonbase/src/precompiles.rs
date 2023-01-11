@@ -189,7 +189,7 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<
 					AddressU64<2060>,
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
-					CallableByContract,
+					(CallableByContract, CallableByPrecompile),
 				>,
 				PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>, CallableByContract>,
 				PrecompileAt<
