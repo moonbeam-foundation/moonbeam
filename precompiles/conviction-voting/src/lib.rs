@@ -24,7 +24,7 @@ use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{H160, H256, U256};
+use sp_core::{H160, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
 
@@ -61,7 +61,6 @@ impl<Runtime> ConvictionVotingPrecompile<Runtime>
 where
 	Runtime: pallet_conviction_voting::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256>,
-	<Runtime as frame_system::Config>::Hash: TryFrom<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
