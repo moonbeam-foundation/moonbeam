@@ -23,8 +23,9 @@ use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
+use precompile_utils::precompile_set::AddressU64;
 use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
-use sp_core::{H160, U256};
+use sp_core::{Get, H160, U256};
 use std::str::from_utf8;
 
 #[test]
@@ -50,6 +51,8 @@ fn selectors() {
 	assert!(PCall::add_proxy_selectors().contains(&0x74a34dd3));
 	assert!(PCall::remove_proxy_selectors().contains(&0xfef3f708));
 	assert!(PCall::remove_proxies_selectors().contains(&0x14a5b5fa));
+	assert!(PCall::proxy_selectors().contains(&0x0d3cff86));
+	assert!(PCall::proxy_force_type_selectors().contains(&0x4a36b2cd));
 	assert!(PCall::is_proxy_selectors().contains(&0xe26d38ed));
 }
 
@@ -62,6 +65,8 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::add_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxies_selectors());
+		tester.test_payable_modifier(PCall::proxy_selectors());
+		tester.test_payable_modifier(PCall::proxy_force_type_selectors());
 		tester.test_view_modifier(PCall::is_proxy_selectors());
 	});
 }
@@ -330,6 +335,81 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 }
 
 #[test]
+fn test_proxy_force_type_fails_if_invalid_value_for_force_proxy_type() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy_force_type {
+						real: Address(Bob.into()),
+						force_proxy_type: 10,
+						call_to: Address(Alice.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"forceProxyType: Failed decoding value to ProxyType");
+		})
+}
+
+#[test]
+fn test_proxy_fails_if_not_proxy() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Bob.into()),
+						call_to: Address(Alice.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"Not proxy");
+		})
+}
+
+#[test]
+fn test_proxy_fails_if_call_filtered() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// add delayed proxy
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: 2,
+						delay: 0,
+					},
+				)
+				.execute_returns(vec![]);
+
+			// Trying to use delayed proxy without any announcement
+			PrecompilesValue::get()
+				.prepare_test(
+					Bob,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Alice.into()),
+						call_to: Address(Bob.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"CallFiltered");
+		})
+}
+
+#[test]
 fn test_is_proxy_returns_false_if_not_proxy() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
@@ -557,5 +637,52 @@ fn succeed_if_called_by_precompile() {
 					},
 				)
 				.execute_returns(vec![]);
+		})
+}
+
+#[test]
+fn succeed_if_is_proxy_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
+				)
+				.execute_returns_encoded(false);
+		})
+}
+
+#[test]
+fn proxy_proxy_should_fail_if_called_by_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AddressU64::<1>::get().into(), 1000),
+			(Bob.into(), 1000),
+		])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					AddressU64::<1>::get(),
+					Precompile1,
+					PCall::proxy {
+						real: Address(Alice.into()),
+						call_to: Address(Bob.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|output| output == b"Proxy.proxy not callable by precompiles");
 		})
 }

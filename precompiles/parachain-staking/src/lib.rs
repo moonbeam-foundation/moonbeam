@@ -196,7 +196,63 @@ where
 		Ok(selected_candidates)
 	}
 
+	#[precompile::public("delegationAmount(address,address)")]
+	#[precompile::view]
+	fn delegation_amount(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult<U256> {
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let (candidate, delegator) = (
+			Runtime::AddressMapping::into_account_id(candidate.0),
+			Runtime::AddressMapping::into_account_id(delegator.0),
+		);
+		let amount = pallet_parachain_staking::Pallet::<Runtime>::delegator_state(&delegator)
+			.and_then(|state| {
+				state
+					.delegations
+					.0
+					.into_iter()
+					.find(|b| b.owner == candidate)
+			})
+			.map_or(
+				U256::zero(),
+				|pallet_parachain_staking::Bond { amount, .. }| amount.into(),
+			);
+
+		Ok(amount)
+	}
+
 	// Role Verifiers
+	#[precompile::public("isInTopDelegations(address,address)")]
+	#[precompile::view]
+	fn is_in_top_delegations(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult<bool> {
+		let (candidate, delegator) = (
+			Runtime::AddressMapping::into_account_id(candidate.0),
+			Runtime::AddressMapping::into_account_id(delegator.0),
+		);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let is_in_top_delegations = pallet_parachain_staking::Pallet::<Runtime>::top_delegations(
+			&candidate,
+		)
+		.map_or(false, |delegations| {
+			delegations
+				.delegations
+				.into_iter()
+				.any(|b| b.owner == delegator)
+		});
+
+		Ok(is_in_top_delegations)
+	}
+
 	#[precompile::public("isDelegator(address)")]
 	#[precompile::public("is_delegator(address)")]
 	#[precompile::view]
@@ -785,6 +841,40 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+
+	#[precompile::public("getDelegatorTotalStaked(address)")]
+	#[precompile::view]
+	fn get_delegator_total_staked(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+	) -> EvmResult<U256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+
+		let amount = <pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+			.map(|state| state.total)
+			.unwrap_or_default();
+
+		Ok(amount.into())
+	}
+
+	#[precompile::public("getCandidateTotalCounted(address)")]
+	#[precompile::view]
+	fn get_candidate_total_counted(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<U256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		let amount = <pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+			.map(|state| state.total_counted)
+			.unwrap_or_default();
+
+		Ok(amount.into())
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
