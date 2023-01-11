@@ -4854,6 +4854,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -6758,6 +6759,7 @@ dependencies = [
  "pallet-balances",
  "pallet-ethereum",
  "pallet-evm",
+ "pallet-evm-precompile-proxy",
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -7065,6 +7067,7 @@ name = "pallet-evm-precompile-proxy"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -7674,6 +7677,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
+ "pallet-evm-precompile-proxy",
  "pallet-proxy",
  "parity-scale-codec",
  "scale-info",

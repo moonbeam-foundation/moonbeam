@@ -780,6 +780,103 @@ impl Default for ProxyType {
 	}
 }
 
+use precompiles::PrecompileName;
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
+	// TODO: add opengov precompiles
+	fn is_evm_proxy_call_allowed(
+		&self,
+		call: &pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -> bool {
+		use pallet_evm::PrecompileSet as _;
+		match self {
+			ProxyType::Any => {
+				//
+				match PrecompileName::from_address(call.to.0) {
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::DemocracyPrecompile
+						| PrecompileName::ParachainStakingPrecompile
+						| PrecompileName::CouncilInstance
+						| PrecompileName::TechCommitteeInstance
+						| PrecompileName::TreasuryCouncilInstance,
+					) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
+					// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					None => {
+						// If the address is not recognized, allow only evm transfert to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+					}
+				}
+			}
+			ProxyType::NonTransfer => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::DemocracyPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
+					)
+			}
+			ProxyType::Governance => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::DemocracyPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
+					)
+			}
+			ProxyType::Staking => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
+					)
+			}
+			// The proxy precompile does not contain method cancel_proxy
+			ProxyType::CancelProxy => false,
+			ProxyType::Balances => {
+				// Allow only "simple" accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+			}
+			ProxyType::AuthorMapping => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(PrecompileName::AuthorMappingPrecompile)
+					)
+			}
+			// There is no identity precompile
+			ProxyType::IdentityJudgement => false,
+		}
+	}
+}
+
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
