@@ -14,10 +14,10 @@
 //! Custom origins for governance interventions.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use governance_origins::*;
+pub use custom_origins::*;
 
 #[frame_support::pallet]
-pub mod governance_origins {
+pub mod custom_origins {
 	use frame_support::{pallet_prelude::*, traits::Currency};
 
 	type BalanceOf<T> =
@@ -179,7 +179,7 @@ pub mod governance_origins {
 		}
 	}
 
-	// Origins able to spend up = $AMOUNT from the treasury at once
+	// Origins able to spend $AMOUNT from treasury at once
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = BalanceOf<T>> {
 			SmallSpender = T::MaxSmallSpenderSpend::get(),

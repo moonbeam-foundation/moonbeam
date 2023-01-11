@@ -134,7 +134,10 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
 				PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
 				PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
-				PrecompileAt<AddressU64<2065>, ReferendaPrecompile<R>>,
+				PrecompileAt<
+					AddressU64<2065>,
+					ReferendaPrecompile<R, crate::governance::custom_origins::Origin>,
+				>,
 				PrecompileAt<AddressU64<2066>, ConvictionVotingPrecompile<R>>,
 				PrecompileAt<AddressU64<2067>, PreimagePrecompile<R>>,
 			),

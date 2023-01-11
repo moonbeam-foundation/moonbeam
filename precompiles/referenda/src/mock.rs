@@ -18,10 +18,10 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU128, ConstU32, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
+	traits::{ConstU32, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
 	weights::Weight,
 };
-use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
+use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy, RawOrigin};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use pallet_referenda::{impl_tracksinfo_get, Curve, TrackInfo};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -330,8 +330,14 @@ impl pallet_referenda::Config for Runtime {
 pub struct GovOrigin;
 impl TryFrom<u8> for GovOrigin {
 	type Error = ();
-	fn try_from(_input: u8) -> Result<GovOrigin, ()> {
+	fn try_from(_i: u8) -> Result<GovOrigin, ()> {
 		Ok(GovOrigin)
+	}
+}
+
+impl From<GovOrigin> for OriginCaller {
+	fn from(_o: GovOrigin) -> OriginCaller {
+		OriginCaller::system(RawOrigin::Root)
 	}
 }
 

@@ -1169,7 +1169,7 @@ construct_runtime! {
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
-		Origins: pallet_governance_origins::{Origin} = 43,
+		Origins: governance::custom_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}

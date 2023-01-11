@@ -169,7 +169,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				frame_system::RawOrigin::Root => Ok(0),
 				_ => Err(()),
 			}
-		} else if let Ok(custom_origin) = governance_origins::Origin::try_from(id.clone()) {
+		} else if let Ok(custom_origin) = custom_origins::Origin::try_from(id.clone()) {
 			// Origins => TrackId defined in Into<u16> for Origin
 			Ok(custom_origin.into())
 		} else {
