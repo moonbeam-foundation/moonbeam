@@ -146,6 +146,23 @@ where
 		Ok(result)
 	}
 
+	#[precompile::public("candidateAutoCompoundingDelegationCount(address)")]
+	#[precompile::view]
+	fn candidate_auto_compounding_delegation_count(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<u32> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		let count =
+			<pallet_parachain_staking::Pallet<Runtime>>::auto_compounding_delegations(&candidate)
+				.len() as u32;
+
+		Ok(count.into())
+	}
+
 	#[precompile::public("delegatorDelegationCount(address)")]
 	#[precompile::public("delegator_delegation_count(address)")]
 	#[precompile::view]
