@@ -30,10 +30,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	 AtStake, Bond,
-	 CollatorStatus, DelegationScheduledRequests,
-	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range,
-	DELEGATOR_LOCK_ID,
+	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
+	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
