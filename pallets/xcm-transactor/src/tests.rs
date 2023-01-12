@@ -17,10 +17,7 @@
 use crate::mock::*;
 use crate::*;
 use frame_support::dispatch::DispatchError;
-use frame_support::{
-	assert_noop, assert_ok, storage::migration::put_storage_value,
-	weights::constants::WEIGHT_PER_SECOND, Blake2_128Concat,
-};
+use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_PER_SECOND};
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
@@ -862,57 +859,6 @@ fn test_transact_through_signed_works() {
 				},
 			];
 			assert_eq!(events(), expected);
-		})
-}
-
-#[test]
-fn test_signed_weight_and_fee_per_second_migration_works() {
-	ExtBuilder::default()
-		.with_balances(vec![])
-		.build()
-		.execute_with(|| {
-			let pallet_prefix: &[u8] = b"XcmTransactor";
-			let storage_item_prefix: &[u8] = b"TransactInfoWithWeightLimit";
-			use frame_support::traits::OnRuntimeUpgrade;
-			use frame_support::StorageHasher;
-			use parity_scale_codec::Encode;
-
-			// This is the previous struct, which we have moved to migrations
-			let old_transact_info_with_fee_per_sec =
-				migrations::OldRemoteTransactInfoWithFeePerSecond {
-					transact_extra_weight: 1,
-					fee_per_second: 2,
-					max_weight: 3,
-				};
-			// This is the new struct
-			let expected_transacted_info = RemoteTransactInfoWithMaxWeight {
-				transact_extra_weight: 1,
-				max_weight: 3,
-				transact_extra_weight_signed: None,
-			};
-			// This is the new struct
-			let expected_destination_fee_per_second = 2u128;
-
-			// We populate the previous key with the previous struct
-			put_storage_value(
-				pallet_prefix,
-				storage_item_prefix,
-				&Blake2_128Concat::hash(&MultiLocation::parent().encode()),
-				old_transact_info_with_fee_per_sec,
-			);
-			// We run the migration
-			crate::migrations::TransactSignedWeightAndFeePerSecond::<Test>::on_runtime_upgrade();
-
-			// We make sure that the new storage key is populated
-			assert_eq!(
-				XcmTransactor::transact_info(MultiLocation::parent()).unwrap(),
-				expected_transacted_info,
-			);
-			// We make sure that the new storage key is populated
-			assert_eq!(
-				XcmTransactor::dest_asset_fee_per_second(MultiLocation::parent()).unwrap(),
-				expected_destination_fee_per_second,
-			);
 		})
 }
 
