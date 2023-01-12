@@ -22,13 +22,13 @@ interface Referenda {
 
     /// Return the total count of deciding referenda per track
     /// @param trackId The track identifier
-    /// @custom:selector 23cbda16
-    function decidingCount(uint256 trackId) external view returns (uint256);
+    /// @custom:selector 983d6425
+    function decidingCount(uint16 trackId) external view returns (uint256);
 
     /// Return the total count of deciding referenda per track
     /// @param trackId The track identifier
-    /// @custom:selector 35028c55
-    function trackInfo(uint256 trackId)
+    /// @custom:selector 34038146
+    function trackInfo(uint16 trackId)
         external
         view
         returns (

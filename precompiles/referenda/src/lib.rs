@@ -88,7 +88,7 @@ where
 		Ok(submission_deposit.into())
 	}
 
-	#[precompile::public("decidingCount(uint256)")]
+	#[precompile::public("decidingCount(uint16)")]
 	#[precompile::view]
 	fn deciding_count(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<U256> {
 		// Fetch data from pallet
@@ -96,7 +96,7 @@ where
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
-			.in_field("track")?;
+			.in_field("trackId")?;
 		let deciding_count = DecidingCount::<Runtime>::get(track_id);
 		log::trace!(
 			target: "referendum-precompile", "Track {:?} deciding count is {:?}",
@@ -107,7 +107,7 @@ where
 		Ok(deciding_count.into())
 	}
 
-	#[precompile::public("trackInfo(uint256)")]
+	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
 	fn track_info(
 		handle: &mut impl PrecompileHandle,
@@ -118,7 +118,7 @@ where
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
-			.in_field("track")?;
+			.in_field("trackId")?;
 		let tracks = Runtime::Tracks::tracks();
 		let index = tracks
 			.binary_search_by_key(&track_id, |x| x.0)
@@ -138,7 +138,7 @@ where
 	/// Propose a referendum on a privileged action.
 	///
 	/// Parameters:
-	/// * proposal_origin: The origin from which the proposal should be executed.
+	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
 	/// * proposal: The proposed runtime call.
 	/// * at: If true then AT block_number, else AFTER block_number
 	/// * block_number: Inner block number for DispatchTime
