@@ -831,6 +831,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 								| PrecompileName::CouncilInstance
 								| PrecompileName::TechCommitteeInstance
 								| PrecompileName::TreasuryCouncilInstance
+								| PrecompileName::OpenTechCommitteeInstance
 						)
 					)
 			}
@@ -843,6 +844,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 								| PrecompileName::CouncilInstance
 								| PrecompileName::TechCommitteeInstance
 								| PrecompileName::TreasuryCouncilInstance
+								| PrecompileName::OpenTechCommitteeInstance
 						)
 					)
 			}
