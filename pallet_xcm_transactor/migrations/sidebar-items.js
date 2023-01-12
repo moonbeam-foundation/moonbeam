@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["OldRemoteTransactInfo",""],["OldRemoteTransactInfoWithFeePerSecond",""],["TransactSignedWeightAndFeePerSecond",""]]};
+window.SIDEBAR_ITEMS = {};
