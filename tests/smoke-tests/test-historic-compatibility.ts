@@ -122,7 +122,7 @@ describeSmokeSuite(`Verifying historic compatibility`, "S1200", async (context) 
     expect(result).to.be.greaterThan(0);
   });
 
-  it(`can call eth_syncing #C300`, async function () {
+  it(`can call eth_syncing #C305`, async function () {
     const result = await context.ethers.send("eth_syncing", []);
     expect(result).to.satisfy((s) => typeof s == "number" || typeof s == "boolean");
   });
