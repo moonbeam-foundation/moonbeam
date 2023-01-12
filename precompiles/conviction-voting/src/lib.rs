@@ -76,7 +76,7 @@ where
 	/// * aye: Yes or no vote
 	/// * vote_amount: Balance locked for vote
 	/// * conviction: Conviction multiplier for length of vote lock
-	#[precompile::public("vote(uint256,bool,uint256,uint256)")]
+	#[precompile::public("vote(uint32,bool,uint256,uint8)")]
 	fn vote(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
@@ -106,7 +106,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("removeVote(uint256)")]
+	#[precompile::public("removeVote(uint32)")]
 	fn remove_vote(handle: &mut impl PrecompileHandle, poll_index: u32) -> EvmResult {
 		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
 
@@ -124,7 +124,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("removeOtherVote(address,uint256,uint256)")]
+	#[precompile::public("removeOtherVote(address,uint16,uint32)")]
 	fn remove_other_vote(
 		handle: &mut impl PrecompileHandle,
 		target: Address,
@@ -156,7 +156,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("delegate(uint256,address,uint256,uint256)")]
+	#[precompile::public("delegate(uint16,address,uint8,uint256)")]
 	fn delegate(
 		handle: &mut impl PrecompileHandle,
 		class: u16,
@@ -188,7 +188,7 @@ where
 
 		Ok(())
 	}
-	#[precompile::public("undelegate(uint256)")]
+	#[precompile::public("undelegate(uint16)")]
 	fn undelegate(handle: &mut impl PrecompileHandle, class: u16) -> EvmResult {
 		let class = Self::u16_to_class(class).in_field("class")?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -198,7 +198,7 @@ where
 
 		Ok(())
 	}
-	#[precompile::public("unlock(uint256,address)")]
+	#[precompile::public("unlock(uint16,address)")]
 	fn unlock(handle: &mut impl PrecompileHandle, class: u16, target: Address) -> EvmResult {
 		let class = Self::u16_to_class(class).in_field("class")?;
 		let target: H160 = target.into();

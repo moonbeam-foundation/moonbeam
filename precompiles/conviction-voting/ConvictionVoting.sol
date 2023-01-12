@@ -27,55 +27,55 @@ interface ConvictionVoting {
     }
 
     /// @dev Vote in a poll.
-    /// @custom:selector f56cb3b3
+    /// @custom:selector 35ee6e0e
     /// @param pollIndex Index of poll
     /// @param aye Yes or no vote
     /// @param voteAmount Balance locked for vote
     /// @param conviction Conviction multiplier for length of vote lock
     function vote(
-        uint256 pollIndex,
+        uint32 pollIndex,
         bool aye,
         uint256 voteAmount,
         Conviction conviction
     ) external;
 
     /// @dev Remove vote in poll
-    /// @custom:selector 3f68fde4
+    /// @custom:selector 79cae220
     /// @param pollIndex Index of the poll
-    function removeVote(uint256 pollIndex) external;
+    function removeVote(uint32 pollIndex) external;
 
     /// @dev Remove vote in poll for other voter
-    /// @custom:selector 135ef12d
+    /// @custom:selector cbcb9276
     //// @param target The voter to have vote removed
     /// @param class The class
     /// @param pollIndex the poll index
     function removeOtherVote(
         address target,
-        uint256 class,
-        uint256 pollIndex
+        uint16 class,
+        uint32 pollIndex
     ) external;
 
     /// @dev Delegate to a representative for the vote class
-    /// @custom:selector 7efe44c7
+    /// @custom:selector 681750e8
     /// @param class The class
     /// @param representative The representative for the class
     /// @param conviction The conviction multiplier
     /// @param amount delegated to representative for this vote class
     function delegate(
-        uint256 class,
+        uint16 class,
         address representative,
-        uint256 conviction,
+        Conviction conviction,
         uint256 amount
     ) external;
 
     /// @dev Undelegate for the vote class
-    /// @custom:selector 6c68c0e1
+    /// @custom:selector 98be4094
     /// @param class The class
-    function undelegate(uint256 class) external;
+    function undelegate(uint16 class) external;
 
     /// @dev Unlock tokens locked for vote class
-    /// @custom:selector f1d2ec1d
+    /// @custom:selector 4259d98c
     /// @param class The class
     /// @param target The target address
-    function unlock(uint256 class, address target) external;
+    function unlock(uint16 class, address target) external;
 }
