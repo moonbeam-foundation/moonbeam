@@ -49,7 +49,7 @@ parameter_types! {
 }
 
 pub type TreasurySpender = EitherOf<
-	EnsureRootWithSuccess<AccountId, Balance::max_value()>,
+	EnsureRootWithSuccess<AccountId, ConstU128<{ Balance::max_value() }>>,
 	custom_origins::Spender<Runtime>,
 >;
 
