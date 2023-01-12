@@ -48,18 +48,17 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
 }
 
-parameter_types! {
-	pub const MaxBalance: Balance = Balance::max_value();
-}
-pub type TreasurySpender =
-	EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, custom_origins::Spender<Runtime>>;
+pub type TreasurySpender = EitherOf<
+	EnsureRootWithSuccess<AccountId, Balance::max_value()>,
+	custom_origins::Spender<Runtime>,
+>;
 
 impl custom_origins::Config for Runtime {
 	type Currency = Balances;
 	type MaxSmallSpenderSpend = ConstU128<{ 2 * KILOUNIT * SUPPLY_FACTOR }>;
 	type MaxMediumSpenderSpend = ConstU128<{ 20 * KILOUNIT * SUPPLY_FACTOR }>;
 	type MaxBigSpenderSpend = ConstU128<{ 200 * KILOUNIT * SUPPLY_FACTOR }>;
-	type MaxTreasurerSpend = MaxBalance;
+	type MaxTreasurerSpend = ConstU128<{ 500 * KILOUNIT * SUPPLY_FACTOR }>;
 }
 
 // The purpose of this pallet is to queue calls to be dispatched as by root later => the Dispatch
