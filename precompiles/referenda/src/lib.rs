@@ -151,7 +151,7 @@ where
 		block_number: u32,
 	) -> EvmResult {
 		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("track_id")
+			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
