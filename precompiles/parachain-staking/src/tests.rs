@@ -371,7 +371,7 @@ fn candidate_delegation_count_works() {
 }
 
 #[test]
-fn candidate_auto_compounding_elegation_count_works() {
+fn candidate_auto_compounding_delegation_count_works() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(Alice.into(), 1_000),
