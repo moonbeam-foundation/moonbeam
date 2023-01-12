@@ -20,9 +20,9 @@ import { MILLIGLMR, GLMR, WEIGHT_PER_GAS } from "../../util/constants";
 import { createTransfer } from "../../util/transactions";
 
 // for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
-// However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to 
+// However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to
 // be used as-is, e.g. it must be at least (block.baseFee + maxPriorityFeePerGas)
-const HIGH_MAX_FEE_PER_GAS = "0x"+GLMR.toString(16);
+const HIGH_MAX_FEE_PER_GAS = "0x" + GLMR.toString(16);
 
 describeDevMoonbeam("Tip should be respected", (context) => {
   it("should prefer txn with higher tip", async function () {
@@ -49,7 +49,9 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // filter out inherent extrinsics, which should leave us with the ones we sent in their
     // inclusion order
-    let transferExts = block.extrinsics.filter(ext => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000");
+    let transferExts = block.extrinsics.filter(
+      (ext) => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000"
+    );
 
     expect(transferExts.length).to.eq(3);
     console.log(`transferEvents[0]: ${transferExts[0]}`);
@@ -78,8 +80,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // here we query the weight of a substrate balance transfer
     const dummyTransfer = context.polkadotApi.tx.balances.transfer(alith.address, GLMR);
-    const info = await context.polkadotApi.rpc.payment
-      .queryInfo(dummyTransfer.toHex());
+    const info = await context.polkadotApi.rpc.payment.queryInfo(dummyTransfer.toHex());
     const weight = info.weight.toBigInt();
     const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 
@@ -88,7 +89,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
       from: charleth.address,
       privateKey: CHARLETH_PRIVATE_KEY,
       maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-      maxPriorityFeePerGas: "0x"+TIP_PER_GAS_0.toString(16),
+      maxPriorityFeePerGas: "0x" + TIP_PER_GAS_0.toString(16),
     });
 
     // tx1 is a substrate txn
@@ -101,7 +102,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
       from: dorothy.address,
       privateKey: DOROTHY_PRIVATE_KEY,
       maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-      maxPriorityFeePerGas: "0x"+TIP_PER_GAS_2.toString(16),
+      maxPriorityFeePerGas: "0x" + TIP_PER_GAS_2.toString(16),
     });
 
     // tx3 is a substrate txn
@@ -111,16 +112,21 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     const result = await context.createBlock([
       // use an order other than by priority
-      tx2, tx3, tx0, tx1,
+      tx2,
+      tx3,
+      tx0,
+      tx1,
     ]);
 
     // get and filter the block's extrinsics
     const hash = result.block.hash;
     const apiAt = await context.polkadotApi.at(hash);
     const { block } = await context.polkadotApi.rpc.chain.getBlock(hash);
-    let transferExts = block.extrinsics.filter(ext => {
-      return (ext.method.section == "balances" && ext.method.method == "transfer")
-        || (ext.method.section == "ethereum" && ext.method.method == "transact");
+    let transferExts = block.extrinsics.filter((ext) => {
+      return (
+        (ext.method.section == "balances" && ext.method.method == "transfer") ||
+        (ext.method.section == "ethereum" && ext.method.method == "transact")
+      );
     });
 
     expect(transferExts.length).to.eq(4);
@@ -138,9 +144,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
       .transfer(dorothy.address, GLMR)
       .signAndSend(alith, { tip: LOW_TIP, nonce: 0 });
 
-    await context.polkadotApi.tx.system
-      .remark("")
-      .signAndSend(alith, { tip: HIGH_TIP, nonce: 0 });
+    await context.polkadotApi.tx.system.remark("").signAndSend(alith, { tip: HIGH_TIP, nonce: 0 });
 
     const result = await context.createBlock();
     const hash = result.block.hash;
@@ -149,11 +153,12 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // filter out inherent extrinsics, which should leave us with the ones we sent in their
     // inclusion order
-    let txnExts = block.extrinsics.filter(ext => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000");
+    let txnExts = block.extrinsics.filter(
+      (ext) => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000"
+    );
 
     expect(txnExts.length).to.eq(1);
     expect(txnExts[0].tip.toBigInt()).to.eq(HIGH_TIP);
-
   });
 
   it("should allow Ethereum txn replacement with higher priority", async function () {
@@ -170,28 +175,31 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount.address, 1, {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-        maxPriorityFeePerGas: "0x"+LOW_TIP.toString(16),
+        maxPriorityFeePerGas: "0x" + LOW_TIP.toString(16),
         nonce: 0,
-      })
+      }),
     ]);
 
     // replace with a transaction that sends funds to a different account
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount2.address, 1, {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-        maxPriorityFeePerGas: "0x"+HIGH_TIP.toString(16),
+        maxPriorityFeePerGas: "0x" + HIGH_TIP.toString(16),
         nonce: 0,
-      })
+      }),
     ]);
 
     const result = await context.createBlock();
 
-    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
-    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+    const account1Balance = (
+      await context.polkadotApi.query.system.account(randomAccount.address.toString())
+    ).data.free.toBigInt();
+    const account2Balance = (
+      await context.polkadotApi.query.system.account(randomAccount2.address.toString())
+    ).data.free.toBigInt();
 
     expect(account1Balance).to.eq(0n);
     expect(account2Balance).to.eq(1n);
-
   });
 
   it("should allow Ethereum txn replacement with Substrate txn", async function () {
@@ -201,20 +209,25 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     // create a txn we don't expect to execute (because it will be replaced). it would send some
     // funds to randomAccount
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context, randomAccount.address, 1, {nonce: 0})
+      await createTransfer(context, randomAccount.address, 1, { nonce: 0 }),
     ]);
 
     // replace with a transaction that sends funds to a different account
-    await context.polkadotApi.tx.balances.transfer(randomAccount2.address, 1).signAndSend(alith, {nonce: 0, tip: GLMR});
+    await context.polkadotApi.tx.balances
+      .transfer(randomAccount2.address, 1)
+      .signAndSend(alith, { nonce: 0, tip: GLMR });
 
     const result = await context.createBlock();
 
-    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
-    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+    const account1Balance = (
+      await context.polkadotApi.query.system.account(randomAccount.address.toString())
+    ).data.free.toBigInt();
+    const account2Balance = (
+      await context.polkadotApi.query.system.account(randomAccount2.address.toString())
+    ).data.free.toBigInt();
 
     expect(account1Balance).to.eq(0n);
     expect(account2Balance).to.eq(1n);
-
   });
 
   it("should allow Substrate txn replacement with Ethereum txn", async function () {
@@ -224,7 +237,9 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // create a txn we don't expect to execute (because it will be replaced). it would send some
     // funds to randomAccount
-    await context.polkadotApi.tx.balances.transfer(randomAccount.address, 1).signAndSend(alith, {nonce: 0, tip: 0});
+    await context.polkadotApi.tx.balances
+      .transfer(randomAccount.address, 1)
+      .signAndSend(alith, { nonce: 0, tip: 0 });
 
     // replace with a transaction that sends funds to a different account
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
@@ -232,16 +247,19 @@ describeDevMoonbeam("Tip should be respected", (context) => {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
         maxPriorityFeePerGas: "0x1",
         nonce: 0,
-      })
+      }),
     ]);
 
     const result = await context.createBlock();
 
-    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
-    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+    const account1Balance = (
+      await context.polkadotApi.query.system.account(randomAccount.address.toString())
+    ).data.free.toBigInt();
+    const account2Balance = (
+      await context.polkadotApi.query.system.account(randomAccount2.address.toString())
+    ).data.free.toBigInt();
 
     expect(account1Balance).to.eq(0n);
     expect(account2Balance).to.eq(1n);
-
   });
 });
