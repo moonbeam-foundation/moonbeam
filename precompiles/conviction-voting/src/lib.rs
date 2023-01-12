@@ -79,13 +79,13 @@ where
 	#[precompile::public("vote(uint256,bool,uint256,uint256)")]
 	fn vote(
 		handle: &mut impl PrecompileHandle,
-		poll_index: SolidityConvert<U256, u32>,
+		poll_index: u32,
 		aye: bool,
 		vote_amount: U256,
-		conviction: SolidityConvert<U256, u8>,
+		conviction: u8,
 	) -> EvmResult {
 		let poll_index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let vote_amount = Self::u256_to_amount(vote_amount).in_field("vote_amount")?;
 		let conviction = Self::u8_to_conviction(conviction.converted()).in_field("conviction")?;
 
 		let vote = AccountVote::Standard {
