@@ -48,7 +48,7 @@ interface Referenda {
     /// @param at If true then AT block_number, else AFTER block_number
     /// @param block Inner block number for DispatchTime
     function submit(
-        uint8 trackId,
+        uint16 trackId,
         bytes memory hash,
         bool at,
         uint32 block

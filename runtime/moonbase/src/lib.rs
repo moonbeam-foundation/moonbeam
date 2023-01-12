@@ -795,7 +795,6 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 
 use precompiles::PrecompileName;
 impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
-	// TODO: add opengov precompiles
 	fn is_evm_proxy_call_allowed(
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,

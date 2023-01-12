@@ -49,10 +49,10 @@ type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
 /// A precompile to wrap the functionality from pallet-referenda.
-pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u8>>(PhantomData<(Runtime, GovOrigin)>);
+pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
 
 #[precompile_utils::precompile]
-impl<Runtime, GovOrigin: TryFrom<u8>> ReferendaPrecompile<Runtime, GovOrigin>
+impl<Runtime, GovOrigin> ReferendaPrecompile<Runtime, GovOrigin>
 where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
 	OriginOf<Runtime>: From<GovOrigin>,
@@ -64,6 +64,7 @@ where
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16>,
 	BalanceOf<Runtime>: Into<U256>,
+	GovOrigin: TryFrom<u16>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
@@ -142,10 +143,10 @@ where
 	/// * proposal: The proposed runtime call.
 	/// * at: If true then AT block_number, else AFTER block_number
 	/// * block_number: Inner block number for DispatchTime
-	#[precompile::public("submit(uint8,bytes,bool,uint32)")]
+	#[precompile::public("submit(uint16,bytes,bool,uint32)")]
 	fn submit(
 		handle: &mut impl PrecompileHandle,
-		track_id: u8,
+		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
 		at: bool,
 		block_number: u32,

@@ -80,6 +80,14 @@ pub mod custom_origins {
 		}
 	}
 
+	impl TryFrom<u16> for Origin {
+		type Error = ();
+		/// TrackId => Origin
+		fn try_from(value: u16) -> Result<Origin, ()> {
+			(value as u8).try_into()
+		}
+	}
+
 	impl Into<u16> for Origin {
 		/// Origin => TrackId
 		fn into(self) -> u16 {
