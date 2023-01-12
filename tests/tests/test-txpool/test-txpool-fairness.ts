@@ -19,6 +19,11 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { MILLIGLMR, GLMR, WEIGHT_PER_GAS } from "../../util/constants";
 import { createTransfer } from "../../util/transactions";
 
+// for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
+// However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to 
+// be used as-is, e.g. it must be at least (block.baseFee + maxPriorityFeePerGas)
+const HIGH_MAX_FEE_PER_GAS = "0x"+GLMR.toString(16);
+
 describeDevMoonbeam("Tip should be respected", (context) => {
   it("should prefer txn with higher tip", async function () {
     const NO_TIP = 0n;
@@ -78,16 +83,11 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const weight = info.weight.toBigInt();
     const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 
-    // for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
-    // However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to 
-    // be used as-is, e.g. it must be at least (block.baseFee + maxPriorityFeePerGas)
-    const maxFeePerGas = "0x"+GLMR.toString(16);
-
     // tx0 is an eth txn
     const tx0 = await createTransfer(context, ethan.address, 1, {
       from: charleth.address,
       privateKey: CHARLETH_PRIVATE_KEY,
-      maxFeePerGas,
+      maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
       maxPriorityFeePerGas: "0x"+TIP_PER_GAS_0.toString(16),
     });
 
@@ -100,7 +100,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const tx2 = await createTransfer(context, ethan.address, 1, {
       from: dorothy.address,
       privateKey: DOROTHY_PRIVATE_KEY,
-      maxFeePerGas,
+      maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
       maxPriorityFeePerGas: "0x"+TIP_PER_GAS_2.toString(16),
     });
 
@@ -128,5 +128,120 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     expect(transferExts[1].method.section).to.eq("ethereum");
     expect(transferExts[2].method.section).to.eq("balances");
     expect(transferExts[3].method.section).to.eq("ethereum");
+  });
+
+  it("should allow Substrate txn replacement with higher priority", async function () {
+    const LOW_TIP = 10n * MILLIGLMR;
+    const HIGH_TIP = 20n * MILLIGLMR;
+
+    await context.polkadotApi.tx.balances
+      .transfer(dorothy.address, GLMR)
+      .signAndSend(alith, { tip: LOW_TIP, nonce: 0 });
+
+    await context.polkadotApi.tx.system
+      .remark("")
+      .signAndSend(alith, { tip: HIGH_TIP, nonce: 0 });
+
+    const result = await context.createBlock();
+    const hash = result.block.hash;
+    const apiAt = await context.polkadotApi.at(hash);
+    const { block } = await context.polkadotApi.rpc.chain.getBlock(hash);
+
+    // filter out inherent extrinsics, which should leave us with the ones we sent in their
+    // inclusion order
+    let txnExts = block.extrinsics.filter(ext => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000");
+
+    expect(txnExts.length).to.eq(1);
+    expect(txnExts[0].tip.toBigInt()).to.eq(HIGH_TIP);
+
+  });
+
+  it("should allow Ethereum txn replacement with higher priority", async function () {
+    context.ethTransactionType = "EIP1559";
+
+    const LOW_TIP = 10n * MILLIGLMR;
+    const HIGH_TIP = 20n * MILLIGLMR;
+
+    const randomAccount = generateKeyringPair();
+    const randomAccount2 = generateKeyringPair();
+
+    // create a txn we don't expect to execute (because it will be replaced). it would send some
+    // funds to randomAccount
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context, randomAccount.address, 1, {
+        maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+        maxPriorityFeePerGas: "0x"+LOW_TIP.toString(16),
+        nonce: 0,
+      })
+    ]);
+
+    // replace with a transaction that sends funds to a different account
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context, randomAccount2.address, 1, {
+        maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+        maxPriorityFeePerGas: "0x"+HIGH_TIP.toString(16),
+        nonce: 0,
+      })
+    ]);
+
+    const result = await context.createBlock();
+
+    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
+    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+
+    expect(account1Balance).to.eq(0n);
+    expect(account2Balance).to.eq(1n);
+
+  });
+
+  it("should allow Ethereum txn replacement with Substrate txn", async function () {
+    const randomAccount = generateKeyringPair();
+    const randomAccount2 = generateKeyringPair();
+
+    // create a txn we don't expect to execute (because it will be replaced). it would send some
+    // funds to randomAccount
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context, randomAccount.address, 1, {nonce: 0})
+    ]);
+
+    // replace with a transaction that sends funds to a different account
+    await context.polkadotApi.tx.balances.transfer(randomAccount2.address, 1).signAndSend(alith, {nonce: 0, tip: GLMR});
+
+    const result = await context.createBlock();
+
+    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
+    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+
+    expect(account1Balance).to.eq(0n);
+    expect(account2Balance).to.eq(1n);
+
+  });
+
+  it("should allow Substrate txn replacement with Ethereum txn", async function () {
+    context.ethTransactionType = "EIP1559";
+    const randomAccount = generateKeyringPair();
+    const randomAccount2 = generateKeyringPair();
+
+    // create a txn we don't expect to execute (because it will be replaced). it would send some
+    // funds to randomAccount
+    await context.polkadotApi.tx.balances.transfer(randomAccount.address, 1).signAndSend(alith, {nonce: 0, tip: 0});
+
+    // replace with a transaction that sends funds to a different account
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context, randomAccount2.address, 1, {
+        maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+        maxPriorityFeePerGas: "0x1",
+        nonce: 0,
+      })
+    ]);
+
+    const result = await context.createBlock();
+
+    const account1Balance = (await context.polkadotApi.query.system.account(randomAccount.address.toString())).data.free.toBigInt();
+    const account2Balance = (await context.polkadotApi.query.system.account(randomAccount2.address.toString())).data.free.toBigInt();
+
+    expect(account1Balance).to.eq(0n);
+    expect(account2Balance).to.eq(1n);
+
   });
 });
