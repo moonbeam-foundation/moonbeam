@@ -37,6 +37,8 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 [dev-dependencies]
+pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", features = [ "forbid-evm-reentrancy" ] }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", features = [ "forbid-evm-reentrancy" ] }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
