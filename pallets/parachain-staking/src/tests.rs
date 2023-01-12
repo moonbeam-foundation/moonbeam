@@ -30,9 +30,9 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo, CandidateMetadata,
-	CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests, Delegations,
-	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations,
+	 AtStake, Bond,
+	 CollatorStatus, DelegationScheduledRequests,
+	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range,
 	DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
@@ -6984,9 +6984,6 @@ fn deferred_payment_steady_state_event_flow() {
 			}
 		});
 }
-
-// MIGRATION UNIT TESTS
-use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
 fn delegation_kicked_from_bottom_removes_pending_request() {
