@@ -780,6 +780,19 @@ impl Default for ProxyType {
 	}
 }
 
+fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	matches!(
+		precompile_name,
+		PrecompileName::DemocracyPrecompile
+			| PrecompileName::CouncilInstance
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance
+			| PrecompileName::ReferendaPrecompile
+			| PrecompileName::ConvictionVotingPrecompile
+			| PrecompileName::PreimagePrecompile,
+	)
+}
+
 use precompiles::PrecompileName;
 impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	// TODO: add opengov precompiles
@@ -791,7 +804,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		use pallet_evm::PrecompileSet as _;
 		match self {
 			ProxyType::Any => {
-				//
 				match PrecompileName::from_address(call.to.0) {
 					// Any precompile that can execute a subcall should be forbidden here,
 					// to ensure that unauthorized smart contract can't be called
@@ -799,12 +811,9 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					// To be safe, we only allow the precompiles we need.
 					Some(
 						PrecompileName::AuthorMappingPrecompile
-						| PrecompileName::DemocracyPrecompile
-						| PrecompileName::ParachainStakingPrecompile
-						| PrecompileName::CouncilInstance
-						| PrecompileName::TechCommitteeInstance
-						| PrecompileName::TreasuryCouncilInstance,
+						| PrecompileName::ParachainStakingPrecompile,
 					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
 					// All non-whitelisted precompiles are forbidden
 					Some(_) => false,
 					// Allow evm transfer to "simple" account (no code nor precompile)
@@ -822,28 +831,20 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			}
 			ProxyType::NonTransfer => {
 				call.value == U256::default()
-					&& matches!(
-						PrecompileName::from_address(call.to.0),
+					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-								| PrecompileName::DemocracyPrecompile
-								| PrecompileName::ParachainStakingPrecompile
-								| PrecompileName::CouncilInstance
-								| PrecompileName::TechCommitteeInstance
-								| PrecompileName::TreasuryCouncilInstance
-						)
-					)
+							| PrecompileName::ParachainStakingPrecompile,
+						) => true,
+						Some(ref precompile) if is_governance_precompile(precompile) => true,
+						_ => false,
+					}
 			}
 			ProxyType::Governance => {
 				call.value == U256::default()
 					&& matches!(
 						PrecompileName::from_address(call.to.0),
-						Some(
-							PrecompileName::DemocracyPrecompile
-								| PrecompileName::CouncilInstance
-								| PrecompileName::TechCommitteeInstance
-								| PrecompileName::TreasuryCouncilInstance
-						)
+						Some(ref precompile) if is_governance_precompile(precompile)
 					)
 			}
 			ProxyType::Staking => {
