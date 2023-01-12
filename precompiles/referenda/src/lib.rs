@@ -145,15 +145,15 @@ where
 	#[precompile::public("submit(uint8,bytes,bool,uint32)")]
 	fn submit(
 		handle: &mut impl PrecompileHandle,
-		proposal_origin: u8,
+		track_id: u8,
 		proposal: BoundedBytes<GetCallDataLimit>,
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		let gov_origin: GovOrigin = proposal_origin.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
+		let origin: GovOrigin = track_id.try_into().map_err(|_| {
+			RevertReason::custom("Origin does not exist for TrackId").in_field("track_id")
 		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
+		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
