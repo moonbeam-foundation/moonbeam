@@ -23,7 +23,7 @@ const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
 }
 use pallet_referenda::Curve;
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -35,13 +35,13 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 			// Amount that must be placed on deposit before a decision can be made.
 			decision_deposit: 100 * KILOUNIT * SUPPLY_FACTOR,
 			// Amount of time this must be submitted for before a decision can be made.
-			prepare_period: 3 * HOURS,
+			prepare_period: 1 * DAYS,
 			// Amount of time that a decision may take to be approved prior to cancellation.
 			decision_period: 14 * DAYS,
 			// Amount of time that the approval criteria must hold before it can be approved.
-			confirm_period: 3 * HOURS,
+			confirm_period: 1 * DAYS,
 			// Minimum amount of time that an approved proposal must be in the dispatch queue.
-			min_enactment_period: 3 * HOURS,
+			min_enactment_period: 1 * DAYS,
 			// Minimum aye votes as percentage of overall conviction-weighted votes needed for
 			// approval as a function of time into decision period.
 			min_approval: Curve::make_reciprocal(4, 14, percent(80), percent(50), percent(100)),
@@ -54,9 +54,9 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 		1,
 		pallet_referenda::TrackInfo {
 			name: "whitelisted_caller",
-			max_deciding: 10,
+			max_deciding: 100,
 			decision_deposit: 10 * KILOUNIT * SUPPLY_FACTOR,
-			prepare_period: 30 * MINUTES,
+			prepare_period: 10 * MINUTES,
 			decision_period: 14 * DAYS,
 			confirm_period: 10 * MINUTES,
 			min_enactment_period: 30 * MINUTES,
@@ -88,11 +88,11 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 		11,
 		pallet_referenda::TrackInfo {
 			name: "referendum_canceller",
-			max_deciding: 100,
-			decision_deposit: 5 * KILOUNIT * SUPPLY_FACTOR,
-			prepare_period: 4,
+			max_deciding: 20,
+			decision_deposit: 10 * KILOUNIT * SUPPLY_FACTOR,
+			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
-			confirm_period: 1 * DAYS,
+			confirm_period: 3 * HOURS,
 			min_enactment_period: 10 * MINUTES,
 			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100)),
 			min_support: Curve::make_reciprocal(1, 14, percent(1), percent(0), percent(50)),
@@ -103,10 +103,10 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 		pallet_referenda::TrackInfo {
 			name: "referendum_killer",
 			max_deciding: 100,
-			decision_deposit: 5 * KILOUNIT * SUPPLY_FACTOR,
-			prepare_period: 4,
+			decision_deposit: 20 * KILOUNIT * SUPPLY_FACTOR,
+			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
-			confirm_period: 1 * DAYS,
+			confirm_period: 3 * HOURS,
 			min_enactment_period: 10 * MINUTES,
 			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100)),
 			min_support: Curve::make_reciprocal(7, 14, percent(1), percent(0), percent(10)),
@@ -131,7 +131,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 		pallet_referenda::TrackInfo {
 			name: "medium_spender",
 			max_deciding: 5,
-			decision_deposit: 3000 * UNIT * SUPPLY_FACTOR,
+			decision_deposit: 3 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 14 * DAYS,
 			confirm_period: 24 * HOURS,
@@ -145,13 +145,27 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 		pallet_referenda::TrackInfo {
 			name: "big_spender",
 			max_deciding: 5,
-			decision_deposit: 30 * KILOUNIT * SUPPLY_FACTOR,
+			decision_deposit: 3 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 14 * DAYS,
-			confirm_period: 48 * HOURS,
+			confirm_period: 24 * HOURS,
 			min_enactment_period: 1 * DAYS,
 			min_approval: Curve::make_linear(14, 14, percent(50), percent(100)),
 			min_support: Curve::make_reciprocal(8, 14, percent(1), percent(0), percent(10)),
+		},
+	),
+	(
+		16,
+		pallet_referenda::TrackInfo {
+			name: "general_admin",
+			max_deciding: 10,
+			decision_deposit: 500 * SUPPLY_FACTOR,
+			prepare_period: 1 * HOURS,
+			decision_period: 14 * DAYS,
+			confirm_period: 1 * DAYS,
+			min_enactment_period: 1 * DAYS,
+			min_approval: Curve::make_linear(4, 14, percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(7, 14, percent(10), percent(0), percent(50)),
 		},
 	),
 ];
@@ -176,28 +190,6 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 			Err(())
 		}
 	}
-}
-
-#[test]
-#[should_panic] // comment out to see curve info for all tracks
-fn print_all_approval_and_support_curves() {
-	for (_, track_info) in TRACKS_DATA {
-		println!("{} TRACK", track_info.name);
-		let decision_period_days = track_info.decision_period / DAYS;
-		println!(
-			"{} DECISION PERIOD: {} days",
-			track_info.name, decision_period_days
-		);
-		println!("{} MIN APPROVAL:", track_info.name);
-		track_info
-			.min_approval
-			.info(decision_period_days, track_info.name);
-		println!("{} MIN SUPPORT:", track_info.name);
-		track_info
-			.min_support
-			.info(decision_period_days, track_info.name);
-	}
-	assert!(false);
 }
 
 #[test]

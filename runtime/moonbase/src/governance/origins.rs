@@ -61,6 +61,8 @@ pub mod custom_origins {
 		MediumSpender,
 		/// Origin able to spend up to MaxBigSpenderSpend from the treasury at once.
 		BigSpender,
+		/// General admin
+		GeneralAdmin,
 	}
 
 	impl TryFrom<u8> for Origin {
@@ -75,6 +77,7 @@ pub mod custom_origins {
 				13 => Ok(Origin::SmallSpender),
 				14 => Ok(Origin::MediumSpender),
 				15 => Ok(Origin::BigSpender),
+				16 => Ok(Origin::GeneralAdmin),
 				_ => Err(()),
 			}
 		}
@@ -99,6 +102,7 @@ pub mod custom_origins {
 				Origin::SmallSpender => 13,
 				Origin::MediumSpender => 14,
 				Origin::BigSpender => 15,
+				Origin::GeneralAdmin => 16,
 			}
 		}
 	}
@@ -120,6 +124,7 @@ pub mod custom_origins {
 		has_consistent_conversions!(Origin::SmallSpender);
 		has_consistent_conversions!(Origin::MediumSpender);
 		has_consistent_conversions!(Origin::BigSpender);
+		has_consistent_conversions!(Origin::GeneralAdmin);
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -152,7 +157,12 @@ pub mod custom_origins {
 		};
 		() => {}
 	}
-	decl_unit_ensures!(ReferendumCanceller, ReferendumKiller, WhitelistedCaller,);
+	decl_unit_ensures!(
+		ReferendumCanceller,
+		ReferendumKiller,
+		WhitelistedCaller,
+		GeneralAdmin
+	);
 
 	macro_rules! decl_ensure {
 		(
