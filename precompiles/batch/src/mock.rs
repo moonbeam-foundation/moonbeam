@@ -105,7 +105,7 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 			(
 				SubcallWithMaxNesting<1>,
 				// Batch is the only precompile allowed to call Batch.
-				CallableByPrecompile<WithFilter<OnlyFrom<AddressU64<1>>>>,
+				CallableByPrecompile<OnlyFrom<AddressU64<1>>>,
 			),
 		>,
 		RevertPrecompile<AddressU64<2>>,

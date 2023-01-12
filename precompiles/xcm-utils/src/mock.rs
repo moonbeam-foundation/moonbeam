@@ -245,7 +245,7 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 		PrecompileAt<
 			AddressU64<1>,
 			XcmUtilsPrecompile<R, XcmConfig>,
-			(CallableByContract, CallableByPrecompile),
+			CallableByContract<AllExceptXcmExecute<R, XcmConfig>>,
 		>,
 	),
 >;

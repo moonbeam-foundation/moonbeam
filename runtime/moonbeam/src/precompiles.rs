@@ -163,7 +163,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 					(
 						SubcallWithMaxNesting<2>,
 						// Batch is the only precompile allowed to call Batch.
-						CallableByPrecompile<WithFilter<OnlyFrom<AddressU64<2056>>>>,
+						CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
 					),
 				>,
 				PrecompileAt<
@@ -180,7 +180,9 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<
 					AddressU64<2060>,
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
-					(CallableByContract, CallableByPrecompile),
+					CallableByContract<
+						pallet_evm_precompile_xcm_utils::AllExceptXcmExecute<R, XcmExecutorConfig>,
+					>,
 				>,
 				// PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>>, (Moonbase only)
 				PrecompileAt<

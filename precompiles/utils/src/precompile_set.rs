@@ -167,46 +167,11 @@ impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
 	}
 }
 
-/// Smart contracts are allowed to call this precompile.
-/// Parameter can either be [`WithFilter`] or [`ForAllSelectors`].
-pub struct CallableByContract<T = ForAllSelectors>(PhantomData<T>);
-
-impl<T: SelectorFilterWrapper> PrecompileChecks for CallableByContract<T> {
-	#[inline(always)]
-	fn callable_by_smart_contract(caller: H160, called_selector: Option<u32>) -> Option<bool> {
-		Some(T::is_allowed(caller, called_selector))
-	}
-}
-
-/// Precompiles are allowed to call this precompile.
-pub struct CallableByPrecompile<T = ForAllSelectors>(PhantomData<T>);
-
-impl<T: SelectorFilterWrapper> PrecompileChecks for CallableByPrecompile<T> {
-	#[inline(always)]
-	fn callable_by_precompile(caller: H160, called_selector: Option<u32>) -> Option<bool> {
-		Some(T::is_allowed(caller, called_selector))
-	}
-}
-
-pub trait SelectorFilterWrapper: sealed::Sealed {
-	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool;
-}
-
 pub trait SelectorFilter {
 	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool;
 }
-
-pub struct WithFilter<T>(PhantomData<T>);
-impl<T> sealed::Sealed for WithFilter<T> {}
-impl<T: SelectorFilter> SelectorFilterWrapper for WithFilter<T> {
-	fn is_allowed(caller: H160, selector: Option<u32>) -> bool {
-		T::is_allowed(caller, selector)
-	}
-}
-
 pub struct ForAllSelectors;
-impl sealed::Sealed for ForAllSelectors {}
-impl SelectorFilterWrapper for ForAllSelectors {
+impl SelectorFilter for ForAllSelectors {
 	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool {
 		true
 	}
@@ -216,6 +181,25 @@ pub struct OnlyFrom<T>(PhantomData<T>);
 impl<T: Get<H160>> SelectorFilter for OnlyFrom<T> {
 	fn is_allowed(caller: H160, _selector: Option<u32>) -> bool {
 		caller == T::get()
+	}
+}
+
+pub struct CallableByContract<T = ForAllSelectors>(PhantomData<T>);
+
+impl<T: SelectorFilter> PrecompileChecks for CallableByContract<T> {
+	#[inline(always)]
+	fn callable_by_smart_contract(caller: H160, called_selector: Option<u32>) -> Option<bool> {
+		Some(T::is_allowed(caller, called_selector))
+	}
+}
+
+/// Precompiles are allowed to call this precompile.
+pub struct CallableByPrecompile<T = ForAllSelectors>(PhantomData<T>);
+
+impl<T: SelectorFilter> PrecompileChecks for CallableByPrecompile<T> {
+	#[inline(always)]
+	fn callable_by_precompile(caller: H160, called_selector: Option<u32>) -> Option<bool> {
+		Some(T::is_allowed(caller, called_selector))
 	}
 }
 

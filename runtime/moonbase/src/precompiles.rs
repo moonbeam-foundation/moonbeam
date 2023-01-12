@@ -32,7 +32,7 @@ use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
-use pallet_evm_precompile_proxy::ProxyPrecompile;
+use pallet_evm_precompile_proxy::{OnlyIsProxy, ProxyPrecompile};
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -40,7 +40,7 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
 };
-use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
+use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -166,7 +166,7 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 					(
 						SubcallWithMaxNesting<2>,
 						// Batch is the only precompile allowed to call Batch.
-						CallableByPrecompile<WithFilter<OnlyFrom<AddressU64<2056>>>>,
+						CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
 					),
 				>,
 				PrecompileAt<
@@ -182,14 +182,12 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<
 					AddressU64<2059>,
 					ProxyPrecompile<R>,
-					CallableByContract<
-						WithFilter<pallet_evm_precompile_proxy::ContractSafeSelectors<R>>,
-					>,
+					CallableByContract<OnlyIsProxy<R>>,
 				>,
 				PrecompileAt<
 					AddressU64<2060>,
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
-					(CallableByContract, CallableByPrecompile),
+					CallableByContract<AllExceptXcmExecute<R, XcmExecutorConfig>>,
 				>,
 				PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>, CallableByContract>,
 				PrecompileAt<

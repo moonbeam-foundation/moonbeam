@@ -33,9 +33,10 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-pub struct ContractSafeSelectors<Runtime>(PhantomData<Runtime>);
+#[derive(Debug)]
+pub struct OnlyIsProxy<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> SelectorFilter for ContractSafeSelectors<Runtime>
+impl<Runtime> SelectorFilter for OnlyIsProxy<Runtime>
 where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:

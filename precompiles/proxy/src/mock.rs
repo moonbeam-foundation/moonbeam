@@ -25,7 +25,6 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapp
 use precompile_utils::{
 	precompile_set::{
 		AddressU64, CallableByContract, PrecompileAt, PrecompileSetBuilder, SubcallWithMaxNesting,
-		WithFilter,
 	},
 	testing::MockAccount,
 };
@@ -109,7 +108,7 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 			ProxyPrecompile<R>,
 			(
 				SubcallWithMaxNesting<1>,
-				CallableByContract<WithFilter<crate::ContractSafeSelectors<R>>>,
+				CallableByContract<crate::OnlyIsProxy<R>>,
 			),
 		>,
 	),
