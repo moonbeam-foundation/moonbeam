@@ -95,6 +95,7 @@ pub mod pallet {
 	use crate::weights::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use xcm_primitives::PauseXcmExecution;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
@@ -110,6 +111,9 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The list of migrations that will be performed
 		type MigrationsList: GetMigrations;
+
+		/// Handler to suspend and resume XCM execution
+		type XcmExecutionManager: PauseXcmExecution;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -128,6 +132,10 @@ pub mod pallet {
 			migration_name: Vec<u8>,
 			consumed_weight: Weight,
 		},
+		/// XCM execution suspension failed with inner error
+		FailedToSuspendIdleXcmExecution { error: DispatchError },
+		/// XCM execution resume failed with inner error
+		FailedToResumeIdleXcmExecution { error: DispatchError },
 	}
 
 	#[pallet::hooks]
@@ -137,6 +145,9 @@ pub mod pallet {
 		/// migrations.
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
+
+			// Store the fact that we should pause xcm execution for this block
+			ShouldPauseXcm::<T>::put(true);
 
 			let mut weight = Weight::zero();
 			// TODO: derive a suitable value here, which is probably something < max_block
@@ -158,7 +169,33 @@ pub mod pallet {
 				);
 			}
 
-			weight
+			log::info!("Migrations consumed weight: {}", weight);
+
+			// Consume all block weight to ensure no user transactions inclusion.
+			T::BlockWeights::get().max_block
+		}
+
+		fn on_initialize(_: T::BlockNumber) -> Weight {
+			if ShouldPauseXcm::<T>::get() {
+				// Suspend XCM execution
+				if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
+					<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+				}
+				// Account on_finalize write
+				T::DbWeight::get().reads_writes(1, 1)
+			} else {
+				T::DbWeight::get().reads(1)
+			}
+		}
+
+		fn on_finalize(_: T::BlockNumber) {
+			if ShouldPauseXcm::<T>::get() {
+				// Resume XCM execution
+				if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
+					<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+				}
+				ShouldPauseXcm::<T>::put(false);
+			}
 		}
 
 		#[cfg(feature = "try-runtime")]
@@ -260,6 +297,12 @@ pub mod pallet {
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
 	pub(crate) type MigrationState<T: Config> =
 		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn should_pause_xcm)]
+	/// Temporary value that is set to true at the beginning of the block during which the execution
+	/// of xcm messages must be paused.
+	type ShouldPauseXcm<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {

@@ -39,4 +39,7 @@ pub use transactor_traits::*;
 mod ethereum_xcm;
 pub use ethereum_xcm::*;
 
+mod xcm_execution_traits;
+pub use xcm_execution_traits::*;
+
 pub type XcmV2Weight = xcm::v2::Weight;
