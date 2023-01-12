@@ -55,7 +55,7 @@ pub trait PrecompileChecks {
 	/// Does this precompile supports being called with DELEGATECALL or CALLCODE?
 	///
 	/// If all checks return None, defaults to `false`.
-	fn supports_delegate_call() -> Option<bool> {
+	fn accept_delegate_call() -> Option<bool> {
 		None
 	}
 
@@ -98,9 +98,9 @@ impl PrecompileChecks for Tuple {
 	}
 
 	#[inline(always)]
-	fn supports_delegate_call() -> Option<bool> {
+	fn accept_delegate_call() -> Option<bool> {
 		for_tuples!(#(
-			if let Some(check) = Tuple::supports_delegate_call() {
+			if let Some(check) = Tuple::accept_delegate_call() {
 				return Some(check);
 			}
 		)*);
@@ -147,7 +147,7 @@ pub struct AcceptDelegateCall;
 
 impl PrecompileChecks for AcceptDelegateCall {
 	#[inline(always)]
-	fn supports_delegate_call() -> Option<bool> {
+	fn accept_delegate_call() -> Option<bool> {
 		Some(true)
 	}
 }
@@ -212,7 +212,7 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 	let caller = handle.context().caller;
 
 	// Check DELEGATECALL config.
-	let allow_delegate_call = C::supports_delegate_call().unwrap_or(false);
+	let allow_delegate_call = C::accept_delegate_call().unwrap_or(false);
 	if !allow_delegate_call && code_address != handle.context().address {
 		return Err(revert("Cannot be called with DELEGATECALL or CALLCODE"));
 	}
