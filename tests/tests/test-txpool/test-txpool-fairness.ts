@@ -54,8 +54,6 @@ describeDevMoonbeam("Tip should be respected", (context) => {
   });
 
   it("should treat eth and substrate txns fairly", async function () {
-    this.timeout(10000000000);
-
     context.ethTransactionType = "EIP1559";
 
     // tip 1 and 3 will be substrate txns, we express their tip above as per-gas but must send them
@@ -125,21 +123,10 @@ describeDevMoonbeam("Tip should be respected", (context) => {
         || (ext.method.section == "ethereum" && ext.method.method == "transact");
     });
 
-    console.log(`tips: ${transferExts.map((ext) => ext.tip)}`);
-
     expect(transferExts.length).to.eq(4);
-    // TODO: these asserts fail. It would appear that the txns are executed in this order:
-    // balances, balances, ethereum, ethereum
-    //
-    // Some notes:
-    // * I have verified that the appropriate priority values are set in `validate_transaction`.
-    // * They are not simply executed in the order they are sent
-    // * Block production seems to always favor the substrate txns, perhaps because their
-    //   pre-dispatch weight is less
-    // * I'm assuming that the `block.extrinsics` above are in inclusion order, this could be wrong
-    expect(transferExts[0].method.section).to.eq("ethereum");
-    expect(transferExts[1].method.section).to.eq("balances");
-    expect(transferExts[2].method.section).to.eq("ethereum");
-    expect(transferExts[3].method.section).to.eq("balances");
+    expect(transferExts[0].method.section).to.eq("balances");
+    expect(transferExts[1].method.section).to.eq("ethereum");
+    expect(transferExts[2].method.section).to.eq("balances");
+    expect(transferExts[3].method.section).to.eq("ethereum");
   });
 });
