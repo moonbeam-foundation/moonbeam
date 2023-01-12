@@ -805,7 +805,8 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 						| PrecompileName::ParachainStakingPrecompile
 						| PrecompileName::CouncilInstance
 						| PrecompileName::TechCommitteeInstance
-						| PrecompileName::TreasuryCouncilInstance,
+						| PrecompileName::TreasuryCouncilInstance
+						| PrecompileName::OpenTechCommitteeInstance,
 					) => true,
 					// All non-whitelisted precompiles are forbidden
 					Some(_) => false,
