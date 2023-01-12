@@ -74,7 +74,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
+	type MotionDuration = ConstU32<{ 14 * DAYS }>;
 	/// The maximum number of proposals that can be open in the technical committee at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of technical committee members.
