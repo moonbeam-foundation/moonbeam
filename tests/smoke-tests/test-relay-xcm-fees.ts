@@ -7,9 +7,8 @@ import { MultiLocation } from "@polkadot/types/interfaces";
 import { it } from "mocha";
 import { extractWeight } from "../util/block";
 const debug = require("debug")("smoke:treasury");
-const suiteNumber = "S1800";
 
-describeSmokeSuite(`Verify XCM weight fees for relay (${suiteNumber})`, (context) => {
+describeSmokeSuite(`Verify XCM weight fees for relay`, "S1800", (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -32,7 +31,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay (${suiteNumber})`, (context
     );
   });
 
-  it(`should have value over relay expected fees (${suiteNumber}C100)`, async function () {
+  it(`should have value over relay expected fees #C100`, async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
     const paraRuntime = context.polkadotApi.runtimeVersion.specName.toString();

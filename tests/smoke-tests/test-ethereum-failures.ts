@@ -8,7 +8,6 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { GenericExtrinsic } from "@polkadot/types";
 import { AnyTuple } from "@polkadot/types/types";
 const debug = require("debug")("smoke:eth-failures");
-const suiteNumber = "S1200";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -23,7 +22,8 @@ type BlockFilteredRecord = {
 };
 
 describeSmokeSuite(
-  `ETH Failures in past ${hours} hours` + ` should be reported correctly (${suiteNumber})`,
+  `ETH Failures in past ${hours} hours` + ` should be reported correctly`,
+  "S900",
   (context) => {
     let blockData: BlockFilteredRecord[];
 
@@ -53,7 +53,7 @@ describeSmokeSuite(
 
     /// This test will check that all ethereum.transact extrinsics have a corresponding
     /// paysFee = no property in ExtrinsicSuccess event
-    it(`successful eth exts should always pays_fee: no (${suiteNumber}C100)`, function () {
+    it(`successful eth exts should always pays_fee: no #C100`, function () {
       const filteredEvents = blockData
         .map(({ blockNum, events }) => {
           const matchedEvents = events
@@ -101,61 +101,56 @@ describeSmokeSuite(
     // This test will check that each ethereum.transact extrinsic has a corresponding event
     // of ExtrinsicSuccess fired. Any Extrinsic.Failed events will be reported and mark the
     // block for further investigation.
-    it(
-      `should have have ExtrinsicSuccess for all ethereum.transact` + ` (${suiteNumber}C200)`,
-      function () {
-        debug(
-          `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
-            " eth extrinsics all have corresponding ExtrinsicSuccess events."
-        );
-        const blockWithFailures = blockData
-          .map(({ blockNum, extrinsics, events }) => {
-            const successes = extrinsics
-              .map((item, index) => {
-                if (
-                  item.method.section.toString() === "ethereum" &&
-                  item.method.method.toString() === "transact"
-                ) {
-                  const success = events
-                    .filter(
-                      ({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index)
-                    )
-                    .find(({ event, phase }) => {
-                      if (context.polkadotApi.events.system.ExtrinsicFailed.is(event)) {
-                        debug(
-                          `ethereum.transact has ExtrinsicFailed event - Block: ${blockNum}` +
-                            " extrinsic: " +
-                            phase.asApplyExtrinsic.toNumber() +
-                            `.`
-                        );
-                      }
-                      return context.polkadotApi.events.system.ExtrinsicSuccess.is(event);
-                    });
+    it(`should have have ExtrinsicSuccess for all ethereum.transact` + ` #C200`, function () {
+      debug(
+        `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
+          " eth extrinsics all have corresponding ExtrinsicSuccess events."
+      );
+      const blockWithFailures = blockData
+        .map(({ blockNum, extrinsics, events }) => {
+          const successes = extrinsics
+            .map((item, index) => {
+              if (
+                item.method.section.toString() === "ethereum" &&
+                item.method.method.toString() === "transact"
+              ) {
+                const success = events
+                  .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+                  .find(({ event, phase }) => {
+                    if (context.polkadotApi.events.system.ExtrinsicFailed.is(event)) {
+                      debug(
+                        `ethereum.transact has ExtrinsicFailed event - Block: ${blockNum}` +
+                          " extrinsic: " +
+                          phase.asApplyExtrinsic.toNumber() +
+                          `.`
+                      );
+                    }
+                    return context.polkadotApi.events.system.ExtrinsicSuccess.is(event);
+                  });
 
-                  if (success) {
-                    return true;
-                  } else {
-                    return false;
-                  }
+                if (success) {
+                  return true;
+                } else {
+                  return false;
                 }
-                return undefined;
-              })
-              .filter((a) => typeof a !== "undefined")
-              .reduce((acc, curr) => curr && acc, true);
-            return { blockNum, successes };
-          })
-          .filter((a) => a.successes === false);
+              }
+              return undefined;
+            })
+            .filter((a) => typeof a !== "undefined")
+            .reduce((acc, curr) => curr && acc, true);
+          return { blockNum, successes };
+        })
+        .filter((a) => a.successes === false);
 
-        expect(
-          blockWithFailures.length,
-          `Please investigate blocks ${blockWithFailures.map((a) => a.blockNum).join(`, `)}`
-        ).to.equal(0);
-      }
-    );
+      expect(
+        blockWithFailures.length,
+        `Please investigate blocks ${blockWithFailures.map((a) => a.blockNum).join(`, `)}`
+      ).to.equal(0);
+    });
 
     it(
       `should have matching amounts in emulated` +
-        ` block as there are ethereum.executed events (${suiteNumber}C300)`,
+        ` block as there are ethereum.executed events #C300`,
       function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
@@ -183,8 +178,7 @@ describeSmokeSuite(
     );
 
     it(
-      `should have a receipt in emulated block for each ethereum.executed event` +
-        ` (${suiteNumber}C300)`,
+      `should have a receipt in emulated block for each ethereum.executed event` + ` #C400`,
       function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>

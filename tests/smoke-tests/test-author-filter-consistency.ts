@@ -4,9 +4,8 @@ import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author");
-const suiteNumber = "S100";
 
-describeSmokeSuite(`Verify author filter consistency (${suiteNumber})`, (context) => {
+describeSmokeSuite(`Verify author filter consistency`, "S100", (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -21,7 +20,7 @@ describeSmokeSuite(`Verify author filter consistency (${suiteNumber})`, (context
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
   });
 
-  it(`should have eligibility > 0 (${suiteNumber}C100)`, async function () {
+  it(`should have eligibility > 0 #C100`, async function () {
     if (specVersion < 1500) {
       const eligibilityRatio = await apiAt.query.authorFilter.eligibleRatio();
       expect(eligibilityRatio.toBigInt() > 0n).to.be.true;

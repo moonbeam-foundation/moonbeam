@@ -8,7 +8,6 @@ import { u32 } from "@polkadot/types";
 import type { AccountId20 } from "@polkadot/types/interfaces";
 
 const debug = require("debug")("smoke:staking");
-const suiteNumber = "S2100";
 
 type InvalidRounds = { [round: number]: number };
 
@@ -42,7 +41,7 @@ async function getKeysBeforeRound<
   return invalidRounds;
 }
 
-describeSmokeSuite(`Verify staking round cleanup (${suiteNumber})`, function (context) {
+describeSmokeSuite(`Verify staking round cleanup`, "S2100", function (context) {
   before(function () {
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       debug("Skip Block Consistency flag set, skipping staking round cleanup tests.");
@@ -50,7 +49,7 @@ describeSmokeSuite(`Verify staking round cleanup (${suiteNumber})`, function (co
     }
   });
 
-  it(`storage is cleaned for paid-out rounds (${suiteNumber}C100)`, async function () {
+  it(`storage is cleaned for paid-out rounds #C100`, async function () {
     this.timeout(500000);
 
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();

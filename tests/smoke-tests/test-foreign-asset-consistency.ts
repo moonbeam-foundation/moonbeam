@@ -3,10 +3,10 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:localAssets");
-const suiteNumber = "S1000";
 
 describeSmokeSuite(
-  `Verifying foreign asset count, mapping, assetIds and deposits (${suiteNumber})`,
+  `Verifying foreign asset count, mapping, assetIds and deposits`,
+  "S1000",
   (context) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
@@ -43,8 +43,7 @@ describeSmokeSuite(
     });
 
     it(
-      `should make sure xcm fee assets accepted is <=> than existing assets` +
-        ` (${suiteNumber}C100)`,
+      `should make sure xcm fee assets accepted is <=> than existing assets` + ` #C100`,
       async function () {
         expect(
           foreignXcmAcceptedAssets.length,
@@ -60,8 +59,7 @@ describeSmokeSuite(
     );
 
     it(
-      `should make sure assetId->AssetType matches AssetType->AssetId mapping` +
-        ` (${suiteNumber}C200)`,
+      `should make sure assetId->AssetType matches AssetType->AssetId mapping` + ` #C200`,
       async function () {
         const failedAssetReserveMappings: { assetId: string }[] = [];
 
@@ -87,7 +85,7 @@ describeSmokeSuite(
     );
 
     it(
-      `should make sure existing xcm payment assets exist in mapping` + ` (${suiteNumber}C300)`,
+      `should make sure existing xcm payment assets exist in mapping` + ` #C300`,
       async function () {
         const failedXcmPaymentAssets: { assetType: string }[] = [];
 

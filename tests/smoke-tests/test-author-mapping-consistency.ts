@@ -3,9 +3,8 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author-mapping");
-const suiteNumber = "S200";
 
-describeSmokeSuite(`Verifying deposit for associated nimbus ids (${suiteNumber})`, (context) => {
+describeSmokeSuite(`Verifying deposit for associated nimbus ids`, "S200", (context) => {
   const nimbusIdPerAccount: { [account: string]: string } = {};
 
   let atBlockNumber: number = 0;
@@ -63,7 +62,7 @@ describeSmokeSuite(`Verifying deposit for associated nimbus ids (${suiteNumber})
     debug(`Retrieved ${count} total nimbus ids`);
   });
 
-  it(`should have a deposit for each associated nimbus id (${suiteNumber}C100)`, async function () {
+  it(`should have a deposit for each associated nimbus id #C100`, async function () {
     this.timeout(60_000);
 
     // Instead of putting an expect in the loop. We track all failed entries instead

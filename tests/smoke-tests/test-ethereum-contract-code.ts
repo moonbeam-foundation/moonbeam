@@ -5,8 +5,8 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-contract");
-const suiteNumber = "S600";
-describeSmokeSuite(`Ethereum contract bytecode should not be large (${suiteNumber})`, (context) => {
+
+describeSmokeSuite(`Ethereum contract bytecode should not be large`, "S600", (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -77,7 +77,7 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large (${suiteNumbe
     debug(`Retrieved ${count} total accountCodes`);
   });
 
-  it(`should not have excessively long account codes (${suiteNumber}C100)`, async function () {
+  it(`should not have excessively long account codes #C100`, async function () {
     this.timeout(30_000);
 
     // taken from geth, e.g. search "MaxCodeSize":

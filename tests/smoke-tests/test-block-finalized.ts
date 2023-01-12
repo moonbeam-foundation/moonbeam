@@ -7,10 +7,9 @@ import semverLt from "semver/functions/lt";
 const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
-const suiteNumber = "S400";
 
-describeSmokeSuite(`Parachain blocks should be finalized (${suiteNumber})`, (context) => {
-  it(`should have a recently finalized block (${suiteNumber}C100)`, async function () {
+describeSmokeSuite(`Parachain blocks should be finalized`, "S400", (context) => {
+  it(`should have a recently finalized block #C100`, async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);
     const diff = Date.now() - getBlockTime(block);
@@ -18,7 +17,7 @@ describeSmokeSuite(`Parachain blocks should be finalized (${suiteNumber})`, (con
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
   });
 
-  it(`should have a recently finalized eth block (${suiteNumber}C200)`, async function () {
+  it(`should have a recently finalized eth block #C200`, async function () {
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
     const clientVersion = (await context.polkadotApi.rpc.system.version()).toString().split("-")[0];
 
@@ -35,7 +34,7 @@ describeSmokeSuite(`Parachain blocks should be finalized (${suiteNumber})`, (con
 
   it(
     `should have only finalized blocks in the past` +
-      ` ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours (${suiteNumber}C300)`,
+      ` ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours #C300`,
     async function () {
       this.timeout(timeout);
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock(

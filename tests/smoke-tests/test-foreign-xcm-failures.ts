@@ -24,7 +24,8 @@ type NetworkBlockEvents = {
 
 describeSmokeSuite(
   `Foreign XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
-    ` should not be serious (${suiteNumber})`,
+    ` should not be serious`,
+  "S1100",
   (context) => {
     let networkBlockEvents: NetworkBlockEvents[];
 
@@ -100,46 +101,43 @@ describeSmokeSuite(
       networkBlockEvents = await Promise.all(promises);
     });
 
-    it(
-      `should not have UnsupportedVersion errors on DMP queue` + ` (${suiteNumber}C100)`,
-      function () {
-        const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
-          const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-            const dmpQueueEvents = events.filter(
-              ({ event }) =>
-                event.section.toString() === "dmpQueue" &&
-                event.method.toString() === "UnsupportedVersion"
-            );
-            return { blockNum, dmpQueueEvents };
-          });
-          return { networkName, errorEvents: filteredEvents };
+    it(`should not have UnsupportedVersion errors on DMP queue` + ` #C100`, function () {
+      const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const dmpQueueEvents = events.filter(
+            ({ event }) =>
+              event.section.toString() === "dmpQueue" &&
+              event.method.toString() === "UnsupportedVersion"
+          );
+          return { blockNum, dmpQueueEvents };
         });
+        return { networkName, errorEvents: filteredEvents };
+      });
 
-        const failures = blockEvents
-          .map(({ networkName, errorEvents }) => {
-            const filtered = errorEvents.filter((a) => a.dmpQueueEvents.length !== 0);
-            return { networkName, filtered };
-          })
-          .filter((a) => a.filtered.length > 0);
+      const failures = blockEvents
+        .map(({ networkName, errorEvents }) => {
+          const filtered = errorEvents.filter((a) => a.dmpQueueEvents.length !== 0);
+          return { networkName, filtered };
+        })
+        .filter((a) => a.filtered.length > 0);
 
-        failures.forEach(({ filtered, networkName }) =>
-          filtered.forEach(({ blockNum }) =>
-            debug(
-              `XCM error dmpQueue.UnsupportedVersion in network ${networkName} block #${blockNum}.`
-            )
+      failures.forEach(({ filtered, networkName }) =>
+        filtered.forEach(({ blockNum }) =>
+          debug(
+            `XCM error dmpQueue.UnsupportedVersion in network ${networkName} block #${blockNum}.`
           )
-        );
+        )
+      );
 
-        expect(
-          failures.flatMap((a) => a).length,
-          `Unexpected UnsupportedVersion XCM errors in networks ${failures
-            .map((a) => a.networkName)
-            .join(`, `)}; please investigate.`
-        ).to.equal(0);
-      }
-    );
+      expect(
+        failures.flatMap((a) => a).length,
+        `Unexpected UnsupportedVersion XCM errors in networks ${failures
+          .map((a) => a.networkName)
+          .join(`, `)}; please investigate.`
+      ).to.equal(0);
+    });
 
-    it(`should not have BadVersion errors on XCMP queue (${suiteNumber}C200)`, function () {
+    it(`should not have BadVersion errors on XCMP queue #C200`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events.filter(
@@ -172,7 +170,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have Barrier errors on XCMP queue (${suiteNumber}C300)`, function () {
+    it(`should not have Barrier errors on XCMP queue #C300`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -207,7 +205,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have Overflow errors on XCMP queue (${suiteNumber}C400)`, function () {
+    it(`should not have Overflow errors on XCMP queue #C400`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -242,7 +240,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have MultiLocationFull errors on XCMP queue (${suiteNumber}C500)`, function () {
+    it(`should not have MultiLocationFull errors on XCMP queue #C500`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -284,7 +282,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have AssetNotFound errors on XCMP queue (${suiteNumber}C600)`, function () {
+    it(`should not have AssetNotFound errors on XCMP queue #C600`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -321,52 +319,49 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(
-      `should not have DestinationUnsupported errors on XCMP queue` + ` (${suiteNumber}C700)`,
-      function () {
-        const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
-          const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-            const xcmpQueueEvents = events
-              .filter(
-                ({ event }) =>
-                  event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-              )
-              .filter(
-                ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
-              );
-            return { blockNum, xcmpQueueEvents };
-          });
-          return { networkName, errorEvents: filteredEvents };
-        });
-
-        const failures = blockEvents
-          .map(({ networkName, errorEvents }) => {
-            const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-            return { networkName, filtered };
-          })
-          .filter((a) => a.filtered.length > 0);
-
-        failures.forEach(({ filtered, networkName }) =>
-          filtered.forEach(({ blockNum }) =>
-            debug(
-              "DestinationUnsupported XCM error xcmpQueue.Fail in network " +
-                networkName +
-                " block #" +
-                blockNum
+    it(`should not have DestinationUnsupported errors on XCMP queue` + ` #C700`, function () {
+      const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
             )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
+        return { networkName, errorEvents: filteredEvents };
+      });
+
+      const failures = blockEvents
+        .map(({ networkName, errorEvents }) => {
+          const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+          return { networkName, filtered };
+        })
+        .filter((a) => a.filtered.length > 0);
+
+      failures.forEach(({ filtered, networkName }) =>
+        filtered.forEach(({ blockNum }) =>
+          debug(
+            "DestinationUnsupported XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
-        );
+        )
+      );
 
-        expect(
-          failures.flatMap((a) => a).length,
-          `Unexpected DestinationUnsupported XCM errors in networks ${failures
-            .map((a) => a.networkName)
-            .join(`, `)}; please investigate.`
-        ).to.equal(0);
-      }
-    );
+      expect(
+        failures.flatMap((a) => a).length,
+        `Unexpected DestinationUnsupported XCM errors in networks ${failures
+          .map((a) => a.networkName)
+          .join(`, `)}; please investigate.`
+      ).to.equal(0);
+    });
 
-    it(`should not have Transport errors on XCMP queue (${suiteNumber}C800)`, function () {
+    it(`should not have Transport errors on XCMP queue #C800`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -401,7 +396,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have FailedToDecode errors on XCMP queue (${suiteNumber}C900)`, function () {
+    it(`should not have FailedToDecode errors on XCMP queue #C900`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -438,94 +433,88 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(
-      `should not have UnhandledXcmVersion errors on XCMP queue` + ` (${suiteNumber}C1000)`,
-      function () {
-        const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
-          const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-            const xcmpQueueEvents = events
-              .filter(
-                ({ event }) =>
-                  event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-              )
-              .filter(
-                ({ event: { data } }) => (data as any).error.toString() === "UnhandledXcmVersion"
-              );
-            return { blockNum, xcmpQueueEvents };
-          });
-          return { networkName, errorEvents: filteredEvents };
-        });
-
-        const failures = blockEvents
-          .map(({ networkName, errorEvents }) => {
-            const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-            return { networkName, filtered };
-          })
-          .filter((a) => a.filtered.length > 0);
-
-        failures.forEach(({ filtered, networkName }) =>
-          filtered.forEach(({ blockNum }) =>
-            debug(
-              "UnhandledXcmVersion XCM error xcmpQueue.Fail in network " +
-                networkName +
-                " block #" +
-                blockNum
+    it(`should not have UnhandledXcmVersion errors on XCMP queue` + ` #C1000`, function () {
+      const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
             )
-          )
-        );
-
-        expect(
-          failures.flatMap((a) => a).length,
-          `Unexpected UnhandledXcmVersion XCM errors in networks ${failures
-            .map((a) => a.networkName)
-            .join(`, `)}; please investigate.`
-        ).to.equal(0);
-      }
-    );
-
-    it(
-      `should not have WeightNotComputable errors on XCMP queue` + ` (${suiteNumber}C1100)`,
-      function () {
-        const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
-          const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-            const xcmpQueueEvents = events
-              .filter(
-                ({ event }) =>
-                  event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-              )
-              .filter(
-                ({ event: { data } }) => (data as any).error.toString() === "WeightNotComputable"
-              );
-            return { blockNum, xcmpQueueEvents };
-          });
-          return { networkName, errorEvents: filteredEvents };
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "UnhandledXcmVersion"
+            );
+          return { blockNum, xcmpQueueEvents };
         });
+        return { networkName, errorEvents: filteredEvents };
+      });
 
-        const failures = blockEvents
-          .map(({ networkName, errorEvents }) => {
-            const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-            return { networkName, filtered };
-          })
-          .filter((a) => a.filtered.length > 0);
+      const failures = blockEvents
+        .map(({ networkName, errorEvents }) => {
+          const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+          return { networkName, filtered };
+        })
+        .filter((a) => a.filtered.length > 0);
 
-        failures.forEach(({ filtered, networkName }) =>
-          filtered.forEach(({ blockNum }) =>
-            debug(
-              "WeightNotComputable XCM error xcmpQueue.Fail in network " +
-                networkName +
-                " block #" +
-                blockNum
-            )
+      failures.forEach(({ filtered, networkName }) =>
+        filtered.forEach(({ blockNum }) =>
+          debug(
+            "UnhandledXcmVersion XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
-        );
+        )
+      );
 
-        expect(
-          failures.flatMap((a) => a).length,
-          `Unexpected WeightNotComputable XCM errors in networks ${failures
-            .map((a) => a.networkName)
-            .join(`, `)}; please investigate.`
-        ).to.equal(0);
-      }
-    );
+      expect(
+        failures.flatMap((a) => a).length,
+        `Unexpected UnhandledXcmVersion XCM errors in networks ${failures
+          .map((a) => a.networkName)
+          .join(`, `)}; please investigate.`
+      ).to.equal(0);
+    });
+
+    it(`should not have WeightNotComputable errors on XCMP queue` + ` #C1100`, function () {
+      const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "WeightNotComputable"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
+        return { networkName, errorEvents: filteredEvents };
+      });
+
+      const failures = blockEvents
+        .map(({ networkName, errorEvents }) => {
+          const filtered = errorEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+          return { networkName, filtered };
+        })
+        .filter((a) => a.filtered.length > 0);
+
+      failures.forEach(({ filtered, networkName }) =>
+        filtered.forEach(({ blockNum }) =>
+          debug(
+            "WeightNotComputable XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
+          )
+        )
+      );
+
+      expect(
+        failures.flatMap((a) => a).length,
+        `Unexpected WeightNotComputable XCM errors in networks ${failures
+          .map((a) => a.networkName)
+          .join(`, `)}; please investigate.`
+      ).to.equal(0);
+    });
   }
 );

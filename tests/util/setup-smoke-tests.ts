@@ -10,8 +10,12 @@ export interface SmokeTestContext {
   ethers: providers.WebSocketProvider;
 }
 
-export function describeSmokeSuite(title: string, cb: (context: SmokeTestContext) => void) {
-  describe(title, function () {
+export function describeSmokeSuite(
+  title: string,
+  suiteNumber: string,
+  cb: (context: SmokeTestContext) => void
+) {
+  describe(`${title} #${suiteNumber}`, function () {
     this.timeout(23700);
 
     // The context is initialized empty to allow passing a reference
@@ -28,6 +32,10 @@ export function describeSmokeSuite(title: string, cb: (context: SmokeTestContext
       context.ethers = EthersApi.api();
 
       debug(`APIs retrieved for ${this.currentTest.title}`);
+    });
+
+    beforeEach(function () {
+      this.currentTest.title += `::${suiteNumber}`;
     });
 
     cb(context);

@@ -9,10 +9,9 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
-const suiteNumber = "S1600";
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) => {
+describeSmokeSuite(`Verify account proxies created`, "S1600", (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -87,52 +86,49 @@ describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) 
   });
 
   // TEMPLATE: Give details about what you are testing
-  it(
-    `should have no more than the maximum allowed proxies` + ` (${suiteNumber}C100)`,
-    async function () {
-      this.timeout(240000);
+  it(`should have no more than the maximum allowed proxies` + ` #C100`, async function () {
+    this.timeout(240000);
 
-      // TEMPLATE: Retrieve additional information
-      const maxProxies = (await context.polkadotApi.consts.proxy.maxProxies).toNumber();
+    // TEMPLATE: Retrieve additional information
+    const maxProxies = (await context.polkadotApi.consts.proxy.maxProxies).toNumber();
 
-      // Instead of putting an expect in the loop. We track all failed entries instead
-      const failedProxies: { accountId: string; proxiesCount: number }[] = [];
+    // Instead of putting an expect in the loop. We track all failed entries instead
+    const failedProxies: { accountId: string; proxiesCount: number }[] = [];
 
-      // TEMPLATE: Adapt variables
-      for (const accountId of Object.keys(proxiesPerAccount)) {
-        const proxiesCount = proxiesPerAccount[accountId].length;
-        if (proxiesCount > maxProxies) {
-          failedProxies.push({ accountId, proxiesCount });
-        }
+    // TEMPLATE: Adapt variables
+    for (const accountId of Object.keys(proxiesPerAccount)) {
+      const proxiesCount = proxiesPerAccount[accountId].length;
+      if (proxiesCount > maxProxies) {
+        failedProxies.push({ accountId, proxiesCount });
       }
+    }
 
-      // TEMPLATE: Write nice logging for your test if it fails :)
-      if (failedProxies.length > 0) {
-        debug("Failed accounts with too many proxies:");
-        debug(
-          failedProxies
-            .map(({ accountId, proxiesCount }) => {
-              return `accountId: ${accountId} - ${chalk.red(
-                proxiesCount.toString().padStart(4, " ")
-              )} proxies (expected max: ${maxProxies})`;
-            })
-            .join(`\n`)
-        );
-      }
-
-      // Make sure the test fails after we print the errors
-      // TEMPLATE: Adapt variable & text
-      expect(failedProxies.length, "Failed max proxies").to.equal(0);
-
-      // Additional debug logs
+    // TEMPLATE: Write nice logging for your test if it fails :)
+    if (failedProxies.length > 0) {
+      debug("Failed accounts with too many proxies:");
       debug(
-        `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
+        failedProxies
+          .map(({ accountId, proxiesCount }) => {
+            return `accountId: ${accountId} - ${chalk.red(
+              proxiesCount.toString().padStart(4, " ")
+            )} proxies (expected max: ${maxProxies})`;
+          })
+          .join(`\n`)
       );
     }
-  );
+
+    // Make sure the test fails after we print the errors
+    // TEMPLATE: Adapt variable & text
+    expect(failedProxies.length, "Failed max proxies").to.equal(0);
+
+    // Additional debug logs
+    debug(
+      `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
+    );
+  });
 
   // TEMPLATE: Exemple of test verifying a constant in the runtime
-  it(`should have a maximum allowed proxies of 32 (${suiteNumber}C200)`, async function () {
+  it(`should have a maximum allowed proxies of 32 #C200`, async function () {
     // TEMPLATE: Remove if the value is the same for each runtime
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
     const networkName = context.polkadotApi.runtimeChain.toString();
@@ -173,7 +169,7 @@ describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) 
   });
 
   it(
-    `should only be possible for proxies of non-smart contract accounts` + ` (${suiteNumber}C300)`,
+    `should only be possible for proxies of non-smart contract accounts` + ` #C300`,
     async function () {
       this.timeout(60000);
 

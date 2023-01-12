@@ -9,9 +9,8 @@ import { BigNumber, providers } from "ethers";
 const debug = require("debug")("smoke:historic-compatibility");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 const httpEndpoint = process.env.HTTP_URL;
-const suiteNumber = "S1200";
 
-describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (context) => {
+describeSmokeSuite(`Verifying historic compatibility`, "S1200", async (context) => {
   let traceStatic: NetworkTestArtifact;
   let skipTest = { skip: false, networkName: "", chainId: "" };
   let blockNumber: number;
@@ -43,7 +42,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     )[0].toString();
   });
 
-  it(`can call debug_traceTransaction (${suiteNumber}C100)`, async function () {
+  it(`can call debug_traceTransaction #C100`, async function () {
     if (httpEndpoint == null || httpEndpoint == "") {
       debug(`No HTTP_URL provided, skipping test.`);
       this.skip();
@@ -82,7 +81,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(failures).to.be.empty;
   });
 
-  it(`can call eth_getTransactionReceipt (${suiteNumber}C200)`, async function () {
+  it(`can call eth_getTransactionReceipt #C200`, async function () {
     this.timeout(300000);
 
     if (skipTest.skip) {
@@ -118,61 +117,61 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(failures).to.be.empty;
   });
 
-  it(`can call eth_protocolVersion (${suiteNumber}C300)`, async function () {
+  it(`can call eth_protocolVersion #C300`, async function () {
     const result = await context.ethers.send("eth_protocolVersion", []);
     expect(result).to.be.greaterThan(0);
   });
 
-  it(`can call eth_syncing (${suiteNumber}C300)`, async function () {
+  it(`can call eth_syncing #C300`, async function () {
     const result = await context.ethers.send("eth_syncing", []);
     expect(result).to.satisfy((s) => typeof s == "number" || typeof s == "boolean");
   });
 
-  it(`can call eth_hashrate (${suiteNumber}C400)`, async function () {
+  it(`can call eth_hashrate #C400`, async function () {
     const result = await context.ethers.send("eth_hashrate", []);
     expect(result).to.contain("0x0");
   });
 
-  it(`can call eth_coinbase (${suiteNumber}C500)`, async function () {
+  it(`can call eth_coinbase #C500`, async function () {
     const result = await context.ethers.send("eth_coinbase", []);
     expect(result.length).to.equal(42);
   });
 
-  it(`can call eth_mining (${suiteNumber}C600)`, async function () {
+  it(`can call eth_mining #C600`, async function () {
     const result = await context.ethers.send("eth_mining", []);
     expect(result).to.equal(
       !!(await context.polkadotApi.rpc.system.nodeRoles()).find((role) => role.isAuthority)
     );
   });
 
-  it(`can call eth_chainId (${suiteNumber}C700)`, async function () {
+  it(`can call eth_chainId #C700`, async function () {
     const result = await context.ethers.send("eth_chainId", []);
     expect(Number(result)).to.be.greaterThan(0);
   });
 
-  it(`can call eth_gasPrice (${suiteNumber}C800)`, async function () {
+  it(`can call eth_gasPrice #C800`, async function () {
     const result = await context.ethers.send("eth_gasPrice", []);
     expect(Number(result)).to.be.greaterThan(0);
   });
 
-  it(`can call eth_accounts (${suiteNumber}C900)`, async function () {
+  it(`can call eth_accounts #C900`, async function () {
     const result = await context.ethers.send("eth_accounts", []);
     expect(result.length).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_blockNumber (${suiteNumber}C1000)`, async function () {
+  it(`can call eth_blockNumber #C1000`, async function () {
     const result = await context.ethers.send("eth_blockNumber", []);
     expect(result.length).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_getBalance (${suiteNumber}C1100)`, async function () {
+  it(`can call eth_getBalance #C1100`, async function () {
     const treasuryPalletId = context.polkadotApi.consts.treasury.palletId;
     const treasuryAddress = `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`;
     const result = await context.ethers.send("eth_getBalance", [treasuryAddress, "latest"]);
     expect(BigNumber.from(result).isZero()).to.be.false;
   });
 
-  it(`can call eth_getStorageAt (${suiteNumber}C1200)`, async function () {
+  it(`can call eth_getStorageAt #C1200`, async function () {
     if (skipTest.skip) {
       debug(
         `No test data available for ${skipTest.networkName} #${skipTest.chainId} , skipping test.`
@@ -188,17 +187,17 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(BigNumber.from(result).isZero()).to.be.false;
   });
 
-  it(`can call eth_getBlockByHash (${suiteNumber}C1300)`, async function () {
+  it(`can call eth_getBlockByHash #C1300`, async function () {
     const result = await context.ethers.send("eth_getBlockByHash", [blockHash, false]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getBlockByNumber (${suiteNumber}C1400)`, async function () {
+  it(`can call eth_getBlockByNumber #C1400`, async function () {
     const result = await context.ethers.send("eth_getBlockByNumber", [numberToHex(1), false]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionCount (${suiteNumber}C1500)`, async function () {
+  it(`can call eth_getTransactionCount #C1500`, async function () {
     const result = await context.ethers.send("eth_getTransactionCount", [
       collatorAddress,
       "latest",
@@ -206,27 +205,27 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(Number(result)).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_getBlockTransactionCountByHash (${suiteNumber}C1600)`, async function () {
+  it(`can call eth_getBlockTransactionCountByHash #C1600`, async function () {
     const result = await context.ethers.send("eth_getBlockTransactionCountByHash", [blockHash]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getBlockTransactionCountByNumber (${suiteNumber}C1700)`, async function () {
+  it(`can call eth_getBlockTransactionCountByNumber #C1700`, async function () {
     const result = await context.ethers.send("eth_getBlockTransactionCountByNumber", ["latest"]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getUncleCountByBlockHash (${suiteNumber}C1800)`, async function () {
+  it(`can call eth_getUncleCountByBlockHash #C1800`, async function () {
     const result = await context.ethers.send("eth_getUncleCountByBlockHash", [blockHash]);
     expect(result).to.contain("0x0");
   });
 
-  it(`can call eth_getCode (${suiteNumber}C1900)`, async function () {
+  it(`can call eth_getCode #C1900`, async function () {
     const result = await context.ethers.send("eth_getCode", [collatorAddress, "latest"]);
     expect(result).to.equal("0x");
   });
 
-  it(`can call eth_estimateGas (${suiteNumber}C2000)`, async function () {
+  it(`can call eth_estimateGas #C2000`, async function () {
     const result = await context.ethers.send("eth_estimateGas", [
       {
         from: collatorAddress,
@@ -240,12 +239,12 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_feeHistory (${suiteNumber}C2100)`, async function () {
+  it(`can call eth_feeHistory #C2100`, async function () {
     const result = await context.ethers.send("eth_feeHistory", ["4", "latest", []]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionByBlockHashAndIndex (${suiteNumber}C2200)`, async function () {
+  it(`can call eth_getTransactionByBlockHashAndIndex #C2200`, async function () {
     const block = (await context.polkadotApi.query.ethereum.currentBlock()).unwrap();
     if (block.transactions.length === 0) {
       debug("No transactions in block, skipping test");
@@ -257,7 +256,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionByBlockNumberAndIndex (${suiteNumber}C2300)`, async function () {
+  it(`can call eth_getTransactionByBlockNumberAndIndex #C2300`, async function () {
     const block = (await context.polkadotApi.query.ethereum.currentBlock()).unwrap();
     if (block.transactions.length === 0) {
       debug("No transactions in block, skipping test");
@@ -271,22 +270,22 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getUncleByBlockHashAndIndex (${suiteNumber}C2400)`, async function () {
+  it(`can call eth_getUncleByBlockHashAndIndex #C2400`, async function () {
     const result = await context.ethers.send("eth_getUncleByBlockHashAndIndex", [blockHash, 0]);
     expect(result).to.be.null;
   });
 
-  it(`can call eth_getUncleByBlockNumberAndIndex (${suiteNumber}C2500)`, async function () {
+  it(`can call eth_getUncleByBlockNumberAndIndex #C2500`, async function () {
     const result = await context.ethers.send("eth_getUncleByBlockNumberAndIndex", [blockNumber, 0]);
     expect(result).to.be.null;
   });
 
-  it(`can call eth_getLogs (${suiteNumber}C2600)`, async function () {
+  it(`can call eth_getLogs #C2600`, async function () {
     const result = await context.ethers.send("eth_getLogs", [{ blockHash }]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_submitWork (${suiteNumber}C2700)`, async function () {
+  it(`can call eth_submitWork #C2700`, async function () {
     const result = await context.ethers.send("eth_submitWork", [
       numberToHex(blockNumber + 1, 64),
       "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
@@ -295,7 +294,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(result).to.be.false;
   });
 
-  it(`can call eth_submitHashrate (${suiteNumber}C2800)`, async function () {
+  it(`can call eth_submitHashrate #C2800`, async function () {
     const result = await context.ethers.send("eth_submitHashrate", [
       "0x0000000000000000000000000000000000000000000000000000000000500000",
       "0x59daa26581d0acd1fce254fb7e85952f4c09d0915afd33d3886cd914bc7d283c",
@@ -303,7 +302,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     expect(result).to.be.false;
   });
 
-  it(`can call eth_newFilter (${suiteNumber}C2900)`, async function () {
+  it(`can call eth_newFilter #C2900`, async function () {
     try {
       const result = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       expect(result).to.not.be.null;
@@ -317,7 +316,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     }
   });
 
-  it(`can call eth_newBlockFilter (${suiteNumber}C3000)`, async function () {
+  it(`can call eth_newBlockFilter #C3000`, async function () {
     try {
       const result = await context.ethers.send("eth_newBlockFilter", []);
       expect(result).to.not.be.null;
@@ -331,7 +330,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     }
   });
 
-  it(`can call eth_getFilterChanges (${suiteNumber}C3100)`, async function () {
+  it(`can call eth_getFilterChanges #C3100`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_getFilterChanges", [filterId]);
@@ -346,7 +345,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     }
   });
 
-  it(`can call eth_getFilterLogs (${suiteNumber}C3200)`, async function () {
+  it(`can call eth_getFilterLogs #C3200`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_getFilterLogs", [filterId]);
@@ -361,7 +360,7 @@ describeSmokeSuite(`Verifying historic compatibility (${suiteNumber})`, async (c
     }
   });
 
-  it(`can call eth_uninstallFilter (${suiteNumber}C3300)`, async function () {
+  it(`can call eth_uninstallFilter #C3300`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_uninstallFilter", [filterId]);

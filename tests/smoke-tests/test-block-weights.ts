@@ -8,7 +8,6 @@ import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
-const suiteNumber = "S500";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -32,7 +31,8 @@ interface BlockLimits {
 
 describeSmokeSuite(
   `Verifying weights of blocks in the past ` +
-    `${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours (${suiteNumber})`,
+    `${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours`,
+  "S500",
   (context) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
@@ -79,7 +79,7 @@ describeSmokeSuite(
 
     // This test is more for verifying that the test code is correctly returning good quality data
     // that the rest of the test suite performs verification on
-    it(`should be returning unique block hashes in array (${suiteNumber}C100)`, async () => {
+    it(`should be returning unique block hashes in array #C100`, async () => {
       const hashes = blockInfoArray.map((a) => a.hash);
       const set = new Set(hashes);
       expect(hashes.length, "Duplicate hashes in retrieved data, investigate test").to.be.equal(
@@ -89,7 +89,7 @@ describeSmokeSuite(
 
     // Normal class
     it(
-      `normal usage should be less than normal dispatch class limits` + ` (${suiteNumber}C200)`,
+      `normal usage should be less than normal dispatch class limits` + ` #C200`,
       async function () {
         const overweight = blockInfoArray
           .filter((a) => a.weights.normal.gt(blockLimits.normal))
@@ -109,33 +109,27 @@ describeSmokeSuite(
     );
 
     // Operational class
-    it(
-      `operational usage should be less than dispatch class limits` + ` (${suiteNumber}C300)`,
-      async function () {
-        const overweight = blockInfoArray
-          .filter((a) => a.weights.operational.gt(blockLimits.operational))
-          .map((a) => {
-            debug(
-              `Block #${a.blockNum} has weight ${Number(
-                a.weights.operational
-              )} which is above limit!`
-            );
-            return a;
-          });
-        expect(
-          overweight,
-          `These blocks have operational weights in excess of limit, investigate: ${overweight
-            .map((a) => a.blockNum)
-            .join(", ")}`
-        ).to.be.empty;
-      }
-    );
+    it(`operational usage should be less than dispatch class limits` + ` #C300`, async function () {
+      const overweight = blockInfoArray
+        .filter((a) => a.weights.operational.gt(blockLimits.operational))
+        .map((a) => {
+          debug(
+            `Block #${a.blockNum} has weight ${Number(a.weights.operational)} which is above limit!`
+          );
+          return a;
+        });
+      expect(
+        overweight,
+        `These blocks have operational weights in excess of limit, investigate: ${overweight
+          .map((a) => a.blockNum)
+          .join(", ")}`
+      ).to.be.empty;
+    });
 
     // This will test that when Block is 20%+ full, its normal weight is mostly explained
     // by eth signed transactions.
     it(
-      `should roughly have a block weight mostly composed of transactions` +
-        ` (${suiteNumber}C400)`,
+      `should roughly have a block weight mostly composed of transactions` + ` #C400`,
       async function () {
         this.timeout(timeout);
 
@@ -191,7 +185,7 @@ describeSmokeSuite(
     // This will test that the total normal weight reported is roughly the sum of normal class
     // weight events emitted by signed extrinsics
     it(
-      `should have total normal weight matching the signed extrinsics` + ` (${suiteNumber}C500)`,
+      `should have total normal weight matching the signed extrinsics` + ` #C500`,
       async function () {
         this.timeout(timeout);
 
@@ -262,70 +256,67 @@ describeSmokeSuite(
 
     // This test will compare the total weight of eth transactions versus the reported gasUsed
     // property of  ethereum.currentBlock()
-    it(
-      `should have total gas charged similar to eth extrinsics` + ` (${suiteNumber}C600)`,
-      async function () {
-        this.timeout(timeout);
+    it(`should have total gas charged similar to eth extrinsics` + ` #C600`, async function () {
+      this.timeout(timeout);
 
-        // Waiting for bugfixes
-        if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
-          this.skip();
-        }
-
-        debug(
-          `Checking if #${blockInfoArray[0].blockNum} - #${
-            blockInfoArray[blockInfoArray.length - 1].blockNum
-          } weights match gasUsed`
-        );
-
-        const compareGasToWeight = async (blockInfo: BlockInfo) => {
-          const apiAt = await context.polkadotApi.at(blockInfo.hash);
-          const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockInfo.hash);
-          const gasUsed = (await apiAt.query.ethereum.currentBlock())
-            .unwrap()
-            .header.gasUsed.toNumber();
-
-          const gasWeight = gasUsed * Number(WEIGHT_PER_GAS);
-          const ethTxnsWeight = signedBlock.block.extrinsics
-            .map((item, index) => {
-              if (item.method.method == "transact" && item.method.section == "ethereum") {
-                return blockInfo.events
-                  .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-                  .filter(
-                    ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
-                  )
-                  .reduce(
-                    (acc, curr) =>
-                      acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
-                    0
-                  );
-              } else {
-                return 0;
-              }
-            })
-            .reduce((acc, curr) => acc + curr, 0);
-          const difference = ethTxnsWeight - gasWeight;
-
-          if (difference > 0) {
-            debug(
-              `Block #${blockInfo.blockNum} has a ${((difference / ethTxnsWeight) * 100).toFixed(
-                2
-              )}% discrepancy between eth gas used and weight charged. `
-            );
-          }
-          return { blockNum: blockInfo.blockNum, gasWeight, ethTxnsWeight, difference };
-        };
-
-        const results = await Promise.all(
-          blockInfoArray.map((blockInfo) => limiter.schedule(() => compareGasToWeight(blockInfo)))
-        );
-        const discrepancies = results.filter((a) => a.difference > 0);
-        expect(
-          discrepancies,
-          `These blocks have mismatching gas used vs charged weight, 
-        please investigate: ${discrepancies.map((a) => a.blockNum).join(", ")}`
-        ).to.be.empty;
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
       }
-    );
+
+      debug(
+        `Checking if #${blockInfoArray[0].blockNum} - #${
+          blockInfoArray[blockInfoArray.length - 1].blockNum
+        } weights match gasUsed`
+      );
+
+      const compareGasToWeight = async (blockInfo: BlockInfo) => {
+        const apiAt = await context.polkadotApi.at(blockInfo.hash);
+        const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockInfo.hash);
+        const gasUsed = (await apiAt.query.ethereum.currentBlock())
+          .unwrap()
+          .header.gasUsed.toNumber();
+
+        const gasWeight = gasUsed * Number(WEIGHT_PER_GAS);
+        const ethTxnsWeight = signedBlock.block.extrinsics
+          .map((item, index) => {
+            if (item.method.method == "transact" && item.method.section == "ethereum") {
+              return blockInfo.events
+                .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+                .filter(
+                  ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
+                )
+                .reduce(
+                  (acc, curr) =>
+                    acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
+                  0
+                );
+            } else {
+              return 0;
+            }
+          })
+          .reduce((acc, curr) => acc + curr, 0);
+        const difference = ethTxnsWeight - gasWeight;
+
+        if (difference > 0) {
+          debug(
+            `Block #${blockInfo.blockNum} has a ${((difference / ethTxnsWeight) * 100).toFixed(
+              2
+            )}% discrepancy between eth gas used and weight charged. `
+          );
+        }
+        return { blockNum: blockInfo.blockNum, gasWeight, ethTxnsWeight, difference };
+      };
+
+      const results = await Promise.all(
+        blockInfoArray.map((blockInfo) => limiter.schedule(() => compareGasToWeight(blockInfo)))
+      );
+      const discrepancies = results.filter((a) => a.difference > 0);
+      expect(
+        discrepancies,
+        `These blocks have mismatching gas used vs charged weight, 
+        please investigate: ${discrepancies.map((a) => a.blockNum).join(", ")}`
+      ).to.be.empty;
+    });
   }
 );
