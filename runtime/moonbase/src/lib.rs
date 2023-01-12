@@ -780,7 +780,8 @@ impl Default for ProxyType {
 	}
 }
 
-use precompiles::PrecompileName;
+// Be careful: Each time this filter is modified, the substrate filter must also be modified
+// consistently.
 impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	// TODO: add opengov precompiles
 	fn is_evm_proxy_call_allowed(
@@ -789,6 +790,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		recipient_has_code: bool,
 	) -> bool {
 		use pallet_evm::PrecompileSet as _;
+		use precompiles::PrecompileName;
 		match self {
 			ProxyType::Any => {
 				//
@@ -879,6 +881,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	}
 }
 
+// Be careful: Each time this filter is modified, the EVM filter must also be modified consistently.
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
