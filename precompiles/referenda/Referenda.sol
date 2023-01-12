@@ -41,7 +41,7 @@ interface Referenda {
         );
 
     /// @dev Submit a referenda
-    /// @custom:selector d865f8e8
+    /// @custom:selector 767820eb
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
     /// @param hash Hash of the proposal preimage

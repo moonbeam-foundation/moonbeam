@@ -328,9 +328,9 @@ impl pallet_referenda::Config for Runtime {
 }
 
 pub struct GovOrigin;
-impl TryFrom<u8> for GovOrigin {
+impl TryFrom<u16> for GovOrigin {
 	type Error = ();
-	fn try_from(_i: u8) -> Result<GovOrigin, ()> {
+	fn try_from(_i: u16) -> Result<GovOrigin, ()> {
 		Ok(GovOrigin)
 	}
 }
