@@ -90,14 +90,10 @@ where
 
 	#[precompile::public("decidingCount(uint256)")]
 	#[precompile::view]
-	fn deciding_count(
-		handle: &mut impl PrecompileHandle,
-		track_id: SolidityConvert<U256, u16>,
-	) -> EvmResult<U256> {
+	fn deciding_count(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<U256> {
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
-			.converted()
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
 			.in_field("track")?;
@@ -115,12 +111,11 @@ where
 	#[precompile::view]
 	fn track_info(
 		handle: &mut impl PrecompileHandle,
-		track_id: SolidityConvert<U256, u16>,
+		track_id: u16,
 	) -> EvmResult<(U256, U256, U256, U256, U256, U256)> {
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
-			.converted()
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
 			.in_field("track")?;

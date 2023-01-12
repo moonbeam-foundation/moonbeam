@@ -14,6 +14,18 @@ ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
 /// @title The interface through which solidity contracts will interact with the Conviction Voting pallet
 /// @custom:address 0x0000000000000000000000000000000000000812
 interface ConvictionVoting {
+    /// @dev Defines the conviction multiplier type represented as `uint8`.
+    /// The values start at `0` with 0.1x multiplier and votes unlocked.
+    enum Conviction {
+        None,
+        Locked1x,
+        Locked2x,
+        Locked3x,
+        Locked4x,
+        Locked5x,
+        Locked6x
+    }
+
     /// @dev Vote in a poll.
     /// @custom:selector f56cb3b3
     /// @param pollIndex Index of poll
@@ -24,7 +36,7 @@ interface ConvictionVoting {
         uint256 pollIndex,
         bool aye,
         uint256 voteAmount,
-        uint256 conviction
+        Conviction conviction
     ) external;
 
     /// @dev Remove vote in poll

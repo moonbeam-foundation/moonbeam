@@ -84,9 +84,9 @@ where
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
-		let poll_index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
+		let poll_index = Self::u32_to_index(poll_index).in_field("poll_index")?;
 		let vote_amount = Self::u256_to_amount(vote_amount).in_field("vote_amount")?;
-		let conviction = Self::u8_to_conviction(conviction.converted()).in_field("conviction")?;
+		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
 		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
@@ -107,11 +107,8 @@ where
 	}
 
 	#[precompile::public("removeVote(uint256)")]
-	fn remove_vote(
-		handle: &mut impl PrecompileHandle,
-		poll_index: SolidityConvert<U256, u32>,
-	) -> EvmResult {
-		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
+	fn remove_vote(handle: &mut impl PrecompileHandle, poll_index: u32) -> EvmResult {
+		let index = Self::u32_to_index(poll_index).in_field("poll_index")?;
 
 		log::trace!(
 			target: "conviction-voting-precompile",
@@ -131,11 +128,11 @@ where
 	fn remove_other_vote(
 		handle: &mut impl PrecompileHandle,
 		target: Address,
-		class: SolidityConvert<U256, u16>,
-		poll_index: SolidityConvert<U256, u32>,
+		class: u16,
+		poll_index: u32,
 	) -> EvmResult {
-		let class = Self::u16_to_class(class.converted()).in_field("class")?;
-		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
+		let class = Self::u16_to_class(class).in_field("class")?;
+		let index = Self::u32_to_index(poll_index).in_field("poll_index")?;
 
 		let target = Runtime::AddressMapping::into_account_id(target.into());
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -162,14 +159,14 @@ where
 	#[precompile::public("delegate(uint256,address,uint256,uint256)")]
 	fn delegate(
 		handle: &mut impl PrecompileHandle,
-		class: SolidityConvert<U256, u16>,
+		class: u16,
 		representative: Address,
-		conviction: SolidityConvert<U256, u8>,
+		conviction: u8,
 		amount: U256,
 	) -> EvmResult {
-		let class = Self::u16_to_class(class.converted()).in_field("class")?;
+		let class = Self::u16_to_class(class).in_field("class")?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
-		let conviction = Self::u8_to_conviction(conviction.converted()).in_field("conviction")?;
+		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
 		log::trace!(target: "conviction-voting-precompile",
 			"Delegating vote to {:?} with balance {:?} and conviction {:?}",
@@ -192,11 +189,8 @@ where
 		Ok(())
 	}
 	#[precompile::public("undelegate(uint256)")]
-	fn undelegate(
-		handle: &mut impl PrecompileHandle,
-		class: SolidityConvert<U256, u16>,
-	) -> EvmResult {
-		let class = Self::u16_to_class(class.converted()).in_field("class")?;
+	fn undelegate(handle: &mut impl PrecompileHandle, class: u16) -> EvmResult {
+		let class = Self::u16_to_class(class).in_field("class")?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
@@ -205,12 +199,8 @@ where
 		Ok(())
 	}
 	#[precompile::public("unlock(uint256,address)")]
-	fn unlock(
-		handle: &mut impl PrecompileHandle,
-		class: SolidityConvert<U256, u16>,
-		target: Address,
-	) -> EvmResult {
-		let class = Self::u16_to_class(class.converted()).in_field("class")?;
+	fn unlock(handle: &mut impl PrecompileHandle, class: u16, target: Address) -> EvmResult {
+		let class = Self::u16_to_class(class).in_field("class")?;
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
