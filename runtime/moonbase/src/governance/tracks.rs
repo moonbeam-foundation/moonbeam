@@ -164,8 +164,8 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9]
 			decision_period: 14 * DAYS,
 			confirm_period: 1 * DAYS,
 			min_enactment_period: 1 * DAYS,
-			min_approval: Curve = Curve::make_reciprocal(4, 14, percent(80), percent(50), percent(100)),
-			min_support: Curve = Curve::make_reciprocal(7, 14, percent(10), percent(0), percent(50)),
+			min_approval: Curve::make_reciprocal(4, 14, percent(80), percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(7, 14, percent(10), percent(0), percent(50)),
 		},
 	),
 ];
