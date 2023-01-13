@@ -41,16 +41,26 @@ interface Referenda {
         );
 
     /// @dev Submit a referenda
-    /// @custom:selector 767820eb
+    /// @custom:selector 95f9ed68
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
     /// @param hash Hash of the proposal preimage
-    /// @param at If true then AT block_number, else AFTER block_number
-    /// @param block Inner block number for DispatchTime
-    function submit(
+    /// @param block Block number at which this will be executed
+    function submitAt(
         uint16 trackId,
         bytes memory hash,
-        bool at,
+        uint32 block
+    ) external;
+
+    /// @dev Submit a referenda
+    /// @custom:selector 0a1ecbe9
+    /// @param trackId The trackId corresponding to the origin from which the proposal is to be
+    /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
+    /// @param hash Hash of the proposal preimage
+    /// @param block Block number after which this will be executed
+    function submitAfter(
+        uint16 trackId,
+        bytes memory hash,
         uint32 block
     ) external;
 

@@ -14,8 +14,15 @@ ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
 /// @title The interface through which solidity contracts will interact with the Conviction Voting pallet
 /// @custom:address 0x0000000000000000000000000000000000000812
 interface ConvictionVoting {
-    /// @dev Defines the conviction multiplier type represented as `uint8`.
-    /// The values start at `0` with 0.1x multiplier and votes unlocked.
+    /// @dev Defines the conviction multiplier type.
+    /// The values start at `0` and are represented as `uint8`.
+    /// None => 0.1x votes, unlocked.
+    /// Locked1x => 1x votes, locked for an enactment period following a successful vote.
+    /// Locked2x => 2x votes, locked for 2x enactment periods following a successful vote
+    /// Locked3x => 3x votes, locked for 4x...
+    /// Locked4x => 4x votes, locked for 8x...,
+    /// Locked5x => 5x votes, locked for 16x...
+    /// Locked6x => 6x votes, locked for 32x...
     enum Conviction {
         None,
         Locked1x,
@@ -47,35 +54,35 @@ interface ConvictionVoting {
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
     //// @param target The voter to have vote removed
-    /// @param class The class
+    /// @param trackId The trackId
     /// @param pollIndex the poll index
     function removeOtherVote(
         address target,
-        uint16 class,
+        uint16 trackId,
         uint32 pollIndex
     ) external;
 
-    /// @dev Delegate to a representative for the vote class
+    /// @dev Delegate to a representative for the vote trackId
     /// @custom:selector 681750e8
-    /// @param class The class
-    /// @param representative The representative for the class
+    /// @param trackId The trackId
+    /// @param representative The representative for the trackId
     /// @param conviction The conviction multiplier
-    /// @param amount delegated to representative for this vote class
+    /// @param amount delegated to representative for this vote trackId
     function delegate(
-        uint16 class,
+        uint16 trackId,
         address representative,
         Conviction conviction,
         uint256 amount
     ) external;
 
-    /// @dev Undelegate for the vote class
+    /// @dev Undelegate for the trackId
     /// @custom:selector 98be4094
-    /// @param class The class
-    function undelegate(uint16 class) external;
+    /// @param trackId The trackId
+    function undelegate(uint16 trackId) external;
 
-    /// @dev Unlock tokens locked for vote class
+    /// @dev Unlock tokens locked for trackId
     /// @custom:selector 4259d98c
-    /// @param class The class
+    /// @param trackId The trackId
     /// @param target The target address
-    function unlock(uint16 class, address target) external;
+    function unlock(uint16 trackId, address target) external;
 }
