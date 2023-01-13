@@ -45,11 +45,14 @@ pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc2
 pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 pallet-evm-precompile-call-permit = { path = "../../precompiles/call-permit", default-features = false }
 pallet-evm-precompile-collective = { path = "../../precompiles/collective", default-features = false }
+pallet-evm-precompile-conviction-voting = { path = "../../precompiles/conviction-voting", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-evm-precompile-preimage = { path = "../../precompiles/preimage", default-features = false }
 pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
 pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
+pallet-evm-precompile-referenda = { path = "../../precompiles/referenda", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
@@ -204,9 +207,12 @@ std = [
 	"pallet-evm-precompile-batch/std",
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
+	"pallet-evm-precompile-conviction-voting/std",
 	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-preimage/std",
 	"pallet-evm-precompile-randomness/std",
+	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
@@ -220,8 +226,8 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
-	"pallet-referenda/std",
 	"pallet-randomness/std",
+	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-timestamp/std",
@@ -290,8 +296,8 @@ runtime-benchmarks = [
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
-	"pallet-referenda/std",
 	"pallet-randomness/runtime-benchmarks",
+	"pallet-referenda/std",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-whitelist/runtime-benchmarks",
