@@ -85,7 +85,17 @@ interface ParachainStaking {
     function candidateDelegationCount(address candidate)
         external
         view
-        returns (uint256);
+        returns (uint32);
+
+    /// @dev Get the CandidateAutoCompoundingDelegationCount weight hint
+    /// @custom:selector 905f0806
+    /// @param candidate The address for which we are querying the auto compounding
+    ///     delegation count
+    /// @return The number of auto compounding delegations
+    function candidateAutoCompoundingDelegationCount(address candidate)
+        external
+        view
+        returns (uint32);
 
     /// @dev Get the DelegatorDelegationCount weight hint
     /// @custom:selector 067ec822
