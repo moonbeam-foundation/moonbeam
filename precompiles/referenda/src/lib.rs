@@ -24,6 +24,7 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
+use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::U256;
 use sp_std::{boxed::Box, marker::PhantomData};
@@ -62,7 +63,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	Runtime::BlockNumber: Into<U256>,
-	TrackIdOf<Runtime>: TryFrom<u16>,
+	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	GovOrigin: TryFrom<u16>,
 {
@@ -108,15 +109,42 @@ where
 		Ok(deciding_count.into())
 	}
 
-	//TODO: fn track_ids()
+	#[precompile::public("trackIds()")]
+	#[precompile::view]
+	fn track_ids(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
+		// Fetch data from runtime
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
+			.into_iter()
+			.filter_map(|x| {
+				if let Ok(track_id) = x.0.try_into() {
+					Some(track_id)
+				} else {
+					None
+				}
+			})
+			.collect();
+
+		Ok(track_ids)
+	}
 
 	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
 	fn track_info(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
-	) -> EvmResult<(U256, U256, U256, U256, U256, U256)> {
-		// Fetch data from pallet
+	) -> EvmResult<(
+		UnboundedBytes,
+		U256,
+		U256,
+		U256,
+		U256,
+		U256,
+		U256,
+		UnboundedBytes,
+		UnboundedBytes,
+	)> {
+		// Fetch data from runtime
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
@@ -129,13 +157,15 @@ where
 		let track_info = &tracks[index].1;
 
 		Ok((
-			// TODO: string name, balances and assets return token name
+			track_info.name.as_bytes().into(),
 			track_info.max_deciding.into(),
 			track_info.decision_deposit.into(),
 			track_info.prepare_period.into(),
 			track_info.decision_period.into(),
 			track_info.confirm_period.into(),
 			track_info.min_enactment_period.into(),
+			track_info.min_approval.encode().into(),
+			track_info.min_support.encode().into(),
 		))
 	}
 
