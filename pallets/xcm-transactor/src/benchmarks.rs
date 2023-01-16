@@ -262,7 +262,7 @@ benchmarks! {
 		).unwrap();
 	}: _(
 		RawOrigin::Root,
-		HrmpOperation::Accept(1000u32.into()),
+		HrmpOperation::Accept{ para_id: 1000u32.into() },
 		CurrencyPayment {
 			// This might involve a db Read when translating, therefore worst case
 			currency: Currency::AsCurrencyId(currency),
