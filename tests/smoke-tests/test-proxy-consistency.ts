@@ -11,7 +11,7 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 const debug = require("debug")("smoke:proxy");
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created`, "S1600", (context) => {
+describeSmokeSuite("S1600", `Verify account proxies created`, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see

@@ -11,8 +11,8 @@ export interface SmokeTestContext {
 }
 
 export function describeSmokeSuite(
-  title: string,
   suiteNumber: string,
+  title: string,
   cb: (context: SmokeTestContext) => void
 ) {
   describe(`${title} #${suiteNumber}`, function () {

@@ -41,7 +41,7 @@ async function getKeysBeforeRound<
   return invalidRounds;
 }
 
-describeSmokeSuite(`Verify staking round cleanup`, "S2100", function (context) {
+describeSmokeSuite("S2100", `Verify staking round cleanup`, function (context) {
   before(function () {
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       debug("Skip Block Consistency flag set, skipping staking round cleanup tests.");

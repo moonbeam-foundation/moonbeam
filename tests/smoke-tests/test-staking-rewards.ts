@@ -19,7 +19,7 @@ import { FIVE_MINS, ONE_HOURS, TWO_HOURS } from "../util/constants";
 import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
 
-describeSmokeSuite(`When verifying ParachainStaking rewards`, "S2000", function (context) {
+describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function (context) {
   let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
   let apiAt: ApiDecoration<"promise">;
   let predecessorApiAt: ApiDecoration<"promise">;

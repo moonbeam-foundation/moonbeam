@@ -4,7 +4,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:decoding");
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
-describeSmokeSuite(`Polkadot API - Storage items`, "S1500", (context) => {
+describeSmokeSuite("S1500", `Polkadot API - Storage items`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;

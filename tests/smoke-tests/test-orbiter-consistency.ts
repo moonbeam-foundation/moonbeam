@@ -12,7 +12,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:orbiter");
 
-describeSmokeSuite(`Verify orbiters`, "S1400", (context) => {
+describeSmokeSuite("S1400", `Verify orbiters`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let collatorsPools: [

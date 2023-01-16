@@ -7,7 +7,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:randomness");
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
-describeSmokeSuite(`Verify randomness consistency`, "S1700", (context) => {
+describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 

@@ -6,7 +6,7 @@ import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:treasury");
 
-describeSmokeSuite(`Verify treasury consistency`, "S2200", (context) => {
+describeSmokeSuite("S2200", `Verify treasury consistency`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;

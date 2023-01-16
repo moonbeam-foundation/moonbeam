@@ -82,7 +82,6 @@ export async function startMoonbeamDevNode(
     `--no-telemetry`,
     `--reserved-only`,
     `--no-grandpa`,
-    `--database=paritydb`,
     `--no-prometheus`,
     `--force-authoring`,
     `--rpc-cors=all`,

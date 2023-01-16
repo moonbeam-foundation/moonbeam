@@ -33,8 +33,8 @@ function* range(from, to, step = 1) {
 }
 
 describeSmokeSuite(
-  `Ethereum CurrentBlock and CurrentReceipts should never be 0x00`,
   "S700",
+  `Ethereum CurrentBlock and CurrentReceipts should never be 0x00`,
   (context) => {
     it(`should have non default field values #C100`, async function () {
       this.timeout(6_000_000); // 30 minutes

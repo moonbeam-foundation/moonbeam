@@ -8,7 +8,7 @@ import { it } from "mocha";
 import { extractWeight } from "../util/block";
 const debug = require("debug")("smoke:treasury");
 
-describeSmokeSuite(`Verify XCM weight fees for relay`, "S1800", (context) => {
+describeSmokeSuite("S1800", `Verify XCM weight fees for relay`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;

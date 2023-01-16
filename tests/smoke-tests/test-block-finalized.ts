@@ -8,7 +8,7 @@ const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
-describeSmokeSuite(`Parachain blocks should be finalized`, "S400", (context) => {
+describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context) => {
   it(`should have a recently finalized block #C100`, async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);

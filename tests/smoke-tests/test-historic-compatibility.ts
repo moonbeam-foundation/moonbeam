@@ -10,7 +10,7 @@ const debug = require("debug")("smoke:historic-compatibility");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 const httpEndpoint = process.env.HTTP_URL;
 
-describeSmokeSuite(`Verifying historic compatibility`, "S1200", async (context) => {
+describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) => {
   let traceStatic: NetworkTestArtifact;
   let skipTest = { skip: false, networkName: "", chainId: "" };
   let blockNumber: number;

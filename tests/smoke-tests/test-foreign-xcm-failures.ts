@@ -7,7 +7,6 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ForeignChainsEndpoints, getEndpoints } from "../util/foreign-chains";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 const debug = require("debug")("smoke:foreign-xcm-fails");
-const suiteNumber = "S1100";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 30 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
 const limiter = new Bottleneck({ maxConcurrent: 20 });
@@ -23,9 +22,10 @@ type NetworkBlockEvents = {
 };
 
 describeSmokeSuite(
+  "S1100",
   `Foreign XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
     ` should not be serious`,
-  "S1100",
+
   (context) => {
     let networkBlockEvents: NetworkBlockEvents[];
 
