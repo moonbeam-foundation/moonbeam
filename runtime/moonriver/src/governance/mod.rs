@@ -24,7 +24,7 @@ use super::*;
 
 mod origins;
 pub use origins::{
-	custom_origins, ReferendumCanceller, ReferendumKiller, Spender, WhitelistedCaller,
+	custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, WhitelistedCaller,
 };
 mod tracks;
 pub use tracks::TracksInfo;
