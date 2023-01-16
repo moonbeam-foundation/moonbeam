@@ -132,7 +132,7 @@ export const proposeReferendaAndDeposit = async <
   const proposalHash =
     typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
 
-  // Ppost referenda
+  // Post referenda
   const { result: proposalResult } = await context.createBlock(
     context.polkadotApi.tx.referenda
       .submit(
@@ -161,6 +161,28 @@ export const proposeReferendaAndDeposit = async <
   );
 
   return [+refIndex, proposalHash];
+};
+
+// Proposes referenda and places decision deposit
+// Returns referendum index and proposal hash
+export const dispatchAsGeneralAdmin = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  context: DevTestContext,
+  call: string | Call,
+) => {
+  // Post referenda
+  await context.createBlock(
+    context.polkadotApi.tx.sudo.sudo(
+      context.polkadotApi.tx.utility.dispatchAs(
+        {
+          Origins: "GeneralAdmin"
+        } as any,
+        call
+      )
+    )
+  );
 };
 
 // Maximizes conviction voting of some voters
