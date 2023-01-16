@@ -17,7 +17,7 @@
 //! Track configurations for governance.
 
 use super::*;
-use crate::currency::{KILOMOVR, SUPPLY_FACTOR};
+use crate::currency::{KILOMOVR, MOVR, SUPPLY_FACTOR};
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
@@ -79,7 +79,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 		pallet_referenda::TrackInfo {
 			name: "general_admin",
 			max_deciding: 10,
-			decision_deposit: 500 * SUPPLY_FACTOR,
+			decision_deposit: 500 * MOVR * SUPPLY_FACTOR,
 			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
 			confirm_period: 1 * DAYS,
