@@ -115,7 +115,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*};
+use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
