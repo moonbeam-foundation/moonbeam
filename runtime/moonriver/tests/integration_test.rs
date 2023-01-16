@@ -295,7 +295,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Identity>(33);
 	is_pallet_index::<moonriver_runtime::Migrations>(34);
 	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
-	is_pallet_index::<moonriver_runtime::OpenTechCommitteeCollective>(46);
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
@@ -307,6 +306,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonriver_runtime::TechCommitteeCollective>(71);
 	is_pallet_index::<moonriver_runtime::TreasuryCouncilCollective>(72);
+	is_pallet_index::<moonriver_runtime::OpenTechCommitteeCollective>(73);
 	// Treasury
 	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
