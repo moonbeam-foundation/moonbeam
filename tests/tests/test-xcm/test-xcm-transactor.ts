@@ -22,7 +22,7 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
   });
 
   it("GeneralAdmin should be able to dispatch hrmpManage", async function () {
-     // Just build the arguments. They dont matter that much though, since
+    // Just build the arguments. They dont matter that much though, since
     // we will not make sure it executes in the relay
     const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
       transactRequiredWeightAtMost: 10000,
@@ -43,12 +43,14 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
       feeAmount: 10000,
     }) as any;
 
-     // send HrmpManage
-    await dispatchAsGeneralAdmin(context, (context.polkadotApi.tx.xcmTransactor as any).hrmpManage(
-      { Accept: 2000 },
-      fee,
-      transactWeights
-    ) as any
+    // send HrmpManage
+    await dispatchAsGeneralAdmin(
+      context,
+      (context.polkadotApi.tx.xcmTransactor as any).hrmpManage(
+        { Accept: 2000 },
+        fee,
+        transactWeights
+      ) as any
     );
 
     // Filter for HrmpManagementSent events
