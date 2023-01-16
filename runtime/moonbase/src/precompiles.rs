@@ -154,7 +154,11 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 					RelayEncoderPrecompile<R, WestendEncoder>,
 					(CallableByContract, CallableByPrecompile),
 				>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>, CallableByContract>,
+				PrecompileAt<
+					AddressU64<2054>,
+					XcmTransactorPrecompileV1<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				PrecompileAt<
 					AddressU64<2055>,
 					AuthorMappingPrecompile<R>,
@@ -189,7 +193,11 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
 					CallableByContract<AllExceptXcmExecute<R, XcmExecutorConfig>>,
 				>,
-				PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>, CallableByContract>,
+				PrecompileAt<
+					AddressU64<2061>,
+					XcmTransactorPrecompileV2<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				PrecompileAt<
 					AddressU64<2062>,
 					CollectivePrecompile<R, CouncilInstance>,

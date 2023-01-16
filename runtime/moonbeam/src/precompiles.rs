@@ -151,7 +151,11 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 					RelayEncoderPrecompile<R, PolkadotEncoder>,
 					(CallableByContract, CallableByPrecompile),
 				>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>, CallableByContract>,
+				PrecompileAt<
+					AddressU64<2054>,
+					XcmTransactorPrecompileV1<R>,
+					(CallableByContract, CallableByPrecompile),
+				>,
 				PrecompileAt<
 					AddressU64<2055>,
 					AuthorMappingPrecompile<R>,
@@ -176,7 +180,12 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 					CallPermitPrecompile<R>,
 					(SubcallWithMaxNesting<0>, CallableByContract),
 				>,
-				// PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>>, (Moonbase only)
+				// (Moonbase only)
+				// PrecompileAt<
+				// 	AddressU64<2059>,
+				// 	ProxyPrecompile<R>,
+				// 	CallableByContract<OnlyIsProxy<R>>,
+				// >,
 				PrecompileAt<
 					AddressU64<2060>,
 					XcmUtilsPrecompile<R, XcmExecutorConfig>,
@@ -184,7 +193,12 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 						pallet_evm_precompile_xcm_utils::AllExceptXcmExecute<R, XcmExecutorConfig>,
 					>,
 				>,
-				// PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>>, (Moonbase only)
+				// (Moonbase only)
+				// PrecompileAt<
+				// 	AddressU64<2061>,
+				// 	XcmTransactorPrecompileV2<R>,
+				// 	(CallableByContract, CallableByPrecompile),
+				// >,
 				PrecompileAt<
 					AddressU64<2062>,
 					CollectivePrecompile<R, CouncilInstance>,
