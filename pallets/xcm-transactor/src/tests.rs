@@ -1205,7 +1205,9 @@ fn test_hrmp_manipulator_accept() {
 
 			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
-				HrmpOperation::Accept(1u32.into()),
+				HrmpOperation::Accept {
+					para_id: 1u32.into()
+				},
 				CurrencyPayment {
 					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
 						MultiLocation::parent()

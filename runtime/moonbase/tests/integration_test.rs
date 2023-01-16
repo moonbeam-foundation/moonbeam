@@ -2505,7 +2505,9 @@ fn root_can_use_hrmp_manage() {
 			assert_noop!(
 				XcmTransactor::hrmp_manage(
 					root_origin(),
-					HrmpOperation::Accept(2000u32.into()),
+					HrmpOperation::Accept {
+						para_id: 2000u32.into()
+					},
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
 							xcm::VersionedMultiLocation::V1(MultiLocation::parent())

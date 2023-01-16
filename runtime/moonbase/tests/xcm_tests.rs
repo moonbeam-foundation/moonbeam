@@ -3231,7 +3231,9 @@ fn hrmp_init_accept_through_root() {
 		// Root can send hrmp init channel
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
-			HrmpOperation::Accept(1u32.into()),
+			HrmpOperation::Accept {
+				para_id: 1u32.into()
+			},
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
 					MultiLocation::parent()

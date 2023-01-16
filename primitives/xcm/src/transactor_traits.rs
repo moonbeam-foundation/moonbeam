@@ -18,14 +18,14 @@ use sp_std::vec::Vec;
 use xcm::latest::{Error as XcmError, MultiLocation};
 
 // The utility calls that need to be implemented as part of
-// this pallet
+// using a derivative account from a certain account
 #[derive(Debug, PartialEq, Eq)]
 pub enum UtilityAvailableCalls {
 	AsDerivative(u16, Vec<u8>),
 }
 
 // The hrmp calls that need to be implemented as part of
-// this pallet
+// HRMP management process
 #[derive(Debug, PartialEq, Eq)]
 pub enum HrmpAvailableCalls {
 	InitOpenChannel(ParaId, u32, u32),
@@ -33,12 +33,12 @@ pub enum HrmpAvailableCalls {
 	CloseChannel(HrmpChannelId),
 }
 
-// Trait that the ensures we can encode a call with utility and hrmp functions.
+// Trait that the ensures we can encode a call with utility functions.
+// With this trait we ensure that the user cannot control entirely the call
+// to be performed in the destination chain. It only can control the call inside
+// the as_derivative extrinsic, and thus, this call can only be dispatched from the
+// derivative account
 pub trait UtilityEncodeCall {
-	// With this trait we ensure that the user cannot control entirely the call
-	// to be performed in the destination chain. It only can control the call inside
-	// the as_derivative extrinsic, and thus, this call can only be dispatched from the
-	// derivative account
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
 }
 
@@ -56,9 +56,7 @@ impl HrmpEncodeCall for () {
 }
 
 // Trait to ensure we can retrieve the destination if a given type
-// It must implement RelayEncodeCall
-// We separate this in two traits to be able to implement RelayEncodeCall separately
-// for different runtimes of our choice
+// It must implement UtilityEncodeCall
 pub trait XcmTransact: UtilityEncodeCall {
 	/// Encode call from the relay.
 	fn destination(self) -> MultiLocation;

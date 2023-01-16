@@ -225,7 +225,7 @@ pub mod pallet {
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
 	pub enum HrmpOperation {
 		InitOpen(HrmpInitParams),
-		Accept(ParaId),
+		Accept { para_id: ParaId },
 		Close(HrmpChannelId),
 	}
 
@@ -754,7 +754,7 @@ pub mod pallet {
 						params.proposed_max_message_size,
 					))
 				}
-				HrmpOperation::Accept(para_id) => {
+				HrmpOperation::Accept { para_id } => {
 					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
