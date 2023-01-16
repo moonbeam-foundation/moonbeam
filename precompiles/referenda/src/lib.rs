@@ -27,7 +27,7 @@ use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, Tr
 use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::U256;
-use sp_std::{boxed::Box, marker::PhantomData};
+use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
 mod mock;

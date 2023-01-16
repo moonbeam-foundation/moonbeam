@@ -108,7 +108,7 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, referenda::*};
+use governance::{councils::*};
 
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -516,7 +516,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = TreasurySpender;
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
