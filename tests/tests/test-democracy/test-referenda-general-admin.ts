@@ -33,7 +33,7 @@ describeDevMoonbeam("Referenda - GeneralAdmin", (context) => {
 
     // The proposal itself
     const proposal = (context.polkadotApi.tx.xcmTransactor as any).hrmpManage(
-      { Accept: { para_id : 2000 } },
+      { Accept: { para_id: 2000 } },
       fee,
       transactWeights
     ) as any;
