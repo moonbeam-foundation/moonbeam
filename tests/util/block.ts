@@ -20,6 +20,10 @@ import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/type
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { ITuple } from "@polkadot/types-codec/types";
 import Bottleneck from "bottleneck";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { BlockNumber } from "@polkadot/types/interfaces";
+import { u8aToHex } from "@polkadot/util";
+
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -342,6 +346,27 @@ export async function jumpToRound(context: DevTestContext, round: Number): Promi
 
     lastBlockHash = (await context.createBlock()).block.hash.toString();
   }
+}
+
+export async function mockBlockNumber(
+  context: DevTestContext,
+  number: Number
+): Promise<string | null> {
+  const blockNum: BlockNumber = context.polkadotApi.createType("BlockNumber", number) as any;
+
+  // Get keys to modify state
+  const module = xxhashAsU8a(new TextEncoder().encode("System"), 128);
+  const account_key = xxhashAsU8a(new TextEncoder().encode("Number"), 128);
+
+  const overallKey = new Uint8Array([...module, ...account_key]);
+
+  console.log("overall key", u8aToHex(overallKey));
+  await context.createBlock(
+    context.polkadotApi.tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(blockNum.toU8a())]])
+  );
+  let lastBlockHash = (await context.polkadotApi.rpc.chain.getHeader()).hash.toString();
+
+  return lastBlockHash;
 }
 
 export async function jumpRounds(context: DevTestContext, count: Number): Promise<string | null> {
