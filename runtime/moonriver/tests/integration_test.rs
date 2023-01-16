@@ -125,6 +125,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::TechCommitteeCollective>("TechCommitteeCollective");
+	is_pallet_prefix::<moonriver_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonriver_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonriver_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
@@ -254,6 +257,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -286,6 +295,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Identity>(33);
 	is_pallet_index::<moonriver_runtime::Migrations>(34);
 	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
+	is_pallet_index::<moonriver_runtime::OpenTechCommitteeCollective>(46);
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);

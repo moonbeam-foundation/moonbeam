@@ -17,7 +17,7 @@
 use crate::{
 	asset_config::{ForeignAssetInstance, LocalAssetInstance},
 	xcm_config::XcmExecutorConfig,
-	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
@@ -128,6 +128,7 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
 				PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
 				PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
+				PrecompileAt<AddressU64<2068>, CollectivePrecompile<R, OpenTechCommitteeInstance>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)

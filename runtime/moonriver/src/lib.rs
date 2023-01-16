@@ -106,7 +106,10 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonriverPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod governance;
 pub mod xcm_config;
+
+pub use governance::councils::*;
 
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -1229,6 +1232,8 @@ construct_runtime! {
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 
 		// Sudo was previously index 40
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
