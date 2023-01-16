@@ -170,14 +170,14 @@ export const dispatchAsGeneralAdmin = async <
   ApiType extends ApiTypes
 >(
   context: DevTestContext,
-  call: string | Call,
+  call: string | Call
 ) => {
   // Post referenda
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.utility.dispatchAs(
         {
-          Origins: "GeneralAdmin"
+          Origins: "GeneralAdmin",
         } as any,
         call
       )
