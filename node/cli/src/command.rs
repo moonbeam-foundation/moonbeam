@@ -812,10 +812,21 @@ pub fn run() -> Result<()> {
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
+				info!(
+					"Is collating: {}",
+					if config.role.is_authority() {
+						"yes"
+					} else {
+						"no"
+					}
+				);
 
 				if rpc_config.relay_chain_rpc_url.is_some() && cli.relaychain_args.len() > 0 {
-					warn!("Detected relay chain node arguments together with --relay-chain-rpc-url. This command starts a minimal Polkadot node that only uses a network-related subset of all relay chain CLI options.");
+					warn!(
+						"Detected relay chain node arguments together with \
+					--relay-chain-rpc-url. This command starts a minimal Polkadot node that only \
+					uses a network-related subset of all relay chain CLI options."
+					);
 				}
 
 				match &config.chain_spec {
