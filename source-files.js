@@ -27,7 +27,7 @@ var sourcesIndex = JSON.parse('{\
 "moonbeam_vrf":["",[],["lib.rs"]],\
 "moonbeam_xcm_benchmarks":["",[["weights",[],["mod.rs","moonbeam_xcm_benchmarks_fungible.rs","moonbeam_xcm_benchmarks_generic.rs"]]],["lib.rs"]],\
 "moonkey":["",[],["main.rs"]],\
-"moonriver_runtime":["",[],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
+"moonriver_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_author_mapping":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_ethereum_chain_id":["",[],["lib.rs"]],\
