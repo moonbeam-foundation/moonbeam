@@ -66,6 +66,13 @@ impl From<MockAccount> for H160 {
 	}
 }
 
+impl From<MockAccount> for [u8; 20] {
+	fn from(account: MockAccount) -> [u8; 20] {
+		let x: H160 = account.into();
+		x.into()
+	}
+}
+
 impl From<MockAccount> for H256 {
 	fn from(x: MockAccount) -> H256 {
 		let x: H160 = x.into();
@@ -76,6 +83,13 @@ impl From<MockAccount> for H256 {
 impl From<H160> for MockAccount {
 	fn from(address: H160) -> MockAccount {
 		MockAccount(address)
+	}
+}
+
+impl From<[u8; 20]> for MockAccount {
+	fn from(address: [u8; 20]) -> MockAccount {
+		let x: H160 = address.into();
+		MockAccount(x)
 	}
 }
 

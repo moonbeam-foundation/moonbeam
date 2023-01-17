@@ -16,6 +16,7 @@
 
 use crate::AvailableStakeCalls;
 use crate::StakeEncodeCall;
+use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
@@ -25,6 +26,8 @@ use sp_std::vec::Vec;
 pub enum RelayCall {
 	#[codec(index = 1u8)]
 	Stake(StakeCall),
+	#[codec(index = 2u8)]
+	Hrmp(HrmpCall),
 }
 
 #[derive(Encode, Decode)]
@@ -54,6 +57,17 @@ pub enum StakeCall {
 	SetController(<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source),
 	#[codec(index = 19u16)]
 	Rebond(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
+}
+
+// HRMP call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	InitOpenChannel(ParaId, u32, u32),
+	#[codec(index = 1u8)]
+	AcceptOpenChannel(ParaId),
+	#[codec(index = 2u8)]
+	CloseChannel(HrmpChannelId),
 }
 
 pub struct TestEncoder;
@@ -94,6 +108,25 @@ impl StakeEncodeCall for TestEncoder {
 					a.iter().map(|add| (*add).clone().into()).collect();
 
 				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
+			}
+		}
+	}
+}
+
+impl xcm_primitives::HrmpEncodeCall for TestEncoder {
+	fn hrmp_encode_call(
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		match call {
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
+			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 		}
 	}

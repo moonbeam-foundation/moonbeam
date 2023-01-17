@@ -67,6 +67,8 @@ pub trait WeightInfo {
 	fn transact_through_sovereign() -> Weight;
 	#[rustfmt::skip]
 	fn transact_through_signed() -> Weight;
+	#[rustfmt::skip]
+	fn hrmp_manage() -> Weight;
 }
 
 /// Weights for xcm_transactor using the Substrate node and recommended hardware.
@@ -138,6 +140,20 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
+	// Storage: AssetManager AssetIdType (r:1 w:0)
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	#[rustfmt::skip]
+	fn hrmp_manage() -> Weight {
+		Weight::from_ref_time(70_766_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 }
 
 // For backwards compatibility and tests
@@ -205,6 +221,20 @@ impl WeightInfo for () {
 	#[rustfmt::skip]
 	fn transact_through_signed() -> Weight {
 		Weight::from_ref_time(73_282_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(8 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+	}
+	// Storage: AssetManager AssetIdType (r:1 w:0)
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	#[rustfmt::skip]
+	fn hrmp_manage() -> Weight {
+		Weight::from_ref_time(70_766_000 as u64)
 			.saturating_add(RocksDbWeight::get().reads(8 as u64))
 			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}

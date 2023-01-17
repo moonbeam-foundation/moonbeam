@@ -18,10 +18,10 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
     return (hex.length - 2) / 2;
   };
 
-  before(`Retrieve all contract bytecode`, async function () {
+  before("Retrieve all contract bytecode", async function () {
     this.timeout(3_000_000);
 
-    const limit = 1000;
+    const limit = 500;
     let last_key = "";
     let count = 0;
 

@@ -12,15 +12,12 @@
 // GNU General Public License for more details.
 
 //! Custom origins for governance interventions.
+#![cfg_attr(not(feature = "std"), no_std)]
 
-pub use pallet_custom_origins::*;
+pub use custom_origins::*;
 
 #[frame_support::pallet]
-pub mod pallet_custom_origins {
-	use crate::{
-		currency::{SUPPLY_FACTOR, UNIT},
-		Balance,
-	};
+pub mod custom_origins {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
@@ -32,20 +29,65 @@ pub mod pallet_custom_origins {
 	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
 	#[pallet::origin]
 	pub enum Origin {
-		/// Origin for spending (any amount of) funds.
-		Treasurer,
+		/// Origin able to dispatch a whitelisted call.
+		WhitelistedCaller,
+		/// General admin
+		GeneralAdmin,
 		/// Origin able to cancel referenda.
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
-		/// Origin able to spend up to 10,000 UNIT from the treasury at once.
-		SmallSpender,
-		/// Origin able to spend up to 100,000 UNIT from the treasury at once.
-		MediumSpender,
-		/// Origin able to spend up to 1,000,000 UNIT from the treasury at once.
-		BigSpender,
-		/// Origin able to dispatch a whitelisted call.
-		WhitelistedCaller,
+	}
+
+	// where is this used, comment out and check TODO
+	impl TryFrom<u8> for Origin {
+		type Error = ();
+		/// TrackId => Origin
+		fn try_from(value: u8) -> Result<Origin, ()> {
+			match value {
+				1 => Ok(Origin::WhitelistedCaller),
+				2 => Ok(Origin::GeneralAdmin),
+				3 => Ok(Origin::ReferendumCanceller),
+				4 => Ok(Origin::ReferendumKiller),
+				_ => Err(()),
+			}
+		}
+	}
+
+	impl TryFrom<u16> for Origin {
+		type Error = ();
+		/// TrackId => Origin
+		fn try_from(value: u16) -> Result<Origin, ()> {
+			(value as u8).try_into()
+		}
+	}
+
+	impl Into<u16> for Origin {
+		/// Origin => TrackId
+		fn into(self) -> u16 {
+			match self {
+				Origin::WhitelistedCaller => 1,
+				Origin::GeneralAdmin => 2,
+				Origin::ReferendumCanceller => 3,
+				Origin::ReferendumKiller => 4,
+			}
+		}
+	}
+
+	#[test]
+	fn origin_track_conversion_is_consistent() {
+		macro_rules! has_consistent_conversions {
+			( $o:expr ) => {
+				let origin_as_u16 = <Origin as Into<u16>>::into($o);
+				let u16_as_u8: u8 = origin_as_u16.try_into().unwrap();
+				let u8_as_origin: Origin = u16_as_u8.try_into().unwrap();
+				assert_eq!($o, u8_as_origin);
+			};
+		}
+		has_consistent_conversions!(Origin::WhitelistedCaller);
+		has_consistent_conversions!(Origin::GeneralAdmin);
+		has_consistent_conversions!(Origin::ReferendumCanceller);
+		has_consistent_conversions!(Origin::ReferendumKiller);
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -78,48 +120,10 @@ pub mod pallet_custom_origins {
 		};
 		() => {}
 	}
-	decl_unit_ensures!(ReferendumCanceller, ReferendumKiller, WhitelistedCaller,);
-
-	macro_rules! decl_ensure {
-		(
-			$vis:vis type $name:ident: EnsureOrigin<Success = $success_type:ty> {
-				$( $item:ident = $success:expr, )*
-			}
-		) => {
-			$vis struct $name;
-			impl<O: Into<Result<Origin, O>> + From<Origin>>
-				EnsureOrigin<O> for $name
-			{
-				type Success = $success_type;
-				fn try_origin(o: O) -> Result<Self::Success, O> {
-					o.into().and_then(|o| match o {
-						$(
-							Origin::$item => Ok($success),
-						)*
-						r => Err(O::from(r)),
-					})
-				}
-				#[cfg(feature = "runtime-benchmarks")]
-				fn try_successful_origin() -> Result<O, ()> {
-					// By convention the more privileged origins go later, so for greatest chance
-					// of success, we want the last one.
-					let _result: Result<O, ()> = Err(());
-					$(
-						let _result: Result<O, ()> = Ok(O::from(Origin::$item));
-					)*
-					_result
-				}
-			}
-		}
-	}
-
-	// Origins able to spend up to $AMOUNT from the treasury at once
-	decl_ensure! {
-		pub type Spender: EnsureOrigin<Success = Balance> {
-			SmallSpender = 200 * UNIT * SUPPLY_FACTOR,
-			MediumSpender = 2000 * UNIT * SUPPLY_FACTOR,
-			BigSpender = 10000 * UNIT * SUPPLY_FACTOR,
-			Treasurer = Balance::max_value(),
-		}
-	}
+	decl_unit_ensures!(
+		ReferendumCanceller,
+		ReferendumKiller,
+		WhitelistedCaller,
+		GeneralAdmin
+	);
 }
