@@ -115,7 +115,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, pallet_custom_origins, referenda::*};
+use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -530,16 +530,22 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = TreasurySpender;
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -659,10 +665,13 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+type MonetaryGovernanceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
+	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
 	/// Rounds before the collator leaving the candidates request can be executed
@@ -780,10 +789,21 @@ impl Default for ProxyType {
 	}
 }
 
+fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	matches!(
+		precompile_name,
+		PrecompileName::DemocracyPrecompile
+			| PrecompileName::CouncilInstance
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance,
+	)
+}
+
+use precompiles::PrecompileName;
+
 // Be careful: Each time this filter is modified, the substrate filter must also be modified
 // consistently.
 impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
-	// TODO: add opengov precompiles
 	fn is_evm_proxy_call_allowed(
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
@@ -793,7 +813,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		use precompiles::PrecompileName;
 		match self {
 			ProxyType::Any => {
-				//
 				match PrecompileName::from_address(call.to.0) {
 					// Any precompile that can execute a subcall should be forbidden here,
 					// to ensure that unauthorized smart contract can't be called
@@ -801,13 +820,9 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					// To be safe, we only allow the precompiles we need.
 					Some(
 						PrecompileName::AuthorMappingPrecompile
-						| PrecompileName::DemocracyPrecompile
-						| PrecompileName::ParachainStakingPrecompile
-						| PrecompileName::CouncilInstance
-						| PrecompileName::TechCommitteeInstance
-						| PrecompileName::TreasuryCouncilInstance
-						| PrecompileName::OpenTechCommitteeInstance,
+						| PrecompileName::ParachainStakingPrecompile,
 					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
 					// All non-whitelisted precompiles are forbidden
 					Some(_) => false,
 					// Allow evm transfer to "simple" account (no code nor precompile)
@@ -825,30 +840,20 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			}
 			ProxyType::NonTransfer => {
 				call.value == U256::default()
-					&& matches!(
-						PrecompileName::from_address(call.to.0),
+					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-								| PrecompileName::DemocracyPrecompile
-								| PrecompileName::ParachainStakingPrecompile
-								| PrecompileName::CouncilInstance
-								| PrecompileName::TechCommitteeInstance
-								| PrecompileName::TreasuryCouncilInstance
-								| PrecompileName::OpenTechCommitteeInstance
-						)
-					)
+							| PrecompileName::ParachainStakingPrecompile,
+						) => true,
+						Some(ref precompile) if is_governance_precompile(precompile) => true,
+						_ => false,
+					}
 			}
 			ProxyType::Governance => {
 				call.value == U256::default()
 					&& matches!(
 						PrecompileName::from_address(call.to.0),
-						Some(
-							PrecompileName::DemocracyPrecompile
-								| PrecompileName::CouncilInstance
-								| PrecompileName::TechCommitteeInstance
-								| PrecompileName::TreasuryCouncilInstance
-								| PrecompileName::OpenTechCommitteeInstance
-						)
+						Some(ref precompile) if is_governance_precompile(precompile)
 					)
 			}
 			ProxyType::Staking => {
@@ -1158,12 +1163,17 @@ parameter_types! {
 	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
+type AddCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type DelCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	type DelCollatorOrigin = DelCollatorOrigin;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
@@ -1283,7 +1293,7 @@ construct_runtime! {
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
-		Origins: pallet_custom_origins::{Origin} = 43,
+		Origins: governance::custom_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 		OpenTechCommitteeCollective:

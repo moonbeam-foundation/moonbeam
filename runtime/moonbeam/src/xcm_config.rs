@@ -459,6 +459,11 @@ impl orml_xtokens::Config for Runtime {
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 }
 
+// 1 DOT should be enough
+parameter_types! {
+	pub MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+
 // For now we only allow to transact in the relay, although this might change in the future
 // Transactors just defines the chains in which we allow transactions to be issued through
 // xcm
@@ -522,6 +527,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type HrmpEncoder = moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

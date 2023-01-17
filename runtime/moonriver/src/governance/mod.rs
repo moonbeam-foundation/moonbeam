@@ -17,5 +17,14 @@
 //! Governance configurations
 
 pub mod councils;
+mod democracy;
+pub mod referenda;
 
 use super::*;
+
+mod origins;
+pub use origins::{
+	custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, WhitelistedCaller,
+};
+mod tracks;
+pub use tracks::TracksInfo;

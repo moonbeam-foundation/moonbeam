@@ -32,7 +32,9 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 pub use xcm_primitives::XcmV2Weight;
-use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+use xcm_primitives::{
+	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
@@ -206,12 +208,25 @@ pub enum RelayCall {
 	#[codec(index = 0u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
+	#[codec(index = 1u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Hrmp(HrmpCall),
 }
 
 #[derive(Encode, Decode)]
 pub enum UtilityCall {
 	#[codec(index = 0u8)]
 	AsDerivative(u16),
+}
+
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	Init(),
+	#[codec(index = 1u8)]
+	Accept(),
+	#[codec(index = 2u8)]
+	Close(),
 }
 
 // Transactors for the mock runtime. Only relay chain
@@ -246,6 +261,22 @@ impl UtilityEncodeCall for Transactors {
 					call
 				}
 			},
+		}
+	}
+}
+
+pub struct MockHrmpEncoder;
+
+impl HrmpEncodeCall for MockHrmpEncoder {
+	fn hrmp_encode_call(call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
+		match call {
+			HrmpAvailableCalls::InitOpenChannel(_, _, _) => {
+				Ok(RelayCall::Hrmp(HrmpCall::Init()).encode())
+			}
+			HrmpAvailableCalls::AcceptOpenChannel(_) => {
+				Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
+			}
+			HrmpAvailableCalls::CloseChannel(_) => Ok(RelayCall::Hrmp(HrmpCall::Close()).encode()),
 		}
 	}
 }
@@ -306,6 +337,11 @@ impl SendXcm for TestSendXcm {
 	}
 }
 
+parameter_types! {
+	pub MaxFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+pub type MaxHrmpRelayFee = xcm_builder::Case<MaxFee>;
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -323,6 +359,9 @@ impl Config for Test {
 	type XcmSender = TestSendXcm;
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
+	type HrmpManipulatorOrigin = EnsureRoot<u64>;
+	type MaxHrmpFee = MaxHrmpRelayFee;
+	type HrmpEncoder = MockHrmpEncoder;
 }
 
 pub(crate) struct ExtBuilder {

@@ -108,6 +108,7 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
+use governance::councils::*;
 
 pub use governance::councils::*;
 
@@ -483,111 +484,6 @@ impl pallet_preimage::Config for Runtime {
 	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
 }
 
-type CouncilInstance = pallet_collective::Instance1;
-type TechCommitteeInstance = pallet_collective::Instance2;
-type TreasuryCouncilInstance = pallet_collective::Instance3;
-
-impl pallet_collective::Config<CouncilInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the council at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of council members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the technical committee at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of technical committee members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the treasury council at once.
-	type MaxProposals = ConstU32<20>;
-	/// The maximum number of treasury council members.
-	type MaxMembers = ConstU32<9>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
-// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
-// block as a round change.
-const ENACTMENT_OFFSET: u32 = 300;
-
-impl pallet_democracy::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 1 * DAYS + ENACTMENT_OFFSET }>;
-	type LaunchPeriod = ConstU32<{ 1 * DAYS }>;
-	type VotingPeriod = ConstU32<{ 5 * DAYS }>;
-
-	type VoteLockingPeriod = ConstU32<{ 1 * DAYS }>;
-	type FastTrackVotingPeriod = ConstU32<{ 3 * HOURS }>;
-	type MinimumDeposit = ConstU128<{ 4 * currency::MOVR * currency::SUPPLY_FACTOR }>;
-	/// To decide what their next motion is.
-	type ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>;
-	/// To have the next scheduled referendum be a straight majority-carries vote.
-	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
-	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To allow a shorter voting/enactment period for external proposals.
-	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 1, 2>;
-	/// To instant fast track.
-	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
-	// To cancel a proposal which has been passed.
-	type CancellationOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
-	>;
-	// To cancel a proposal before it has been passed.
-	type CancelProposalOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
-	>;
-	type BlacklistOrigin = EnsureRoot<AccountId>;
-	// Any single technical committee member may veto a coming council proposal, however they can
-	// only do it once and it lasts only for the cooloff period.
-	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
-	type CooloffPeriod = ConstU32<{ 7 * DAYS }>;
-	type Slash = ();
-	type InstantAllowed = ConstBool<true>;
-	type Scheduler = Scheduler;
-	type MaxVotes = ConstU32<100>;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
-	type MaxProposals = ConstU32<100>;
-	type Preimages = Preimage;
-	type MaxDeposits = ConstU32<100>;
-	type MaxBlacklisted = ConstU32<100>;
-}
-
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
@@ -627,11 +523,17 @@ impl pallet_treasury::Config for Runtime {
 
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -725,10 +627,13 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+type MonetaryGovernanceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
+	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
 	/// Rounds before the collator leaving the candidates request can be executed
@@ -1125,12 +1030,17 @@ parameter_types! {
 	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
+type AddCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type DelCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	type DelCollatorOrigin = DelCollatorOrigin;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
@@ -1242,6 +1152,10 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 62,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 63,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 64,
+		Origins: governance::custom_origins::{Origin} = 65,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 66,
 
 		// Council stuff.
 		CouncilCollective:
