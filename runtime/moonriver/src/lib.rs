@@ -108,7 +108,7 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*};
+use governance::councils::*;
 
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {

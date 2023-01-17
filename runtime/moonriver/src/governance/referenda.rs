@@ -48,9 +48,7 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
 }
 
-impl custom_origins::Config for Runtime {
-	type Currency = Balances;
-}
+impl custom_origins::Config for Runtime {}
 
 // The purpose of this pallet is to queue calls to be dispatched as by root later => the Dispatch
 // origin corresponds to the Gov2 Whitelist track.

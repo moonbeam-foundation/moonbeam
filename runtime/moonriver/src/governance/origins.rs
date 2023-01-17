@@ -18,13 +18,10 @@ pub use custom_origins::*;
 
 #[frame_support::pallet]
 pub mod custom_origins {
-	use frame_support::{pallet_prelude::*, traits::Currency};
+	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		/// Currency type to limit spends per spend origin
-		type Currency: Currency<Self::AccountId>;
-	}
+	pub trait Config: frame_system::Config {}
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
