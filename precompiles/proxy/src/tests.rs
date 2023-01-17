@@ -683,6 +683,6 @@ fn proxy_proxy_should_fail_if_called_by_precompile() {
 						call_data: BoundedBytes::from([]),
 					},
 				)
-				.execute_reverts(|output| output == b"Proxy.proxy not callable by precompiles");
+				.execute_reverts(|output| output == b"Function not callable by precompiles");
 		})
 }
