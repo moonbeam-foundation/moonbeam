@@ -12,6 +12,7 @@ rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -21,7 +22,6 @@ parity-scale-codec = { version = "3.0.0", default-features = false, features = [
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
-
 
 # Frontier
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -47,6 +47,9 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 
 # Cumulus
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32" }
+
+# Polkadot
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
 default = [ "std" ]

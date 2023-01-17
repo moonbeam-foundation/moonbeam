@@ -14,6 +14,7 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = { version = "0.14", default-features = false }
 hex = { version = "0.4", default-features = false }
+impl-trait-for-tuples = "0.2.0"
 log = "0.4"
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.10", default-features = false }
@@ -27,6 +28,9 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
+# Cumulus
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
 # Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -36,6 +40,7 @@ xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbe
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-primitives-core/std",
 	"hex/std",
 	"parity-scale-codec/std",
 	"serde/std",

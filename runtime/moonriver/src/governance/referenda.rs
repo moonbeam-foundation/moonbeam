@@ -48,6 +48,9 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
 }
 
+// Origin for general admin or root
+pub type GeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::GeneralAdmin>;
+
 impl custom_origins::Config for Runtime {}
 
 // The purpose of this pallet is to queue calls to be dispatched as by root later => the Dispatch
