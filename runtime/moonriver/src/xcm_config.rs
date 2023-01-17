@@ -63,6 +63,8 @@ use sp_std::{
 
 use orml_traits::parameter_type_with_key;
 
+use crate::governance::referenda::GeneralAdminOrRoot;
+
 parameter_types! {
 	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
@@ -539,7 +541,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
-	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 	type HrmpEncoder = moonbeam_relay_encoder::kusama::KusamaEncoder;
 }

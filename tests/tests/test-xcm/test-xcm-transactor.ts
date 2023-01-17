@@ -20,8 +20,10 @@ describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
     const resp = await context.polkadotApi.query.xcmTransactor.indexToAccount(0);
     expect(resp.toString()).to.eq(alith.address);
   });
+});
 
-  it("GeneralAdmin should be able to dispatch hrmpManage", async function () {
+describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
+  it("Moonbase: GeneralAdmin should be able to dispatch hrmpManage", async function () {
     // Just build the arguments. They dont matter that much though, since
     // we will not make sure it executes in the relay
     const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
