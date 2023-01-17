@@ -178,6 +178,20 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -355,6 +369,20 @@
 			call,
 			fee_amount.converted(),
 			overall_weight,
+		)
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeUtilityAsDerivative(uint8,uint16,bytes)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_utility_as_derivative(uint8,uint16,bytes)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_utility_as_derivative(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		XcmTransactorWrapper::&lt;Runtime&gt;::encode_utility_as_derivative(
+			handle, transactor, index, inner_call,
 		)
 	}
 }

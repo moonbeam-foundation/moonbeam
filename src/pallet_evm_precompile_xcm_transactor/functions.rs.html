@@ -444,6 +444,27 @@
 <span id="444">444</span>
 <span id="445">445</span>
 <span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -480,7 +501,7 @@
 	vec::Vec,
 };
 <span class="kw">use </span>xcm::latest::MultiLocation;
-<span class="kw">use </span>xcm_primitives::AccountIdToCurrencyId;
+<span class="kw">use </span>xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
 
 <span class="doccomment">/// A precompile to wrap the functionality from xcm transactor
 </span><span class="kw">pub struct </span>XcmTransactorWrapper&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
@@ -888,6 +909,27 @@
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_utility_as_derivative(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>transactor: TransactorOf&lt;Runtime&gt; = transactor
+			.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Non-existent transactor&quot;</span>).in_field(<span class="string">&quot;transactor&quot;</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>encoded = UtilityEncodeCall::encode_call(
+			transactor,
+			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
+		)
+		.as_slice()
+		.into();
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 }
 </code></pre></div>

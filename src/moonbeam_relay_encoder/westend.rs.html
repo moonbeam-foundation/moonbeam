@@ -425,6 +425,129 @@
 <span id="425">425</span>
 <span id="426">426</span>
 <span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -444,7 +567,8 @@
 // We want to avoid including the rococo-runtime here.
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
-</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+</span><span class="kw">use </span>cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_runtime::traits::{AccountIdLookup, StaticLookup};
 <span class="kw">use </span>sp_runtime::AccountId32;
 <span class="kw">use </span>sp_std::vec::Vec;
@@ -457,6 +581,9 @@
 
 	<span class="attribute">#[codec(index = <span class="number">6u8</span>)]
 	</span>Stake(StakeCall),
+	<span class="attribute">#[codec(index = <span class="number">51u8</span>)]
+	</span><span class="comment">// the index should match the position of the module in `construct_runtime!`
+	</span>Hrmp(HrmpCall),
 }
 
 <span class="comment">// Utility call encoding, needed for xcm transactor pallet
@@ -495,6 +622,17 @@
 	</span>Rebond(<span class="attribute">#[codec(compact)] </span>cumulus_primitives_core::relay_chain::Balance),
 }
 
+<span class="comment">// HRMP call encoding, needed for xcm transactor pallet
+</span><span class="attribute">#[derive(Encode, Decode)]
+</span><span class="kw">pub enum </span>HrmpCall {
+	<span class="attribute">#[codec(index = <span class="number">0u8</span>)]
+	</span>InitOpenChannel(ParaId, u32, u32),
+	<span class="attribute">#[codec(index = <span class="number">1u8</span>)]
+	</span>AcceptOpenChannel(ParaId),
+	<span class="attribute">#[codec(index = <span class="number">2u8</span>)]
+	</span>CloseChannel(HrmpChannelId),
+}
+
 <span class="kw">pub struct </span>WestendEncoder;
 
 <span class="kw">impl </span>xcm_primitives::UtilityEncodeCall <span class="kw">for </span>WestendEncoder {
@@ -511,6 +649,24 @@
 	}
 }
 
+<span class="kw">impl </span>xcm_primitives::HrmpEncodeCall <span class="kw">for </span>WestendEncoder {
+	<span class="kw">fn </span>hrmp_encode_call(
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, xcm::latest::Error&gt; {
+		<span class="kw">match </span>call {
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) =&gt; <span class="prelude-val">Ok</span>(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
+			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) =&gt; {
+				<span class="prelude-val">Ok</span>(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) =&gt; {
+				<span class="prelude-val">Ok</span>(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
+		}
+	}
+}
 <span class="kw">impl </span>pallet_evm_precompile_relay_encoder::StakeEncodeCall <span class="kw">for </span>WestendEncoder {
 	<span class="kw">fn </span>encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -&gt; Vec&lt;u8&gt; {
 		<span class="kw">match </span>call {
@@ -849,6 +1005,96 @@
 				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(<span class="number">100u32</span>.into())
 			),
 			expected_encoded
+		);
+	}
+
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_hrmp_init() {
+		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
+
+		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
+			westend_runtime::Hrmp,
+		&gt;()
+		.unwrap() <span class="kw">as </span>u8;
+		expected_encoded.push(index);
+
+		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+			westend_runtime::Runtime
+		&gt;::hrmp_init_open_channel {
+			recipient: <span class="number">1000u32</span>.into(),
+			proposed_max_capacity: <span class="number">100u32</span>,
+			proposed_max_message_size: <span class="number">100u32</span>,
+		}
+		.encode();
+		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
+
+		<span class="macro">assert_eq!</span>(
+			&lt;WestendEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
+					<span class="number">1000u32</span>.into(),
+					<span class="number">100u32</span>.into(),
+					<span class="number">100u32</span>.into()
+				)
+			),
+			<span class="prelude-val">Ok</span>(expected_encoded)
+		);
+	}
+
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_hrmp_accept() {
+		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
+
+		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
+			westend_runtime::Hrmp,
+		&gt;()
+		.unwrap() <span class="kw">as </span>u8;
+		expected_encoded.push(index);
+
+		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+			westend_runtime::Runtime
+		&gt;::hrmp_accept_open_channel {
+			sender: <span class="number">1000u32</span>.into()
+		}
+		.encode();
+		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
+
+		<span class="macro">assert_eq!</span>(
+			&lt;WestendEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(<span class="number">1000u32</span>.into(),)
+			),
+			<span class="prelude-val">Ok</span>(expected_encoded)
+		);
+	}
+
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_hrmp_close() {
+		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
+
+		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
+			westend_runtime::Hrmp,
+		&gt;()
+		.unwrap() <span class="kw">as </span>u8;
+		expected_encoded.push(index);
+
+		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+			westend_runtime::Runtime
+		&gt;::hrmp_close_channel {
+			channel_id: HrmpChannelId {
+				sender: <span class="number">1000u32</span>.into(),
+				recipient: <span class="number">1001u32</span>.into()
+			}
+		}
+		.encode();
+		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
+
+		<span class="macro">assert_eq!</span>(
+			&lt;WestendEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+					sender: <span class="number">1000u32</span>.into(),
+					recipient: <span class="number">1001u32</span>.into()
+				})
+			),
+			<span class="prelude-val">Ok</span>(expected_encoded)
 		);
 	}
 }

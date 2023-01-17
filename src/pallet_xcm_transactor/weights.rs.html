@@ -209,6 +209,36 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -278,6 +308,8 @@
 	</span><span class="kw">fn </span>transact_through_sovereign() -&gt; Weight;
 	<span class="attribute">#[rustfmt::skip]
 	</span><span class="kw">fn </span>transact_through_signed() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>hrmp_manage() -&gt; Weight;
 }
 
 <span class="doccomment">/// Weights for xcm_transactor using the Substrate node and recommended hardware.
@@ -349,6 +381,20 @@
 			.saturating_add(T::DbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
 	}
+	<span class="comment">// Storage: AssetManager AssetIdType (r:1 w:0)
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>hrmp_manage() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">70_766_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
+	}
 }
 
 <span class="comment">// For backwards compatibility and tests
@@ -416,6 +462,20 @@
 	</span><span class="attribute">#[rustfmt::skip]
 	</span><span class="kw">fn </span>transact_through_signed() -&gt; Weight {
 		Weight::from_ref_time(<span class="number">73_282_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
+	}
+	<span class="comment">// Storage: AssetManager AssetIdType (r:1 w:0)
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>hrmp_manage() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">70_766_000 </span><span class="kw">as </span>u64)
 			.saturating_add(RocksDbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
 	}

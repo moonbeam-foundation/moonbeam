@@ -578,6 +578,16 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -645,6 +655,8 @@
 };
 
 <span class="kw">use </span>orml_traits::parameter_type_with_key;
+
+<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::GeneralAdminOrRoot;
 
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// The network Id of the relay
@@ -1067,6 +1079,11 @@
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
 }
 
+<span class="comment">// 1 WND/ROC should be enough
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), <span class="number">1_000_000_000_000u128</span>).into();
+}
+
 <span class="comment">// For now we only allow to transact in the relay, although this might change in the future
 // Transactors just defines the chains in which we allow transactions to be issued through
 // xcm
@@ -1129,6 +1146,9 @@
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
 	<span class="kw">type </span>WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
+	<span class="kw">type </span>HrmpEncoder = moonbeam_relay_encoder::westend::WestendEncoder;
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]

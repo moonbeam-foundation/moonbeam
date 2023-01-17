@@ -40,6 +40,27 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -55,14 +76,24 @@
 
 // You should have received a copy of the GNU General Public License
 
-</span><span class="kw">use </span>sp_std::vec::Vec;
-<span class="kw">use </span>xcm::latest::MultiLocation;
+</span><span class="kw">use </span>cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+<span class="kw">use </span>sp_std::vec::Vec;
+<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiLocation};
 
 <span class="comment">// The utility calls that need to be implemented as part of
-// this pallet
+// using a derivative account from a certain account
 </span><span class="attribute">#[derive(Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>UtilityAvailableCalls {
 	AsDerivative(u16, Vec&lt;u8&gt;),
+}
+
+<span class="comment">// The hrmp calls that need to be implemented as part of
+// HRMP management process
+</span><span class="attribute">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>HrmpAvailableCalls {
+	InitOpenChannel(ParaId, u32, u32),
+	AcceptOpenChannel(ParaId),
+	CloseChannel(HrmpChannelId),
 }
 
 <span class="comment">// Trait that the ensures we can encode a call with utility functions.
@@ -74,10 +105,21 @@
 	<span class="kw">fn </span>encode_call(<span class="self">self</span>, call: UtilityAvailableCalls) -&gt; Vec&lt;u8&gt;;
 }
 
+<span class="comment">// Trait that the ensures we can encode a call with hrmp functions.
+// With this trait we ensure that the user cannot control entirely the call.
+// to be performed in the destination chain.
+</span><span class="kw">pub trait </span>HrmpEncodeCall {
+	<span class="kw">fn </span>hrmp_encode_call(call: HrmpAvailableCalls) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, XcmError&gt;;
+}
+
+<span class="kw">impl </span>HrmpEncodeCall <span class="kw">for </span>() {
+	<span class="kw">fn </span>hrmp_encode_call(_call: HrmpAvailableCalls) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, XcmError&gt; {
+		<span class="prelude-val">Err</span>(XcmError::Unimplemented)
+	}
+}
+
 <span class="comment">// Trait to ensure we can retrieve the destination if a given type
 // It must implement UtilityEncodeCall
-// We separate this in two traits to be able to implement UtilityEncodeCall separately
-// for different runtimes of our choice
 </span><span class="kw">pub trait </span>XcmTransact: UtilityEncodeCall {
 	<span class="doccomment">/// Encode call from the relay.
 	</span><span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; MultiLocation;
