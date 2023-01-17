@@ -162,7 +162,11 @@ type MoonbasePrecompilesAt<R> = (
 		CallPermitPrecompile<R>,
 		(SubcallWithMaxNesting<0>, CallableByContract),
 	>,
-	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>, CallableByContract<OnlyIsProxy<R>>>,
+	PrecompileAt<
+		AddressU64<2059>,
+		ProxyPrecompile<R>,
+		(CallableByContract<OnlyIsProxy<R>>, SubcallWithMaxNesting<0>),
+	>,
 	PrecompileAt<
 		AddressU64<2060>,
 		XcmUtilsPrecompile<R, XcmExecutorConfig>,
