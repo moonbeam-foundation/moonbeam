@@ -100,6 +100,7 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
+use precompiles::PrecompileName;
 pub use precompiles::{
 	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -805,11 +806,13 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 		PrecompileName::DemocracyPrecompile
 			| PrecompileName::CouncilInstance
 			| PrecompileName::TechCommitteeInstance
-			| PrecompileName::TreasuryCouncilInstance,
+			| PrecompileName::TreasuryCouncilInstance
+			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
 
-use precompiles::PrecompileName;
+// Be careful: Each time this filter is modified, the substrate filter must also be modified
+// consistently.
 impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	fn is_evm_proxy_call_allowed(
 		&self,
@@ -893,6 +896,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	}
 }
 
+// Be careful: Each time this filter is modified, the EVM filter must also be modified consistently.
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
@@ -1301,6 +1305,8 @@ construct_runtime! {
 		Origins: governance::custom_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 	}
 }
 

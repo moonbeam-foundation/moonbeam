@@ -110,6 +110,8 @@ pub mod governance;
 pub mod xcm_config;
 use governance::councils::*;
 
+pub use governance::councils::*;
+
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
@@ -1162,6 +1164,8 @@ construct_runtime! {
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 73,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
