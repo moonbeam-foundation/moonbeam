@@ -28,9 +28,10 @@ use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig,
+	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
+	HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
