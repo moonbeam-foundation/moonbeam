@@ -820,7 +820,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		recipient_has_code: bool,
 	) -> bool {
 		use pallet_evm::PrecompileSet as _;
-		use precompiles::PrecompileName;
 		match self {
 			ProxyType::Any => {
 				match PrecompileName::from_address(call.to.0) {
