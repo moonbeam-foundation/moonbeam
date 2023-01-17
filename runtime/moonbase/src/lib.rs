@@ -100,6 +100,7 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
+use precompiles::PrecompileName;
 pub use precompiles::{
 	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
