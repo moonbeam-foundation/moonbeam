@@ -53,6 +53,14 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 	>,
 >>::Class;
 
+/// Direction of vote
+enum VoteDirection {
+	Yes,
+	No,
+	#[allow(unused)]
+	Abstain,
+}
+
 /// A precompile to wrap the functionality from pallet-conviction-voting.
 pub struct ConvictionVotingPrecompile<Runtime>(PhantomData<Runtime>);
 
@@ -69,6 +77,42 @@ where
 	IndexOf<Runtime>: TryFrom<u32>,
 	ClassOf<Runtime>: TryFrom<u16>,
 {
+	/// Internal helper function for vote* extrinsics exposed in this precompile.
+	fn vote(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		vote: VoteDirection,
+		vote_amount: U256,
+		conviction: u8,
+	) -> EvmResult {
+		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
+		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
+
+		let aye = match vote {
+			VoteDirection::Yes => true,
+			VoteDirection::No => false,
+			_ => return Err(RevertReason::custom("Abstain not supported").into()),
+		};
+
+		let vote = AccountVote::Standard {
+			vote: Vote { aye, conviction },
+			balance: vote_amount,
+		};
+
+		log::trace!(target: "conviction-voting-precompile",
+			"Voting {:?} on poll {:?}, with conviction {:?}",
+			aye, poll_index, conviction
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
 	/// Vote yes in a poll.
 	///
 	/// Parameters:
@@ -82,29 +126,13 @@ where
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
-		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
-
-		let vote = AccountVote::Standard {
-			vote: Vote {
-				aye: true,
-				conviction,
-			},
-			balance: vote_amount,
-		};
-
-		log::trace!(target: "conviction-voting-precompile",
-			"Voting {:?} on poll {:?}, with conviction {:?}",
-			true, poll_index, conviction
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
-
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
+		Self::vote(
+			handle,
+			poll_index,
+			VoteDirection::Yes,
+			vote_amount,
+			conviction,
+		)
 	}
 
 	/// Vote no in a poll.
@@ -120,29 +148,13 @@ where
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
-		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
-
-		let vote = AccountVote::Standard {
-			vote: Vote {
-				aye: false,
-				conviction,
-			},
-			balance: vote_amount,
-		};
-
-		log::trace!(target: "conviction-voting-precompile",
-			"Voting {:?} on poll {:?}, with conviction {:?}",
-			false, poll_index, conviction
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
-
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
+		Self::vote(
+			handle,
+			poll_index,
+			VoteDirection::No,
+			vote_amount,
+			conviction,
+		)
 	}
 
 	#[precompile::public("removeVote(uint32)")]

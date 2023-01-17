@@ -182,10 +182,10 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
+		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
 			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
+		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
