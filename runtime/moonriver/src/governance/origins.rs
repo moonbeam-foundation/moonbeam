@@ -39,10 +39,10 @@ pub mod custom_origins {
 		ReferendumKiller,
 	}
 
-	impl TryFrom<u8> for Origin {
+	impl TryFrom<u16> for Origin {
 		type Error = ();
 		/// TrackId => Origin
-		fn try_from(value: u8) -> Result<Origin, ()> {
+		fn try_from(value: u16) -> Result<Origin, ()> {
 			match value {
 				1 => Ok(Origin::WhitelistedCaller),
 				2 => Ok(Origin::GeneralAdmin),
@@ -50,14 +50,6 @@ pub mod custom_origins {
 				4 => Ok(Origin::ReferendumKiller),
 				_ => Err(()),
 			}
-		}
-	}
-
-	impl TryFrom<u16> for Origin {
-		type Error = ();
-		/// TrackId => Origin
-		fn try_from(value: u16) -> Result<Origin, ()> {
-			(value as u8).try_into()
 		}
 	}
 
