@@ -128,10 +128,10 @@ where
 	fn remove_other_vote(
 		handle: &mut impl PrecompileHandle,
 		target: Address,
-		class: u16,
+		track_id: u16,
 		poll_index: u32,
 	) -> EvmResult {
-		let class = Self::u16_to_class(class).in_field("class")?;
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
 
 		let target = Runtime::AddressMapping::into_account_id(target.into());
@@ -159,12 +159,12 @@ where
 	#[precompile::public("delegate(uint16,address,uint8,uint256)")]
 	fn delegate(
 		handle: &mut impl PrecompileHandle,
-		class: u16,
+		track_id: u16,
 		representative: Address,
 		conviction: u8,
 		amount: U256,
 	) -> EvmResult {
-		let class = Self::u16_to_class(class).in_field("class")?;
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
@@ -189,8 +189,8 @@ where
 		Ok(())
 	}
 	#[precompile::public("undelegate(uint16)")]
-	fn undelegate(handle: &mut impl PrecompileHandle, class: u16) -> EvmResult {
-		let class = Self::u16_to_class(class).in_field("class")?;
+	fn undelegate(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult {
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
@@ -199,8 +199,8 @@ where
 		Ok(())
 	}
 	#[precompile::public("unlock(uint16,address)")]
-	fn unlock(handle: &mut impl PrecompileHandle, class: u16, target: Address) -> EvmResult {
-		let class = Self::u16_to_class(class).in_field("class")?;
+	fn unlock(handle: &mut impl PrecompileHandle, track_id: u16, target: Address) -> EvmResult {
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -228,10 +228,10 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("index type").into())
 	}
-	fn u16_to_class(class: u16) -> MayRevert<ClassOf<Runtime>> {
+	fn u16_to_track_id(class: u16) -> MayRevert<ClassOf<Runtime>> {
 		class
 			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("class type").into())
+			.map_err(|_| RevertReason::value_is_too_large("trackId type").into())
 	}
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
 		value

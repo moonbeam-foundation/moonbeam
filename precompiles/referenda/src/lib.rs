@@ -24,9 +24,10 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
+use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::U256;
-use sp_std::{boxed::Box, marker::PhantomData};
+use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -62,7 +63,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	Runtime::BlockNumber: Into<U256>,
-	TrackIdOf<Runtime>: TryFrom<u16>,
+	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	GovOrigin: TryFrom<u16>,
 {
@@ -108,13 +109,42 @@ where
 		Ok(deciding_count.into())
 	}
 
+	#[precompile::public("trackIds()")]
+	#[precompile::view]
+	fn track_ids(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
+		// Fetch data from runtime
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
+			.into_iter()
+			.filter_map(|x| {
+				if let Ok(track_id) = x.0.try_into() {
+					Some(track_id)
+				} else {
+					None
+				}
+			})
+			.collect();
+
+		Ok(track_ids)
+	}
+
 	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
 	fn track_info(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
-	) -> EvmResult<(U256, U256, U256, U256, U256, U256)> {
-		// Fetch data from pallet
+	) -> EvmResult<(
+		UnboundedBytes,
+		U256,
+		U256,
+		U256,
+		U256,
+		U256,
+		U256,
+		UnboundedBytes,
+		UnboundedBytes,
+	)> {
+		// Fetch data from runtime
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
@@ -127,12 +157,15 @@ where
 		let track_info = &tracks[index].1;
 
 		Ok((
+			track_info.name.as_bytes().into(),
 			track_info.max_deciding.into(),
 			track_info.decision_deposit.into(),
 			track_info.prepare_period.into(),
 			track_info.decision_period.into(),
 			track_info.confirm_period.into(),
 			track_info.min_enactment_period.into(),
+			track_info.min_approval.encode().into(),
+			track_info.min_support.encode().into(),
 		))
 	}
 
@@ -141,14 +174,12 @@ where
 	/// Parameters:
 	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
 	/// * proposal: The proposed runtime call.
-	/// * at: If true then AT block_number, else AFTER block_number
-	/// * block_number: Inner block number for DispatchTime
-	#[precompile::public("submit(uint16,bytes,bool,uint32)")]
-	fn submit(
+	/// * block_number: Block number at which proposal is dispatched.
+	#[precompile::public("submitAt(uint16,bytes,uint32)")]
+	fn submit_at(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
-		at: bool,
 		block_number: u32,
 	) -> EvmResult {
 		let origin: GovOrigin = track_id.try_into().map_err(|_| {
@@ -160,11 +191,45 @@ where
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
 			})?,
 		);
-		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
-			DispatchTime::At(block_number.into())
-		} else {
-			DispatchTime::After(block_number.into())
-		};
+		let enactment_moment = DispatchTime::At(block_number.into());
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = ReferendaCall::<Runtime>::submit {
+			proposal_origin,
+			proposal,
+			enactment_moment,
+		}
+		.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	/// Propose a referendum on a privileged action.
+	///
+	/// Parameters:
+	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
+	/// * proposal: The proposed runtime call.
+	/// * block_number: Block number after which proposal is dispatched.
+	#[precompile::public("submitAfter(uint16,bytes,uint32)")]
+	fn submit_after(
+		handle: &mut impl PrecompileHandle,
+		track_id: u16,
+		proposal: BoundedBytes<GetCallDataLimit>,
+		block_number: u32,
+	) -> EvmResult {
+		let origin: GovOrigin = track_id.try_into().map_err(|_| {
+			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
+		})?;
+		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
+		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
+			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
+				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+			})?,
+		);
+		let enactment_moment = DispatchTime::After(block_number.into());
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
