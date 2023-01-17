@@ -809,7 +809,7 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 			| PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
-			| PrecompileName::PreimagePrecompile,
+			| PrecompileName::PreimagePrecompile
 			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
