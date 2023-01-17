@@ -141,6 +141,7 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -160,7 +161,7 @@
 </span><span class="kw">use crate</span>::{
 	asset_config::{ForeignAssetInstance, LocalAssetInstance},
 	xcm_config::XcmExecutorConfig,
-	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonbeam_relay_encoder::kusama::KusamaEncoder;
@@ -271,6 +272,7 @@
 				</span>PrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;, CollectivePrecompile&lt;R, CouncilInstance&gt;&gt;,
 				PrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;, CollectivePrecompile&lt;R, TechCommitteeInstance&gt;&gt;,
 				PrecompileAt&lt;AddressU64&lt;<span class="number">2064</span>&gt;, CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;&gt;,
+				PrecompileAt&lt;AddressU64&lt;<span class="number">2068</span>&gt;, CollectivePrecompile&lt;R, OpenTechCommitteeInstance&gt;&gt;,
 			),
 		&gt;,
 		<span class="comment">// Prefixed precompile sets (XC20)

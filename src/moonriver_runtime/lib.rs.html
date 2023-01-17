@@ -1502,6 +1502,10 @@
 <span id="1502">1502</span>
 <span id="1503">1503</span>
 <span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1613,6 +1617,8 @@
 <span class="kw">pub mod </span>governance;
 <span class="kw">pub mod </span>xcm_config;
 <span class="kw">use </span>governance::councils::<span class="kw-2">*</span>;
+
+<span class="kw">pub use </span>governance::councils::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// MOVR, the native token, uses 18 decimals of precision.
 </span><span class="kw">pub mod </span>currency {
@@ -2666,6 +2672,8 @@
 			pallet_collective::&lt;Instance2&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">71</span>,
 		TreasuryCouncilCollective:
 			pallet_collective::&lt;Instance3&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">72</span>,
+		OpenTechCommitteeCollective:
+			pallet_collective::&lt;Instance4&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">73</span>,
 
 		<span class="comment">// Treasury stuff.
 		</span>Treasury: pallet_treasury::{Pallet, Storage, Config, Event&lt;T&gt;, Call} = <span class="number">80</span>,

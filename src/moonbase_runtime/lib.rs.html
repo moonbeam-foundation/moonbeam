@@ -1649,6 +1649,12 @@
 <span id="1649">1649</span>
 <span id="1650">1650</span>
 <span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1751,6 +1757,7 @@
 <span class="kw">use </span>nimbus_primitives::CanAuthor;
 
 <span class="kw">mod </span>precompiles;
+<span class="kw">use </span>precompiles::PrecompileName;
 <span class="kw">pub use </span>precompiles::{
 	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -2456,12 +2463,14 @@
 		PrecompileName::DemocracyPrecompile
 			| PrecompileName::CouncilInstance
 			| PrecompileName::TechCommitteeInstance
-			| PrecompileName::TreasuryCouncilInstance,
+			| PrecompileName::TreasuryCouncilInstance
+			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
 
-<span class="kw">use </span>precompiles::PrecompileName;
-<span class="kw">impl </span>pallet_evm_precompile_proxy::EvmProxyCallFilter <span class="kw">for </span>ProxyType {
+<span class="comment">// Be careful: Each time this filter is modified, the substrate filter must also be modified
+// consistently.
+</span><span class="kw">impl </span>pallet_evm_precompile_proxy::EvmProxyCallFilter <span class="kw">for </span>ProxyType {
 	<span class="kw">fn </span>is_evm_proxy_call_allowed(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		call: <span class="kw-2">&amp;</span>pallet_evm_precompile_proxy::EvmSubCall,
@@ -2544,7 +2553,8 @@
 	}
 }
 
-<span class="kw">impl </span>InstanceFilter&lt;RuntimeCall&gt; <span class="kw">for </span>ProxyType {
+<span class="comment">// Be careful: Each time this filter is modified, the EVM filter must also be modified consistently.
+</span><span class="kw">impl </span>InstanceFilter&lt;RuntimeCall&gt; <span class="kw">for </span>ProxyType {
 	<span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span><span class="self">self </span>{
 			ProxyType::Any =&gt; <span class="bool-val">true</span>,
@@ -2952,6 +2962,8 @@
 		Origins: governance::custom_origins::{Origin} = <span class="number">43</span>,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">44</span>,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">45</span>,
+		OpenTechCommitteeCollective:
+			pallet_collective::&lt;Instance4&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">46</span>,
 	}
 }
 

@@ -66,6 +66,22 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -82,13 +98,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! Councils for Gov1
+</span><span class="doccomment">//! Councils for Gov1 and Gov2
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub type </span>CouncilInstance = pallet_collective::Instance1;
 <span class="kw">pub type </span>TechCommitteeInstance = pallet_collective::Instance2;
 <span class="kw">pub type </span>TreasuryCouncilInstance = pallet_collective::Instance3;
+<span class="kw">pub type </span>OpenTechCommitteeInstance = pallet_collective::Instance4;
 
 <span class="kw">impl </span>pallet_collective::Config&lt;CouncilInstance&gt; <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
@@ -131,6 +148,21 @@
 	</span><span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">20</span>&gt;;
 	<span class="doccomment">/// The maximum number of treasury council members.
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">9</span>&gt;;
+	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>pallet_collective::Config&lt;OpenTechCommitteeInstance&gt; <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
+	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">14 </span>* DAYS }&gt;;
+	<span class="doccomment">/// The maximum number of proposals that can be open in the technical committee at once.
+	</span><span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">100</span>&gt;;
+	<span class="doccomment">/// The maximum number of technical committee members.
+	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
 }
