@@ -796,9 +796,9 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 			| PrecompileName::CouncilInstance
 			| PrecompileName::TechCommitteeInstance
 			| PrecompileName::TreasuryCouncilInstance,
+			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
-
 
 // Be careful: Each time this filter is modified, the substrate filter must also be modified
 // consistently.
