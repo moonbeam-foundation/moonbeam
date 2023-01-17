@@ -28,7 +28,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         gas: EXTRINSIC_GAS_LIMIT,
-        maxFeePerGas: 1_000_000_000,
+        maxFeePerGas: 10_000_000_000,
         maxPriorityFeePerGas: 0,
         to: baltathar.address,
         nonce: 0,

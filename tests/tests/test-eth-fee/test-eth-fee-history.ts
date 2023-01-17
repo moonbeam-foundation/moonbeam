@@ -8,6 +8,7 @@ import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request, web3Subscribe } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import { DEFAULT_TXN_MAX_BASE_FEE } from "../../util/transactions";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
@@ -61,7 +62,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
   }
 
   it("result length should match spec", async function () {
-    let max_fee_per_gas = "0x3B9ACA00";
+    let max_fee_per_gas = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
     let block_count = 2;
     let reward_percentiles = [20, 50, 70];
     let priority_fees = [1, 2, 3];
@@ -98,7 +99,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
   });
 
   it("should calculate percentiles", async function () {
-    let max_fee_per_gas = "0x3B9ACA00";
+    let max_fee_per_gas = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
     let block_count = 11;
     let reward_percentiles = [20, 50, 70, 85, 100];
     let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
