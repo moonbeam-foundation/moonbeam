@@ -324,7 +324,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
 });
 
 describeDevMoonbeam("Precompiles - xtokens", (context) => {
-  it("test test test", async function () {
+  it("allows to issue transfer multicurrencies xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
     // Junction::AccountId32
