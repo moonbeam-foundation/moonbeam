@@ -363,6 +363,10 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -395,9 +399,10 @@
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
 	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
-	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
+<span class="kw">use </span>pallet_transaction_payment::Multiplier;
 <span class="kw">use </span>sc_service::ChainType;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">use </span>sp_core::ecdsa;
@@ -686,6 +691,9 @@
 		},
 		<span class="comment">// This should initialize it to whatever we have set in the pallet
 		</span>polkadot_xcm: PolkadotXcmConfig::default(),
+		transaction_payment: TransactionPaymentConfig {
+			multiplier: Multiplier::from(<span class="number">8u128</span>),
+		},
 	}
 }
 

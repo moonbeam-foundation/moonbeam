@@ -1502,7 +1502,6 @@
 <span id="1502">1502</span>
 <span id="1503">1503</span>
 <span id="1504">1504</span>
-<span id="1505">1505</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2627,7 +2626,7 @@
 
 		<span class="comment">// Monetary stuff.
 		</span>Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">10</span>,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event&lt;T&gt;} = <span class="number">11</span>,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event&lt;T&gt;} = <span class="number">11</span>,
 
 		<span class="comment">// Consensus support.
 		</span>ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">20</span>,
@@ -2901,7 +2900,6 @@
 			<span class="number">5_u8
 		</span>);
 		<span class="macro">assert_eq!</span>(STORAGE_BYTE_FEE, Balance::from(<span class="number">100 </span>* MICROMOVR));
-		<span class="macro">assert_eq!</span>(FixedGasPrice::min_gas_price().<span class="number">0</span>, (<span class="number">1 </span>* GIGAWEI).into());
 
 		<span class="comment">// democracy minimums
 		</span><span class="macro">assert_eq!</span>(
