@@ -41,7 +41,7 @@ async function getKeysBeforeRound<
   return invalidRounds;
 }
 
-describeSmokeSuite("S2100", `Verify staking round cleanup`, function (context) {
+describeSmokeSuite("S2100", `Verify staking round cleanup`, function (context, testIt) {
   before(function () {
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       debug("Skip Block Consistency flag set, skipping staking round cleanup tests.");
@@ -49,7 +49,7 @@ describeSmokeSuite("S2100", `Verify staking round cleanup`, function (context) {
     }
   });
 
-  it(`storage is cleaned for paid-out rounds #C100`, async function () {
+  testIt("C100", `storage is cleaned for paid-out rounds`, async function () {
     this.timeout(500000);
 
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();

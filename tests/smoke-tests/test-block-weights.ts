@@ -34,7 +34,7 @@ describeSmokeSuite(
   `Verifying weights of blocks in the past ` +
     `${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours`,
 
-  (context) => {
+  (context, testIt) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
 
@@ -80,7 +80,7 @@ describeSmokeSuite(
 
     // This test is more for verifying that the test code is correctly returning good quality data
     // that the rest of the test suite performs verification on
-    it(`should be returning unique block hashes in array #C100`, async () => {
+    testIt("C100", `should be returning unique block hashes in array`, async () => {
       const hashes = blockInfoArray.map((a) => a.hash);
       const set = new Set(hashes);
       expect(hashes.length, "Duplicate hashes in retrieved data, investigate test").to.be.equal(
@@ -89,8 +89,9 @@ describeSmokeSuite(
     });
 
     // Normal class
-    it(
-      `normal usage should be less than normal dispatch class limits` + ` #C200`,
+    testIt(
+      "C200",
+      `normal usage should be less than normal dispatch class limits`,
       async function () {
         const overweight = blockInfoArray
           .filter((a) => a.weights.normal.gt(blockLimits.normal))
@@ -110,27 +111,34 @@ describeSmokeSuite(
     );
 
     // Operational class
-    it(`operational usage should be less than dispatch class limits` + ` #C300`, async function () {
-      const overweight = blockInfoArray
-        .filter((a) => a.weights.operational.gt(blockLimits.operational))
-        .map((a) => {
-          debug(
-            `Block #${a.blockNum} has weight ${Number(a.weights.operational)} which is above limit!`
-          );
-          return a;
-        });
-      expect(
-        overweight,
-        `These blocks have operational weights in excess of limit, investigate: ${overweight
-          .map((a) => a.blockNum)
-          .join(", ")}`
-      ).to.be.empty;
-    });
+    testIt(
+      "C300",
+      `operational usage should be less than dispatch class limits`,
+      async function () {
+        const overweight = blockInfoArray
+          .filter((a) => a.weights.operational.gt(blockLimits.operational))
+          .map((a) => {
+            debug(
+              `Block #${a.blockNum} has weight ${Number(
+                a.weights.operational
+              )} which is above limit!`
+            );
+            return a;
+          });
+        expect(
+          overweight,
+          `These blocks have operational weights in excess of limit, investigate: ${overweight
+            .map((a) => a.blockNum)
+            .join(", ")}`
+        ).to.be.empty;
+      }
+    );
 
     // This will test that when Block is 20%+ full, its normal weight is mostly explained
     // by eth signed transactions.
-    it(
-      `should roughly have a block weight mostly composed of transactions` + ` #C400`,
+    testIt(
+      "C400",
+      `should roughly have a block weight mostly composed of transactions`,
       async function () {
         this.timeout(timeout);
 
@@ -185,8 +193,9 @@ describeSmokeSuite(
 
     // This will test that the total normal weight reported is roughly the sum of normal class
     // weight events emitted by signed extrinsics
-    it(
-      `should have total normal weight matching the signed extrinsics` + ` #C500`,
+    testIt(
+      "C500",
+      `should have total normal weight matching the signed extrinsics`,
       async function () {
         this.timeout(timeout);
 
@@ -257,7 +266,7 @@ describeSmokeSuite(
 
     // This test will compare the total weight of eth transactions versus the reported gasUsed
     // property of  ethereum.currentBlock()
-    it(`should have total gas charged similar to eth extrinsics` + ` #C600`, async function () {
+    testIt("C600", `should have total gas charged similar to eth extrinsics`, async function () {
       this.timeout(timeout);
 
       // Waiting for bugfixes

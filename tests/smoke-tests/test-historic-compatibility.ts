@@ -10,7 +10,7 @@ const debug = require("debug")("smoke:historic-compatibility");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 const httpEndpoint = process.env.HTTP_URL;
 
-describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) => {
+describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context, testIt) => {
   let traceStatic: NetworkTestArtifact;
   let skipTest = { skip: false, networkName: "", chainId: "" };
   let blockNumber: number;
@@ -42,7 +42,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     )[0].toString();
   });
 
-  it(`can call debug_traceTransaction #C100`, async function () {
+  testIt("C100", `can call debug_traceTransaction`, async function () {
     if (httpEndpoint == null || httpEndpoint == "") {
       debug(`No HTTP_URL provided, skipping test.`);
       this.skip();
@@ -81,7 +81,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(failures).to.be.empty;
   });
 
-  it(`can call eth_getTransactionReceipt #C200`, async function () {
+  testIt("C200", `can call eth_getTransactionReceipt`, async function () {
     this.timeout(300000);
 
     if (skipTest.skip) {
@@ -117,61 +117,61 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(failures).to.be.empty;
   });
 
-  it(`can call eth_protocolVersion #C300`, async function () {
+  testIt("C300", `can call eth_protocolVersion`, async function () {
     const result = await context.ethers.send("eth_protocolVersion", []);
     expect(result).to.be.greaterThan(0);
   });
 
-  it(`can call eth_syncing #C305`, async function () {
+  testIt("C400", `can call eth_syncing`, async function () {
     const result = await context.ethers.send("eth_syncing", []);
     expect(result).to.satisfy((s) => typeof s == "number" || typeof s == "boolean");
   });
 
-  it(`can call eth_hashrate #C400`, async function () {
+  testIt("C500", `can call eth_hashrate`, async function () {
     const result = await context.ethers.send("eth_hashrate", []);
     expect(result).to.contain("0x0");
   });
 
-  it(`can call eth_coinbase #C500`, async function () {
+  testIt("C600", `can call eth_coinbase`, async function () {
     const result = await context.ethers.send("eth_coinbase", []);
     expect(result.length).to.equal(42);
   });
 
-  it(`can call eth_mining #C600`, async function () {
+  testIt("C700", `can call eth_mining`, async function () {
     const result = await context.ethers.send("eth_mining", []);
     expect(result).to.equal(
       !!(await context.polkadotApi.rpc.system.nodeRoles()).find((role) => role.isAuthority)
     );
   });
 
-  it(`can call eth_chainId #C700`, async function () {
+  testIt("C800", `can call eth_chainId`, async function () {
     const result = await context.ethers.send("eth_chainId", []);
     expect(Number(result)).to.be.greaterThan(0);
   });
 
-  it(`can call eth_gasPrice #C800`, async function () {
+  testIt("C900", `can call eth_gasPrice`, async function () {
     const result = await context.ethers.send("eth_gasPrice", []);
     expect(Number(result)).to.be.greaterThan(0);
   });
 
-  it(`can call eth_accounts #C900`, async function () {
+  testIt("C1000", `can call eth_accounts`, async function () {
     const result = await context.ethers.send("eth_accounts", []);
     expect(result.length).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_blockNumber #C1000`, async function () {
+  testIt("C1100", `can call eth_blockNumber`, async function () {
     const result = await context.ethers.send("eth_blockNumber", []);
     expect(result.length).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_getBalance #C1100`, async function () {
+  testIt("C1200", `can call eth_getBalance`, async function () {
     const treasuryPalletId = context.polkadotApi.consts.treasury.palletId;
     const treasuryAddress = `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`;
     const result = await context.ethers.send("eth_getBalance", [treasuryAddress, "latest"]);
     expect(BigNumber.from(result).isZero()).to.be.false;
   });
 
-  it(`can call eth_getStorageAt #C1200`, async function () {
+  testIt("C1300", `can call eth_getStorageAt`, async function () {
     if (skipTest.skip) {
       debug(
         `No test data available for ${skipTest.networkName} #${skipTest.chainId} , skipping test.`
@@ -187,17 +187,17 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(BigNumber.from(result).isZero()).to.be.false;
   });
 
-  it(`can call eth_getBlockByHash #C1300`, async function () {
+  testIt("C1400", `can call eth_getBlockByHash`, async function () {
     const result = await context.ethers.send("eth_getBlockByHash", [blockHash, false]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getBlockByNumber #C1400`, async function () {
+  testIt("C1500", `can call eth_getBlockByNumber`, async function () {
     const result = await context.ethers.send("eth_getBlockByNumber", [numberToHex(1), false]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionCount #C1500`, async function () {
+  testIt("C1600", `can call eth_getTransactionCount`, async function () {
     const result = await context.ethers.send("eth_getTransactionCount", [
       collatorAddress,
       "latest",
@@ -205,27 +205,27 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(Number(result)).to.be.greaterThanOrEqual(0);
   });
 
-  it(`can call eth_getBlockTransactionCountByHash #C1600`, async function () {
+  testIt("C1700", `can call eth_getBlockTransactionCountByHash`, async function () {
     const result = await context.ethers.send("eth_getBlockTransactionCountByHash", [blockHash]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getBlockTransactionCountByNumber #C1700`, async function () {
+  testIt("C1800", `can call eth_getBlockTransactionCountByNumber`, async function () {
     const result = await context.ethers.send("eth_getBlockTransactionCountByNumber", ["latest"]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getUncleCountByBlockHash #C1800`, async function () {
+  testIt("C1900", `can call eth_getUncleCountByBlockHash`, async function () {
     const result = await context.ethers.send("eth_getUncleCountByBlockHash", [blockHash]);
     expect(result).to.contain("0x0");
   });
 
-  it(`can call eth_getCode #C1900`, async function () {
+  testIt("C2000", `can call eth_getCode`, async function () {
     const result = await context.ethers.send("eth_getCode", [collatorAddress, "latest"]);
     expect(result).to.equal("0x");
   });
 
-  it(`can call eth_estimateGas #C2000`, async function () {
+  testIt("C2100", `can call eth_estimateGas`, async function () {
     const result = await context.ethers.send("eth_estimateGas", [
       {
         from: collatorAddress,
@@ -239,12 +239,12 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_feeHistory #C2100`, async function () {
+  testIt("C2200", `can call eth_feeHistory`, async function () {
     const result = await context.ethers.send("eth_feeHistory", ["4", "latest", []]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionByBlockHashAndIndex #C2200`, async function () {
+  testIt("C2300", `can call eth_getTransactionByBlockHashAndIndex`, async function () {
     const block = (await context.polkadotApi.query.ethereum.currentBlock()).unwrap();
     if (block.transactions.length === 0) {
       debug("No transactions in block, skipping test");
@@ -256,7 +256,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getTransactionByBlockNumberAndIndex #C2300`, async function () {
+  testIt("C2400", `can call eth_getTransactionByBlockNumberAndIndex`, async function () {
     const block = (await context.polkadotApi.query.ethereum.currentBlock()).unwrap();
     if (block.transactions.length === 0) {
       debug("No transactions in block, skipping test");
@@ -270,22 +270,22 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_getUncleByBlockHashAndIndex #C2400`, async function () {
+  testIt("C2500", `can call eth_getUncleByBlockHashAndIndex`, async function () {
     const result = await context.ethers.send("eth_getUncleByBlockHashAndIndex", [blockHash, 0]);
     expect(result).to.be.null;
   });
 
-  it(`can call eth_getUncleByBlockNumberAndIndex #C2500`, async function () {
+  testIt("C2600", `can call eth_getUncleByBlockNumberAndIndex`, async function () {
     const result = await context.ethers.send("eth_getUncleByBlockNumberAndIndex", [blockNumber, 0]);
     expect(result).to.be.null;
   });
 
-  it(`can call eth_getLogs #C2600`, async function () {
+  testIt("C2700", `can call eth_getLogs`, async function () {
     const result = await context.ethers.send("eth_getLogs", [{ blockHash }]);
     expect(result).to.not.be.null;
   });
 
-  it(`can call eth_submitWork #C2700`, async function () {
+  testIt("C2800", `can call eth_submitWork`, async function () {
     const result = await context.ethers.send("eth_submitWork", [
       numberToHex(blockNumber + 1, 64),
       "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
@@ -294,7 +294,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(result).to.be.false;
   });
 
-  it(`can call eth_submitHashrate #C2800`, async function () {
+  testIt("C2900", `can call eth_submitHashrate`, async function () {
     const result = await context.ethers.send("eth_submitHashrate", [
       "0x0000000000000000000000000000000000000000000000000000000000500000",
       "0x59daa26581d0acd1fce254fb7e85952f4c09d0915afd33d3886cd914bc7d283c",
@@ -302,7 +302,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     expect(result).to.be.false;
   });
 
-  it(`can call eth_newFilter #C2900`, async function () {
+  testIt("C3000", `can call eth_newFilter`, async function () {
     try {
       const result = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       expect(result).to.not.be.null;
@@ -316,7 +316,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     }
   });
 
-  it(`can call eth_newBlockFilter #C3000`, async function () {
+  testIt("C3100", `can call eth_newBlockFilter`, async function () {
     try {
       const result = await context.ethers.send("eth_newBlockFilter", []);
       expect(result).to.not.be.null;
@@ -330,7 +330,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     }
   });
 
-  it(`can call eth_getFilterChanges #C3100`, async function () {
+  testIt("C3200", `can call eth_getFilterChanges`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_getFilterChanges", [filterId]);
@@ -345,7 +345,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     }
   });
 
-  it(`can call eth_getFilterLogs #C3200`, async function () {
+  testIt("C3300", `can call eth_getFilterLogs`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_getFilterLogs", [filterId]);
@@ -360,7 +360,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context) 
     }
   });
 
-  it(`can call eth_uninstallFilter #C3300`, async function () {
+  testIt("C3400", `can call eth_uninstallFilter`, async function () {
     try {
       const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
       const result = await context.ethers.send("eth_uninstallFilter", [filterId]);

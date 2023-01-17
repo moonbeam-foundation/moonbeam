@@ -8,7 +8,7 @@ describeSmokeSuite(
   "S1000",
   `Verifying foreign asset count, mapping, assetIds and deposits`,
 
-  (context) => {
+  (context, testIt) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
     const foreignAssetIdType: { [assetId: string]: string } = {};
@@ -43,8 +43,9 @@ describeSmokeSuite(
       });
     });
 
-    it(
-      `should make sure xcm fee assets accepted is <=> than existing assets` + ` #C100`,
+    testIt(
+      "C100",
+      `should make sure xcm fee assets accepted is <=> than existing assets`,
       async function () {
         expect(
           foreignXcmAcceptedAssets.length,
@@ -59,8 +60,9 @@ describeSmokeSuite(
       }
     );
 
-    it(
-      `should make sure assetId->AssetType matches AssetType->AssetId mapping` + ` #C200`,
+    testIt(
+      "C200`",
+      `should make sure assetId->AssetType matches AssetType->AssetId mapping`,
       async function () {
         const failedAssetReserveMappings: { assetId: string }[] = [];
 
@@ -85,8 +87,9 @@ describeSmokeSuite(
       }
     );
 
-    it(
-      `should make sure existing xcm payment assets exist in mapping` + ` #C300`,
+    testIt(
+      "C300",
+      `should make sure existing xcm payment assets exist in mapping`,
       async function () {
         const failedXcmPaymentAssets: { assetType: string }[] = [];
 

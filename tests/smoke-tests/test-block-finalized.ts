@@ -8,8 +8,8 @@ const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
-describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context) => {
-  it(`should have a recently finalized block #C100`, async function () {
+describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context, testIt) => {
+  testIt("C100", `should have a recently finalized block`, async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);
     const diff = Date.now() - getBlockTime(block);
@@ -17,7 +17,7 @@ describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context) => 
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
   });
 
-  it(`should have a recently finalized eth block #C200`, async function () {
+  testIt("C200", `should have a recently finalized eth block`, async function () {
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
     const clientVersion = (await context.polkadotApi.rpc.system.version()).toString().split("-")[0];
 
@@ -32,7 +32,8 @@ describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context) => 
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
   });
 
-  it(
+  testIt(
+    "C300",
     `should have only finalized blocks in the past` +
       ` ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours #C300`,
     async function () {

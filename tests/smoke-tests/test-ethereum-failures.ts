@@ -23,9 +23,9 @@ type BlockFilteredRecord = {
 
 describeSmokeSuite(
   "S900",
-  `ETH Failures in past ${hours} hours` + ` should be reported correctly`,
+  `ETH Failures in past ${hours} hours should be reported correctly`,
 
-  (context) => {
+  (context, testIt) => {
     let blockData: BlockFilteredRecord[];
 
     before(`Retrieve events for previous blocks`, async function () {
@@ -54,7 +54,7 @@ describeSmokeSuite(
 
     /// This test will check that all ethereum.transact extrinsics have a corresponding
     /// paysFee = no property in ExtrinsicSuccess event
-    it(`successful eth exts should always pays_fee: no #C100`, function () {
+    testIt("C100", `successful eth exts should always pays_fee: no`, function () {
       const filteredEvents = blockData
         .map(({ blockNum, events }) => {
           const matchedEvents = events
@@ -102,7 +102,7 @@ describeSmokeSuite(
     // This test will check that each ethereum.transact extrinsic has a corresponding event
     // of ExtrinsicSuccess fired. Any Extrinsic.Failed events will be reported and mark the
     // block for further investigation.
-    it(`should have have ExtrinsicSuccess for all ethereum.transact` + ` #C200`, function () {
+    testIt("C200", `should have have ExtrinsicSuccess for all ethereum.transact`, function () {
       debug(
         `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
           " eth extrinsics all have corresponding ExtrinsicSuccess events."
@@ -149,9 +149,9 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(
-      `should have matching amounts in emulated` +
-        ` block as there are ethereum.executed events #C300`,
+    testIt(
+      "C300",
+      `should have matching amounts in emulated block as there are ethereum.executed events`,
       function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
@@ -178,8 +178,9 @@ describeSmokeSuite(
       }
     );
 
-    it(
-      `should have a receipt in emulated block for each ethereum.executed event` + ` #C400`,
+    testIt(
+      "C400",
+      `should have a receipt in emulated block for each ethereum.executed event`,
       function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>

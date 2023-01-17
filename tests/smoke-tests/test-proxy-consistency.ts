@@ -11,7 +11,7 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 const debug = require("debug")("smoke:proxy");
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite("S1600", `Verify account proxies created`, (context) => {
+describeSmokeSuite("S1600", `Verify account proxies created`, (context, testIt) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -86,7 +86,7 @@ describeSmokeSuite("S1600", `Verify account proxies created`, (context) => {
   });
 
   // TEMPLATE: Give details about what you are testing
-  it(`should have no more than the maximum allowed proxies` + ` #C100`, async function () {
+  testIt("C100", `should have no more than the maximum allowed proxies`, async function () {
     this.timeout(240000);
 
     // TEMPLATE: Retrieve additional information
@@ -128,7 +128,7 @@ describeSmokeSuite("S1600", `Verify account proxies created`, (context) => {
   });
 
   // TEMPLATE: Exemple of test verifying a constant in the runtime
-  it(`should have a maximum allowed proxies of 32 #C200`, async function () {
+  testIt("C200", `should have a maximum allowed proxies of 32`, async function () {
     // TEMPLATE: Remove if the value is the same for each runtime
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
     const networkName = context.polkadotApi.runtimeChain.toString();
@@ -168,8 +168,9 @@ describeSmokeSuite("S1600", `Verify account proxies created`, (context) => {
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it(
-    `should only be possible for proxies of non-smart contract accounts` + ` #C300`,
+  testIt(
+    "C300",
+    `should only be possible for proxies of non-smart contract accounts`,
     async function () {
       this.timeout(60000);
 

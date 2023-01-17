@@ -35,8 +35,8 @@ function* range(from, to, step = 1) {
 describeSmokeSuite(
   "S700",
   `Ethereum CurrentBlock and CurrentReceipts should never be 0x00`,
-  (context) => {
-    it(`should have non default field values #C100`, async function () {
+  (context, testIt) => {
+    testIt("C100", `should have non default field values`, async function () {
       this.timeout(6_000_000); // 30 minutes
       const lastBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
       const roundLength = (

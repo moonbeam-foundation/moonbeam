@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author-mapping");
 
-describeSmokeSuite("S200", `Verifying deposit for associated nimbus ids`, (context) => {
+describeSmokeSuite("S200", `Verifying deposit for associated nimbus ids`, (context, testIt) => {
   const nimbusIdPerAccount: { [account: string]: string } = {};
 
   let atBlockNumber: number = 0;
@@ -62,7 +62,7 @@ describeSmokeSuite("S200", `Verifying deposit for associated nimbus ids`, (conte
     debug(`Retrieved ${count} total nimbus ids`);
   });
 
-  it(`should have a deposit for each associated nimbus id #C100`, async function () {
+  testIt("C100", `should have a deposit for each associated nimbus id`, async function () {
     this.timeout(60_000);
 
     // Instead of putting an expect in the loop. We track all failed entries instead

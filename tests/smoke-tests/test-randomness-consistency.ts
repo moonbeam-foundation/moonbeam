@@ -7,7 +7,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:randomness");
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
-describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
+describeSmokeSuite("S1700", `Verify randomness consistency`, (context, testIt) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -76,7 +76,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     debug(`Retrieved ${count} total requests`);
   });
 
-  it(`should have fewer Requests than RequestCount #C100`, async function () {
+  testIt("C100", `should have fewer Requests than RequestCount`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -87,7 +87,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     expect(numOutstandingRequests).to.be.lessThanOrEqual(requestCount);
   });
 
-  it(`should not have requestId above RequestCount #C200`, async function () {
+  testIt("C200", `should not have requestId above RequestCount`, async function () {
     this.timeout(1000);
 
     if (!isRandomnessAvailable) {
@@ -98,7 +98,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     expect(highestId).to.be.lessThanOrEqual(requestCount);
   });
 
-  it(`should not have results without a matching request #C300`, async function () {
+  testIt("C300", `should not have results without a matching request`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -179,7 +179,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     });
   });
 
-  it(`all results should have correct request counters #C400`, async function () {
+  testIt("C400", `all results should have correct request counters`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -246,7 +246,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     });
   });
 
-  it(`should have updated VRF output #C500`, async function () {
+  testIt("C500", `should have updated VRF output`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -287,7 +287,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     }
   });
 
-  it(`should have correct total deposits #C600`, async function () {
+  testIt("C600", `should have correct total deposits`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -317,7 +317,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     expect(palletAccountBalance >= totalDeposits).to.be.true;
   });
 
-  it(`available randomness outputs should be random #C700`, async function () {
+  testIt("C700", `available randomness outputs should be random`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
@@ -337,7 +337,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context) => {
     });
   });
 
-  it(`local VRF output should be random #C800`, async function () {
+  testIt("C800", `local VRF output should be random`, async function () {
     this.timeout(10000);
 
     if (!isRandomnessAvailable) {
