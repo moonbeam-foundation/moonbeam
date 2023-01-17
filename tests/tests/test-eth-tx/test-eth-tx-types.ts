@@ -4,7 +4,11 @@ import { expect } from "chai";
 
 import { ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransaction, createTransfer } from "../../util/transactions";
+import {
+  createTransaction,
+  createTransfer,
+  DEFAULT_TXN_MAX_BASE_FEE,
+} from "../../util/transactions";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
@@ -15,7 +19,7 @@ describeDevMoonbeam(
           privateKey: ALITH_PRIVATE_KEY,
           to: baltathar.address,
           gas: 12_000_000,
-          gasPrice: 1_000_000_000,
+          gasPrice: 10_000_000_000,
           value: 512,
         })
       );
@@ -26,15 +30,15 @@ describeDevMoonbeam(
       expect(extrinsic.isLegacy).to.be.true;
       expect(extrinsic.asLegacy.toJSON()).to.deep.equal({
         nonce: 0,
-        gasPrice: 1000000000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 12000000,
         action: { call: baltathar.address.toLowerCase() },
         value: 512,
         input: "0x",
         signature: {
-          v: 2597,
-          r: "0x440c713c1ea8ced9edacac8a33baa89411dca31af33b5c6e2c8e4a3c95112ab4",
-          s: "0x17c303f32862b65034da593cc0fb1178c915ef7a0b9c221ff3b7d00647b208fb",
+          v: 2598,
+          r: "0xc4d57ab7b0e601a95299b70a46fdbb16371b477669e0f8245e0a9f12e27e15f2",
+          s: "0x4186b0a32dd279fed20b1f20805845e24eff2a2a035801fe19419c09e861a62d",
         },
       });
     });
@@ -62,7 +66,7 @@ describeDevMoonbeam(
       expect(extrinsic.asEip2930.toJSON()).to.deep.equal({
         chainId: 1281,
         nonce: 0,
-        gasPrice: 1000000000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
@@ -70,9 +74,9 @@ describeDevMoonbeam(
         value: 512,
         input: "0x",
         accessList: [],
-        oddYParity: false,
-        r: "0x6d61b9498e1ddcfa490ef3cb45d0152ad328f7f61d69e61d901a21eab86814c0",
-        s: "0x716b528435345a640bd31a94e699b10440e418ff0edf62a2874091a682459084",
+        oddYParity: true,
+        r: "0x28b384f1bf4b0ff05cf0d9002a9bdc2cfd20ee105f3dbdca737d59eded43785f",
+        s: "0x73bcb4d0d6419becc9ee4db2ff80961443686b92d24c22a43f2e769cf080bbd8",
       });
     });
   },
@@ -100,7 +104,7 @@ describeDevMoonbeam(
         chainId: 1281,
         nonce: 0,
         maxPriorityFeePerGas: 0,
-        maxFeePerGas: 1000000000,
+        maxFeePerGas: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
@@ -109,8 +113,8 @@ describeDevMoonbeam(
         input: "0x",
         accessList: [],
         oddYParity: false,
-        r: "0xff6a476d2d8d7b0a23fcb3f1471d1ddd4dec7f3803db7f769aa1ce2575e493ac",
-        s: "0x4ebec202edd10edfcee87927090105b95d8b58f80550cdf4eda20327f3377ca6",
+        r: "0x40f376b6ece87cedb35b8687bc50cfef91450a43af5b04b7d368c2164b9f100e",
+        s: "0x76f61710d719e35878d022a90a278d8e291502314a46b33f83f03894a6b36871",
       });
     });
   },

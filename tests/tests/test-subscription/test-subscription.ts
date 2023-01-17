@@ -41,7 +41,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
       miner: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
       receiptsRoot: "0x056b23fbba480696b65fe5a59b8f2148a1299103c4f57df839233af2cf4ca2d2",
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-      transactionsRoot: "0x14363f4c0580a470a7879ba247f97c2d62d77963a73464c49507f721d7f85bfc",
+      transactionsRoot: "0x795ca28f628cccc283e1d0338f9b027851b55b25f99890c19bbbca3686cfb939",
     });
     expect(data.nonce).to.be.eq("0x0000000000000000");
   });

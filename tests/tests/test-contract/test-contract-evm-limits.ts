@@ -32,7 +32,7 @@ describeDevMoonbeam("Contract - Excessive memory allocation", (context) => {
         to: null,
         value: value,
         gas: "0x100000",
-        gasPrice: 1_000_000_000,
+        gasPrice: 10_000_000_000,
         data: "0x4141046159864141414141343933343346460100000028F900E06F01000000F71E01000000000000",
       },
       ALITH_PRIVATE_KEY
