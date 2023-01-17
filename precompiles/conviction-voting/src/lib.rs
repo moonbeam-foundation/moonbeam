@@ -69,18 +69,16 @@ where
 	IndexOf<Runtime>: TryFrom<u32>,
 	ClassOf<Runtime>: TryFrom<u16>,
 {
-	/// Vote in a poll.
+	/// Vote yes in a poll.
 	///
 	/// Parameters:
 	/// * poll_index: Index of poll
-	/// * aye: Yes or no vote
 	/// * vote_amount: Balance locked for vote
 	/// * conviction: Conviction multiplier for length of vote lock
-	#[precompile::public("vote(uint32,bool,uint256,uint8)")]
-	fn vote(
+	#[precompile::public("voteYes(uint32,uint256,uint8)")]
+	fn vote_yes(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
-		aye: bool,
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
@@ -89,13 +87,54 @@ where
 		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
 		let vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
+			vote: Vote {
+				aye: true,
+				conviction,
+			},
 			balance: vote_amount,
 		};
 
 		log::trace!(target: "conviction-voting-precompile",
 			"Voting {:?} on poll {:?}, with conviction {:?}",
-			aye, poll_index, conviction
+			true, poll_index, conviction
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	/// Vote no in a poll.
+	///
+	/// Parameters:
+	/// * poll_index: Index of poll
+	/// * vote_amount: Balance locked for vote
+	/// * conviction: Conviction multiplier for length of vote lock
+	#[precompile::public("voteNo(uint32,uint256,uint8)")]
+	fn vote_no(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		vote_amount: U256,
+		conviction: u8,
+	) -> EvmResult {
+		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
+		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
+
+		let vote = AccountVote::Standard {
+			vote: Vote {
+				aye: false,
+				conviction,
+			},
+			balance: vote_amount,
+		};
+
+		log::trace!(target: "conviction-voting-precompile",
+			"Voting {:?} on poll {:?}, with conviction {:?}",
+			false, poll_index, conviction
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);

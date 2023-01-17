@@ -33,15 +33,24 @@ interface ConvictionVoting {
         Locked6x
     }
 
-    /// @dev Vote in a poll.
-    /// @custom:selector 35ee6e0e
+    /// @dev Vote yes in a poll.
+    /// @custom:selector da9df518
     /// @param pollIndex Index of poll
-    /// @param aye Yes or no vote
     /// @param voteAmount Balance locked for vote
     /// @param conviction Conviction multiplier for length of vote lock
-    function vote(
+    function voteYes(
         uint32 pollIndex,
-        bool aye,
+        uint256 voteAmount,
+        Conviction conviction
+    ) external;
+
+    /// @dev Vote no in a poll.
+    /// @custom:selector cc600eba
+    /// @param pollIndex Index of poll
+    /// @param voteAmount Balance locked for vote
+    /// @param conviction Conviction multiplier for length of vote lock
+    function voteNo(
+        uint32 pollIndex,
         uint256 voteAmount,
         Conviction conviction
     ) external;
