@@ -121,6 +121,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::TechCommitteeCollective>("TechCommitteeCollective");
+	is_pallet_prefix::<moonriver_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonriver_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonriver_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
@@ -250,6 +253,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -293,6 +302,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonriver_runtime::TechCommitteeCollective>(71);
 	is_pallet_index::<moonriver_runtime::TreasuryCouncilCollective>(72);
+	is_pallet_index::<moonriver_runtime::OpenTechCommitteeCollective>(73);
 	// Treasury
 	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
@@ -2738,7 +2748,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2060, 2062, 2063, 2064, 2065, 2066, 2067,
+			2056, 2057, 2058, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
