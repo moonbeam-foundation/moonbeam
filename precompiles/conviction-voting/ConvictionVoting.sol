@@ -62,7 +62,7 @@ interface ConvictionVoting {
 
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
-    //// @param target The voter to have vote removed
+    //// @param target The voter to have vote removed. The removed vote must already be expired.
     /// @param trackId The trackId
     /// @param pollIndex the poll index
     function removeOtherVote(
