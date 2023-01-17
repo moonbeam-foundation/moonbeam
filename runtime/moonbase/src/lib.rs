@@ -115,7 +115,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, pallet_custom_origins, referenda::*};
+use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -530,7 +530,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = TreasurySpender;
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -777,6 +777,100 @@ pub enum ProxyType {
 impl Default for ProxyType {
 	fn default() -> Self {
 		Self::Any
+	}
+}
+
+fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	matches!(
+		precompile_name,
+		PrecompileName::DemocracyPrecompile
+			| PrecompileName::CouncilInstance
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance,
+	)
+}
+
+use precompiles::PrecompileName;
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
+	fn is_evm_proxy_call_allowed(
+		&self,
+		call: &pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -> bool {
+		use pallet_evm::PrecompileSet as _;
+		match self {
+			ProxyType::Any => {
+				match PrecompileName::from_address(call.to.0) {
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
+					// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					None => {
+						// If the address is not recognized, allow only evm transfert to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+					}
+				}
+			}
+			ProxyType::NonTransfer => {
+				call.value == U256::default()
+					&& match PrecompileName::from_address(call.to.0) {
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+							| PrecompileName::ParachainStakingPrecompile,
+						) => true,
+						Some(ref precompile) if is_governance_precompile(precompile) => true,
+						_ => false,
+					}
+			}
+			ProxyType::Governance => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(ref precompile) if is_governance_precompile(precompile)
+					)
+			}
+			ProxyType::Staking => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
+					)
+			}
+			// The proxy precompile does not contain method cancel_proxy
+			ProxyType::CancelProxy => false,
+			ProxyType::Balances => {
+				// Allow only "simple" accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+			}
+			ProxyType::AuthorMapping => {
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(PrecompileName::AuthorMappingPrecompile)
+					)
+			}
+			// There is no identity precompile
+			ProxyType::IdentityJudgement => false,
+		}
 	}
 }
 
@@ -1180,7 +1274,7 @@ construct_runtime! {
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
-		Origins: pallet_custom_origins::{Origin} = 43,
+		Origins: governance::custom_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}

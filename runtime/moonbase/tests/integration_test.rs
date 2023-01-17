@@ -62,7 +62,7 @@ use pallet_evm_precompileset_assets_erc20::{
 };
 use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
@@ -2487,6 +2487,40 @@ fn transactor_cannot_use_more_than_max_weight() {
 					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+		})
+}
+
+#[test]
+fn root_can_use_hrmp_manage() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			// It fails sending, because the router does not work in test mode
+			// But all rest checks pass
+			assert_noop!(
+				XcmTransactor::hrmp_manage(
+					root_origin(),
+					HrmpOperation::Accept {
+						para_id: 2000u32.into()
+					},
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: Some(10000)
+					},
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: Some(20000)
+					}
+				),
+				pallet_xcm_transactor::Error::<Runtime>::ErrorSending
 			);
 		})
 }

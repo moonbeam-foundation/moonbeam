@@ -34,7 +34,7 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
@@ -442,5 +442,26 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+
+	pub(crate) fn encode_utility_as_derivative(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let transactor: TransactorOf<Runtime> = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let encoded = UtilityEncodeCall::encode_call(
+			transactor,
+			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
+		)
+		.as_slice()
+		.into();
+		Ok(encoded)
 	}
 }
