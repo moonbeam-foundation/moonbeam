@@ -535,11 +535,17 @@ impl pallet_treasury::Config for Runtime {
 
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -659,10 +665,13 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+type MonetaryGovernanceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
+	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
 	/// Rounds before the collator leaving the candidates request can be executed
@@ -1149,12 +1158,17 @@ parameter_types! {
 	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
+type AddCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type DelCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	type DelCollatorOrigin = DelCollatorOrigin;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
