@@ -30,9 +30,10 @@ use moonbase_runtime::{
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
 	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
-	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
+use pallet_transaction_payment::Multiplier;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
@@ -321,6 +322,9 @@ pub fn testnet_genesis(
 		},
 		// This should initialize it to whatever we have set in the pallet
 		polkadot_xcm: PolkadotXcmConfig::default(),
+		transaction_payment: TransactionPaymentConfig {
+			multiplier: Multiplier::from(8u128),
+		},
 	}
 }
 

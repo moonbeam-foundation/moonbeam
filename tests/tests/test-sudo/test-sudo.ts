@@ -40,7 +40,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
       createTransfer(
         context,
         baltathar.address,
-        BigInt(initBalance) - 1n - 21000n * 1_000_000_000n,
+        BigInt(initBalance) - 1n - 21000n * 10_000_000_000n,
         {
           gas: 21000,
         }

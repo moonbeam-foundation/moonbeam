@@ -23,7 +23,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
     let data = inspect.result.pending[alith.address.toLowerCase()][context.web3.utils.toHex(0)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1000000000 wei"
+      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 10000000000 wei"
     );
   });
 
@@ -47,7 +47,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
       blockNumber: null,
       from: alith.address.toLowerCase(),
       gas: "0x100000",
-      gasPrice: "0x3b9aca00",
+      gasPrice: "0x2540be400",
       hash: txHash,
       nonce: context.web3.utils.toHex(0),
       to: "0x0000000000000000000000000000000000000000",
@@ -88,7 +88,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
 
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      contractAddress.toLowerCase() + ": 0 wei + 12000000 gas x 1000000000 wei"
+      contractAddress.toLowerCase() + ": 0 wei + 12000000 gas x 10000000000 wei"
     );
   });
 
@@ -100,7 +100,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       blockNumber: null,
       from: alith.address.toLowerCase(),
       gas: "0xb71b00",
-      gasPrice: "0x3b9aca00",
+      gasPrice: "0x2540be400",
       hash: txHash,
       nonce: context.web3.utils.toHex(1),
       to: multiplyBy7Contract.options.address.toLowerCase(),
