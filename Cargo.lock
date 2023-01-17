@@ -5094,10 +5094,12 @@ dependencies = [
  "pallet-utility",
  "parity-scale-codec",
  "polkadot-runtime",
+ "polkadot-runtime-parachains",
  "rococo-runtime",
  "sp-runtime",
  "sp-std",
  "westend-runtime",
+ "xcm",
  "xcm-primitives",
 ]
 
@@ -7145,6 +7147,8 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "xcm",
+ "xcm-primitives",
 ]
 
 [[package]]
@@ -14712,11 +14716,13 @@ dependencies = [
 name = "xcm-primitives"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "ethereum",
  "ethereum-types",
  "frame-support",
  "frame-system",
  "hex",
+ "impl-trait-for-tuples",
  "log",
  "orml-traits",
  "parity-scale-codec",

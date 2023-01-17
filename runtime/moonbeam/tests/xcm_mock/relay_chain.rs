@@ -26,8 +26,11 @@ use sp_runtime::{
 	AccountId32,
 };
 
+use frame_support::weights::Weight;
 use polkadot_parachain::primitives::Id as ParaId;
-use polkadot_runtime_parachains::{configuration, origin, shared, ump};
+use polkadot_runtime_parachains::{configuration, dmp, hrmp, origin, paras, shared, ump};
+use sp_runtime::transaction_validity::TransactionPriority;
+use sp_runtime::Permill;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	Account32Hash, AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
@@ -255,6 +258,52 @@ impl ump::Config for Runtime {
 	type WeightInfo = ump::TestWeightInfo;
 }
 
+parameter_types! {
+	pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
+
+/// A very dumb implementation of `EstimateNextSessionRotation`. At the moment of writing, this
+/// is more to satisfy type requirements rather than to test anything.
+pub struct TestNextSessionRotation;
+
+impl frame_support::traits::EstimateNextSessionRotation<u32> for TestNextSessionRotation {
+	fn average_session_length() -> u32 {
+		10
+	}
+
+	fn estimate_current_session_progress(_now: u32) -> (Option<Permill>, Weight) {
+		(None, Weight::zero())
+	}
+
+	fn estimate_next_session_rotation(_now: u32) -> (Option<u32>, Weight) {
+		(None, Weight::zero())
+	}
+}
+
+impl paras::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = paras::TestWeightInfo;
+	type UnsignedPriority = ParasUnsignedPriority;
+	type NextSessionRotation = TestNextSessionRotation;
+}
+
+impl dmp::Config for Runtime {}
+
+impl hrmp::Config for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type WeightInfo = TestHrmpWeightInfo;
+}
+
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+where
+	RuntimeCall: From<C>,
+{
+	type Extrinsic = UncheckedExtrinsic;
+	type OverarchingCall = RuntimeCall;
+}
+
 impl origin::Config for Runtime {}
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -272,6 +321,10 @@ construct_runtime!(
 		ParasUmp: ump::{Pallet, Call, Storage, Event},
 		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		Utility: pallet_utility::{Pallet, Call, Event},
+		Hrmp: hrmp::{Pallet, Call, Storage, Event<T>, Config},
+		Dmp: dmp::{Pallet, Call, Storage},
+		Paras: paras::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
+		Configuration: configuration::{Pallet, Call, Storage, Config<T>},
 	}
 );
 
@@ -293,5 +346,38 @@ pub(crate) fn relay_roll_to(n: BlockNumber) {
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		XcmPallet::on_initialize(System::block_number());
+	}
+}
+
+/// A weight info that is only suitable for testing.
+pub struct TestHrmpWeightInfo;
+
+impl hrmp::WeightInfo for TestHrmpWeightInfo {
+	fn hrmp_accept_open_channel() -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn force_clean_hrmp(_: u32, _: u32) -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn force_process_hrmp_close(_: u32) -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn force_process_hrmp_open(_: u32) -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn hrmp_cancel_open_request(_: u32) -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn hrmp_close_channel() -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn hrmp_init_open_channel() -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn clean_open_channel_requests(_: u32) -> Weight {
+		Weight::from_ref_time(1 as u64)
+	}
+	fn force_open_hrmp_channel() -> Weight {
+		Weight::from_ref_time(1 as u64)
 	}
 }
