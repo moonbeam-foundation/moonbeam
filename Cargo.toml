@@ -33,6 +33,10 @@ members = [
 ]
 
 [patch.crates-io]
+evm = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
+evm-core = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
+evm-gasometer = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
+evm-runtime = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
 jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 jsonrpsee-types = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }

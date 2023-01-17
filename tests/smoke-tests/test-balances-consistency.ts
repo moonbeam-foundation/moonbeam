@@ -272,7 +272,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
         .map((status) => {
           const deposit = extractPreimageDeposit(
-            status[1].unwrap().asUnrequested || status[1].unwrap().asRequested
+            status[1].unwrap().isUnrequested
+              ? status[1].unwrap().asUnrequested
+              : status[1].unwrap().asRequested
           );
           return {
             accountId: deposit.accountId,

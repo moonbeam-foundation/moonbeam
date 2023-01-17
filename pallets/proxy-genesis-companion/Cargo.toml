@@ -20,6 +20,8 @@ pallet-balances = { git = "https://github.com/purestake/substrate", branch = "mo
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
+pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+
 [features]
 default = [ "std" ]
 std = [
