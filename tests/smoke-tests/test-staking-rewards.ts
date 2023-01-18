@@ -346,6 +346,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const nowRoundNumber = nowRound.current;
   const nowRoundFirstBlock = nowRound.first;
   const nowRoundFirstBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock);
+  const nowRoundFirstRewardBlock = nowRound.first.addn(1);
+  const nowRoundFirstRewardBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstRewardBlock);
   const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
   const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
   const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
@@ -383,7 +385,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
   paid in ${nowRoundNumber.toString()} (first block \
   ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-  ${priorRewardedBlockHash.toHex()})`);
+  ${priorRewardedBlockHash.toHex()})
+  first rewarded ${nowRoundFirstRewardBlock.toNumber()} / ${nowRoundFirstRewardBlockHash.toHex()}`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -581,7 +584,7 @@ totalBondReward               ${totalBondReward} \
   let skippedRewardEvents = 0;
   // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
-    const blockNumber = nowRoundFirstBlock.addn(i);
+    const blockNumber = nowRoundFirstRewardBlock.addn(i);
     const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
     const apiAtBlock = await api.at(blockHash);
 
