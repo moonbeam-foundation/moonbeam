@@ -18,9 +18,19 @@ export async function expectOk<
   const block = await call;
   if (Array.isArray(block.result)) {
     block.result.forEach((r, idx) => {
-      expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
+      expect(
+        r.successful,
+        `tx[${idx}] - ${r.error?.name}${
+          r.extrinsic
+            ? `\n\t\t${r.extrinsic.method.section}.${r.extrinsic.method.method}(${r.extrinsic.args
+                .map((d) => d.toHuman())
+                .join("; ")})`
+            : ""
+        }`
+      ).to.be.true;
     });
   } else {
     expect(block.result.successful, block.result.error?.name).to.be.true;
   }
+  return block;
 }
