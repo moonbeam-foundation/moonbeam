@@ -28,12 +28,15 @@ use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
+use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
+use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_proxy::ProxyPrecompile;
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
+use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -118,6 +121,12 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
 	PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
 	PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
+	PrecompileAt<
+		AddressU64<2065>,
+		ReferendaPrecompile<R, crate::governance::custom_origins::Origin>,
+	>,
+	PrecompileAt<AddressU64<2066>, ConvictionVotingPrecompile<R>>,
+	PrecompileAt<AddressU64<2067>, PreimagePrecompile<R>>,
 	PrecompileAt<AddressU64<2068>, CollectivePrecompile<R, OpenTechCommitteeInstance>>,
 );
 
