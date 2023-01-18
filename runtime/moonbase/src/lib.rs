@@ -851,7 +851,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				}
 			}
 			ProxyType::NonTransfer => {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
@@ -862,14 +862,14 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					}
 			}
 			ProxyType::Governance => {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&& matches!(
 						PrecompileName::from_address(call.to.0),
 						Some(ref precompile) if is_governance_precompile(precompile)
 					)
 			}
 			ProxyType::Staking => {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&& matches!(
 						PrecompileName::from_address(call.to.0),
 						Some(
@@ -887,7 +887,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
 			}
 			ProxyType::AuthorMapping => {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&& matches!(
 						PrecompileName::from_address(call.to.0),
 						Some(PrecompileName::AuthorMappingPrecompile)
@@ -910,10 +910,14 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					RuntimeCall::System(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::Democracy(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::ConvictionVoting(..)
+						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -924,8 +928,12 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking => matches!(
