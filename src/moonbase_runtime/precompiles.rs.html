@@ -144,6 +144,15 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -174,12 +183,15 @@
 <span class="kw">use </span>pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 <span class="kw">use </span>pallet_evm_precompile_call_permit::CallPermitPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_collective::CollectivePrecompile;
+<span class="kw">use </span>pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
 <span class="kw">use </span>pallet_evm_precompile_proxy::ProxyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_referenda::ReferendaPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -264,6 +276,12 @@
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;, CollectivePrecompile&lt;R, CouncilInstance&gt;&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;, CollectivePrecompile&lt;R, TechCommitteeInstance&gt;&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2064</span>&gt;, CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2065</span>&gt;,
+		ReferendaPrecompile&lt;R, <span class="kw">crate</span>::governance::custom_origins::Origin&gt;,
+	&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2066</span>&gt;, ConvictionVotingPrecompile&lt;R&gt;&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2067</span>&gt;, PreimagePrecompile&lt;R&gt;&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2068</span>&gt;, CollectivePrecompile&lt;R, OpenTechCommitteeInstance&gt;&gt;,
 );
 

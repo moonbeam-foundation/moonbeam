@@ -117,16 +117,6 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -168,11 +158,10 @@
 		</span>ReferendumKiller,
 	}
 
-	<span class="comment">// where is this used, comment out and check TODO
-	</span><span class="kw">impl </span>TryFrom&lt;u8&gt; <span class="kw">for </span>Origin {
+	<span class="kw">impl </span>TryFrom&lt;u16&gt; <span class="kw">for </span>Origin {
 		<span class="kw">type </span>Error = ();
 		<span class="doccomment">/// TrackId =&gt; Origin
-		</span><span class="kw">fn </span>try_from(value: u8) -&gt; <span class="prelude-ty">Result</span>&lt;Origin, ()&gt; {
+		</span><span class="kw">fn </span>try_from(value: u16) -&gt; <span class="prelude-ty">Result</span>&lt;Origin, ()&gt; {
 			<span class="kw">match </span>value {
 				<span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(Origin::WhitelistedCaller),
 				<span class="number">2 </span>=&gt; <span class="prelude-val">Ok</span>(Origin::GeneralAdmin),
@@ -180,14 +169,6 @@
 				<span class="number">4 </span>=&gt; <span class="prelude-val">Ok</span>(Origin::ReferendumKiller),
 				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
 			}
-		}
-	}
-
-	<span class="kw">impl </span>TryFrom&lt;u16&gt; <span class="kw">for </span>Origin {
-		<span class="kw">type </span>Error = ();
-		<span class="doccomment">/// TrackId =&gt; Origin
-		</span><span class="kw">fn </span>try_from(value: u16) -&gt; <span class="prelude-ty">Result</span>&lt;Origin, ()&gt; {
-			(value <span class="kw">as </span>u8).try_into()
 		}
 	}
 
@@ -208,9 +189,8 @@
 		<span class="macro">macro_rules! </span>has_consistent_conversions {
 			( <span class="macro-nonterminal">$o</span>:expr ) =&gt; {
 				<span class="kw">let </span>origin_as_u16 = &lt;Origin <span class="kw">as </span>Into&lt;u16&gt;&gt;::into(<span class="macro-nonterminal">$o</span>);
-				<span class="kw">let </span>u16_as_u8: u8 = origin_as_u16.try_into().unwrap();
-				<span class="kw">let </span>u8_as_origin: Origin = u16_as_u8.try_into().unwrap();
-				<span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$o</span>, u8_as_origin);
+				<span class="kw">let </span>u16_as_origin: Origin = origin_as_u16.try_into().unwrap();
+				<span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$o</span>, u16_as_origin);
 			};
 		}
 		<span class="macro">has_consistent_conversions!</span>(Origin::WhitelistedCaller);

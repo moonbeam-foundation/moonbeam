@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ENCODED_PROPOSAL_SIZE_LIMIT",""]],"enum":[["PreimagePrecompileCall",""]],"struct":[["PreimagePrecompile","A precompile to wrap the functionality from pallet-preimage."]]};

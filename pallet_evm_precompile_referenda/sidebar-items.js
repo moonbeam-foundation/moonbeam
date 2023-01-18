@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["CALL_DATA_LIMIT",""]],"enum":[["ReferendaPrecompileCall",""]],"struct":[["ReferendaPrecompile","A precompile to wrap the functionality from pallet-referenda."]]};
