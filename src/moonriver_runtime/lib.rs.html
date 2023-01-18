@@ -1506,6 +1506,16 @@
 <span id="1506">1506</span>
 <span id="1507">1507</span>
 <span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2268,9 +2278,14 @@
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
+						| RuntimeCall::ConvictionVoting(..)
 						| RuntimeCall::CouncilCollective(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -2281,8 +2296,13 @@
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking =&gt; <span class="macro">matches!</span>(

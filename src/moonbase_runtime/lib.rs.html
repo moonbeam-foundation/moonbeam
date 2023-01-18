@@ -1658,6 +1658,16 @@
 <span id="1658">1658</span>
 <span id="1659">1659</span>
 <span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2511,7 +2521,7 @@
 				}
 			}
 			ProxyType::NonTransfer =&gt; {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&amp;&amp; <span class="kw">match </span>PrecompileName::from_address(call.to.<span class="number">0</span>) {
 						<span class="prelude-val">Some</span>(
 							PrecompileName::AuthorMappingPrecompile
@@ -2522,14 +2532,14 @@
 					}
 			}
 			ProxyType::Governance =&gt; {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&amp;&amp; <span class="macro">matches!</span>(
 						PrecompileName::from_address(call.to.<span class="number">0</span>),
 						<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>precompile) <span class="kw">if </span>is_governance_precompile(precompile)
 					)
 			}
 			ProxyType::Staking =&gt; {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&amp;&amp; <span class="macro">matches!</span>(
 						PrecompileName::from_address(call.to.<span class="number">0</span>),
 						<span class="prelude-val">Some</span>(
@@ -2547,7 +2557,7 @@
 				</span>!recipient_has_code &amp;&amp; !PrecompilesValue::get().is_precompile(call.to.<span class="number">0</span>)
 			}
 			ProxyType::AuthorMapping =&gt; {
-				call.value == U256::default()
+				call.value == U256::zero()
 					&amp;&amp; <span class="macro">matches!</span>(
 						PrecompileName::from_address(call.to.<span class="number">0</span>),
 						<span class="prelude-val">Some</span>(PrecompileName::AuthorMappingPrecompile)
@@ -2570,10 +2580,15 @@
 					RuntimeCall::System(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::Democracy(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
+						| RuntimeCall::ConvictionVoting(..)
+						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -2584,8 +2599,13 @@
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking =&gt; <span class="macro">matches!</span>(
