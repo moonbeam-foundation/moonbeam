@@ -45,11 +45,14 @@ pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc2
 pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 pallet-evm-precompile-call-permit = { path = "../../precompiles/call-permit", default-features = false }
 pallet-evm-precompile-collective = { path = "../../precompiles/collective", default-features = false }
+pallet-evm-precompile-conviction-voting = { path = "../../precompiles/conviction-voting", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-evm-precompile-preimage = { path = "../../precompiles/preimage", default-features = false }
 pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
 pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
+pallet-evm-precompile-referenda = { path = "../../precompiles/referenda", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
@@ -70,11 +73,13 @@ frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate",
 pallet-assets = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-conviction-voting = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-identity = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-society = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -82,6 +87,7 @@ pallet-transaction-payment = { git = "https://github.com/purestake/substrate", b
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-treasury = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-whitelist = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive", "max-encoded-len" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -191,6 +197,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-base-fee/std",
 	"pallet-collective/std",
+	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
 	"pallet-ethereum-chain-id/std",
@@ -200,9 +207,12 @@ std = [
 	"pallet-evm-precompile-batch/std",
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
+	"pallet-evm-precompile-conviction-voting/std",
 	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-preimage/std",
 	"pallet-evm-precompile-randomness/std",
+	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
@@ -217,6 +227,7 @@ std = [
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-randomness/std",
+	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-timestamp/std",
@@ -224,6 +235,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-utility/std",
+	"pallet-whitelist/std",
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
@@ -277,6 +289,7 @@ runtime-benchmarks = [
 	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
+	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
@@ -284,8 +297,10 @@ runtime-benchmarks = [
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
+	"pallet-referenda/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-whitelist/runtime-benchmarks",
 	"pallet-xcm-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
@@ -303,13 +318,16 @@ try-runtime = [
 	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
+	"pallet-conviction-voting/try-runtime",
 	"pallet-democracy/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-referenda/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
+	"pallet-whitelist/try-runtime",
 ]

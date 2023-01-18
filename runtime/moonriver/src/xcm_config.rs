@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees, LocalAssets,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
+	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -28,7 +28,7 @@ use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess},
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
 
 use frame_system::EnsureRoot;
@@ -62,6 +62,8 @@ use sp_std::{
 };
 
 use orml_traits::parameter_type_with_key;
+
+use crate::governance::referenda::GeneralAdminOrRoot;
 
 parameter_types! {
 	// The network Id of the relay
@@ -472,6 +474,11 @@ impl orml_xtokens::Config for Runtime {
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 }
 
+// 1 KSM should be enough
+parameter_types! {
+	pub MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+
 // For now we only allow to transact in the relay, although this might change in the future
 // Transactors just defines the chains in which we allow transactions to be issued through
 // xcm
@@ -516,11 +523,14 @@ impl XcmTransact for Transactors {
 	}
 }
 
+pub type DerivativeAddressRegistrationOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
-	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
@@ -534,6 +544,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type HrmpEncoder = moonbeam_relay_encoder::kusama::KusamaEncoder;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

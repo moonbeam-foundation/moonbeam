@@ -21,11 +21,11 @@ describeDevMoonbeam("Ethereum Rpc pool errors - replacement transaction underpri
   it("replacement transaction underpriced", async function () {
     const tx_1 = await createTransfer(context, baltathar.address, 1, {
       nonce: 0,
-      gasPrice: 2_000_000_000,
+      gasPrice: 20_000_000_000_000,
     });
     const tx_2 = await createTransfer(context, baltathar.address, 1, {
       nonce: 0,
-      gasPrice: 1_000_000_000,
+      gasPrice: 10_000_000_000_000,
     });
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx_1]);
     const res_a2 = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx_2]);
@@ -96,7 +96,7 @@ describeDevMoonbeam(
   "Ethereum Rpc pool errors - insufficient funds for gas * price + value",
   (context) => {
     it("insufficient funds for gas * price + value", async function () {
-      const amount = ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 1_000_000_000n + 1n;
+      const amount = ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n + 1n;
       const tx = await createTransfer(context, baltathar.address, amount, { nonce: 0 });
       const res = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
       expect(res.error).to.include({
@@ -112,7 +112,8 @@ describeDevMoonbeam(
     it("max priority fee per gas higher than max fee per gast", async function () {
       const tx = await createTransfer(context, baltathar.address, 1, {
         nonce: 0,
-        maxPriorityFeePerGas: 2_000_000_000,
+        maxFeePerGas: 100_000_000_000,
+        maxPriorityFeePerGas: 200_000_000_000,
       });
       const res = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
       expect(res.error).to.include({

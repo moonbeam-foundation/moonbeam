@@ -137,4 +137,15 @@ interface XcmTransactorV2 {
         uint256 feeAmount,
         uint64 overallWeight
     ) external;
+
+    /// @dev Encode 'utility.as_derivative' relay call
+    /// @custom:selector ff86378d
+    /// @param transactor The transactor to be used
+    /// @param index: The derivative index to use
+    /// @param innerCall: The inner call to be executed from the derivated address
+    /// @return result The bytes associated with the encoded call
+    function encodeUtilityAsDerivative(uint8 transactor, uint16 index, bytes memory innerCall)
+        external
+        pure
+        returns (bytes memory result);
 }
