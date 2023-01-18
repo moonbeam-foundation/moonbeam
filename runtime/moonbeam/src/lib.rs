@@ -851,9 +851,11 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
+						| RuntimeCall::Preimage(..)
 						| RuntimeCall::CouncilCollective(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -864,7 +866,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Preimage(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
