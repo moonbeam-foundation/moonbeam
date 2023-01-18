@@ -350,7 +350,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
     .unwrap()
     .specVersion.toNumber();
-  const nowRoundFirstRewardBlock = specVersion >= 2100 ? nowRound.first.addn(1) : nowRound.first;
+  const nowRoundFirstRewardBlock =
+    specVersion >= 2100 ? nowRoundFirstBlock.addn(1) : nowRoundFirstBlock;
   const nowRoundFirstRewardBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstRewardBlock);
   const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
   const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
