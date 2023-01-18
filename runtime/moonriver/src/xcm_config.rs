@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees, LocalAssets,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
+	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -28,7 +28,7 @@ use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess},
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
 
 use frame_system::EnsureRoot;
@@ -523,11 +523,14 @@ impl XcmTransact for Transactors {
 	}
 }
 
+pub type DerivativeAddressRegistrationOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
-	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;

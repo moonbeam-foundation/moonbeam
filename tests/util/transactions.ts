@@ -24,6 +24,8 @@ import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 const debug = require("debug")("test:transaction");
 
+export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
+
 export interface TransactionOptions {
   from?: string;
   to?: string;
@@ -41,7 +43,7 @@ export interface TransactionOptions {
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
   gas: 500_000,
-  gasPrice: 1_000_000_000,
+  gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
   value: "0x00",
 };
 
@@ -83,7 +85,7 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
+  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : DEFAULT_TXN_MAX_BASE_FEE;
   const maxPriorityFeePerGas =
     options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
@@ -99,7 +101,7 @@ export const createTransaction = async (
       data: options.data,
     }));
 
-  const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
+  const maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
   const accessList = options.accessList || [];
   const nonce =
     options.nonce != null
@@ -310,7 +312,7 @@ export async function sendPrecompileTx(
   );
 }
 
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+const GAS_PRICE = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
 export async function callPrecompile(
   context: DevTestContext,
   precompileContractAddress: string,
