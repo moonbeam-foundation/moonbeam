@@ -912,6 +912,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
 						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
 						| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
@@ -929,6 +930,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				c,
 				RuntimeCall::Democracy(..)
 					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
