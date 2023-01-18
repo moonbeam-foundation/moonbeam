@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { BN, bnToHex } from "@polkadot/util";
+import { BN, bnToHex, nToHex } from "@polkadot/util";
 import {
   TREASURY_ACCOUNT,
   MIN_GLMR_STAKING,
@@ -93,7 +93,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     // withdraw event to see what it would charge. it is root only and will refund if not called by
     // root, but sudo will also cause a refund.
 
-    let fillAmount = 600_000_000; // equal to 60% Perbill
+    let fillAmount = 600; // equal to 60% Perbill
 
     const { block, result } = await context.createBlock(
       context.polkadotApi.tx.system.fillBlock(fillAmount)
@@ -158,5 +158,34 @@ describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
+  });
+});
+
+describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
+
+  const STARTING_MULTIPLIER = nToHex(2_000_000_000_000_000_000n, {isLe: true, bitLength: 128})
+
+  beforeEach("Reset multiplier", async function () {
+    const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
+      .key(0)
+      .toString();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          // [MULTIPLIER_STORAGE_KEY, nToHex(STARTING_MULTIPLIER, {isLe: true, bitLength: 128})],
+          [MULTIPLIER_STORAGE_KEY,STARTING_MULTIPLIER],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+  });
+
+  it.only("should decay with no activity", async () => {
+    const initialValue = 
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+      console.log(initialValue)
+    
+    // expect(initialValue.lt(STARTING_MULTIPLIER)).to.be.true;
   });
 });
