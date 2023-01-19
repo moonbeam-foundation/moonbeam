@@ -288,6 +288,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
@@ -310,6 +312,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
@@ -331,6 +335,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
@@ -352,6 +358,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
@@ -423,6 +431,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
@@ -564,6 +574,8 @@ pub fn run() -> Result<()> {
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
 				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
+				frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+				frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 			};
 
 			// Switch on the concrete benchmark sub-command
@@ -815,6 +827,8 @@ pub fn run() -> Result<()> {
 					frontier_sql_backend_num_ops_timeout: cli
 						.run
 						.frontier_sql_backend_num_ops_timeout,
+					frontier_sql_backend_thread_count: cli.run.frontier_sql_backend_thread_count,
+					frontier_sql_backend_cache_size: cli.run.frontier_sql_backend_cache_size,
 				};
 
 				// If dev service was requested, start up manual or instant seal.

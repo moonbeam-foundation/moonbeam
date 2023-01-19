@@ -212,6 +212,15 @@ pub struct RunCmd {
 	#[clap(long, default_value = "10000000")]
 	pub frontier_sql_backend_num_ops_timeout: u32,
 
+	/// Sets the SQL backend's auxiliary thread limit.
+	#[clap(long, default_value = "4")]
+	pub frontier_sql_backend_thread_count: u32,
+
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Default value is 200MB.
+	#[clap(long, default_value = "209715200")]
+	pub frontier_sql_backend_cache_size: u64,
+
 	/// Disable automatic hardware benchmarks.
 	///
 	/// By default these benchmarks are automatically ran at startup and measure

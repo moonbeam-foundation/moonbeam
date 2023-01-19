@@ -82,6 +82,8 @@ pub struct RpcConfig {
 	pub tracing_raw_max_memory_usage: usize,
 	pub frontier_backend_type: BackendType,
 	pub frontier_sql_backend_num_ops_timeout: u32,
+	pub frontier_sql_backend_thread_count: u32,
+	pub frontier_sql_backend_cache_size: u64,
 }
 
 /// Avalailable Backend types.
