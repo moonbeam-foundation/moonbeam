@@ -47,6 +47,7 @@ with ${lastClientVersion} and master
 - [ ] When everything is ok, publish the draft release
   `;
 
+  // Detect if it's a major release or hotfix
   if (newVersion.endsWith("00")) {
     const template = `
 ## Requirements
