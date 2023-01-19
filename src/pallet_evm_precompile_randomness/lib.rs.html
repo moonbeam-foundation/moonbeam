@@ -474,6 +474,60 @@
 <span id="474">474</span>
 <span id="475">475</span>
 <span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -521,11 +575,31 @@
 <span class="kw">pub const </span>EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = <span class="number">22201</span>;
 
 <span class="doccomment">/// Fulfillment overhead cost, which takes input weight hint -&gt; weight -&gt; return gas
-</span><span class="kw">pub fn </span>fulfillment_overhead_gas_cost&lt;T: pallet_evm::Config&gt;(num_words: u8) -&gt; u64 {
+</span><span class="kw">pub fn </span>prepare_and_finish_fulfillment_gas_cost&lt;T: pallet_evm::Config&gt;(num_words: u8) -&gt; u64 {
 	&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
 		SubstrateWeight::&lt;T&gt;::prepare_fulfillment(num_words.into())
 			.saturating_add(SubstrateWeight::&lt;T&gt;::finish_fulfillment()),
 	)
+}
+
+<span class="kw">pub fn </span>subcall_overhead_gas_costs&lt;T: pallet_evm::Config&gt;() -&gt; EvmResult&lt;u64&gt; {
+	<span class="comment">// cost of log don&#39;t depend on specific address.
+	</span><span class="kw">let </span>log_cost = log_fulfillment_failed(H160::zero())
+		.compute_cost()
+		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
+	<span class="kw">let </span>call_cost = call_cost(U256::zero(), &lt;T <span class="kw">as </span>pallet_evm::Config&gt;::config());
+	log_cost
+		.checked_add(call_cost)
+		.ok_or(revert(<span class="string">&quot;overflow when computing overhead gas&quot;</span>))
+}
+
+<span class="kw">pub fn </span>transaction_gas_refund&lt;T: pallet_evm::Config&gt;() -&gt; u64 {
+	<span class="comment">// 21_000 for the transaction itself
+	// we also include the fees to pay for input request id which is 32 bytes, which is in practice
+	// a u64 and thus can only occupy 8 non zero bytes.
+	</span><span class="number">21_000
+		</span>+ <span class="number">8 </span>* T::config().gas_transaction_non_zero_data
+		+ <span class="number">24 </span>* T::config().gas_transaction_zero_data
 }
 
 <span class="kw">pub const </span>LOG_FULFILLMENT_SUCCEEDED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentSucceeded()&quot;</span>);
@@ -541,37 +615,44 @@
 
 <span class="doccomment">/// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup
 </span><span class="kw">fn </span>ensure_can_provide_randomness&lt;Runtime&gt;(
-	code_address: H160,
-	gas_limit: u64,
+	remaining_gas: u64,
+	request_gas_limit: u64,
 	request_fee: BalanceOf&lt;Runtime&gt;,
-	clean_up_cost: u64,
+	subcall_overhead_gas_costs: u64,
+	prepare_and_finish_fulfillment_gas_cost: u64,
 ) -&gt; EvmResult&lt;()&gt;
 <span class="kw">where
 	</span>Runtime: pallet_randomness::Config + pallet_evm::Config,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
 {
-	<span class="comment">// assert fee &gt; gasLimit * base_fee
-	</span><span class="kw">let </span>gas_limit_as_u256: U256 = gas_limit.into();
+	<span class="kw">let </span>request_gas_limit_with_overhead = request_gas_limit
+		.checked_add(subcall_overhead_gas_costs)
+		.ok_or(revert(
+			<span class="string">&quot;overflow when computing request gas limit + overhead&quot;</span>,
+		))<span class="question-mark">?</span>;
+
+	<span class="comment">// Ensure precompile have enough gas to perform subcall with the overhead.
+	</span><span class="kw">if </span>remaining_gas &lt; request_gas_limit_with_overhead {
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;not enough gas to perform the call&quot;</span>));
+	}
+
+	<span class="comment">// Ensure request fee is enough to refund the fulfiller.
+	</span><span class="kw">let </span>total_refunded_gas = prepare_and_finish_fulfillment_gas_cost
+		.checked_add(request_gas_limit_with_overhead)
+		.ok_or(revert(<span class="string">&quot;overflow when computed max amount of refunded gas&quot;</span>))<span class="question-mark">?
+		</span>.checked_add(transaction_gas_refund::&lt;Runtime&gt;())
+		.ok_or(revert(<span class="string">&quot;overflow when computed max amount of refunded gas&quot;</span>))<span class="question-mark">?</span>;
+
+	<span class="kw">let </span>total_refunded_gas: U256 = total_refunded_gas.into();
 	<span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(gas_limit_times_base_fee) = gas_limit_as_u256.checked_mul(base_fee) {
-		<span class="kw">if </span>gas_limit_times_base_fee &gt;= request_fee.into() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(
-				<span class="string">&quot;Gas limit at current price must be less than fees allotted&quot;</span>,
-			));
-		}
-	} <span class="kw">else </span>{
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gas limit times base fee overflowed U256&quot;</span>));
+	<span class="kw">let </span>execution_max_fee = total_refunded_gas.checked_mul(base_fee).ok_or(revert(
+		<span class="string">&quot;gas limit (with overhead) * base fee overflowed U256&quot;</span>,
+	))<span class="question-mark">?</span>;
+
+	<span class="kw">if </span>execution_max_fee &gt; request_fee.into() {
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;request fee cannot pay for execution cost&quot;</span>));
 	}
-	<span class="kw">let </span>log_cost = log_fulfillment_failed(code_address)
-		.compute_cost()
-		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
-	<span class="comment">// Cost of the call itself that the batch precompile must pay.
-	</span><span class="kw">let </span>call_cost = call_cost(U256::zero(), &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config());
-	<span class="comment">// assert gasLimit &gt; overhead cost
-	</span><span class="kw">let </span>overhead = call_cost + log_cost + clean_up_cost;
-	<span class="kw">if </span>gas_limit &lt;= overhead {
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gas limit must exceed overhead call cost&quot;</span>));
-	}
+
 	<span class="prelude-val">Ok</span>(())
 }
 
@@ -860,6 +941,20 @@
 	) -&gt; EvmResult {
 		<span class="kw">let </span>request_id = request_id.converted();
 
+		<span class="comment">// Since we cannot compute `prepare_and_finish_fulfillment_cost` now (we don&#39;t
+		// know the number of words), we compute the cost for the maximum allowed number of
+		// words.
+		</span><span class="kw">let </span>max_prepare_and_finish_fulfillment_cost =
+			prepare_and_finish_fulfillment_gas_cost::&lt;Runtime&gt;(
+				&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::MaxRandomWords::get(),
+			);
+
+		<span class="kw">if </span>handle.remaining_gas() &lt; max_prepare_and_finish_fulfillment_cost {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="macro">alloc::format!</span>(
+				<span class="string">&quot;provided gas must be at least {max_prepare_and_finish_fulfillment_cost}&quot;
+			</span>)));
+		}
+
 		<span class="kw">let </span>pallet_randomness::FulfillArgs {
 			request,
 			deposit,
@@ -867,16 +962,25 @@
 		} = Pallet::&lt;Runtime&gt;::prepare_fulfillment(request_id)
 			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
+		<span class="kw">let </span>prepare_and_finish_fulfillment_cost =
+			prepare_and_finish_fulfillment_gas_cost::&lt;Runtime&gt;(request.num_words);
+		handle.record_cost(prepare_and_finish_fulfillment_cost)<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>subcall_overhead_gas_costs = subcall_overhead_gas_costs::&lt;Runtime&gt;()<span class="question-mark">?</span>;
+
 		<span class="comment">// check that randomness can be provided
 		</span>ensure_can_provide_randomness::&lt;Runtime&gt;(
-			handle.code_address(),
+			handle.remaining_gas(),
 			request.gas_limit,
 			request.fee,
-			fulfillment_overhead_gas_cost::&lt;Runtime&gt;(request.num_words),
+			subcall_overhead_gas_costs,
+			prepare_and_finish_fulfillment_cost,
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// get gas before subcall
-		</span><span class="kw">let </span>before_remaining_gas = handle.remaining_gas();
+		<span class="comment">// We meter this section to know how much gas was actually used.
+		// It contains the gas used by the subcall and the overhead actually
+		// performing a call. It doesn&#39;t contain `prepare_and_finish_fulfillment_cost`.
+		</span><span class="kw">let </span>remaining_gas_before = handle.remaining_gas();
 		provide_randomness(
 			handle,
 			request_id,
@@ -884,15 +988,19 @@
 			request.contract_address.clone().into(),
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)<span class="question-mark">?</span>;
+		<span class="kw">let </span>remaining_gas_after = handle.remaining_gas();
 
-		<span class="comment">// get gas after subcall
-		</span><span class="kw">let </span>after_remaining_gas = handle.remaining_gas();
-		<span class="kw">let </span>gas_used: U256 = before_remaining_gas
-			.checked_sub(after_remaining_gas)
+		<span class="comment">// We compute the actual gas used to refund the caller.
+		// It is the metered gas + `prepare_and_finish_fulfillment_cost`.
+		</span><span class="kw">let </span>gas_used: U256 = remaining_gas_before
+			.checked_sub(remaining_gas_after)
 			.ok_or(revert(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?
+			</span>.checked_add(prepare_and_finish_fulfillment_cost)
+			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
+			</span>.checked_add(transaction_gas_refund::&lt;Runtime&gt;())
+			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
 			</span>.into();
-		<span class="comment">// cost of execution is before_remaining_gas less after_remaining_gas
-		</span><span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
+		<span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
 		<span class="kw">let </span>cost_of_execution: BalanceOf&lt;Runtime&gt; = gas_used
 			.checked_mul(base_fee)
 			.ok_or(revert(<span class="string">&quot;Multiply gas used by base fee overflowed&quot;</span>))<span class="question-mark">?
