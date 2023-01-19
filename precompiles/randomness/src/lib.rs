@@ -58,9 +58,9 @@ pub fn subcall_overhead_gas_costs<T: pallet_evm::Config>() -> EvmResult<u64> {
 		.compute_cost()
 		.map_err(|_| revert("failed to compute log cost"))?;
 	let call_cost = call_cost(U256::zero(), <T as pallet_evm::Config>::config());
-	Ok(log_cost
+	log_cost
 		.checked_add(call_cost)
-		.ok_or(revert("overflow when computing overhead gas"))?)
+		.ok_or(revert("overflow when computing overhead gas"))
 }
 
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
