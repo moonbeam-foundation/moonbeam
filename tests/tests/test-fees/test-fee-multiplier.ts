@@ -161,7 +161,6 @@ describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
 
 describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
   const startingBn = new BN("2000000000000000000");
-  const STARTING_MULTIPLIER = bnToHex(startingBn, { isLe: true, bitLength: 128 });
   let sendingAddress: string;
   let random: KeyringPair;
   let transferredBalance: bigint;
@@ -193,8 +192,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
-          // [MULTIPLIER_STORAGE_KEY, nToHex(STARTING_MULTIPLIER, {isLe: true, bitLength: 128})],
-          [MULTIPLIER_STORAGE_KEY, STARTING_MULTIPLIER],
+          [MULTIPLIER_STORAGE_KEY, bnToHex(startingBn, { isLe: true, bitLength: 128 })],
         ])
       )
       .signAndSend(alith);
