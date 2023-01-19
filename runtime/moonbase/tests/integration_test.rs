@@ -1902,7 +1902,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(47603)
+				.expect_cost(52170)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1954,7 +1954,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(47603)
+				.expect_cost(52170)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2571,7 +2571,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(19161)
+				.expect_cost(19078)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2611,7 +2611,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(19161)
+				.expect_cost(19078)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2693,7 +2693,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15693)
+				.expect_cost(16030)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2715,7 +2715,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15693)
+				.expect_cost(15659)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2736,7 +2736,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15693)
+				.expect_cost(16215)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2779,7 +2779,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16887)
+				.expect_cost(16815)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2804,7 +2804,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16887)
+				.expect_cost(16815)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
