@@ -13,9 +13,7 @@ import {
 } from "../../util/xcm";
 import { expectOk } from "../../util/expect";
 import { KeyringPair } from "@substrate/txwrapper-core";
-
-// TODO: Derive this from consts
-const TARGET_FILL_PERBILL = 187000000;
+import { TARGET_FILL_AMOUNT } from "../../util/constants";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -207,7 +205,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
   it("should not decay when block size at target amount", async function () {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_PERBILL))
+      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
     );
     const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be.true;
@@ -219,7 +217,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .transfer(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
       .signAndSend(alith, { nonce: -1 });
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_PERBILL))
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     await context.createBlock();
 
@@ -238,7 +236,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .free;
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_PERBILL))
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {
@@ -342,7 +340,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .free;
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_PERBILL))
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {
