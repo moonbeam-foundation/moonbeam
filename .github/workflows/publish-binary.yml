@@ -16,8 +16,6 @@ jobs:
   setup-scripts:
     runs-on: self-hosted
     steps:
-      - name: Get Timestamp
-        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v3
       - name: Upload tools
         uses: actions/upload-artifact@v3
@@ -33,8 +31,6 @@ jobs:
     env:
       RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
     steps:
-      - name: Get Timestamp
-        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
         with:
