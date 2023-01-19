@@ -91,7 +91,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     // withdraw event to see what it would charge. it is root only and will refund if not called by
     // root, but sudo will also cause a refund.
 
-    let fillAmount = 600000000; // equal to 60% Perbill
+    let fillAmount = 600_000_000; // equal to 60% Perbill
 
     const { block, result } = await context.createBlock(
       context.polkadotApi.tx.system.fillBlock(fillAmount)
