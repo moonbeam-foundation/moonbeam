@@ -14,8 +14,8 @@ jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros
 parity-scale-codec = "3.0.0"
 tokio = { version = "1.12.0", features = [ "sync", "time" ] }
 
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
 sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }

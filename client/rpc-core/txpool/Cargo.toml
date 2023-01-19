@@ -14,4 +14,4 @@ jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }

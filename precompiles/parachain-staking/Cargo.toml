@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
 derive_more = "0.99"

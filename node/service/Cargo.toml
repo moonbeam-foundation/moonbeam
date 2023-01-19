@@ -93,15 +93,15 @@ substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", b
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", features = [ "forbid-evm-reentrancy" ] }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "nish-sql", features = [ "forbid-evm-reentrancy" ] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32" }

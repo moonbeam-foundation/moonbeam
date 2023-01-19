@@ -29,16 +29,16 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", version = "4.0.0", default-features = false }
 
 # Frontier
-fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 [dev-dependencies]
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", features = [ "forbid-evm-reentrancy" ] }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "nish-sql", features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", features = [ "forbid-evm-reentrancy" ] }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 hex = "0.4.3"

@@ -32,7 +32,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 # Frontier
 ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = "0.14.0"
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", features = [ "rpc_binary_search_estimate" ] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql", features = [ "rpc_binary_search_estimate" ] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "nish-sql" }

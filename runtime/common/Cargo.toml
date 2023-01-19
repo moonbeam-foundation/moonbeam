@@ -32,8 +32,8 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Frontier
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "nish-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
 pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
