@@ -2495,7 +2495,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "async-trait",
  "fc-db",
@@ -2514,7 +2514,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -2543,7 +2543,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fc-db",
  "fp-consensus",
@@ -2563,7 +2563,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2607,7 +2607,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2767,7 +2767,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2779,7 +2779,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2794,7 +2794,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "evm",
  "frame-support",
@@ -2807,7 +2807,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2824,7 +2824,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "frame-support",
@@ -2838,7 +2838,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6670,7 +6670,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -6890,7 +6890,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6958,7 +6958,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "environmental",
  "evm",
@@ -7066,7 +7066,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
 ]
@@ -7074,7 +7074,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -7202,7 +7202,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -7212,7 +7212,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "num",
@@ -7332,7 +7332,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -7341,7 +7341,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32-sql#dbd19eef0cd92fca21f14ea03452aa1dcb5baa72"
+source = "git+https://github.com/purestake/frontier?branch=nish-sql#47f8a3ce9aa19147dcf1017bfbaa041bc7dff294"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -13060,8 +13060,7 @@ dependencies = [
 [[package]]
 name = "sqlx"
 version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9249290c05928352f71c077cc44a464d880c63f26f7534728cca008e135c0428"
+source = "git+https://github.com/PureStake/sqlx?branch=v0.6.2-timeout#607635f001c948b6db2347d30aaa56930cbf3cca"
 dependencies = [
  "sqlx-core",
  "sqlx-macros",
@@ -13070,8 +13069,7 @@ dependencies = [
 [[package]]
 name = "sqlx-core"
 version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcbc16ddba161afc99e14d1713a453747a2b07fc097d2009f4c300ec99286105"
+source = "git+https://github.com/PureStake/sqlx?branch=v0.6.2-timeout#607635f001c948b6db2347d30aaa56930cbf3cca"
 dependencies = [
  "ahash",
  "atoi",
@@ -13114,8 +13112,7 @@ dependencies = [
 [[package]]
 name = "sqlx-macros"
 version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b850fa514dc11f2ee85be9d055c512aa866746adfacd1cb42d867d68e6a5b0d9"
+source = "git+https://github.com/PureStake/sqlx?branch=v0.6.2-timeout#607635f001c948b6db2347d30aaa56930cbf3cca"
 dependencies = [
  "dotenvy",
  "either",
@@ -13136,8 +13133,7 @@ dependencies = [
 [[package]]
 name = "sqlx-rt"
 version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24c5b2d25fa654cc5f841750b8e1cdedbe21189bf9a9382ee90bfa9dd3562396"
+source = "git+https://github.com/PureStake/sqlx?branch=v0.6.2-timeout#607635f001c948b6db2347d30aaa56930cbf3cca"
 dependencies = [
  "native-tls",
  "once_cell",
