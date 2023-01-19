@@ -390,10 +390,11 @@ fn fulfill_request_reverts_if_not_enough_gas() {
 					},
 				)
 				.execute_returns([0u8; 32].into());
+
 			// run to ready block
 			System::set_block_number(3);
 
-			// // fill randomness results
+			// fill randomness results
 			let mut filled_results =
 				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
 			filled_results.randomness = Some(H256::default());
@@ -437,8 +438,6 @@ fn fulfill_request_works() {
 					+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1),
 			)
 				* <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price().0;
-
-			// let gas_limit = crate::prepare_and_finish_fulfillment_gas_cost::<Runtime>(10u8) + 10u64;
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -544,8 +543,6 @@ fn fulfill_request_works_with_higher_gas() {
 			)
 				* <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price().0;
 
-			// let gas_limit = crate::prepare_and_finish_fulfillment_gas_cost::<Runtime>(10u8) + 10u64;
-
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
@@ -560,8 +557,10 @@ fn fulfill_request_works_with_higher_gas() {
 					},
 				)
 				.execute_returns([0u8; 32].into());
+
 			// run to ready block
 			System::set_block_number(3);
+
 			// fill randomness results
 			let mut filled_results =
 				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
@@ -664,8 +663,10 @@ fn fulfill_request_works_with_subcall_revert() {
 					},
 				)
 				.execute_returns([0u8; 32].into());
+
 			// run to ready block
 			System::set_block_number(3);
+
 			// fill randomness results
 			let mut filled_results =
 				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();

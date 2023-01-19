@@ -63,6 +63,15 @@ pub fn subcall_overhead_gas_costs<T: pallet_evm::Config>() -> EvmResult<u64> {
 		.ok_or(revert("overflow when computing overhead gas"))
 }
 
+pub fn transaction_gas_refund<T: pallet_evm::Config>() -> u64 {
+	// 21_000 for the transaction itself
+	// we also include the fees to pay for input request id which is 32 bytes, which is in practice
+	// a u64 and thus can only occupy 8 non zero bytes.
+	21_000
+		+ 8 * T::config().gas_transaction_non_zero_data
+		+ 24 * T::config().gas_transaction_zero_data
+}
+
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
 pub const LOG_FULFILLMENT_FAILED: [u8; 32] = keccak256!("FulFillmentFailed()");
 
@@ -97,9 +106,11 @@ where
 		return Err(revert("not enough gas to perform the call"));
 	}
 
-	// Ensure request fee can pay for this.
+	// Ensure request fee is enough to refund the fulfiller.
 	let total_refunded_gas = prepare_and_finish_fulfillment_gas_cost
 		.checked_add(request_gas_limit_with_overhead)
+		.ok_or(revert("overflow when computed max amount of refunded gas"))?
+		.checked_add(transaction_gas_refund::<Runtime>())
 		.ok_or(revert("overflow when computed max amount of refunded gas"))?;
 
 	let total_refunded_gas: U256 = total_refunded_gas.into();
@@ -109,7 +120,7 @@ where
 	))?;
 
 	if execution_max_fee > request_fee.into() {
-		return Err(revert("Gas limit times base fee overflowed U256"));
+		return Err(revert("request fee cannot pay for execution cost"));
 	}
 
 	Ok(())
@@ -455,6 +466,8 @@ where
 			.checked_sub(remaining_gas_after)
 			.ok_or(revert("Before remaining gas < After remaining gas"))?
 			.checked_add(prepare_and_finish_fulfillment_cost)
+			.ok_or(revert("overflow when adding real call cost + overhead"))?
+			.checked_add(transaction_gas_refund::<Runtime>())
 			.ok_or(revert("overflow when adding real call cost + overhead"))?
 			.into();
 		let (base_fee, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
