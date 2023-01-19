@@ -40,9 +40,9 @@ mod tests;
 use solidity_types::*;
 
 // Tests to verify equal to weight_to_gas(weight) in runtime integration tests
-pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26474;
-pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16995;
-pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 22201;
+pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26561;
+pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16999;
+pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 22300;
 
 /// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
 pub fn prepare_and_finish_fulfillment_gas_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {

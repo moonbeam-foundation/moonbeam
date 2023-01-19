@@ -14,7 +14,7 @@ import { descendOriginFromAddress } from "../../util/xcm";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
 
-export const CLEAR_ORIGIN_WEIGHT = 8_268_000n;
+export const CLEAR_ORIGIN_WEIGHT = 8_514_000n;
 
 const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
