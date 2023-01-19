@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-
 import { expectEVMResult } from "../../util/eth-transactions";
 import { Contract } from "web3-eth-contract";
 import testInputs from "../../util/artefacts/modexp.json";
@@ -11,8 +10,6 @@ import { customWeb3Request } from "../../util/providers";
 import { expect } from "chai";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 
-// const ERC20_CONTRACT = getCompiled("ERC20Instance");
-// const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
 describeDevMoonbeam("Precompiles - modexp", (context) => {
@@ -25,10 +22,6 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
   });
 
   it("should be accessible from a smart contract", async function () {
-    // const { contract, rawTx } = await createContract(context, "HasherChecker");
-    // await context.createBlock(rawTx);
-
-    // Execute the contract modexp call
     const { result } = await context.createBlock(
       createContractExecution(context, {
         contract: hasherContract,
@@ -36,7 +29,6 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       })
     );
 
-    // Verify the result
     expectEVMResult(result.events, "Succeed");
   });
 
@@ -49,7 +41,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
         "115792089237316195423570985008687907853269984665640564039457584007908834671663"
       ),
     });
-    const result = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
     await context.createBlock();
 
     expect(await hasherContract.methods.getResult().call(), "Incorrect modexp result").to.be.equals(
@@ -722,11 +714,11 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
   it("should pad input when too short", async function () {
     const inputData =
       "0000000000000000000000000000000000000000000000000000000000000001" + // base length
-      "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
-      "20" + // modulus length
-      "03" + // base
-      "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2e" + // exponent
-      "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"; // modulus
+      "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
+      "0000000000000000000000000000000000000000000000000000000000000002" + // modulus length
+      "05" + // base
+      "03" + // exponent
+      "01"; // modulus
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
