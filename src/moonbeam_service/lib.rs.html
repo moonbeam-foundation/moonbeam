@@ -1380,6 +1380,41 @@
 <span id="1380">1380</span>
 <span id="1381">1381</span>
 <span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1404,7 +1439,23 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-</span><span class="kw">use </span>cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, RpcConfig};
+</span><span class="kw">pub mod </span>rpc;
+
+<span class="kw">use </span>cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, RpcConfig};
+<span class="kw">use </span>cumulus_client_cli::CollatorOptions;
+<span class="kw">use </span>cumulus_client_consensus_common::ParachainConsensus;
+<span class="kw">use </span>cumulus_client_network::BlockAnnounceValidator;
+<span class="kw">use </span>cumulus_client_service::{
+	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+};
+<span class="kw">use </span>cumulus_primitives_core::relay_chain::v2::CollatorPair;
+<span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, MockXcmConfig,
+};
+<span class="kw">use </span>cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
+<span class="kw">use </span>cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
+<span class="kw">use </span>cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
 <span class="kw">use </span>fc_consensus::FrontierBlockImport;
 <span class="kw">use </span>fc_db::DatabaseSource;
 <span class="kw">use </span>fc_rpc_core::types::{FeeHistoryCache, FilterPool};
@@ -1416,19 +1467,6 @@
 </span><span class="kw">pub use </span>moonbeam_runtime;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 </span><span class="kw">pub use </span>moonriver_runtime;
-<span class="kw">use </span>std::{collections::BTreeMap, sync::Mutex, time::Duration};
-<span class="kw">pub mod </span>rpc;
-<span class="kw">use </span>cumulus_client_consensus_common::ParachainConsensus;
-<span class="kw">use </span>cumulus_client_network::BlockAnnounceValidator;
-<span class="kw">use </span>cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
-};
-<span class="kw">use </span>cumulus_primitives_core::ParaId;
-<span class="kw">use </span>cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, MockXcmConfig,
-};
-<span class="kw">use </span>cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
-<span class="kw">use </span>cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 <span class="kw">use </span>nimbus_primitives::NimbusId;
@@ -1445,6 +1483,7 @@
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_keystore::SyncCryptoStorePtr;
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::{collections::BTreeMap, sync::Mutex, time::Duration};
 <span class="kw">use </span>substrate_prometheus_endpoint::Registry;
 
 <span class="kw">pub use </span>client::<span class="kw-2">*</span>;
@@ -1876,6 +1915,31 @@
 	})
 }
 
+<span class="kw">async fn </span>build_relay_chain_interface(
+	polkadot_config: Configuration,
+	parachain_config: <span class="kw-2">&amp;</span>Configuration,
+	telemetry_worker_handle: <span class="prelude-ty">Option</span>&lt;TelemetryWorkerHandle&gt;,
+	task_manager: <span class="kw-2">&amp;mut </span>TaskManager,
+	collator_options: CollatorOptions,
+	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
+) -&gt; RelayChainResult&lt;(
+	Arc&lt;(<span class="kw">dyn </span>RelayChainInterface + <span class="lifetime">&#39;static</span>)&gt;,
+	<span class="prelude-ty">Option</span>&lt;CollatorPair&gt;,
+)&gt; {
+	<span class="kw">match </span>collator_options.relay_chain_rpc_url {
+		<span class="prelude-val">Some</span>(relay_chain_url) =&gt; {
+			build_minimal_relay_chain_node(polkadot_config, task_manager, relay_chain_url).<span class="kw">await
+		</span>}
+		<span class="prelude-val">None </span>=&gt; build_inprocess_relay_chain(
+			polkadot_config,
+			parachain_config,
+			telemetry_worker_handle,
+			task_manager,
+			hwbench,
+		),
+	}
+}
+
 <span class="doccomment">/// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
@@ -1913,6 +1977,10 @@
 {
 	<span class="kw">let </span><span class="kw-2">mut </span>parachain_config = prepare_node_config(parachain_config);
 
+	<span class="kw">let </span>collator_options = CollatorOptions {
+		relay_chain_rpc_url: rpc_config.relay_chain_rpc_url.clone(),
+	};
+
 	<span class="kw">let </span>params = new_partial(<span class="kw-2">&amp;mut </span>parachain_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 	<span class="kw">let </span>(
 		_block_import,
@@ -1927,14 +1995,16 @@
 	<span class="kw">let </span>backend = params.backend.clone();
 	<span class="kw">let </span><span class="kw-2">mut </span>task_manager = params.task_manager;
 
-	<span class="kw">let </span>(relay_chain_interface, collator_key) = build_inprocess_relay_chain(
+	<span class="kw">let </span>(relay_chain_interface, collator_key) = build_relay_chain_interface(
 		polkadot_config,
 		<span class="kw-2">&amp;</span>parachain_config,
 		telemetry_worker_handle,
 		<span class="kw-2">&amp;mut </span>task_manager,
-		<span class="prelude-val">None</span>,
+		collator_options.clone(),
+		hwbench.clone(),
 	)
-	.map_err(|e| <span class="kw">match </span>e {
+	.<span class="kw">await
+	</span>.map_err(|e| <span class="kw">match </span>e {
 		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) =&gt; x,
 		s =&gt; s.to_string().into(),
 	})<span class="question-mark">?</span>;
