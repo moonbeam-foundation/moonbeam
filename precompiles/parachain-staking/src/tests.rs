@@ -193,6 +193,55 @@ fn points_non_zero() {
 }
 
 #[test]
+fn awarded_points_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.with_candidates(vec![(Alice.into(), 1_000)])
+		.build()
+		.execute_with(|| {
+			set_points(1u32, Alice, 100);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::awarded_points {
+						round: 1.into(),
+						candidate: Address(Bob.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(0u32);
+		});
+}
+
+#[test]
+fn awarded_points_non_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.with_candidates(vec![(Alice.into(), 1_000)])
+		.build()
+		.execute_with(|| {
+			set_points(1u32, Alice, 100);
+			set_points(1u32, Bob, 10);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::awarded_points {
+						round: 1.into(),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(100u32);
+		});
+}
+
+#[test]
 fn delegation_amount_zero() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])

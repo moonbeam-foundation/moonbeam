@@ -88,6 +88,23 @@ where
 		Ok(points)
 	}
 
+	#[precompile::public("awardedPoints(uint256,address)")]
+	#[precompile::view]
+	fn awarded_points(
+		handle: &mut impl PrecompileHandle,
+		round: SolidityConvert<U256, u32>,
+		candidate: Address,
+	) -> EvmResult<u32> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let round = round.converted();
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		let points = <pallet_parachain_staking::Pallet<Runtime>>::awarded_pts(&round, &candidate);
+
+		Ok(points)
+	}
+
 	#[precompile::public("candidateCount()")]
 	#[precompile::public("candidate_count()")]
 	#[precompile::view]
