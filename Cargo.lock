@@ -1731,6 +1731,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-relay-chain-minimal-node"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.32#6d9310724ce42b7c8bf5b398ce09e5eda844c668"
+dependencies = [
+ "array-bytes",
+ "async-trait",
+ "cumulus-primitives-core",
+ "cumulus-relay-chain-interface",
+ "cumulus-relay-chain-rpc-interface",
+ "futures 0.3.25",
+ "lru 0.8.1",
+ "polkadot-availability-distribution",
+ "polkadot-core-primitives",
+ "polkadot-network-bridge",
+ "polkadot-node-core-av-store",
+ "polkadot-node-network-protocol",
+ "polkadot-node-subsystem-util",
+ "polkadot-overseer",
+ "polkadot-primitives",
+ "polkadot-service",
+ "sc-authority-discovery",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-keystore",
+ "sc-network",
+ "sc-network-common",
+ "sc-network-light",
+ "sc-network-sync",
+ "sc-service",
+ "sc-telemetry",
+ "sc-tracing",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-runtime",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "cumulus-relay-chain-rpc-interface"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.32#6d9310724ce42b7c8bf5b398ce09e5eda844c668"
@@ -5446,6 +5490,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
+ "cumulus-relay-chain-minimal-node",
  "cumulus-relay-chain-rpc-interface",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
