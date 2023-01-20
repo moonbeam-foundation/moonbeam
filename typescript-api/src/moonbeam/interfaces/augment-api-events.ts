@@ -11,7 +11,6 @@ import type {
   Null,
   Option,
   Result,
-  U256,
   U8aFixed,
   bool,
   u128,
@@ -21,14 +20,7 @@ import type {
   u8,
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
-import type {
-  AccountId20,
-  H160,
-  H256,
-  Perbill,
-  Percent,
-  Permill,
-} from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
 import type {
   EthereumLog,
   EvmCoreErrorExitReason,
@@ -42,6 +34,7 @@ import type {
   PalletDemocracyVoteThreshold,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpRuntimeDispatchError,
@@ -437,15 +430,6 @@ declare module "@polkadot/api-base/types/events" {
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
       >;
-      /**
-       * Generic event
-       */
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    baseFee: {
-      BaseFeeOverflow: AugmentedEvent<ApiType, []>;
-      NewBaseFeePerGas: AugmentedEvent<ApiType, [fee: U256], { fee: U256 }>;
-      NewElasticity: AugmentedEvent<ApiType, [elasticity: Permill], { elasticity: Permill }>;
       /**
        * Generic event
        */
@@ -1004,6 +988,22 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     migrations: {
+      /**
+       * XCM execution resume failed with inner error
+       */
+      FailedToResumeIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
+      /**
+       * XCM execution suspension failed with inner error
+       */
+      FailedToSuspendIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
       /**
        * Migration completed
        */
@@ -2161,6 +2161,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [location: XcmV1MultiLocation],
         { location: XcmV1MultiLocation }
+      >;
+      /**
+       * HRMP manage action succesfully sent
+       */
+      HrmpManagementSent: AugmentedEvent<
+        ApiType,
+        [action: PalletXcmTransactorHrmpOperation],
+        { action: PalletXcmTransactorHrmpOperation }
       >;
       /**
        * Registered a derivative index for an account id.

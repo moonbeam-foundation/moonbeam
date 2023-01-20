@@ -53,9 +53,11 @@ import type {
   FrameSupportDispatchPerDispatchClassU32,
   FrameSupportDispatchPerDispatchClassWeight,
   FrameSupportDispatchPerDispatchClassWeightsPerClass,
+  FrameSupportDispatchPostDispatchInfo,
   FrameSupportDispatchRawOrigin,
   FrameSupportPalletId,
   FrameSupportPreimagesBounded,
+  FrameSupportScheduleDispatchTime,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemAccountInfo,
   FrameSystemCall,
@@ -73,6 +75,7 @@ import type {
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
   MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonriverRuntimeOriginCaller,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeRuntime,
@@ -112,13 +115,22 @@ import type {
   PalletBalancesReasons,
   PalletBalancesReleases,
   PalletBalancesReserveData,
-  PalletBaseFeeCall,
-  PalletBaseFeeEvent,
   PalletCollectiveCall,
   PalletCollectiveError,
   PalletCollectiveEvent,
   PalletCollectiveRawOrigin,
   PalletCollectiveVotes,
+  PalletConvictionVotingCall,
+  PalletConvictionVotingConviction,
+  PalletConvictionVotingDelegations,
+  PalletConvictionVotingError,
+  PalletConvictionVotingEvent,
+  PalletConvictionVotingTally,
+  PalletConvictionVotingVoteAccountVote,
+  PalletConvictionVotingVoteCasting,
+  PalletConvictionVotingVoteDelegating,
+  PalletConvictionVotingVotePriorLock,
+  PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsCall,
   PalletCrowdloanRewardsError,
   PalletCrowdloanRewardsEvent,
@@ -202,6 +214,15 @@ import type {
   PalletRandomnessRequestInfo,
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
+  PalletReferendaCall,
+  PalletReferendaCurve,
+  PalletReferendaDecidingStatus,
+  PalletReferendaDeposit,
+  PalletReferendaError,
+  PalletReferendaEvent,
+  PalletReferendaReferendumInfo,
+  PalletReferendaReferendumStatus,
+  PalletReferendaTrackInfo,
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
@@ -217,6 +238,9 @@ import type {
   PalletUtilityCall,
   PalletUtilityError,
   PalletUtilityEvent,
+  PalletWhitelistCall,
+  PalletWhitelistError,
+  PalletWhitelistEvent,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -227,12 +251,15 @@ import type {
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorError,
   PalletXcmTransactorEvent,
+  PalletXcmTransactorHrmpInitParams,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
+  PolkadotParachainPrimitivesHrmpChannelId,
   PolkadotParachainPrimitivesXcmpMessageFormat,
   PolkadotPrimitivesV2AbridgedHostConfiguration,
   PolkadotPrimitivesV2AbridgedHrmpChannel,
@@ -248,6 +275,7 @@ import type {
   SpRuntimeDigest,
   SpRuntimeDigestDigestItem,
   SpRuntimeDispatchError,
+  SpRuntimeDispatchErrorWithPostInfo,
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeTokenError,
@@ -343,9 +371,11 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportDispatchPerDispatchClassU32: FrameSupportDispatchPerDispatchClassU32;
     FrameSupportDispatchPerDispatchClassWeight: FrameSupportDispatchPerDispatchClassWeight;
     FrameSupportDispatchPerDispatchClassWeightsPerClass: FrameSupportDispatchPerDispatchClassWeightsPerClass;
+    FrameSupportDispatchPostDispatchInfo: FrameSupportDispatchPostDispatchInfo;
     FrameSupportDispatchRawOrigin: FrameSupportDispatchRawOrigin;
     FrameSupportPalletId: FrameSupportPalletId;
     FrameSupportPreimagesBounded: FrameSupportPreimagesBounded;
+    FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
@@ -363,6 +393,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
     MoonriverRuntimeAssetConfigAssetRegistrarMetadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
+    MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin: MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonriverRuntimeOriginCaller: MoonriverRuntimeOriginCaller;
     MoonriverRuntimeProxyType: MoonriverRuntimeProxyType;
     MoonriverRuntimeRuntime: MoonriverRuntimeRuntime;
@@ -402,13 +433,22 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReleases: PalletBalancesReleases;
     PalletBalancesReserveData: PalletBalancesReserveData;
-    PalletBaseFeeCall: PalletBaseFeeCall;
-    PalletBaseFeeEvent: PalletBaseFeeEvent;
     PalletCollectiveCall: PalletCollectiveCall;
     PalletCollectiveError: PalletCollectiveError;
     PalletCollectiveEvent: PalletCollectiveEvent;
     PalletCollectiveRawOrigin: PalletCollectiveRawOrigin;
     PalletCollectiveVotes: PalletCollectiveVotes;
+    PalletConvictionVotingCall: PalletConvictionVotingCall;
+    PalletConvictionVotingConviction: PalletConvictionVotingConviction;
+    PalletConvictionVotingDelegations: PalletConvictionVotingDelegations;
+    PalletConvictionVotingError: PalletConvictionVotingError;
+    PalletConvictionVotingEvent: PalletConvictionVotingEvent;
+    PalletConvictionVotingTally: PalletConvictionVotingTally;
+    PalletConvictionVotingVoteAccountVote: PalletConvictionVotingVoteAccountVote;
+    PalletConvictionVotingVoteCasting: PalletConvictionVotingVoteCasting;
+    PalletConvictionVotingVoteDelegating: PalletConvictionVotingVoteDelegating;
+    PalletConvictionVotingVotePriorLock: PalletConvictionVotingVotePriorLock;
+    PalletConvictionVotingVoteVoting: PalletConvictionVotingVoteVoting;
     PalletCrowdloanRewardsCall: PalletCrowdloanRewardsCall;
     PalletCrowdloanRewardsError: PalletCrowdloanRewardsError;
     PalletCrowdloanRewardsEvent: PalletCrowdloanRewardsEvent;
@@ -492,6 +532,15 @@ declare module "@polkadot/types/types/registry" {
     PalletRandomnessRequestInfo: PalletRandomnessRequestInfo;
     PalletRandomnessRequestState: PalletRandomnessRequestState;
     PalletRandomnessRequestType: PalletRandomnessRequestType;
+    PalletReferendaCall: PalletReferendaCall;
+    PalletReferendaCurve: PalletReferendaCurve;
+    PalletReferendaDecidingStatus: PalletReferendaDecidingStatus;
+    PalletReferendaDeposit: PalletReferendaDeposit;
+    PalletReferendaError: PalletReferendaError;
+    PalletReferendaEvent: PalletReferendaEvent;
+    PalletReferendaReferendumInfo: PalletReferendaReferendumInfo;
+    PalletReferendaReferendumStatus: PalletReferendaReferendumStatus;
+    PalletReferendaTrackInfo: PalletReferendaTrackInfo;
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
@@ -507,6 +556,9 @@ declare module "@polkadot/types/types/registry" {
     PalletUtilityCall: PalletUtilityCall;
     PalletUtilityError: PalletUtilityError;
     PalletUtilityEvent: PalletUtilityEvent;
+    PalletWhitelistCall: PalletWhitelistCall;
+    PalletWhitelistError: PalletWhitelistError;
+    PalletWhitelistEvent: PalletWhitelistEvent;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
@@ -517,12 +569,15 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmTransactorCurrencyPayment: PalletXcmTransactorCurrencyPayment;
     PalletXcmTransactorError: PalletXcmTransactorError;
     PalletXcmTransactorEvent: PalletXcmTransactorEvent;
+    PalletXcmTransactorHrmpInitParams: PalletXcmTransactorHrmpInitParams;
+    PalletXcmTransactorHrmpOperation: PalletXcmTransactorHrmpOperation;
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
     PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
+    PolkadotParachainPrimitivesHrmpChannelId: PolkadotParachainPrimitivesHrmpChannelId;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
     PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
     PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;
@@ -538,6 +593,7 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeDigest: SpRuntimeDigest;
     SpRuntimeDigestDigestItem: SpRuntimeDigestDigestItem;
     SpRuntimeDispatchError: SpRuntimeDispatchError;
+    SpRuntimeDispatchErrorWithPostInfo: SpRuntimeDispatchErrorWithPostInfo;
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeTokenError: SpRuntimeTokenError;
