@@ -140,11 +140,13 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const LOW_TIP = 10n * MILLIGLMR;
     const HIGH_TIP = 20n * MILLIGLMR;
 
+    const nonce = await context.web3.eth.getTransactionCount(alith.address);
+
     await context.polkadotApi.tx.balances
       .transfer(dorothy.address, GLMR)
-      .signAndSend(alith, { tip: LOW_TIP, nonce: 0 });
+      .signAndSend(alith, { tip: LOW_TIP, nonce });
 
-    await context.polkadotApi.tx.system.remark("").signAndSend(alith, { tip: HIGH_TIP, nonce: 0 });
+    await context.polkadotApi.tx.system.remark("").signAndSend(alith, { tip: HIGH_TIP, nonce });
 
     const result = await context.createBlock();
     const hash = result.block.hash;
@@ -170,13 +172,15 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const randomAccount = generateKeyringPair();
     const randomAccount2 = generateKeyringPair();
 
+    const nonce = await context.web3.eth.getTransactionCount(alith.address);
+
     // create a txn we don't expect to execute (because it will be replaced). it would send some
     // funds to randomAccount
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount.address, 1, {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
         maxPriorityFeePerGas: "0x" + LOW_TIP.toString(16),
-        nonce: 0,
+        nonce,
       }),
     ]);
 
@@ -185,7 +189,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
       await createTransfer(context, randomAccount2.address, 1, {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
         maxPriorityFeePerGas: "0x" + HIGH_TIP.toString(16),
-        nonce: 0,
+        nonce,
       }),
     ]);
 
@@ -206,16 +210,18 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const randomAccount = generateKeyringPair();
     const randomAccount2 = generateKeyringPair();
 
+    const nonce = await context.web3.eth.getTransactionCount(alith.address);
+
     // create a txn we don't expect to execute (because it will be replaced). it would send some
     // funds to randomAccount
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context, randomAccount.address, 1, { nonce: 0 }),
+      await createTransfer(context, randomAccount.address, 1, { nonce }),
     ]);
 
     // replace with a transaction that sends funds to a different account
     await context.polkadotApi.tx.balances
       .transfer(randomAccount2.address, 1)
-      .signAndSend(alith, { nonce: 0, tip: GLMR });
+      .signAndSend(alith, { nonce, tip: GLMR });
 
     const result = await context.createBlock();
 
@@ -235,18 +241,20 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const randomAccount = generateKeyringPair();
     const randomAccount2 = generateKeyringPair();
 
+    const nonce = await context.web3.eth.getTransactionCount(alith.address);
+
     // create a txn we don't expect to execute (because it will be replaced). it would send some
     // funds to randomAccount
     await context.polkadotApi.tx.balances
       .transfer(randomAccount.address, 1)
-      .signAndSend(alith, { nonce: 0, tip: 0 });
+      .signAndSend(alith, { nonce, tip: 0 });
 
     // replace with a transaction that sends funds to a different account
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount2.address, 1, {
         maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
         maxPriorityFeePerGas: "0x1",
-        nonce: 0,
+        nonce,
       }),
     ]);
 
