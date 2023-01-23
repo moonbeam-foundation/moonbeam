@@ -93,4 +93,29 @@ contract RelayEncoderInstance is RelayEncoder {
     {
         return "0x00";
     }
+
+    function encodeHrmpInitOpenChannel(uint32 recipient, uint32 maxCapacity, uint32 maxMessageSize)
+        external
+        pure
+        returns (bytes memory result)
+    {
+        return "0x00";
+    }
+
+    function encodeHrmpAcceptOpenChannel(uint32 sender)
+        external
+        pure
+        returns (bytes memory result)
+    {
+        return "0x00";
+    }
+
+     function encodeHrmpCloseChannel(uint32 sender, uint32 recipient)
+        external
+        pure
+        returns (bytes memory result)
+    {
+        return "0x00";
+    }
+
 }

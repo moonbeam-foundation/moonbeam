@@ -34,10 +34,12 @@ impl pallet_conviction_voting::Config for Runtime {
 	type WeightInfo = pallet_conviction_voting::weights::SubstrateWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type VoteLockingPeriod = VoteLockingPeriod;
-	type MaxVotes = ConstU32<512>;
-	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
+	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
+	// Maximum number of concurrent votes an account may have
+	type MaxVotes = ConstU32<512>;
+	// Minimum period of vote locking
+	type VoteLockingPeriod = VoteLockingPeriod;
 }
 
 parameter_types! {
@@ -46,14 +48,12 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
 }
 
-parameter_types! {
-	pub const MaxBalance: Balance = Balance::max_value();
-}
-pub type TreasurySpender = EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, Spender>;
+pub type GeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::GeneralAdmin>;
 
-impl origins::pallet_custom_origins::Config for Runtime {}
+impl custom_origins::Config for Runtime {}
 
-// purpose of this pallet is to queue calls to be dispatched as by root for later
+// The purpose of this pallet is to queue calls to be dispatched as by root later => the Dispatch
+// origin corresponds to the Gov2 Whitelist track.
 impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
@@ -63,9 +63,9 @@ impl pallet_whitelist::Config for Runtime {
 		MapSuccess<
 			pallet_collective::EnsureProportionAtLeast<
 				Self::AccountId,
-				TechCommitteeInstance,
-				2,
-				3,
+				OpenTechCommitteeInstance,
+				5,
+				9,
 			>,
 			Replace<ConstU16<6>>,
 		>,

@@ -22,6 +22,11 @@ use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
+use polkadot_runtime_parachains::configuration::{
+	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
+};
+use polkadot_runtime_parachains::paras::{GenesisConfig as ParasGenesisConfig, ParaGenesisArgs};
+
 use sp_core::{H160, U256};
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -32,12 +37,36 @@ pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account_truncating()
 }
 
+pub fn para_b_account() -> AccountId32 {
+	ParaId::from(2).into_account_truncating()
+}
+
 pub fn para_a_account_20() -> parachain::AccountId {
 	ParaId::from(1).into_account_truncating()
 }
 
 pub fn evm_account() -> H160 {
 	H160::from_str("1000000000000000000000000000000000000001").unwrap()
+}
+
+pub fn mock_para_genesis_info() -> ParaGenesisArgs {
+	ParaGenesisArgs {
+		genesis_head: vec![1u8].into(),
+		validation_code: vec![1u8].into(),
+		parachain: true,
+	}
+}
+
+pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
+	HostConfiguration::<relay_chain::BlockNumber> {
+		hrmp_channel_max_capacity: u32::MAX,
+		hrmp_channel_max_total_size: u32::MAX,
+		hrmp_max_parachain_inbound_channels: 10,
+		hrmp_max_parachain_outbound_channels: 10,
+		hrmp_channel_max_message_size: u32::MAX,
+		max_downward_message_size: u32::MAX,
+		..Default::default()
+	}
 }
 
 decl_test_parachain! {
@@ -80,7 +109,7 @@ decl_test_relay_chain! {
 	pub struct Relay {
 		Runtime = relay_chain::Runtime,
 		XcmConfig = relay_chain::XcmConfig,
-		new_ext = relay_ext(),
+		new_ext = relay_ext(vec![1, 2, 3, 4]),
 	}
 }
 
@@ -165,7 +194,7 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn relay_ext() -> sp_io::TestExternalities {
+pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 	use relay_chain::{Runtime, System};
 
 	let mut t = frame_system::GenesisConfig::default()
@@ -178,12 +207,35 @@ pub fn relay_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	let para_genesis: Vec<(ParaId, ParaGenesisArgs)> = paras
+		.iter()
+		.map(|&para_id| (para_id.into(), mock_para_genesis_info()))
+		.collect();
+
+	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
+		&ConfigurationGenesisConfig {
+			config: mock_relay_config(),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
+		&ParasGenesisConfig {
+			paras: para_genesis,
+		},
+		&mut t,
+	)
+	.unwrap();
+
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+	});
 	ext
 }
-
 pub type RelayChainPalletXcm = pallet_xcm::Pallet<relay_chain::Runtime>;
+pub type Hrmp = polkadot_runtime_parachains::hrmp::Pallet<relay_chain::Runtime>;
 
 pub type StatemintBalances = pallet_balances::Pallet<statemint_like::Runtime>;
 pub type StatemintChainPalletXcm = pallet_xcm::Pallet<statemint_like::Runtime>;

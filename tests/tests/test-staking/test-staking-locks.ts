@@ -485,7 +485,7 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
 
     const txns = await [...additionalDelegators].map((account, i) =>
       context.polkadotApi.tx.parachainStaking
-        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, i + 1, 1)
+        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, additionalDelegators.length + 1, 1)
         .signAsync(account)
     );
 

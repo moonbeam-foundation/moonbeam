@@ -8,7 +8,6 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { GenericExtrinsic } from "@polkadot/types";
 import { AnyTuple } from "@polkadot/types/types";
 const debug = require("debug")("smoke:eth-failures");
-
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -23,8 +22,10 @@ type BlockFilteredRecord = {
 };
 
 describeSmokeSuite(
-  `ETH Failures in past ${hours} hours` + " should be reported correctly...",
-  (context) => {
+  "S900",
+  `ETH Failures in past ${hours} hours should be reported correctly`,
+
+  (context, testIt) => {
     let blockData: BlockFilteredRecord[];
 
     before("Retrieve events for previous blocks", async function () {
@@ -53,7 +54,7 @@ describeSmokeSuite(
 
     /// This test will check that all ethereum.transact extrinsics have a corresponding
     /// paysFee = no property in ExtrinsicSuccess event
-    it("successful eth exts should always pays_fee: no", function () {
+    testIt("C100", `successful eth exts should always pays_fee: no`, function () {
       const filteredEvents = blockData
         .map(({ blockNum, events }) => {
           const matchedEvents = events
@@ -101,7 +102,7 @@ describeSmokeSuite(
     // This test will check that each ethereum.transact extrinsic has a corresponding event
     // of ExtrinsicSuccess fired. Any Extrinsic.Failed events will be reported and mark the
     // block for further investigation.
-    it("should have have ExtrinsicSuccess for all ethereum.transact", function () {
+    testIt("C200", `should have have ExtrinsicSuccess for all ethereum.transact`, function () {
       debug(
         `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
           " eth extrinsics all have corresponding ExtrinsicSuccess events."
@@ -148,8 +149,9 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(
-      "should have matching amounts in emulated" + " block as there are ethereum.executed events",
+    testIt(
+      "C300",
+      `should have matching amounts in emulated block as there are ethereum.executed events`,
       function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
@@ -176,29 +178,33 @@ describeSmokeSuite(
       }
     );
 
-    it("should have a receipt in emulated block for each ethereum.executed event", function () {
-      const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
-        const successes = events.filter(({ event }) =>
-          context.polkadotApi.events.ethereum.Executed.is(event)
+    testIt(
+      "C400",
+      `should have a receipt in emulated block for each ethereum.executed event`,
+      function () {
+        const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
+          const successes = events.filter(({ event }) =>
+            context.polkadotApi.events.ethereum.Executed.is(event)
+          );
+          return { blockNum, ethEvents: successes.length, ethReceipts: ethTxns.length };
+        });
+
+        const failures = ethEvents.filter((a) => a.ethEvents !== a.ethReceipts);
+        failures.forEach((a) =>
+          debug(
+            `Block #${a.blockNum} has mismatching amounts - ` +
+              `${a.ethEvents} eth extrinsics vs ` +
+              `${a.ethReceipts} eth receipts.`
+          )
         );
-        return { blockNum, ethEvents: successes.length, ethReceipts: ethTxns.length };
-      });
 
-      const failures = ethEvents.filter((a) => a.ethEvents !== a.ethReceipts);
-      failures.forEach((a) =>
-        debug(
-          `Block #${a.blockNum} has mismatching amounts - ` +
-            `${a.ethEvents} eth extrinsics vs ` +
-            `${a.ethReceipts} eth receipts.`
-        )
-      );
-
-      expect(
-        failures.length,
-        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures
-          .map((a) => a.blockNum)
-          .join(`, `)}`
-      ).to.equal(0);
-    });
+        expect(
+          failures.length,
+          `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures
+            .map((a) => a.blockNum)
+            .join(`, `)}`
+        ).to.equal(0);
+      }
+    );
   }
 );

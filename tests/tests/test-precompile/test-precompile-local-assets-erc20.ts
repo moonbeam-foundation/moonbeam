@@ -43,7 +43,7 @@ const SELECTORS = {
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+const GAS_PRICE = "0x" + (10_000_000_000).toString(16);
 const LOCAL_ASSET_EXTENDED_ERC20_CONTRACT = getCompiled("LocalAssetExtendedErc20Instance");
 const ROLES_CONTRACT = getCompiled("Roles");
 

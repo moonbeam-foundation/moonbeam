@@ -16,6 +16,7 @@
 
 use crate::mock::*;
 use crate::*;
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_PER_SECOND};
 use sp_std::boxed::Box;
@@ -1049,6 +1050,184 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 				origin_type: OriginKind::SovereignAccount,
 				require_weight_at_most: tx_weight,
 				call: vec![1u8].into(),
+			}));
+		})
+}
+
+#[test]
+fn test_hrmp_manipulator_init() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			assert_ok!(XcmTransactor::hrmp_manage(
+				RuntimeOrigin::root(),
+				HrmpOperation::InitOpen(HrmpInitParams {
+					para_id: 1u32.into(),
+					proposed_max_capacity: 1,
+					proposed_max_message_size: 1
+				}),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				TransactWeights {
+					transact_required_weight_at_most: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::Native,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8, 0u8].into(),
+			}));
+		})
+}
+
+#[test]
+fn test_hrmp_max_fee_errors() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 10_000_000_000_000u128;
+
+			assert_noop!(
+				XcmTransactor::hrmp_manage(
+					RuntimeOrigin::root(),
+					HrmpOperation::InitOpen(HrmpInitParams {
+						para_id: 1u32.into(),
+						proposed_max_capacity: 1,
+						proposed_max_message_size: 1
+					}),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: Some(total_fee)
+					},
+					TransactWeights {
+						transact_required_weight_at_most: tx_weight,
+						overall_weight: Some(total_weight)
+					}
+				),
+				Error::<Test>::TooMuchFeeUsed
+			);
+		})
+}
+
+#[test]
+fn test_hrmp_manipulator_accept() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			assert_ok!(XcmTransactor::hrmp_manage(
+				RuntimeOrigin::root(),
+				HrmpOperation::Accept {
+					para_id: 1u32.into()
+				},
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				TransactWeights {
+					transact_required_weight_at_most: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::Native,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8, 1u8].into(),
+			}));
+		})
+}
+
+#[test]
+fn test_hrmp_manipulator_close() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			assert_ok!(XcmTransactor::hrmp_manage(
+				RuntimeOrigin::root(),
+				HrmpOperation::Close(HrmpChannelId {
+					sender: 1u32.into(),
+					recipient: 1u32.into()
+				}),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				TransactWeights {
+					transact_required_weight_at_most: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::Native,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8, 2u8].into(),
 			}));
 		})
 }

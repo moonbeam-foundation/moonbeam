@@ -80,6 +80,8 @@ export async function startMoonbeamDevNode(
     ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
     `--no-hardware-benchmarks`,
     `--no-telemetry`,
+    `--reserved-only`,
+    `--no-grandpa`,
     `--no-prometheus`,
     `--force-authoring`,
     `--rpc-cors=all`,

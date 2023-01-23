@@ -5,9 +5,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author");
 
-describeSmokeSuite(`Verify author filter consistency`, (context) => {
-  const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-
+describeSmokeSuite("S100", `Verify author filter consistency`, (context, testIt) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
@@ -20,16 +18,18 @@ describeSmokeSuite(`Verify author filter consistency`, (context) => {
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
   });
 
-  it("should have eligibility > 0", async function () {
+  testIt("C100", `should have eligibility > 0`, async function () {
     if (specVersion < 1500) {
       const eligibilityRatio = await apiAt.query.authorFilter.eligibleRatio();
       expect(eligibilityRatio.toBigInt() > 0n).to.be.true;
     }
+
     if (specVersion >= 1500) {
       // TODO remove `as any` once api-augment is updated
-      const eligibilityCount = (await apiAt.query.authorFilter.eligibleCount()) as any;
+      const eligibilityCount = await apiAt.query.authorFilter.eligibleCount();
       expect(eligibilityCount.toNumber() > 0).to.be.true;
     }
+
     debug(`Verified eligibility`);
   });
 });

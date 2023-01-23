@@ -16,7 +16,7 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, Currency, CurrencyPayment, Pallet, TransactWeights};
+use crate::{Call, Config, Currency, CurrencyPayment, HrmpOperation, Pallet, TransactWeights};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
@@ -232,6 +232,43 @@ benchmarks! {
 			fee_amount: None
 		},
 		call,
+		TransactWeights {
+			transact_required_weight_at_most: dest_weight,
+			// This involves a db Read, hence the None is worst case
+			overall_weight: None
+		}
+	)
+
+	hrmp_manage {
+		let fee_per_second = 1;
+		let extra_weight = 300000000u64;
+		let max_weight = 20000000000u64;
+		let location = MultiLocation::parent();
+		let currency: T::CurrencyId = location.clone().into();
+		let call = vec![1u8];
+		let dest_weight = 100u64;
+		let user: T::AccountId  = account("account id", 0u32, 0u32);
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			extra_weight,
+			max_weight,
+			Some(extra_weight)
+		).unwrap();
+		Pallet::<T>::set_fee_per_second(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			fee_per_second
+		).unwrap();
+	}: _(
+		RawOrigin::Root,
+		HrmpOperation::Accept{ para_id: 1000u32.into() },
+		CurrencyPayment {
+			// This might involve a db Read when translating, therefore worst case
+			currency: Currency::AsCurrencyId(currency),
+			// This involves a db Read, hence the None is worst case
+			fee_amount: None
+		},
 		TransactWeights {
 			transact_required_weight_at_most: dest_weight,
 			// This involves a db Read, hence the None is worst case

@@ -56,6 +56,7 @@ fn selectors() {
 	assert!(PCall::candidate_count_selectors().contains(&0xa9a981a3));
 	assert!(PCall::round_selectors().contains(&0x146ca531));
 	assert!(PCall::candidate_delegation_count_selectors().contains(&0x2ec087eb));
+	assert!(PCall::candidate_auto_compounding_delegation_count_selectors().contains(&0x905f0806));
 	assert!(PCall::delegator_delegation_count_selectors().contains(&0x067ec822));
 	assert!(PCall::selected_candidates_selectors().contains(&0xbcf868a6));
 	assert!(PCall::delegation_request_is_pending_selectors().contains(&0x3b16def8));
@@ -370,6 +371,76 @@ fn candidate_delegation_count_works() {
 }
 
 #[test]
+fn candidate_auto_compounding_delegation_count_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 50),
+			(Charlie.into(), 50),
+			(David.into(), 50),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000)])
+		.with_delegations(vec![
+			(Bob.into(), Alice.into(), 50),
+			(Charlie.into(), Alice.into(), 50),
+			(David.into(), Alice.into(), 50),
+		])
+		.with_auto_compounding_delegations(vec![(
+			Charlie.into(),
+			Alice.into(),
+			50,
+			Percent::from_percent(50),
+		)])
+		.build()
+		.execute_with(|| {
+			// Assert that there 1 auto compounding delegations to Alice
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::candidate_auto_compounding_delegation_count {
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns_encoded(1u32);
+		});
+}
+
+#[test]
+fn candidate_auto_compounding_elegation_count_works_with_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 50),
+			(Charlie.into(), 50),
+			(David.into(), 50),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000)])
+		.with_delegations(vec![
+			(Bob.into(), Alice.into(), 50),
+			(Charlie.into(), Alice.into(), 50),
+			(David.into(), Alice.into(), 50),
+		])
+		.build()
+		.execute_with(|| {
+			// Assert that there 0 auto compounding delegations to Alice
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::candidate_auto_compounding_delegation_count {
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns_encoded(0u32);
+		});
+}
+
+#[test]
 fn delegator_delegation_count_works() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -574,7 +645,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(290930000)
+				.expect_cost(293131000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -642,7 +713,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(323429000)
+				.expect_cost(325075534)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -706,7 +777,7 @@ fn candidate_request_is_pending_works() {
 					Precompile1,
 					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(161834000)
+				.expect_cost(163239000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
