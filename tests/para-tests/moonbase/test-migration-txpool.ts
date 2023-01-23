@@ -38,7 +38,7 @@ describeParachain(
                   from: baltathar.address,
                   to: alith.address,
                   value: Web3.utils.toWei("1", "ether"),
-                  gasPrice: Web3.utils.toWei("1", "Gwei"),
+                  gasPrice: Web3.utils.toWei("10", "Gwei"),
                   gas: "0x100000",
                   nonce: baltatharNonce++,
                 },

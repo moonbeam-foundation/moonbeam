@@ -52,7 +52,7 @@ export async function deployContractManualSeal(
       from: account,
       data: contractByteCode,
       value: "0x00",
-      gasPrice: 1_000_000_000,
+      gasPrice: 10_000_000_000,
       gas: "0x100000",
     },
     privateKey

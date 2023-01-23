@@ -110,6 +110,8 @@ pub mod governance;
 pub mod xcm_config;
 use governance::councils::*;
 
+pub use governance::councils::*;
+
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
@@ -172,7 +174,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2100,
+	spec_version: 2200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -758,9 +760,14 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
+						| RuntimeCall::ConvictionVoting(..)
 						| RuntimeCall::CouncilCollective(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -771,8 +778,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking => matches!(
@@ -1122,7 +1134,7 @@ construct_runtime! {
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 11,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 11,
 
 		// Consensus support.
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
@@ -1162,6 +1174,8 @@ construct_runtime! {
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 73,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
@@ -1396,7 +1410,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
-		assert_eq!(FixedGasPrice::min_gas_price().0, (1 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(

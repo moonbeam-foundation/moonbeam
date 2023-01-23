@@ -130,7 +130,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
-    const fees = receipt.gasUsed * 1_000_000_000;
+    const fees = receipt.gasUsed * 10_000_000_000;
 
     expect(await getBalance(context, 1, alith.address)).to.equal(
       (await getBalance(context, 0, alith.address)) - BigInt(`0x${amount}`) - BigInt(fees)

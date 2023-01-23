@@ -75,7 +75,6 @@ describeSmokeSuite(
       const callHex = context.relayApi.tx.hrmp
         .hrmpInitOpenChannel(2000, 1000, 102400)
         .method.toHex();
-      console.log(relayEncoder);
       const resp = await relayEncoder.encodeHrmpInitOpenChannel(2000, 1000, 102400);
       expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
     });
@@ -181,13 +180,13 @@ describeSmokeSuite(
           debug(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
           this.skip();
         }
-        const callIndex = context.relayApi.tx.utility.asDerivative(
+        const inputCall = context.relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
+        const callHex = context.relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
+        const resp = await xcmTransactorV1.encodeUtilityAsDerivative(
           0,
-          context.relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000)
-        ).callIndex;
-        const callHex = u8aToHex(callIndex);
-        // TODO: Replace these with valid arguments
-        const resp = await xcmTransactorV1.encodeUtilityAsDerivative(0, 0, hexToU8a("0x00"));
+          0,
+          inputCall.method.toU8a()
+        );
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       }
     );
@@ -200,13 +199,13 @@ describeSmokeSuite(
           debug(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
           this.skip();
         }
-        const callIndex = context.relayApi.tx.utility.asDerivative(
+        const inputCall = context.relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
+        const callHex = context.relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
+        const resp = await xcmTransactorV2.encodeUtilityAsDerivative(
           0,
-          context.relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000)
-        ).callIndex;
-        const callHex = u8aToHex(callIndex);
-        // TODO: Replace these with valid arguments
-        const resp = await xcmTransactorV2.encodeUtilityAsDerivative(0, 0, hexToU8a("0x00"));
+          0,
+          inputCall.method.toU8a()
+        );
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       }
     );

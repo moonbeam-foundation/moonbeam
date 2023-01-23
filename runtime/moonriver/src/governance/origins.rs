@@ -39,10 +39,10 @@ pub mod custom_origins {
 		ReferendumKiller,
 	}
 
-	impl TryFrom<u8> for Origin {
+	impl TryFrom<u16> for Origin {
 		type Error = ();
 		/// TrackId => Origin
-		fn try_from(value: u8) -> Result<Origin, ()> {
+		fn try_from(value: u16) -> Result<Origin, ()> {
 			match value {
 				1 => Ok(Origin::WhitelistedCaller),
 				2 => Ok(Origin::GeneralAdmin),
@@ -50,14 +50,6 @@ pub mod custom_origins {
 				4 => Ok(Origin::ReferendumKiller),
 				_ => Err(()),
 			}
-		}
-	}
-
-	impl TryFrom<u16> for Origin {
-		type Error = ();
-		/// TrackId => Origin
-		fn try_from(value: u16) -> Result<Origin, ()> {
-			(value as u8).try_into()
 		}
 	}
 
@@ -78,9 +70,8 @@ pub mod custom_origins {
 		macro_rules! has_consistent_conversions {
 			( $o:expr ) => {
 				let origin_as_u16 = <Origin as Into<u16>>::into($o);
-				let u16_as_u8: u8 = origin_as_u16.try_into().unwrap();
-				let u8_as_origin: Origin = u16_as_u8.try_into().unwrap();
-				assert_eq!($o, u8_as_origin);
+				let u16_as_origin: Origin = origin_as_u16.try_into().unwrap();
+				assert_eq!($o, u16_as_origin);
 			};
 		}
 		has_consistent_conversions!(Origin::WhitelistedCaller);
