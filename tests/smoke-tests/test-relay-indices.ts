@@ -199,6 +199,13 @@ describeSmokeSuite(
           debug(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
           this.skip();
         }
+
+        const chainType = context.polkadotApi.consts.system.version.specName.toString();
+        if (chainType !== "moonbase") {
+          debug(`Chain type ${chainType} does not support V2, skipping.`);
+          this.skip();
+        }
+
         const inputCall = context.relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
         const callHex = context.relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
         const resp = await xcmTransactorV2.encodeUtilityAsDerivative(
