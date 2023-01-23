@@ -17,7 +17,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context, 
   let blockHash: string;
   let collatorAddress: string;
 
-  before(`Loading static data`, async function () {
+  before("Loading static data", async function () {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
     debug(`Loading test data for chainId ${chainId}.`);
     traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);

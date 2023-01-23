@@ -26,7 +26,7 @@ describeSmokeSuite("S1400", `Verify orbiters`, (context, testIt) => {
   let events: FrameSystemEventRecord[] = null;
   let specVersion: number = 0;
 
-  before(`Setup api & retrieve data`, async function () {
+  before("Setup api & retrieve data", async function () {
     const runtimeVersion = context.polkadotApi.runtimeVersion.specVersion.toNumber();
     atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)

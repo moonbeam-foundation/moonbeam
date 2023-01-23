@@ -28,7 +28,7 @@ describeSmokeSuite(
   (context, testIt) => {
     let blockData: BlockFilteredRecord[];
 
-    before(`Retrieve events for previous blocks`, async function () {
+    before("Retrieve events for previous blocks", async function () {
       this.timeout(timeout);
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
 

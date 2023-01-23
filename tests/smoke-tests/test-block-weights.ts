@@ -38,7 +38,7 @@ describeSmokeSuite(
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
 
-    before(`Retrieve all weight limits and usage`, async function () {
+    before("Retrieve all weight limits and usage", async function () {
       this.timeout(timeout);
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
       const limits = context.polkadotApi.consts.system.blockWeights;

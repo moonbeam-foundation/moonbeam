@@ -15,7 +15,7 @@ describeSmokeSuite(
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];
 
-    before(`Setup api & retrieve data`, async function () {
+    before("Setup api & retrieve data", async function () {
       // Configure the api at a specific block
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)

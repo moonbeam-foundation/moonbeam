@@ -25,7 +25,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   let specVersion: number = 0;
   let runtimeName: string;
 
-  before(`Retrieve all balances`, async function () {
+  before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
     this.timeout(3600000); // 1 hour should be enough
 

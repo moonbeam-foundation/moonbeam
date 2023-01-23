@@ -28,7 +28,7 @@ describeSmokeSuite("S1600", `Verify account proxies created`, (context, testIt) 
   let specVersion: number = 0;
 
   // TEMPLATE: Describe the data you are retrieving
-  before(`Retrieve all proxies`, async function () {
+  before("Retrieve all proxies", async function () {
     // It takes time to load all the proxies.
     // TEMPLATE: Adapt the timeout to be an over-estimate
     this.timeout(30_000); // 30s

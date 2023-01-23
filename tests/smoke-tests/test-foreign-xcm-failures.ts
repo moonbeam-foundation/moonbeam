@@ -29,7 +29,7 @@ describeSmokeSuite(
   (context, testIt) => {
     let networkBlockEvents: NetworkBlockEvents[];
 
-    before(`Retrieve events for previous blocks`, async function () {
+    before("Retrieve events for previous blocks", async function () {
       const networkName = context.polkadotApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName

@@ -17,7 +17,7 @@ describeSmokeSuite("S1700", `Verify randomness consistency`, (context, testIt) =
 
   let isRandomnessAvailable = true;
 
-  before(`Retrieve all requests`, async function () {
+  before("Retrieve all requests", async function () {
     this.timeout(30_000); // 30s
 
     const runtimeVersion = context.polkadotApi.runtimeVersion.specVersion.toNumber();
