@@ -230,6 +230,10 @@ benchmarks! {
 		assert_eq!(
 			T::Currency::total_balance(&orbiter), 11_000u32.into()
 		);
+		assert_eq!(
+			T::Currency::total_balance(&collator), 10_000u32.into()
+		);
+
 	}
 
 	on_new_round {
