@@ -19,7 +19,6 @@ serde = { version = "1.0.100", optional = true }
 sha3 = { version = "0.10", default-features = false }
 similar-asserts = { version = "1.1.0", optional = true }
 
-
 # Moonbeam
 precompile-utils-macro = { path = "macro" }
 

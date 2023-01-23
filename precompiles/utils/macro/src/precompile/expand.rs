@@ -63,7 +63,7 @@ impl Precompile {
 				)*
 
 				#[doc(hidden)]
-				__phantom(PhantomData<( #( #type_parameters ),* )>, ::core::convert::Infallible),
+				__phantom(::sp_std::marker::PhantomData<( #( #type_parameters ),* )>, ::core::convert::Infallible),
 			}
 		)
 	}
