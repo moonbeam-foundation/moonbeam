@@ -117,7 +117,7 @@ where
     },
     fallback {},
     #[doc(hidden)]
-    __phantom(PhantomData<(Runtime)>, ::core::convert::Infallible),
+    __phantom(::core::marker::PhantomData<(Runtime)>, ::core::convert::Infallible),
 }
 impl<Runtime> BatchPrecompileCall<Runtime>
 where
