@@ -72,7 +72,7 @@ export function describeParachain(
                   parachainId: 1000,
                   ports: [
                     {
-                      p2pPort:30333,
+                      p2pPort: 30333,
                       wsPort: 9944,
                       rpcPort: 9933,
                     },
