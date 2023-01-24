@@ -181,8 +181,12 @@ export const executeProposalWithCouncil = async (api: ApiPromise, encodedHash: s
   //   `Sending council motion (${encodedHash} ` +
   //     `[threashold: 1, expected referendum: ${referendumNextIndex}])...`
   // );
+  const callData =
+    api.consts.system.version.specVersion.toNumber() >= 2000
+      ? { Legacy: encodedHash }
+      : encodedHash;
 
-  let external = api.tx.democracy.externalProposeMajority(encodedHash);
+  let external = api.tx.democracy.externalProposeMajority(callData);
   let fastTrack = api.tx.democracy.fastTrack(encodedHash, 1, 0);
   const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);
 
