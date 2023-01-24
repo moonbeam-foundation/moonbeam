@@ -157,7 +157,7 @@ where
 		let track_info = &tracks[index].1;
 
 		Ok((
-			track_info.name.as_bytes().into(),
+			track_info.name.into(),
 			track_info.max_deciding.into(),
 			track_info.decision_deposit.into(),
 			track_info.prepare_period.into(),
