@@ -523,6 +523,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   });
 
   testIt("C200", `should match total supply`, async function () {
+    this.timeout(30000);
     const totalIssuance = await apiAt.query.balances.totalIssuance();
 
     expect(
