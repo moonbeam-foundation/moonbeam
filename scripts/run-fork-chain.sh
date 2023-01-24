@@ -135,4 +135,4 @@ fi
 # Run the node
 echo "Running nodes..."
 cd $ROOT_FOLDER/moonbeam/tests
-./node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log
+node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log
