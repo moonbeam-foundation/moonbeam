@@ -4,6 +4,8 @@ export const DEBUG_MODE = process.env.DEBUG_MODE || false;
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
+export const BASE_PATH = process.env.BASE_PATH;
+export const CUSTOM_SPEC_PATH = process.env.CUSTOM_SPEC_PATH;
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
 export const RELAY_LOG = process.env.RELAY_LOG;

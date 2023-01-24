@@ -66,11 +66,12 @@ then
     echo "Cloning repository..."
     git clone https://github.com/purestake/moonbeam
     cd $ROOT_FOLDER/moonbeam
+    git checkout $GIT_TAG
     mkdir binaries
 
     echo "Retrieving binaries..."
-    MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
-    POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
+    MOONBEAM_CLIENT_TAG=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bmoonbeam\\b")) | .tag_name' | grep '^v' | head -1)
+    POLKADOT_CLIENT_TAG=$(curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bpolkadot\\b")) | .tag_name' | grep '^v' | head -1)
 
     if [[ ! -f $BINARY_PATH && $USE_LOCAL_CLIENT != "true" ]]
     then
@@ -106,16 +107,17 @@ then
         cargo build --release -p moonbeam
         cp target/release/moonbeam $BINARY_PATH
     fi
-
-    echo "Preparing tests... (3 minutes)"
-    cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm install
-    cd $ROOT_FOLDER/moonbeam/tools
-    npm install
-
-    cd $ROOT_FOLDER/moonbeam/tests
-    npm ci
 fi
+
+echo "Preparing tests... (3 minutes)"
+cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
+npm install
+cd $ROOT_FOLDER/moonbeam/tools
+npm install
+
+cd $ROOT_FOLDER/moonbeam/tests
+npm ci
+
 
 echo " - moonbeam binary: $BINARY_PATH"
 echo "   - $($BINARY_PATH --version)"
@@ -127,10 +129,10 @@ then
     # Modify state
     cd $ROOT_FOLDER/moonbeam/tests
     echo "Customizing $NETWORK forked state..."
-    node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
+    ./node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
 fi
 
 # Run the node
 echo "Running nodes..."
 cd $ROOT_FOLDER/moonbeam/tests
-./node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log
+node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log

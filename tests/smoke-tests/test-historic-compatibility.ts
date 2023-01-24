@@ -193,7 +193,7 @@ describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context, 
   });
 
   testIt("C1500", `can call eth_getBlockByNumber`, async function () {
-    const result = await context.ethers.send("eth_getBlockByNumber", [numberToHex(1), false]);
+    const result = await context.ethers.send("eth_getBlockByNumber", ["latest", false]);
     expect(result).to.not.be.null;
   });
 

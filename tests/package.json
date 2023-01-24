@@ -46,7 +46,8 @@
     "smoke-test:moonbeam": "WSS_URL=wss://wss.api.moonbeam.network RELAY_WSS_URL=wss://rpc.polkadot.io DEBUG=smoke:* npm run smoke-test",
     "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-historic-compatibility.ts'",
     "mocha-smoke": "mocha -r ts-node/register -r ./util/smokeFixtures.ts",
-    "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
+    "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-pov*.ts'",
+    "contract-simulation": "DEBUG=contract* CUSTOM_SPEC_PATH=/tmp/fork-data/moonbeam-state.mod.json BASE_PATH=/tmp/fork-data/moonbeam/para-alith ./node_modules/.bin/mocha -r ts-node/register fork-tests/test-contract*.ts",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "tsc; cp -r contracts build/",
@@ -63,8 +64,8 @@
     "@parity/zombienet": "^1.2.70",
     "@polkadot/api": "^9.9.4",
     "@polkadot/apps-config": "^0.122.2",
-    "@polkadot/keyring": "^10.1.9",
-    "@polkadot/util": "^10.1.9",
+    "@polkadot/keyring": "^10.2.1",
+    "@polkadot/util": "^10.2.1",
     "@substrate/txwrapper-core": "^3.2.2",
     "@substrate/txwrapper-substrate": "^3.2.2",
     "@types/chai": "^4.2.11",
@@ -109,6 +110,8 @@
     "@polkadot/types-support": "$@polkadot/api",
     "@polkadot/types-codec": "$@polkadot/api",
     "@polkadot/types": "$@polkadot/api",
-    "@polkadot/types-known": "$@polkadot/api"
+    "@polkadot/types-known": "$@polkadot/api",
+    "@polkadot/util": "$@polkadot/util",
+    "@polkadot/util-crypto": "$@polkadot/util"
   }
 }

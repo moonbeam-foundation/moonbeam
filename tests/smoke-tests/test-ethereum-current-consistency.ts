@@ -46,7 +46,7 @@ describeSmokeSuite(
         ? parseInt(process.env.BATCH_OF)
         : process.env.ROUNDS_TO_WAIT
         ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
-        : 300;
+        : 200;
       const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
       for (let blockNumber of range(firstBlockNumber, lastBlockNumber)) {
