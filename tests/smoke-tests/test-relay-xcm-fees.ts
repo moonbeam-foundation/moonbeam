@@ -8,7 +8,7 @@ import { it } from "mocha";
 import { extractWeight } from "../util/block";
 const debug = require("debug")("smoke:treasury");
 
-describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
+describeSmokeSuite("S1800", `Verify XCM weight fees for relay`, (context, testIt) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -31,7 +31,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
     );
   });
 
-  it("should have value over relay expected fees", async function () {
+  testIt("C100", `should have value over relay expected fees`, async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
     const paraRuntime = context.polkadotApi.runtimeVersion.specName.toString();

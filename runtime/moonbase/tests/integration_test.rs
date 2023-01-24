@@ -21,7 +21,7 @@ use common::*;
 
 use precompile_utils::{prelude::*, testing::*};
 
-use fp_evm::{Context, FeeCalculator};
+use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -62,14 +62,11 @@ use pallet_evm_precompileset_assets_erc20::{
 };
 use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
-use sp_runtime::{
-	traits::{Convert, One},
-	DispatchError, ModuleError, TokenError,
-};
+use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -91,6 +88,9 @@ type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
+
+// TODO: can we construct a const U256...?
+const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI;
 
 #[test]
 fn verify_randomness_precompile_gas_constants() {
@@ -157,6 +157,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonbase_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonbase_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonbase_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
@@ -304,6 +307,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -354,6 +363,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
+	is_pallet_index::<moonbase_runtime::OpenTechCommitteeCollective>(46);
 }
 
 #[test]
@@ -476,7 +486,6 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * UNIT);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 UNIT to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -484,7 +493,7 @@ fn transfer_through_evm_to_stake() {
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
-				max_fee_per_gas: gas_price,
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: None,
 				access_list: Vec::new(),
@@ -881,7 +890,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENISIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1127,7 +1136,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENISIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1893,7 +1902,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(47603)
+				.expect_cost(52170)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1945,7 +1954,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(47603)
+				.expect_cost(52170)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2114,33 +2123,6 @@ fn multiplier_can_grow_from_zero() {
 }
 
 #[test]
-#[ignore] // test runs for a very long time
-fn multiplier_growth_simulator() {
-	use frame_support::traits::Get;
-
-	// assume the multiplier is initially set to its minimum. We update it with values twice the
-	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
-	let block_weight = moonbase_runtime::TargetBlockFullness::get()
-		* RuntimeBlockWeights::get()
-			.get(DispatchClass::Normal)
-			.max_total
-			.unwrap()
-		* 2;
-	let mut blocks = 0;
-	while multiplier <= Multiplier::one() {
-		run_with_system_weight(block_weight, || {
-			let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
-			// ensure that it is growing as well.
-			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
-			multiplier = next;
-		});
-		blocks += 1;
-		println!("block = {} multiplier {:?}", blocks, multiplier);
-	}
-}
-
-#[test]
 fn ethereum_invalid_transaction() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
@@ -2177,12 +2159,27 @@ fn transfer_ed_0_substrate() {
 }
 
 #[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(8u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(10_000_000_000u128.into(), Weight::zero())
+		);
+	});
+}
+
+#[test]
 fn transfer_ed_0_evm() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_000 * 1_000_000_000)) + (1 * WEI),
+				((1 * UNIT) + (21_000 * BASE_FEE_GENISIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -2195,7 +2192,7 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2212,7 +2209,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_777 * 1_000_000_000)),
+				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -2225,7 +2222,7 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2234,7 +2231,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * 1_000_000_000,
+				777 * BASE_FEE_GENISIS,
 			);
 		});
 }
@@ -2278,7 +2275,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -2290,16 +2287,16 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(2 * GIGAWEI),
-				max_priority_fee_per_gas: Some(U256::from(1 * GIGAWEI)),
+				max_fee_per_gas: U256::from(2 * BASE_FEE_GENISIS),
+				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENISIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 GWEI base fee + 1 GWEI tip.
-			let fee = ((2 * GIGAWEI) * 21_000) as f64;
+			// Fee is 1 * base_fee + tip.
+			let fee = ((2 * BASE_FEE_GENISIS) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2311,10 +2308,11 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -2326,7 +2324,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2335,7 +2333,9 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 1 GWEI base fee.
-			let fee = ((1 * GIGAWEI) * 21_000) as f64;
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
+			assert_eq!(base_fee.as_u128(), BASE_FEE_GENISIS); // hint in case following asserts fail
+			let fee = (base_fee.as_u128() * 21_000u128) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2492,6 +2492,40 @@ fn transactor_cannot_use_more_than_max_weight() {
 }
 
 #[test]
+fn root_can_use_hrmp_manage() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			// It fails sending, because the router does not work in test mode
+			// But all rest checks pass
+			assert_noop!(
+				XcmTransactor::hrmp_manage(
+					root_origin(),
+					HrmpOperation::Accept {
+						para_id: 2000u32.into()
+					},
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: Some(10000)
+					},
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: Some(20000)
+					}
+				),
+				pallet_xcm_transactor::Error::<Runtime>::ErrorSending
+			);
+		})
+}
+
+#[test]
 fn transact_through_signed_precompile_works_v1() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -2537,7 +2571,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(18931)
+				.expect_cost(19078)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2577,7 +2611,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(18931)
+				.expect_cost(19078)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2659,7 +2693,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15981)
+				.expect_cost(16030)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2681,7 +2715,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15621)
+				.expect_cost(15659)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2702,7 +2736,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16153)
+				.expect_cost(16215)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2745,7 +2779,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16849)
+				.expect_cost(16815)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2770,7 +2804,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16849)
+				.expect_cost(16815)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2912,7 +2946,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
+			2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2969,15 +3003,6 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
-	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonbase_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
-}
-
-#[test]
 fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 	use frame_support::dispatch::{DispatchInfo, Pays};
 	use moonbase_runtime::{currency, EXTRINSIC_BASE_WEIGHT};
@@ -3020,7 +3045,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -3059,7 +3084,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -3076,4 +3101,220 @@ fn evm_success_keeps_substrate_events() {
 
 			assert_eq!(transfer_count, 1, "there should be 1 transfer event");
 		});
+}
+
+#[cfg(test)]
+mod fee_tests {
+	use super::*;
+	use fp_evm::FeeCalculator;
+	use frame_support::{
+		traits::{ConstU128, OnFinalize},
+		weights::{ConstantMultiplier, WeightToFee},
+	};
+	use moonbase_runtime::{
+		currency, BlockWeights, LengthToFee, MinimumMultiplier, SlowAdjustingFeeUpdate,
+		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+	};
+	use sp_runtime::{FixedPointNumber, Perbill};
+
+	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+	where
+		F: FnMut() -> (),
+	{
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			System::set_block_consumed_resources(w, 0);
+			assertions()
+		});
+	}
+
+	#[test]
+	fn test_multiplier_can_grow_from_zero() {
+		let minimum_multiplier = MinimumMultiplier::get();
+		let target = TargetBlockFullness::get()
+			* BlockWeights::get()
+				.get(DispatchClass::Normal)
+				.max_total
+				.unwrap();
+		// if the min is too small, then this will not change, and we are doomed forever.
+		// the weight is 1/100th bigger than target.
+		run_with_system_weight(target * 101 / 100, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			assert!(
+				next > minimum_multiplier,
+				"{:?} !>= {:?}",
+				next,
+				minimum_multiplier
+			);
+		})
+	}
+
+	#[test]
+	fn test_fee_calculation() {
+		let base_extrinsic = BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.base_extrinsic;
+		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
+		let extrinsic_len = 100u32;
+		let extrinsic_weight = 5_000u64;
+		let tip = 42u128;
+		type WeightToFeeImpl =
+			ConstantMultiplier<u128, ConstU128<{ moonbase_runtime::currency::WEIGHT_FEE }>>;
+		type LengthToFeeImpl = LengthToFee;
+
+		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
+		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
+				&Weight::from_ref_time(extrinsic_weight),
+			)) + LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(
+			extrinsic_len as u64,
+		)) + tip;
+
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual_fee = TransactionPayment::compute_fee(
+				extrinsic_len,
+				&frame_support::dispatch::DispatchInfo {
+					class: DispatchClass::Normal,
+					pays_fee: frame_support::dispatch::Pays::Yes,
+					weight: Weight::from_ref_time(extrinsic_weight),
+				},
+				tip,
+			);
+
+			assert_eq!(
+				expected_fee,
+				actual_fee,
+				"The actual fee did not match the expected fee, diff {}",
+				actual_fee - expected_fee
+			);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_is_deterministic() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier = sp_runtime::FixedU128::from_u32(1);
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
+			let expected: U256 = multiplier
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.into();
+
+			assert_eq!(expected, actual);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
+			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
+
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
+			let a = TransactionPaymentAsGasPrice::min_gas_price();
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
+			let b = TransactionPaymentAsGasPrice::min_gas_price();
+
+			assert_ne!(
+				a, b,
+				"both gas prices were equal, unexpected precision loss incurred"
+			);
+		});
+	}
+
+	#[test]
+	fn test_fee_scenarios() {
+		use sp_runtime::FixedU128;
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
+				let start_multiplier =
+					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
+				pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(start_multiplier);
+
+				let block_weight = NORMAL_WEIGHT * fullness;
+
+				for i in 0..num_blocks {
+					System::set_block_number(i as u32);
+					System::set_block_consumed_resources(block_weight, 0);
+					TransactionPayment::on_finalize(i as u32);
+				}
+
+				TransactionPaymentAsGasPrice::min_gas_price().0
+			};
+
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 1),
+				U256::from(999_000_500),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 1),
+				U256::from(1_000_000_000),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 1),
+				U256::from(1_001_000_500),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 1),
+				U256::from(1_003_004_500),
+			);
+
+			// 1 "real" hour (at 12-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 300),
+				U256::from(740_818_257),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 300),
+				U256::from(1_000_000_000),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 300),
+				U256::from(1_349_858_740),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 300),
+				U256::from(2_459_599_798u128),
+			);
+
+			// 1 "real" day (at 12-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 7200),
+				U256::from(1_250_000), // lower bound enforced
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 7200),
+				U256::from(1_000_000_000),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 7200),
+				U256::from(1_339_429_158_283u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 7200),
+				U256::from(125_000_000_000_000u128), // upper bound enforced
+			);
+		});
+	}
 }

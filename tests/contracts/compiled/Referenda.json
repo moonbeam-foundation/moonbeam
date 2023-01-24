@@ -1,0 +1,213 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "decidingCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "name": "placeDecisionDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "referendumCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "name": "refundDecisionDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "submissionDeposit",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          { "internalType": "bytes", "name": "hash", "type": "bytes" },
+          { "internalType": "uint32", "name": "block", "type": "uint32" }
+        ],
+        "name": "submitAfter",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          { "internalType": "bytes", "name": "hash", "type": "bytes" },
+          { "internalType": "uint32", "name": "block", "type": "uint32" }
+        ],
+        "name": "submitAt",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "trackIds",
+        "outputs": [
+          { "internalType": "uint16[]", "name": "trackIds", "type": "uint16[]" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "trackInfo",
+        "outputs": [
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "bytes", "name": "", "type": "bytes" },
+          { "internalType": "bytes", "name": "", "type": "bytes" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000811",
+      "kind": "dev",
+      "methods": {
+        "decidingCount(uint16)": {
+          "custom:selector": "983d6425",
+          "params": { "trackId": "The track identifier" }
+        },
+        "placeDecisionDeposit(uint32)": {
+          "custom:selector": "245ce18d",
+          "details": "Post the Decision Deposit for a referendum",
+          "params": {
+            "index": "The index of the ongoing referendum that is not yet deciding"
+          }
+        },
+        "referendumCount()": { "custom:selector": "3a42ee31" },
+        "refundDecisionDeposit(uint32)": {
+          "custom:selector": "1325d528",
+          "details": "Refund the Decision Deposit for a closed referendum back to the depositor",
+          "params": {
+            "index": "The index of a closed referendum with decision deposit still locked"
+          }
+        },
+        "submissionDeposit()": { "custom:selector": "aa14c39a" },
+        "submitAfter(uint16,bytes,uint32)": {
+          "custom:selector": "0a1ecbe9",
+          "details": "Submit a referenda",
+          "params": {
+            "block": "Block number after which this will be executed",
+            "hash": "Hash of the proposal preimage",
+            "trackId": "The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`"
+          }
+        },
+        "submitAt(uint16,bytes,uint32)": {
+          "custom:selector": "95f9ed68",
+          "details": "Submit a referenda",
+          "params": {
+            "block": "Block number at which this will be executed",
+            "hash": "Hash of the proposal preimage",
+            "trackId": "The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`"
+          }
+        },
+        "trackIds()": {
+          "custom:selector": "cc17da14",
+          "returns": { "trackIds": "Identifiers for all tracks (and origins)" }
+        },
+        "trackInfo(uint16)": {
+          "custom:selector": "34038146",
+          "params": { "trackId": "The track identifier" }
+        }
+      },
+      "title": "Pallet Referenda InterfaceThe interface through which solidity contracts will interact with the Referenda pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "decidingCount(uint16)": "983d6425",
+        "placeDecisionDeposit(uint32)": "245ce18d",
+        "referendumCount()": "3a42ee31",
+        "refundDecisionDeposit(uint32)": "1325d528",
+        "submissionDeposit()": "aa14c39a",
+        "submitAfter(uint16,bytes,uint32)": "0a1ecbe9",
+        "submitAt(uint16,bytes,uint32)": "95f9ed68",
+        "trackIds()": "cc17da14",
+        "trackInfo(uint16)": "34038146"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"decidingCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"placeDecisionDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"referendumCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"refundDecisionDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submissionDeposit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"hash\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"block\",\"type\":\"uint32\"}],\"name\":\"submitAfter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"hash\",\"type\":\"bytes\"},{\"internalType\":\"uint32\",\"name\":\"block\",\"type\":\"uint32\"}],\"name\":\"submitAt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"trackIds\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"trackIds\",\"type\":\"uint16[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"trackInfo\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000811\",\"kind\":\"dev\",\"methods\":{\"decidingCount(uint16)\":{\"custom:selector\":\"983d6425\",\"params\":{\"trackId\":\"The track identifier\"}},\"placeDecisionDeposit(uint32)\":{\"custom:selector\":\"245ce18d\",\"details\":\"Post the Decision Deposit for a referendum\",\"params\":{\"index\":\"The index of the ongoing referendum that is not yet deciding\"}},\"referendumCount()\":{\"custom:selector\":\"3a42ee31\"},\"refundDecisionDeposit(uint32)\":{\"custom:selector\":\"1325d528\",\"details\":\"Refund the Decision Deposit for a closed referendum back to the depositor\",\"params\":{\"index\":\"The index of a closed referendum with decision deposit still locked\"}},\"submissionDeposit()\":{\"custom:selector\":\"aa14c39a\"},\"submitAfter(uint16,bytes,uint32)\":{\"custom:selector\":\"0a1ecbe9\",\"details\":\"Submit a referenda\",\"params\":{\"block\":\"Block number after which this will be executed\",\"hash\":\"Hash of the proposal preimage\",\"trackId\":\"The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\"}},\"submitAt(uint16,bytes,uint32)\":{\"custom:selector\":\"95f9ed68\",\"details\":\"Submit a referenda\",\"params\":{\"block\":\"Block number at which this will be executed\",\"hash\":\"Hash of the proposal preimage\",\"trackId\":\"The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\"}},\"trackIds()\":{\"custom:selector\":\"cc17da14\",\"returns\":{\"trackIds\":\"Identifiers for all tracks (and origins)\"}},\"trackInfo(uint16)\":{\"custom:selector\":\"34038146\",\"params\":{\"trackId\":\"The track identifier\"}}},\"title\":\"Pallet Referenda InterfaceThe interface through which solidity contracts will interact with the Referenda pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"decidingCount(uint16)\":{\"notice\":\"Return the total count of deciding referenda per track\"},\"referendumCount()\":{\"notice\":\"Return the total referendum count\"},\"submissionDeposit()\":{\"notice\":\"Return the submission deposit for all referenda\"},\"trackIds()\":{\"notice\":\"Return the trackIds\"},\"trackInfo(uint16)\":{\"notice\":\"Return the governance parameters configured for the input TrackId\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Referenda\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x3aef0c3537ddf8144d177390c3be77fe8f671a9636bb9451084d94894f5ba8c1\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://f4d66b55160d2decf386ffe0c1f92152bdbda121c2a0a4554fd3cc0b8457ee8f\",\"dweb:/ipfs/QmSWtzNryBZNeWroVGnFtY7APbVNrJKv9Knasft9TeLE2S\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "decidingCount(uint16)": {
+          "notice": "Return the total count of deciding referenda per track"
+        },
+        "referendumCount()": { "notice": "Return the total referendum count" },
+        "submissionDeposit()": {
+          "notice": "Return the submission deposit for all referenda"
+        },
+        "trackIds()": { "notice": "Return the trackIds" },
+        "trackInfo(uint16)": {
+          "notice": "Return the governance parameters configured for the input TrackId"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Referenda contract's address.\naddress constant REFERENDA_ADDRESS = 0x0000000000000000000000000000000000000811;\n\n/// @dev The Referenda contract's instance.\nReferenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Referenda Interface\n/// @title The interface through which solidity contracts will interact with the Referenda pallet\n/// @custom:address 0x0000000000000000000000000000000000000811\ninterface Referenda {\n    /// Return the total referendum count\n    /// @custom:selector 3a42ee31\n    function referendumCount() external view returns (uint256);\n\n    /// Return the submission deposit for all referenda\n    /// @custom:selector aa14c39a\n    function submissionDeposit() external view returns (uint256);\n\n    /// Return the total count of deciding referenda per track\n    /// @param trackId The track identifier\n    /// @custom:selector 983d6425\n    function decidingCount(uint16 trackId) external view returns (uint256);\n\n    /// Return the trackIds\n    /// @return trackIds Identifiers for all tracks (and origins)\n    /// @custom:selector cc17da14\n    function trackIds() external view returns (uint16[] memory trackIds);\n\n    /// Return the governance parameters configured for the input TrackId\n    /// @param trackId The track identifier\n    /// @custom:selector 34038146\n    function trackInfo(uint16 trackId)\n        external\n        view\n        returns (\n            string memory,\n            uint256,\n            uint256,\n            uint256,\n            uint256,\n            uint256,\n            uint256,\n            bytes memory,\n            bytes memory\n        );\n\n    /// @dev Submit a referenda\n    /// @custom:selector 95f9ed68\n    /// @param trackId The trackId corresponding to the origin from which the proposal is to be\n    /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\n    /// @param hash Hash of the proposal preimage\n    /// @param block Block number at which this will be executed\n    function submitAt(\n        uint16 trackId,\n        bytes memory hash,\n        uint32 block\n    ) external;\n\n    /// @dev Submit a referenda\n    /// @custom:selector 0a1ecbe9\n    /// @param trackId The trackId corresponding to the origin from which the proposal is to be\n    /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\n    /// @param hash Hash of the proposal preimage\n    /// @param block Block number after which this will be executed\n    function submitAfter(\n        uint16 trackId,\n        bytes memory hash,\n        uint32 block\n    ) external;\n\n    /// @dev Post the Decision Deposit for a referendum\n    /// @custom:selector 245ce18d\n    /// @param index The index of the ongoing referendum that is not yet deciding\n    function placeDecisionDeposit(uint32 index) external;\n\n    /// @dev Refund the Decision Deposit for a closed referendum back to the depositor\n    /// @custom:selector 1325d528\n    /// @param  index The index of a closed referendum with decision deposit still locked\n    function refundDecisionDeposit(uint32 index) external;\n}\n"
+}

@@ -485,7 +485,7 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
 
     const txns = await [...additionalDelegators].map((account, i) =>
       context.polkadotApi.tx.parachainStaking
-        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, i + 1, 1)
+        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, additionalDelegators.length + 1, 1)
         .signAsync(account)
     );
 
@@ -545,7 +545,7 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
       context.createBlock(
         [...topDelegators].map((account, i) =>
           context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, i + 1, 1)
+            .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, topDelegators.length + 1, 1)
             .signAsync(account)
         )
       )
@@ -554,7 +554,12 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
       context.createBlock(
         [...bottomDelegators].map((account, i) =>
           context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR, topDelegators.length + i + 1, 1)
+            .delegate(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              topDelegators.length + bottomDelegators.length + 1,
+              1
+            )
             .signAsync(account)
         )
       )

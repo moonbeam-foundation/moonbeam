@@ -172,11 +172,23 @@ export function describeDevMoonbeam(
                 .result,
             });
           } else if (call.isSigned) {
+            const tx = context.polkadotApi.tx(call);
+            debug(
+              `- Signed: ${tx.method.section}.${tx.method.method}(${tx.args
+                .map((d) => d.toHuman())
+                .join("; ")}) [ nonce: ${tx.nonce}]`
+            );
             results.push({
               type: "sub",
               hash: (await call.send()).toString(),
             });
           } else {
+            const tx = context.polkadotApi.tx(call);
+            debug(
+              `- Unsigned: ${tx.method.section}.${tx.method.method}(${tx.args
+                .map((d) => d.toHuman())
+                .join("; ")}) [ nonce: ${tx.nonce}]`
+            );
             results.push({
               type: "sub",
               hash: (await call.signAndSend(alith)).toString(),

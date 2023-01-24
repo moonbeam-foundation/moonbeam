@@ -24,7 +24,9 @@ use frame_support::{
 	BoundedVec,
 };
 use pallet_asset_manager::LocalAssetIdCreator;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use pallet_xcm_transactor::{
+	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
+};
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
@@ -34,6 +36,7 @@ use xcm_primitives::UtilityEncodeCall;
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
@@ -3166,6 +3169,149 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 			ParaBalances::free_balance(&transfer_recipient.into())
 				== transfer_recipient_balance_before + 100
 		);
+	});
+}
+
+#[test]
+fn hrmp_init_accept_through_root() {
+	MockNet::reset();
+
+	Relay::execute_with(|| {
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			para_a_account(),
+			1000u128
+		));
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			para_b_account(),
+			1000u128
+		));
+	});
+
+	ParaA::execute_with(|| {
+		let total_fee = 1_000u128;
+		let total_weight: u64 = 1_000_000_000;
+		let tx_weight: u64 = 500_000_000;
+		// Root can send hrmp init channel
+		assert_ok!(XcmTransactor::hrmp_manage(
+			parachain::RuntimeOrigin::root(),
+			HrmpOperation::InitOpen(HrmpInitParams {
+				para_id: 2u32.into(),
+				proposed_max_capacity: 1,
+				proposed_max_message_size: 1
+			}),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: Some(total_fee)
+			},
+			TransactWeights {
+				transact_required_weight_at_most: tx_weight,
+				overall_weight: Some(total_weight)
+			}
+		));
+	});
+	Relay::execute_with(|| {
+		let expected_event: relay_chain::RuntimeEvent =
+			polkadot_runtime_parachains::hrmp::Event::OpenChannelRequested(
+				1u32.into(),
+				2u32.into(),
+				1u32,
+				1u32,
+			)
+			.into();
+		assert!(relay_chain::relay_events().contains(&expected_event));
+	});
+	ParaB::execute_with(|| {
+		let total_fee = 1_000u128;
+		let total_weight: u64 = 1_000_000_000;
+		let tx_weight: u64 = 500_000_000;
+		// Root can send hrmp init channel
+		assert_ok!(XcmTransactor::hrmp_manage(
+			parachain::RuntimeOrigin::root(),
+			HrmpOperation::Accept {
+				para_id: 1u32.into()
+			},
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: Some(total_fee)
+			},
+			TransactWeights {
+				transact_required_weight_at_most: tx_weight,
+				overall_weight: Some(total_weight)
+			}
+		));
+	});
+
+	Relay::execute_with(|| {
+		let expected_event: relay_chain::RuntimeEvent =
+			polkadot_runtime_parachains::hrmp::Event::OpenChannelAccepted(1u32.into(), 2u32.into())
+				.into();
+		assert!(relay_chain::relay_events().contains(&expected_event));
+	});
+}
+
+#[test]
+fn hrmp_close_works() {
+	MockNet::reset();
+
+	Relay::execute_with(|| {
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			para_a_account(),
+			1000u128
+		));
+		assert_ok!(Hrmp::force_open_hrmp_channel(
+			relay_chain::RuntimeOrigin::root(),
+			1u32.into(),
+			2u32.into(),
+			1u32,
+			1u32
+		));
+		assert_ok!(Hrmp::force_process_hrmp_open(
+			relay_chain::RuntimeOrigin::root(),
+			0u32
+		));
+	});
+
+	ParaA::execute_with(|| {
+		let total_fee = 1_000u128;
+		let total_weight: u64 = 1_000_000_000;
+		let tx_weight: u64 = 500_000_000;
+		// Root can send hrmp close
+		assert_ok!(XcmTransactor::hrmp_manage(
+			parachain::RuntimeOrigin::root(),
+			HrmpOperation::Close(HrmpChannelId {
+				sender: 1u32.into(),
+				recipient: 2u32.into()
+			}),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: Some(total_fee)
+			},
+			TransactWeights {
+				transact_required_weight_at_most: tx_weight,
+				overall_weight: Some(total_weight)
+			}
+		));
+	});
+	Relay::execute_with(|| {
+		let expected_event: relay_chain::RuntimeEvent =
+			polkadot_runtime_parachains::hrmp::Event::ChannelClosed(
+				1u32.into(),
+				HrmpChannelId {
+					sender: 1u32.into(),
+					recipient: 2u32.into(),
+				},
+			)
+			.into();
+		assert!(relay_chain::relay_events().contains(&expected_event));
 	});
 }
 

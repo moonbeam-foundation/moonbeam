@@ -3,6 +3,7 @@ import "@polkadot/api-augment";
 import { ApiPromise } from "@polkadot/api";
 import chalk from "chalk";
 import { ethers } from "ethers";
+import child_process from "child_process";
 import { HttpProvider } from "web3-core";
 
 import { DEBUG_MODE } from "./constants";
@@ -241,4 +242,74 @@ export function describeParachain(
 
     cb(context);
   });
+}
+
+export interface RuntimeUpgradeVersions {
+  // Version of Moonbase runtime as written in the local source code
+  localVersion: string;
+  // latest version released on Github
+  latestReleasedVersion: string;
+  // Previous version of Moonbase runtime needed to execute the runtime upgrade
+  previousVersion: string;
+  // Does the current source code contain authoring changes
+  hasAuthoringChanges: boolean;
+}
+
+function runOrDefault(cmd: string, def = ""): string {
+  try {
+    return child_process.execSync(cmd).toString().trim();
+  } catch (e) {
+    return def;
+  }
+}
+
+export function retrieveParaVersions() {
+  const localVersion = runOrDefault(
+    `grep 'spec_version: [0-9]*' ../runtime/moonbase/src/lib.rs | grep -o '[0-9]*'`
+  );
+  const localAuthoringVersion = runOrDefault(
+    `grep 'authoring_version: [0-9]*' ../runtime/moonbase/src/lib.rs | grep -o '[0-9]*'`
+  );
+
+  const isAlreadyReleased =
+    runOrDefault(
+      `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | grep "${localVersion}"`
+    ) == localVersion;
+
+  const previousVersion = runOrDefault(
+    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 ` +
+      `| sed '1 i ${localVersion}' | sort -n -r ` +
+      `| uniq | grep -A1 "${localVersion}" | tail -1`
+  );
+  const previousAuthoringVersion = runOrDefault(
+    `git show runtime-${previousVersion}:../runtime/moonbase/src/lib.rs ` +
+      `| grep 'authoring_version: [0-9]*' | grep -o '[0-9]*'`
+  );
+
+  // List authoring_version from git commit since the previous runtime being used
+  // and find if there is a new version.
+  const authoringChanges = runOrDefault(
+    `git grep authoring_version ` +
+      `$(git rev-list runtime-${previousVersion}..HEAD -- ../runtime/moonbase/src/lib.rs) ` +
+      `-- ../runtime/moonbase/src/lib.rs ` +
+      `| grep -v "$(git grep authoring_version runtime-${previousVersion} ` +
+      `-- ../runtime/moonbase/src/lib.rs ` +
+      `| grep -o 'authoring_version:\ *[0-9]')" ` +
+      `| grep -o 'authoring_version:\ *[0-9]*' || exit 0`
+  );
+
+  const hasAuthoringChanges =
+    !!authoringChanges || previousAuthoringVersion != localAuthoringVersion;
+
+  debug(
+    `Using previous runtime ${previousVersion} ` +
+      `(authoring changes: ${hasAuthoringChanges} - ` +
+      `localVersion: ${localVersion} - release: ${isAlreadyReleased})`
+  );
+
+  return {
+    localVersion,
+    previousVersion,
+    hasAuthoringChanges,
+  };
 }

@@ -176,6 +176,10 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
   // So numberOfPorts =  3 * 2 * 2 * parachainCount
   const ports = await findAvailablePorts(numberOfParachains);
 
+  // For simplicity, forces the first parachain node to run on default ports
+  ports[numberOfParachains + 1].wsPort = 9944;
+  ports[numberOfParachains + 1].rpcPort = 9933;
+
   //Build hrmpChannels, all connected to first parachain
   const hrmpChannels: {
     sender: number;
@@ -295,7 +299,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-hardware-benchmarks",
-              "--trie-cache-size=0", //prevents huge genesis out of memory
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
                 : `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -303,7 +306,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
-              "--trie-cache-size=0",
               "--state-pruning=archive",
               "--execution=wasm",
               "--no-hardware-benchmarks",
@@ -333,21 +335,23 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--state-pruning=archive",
-              "--wasm-execution=interpreted-i-know-what-i-do",
+              process.env.FORCE_COMPILED_WASM
+                ? `--wasm-execution=compiled`
+                : `--wasm-execution=interpreted-i-know-what-i-do`,
               "--no-hardware-benchmarks",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
-              "--trie-cache-size=0", //prevents huge genesis out of memory
               "--",
               "--execution=wasm",
               "--state-pruning=archive",
-              "--wasm-execution=interpreted-i-know-what-i-do",
+              process.env.FORCE_COMPILED_WASM
+                ? `--wasm-execution=compiled`
+                : `--wasm-execution=interpreted-i-know-what-i-do`,
               "--no-hardware-benchmarks",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
-              "--trie-cache-size=0",
               `--port=${ports[i * 4 + numberOfParachains + 4].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 4].rpcPort}`,
               `--ws-port=${ports[i * 4 + numberOfParachains + 4].wsPort}`,

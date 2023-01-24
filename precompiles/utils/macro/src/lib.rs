@@ -22,11 +22,13 @@ use proc_macro2::Literal;
 use quote::{quote, quote_spanned};
 use sha3::{Digest, Keccak256};
 use syn::{
-	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, Lit, LitStr,
+	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, ItemType, Lit,
+	LitStr,
 };
 
 mod generate_function_selector;
 mod precompile;
+mod precompile_name_from_address;
 
 struct Bytes(Vec<u8>);
 
@@ -94,4 +96,9 @@ pub fn generate_function_selector(attr: TokenStream, input: TokenStream) -> Toke
 #[proc_macro_attribute]
 pub fn precompile(attr: TokenStream, input: TokenStream) -> TokenStream {
 	precompile::main(attr, input)
+}
+
+#[proc_macro_attribute]
+pub fn precompile_name_from_address(attr: TokenStream, input: TokenStream) -> TokenStream {
+	precompile_name_from_address::main(attr, input)
 }

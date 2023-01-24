@@ -165,4 +165,18 @@ where
 			handle, dest, fee_asset, weight, call,
 		)
 	}
+
+	#[precompile::public("encodeUtilityAsDerivative(uint8,uint16,bytes)")]
+	#[precompile::public("encode_utility_as_derivative(uint8,uint16,bytes)")]
+	#[precompile::view]
+	fn encode_utility_as_derivative(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult<UnboundedBytes> {
+		XcmTransactorWrapper::<Runtime>::encode_utility_as_derivative(
+			handle, transactor, index, inner_call,
+		)
+	}
 }

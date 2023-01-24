@@ -43,7 +43,14 @@ export const isMuted = (moonbeamNetworkName: string, paraId: number) => {
   const info = ForeignChainsEndpoints.find((a) => a.moonbeamNetworkName === moonbeamNetworkName);
 
   if (info) {
-    return info.foreignChains.find((a) => a.paraId === paraId).muted;
+    const match = info.foreignChains.find((a) => a.paraId === paraId);
+
+    if (!match) {
+      console.error(`⚠️  No static data for ParaId ${paraId}, please add to foreign-chains.ts`);
+      return false;
+    }
+
+    return match.muted;
   } else return false;
 };
 
@@ -95,7 +102,6 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Kintsugi",
         paraId: 2092,
-        muted: true,
       },
       {
         name: "Darwinia Crab",
@@ -146,6 +152,10 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Darwinia",
         paraId: 2046,
+      },
+      {
+        name: "Equilibrium",
+        paraId: 2011,
       },
     ],
   },

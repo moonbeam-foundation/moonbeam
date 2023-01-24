@@ -100,6 +100,7 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
+use precompiles::PrecompileName;
 pub use precompiles::{
 	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -115,7 +116,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, pallet_custom_origins, referenda::*};
+use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -179,7 +180,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 2100,
+	spec_version: 2200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -196,7 +197,7 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
+pub const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
 // Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
@@ -388,13 +389,11 @@ parameter_types! {
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(4, 1_000);
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
-	/// This value is currently only used by pallet-transaction-payment as an assertion that the
-	/// next multiplier is always > min value.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000);
 	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
@@ -402,13 +401,25 @@ parameter_types! {
 	pub WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
 }
 
-pub struct FixedGasPrice;
-impl FeeCalculator for FixedGasPrice {
+pub struct TransactionPaymentAsGasPrice;
+impl FeeCalculator for TransactionPaymentAsGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
-		(
-			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			Weight::zero(),
-		)
+		// TODO: transaction-payment differs from EIP-1559 in that its tip and length fees are not
+		//       scaled by the multiplier, which means its multiplier will be overstated when
+		//       applied to an ethereum transaction
+		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
+		//       updated once per block in on_finalize) and a 'WeightToFee' implementation. Our
+		//       runtime implements this as a 'ConstantModifier', so we can get away with a simple
+		//       multiplication here.
+		// It is imperative that `saturating_mul_int` be performed as late as possible in the
+		// expression since it involves fixed point multiplication with a division by a fixed
+		// divisor. This leads to truncation and subsequent precision loss if performed too early.
+		// This can lead to min_gas_price being same across blocks even if the multiplier changes.
+		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
+		// is computed in frontier, but that's currently unavoidable.
+		let min_gas_price = TransactionPayment::next_fee_multiplier()
+			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
+		(min_gas_price.into(), Weight::zero())
 	}
 }
 
@@ -451,7 +462,7 @@ where
 moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = FixedGasPrice;
+	type FeeCalculator = TransactionPaymentAsGasPrice;
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
@@ -530,16 +541,22 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = TreasurySpender;
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -659,10 +676,13 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+type MonetaryGovernanceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
+	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
 	/// Rounds before the collator leaving the candidates request can be executed
@@ -780,6 +800,106 @@ impl Default for ProxyType {
 	}
 }
 
+fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	matches!(
+		precompile_name,
+		PrecompileName::DemocracyPrecompile
+			| PrecompileName::CouncilInstance
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance
+			| PrecompileName::ReferendaPrecompile
+			| PrecompileName::ConvictionVotingPrecompile
+			| PrecompileName::PreimagePrecompile
+			| PrecompileName::OpenTechCommitteeInstance,
+	)
+}
+
+// Be careful: Each time this filter is modified, the substrate filter must also be modified
+// consistently.
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
+	fn is_evm_proxy_call_allowed(
+		&self,
+		call: &pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -> bool {
+		use pallet_evm::PrecompileSet as _;
+		match self {
+			ProxyType::Any => {
+				match PrecompileName::from_address(call.to.0) {
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
+					// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					None => {
+						// If the address is not recognized, allow only evm transfert to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+					}
+				}
+			}
+			ProxyType::NonTransfer => {
+				call.value == U256::zero()
+					&& match PrecompileName::from_address(call.to.0) {
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+							| PrecompileName::ParachainStakingPrecompile,
+						) => true,
+						Some(ref precompile) if is_governance_precompile(precompile) => true,
+						_ => false,
+					}
+			}
+			ProxyType::Governance => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(ref precompile) if is_governance_precompile(precompile)
+					)
+			}
+			ProxyType::Staking => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
+					)
+			}
+			// The proxy precompile does not contain method cancel_proxy
+			ProxyType::CancelProxy => false,
+			ProxyType::Balances => {
+				// Allow only "simple" accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+			}
+			ProxyType::AuthorMapping => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(PrecompileName::AuthorMappingPrecompile)
+					)
+			}
+			// There is no identity precompile
+			ProxyType::IdentityJudgement => false,
+		}
+	}
+}
+
+// Be careful: Each time this filter is modified, the EVM filter must also be modified consistently.
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
@@ -790,10 +910,15 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					RuntimeCall::System(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::Democracy(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
+						| RuntimeCall::ConvictionVoting(..)
+						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -804,8 +929,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking => matches!(
@@ -871,6 +1001,7 @@ impl pallet_migrations::Config for Runtime {
 		CouncilCollective,
 		TechCommitteeCollective,
 	>;
+	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
 
@@ -925,12 +1056,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::destroy { .. } => false,
 				_ => true,
 			},
-			// We just want to enable this in case of live chains, since the default version
-			// is populated at genesis
-			RuntimeCall::PolkadotXcm(method) => match method {
-				pallet_xcm::Call::force_default_xcm_version { .. } => true,
-				_ => false,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
@@ -952,12 +1077,28 @@ impl Contains<RuntimeCall> for NormalFilter {
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
-impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
+impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
 		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
 	fn resume_xcm_execution() -> DispatchResult {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
+	}
+}
+
+pub struct NormalDmpHandler;
+impl DmpMessageHandler for NormalDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		limit: Weight,
+	) -> Weight {
+		(if Migrations::should_pause_xcm() {
+			DmpQueue::handle_dmp_messages(iter, Weight::zero())
+		} else {
+			DmpQueue::handle_dmp_messages(iter, limit)
+		}) + <Runtime as frame_system::Config>::DbWeight::get().reads(1)
 	}
 }
 
@@ -1028,7 +1169,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type NormalDmpHandler = DmpQueue;
+	type NormalDmpHandler = NormalDmpHandler;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
 	// operation
@@ -1044,12 +1185,17 @@ parameter_types! {
 	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
+type AddCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type DelCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	type DelCollatorOrigin = DelCollatorOrigin;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
@@ -1131,7 +1277,7 @@ construct_runtime! {
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 7,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
@@ -1169,9 +1315,11 @@ construct_runtime! {
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
-		Origins: pallet_custom_origins::{Origin} = 43,
+		Origins: governance::custom_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 	}
 }
 
@@ -1389,7 +1537,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
-		assert_eq!(FixedGasPrice::min_gas_price().0, (1 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(

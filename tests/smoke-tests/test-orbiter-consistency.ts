@@ -6,14 +6,13 @@ import type {
   PalletMoonbeamOrbitersCollatorPoolInfo,
 } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces";
-
 import { expect } from "chai";
 import { sortObjectByKeys } from "../util/common";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:orbiter");
 
-describeSmokeSuite(`Verify orbiters`, (context) => {
+describeSmokeSuite("S1400", `Verify orbiters`, (context, testIt) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let collatorsPools: [
@@ -28,7 +27,7 @@ describeSmokeSuite(`Verify orbiters`, (context) => {
   let specVersion: number = 0;
 
   before("Setup api & retrieve data", async function () {
-    const runtimeVersion = await context.polkadotApi.runtimeVersion.specVersion.toNumber();
+    const runtimeVersion = context.polkadotApi.runtimeVersion.specVersion.toNumber();
     atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
@@ -45,7 +44,7 @@ describeSmokeSuite(`Verify orbiters`, (context) => {
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
   });
 
-  it("should have reserved tokens", async function () {
+  testIt("C100", `should have reserved tokens`, async function () {
     const reserves = await apiAt.query.balances.reserves.entries();
     const orbiterReserves = reserves
       .map((reserveSet) =>
@@ -73,7 +72,7 @@ describeSmokeSuite(`Verify orbiters`, (context) => {
     debug(`Verified ${orbiterRegisteredAccounts.length} orbiter reserves`);
   });
 
-  it("should be registered if in a pool", async function () {
+  testIt("C200", `should be registered if in a pool`, async function () {
     for (const orbiterPool of collatorsPools) {
       const collator = `0x${orbiterPool[0].toHex().slice(-40)}`;
       const pool = orbiterPool[1].unwrap();
@@ -108,7 +107,7 @@ describeSmokeSuite(`Verify orbiters`, (context) => {
     debug(`Verified ${collatorsPools.length} orbiter pools`);
   });
 
-  it("should not have more pool than the max allowed", async function () {
+  testIt("C300", `should not have more pool than the max allowed`, async function () {
     expect(collatorsPools.length, `Orbiter pool is too big`).to.be.at.most(
       counterForCollatorsPool.toNumber()
     );
@@ -116,7 +115,7 @@ describeSmokeSuite(`Verify orbiters`, (context) => {
     debug(`Verified orbiter pools size`);
   });
 
-  it("should have matching rewards", async function () {
+  testIt("C400", `should have matching rewards`, async function () {
     if (specVersion >= 1800) {
       let rotatePeriod: number = (
         (await apiAt.consts.moonbeamOrbiters.rotatePeriod) as any

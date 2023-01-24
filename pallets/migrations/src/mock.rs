@@ -341,6 +341,7 @@ impl GetMigrations for MockMigrations {
 impl Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = MockMigrations;
+	type XcmExecutionManager = ();
 	type WeightInfo = ();
 }
 
