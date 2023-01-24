@@ -193,7 +193,7 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
   });
 
   it("can call eth_getBlockByNumber", async function () {
-    const result = await context.ethers.send("eth_getBlockByNumber", [numberToHex(1), false]);
+    const result = await context.ethers.send("eth_getBlockByNumber", ["latest", false]);
     expect(result).to.not.be.null;
   });
 
