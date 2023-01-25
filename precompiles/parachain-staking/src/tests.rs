@@ -645,7 +645,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(290930000)
+				.expect_cost(293131000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -713,7 +713,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(323429000)
+				.expect_cost(325075534)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -777,7 +777,7 @@ fn candidate_request_is_pending_works() {
 					Precompile1,
 					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(161834000)
+				.expect_cost(163239000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 

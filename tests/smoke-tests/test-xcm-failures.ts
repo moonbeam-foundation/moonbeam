@@ -18,9 +18,11 @@ type BlockEventsRecord = {
 };
 
 describeSmokeSuite(
+  "S2300",
   `XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
-    " should not be serious..",
-  (context) => {
+    ` should not be serious`,
+
+  (context, testIt) => {
     let blockEvents: BlockEventsRecord[];
 
     before("Retrieve events for previous blocks", async function () {
@@ -39,7 +41,8 @@ describeSmokeSuite(
         blockNumArray.map((num) => limiter.schedule(() => getEvents(num)))
       );
     });
-    it("should not have UnsupportedVersion errors on DMP queue", async function () {
+
+    testIt("C100", `should not have UnsupportedVersion errors on DMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const dmpQueueEvents = events.filter(
           ({ event }) =>
@@ -59,7 +62,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have BadVersion errors on XCMP queue", async function () {
+    testIt("C200", `should not have BadVersion errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events.filter(
           ({ event }) =>
@@ -76,7 +79,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Barrier errors on XCMP queue", async function () {
+    testIt("C300", `should not have Barrier errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -95,7 +98,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Overflow errors on XCMP queue", async function () {
+    testIt("C400", `should not have Overflow errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -114,7 +117,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have MultiLocationFull errors on XCMP queue", async function () {
+    testIt("C500", `should not have MultiLocationFull errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -135,7 +138,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have AssetNotFound errors on XCMP queue", async function () {
+    testIt("C600", `should not have AssetNotFound errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -156,30 +159,34 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have DestinationUnsupported errors on XCMP queue", async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(
-            ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
-          );
-        return { blockNum, xcmpQueueEvents };
-      });
+    testIt(
+      "C700",
+      `should not have DestinationUnsupported errors on XCMP queue`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
 
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM DestinationUnsupported error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM DestinationUnsupported error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
 
-    it("should not have Transport errors on XCMP queue", async function () {
+    testIt("C800", `should not have Transport errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -198,7 +205,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have FailedToDecode errors on XCMP queue", async function () {
+    testIt("C900", `should not have FailedToDecode errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -219,7 +226,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have UnhandledXcmVersion errors on XCMP queue", async function () {
+    testIt("C1000", `should not have UnhandledXcmVersion errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -242,7 +249,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have WeightNotComputable errors on XCMP queue", async function () {
+    testIt("C1100", `should not have WeightNotComputable errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -265,7 +272,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should have recent responses for opened HMRP channels", async function () {
+    testIt("C1200", `shouldhave recent responses for opened HMRP channels`, async function () {
       this.timeout(FIVE_MINS);
       if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
         debug(`RELAY_WSS_URL env var not supplied, skipping test.`);

@@ -1,0 +1,81 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          {
+            "internalType": "bytes",
+            "name": "encodedProposal",
+            "type": "bytes"
+          }
+        ],
+        "name": "notePreimage",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes32", "name": "hash", "type": "bytes32" }
+        ],
+        "name": "unnotePreimage",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000813",
+      "kind": "dev",
+      "methods": {
+        "notePreimage(bytes)": {
+          "custom:selector": "cb00f603",
+          "details": "Register a Preimage on-chain.",
+          "params": {
+            "encodedProposal": "The preimage to be registered on-chain"
+          }
+        },
+        "unnotePreimage(bytes32)": {
+          "custom:selector": "02e71b45",
+          "details": "Clear an unrequested preimage from storage.",
+          "params": { "hash": "The preimage to be cleared from storage" }
+        }
+      },
+      "title": "Pallet Preimage InterfaceThe interface through which solidity contracts will interact with the Preimage pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "notePreimage(bytes)": "cb00f603",
+        "unnotePreimage(bytes32)": "02e71b45"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedProposal\",\"type\":\"bytes\"}],\"name\":\"notePreimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"unnotePreimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000813\",\"kind\":\"dev\",\"methods\":{\"notePreimage(bytes)\":{\"custom:selector\":\"cb00f603\",\"details\":\"Register a Preimage on-chain.\",\"params\":{\"encodedProposal\":\"The preimage to be registered on-chain\"}},\"unnotePreimage(bytes32)\":{\"custom:selector\":\"02e71b45\",\"details\":\"Clear an unrequested preimage from storage.\",\"params\":{\"hash\":\"The preimage to be cleared from storage\"}}},\"title\":\"Pallet Preimage InterfaceThe interface through which solidity contracts will interact with the Preimage pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Preimage\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xea8dd2cf2a4902b6b5d60fd906942927b09bef8685e09eadc3d2e2018fb09407\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://d9918874213683f96bab84bcaef9db332f8b5b25d4dbcc0a1ca13fdf04fbd95a\",\"dweb:/ipfs/QmWE9eyvfctHCjdWzHCfnoXy9vZwNMqNmq6ZV4edCV25NN\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Preimage contract's address.\naddress constant Preimage_ADDRESS = 0x0000000000000000000000000000000000000813;\n\n/// @dev The Preimage contract's instance.\nPreimage constant Preimage_CONTRACT = Preimage(Preimage_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Preimage Interface\n/// @title The interface through which solidity contracts will interact with the Preimage pallet\n/// @custom:address 0x0000000000000000000000000000000000000813\ninterface Preimage {\n    /// @dev Register a Preimage on-chain.\n    /// @custom:selector cb00f603\n    /// @param encodedProposal The preimage to be registered on-chain\n    function notePreimage(bytes memory encodedProposal) external;\n\n    /// @dev Clear an unrequested preimage from storage.\n    /// @custom:selector 02e71b45\n    /// @param hash The preimage to be cleared from storage\n    function unnotePreimage(bytes32 hash) external;\n}\n"
+}

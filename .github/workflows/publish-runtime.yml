@@ -17,8 +17,6 @@ jobs:
   setup-scripts:
     runs-on: self-hosted
     steps:
-      - name: Get Timestamp
-        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v3
       - name: Upload scripts
         uses: actions/upload-artifact@v3
@@ -42,8 +40,6 @@ jobs:
         srtool_image_tag:
           - 1.64.0
     steps:
-      - name: Get Timestamp
-        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}

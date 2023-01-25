@@ -19,7 +19,7 @@ import { FIVE_MINS, ONE_HOURS, TWO_HOURS } from "../util/constants";
 import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
 
-describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (context) {
+describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function (context, testIt) {
   let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
   let apiAt: ApiDecoration<"promise">;
   let predecessorApiAt: ApiDecoration<"promise">;
@@ -61,7 +61,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(nowRound);
   });
 
-  it("should snapshot the selected candidates for that round.", async function () {
+  testIt("C100", `should snapshot the selected candidates for that round`, async function () {
     const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
     const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
     expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
@@ -75,7 +75,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     ).to.be.empty;
   });
 
-  it("should have accurate collator stats in snapshot.", async function () {
+  testIt("C200", `should have accurate collator stats in snapshot`, async function () {
     this.timeout(FIVE_MINS);
 
     const limiter = new Bottleneck({
@@ -123,8 +123,8 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     ).to.be.empty;
   });
 
-  it("should snapshot candidate delegation amounts correctly.", async function () {
-    // This test is so slow due to rate limiting, this should be off until a better solution appears
+  testIt("C300", `should snapshot candidate delegation amounts correctly`, async function () {
+    // This test is slow due to rate limiting, and should be run ad-hoc only
     if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
       debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
       this.skip();
@@ -232,8 +232,8 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     await new Promise((resolve) => setTimeout(resolve, 2000));
   });
 
-  it("should snapshot delegate autocompound preferences correctly.", async function () {
-    // This test is so slow due to rate limiting, this should be off until a better solution appears
+  testIt("C400", `should snapshot delegate autocompound preferences correctly`, async function () {
+    // This test is slow due to rate limiting, this should be off until a better solution appears
     if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
       debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
       this.skip();
@@ -319,7 +319,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     await new Promise((resolve) => setTimeout(resolve, 2000));
   });
 
-  it("rewards are given as expected", async function () {
+  testIt("C500", `rewards are given as expected`, async function () {
     this.timeout(500000);
     const atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
@@ -347,11 +347,14 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const nowRoundFirstBlock = nowRound.first;
   const nowRoundFirstBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock);
   const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
-  const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
-  const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
   const specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
     .unwrap()
     .specVersion.toNumber();
+  const nowRoundFirstRewardBlock =
+    specVersion >= 2100 ? nowRoundFirstBlock.addn(1) : nowRoundFirstBlock;
+  const nowRoundFirstRewardBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstRewardBlock);
+  const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
+  const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
 
   // obtain data from original round
   const originalRoundNumber = (await apiAtRewarded.query.parachainStaking.round()).current.sub(
@@ -383,7 +386,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
   paid in ${nowRoundNumber.toString()} (first block \
   ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-  ${priorRewardedBlockHash.toHex()})`);
+  ${priorRewardedBlockHash.toHex()})
+  first rewarded ${nowRoundFirstRewardBlock.toNumber()} / ${nowRoundFirstRewardBlockHash.toHex()}`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -581,7 +585,7 @@ totalBondReward               ${totalBondReward} \
   let skippedRewardEvents = 0;
   // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
-    const blockNumber = nowRoundFirstBlock.addn(i);
+    const blockNumber = nowRoundFirstRewardBlock.addn(i);
     const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
     const apiAtBlock = await api.at(blockHash);
 

@@ -102,7 +102,6 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Kintsugi",
         paraId: 2092,
-        muted: true,
       },
       {
         name: "Darwinia Crab",

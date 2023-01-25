@@ -11,7 +11,7 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 const debug = require("debug")("smoke:proxy");
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created`, (context) => {
+describeSmokeSuite("S1600", `Verify account proxies created`, (context, testIt) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -86,7 +86,7 @@ describeSmokeSuite(`Verify account proxies created`, (context) => {
   });
 
   // TEMPLATE: Give details about what you are testing
-  it("should have no more than the maximum allowed proxies", async function () {
+  testIt("C100", `should have no more than the maximum allowed proxies`, async function () {
     this.timeout(240000);
 
     // TEMPLATE: Retrieve additional information
@@ -128,7 +128,7 @@ describeSmokeSuite(`Verify account proxies created`, (context) => {
   });
 
   // TEMPLATE: Exemple of test verifying a constant in the runtime
-  it("should have a maximum allowed proxies of 32", async function () {
+  testIt("C200", `should have a maximum allowed proxies of 32`, async function () {
     // TEMPLATE: Remove if the value is the same for each runtime
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
     const networkName = context.polkadotApi.runtimeChain.toString();
@@ -168,22 +168,27 @@ describeSmokeSuite(`Verify account proxies created`, (context) => {
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it("should only be possible for proxies of non-smart contract accounts", async function () {
-    this.timeout(60000);
+  testIt(
+    "C300",
+    `should only be possible for proxies of non-smart contract accounts`,
+    async function () {
+      this.timeout(60000);
 
-    // For each account with a registered proxy, check whether it is a non-SC address
-    const results = await Promise.all(
-      proxyAccList.map(async (address) => {
-        const resp = await apiAt.query.evm.accountCodes(address);
-        const contract = resp.toJSON() == "0x" ? false : true;
-        return { address, contract };
-      })
-    );
-    results.forEach((item) => {
-      if (item.contract) debug(`Proxy account for non-external address detected: ${item.address} `);
-    });
-    expect(results.every((item) => item.contract == false)).to.be.true;
-  });
+      // For each account with a registered proxy, check whether it is a non-SC address
+      const results = await Promise.all(
+        proxyAccList.map(async (address) => {
+          const resp = await apiAt.query.evm.accountCodes(address);
+          const contract = resp.toJSON() == "0x" ? false : true;
+          return { address, contract };
+        })
+      );
+      results.forEach((item) => {
+        if (item.contract)
+          debug(`Proxy account for non-external address detected: ${item.address} `);
+      });
+      expect(results.every((item) => item.contract == false)).to.be.true;
+    }
+  );
 });
 
 // TEMPLATE: Running the smoke test on stagenet

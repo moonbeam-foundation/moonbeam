@@ -27,6 +27,7 @@ use {
 	sp_std::boxed::Box,
 };
 
+#[must_use]
 pub struct PrecompilesTester<'p, P> {
 	precompiles: &'p P,
 	handle: MockHandle,

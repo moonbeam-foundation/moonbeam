@@ -174,7 +174,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2100,
+	spec_version: 2200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -760,9 +760,14 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
+						| RuntimeCall::Referenda(..)
+						| RuntimeCall::Preimage(..)
+						| RuntimeCall::ConvictionVoting(..)
 						| RuntimeCall::CouncilCollective(..)
-						| RuntimeCall::Identity(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
 						| RuntimeCall::CrowdloanRewards(
@@ -773,8 +778,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking => matches!(
