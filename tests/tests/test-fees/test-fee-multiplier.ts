@@ -199,7 +199,9 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
 
   it("should decay with no activity", async function () {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
-    expect(initialValue.lt(startingBn), "Fee Multiplier value not decayed").to.be.true;
+    await context.createBlock();
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    expect(initialValue.gt(postValue), "Fee Multiplier value not decayed").to.be.true;
   });
 
   it("should not decay when block size at target amount", async function () {
@@ -234,6 +236,9 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     const initialBalance = (await context.polkadotApi.query.system.account(random.address)).data
       .free;
+    const initialHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
@@ -292,7 +297,11 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
 
     const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     const postBalance = (await context.polkadotApi.query.system.account(random.address)).data.free;
+    const postHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
 
+    expect(initialHeight).to.equal(postHeight - 1);
     expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
     expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
   });
@@ -338,6 +347,9 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     const initialBalance = (await context.polkadotApi.query.system.account(random.address)).data
       .free;
+    const initialHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
@@ -387,7 +399,11 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
 
     const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     const postBalance = (await context.polkadotApi.query.system.account(random.address)).data.free;
+    const postHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
 
+    expect(initialHeight).to.equal(postHeight - 1);
     expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
     expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
   });
