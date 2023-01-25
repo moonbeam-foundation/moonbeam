@@ -2112,7 +2112,7 @@ fn multiplier_can_grow_from_zero() {
 	// if the min is too small, then this will not change, and we are doomed forever.
 	// the weight is 1/100th bigger than target.
 	run_with_system_weight(target * 101 / 100, || {
-		let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		let next = moonbase_runtime::FastAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 		assert!(
 			next > minimum_multiplier,
 			"{:?} !>= {:?}",
@@ -3112,7 +3112,7 @@ mod fee_tests {
 		weights::{ConstantMultiplier, WeightToFee},
 	};
 	use moonbase_runtime::{
-		currency, BlockWeights, LengthToFee, MinimumMultiplier, SlowAdjustingFeeUpdate,
+		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
 		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_runtime::{FixedPointNumber, Perbill};
@@ -3142,7 +3142,7 @@ mod fee_tests {
 		// if the min is too small, then this will not change, and we are doomed forever.
 		// the weight is 1/100th bigger than target.
 		run_with_system_weight(target * 101 / 100, || {
-			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			let next = FastAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 			assert!(
 				next > minimum_multiplier,
 				"{:?} !>= {:?}",

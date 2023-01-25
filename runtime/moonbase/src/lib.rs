@@ -359,7 +359,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
-	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
+	type FeeMultiplierUpdate = FastAdjustingFeeUpdate<Runtime>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -388,7 +388,8 @@ parameter_types! {
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
+	/// change the fees more rapidly. This fast multiplier responds by doubling/halving in
+	/// approximately one hour at extreme block congestion levels.
 	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(4, 1_000);
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
@@ -423,8 +424,8 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 	}
 }
 
-/// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line
+/// A "Fast" TargetedFeeAdjustment. Parameters chosen based on model described here:
+/// https://research.web3.foundation/en/latest/polkadot/overview/2-token-economics.html#-1.-fast-adjusting-mechanism // editorconfig-checker-disable-line
 ///
 /// The adjustment algorithm boils down to:
 ///
@@ -434,7 +435,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
+pub type FastAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	R,
 	TargetBlockFullness,
 	AdjustmentVariable,
