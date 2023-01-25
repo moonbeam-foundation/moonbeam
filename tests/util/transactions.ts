@@ -85,17 +85,25 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
+  // a transaction shouldn't have both Legacy and EIP1559 fields
   if (options.gasPrice && options.maxFeePerGas) {
     throw new Error(`txn has both gasPrice and maxFeePerGas!, options: ${options}`);
   }
-
   if (options.gasPrice && options.maxPriorityFeePerGas) {
     throw new Error(`txn has both gasPrice and maxPriorityFeePerGas!, options: ${options}`);
   }
 
+  let maxFeePerGas;
+  let maxPriorityFeePerGas;
+  if (options.gasPrice) {
+    maxFeePerGas = options.gasPrice;
+    maxPriorityFeePerGas = options.gasPrice;
+  } else {
+    maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
+    maxPriorityFeePerGas = options.maxPriorityFeePerGas || 0;
+  }
+
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : DEFAULT_TXN_MAX_BASE_FEE;
-  const maxPriorityFeePerGas =
-    options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
@@ -109,7 +117,6 @@ export const createTransaction = async (
       data: options.data,
     }));
 
-  const maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
   const accessList = options.accessList || [];
   const nonce =
     options.nonce != null
