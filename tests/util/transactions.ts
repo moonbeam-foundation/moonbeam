@@ -43,7 +43,6 @@ export interface TransactionOptions {
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
   gas: 500_000,
-  gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
   value: "0x00",
 };
 

@@ -104,7 +104,6 @@ describeDevMoonbeam(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",
-          gasPrice: undefined, // clear legacy field and use EIP-1559 instead
           maxFeePerGas: maxFeePerGas,
           maxPriorityFeePerGas: "0xBEBC200", // 0.2GWEI
           to: randomAccount.address,
@@ -135,7 +134,6 @@ describeDevMoonbeam(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",
-          gasPrice: undefined, // clear legacy field and use EIP-1559 instead
           maxFeePerGas: maxFeePerGas,
           maxPriorityFeePerGas: maxFeePerGas,
           to: randomAccount.address,
