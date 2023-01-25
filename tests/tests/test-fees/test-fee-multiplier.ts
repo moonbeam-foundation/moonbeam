@@ -1,23 +1,19 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
 import { BN, bnToHex } from "@polkadot/util";
-import {
-  TREASURY_ACCOUNT,
-  MIN_GLMR_STAKING,
-  PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-} from "../../util/constants";
-import { describeDevMoonbeamAllEthTxTypes, describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransfer, sendPrecompileTx } from "../../util/transactions";
-import {
-  baltathar,
-  BALTATHAR_PRIVATE_KEY,
-  charleth,
-  CHARLETH_PRIVATE_KEY,
-} from "../../util/accounts";
-import { u128 } from "@polkadot/types";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { baltathar, BALTATHAR_ADDRESS, generateKeyringPair } from "../../util/accounts";
 import { alith } from "../../util/accounts";
 import { createContract, createContractExecution } from "../../util/transactions";
-import { customWeb3Request } from "../../util/providers";
+import {
+  RawXcmMessage,
+  XcmFragment,
+  descendOriginFromAddress,
+  injectHrmpMessageAndSeal,
+} from "../../util/xcm";
+import { expectOk } from "../../util/expect";
+import { KeyringPair } from "@substrate/txwrapper-core";
+import { TARGET_FILL_AMOUNT } from "../../util/constants";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -158,5 +154,257 @@ describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
+  });
+});
+
+describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
+  const startingBn = new BN("2000000000000000000");
+  let sendingAddress: string;
+  let random: KeyringPair;
+  let transferredBalance: bigint;
+  let balancesPalletIndex: number;
+
+  before("Suite Setup", async function () {
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    sendingAddress = originAddress;
+    random = generateKeyringPair();
+    transferredBalance = 10_000_000_000_000_000_000n;
+
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance * 100n)
+      )
+    );
+
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
+      return pallet.name === "Balances";
+    }).index;
+  });
+
+  beforeEach("Reset multiplier", async function () {
+    const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
+      .key(0)
+      .toString();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [MULTIPLIER_STORAGE_KEY, bnToHex(startingBn, { isLe: true, bitLength: 128 })],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+  });
+
+  it("should decay with no activity", async function () {
+    const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    await context.createBlock();
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    expect(initialValue.gt(postValue), "Fee Multiplier value not decayed").to.be.true;
+  });
+
+  it("should not decay when block size at target amount", async function () {
+    const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    await context.createBlock(
+      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+    );
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be.true;
+  });
+
+  it("should increase when above target fill ratio", async function () {
+    const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    await context.polkadotApi.tx.balances
+      .transfer(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
+      .signAndSend(alith, { nonce: -1 });
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .signAndSend(alith, { nonce: -1 });
+    await context.createBlock();
+
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    expect(initialValue.lt(postValue), "Fee multiplier not increased when above ideal fill ratio")
+      .to.be.true;
+  });
+
+  it("should not increase fees with xcm activity", async () => {
+    const transferCallEncoded = context.polkadotApi.tx.balances
+      .transfer(random.address, transferredBalance / 10n)
+      .method.toHex();
+
+    const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    const initialBalance = (await context.polkadotApi.query.system.account(random.address)).data
+      .free;
+    const initialHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .signAndSend(alith, { nonce: -1 });
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: transferredBalance / 3n,
+      },
+      weight_limit: new BN(4000000000),
+      descend_origin: sendingAddress,
+    })
+      .descend_origin()
+      .withdraw_asset()
+      .buy_execution()
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncoded,
+          },
+        },
+      })
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncoded,
+          },
+        },
+      })
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncoded,
+          },
+        },
+      })
+      .as_v2();
+
+    await injectHrmpMessageAndSeal(context, 1, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    const postBalance = (await context.polkadotApi.query.system.account(random.address)).data.free;
+    const postHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
+
+    expect(initialHeight).to.equal(postHeight - 1);
+    expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
+    expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
+  });
+
+  it("should not increase fees with xcm ETH activity", async () => {
+    const amountToTransfer = transferredBalance / 10n;
+    const xcmTransactions = [
+      {
+        V1: {
+          gas_limit: 21000,
+          fee_payment: {
+            Auto: {
+              Low: null,
+            },
+          },
+          action: {
+            Call: random.address,
+          },
+          value: amountToTransfer,
+          input: [],
+          access_list: null,
+        },
+      },
+      {
+        V2: {
+          gas_limit: 21000,
+          action: {
+            Call: random.address,
+          },
+          value: amountToTransfer,
+          input: [],
+          access_list: null,
+        },
+      },
+    ];
+    const transferCallEncodedV1 = context.polkadotApi.tx.ethereumXcm
+      .transact(xcmTransactions[0] as any)
+      .method.toHex();
+    const transferCallEncodedV2 = context.polkadotApi.tx.ethereumXcm
+      .transact(xcmTransactions[1] as any)
+      .method.toHex();
+
+    const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    const initialBalance = (await context.polkadotApi.query.system.account(random.address)).data
+      .free;
+    const initialHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .signAndSend(alith, { nonce: -1 });
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: transferredBalance / 3n,
+      },
+      weight_limit: new BN(4000000000),
+      descend_origin: sendingAddress,
+    })
+      .descend_origin()
+      .withdraw_asset()
+      .buy_execution()
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncodedV1,
+          },
+        },
+      })
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncodedV2,
+          },
+        },
+      })
+      .as_v2();
+
+    await injectHrmpMessageAndSeal(context, 1, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+
+    const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
+    const postBalance = (await context.polkadotApi.query.system.account(random.address)).data.free;
+    const postHeight = (
+      await context.polkadotApi.rpc.chain.getBlock()
+    ).block.header.number.toNumber();
+
+    expect(initialHeight).to.equal(postHeight - 1);
+    expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
+    expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
   });
 });

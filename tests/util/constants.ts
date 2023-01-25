@@ -1,3 +1,5 @@
+import { Perbill } from "./common";
+
 export const SPECS_PATH = `./moonbeam-test-specs`;
 
 export const DEBUG_MODE = process.env.DEBUG_MODE || false;
@@ -96,3 +98,10 @@ export const CONTRACT_PROXY_TYPE_CANCEL_PROXY = 4;
 export const CONTRACT_PROXY_TYPE_BALANCES = 5;
 export const CONTRACT_PROXY_TYPE_AUTHOR_MAPPING = 6;
 export const CONTRACT_PROXY_TYPE_IDENTITY_JUDGEMENT = 7;
+
+export const MAX_BLOCK_WEIGHT = 500_000_000_000;
+
+// This is the target fill perbill amount accounting for base extrinsic fee, i.e. 187,000,000
+// Defined as a runtime constant: "TargetBlockFullness"
+export const TARGET_FILL_AMOUNT =
+  ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
