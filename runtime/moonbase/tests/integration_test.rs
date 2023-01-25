@@ -3112,7 +3112,7 @@ mod fee_tests {
 		weights::{ConstantMultiplier, WeightToFee},
 	};
 	use moonbase_runtime::{
-		currency, BlockWeights, LengthToFee, MinimumMultiplier, FastAdjustingFeeUpdate,
+		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
 		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_runtime::{FixedPointNumber, Perbill};
