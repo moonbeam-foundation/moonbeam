@@ -43,15 +43,16 @@ interface ParachainStaking {
     /// @return The total points awarded to all collators in the round
     function points(uint256 round) external view returns (uint256);
 
-    /// @dev Total points awarded to a specific collator in a particular round
-    /// @custom:selector 0a9033d3
+    /// @dev Total points awarded to a specific collator in a particular round. Note that a value
+    /// of `0` may signify that no blocks were produced or that the storage for that round has been removed
+    /// @custom:selector bfea66ac
     /// @param round the round for which we are querying the awarded points
     /// @param candidate The candidate to whom the points are awarded
     /// @return The total points awarded to the collator for the provided round
-    function awardedPoints(uint256 round, address candidate)
+    function awardedPoints(uint32 round, address candidate)
         external
         view
-        returns (uint256);
+        returns (uint32);
 
     /// @dev The amount delegated in support of the candidate by the delegator
     /// @custom:selector a73e51bc
