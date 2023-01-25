@@ -16,6 +16,9 @@
 
 #[cfg(test)]
 mod tests {
+	use std::cell::RefCell;
+	use std::rc::Rc;
+
 	use evm::Context;
 	use fp_evm::{ExitReason, ExitRevert, PrecompileFailure, PrecompileHandle};
 	use frame_support::traits::Everything;
@@ -103,38 +106,13 @@ mod tests {
 
 	#[precompile_utils::precompile]
 	impl MockPrecompile {
-		// aa4a1ef7
-		#[precompile::public("subcallLayer1()")]
-		fn subcall_layer_1(handle: &mut impl PrecompileHandle) -> EvmResult {
+		// a3cab0dd
+		#[precompile::public("subcall()")]
+		fn subcall(handle: &mut impl PrecompileHandle) -> EvmResult {
 			match handle.call(
 				handle.code_address(),
 				None,
 				// calls subcallLayer2()
-				EvmDataWriter::new_with_selector(0xa97e2528u32).build(),
-				None,
-				false,
-				&Context {
-					caller: handle.code_address(),
-					address: handle.code_address(),
-					apparent_value: 0.into(),
-				},
-			) {
-				(ExitReason::Succeed(_), _) => Ok(()),
-				(ExitReason::Revert(_), v) => Err(PrecompileFailure::Revert {
-					exit_status: ExitRevert::Reverted,
-					output: v,
-				}),
-				_ => Err(revert("unexpected error")),
-			}
-		}
-
-		// a97e2528
-		#[precompile::public("subcallLayer2()")]
-		fn subcall_layer_2(handle: &mut impl PrecompileHandle) -> EvmResult {
-			match handle.call(
-				handle.code_address(),
-				None,
-				// calls success
 				EvmDataWriter::new_with_selector(0x0b93381bu32).build(),
 				None,
 				false,
@@ -166,7 +144,7 @@ mod tests {
 			PrecompileAt<AddressU64<1>, MockPrecompile>,
 			PrecompileAt<AddressU64<2>, MockPrecompile, CallableByContract>,
 			PrecompileAt<AddressU64<3>, MockPrecompile, CallableByPrecompile>,
-			PrecompileAt<AddressU64<7>, MockPrecompile, AcceptDelegateCall>,
+			PrecompileAt<AddressU64<4>, MockPrecompile, SubcallWithMaxNesting<1>>,
 		),
 	>;
 
@@ -278,7 +256,7 @@ mod tests {
 	fn default_checks_revert_when_doing_subcall() {
 		ExtBuilder::default().build().execute_with(|| {
 			precompiles()
-				.prepare_test(Alice, H160::from_low_u64_be(1), PCall::subcall_layer_1 {})
+				.prepare_test(Alice, H160::from_low_u64_be(1), PCall::subcall {})
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
 				.execute_reverts(|r| r == b"subcalls disabled for this precompile")
 		})
@@ -310,6 +288,29 @@ mod tests {
 				)
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
 				.execute_returns_encoded(())
+		})
+	}
+
+	#[test]
+	fn subcalls_works_when_allowed() {
+		ExtBuilder::default().build().execute_with(|| {
+			let subcall_occured = Rc::new(RefCell::new(false));
+			{
+				let subcall_occured = Rc::clone(&subcall_occured);
+				precompiles()
+					.prepare_test(Alice, H160::from_low_u64_be(4), PCall::subcall {})
+					.with_subcall_handle(move |Subcall { .. }| {
+						*subcall_occured.borrow_mut() = true;
+						SubcallOutput {
+							reason: ExitReason::Succeed(evm::ExitSucceed::Returned),
+							output: vec![],
+							cost: 0,
+							logs: vec![],
+						}
+					})
+					.execute_returns_encoded(());
+			}
+			assert!(*subcall_occured.borrow());
 		})
 	}
 }
