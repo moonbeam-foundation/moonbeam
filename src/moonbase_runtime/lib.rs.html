@@ -1668,6 +1668,7 @@
 <span id="1668">1668</span>
 <span id="1669">1669</span>
 <span id="1670">1670</span>
+<span id="1671">1671</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2029,7 +2030,7 @@
 	<span class="kw">type </span>OperationalFeeMultiplier = ConstU8&lt;<span class="number">5</span>&gt;;
 	<span class="kw">type </span>WeightToFee = ConstantMultiplier&lt;Balance, ConstU128&lt;{ currency::WEIGHT_FEE }&gt;&gt;;
 	<span class="kw">type </span>LengthToFee = LengthToFee;
-	<span class="kw">type </span>FeeMultiplierUpdate = SlowAdjustingFeeUpdate&lt;Runtime&gt;;
+	<span class="kw">type </span>FeeMultiplierUpdate = FastAdjustingFeeUpdate&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_sudo::Config <span class="kw">for </span>Runtime {
@@ -2058,7 +2059,8 @@
 	/// than this will decrease the weight and more will increase.
 	</span><span class="kw">pub const </span>TargetBlockFullness: Perquintill = Perquintill::from_percent(<span class="number">25</span>);
 	<span class="doccomment">/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
+	/// change the fees more rapidly. This fast multiplier responds by doubling/halving in
+	/// approximately one hour at extreme block congestion levels.
 	</span><span class="kw">pub </span>AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(<span class="number">4</span>, <span class="number">1_000</span>);
 	<span class="doccomment">/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
@@ -2093,8 +2095,8 @@
 	}
 }
 
-<span class="doccomment">/// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line
+<span class="doccomment">/// A &quot;Fast&quot; TargetedFeeAdjustment. Parameters chosen based on model described here:
+/// https://research.web3.foundation/en/latest/polkadot/overview/2-token-economics.html#-1.-fast-adjusting-mechanism // editorconfig-checker-disable-line
 ///
 /// The adjustment algorithm boils down to:
 ///
@@ -2104,7 +2106,7 @@
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-</span><span class="kw">pub type </span>SlowAdjustingFeeUpdate&lt;R&gt; = TargetedFeeAdjustment&lt;
+</span><span class="kw">pub type </span>FastAdjustingFeeUpdate&lt;R&gt; = TargetedFeeAdjustment&lt;
 	R,
 	TargetBlockFullness,
 	AdjustmentVariable,
