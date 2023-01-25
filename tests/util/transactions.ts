@@ -85,6 +85,14 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
+  if (options.gasPrice && options.maxFeePerGas) {
+    throw new Error(`txn has both gasPrice and maxFeePerGas!, options: ${options}`);
+  }
+
+  if (options.gasPrice && options.maxPriorityFeePerGas) {
+    throw new Error(`txn has both gasPrice and maxPriorityFeePerGas!, options: ${options}`);
+  }
+
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : DEFAULT_TXN_MAX_BASE_FEE;
   const maxPriorityFeePerGas =
     options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
