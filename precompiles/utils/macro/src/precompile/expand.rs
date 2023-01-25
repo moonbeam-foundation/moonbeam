@@ -267,8 +267,9 @@ impl Precompile {
 					.as_ref()
 					.map(|_| quote!(discriminant,));
 
-				let write_output =
-					quote_spanned!(output_span=> EvmDataWriter::new().write(output?).build());
+				let write_output = quote_spanned!(output_span=>
+					::precompile_utils::data::encode_as_function_return_value(output?)
+				);
 
 				quote!(
 					use ::precompile_utils::EvmDataWriter;
