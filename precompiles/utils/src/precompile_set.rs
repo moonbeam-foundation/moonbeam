@@ -203,6 +203,24 @@ impl<T: SelectorFilter> PrecompileChecks for CallableByPrecompile<T> {
 	}
 }
 
+fn is_address_eoa_or_precompile<R: pallet_evm::Config>(address: H160) -> bool {
+	let code_len = pallet_evm::AccountCodes::<R>::decode_len(address).unwrap_or(0);
+
+	// 0 => either EOA or precompile without dummy code
+	if code_len == 0 {
+		return true;
+	}
+
+	// dummy code is 5 bytes long, so any other len means it is a contract.
+	if code_len != 5 {
+		return false;
+	}
+
+	// check code matches dummy code
+	let code = pallet_evm::AccountCodes::<R>::get(address);
+	&code == &[0x60, 0x00, 0x60, 0x00, 0xfd]
+}
+
 /// Common checks for precompile and precompile sets.
 /// Don't contain recursion check as precompile sets have recursion check for each member.
 fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
@@ -229,10 +247,7 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 		C::callable_by_smart_contract(caller, selector).unwrap_or(false);
 	if !callable_by_smart_contract {
 		handle.record_cost(RuntimeHelper::<R>::db_read_gas_cost())?;
-		let caller_code = pallet_evm::Pallet::<R>::account_codes(caller);
-		// Check that caller is not a smart contract s.t. no code is inserted into
-		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
-		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
+		if !is_address_eoa_or_precompile::<R>(caller) {
 			return Err(revert("Function not callable by smart contracts"));
 		}
 	}
