@@ -237,3 +237,27 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     expect(Number(result)).to.equal(1);
   });
 });
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - AwardedPoints", (context) => {
+  before("should successfully produce a block by ALITH", async function () {
+    await context.createBlock();
+  });
+
+  it("should get awarded points for ALITH", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("awardedPoints", [1, alith.address]),
+    });
+
+    expect(Number(result)).to.equal(20);
+  });
+
+  it("should get no awarded points for ETHAN", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("awardedPoints", [1, ethan.address]),
+    });
+
+    expect(Number(result)).to.equal(0);
+  });
+});
