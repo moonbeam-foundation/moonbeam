@@ -18,6 +18,7 @@ import {
   createTransaction,
   createTransfer,
 } from "../../util/transactions";
+import { MIN_GAS_PRICE } from "../../util/constants";
 
 describeDevMoonbeam("Balance transfer cost", (context) => {
   const randomAccount = generateKeyringPair();
@@ -35,7 +36,7 @@ describeDevMoonbeam("Balance transfer", (context) => {
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock();
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context, randomAccount.address, 512),
+      await createTransfer(context, randomAccount.address, 512, { gasPrice: "0x"+MIN_GAS_PRICE.toString(16)}),
     ]);
     expect(await context.web3.eth.getBalance(alith.address, "pending")).to.equal(
       (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 10_000_000_000n).toString()

@@ -102,7 +102,7 @@ export const createTransaction = async (
     maxPriorityFeePerGas = options.maxPriorityFeePerGas || 0;
   }
 
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : DEFAULT_TXN_MAX_BASE_FEE;
+  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : "0x"+BigInt(await context.web3.eth.getGasPrice()).toString(16);
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;

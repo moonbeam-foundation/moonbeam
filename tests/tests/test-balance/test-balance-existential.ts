@@ -22,15 +22,12 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   });
 
   it("should be disabled (no reaped account on 0 balance)", async function () {
-    const txFeePerGas =
-      context.ethTransactionType == "EIP1559"
-        ? BigInt(await context.web3.eth.getGasPrice())
-        : MIN_GAS_PRICE;
     const { block, result } = await context.createBlock(
-      createTransfer(context, alith.address, 10n * GLMR - 21000n * txFeePerGas, {
+      createTransfer(context, alith.address, 10n * GLMR - 21000n * MIN_GAS_PRICE, {
         from: randomWeb3Account.address,
         privateKey: randomWeb3Account.privateKey,
         gas: 21000,
+        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
       })
     );
     expect(result.successful, result.error?.name).to.be.true;
@@ -49,6 +46,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
       createTransfer(context, randomWeb3Account.address, 10n * GLMR, {
         from: alith.address,
         gas: 21000,
+        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
       })
     );
   });
@@ -59,6 +57,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
         from: randomWeb3Account.address,
         privateKey: randomWeb3Account.privateKey,
         gas: 21000,
+        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
       })
     );
     expect(parseInt(await context.web3.eth.getBalance(randomWeb3Account.address))).to.eq(1);
