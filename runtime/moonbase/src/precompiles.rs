@@ -168,7 +168,12 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2059>,
 		ProxyPrecompile<R>,
-		(CallableByContract<OnlyIsProxy<R>>, SubcallWithMaxNesting<0>),
+		(
+		    CallableByContract<OnlyIsProxy<R>>,
+		    SubcallWithMaxNesting<0>,
+		    // Batch is the only precompile allowed to call Proxy.
+		    CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
+		),
 	>,
 	PrecompileAt<
 		AddressU64<2060>,
