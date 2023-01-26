@@ -27,7 +27,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
         from: randomWeb3Account.address,
         privateKey: randomWeb3Account.privateKey,
         gas: 21000,
-        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
+        gasPrice: MIN_GAS_PRICE,
       })
     );
     expect(result.successful, result.error?.name).to.be.true;
@@ -46,7 +46,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
       createTransfer(context, randomWeb3Account.address, 10n * GLMR, {
         from: alith.address,
         gas: 21000,
-        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
+        gasPrice: MIN_GAS_PRICE,
       })
     );
   });
@@ -57,7 +57,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
         from: randomWeb3Account.address,
         privateKey: randomWeb3Account.privateKey,
         gas: 21000,
-        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
+        gasPrice: MIN_GAS_PRICE,
       })
     );
     expect(parseInt(await context.web3.eth.getBalance(randomWeb3Account.address))).to.eq(1);

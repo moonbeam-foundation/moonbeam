@@ -109,7 +109,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     expect(baseFeePerGas).to.equal(125_000_000_000_000n);
 
     const { contract, rawTx } = await createContract(context, "Fibonacci", {
-      gasPrice: "0x" + baseFeePerGas.toString(16),
+      gasPrice: baseFeePerGas,
     });
     const {
       result: { hash: createTxHash },
@@ -129,7 +129,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
         contract,
         contractCall: contract.methods.fib2(370),
       },
-      { gasPrice: "0x" + baseFeePerGas.toString(16) }
+      { gasPrice: baseFeePerGas }
     );
     let { result } = await context.createBlock(tx);
 

@@ -76,7 +76,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
             contract,
             contractCall: contract.methods.multiply(5),
           },
-          { gas: 12000000, gasPrice: "0x"+MIN_GAS_PRICE.toString(16) }
+          { gas: 12000000, gasPrice: MIN_GAS_PRICE }
         ),
       ])
     ).result;

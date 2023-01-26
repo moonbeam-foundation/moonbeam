@@ -52,9 +52,9 @@ describeDevMoonbeam("Ethereum Rpc pool errors - nonce too low", (context) => {
 
 describeDevMoonbeam("Ethereum Rpc pool errors - already known #2", (context) => {
   it("already known #2", async function () {
-    const tx_1 = await createTransfer(context, baltathar.address, 1, { nonce: 0, gasPrice: "0x"+MIN_GAS_PRICE.toString(16) });
+    const tx_1 = await createTransfer(context, baltathar.address, 1, { nonce: 0, gasPrice: MIN_GAS_PRICE });
     await context.createBlock(tx_1);
-    const tx_2 = await createTransfer(context, baltathar.address, 1, { nonce: 0, gasPrice: "0x"+MIN_GAS_PRICE.toString(16) });
+    const tx_2 = await createTransfer(context, baltathar.address, 1, { nonce: 0, gasPrice: MIN_GAS_PRICE });
     const res_a2 = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx_2]);
     expect(res_a2.error).to.include({
       message: "already known",

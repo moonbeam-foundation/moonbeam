@@ -461,7 +461,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
-        gasPrice: "0x"+MIN_GAS_PRICE.toString(16),
+        gasPrice: MIN_GAS_PRICE,
       })
     );
 

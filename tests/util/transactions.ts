@@ -32,9 +32,9 @@ export interface TransactionOptions {
   privateKey?: string;
   nonce?: number;
   gas?: string | number;
-  gasPrice?: string | number;
-  maxFeePerGas?: string | number;
-  maxPriorityFeePerGas?: string | number;
+  gasPrice?: string | number | BigInt;
+  maxFeePerGas?: string | number | BigInt;
+  maxPriorityFeePerGas?: string | number | BigInt;
   value?: string | number;
   data?: string;
   accessList?: AccessListish; // AccessList | Array<[string, Array<string>]>
@@ -90,6 +90,17 @@ export const createTransaction = async (
   }
   if (options.gasPrice && options.maxPriorityFeePerGas) {
     throw new Error(`txn has both gasPrice and maxPriorityFeePerGas!, options: ${options}`);
+  }
+
+  // convert any bigints to hex
+  if (typeof options.gasPrice === "bigint") {
+    options.gasPrice = "0x"+options.gasPrice.toString(16);
+  }
+  if (typeof options.maxFeePerGas === "bigint") {
+    options.maxFeePerGas = "0x"+options.maxFeePerGas.toString(16);
+  }
+  if (typeof options.maxPriorityFeePerGas === "bigint") {
+    options.maxPriorityFeePerGas = "0x"+options.maxPriorityFeePerGas.toString(16);
   }
 
   let maxFeePerGas;
