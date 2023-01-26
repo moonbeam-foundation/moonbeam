@@ -5,7 +5,11 @@ import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
-import { MIN_GAS_PRICE, PRECOMPILE_NATIVE_ERC20_ADDRESS, PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
+import {
+  MIN_GAS_PRICE,
+  PRECOMPILE_NATIVE_ERC20_ADDRESS,
+  PRECOMPILE_XTOKENS_ADDRESS,
+} from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import {
   describeDevMoonbeam,

@@ -94,13 +94,13 @@ export const createTransaction = async (
 
   // convert any bigints to hex
   if (typeof options.gasPrice === "bigint") {
-    options.gasPrice = "0x"+options.gasPrice.toString(16);
+    options.gasPrice = "0x" + options.gasPrice.toString(16);
   }
   if (typeof options.maxFeePerGas === "bigint") {
-    options.maxFeePerGas = "0x"+options.maxFeePerGas.toString(16);
+    options.maxFeePerGas = "0x" + options.maxFeePerGas.toString(16);
   }
   if (typeof options.maxPriorityFeePerGas === "bigint") {
-    options.maxPriorityFeePerGas = "0x"+options.maxPriorityFeePerGas.toString(16);
+    options.maxPriorityFeePerGas = "0x" + options.maxPriorityFeePerGas.toString(16);
   }
 
   let maxFeePerGas;
@@ -113,7 +113,10 @@ export const createTransaction = async (
     maxPriorityFeePerGas = options.maxPriorityFeePerGas || 0;
   }
 
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : "0x"+BigInt(await context.web3.eth.getGasPrice()).toString(16);
+  const gasPrice =
+    options.gasPrice !== undefined
+      ? options.gasPrice
+      : "0x" + BigInt(await context.web3.eth.getGasPrice()).toString(16);
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
