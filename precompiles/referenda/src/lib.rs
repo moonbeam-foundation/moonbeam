@@ -25,7 +25,7 @@ use frame_support::traits::{
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::U256;
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
@@ -63,7 +63,6 @@ pub struct TrackInfo {
 
 impl EvmData for TrackInfo {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		crate::read_struct!(reader, {parents: u8, interior: Junctions});
 		precompile_utils::read_struct!(reader, {
 			name: UnboundedBytes,
 			max_deciding: U256,
@@ -73,7 +72,7 @@ impl EvmData for TrackInfo {
 			confirm_period: U256,
 			min_enactment_period: U256,
 			min_approval: UnboundedBytes,
-			min_support: UnboundedBytes,
+			min_support: UnboundedBytes
 		});
 		Ok(TrackInfo {
 			name,
@@ -95,7 +94,7 @@ impl EvmData for TrackInfo {
 				value.name,
 				value.max_deciding,
 				value.decision_deposit,
-				value.prepare_perio,
+				value.prepare_period,
 				value.decision_period,
 				value.confirm_period,
 				value.min_enactment_period,
