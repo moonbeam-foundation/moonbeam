@@ -7,6 +7,7 @@ import { alith } from "../../util/accounts";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
+import { GLMR, MIN_GAS_PRICE } from "../../util/constants";
 
 describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
   let txHash: string;
@@ -75,7 +76,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
             contract,
             contractCall: contract.methods.multiply(5),
           },
-          { gas: 12000000 }
+          { gas: 12000000, gasPrice: MIN_GAS_PRICE }
         ),
       ])
     ).result;

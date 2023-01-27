@@ -5,7 +5,11 @@ import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
-import { PRECOMPILE_NATIVE_ERC20_ADDRESS, PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
+import {
+  MIN_GAS_PRICE,
+  PRECOMPILE_NATIVE_ERC20_ADDRESS,
+  PRECOMPILE_XTOKENS_ADDRESS,
+} from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import {
   describeDevMoonbeam,
@@ -81,7 +85,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -149,7 +154,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -228,7 +234,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -313,7 +320,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -379,7 +387,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -456,6 +465,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
+        gasPrice: MIN_GAS_PRICE,
       })
     );
 
