@@ -3104,6 +3104,91 @@ fn evm_success_keeps_substrate_events() {
 }
 
 #[cfg(test)]
+mod txpool_tests {
+	use super::*;
+	use moonbase_runtime::SignedExtra;
+	use sp_runtime::transaction_validity::{
+		InvalidTransaction, TransactionSource, TransactionValidityError, ValidTransaction,
+	};
+	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue::TaggedTransactionQueueV3;
+
+	#[test]
+	fn validate_transaction_fails_on_filtered_call() {
+		ExtBuilder::default().build().execute_with(|| {
+			let xt = UncheckedExtrinsic::new_unsigned(
+				pallet_evm::Call::<Runtime>::call {
+					source: Default::default(),
+					target: H160::default(),
+					input: Vec::new(),
+					value: Default::default(),
+					gas_limit: Default::default(),
+					max_fee_per_gas: Default::default(),
+					max_priority_fee_per_gas: Default::default(),
+					nonce: Default::default(),
+					access_list: Default::default(),
+				}
+				.into(),
+			);
+
+			assert_eq!(
+				Runtime::validate_transaction(TransactionSource::External, xt, Default::default(),),
+				Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
+			);
+		});
+	}
+
+	#[test]
+	fn validate_transaction_passes_unfiltered_operational_call() {
+		ExtBuilder::default().build().execute_with(|| {
+			let xt = UncheckedExtrinsic::new_unsigned(
+				pallet_ethereum_xcm::Call::<Runtime>::suspend_ethereum_xcm_execution {}.into(),
+			);
+
+			let source = TransactionSource::External;
+
+			// TODO: this needs to be signed to pass `validate_transaction`, e.g. through
+			//       UncheckedExtrinsic::new_signed(...)
+			let intermediate_valid =
+				Executive::validate_transaction(source, xt.clone(), Default::default());
+			assert_ok!(intermediate_valid.clone());
+
+			// our validate_transaction should pass this unchanged from
+			// Executive::validate_transaction
+			assert_eq!(
+				Runtime::validate_transaction(source, xt, Default::default(),),
+				intermediate_valid,
+			);
+		});
+	}
+
+	#[test]
+	fn validate_transaction_rewrites_substrate_txn() {
+		ExtBuilder::default().build().execute_with(|| {
+			let uxt = UncheckedExtrinsic::new_unsigned(
+				pallet_balances::Call::<Runtime>::transfer {
+					dest: H160::from(BOB).into(),
+					value: 0u128.into(),
+				}
+				.into(),
+			);
+
+			let source = TransactionSource::External;
+
+			let intermediate_valid =
+				Executive::validate_transaction(source, uxt.clone(), Default::default());
+			assert_ok!(intermediate_valid.clone());
+
+			// our validate_transaction should pass this unchanged from
+			// Executive::validate_transaction
+			assert_eq!(
+				Runtime::validate_transaction(source, uxt, Default::default(),),
+				intermediate_valid,
+			);
+		});
+	}
+}
+
+#[cfg(test)]
 mod fee_tests {
 	use super::*;
 	use fp_evm::FeeCalculator;
