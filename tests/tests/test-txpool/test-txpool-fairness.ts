@@ -54,7 +54,6 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     );
 
     expect(transferExts.length).to.eq(3);
-    console.log(`transferEvents[0]: ${transferExts[0]}`);
     expect(transferExts[0].tip.toBigInt()).to.eq(HIGH_TIP);
     expect(transferExts[1].tip.toBigInt()).to.eq(MED_TIP);
     expect(transferExts[2].tip.toBigInt()).to.eq(NO_TIP);
