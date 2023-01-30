@@ -244,7 +244,8 @@ describeSmokeSuite(
       /*  -- UNCOMMENT AND WIRE UP WHEN FEATURE DELIVERED --
       const failures = blockData
           .map(({ blockNum, ethBlock, baseFeePerGasInGwei }) => {
-            const baseFeePerGasInWei = ethers.utils.parseUnits(baseFeePerGasInGwei, "gwei").toString()
+            const baseFeePerGasInWei = ethers.utils.parseUnits(baseFeePerGasInGwei, "gwei")
+            .toString()
             const valid = ethBlock.header.BaseFee.toBn().eq( new BN(baseFeePerGasInWei))
             return { blockNum, valid };
           })
