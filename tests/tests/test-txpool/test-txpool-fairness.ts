@@ -49,7 +49,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // filter out inherent extrinsics, which should leave us with the ones we sent in their
     // inclusion order
-    let transferExts = block.extrinsics.filter(
+    const transferExts = block.extrinsics.filter(
       (ext) => ext.signer.toHex() !== "0x0000000000000000000000000000000000000000"
     );
 
