@@ -521,7 +521,6 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
 
     const numTopDelegations =
       await context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
-    console.log(`numTopDel: ${numTopDelegations}`);
 
     // Create the delegators to fill the lists
     bottomDelegators = new Array(
