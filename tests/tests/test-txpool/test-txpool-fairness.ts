@@ -122,7 +122,7 @@ describeDevMoonbeam("Tip should be respected", (context) => {
     const hash = result.block.hash;
     const apiAt = await context.polkadotApi.at(hash);
     const { block } = await context.polkadotApi.rpc.chain.getBlock(hash);
-    let transferExts = block.extrinsics.filter((ext) => {
+    const transferExts = block.extrinsics.filter((ext) => {
       return (
         (ext.method.section == "balances" && ext.method.method == "transfer") ||
         (ext.method.section == "ethereum" && ext.method.method == "transact")
