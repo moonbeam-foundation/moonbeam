@@ -518,7 +518,6 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
     this.timeout(20000);
     const numBottomDelegations =
       await context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
-    console.log(`numBottomDel: ${numBottomDelegations}`);
 
     const numTopDelegations =
       await context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
