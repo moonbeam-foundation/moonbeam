@@ -3331,7 +3331,7 @@ mod fee_tests {
 			// 1 "real" day (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 7200),
-				U256::from(1_250_000), // lower bound enforced
+				U256::from(125_000_000), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 7200),
