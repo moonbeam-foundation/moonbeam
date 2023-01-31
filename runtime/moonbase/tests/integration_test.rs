@@ -3108,8 +3108,7 @@ fn validate_transaction_fails_on_filtered_call() {
 	use sp_runtime::transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidityError,
 	};
-	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue
-		::TaggedTransactionQueueV3;
+	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
 
 	ExtBuilder::default().build().execute_with(|| {
 		let xt = UncheckedExtrinsic::new_unsigned(
