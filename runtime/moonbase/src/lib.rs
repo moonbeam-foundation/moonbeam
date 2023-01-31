@@ -87,7 +87,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill,
 };
 use sp_std::{
 	convert::{From, Into},
@@ -1398,8 +1398,10 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			let dispatch_info = xt.get_dispatch_info();
 
 			// If this is a pallet ethereum transaction, then its priority is already set
-			// according to gas price from pallet ethereum. If it is any other kind of transaction,
-			// we modify its priority.
+			// according to effective priority fee from pallet ethereum. If it is any other kind of
+			// transaction, we modify its priority. The goal is to arrive at a similar metric used
+			// by pallet ethereum, which means we derive a fee-per-gas from the txn's tip and
+			// weight.
 			Ok(match &xt.0.function {
 				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
@@ -1413,31 +1415,18 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						}
 					};
 
-					// Calculate the fee that will be taken by pallet transaction payment
-					let fee: u64 = TransactionPayment::compute_fee(
-						xt.encode().len() as u32,
-						&dispatch_info,
-						tip,
-					).saturated_into();
-
-					// Calculate how much gas this effectively uses according to the existing mapping
 					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 							dispatch_info.weight
 						);
-
-					// Here we calculate an ethereum-style effective gas price using the
-					// current fee of the transaction. Because the weight -> gas conversion is
-					// lossy, we have to handle the case where a very low weight maps to zero gas.
-					let effective_gas_price = if effective_gas > 0 {
-						fee / effective_gas
+					let tip_per_gas = if effective_gas > 0 {
+						tip.saturating_div(effective_gas as u128)
 					} else {
-						// If the effective gas was zero, we just act like it was 1.
-						fee
+						0
 					};
 
 					// Overwrite the original prioritization with this ethereum one
-					intermediate_valid.priority = effective_gas_price;
+					intermediate_valid.priority = tip_per_gas as u64;
 					intermediate_valid
 				}
 			})

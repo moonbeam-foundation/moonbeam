@@ -3103,6 +3103,36 @@ fn evm_success_keeps_substrate_events() {
 		});
 }
 
+#[test]
+fn validate_transaction_fails_on_filtered_call() {
+	use sp_runtime::transaction_validity::{
+		InvalidTransaction, TransactionSource, TransactionValidityError,
+	};
+	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
+
+	ExtBuilder::default().build().execute_with(|| {
+		let xt = UncheckedExtrinsic::new_unsigned(
+			pallet_evm::Call::<Runtime>::call {
+				source: Default::default(),
+				target: H160::default(),
+				input: Vec::new(),
+				value: Default::default(),
+				gas_limit: Default::default(),
+				max_fee_per_gas: Default::default(),
+				max_priority_fee_per_gas: Default::default(),
+				nonce: Default::default(),
+				access_list: Default::default(),
+			}
+			.into(),
+		);
+
+		assert_eq!(
+			Runtime::validate_transaction(TransactionSource::External, xt, Default::default(),),
+			Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
+		);
+	});
+}
+
 #[cfg(test)]
 mod fee_tests {
 	use super::*;
