@@ -5,6 +5,7 @@ import { createContract } from "../../util/transactions";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "../../util/accounts";
 import { expect } from "chai";
 import { getCompiled } from "../../util/contracts";
+import { u8aToHex, u8aToString } from "@polkadot/util";
 
 describeDevMoonbeam("Precompiles - ecrecover", (context) => {
   let ethersContract: Contract;
@@ -49,13 +50,12 @@ describeDevMoonbeam("Precompiles - ecrecover", (context) => {
     const msg = context.web3.utils.sha3("Hello World!");
     const signed = context.web3.eth.accounts.sign(msg, ALITH_PRIVATE_KEY);
     const v = "0x565656ff5656ffffffffffff3d3d02000000000040003dffff565656560f0000";
-    let caughtError = "";
     try {
       const result = await ethersContract.checkRecovery(signed.messageHash, v, signed.r, signed.s);
       expect(result).to.equal("0x0000000000000000000000000000000000000000");
     } catch (e) {
-      caughtError = e.data;
+      console.error(e);
+      expect(e.data, "Empty data field should be returned").to.equal("0x");
     }
-    expect(caughtError).to.equal("0x");
   });
 });
