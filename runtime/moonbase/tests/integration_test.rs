@@ -3105,9 +3105,8 @@ fn evm_success_keeps_substrate_events() {
 
 #[test]
 fn validate_transaction_fails_on_filtered_call() {
-	use moonbase_runtime::SignedExtra;
 	use sp_runtime::transaction_validity::{
-		InvalidTransaction, TransactionSource, TransactionValidityError, ValidTransaction,
+		InvalidTransaction, TransactionSource, TransactionValidityError,
 	};
 	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue::TaggedTransactionQueueV3;
 
