@@ -1658,17 +1658,6 @@
 <span id="1658">1658</span>
 <span id="1659">1659</span>
 <span id="1660">1660</span>
-<span id="1661">1661</span>
-<span id="1662">1662</span>
-<span id="1663">1663</span>
-<span id="1664">1664</span>
-<span id="1665">1665</span>
-<span id="1666">1666</span>
-<span id="1667">1667</span>
-<span id="1668">1668</span>
-<span id="1669">1669</span>
-<span id="1670">1670</span>
-<span id="1671">1671</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1758,7 +1747,7 @@
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill,
 };
 <span class="kw">use </span>sp_std::{
 	convert::{From, Into},
@@ -3069,8 +3058,10 @@
 			<span class="kw">let </span>dispatch_info = xt.get_dispatch_info();
 
 			<span class="comment">// If this is a pallet ethereum transaction, then its priority is already set
-			// according to gas price from pallet ethereum. If it is any other kind of transaction,
-			// we modify its priority.
+			// according to effective priority fee from pallet ethereum. If it is any other kind of
+			// transaction, we modify its priority. The goal is to arrive at a similar metric used
+			// by pallet ethereum, which means we derive a fee-per-gas from the txn&#39;s tip and
+			// weight.
 			</span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function {
 				RuntimeCall::Ethereum(transact { .. }) =&gt; intermediate_valid,
 				<span class="kw">_ if </span>dispatch_info.class != DispatchClass::Normal =&gt; intermediate_valid,
@@ -3084,31 +3075,18 @@
 						}
 					};
 
-					<span class="comment">// Calculate the fee that will be taken by pallet transaction payment
-					</span><span class="kw">let </span>fee: u64 = TransactionPayment::compute_fee(
-						xt.encode().len() <span class="kw">as </span>u32,
-						<span class="kw-2">&amp;</span>dispatch_info,
-						tip,
-					).saturated_into();
-
-					<span class="comment">// Calculate how much gas this effectively uses according to the existing mapping
-					</span><span class="kw">let </span>effective_gas =
+					<span class="kw">let </span>effective_gas =
 						&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
 							dispatch_info.weight
 						);
-
-					<span class="comment">// Here we calculate an ethereum-style effective gas price using the
-					// current fee of the transaction. Because the weight -&gt; gas conversion is
-					// lossy, we have to handle the case where a very low weight maps to zero gas.
-					</span><span class="kw">let </span>effective_gas_price = <span class="kw">if </span>effective_gas &gt; <span class="number">0 </span>{
-						fee / effective_gas
+					<span class="kw">let </span>tip_per_gas = <span class="kw">if </span>effective_gas &gt; <span class="number">0 </span>{
+						tip.saturating_div(effective_gas <span class="kw">as </span>u128)
 					} <span class="kw">else </span>{
-						<span class="comment">// If the effective gas was zero, we just act like it was 1.
-						</span>fee
-					};
+						<span class="number">0
+					</span>};
 
 					<span class="comment">// Overwrite the original prioritization with this ethereum one
-					</span>intermediate_valid.priority = effective_gas_price;
+					</span>intermediate_valid.priority = tip_per_gas <span class="kw">as </span>u64;
 					intermediate_valid
 				}
 			})
