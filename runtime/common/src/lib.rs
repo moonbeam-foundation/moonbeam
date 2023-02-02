@@ -19,6 +19,7 @@
 use sp_core::H160;
 
 mod apis;
+mod evm_runner;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;

@@ -265,6 +265,8 @@ moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 #[cfg(feature = "evm-tracing")]
 moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!();
 
+moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type RuntimeCall = RuntimeCall;

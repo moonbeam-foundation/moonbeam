@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 affix = "0.1.2"
 derive_more = { version = "0.99", optional = true }
+environmental = { version = "1.1.3", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.1", optional = true }
 impl-trait-for-tuples = "0.2.2"
@@ -45,6 +46,7 @@ hex-literal = "0.3.1"
 default = [ "std" ]
 std = [
 	"codec/std",
+	"environmental/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",

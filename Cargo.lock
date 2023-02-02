@@ -5447,6 +5447,8 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "fp-ethereum",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
@@ -5459,6 +5461,7 @@ dependencies = [
  "pallet-base-fee",
  "pallet-collective",
  "pallet-democracy",
+ "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-migrations",
  "pallet-parachain-staking",
@@ -5466,10 +5469,13 @@ dependencies = [
  "pallet-randomness",
  "pallet-scheduler",
  "pallet-xcm-transactor",
+ "precompile-utils",
  "sp-core",
  "sp-runtime",
  "sp-std",
  "xcm",
+ "xcm-executor",
+ "xcm-primitives",
 ]
 
 [[package]]
@@ -9779,6 +9785,7 @@ version = "0.1.0"
 dependencies = [
  "affix",
  "derive_more",
+ "environmental",
  "evm",
  "fp-evm",
  "frame-support",
