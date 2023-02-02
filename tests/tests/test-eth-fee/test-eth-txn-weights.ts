@@ -50,15 +50,13 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     expect(normalWeight).to.equal(EXPECTED_WEIGHT);
 
     // look for the event for our eth txn
-    let extSuccessEvent = null;
     let wholeBlock = await context.polkadotApi.rpc.chain.getBlock(block.hash);
-    wholeBlock.block.extrinsics.forEach((ext, index) => {
-      if (ext.method.method == "transact" && ext.method.section == "ethereum") {
-        extSuccessEvent = result.events.find(
-          ({ event }) => context.polkadotApi.events.system.ExtrinsicSuccess.is(event)
-        );
-      }
-    });
+    let index = wholeBlock.block.extrinsics.findIndex(
+      (ext) => ext.method.method == "transact" && ext.method.section == "ethereum"
+    );
+    const extSuccessEvent = result.events
+      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+      .find(({ event }) => context.polkadotApi.events.system.ExtrinsicSuccess.is(event));
 
     expect(extSuccessEvent).to.not.be.eq(null);
     let eventWeight = (extSuccessEvent.event.data as any).dispatchInfo.weight.refTime.toBigInt();
