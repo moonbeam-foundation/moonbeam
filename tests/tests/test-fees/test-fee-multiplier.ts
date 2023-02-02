@@ -184,7 +184,6 @@ describeDevMoonbeam("Min Fee Multiplier", (context) => {
     const gasPrice = BigInt(result);
     expect(gasPrice).to.eq(125_000_000n);
   });
-
 });
 
 describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
