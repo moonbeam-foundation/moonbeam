@@ -54,9 +54,9 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     let wholeBlock = await context.polkadotApi.rpc.chain.getBlock(block.hash);
     wholeBlock.block.extrinsics.forEach((ext, index) => {
       if (ext.method.method == "transact" && ext.method.section == "ethereum") {
-        extSuccessEvent = result.events.filter(
+        extSuccessEvent = result.events.find(
           ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
-        )[0];
+        );
       }
     });
 
