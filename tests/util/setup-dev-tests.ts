@@ -9,7 +9,7 @@ import { HttpProvider } from "web3-core";
 import { alith } from "./accounts";
 import { createAndFinalizeBlock } from "./block";
 import { DEBUG_MODE, SPAWNING_TIME } from "./constants";
-import { RuntimeChain, startMoonbeamDevNode } from "./dev-node";
+import { RuntimeChain, startMoonbeamDevNode, startMoonbeamForkedNode } from "./dev-node";
 import {
   customWeb3Request,
   EnhancedWeb3,
@@ -80,7 +80,8 @@ export function describeDevMoonbeam(
   cb: (context: DevTestContext) => void,
   ethTransactionType: EthTransactionType = "Legacy",
   runtime: RuntimeChain = "moonbase",
-  withWasm?: boolean
+  withWasm?: boolean,
+  forkedMode?: boolean
 ) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.
@@ -96,7 +97,9 @@ export function describeDevMoonbeam(
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
-      const init = !DEBUG_MODE
+      const init = forkedMode
+        ? await startMoonbeamForkedNode(9933, 9944)
+        : !DEBUG_MODE
         ? await startMoonbeamDevNode(withWasm, runtime)
         : {
             runningNode: null,
@@ -169,11 +172,23 @@ export function describeDevMoonbeam(
                 .result,
             });
           } else if (call.isSigned) {
+            const tx = context.polkadotApi.tx(call);
+            debug(
+              `- Signed: ${tx.method.section}.${tx.method.method}(${tx.args
+                .map((d) => d.toHuman())
+                .join("; ")}) [ nonce: ${tx.nonce}]`
+            );
             results.push({
               type: "sub",
               hash: (await call.send()).toString(),
             });
           } else {
+            const tx = context.polkadotApi.tx(call);
+            debug(
+              `- Unsigned: ${tx.method.section}.${tx.method.method}(${tx.args
+                .map((d) => d.toHuman())
+                .join("; ")}) [ nonce: ${tx.nonce}]`
+            );
             results.push({
               type: "sub",
               hash: (await call.signAndSend(alith)).toString(),

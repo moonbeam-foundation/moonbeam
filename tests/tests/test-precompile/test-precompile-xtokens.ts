@@ -11,11 +11,16 @@ import {
   PRECOMPILE_XTOKENS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+  DevTestContext,
+} from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
+  DEFAULT_TXN_MAX_BASE_FEE,
 } from "../../util/transactions";
 
 const XTOKENS_CONTRACT = getCompiled("XtokensInstance");
@@ -27,7 +32,7 @@ async function getBalance(context: DevTestContext, blockHeight: number, address:
   return account.data.free.toBigInt();
 }
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -80,7 +85,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -90,7 +96,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -148,7 +154,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -158,7 +165,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -227,7 +234,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -237,7 +245,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -312,7 +320,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -322,7 +331,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multicurrencies xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -378,7 +387,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const gasPrice = receipt.effectiveGasPrice;
+    const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -388,7 +398,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multiassets xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -455,11 +465,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
+        gasPrice: MIN_GAS_PRICE,
       })
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(

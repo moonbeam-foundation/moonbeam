@@ -30,6 +30,9 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 # Polkadot
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
+# Cumulus
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
 [dev-dependencies]
 derive_more = "0.99"
 serde = "1.0.100"
@@ -46,9 +49,6 @@ pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "m
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
-# Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32" }
-
 # Polkadot
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
@@ -60,6 +60,7 @@ orml-traits = { git = "https://github.com/purestake/open-runtime-module-library"
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-primitives-core/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",

@@ -25,6 +25,7 @@ use frame_support::{
 	PalletId,
 };
 
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_system::EnsureRoot;
 use orml_traits::parameter_type_with_key;
 use parity_scale_codec::{Decode, Encode};
@@ -833,6 +834,11 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
+// 1 DOT should be enough
+parameter_types! {
+	pub MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -851,6 +857,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
+	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type HrmpEncoder = MockHrmpEncoder;
 }
 
 parameter_types! {
@@ -907,12 +916,26 @@ pub enum RelayCall {
 	#[codec(index = 5u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
+	#[codec(index = 6u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Hrmp(HrmpCall),
 }
 
 #[derive(Encode, Decode)]
 pub enum UtilityCall {
 	#[codec(index = 1u8)]
 	AsDerivative(u16),
+}
+
+// HRMP call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	InitOpenChannel(ParaId, u32, u32),
+	#[codec(index = 1u8)]
+	AcceptOpenChannel(ParaId),
+	#[codec(index = 2u8)]
+	CloseChannel(HrmpChannelId),
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -939,6 +962,26 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 					call
 				}
 			},
+		}
+	}
+}
+
+pub struct MockHrmpEncoder;
+impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
+	fn hrmp_encode_call(
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		match call {
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
+			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
 		}
 	}
 }

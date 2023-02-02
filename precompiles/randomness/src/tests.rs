@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Randomness precompile unit tests
-use crate::mock::*;
+use crate::{mock::*, prepare_and_finish_fulfillment_gas_cost, subcall_overhead_gas_costs};
+use fp_evm::{ExitReason, ExitRevert, ExitSucceed, FeeCalculator};
 use pallet_randomness::{Event as RandomnessEvent, RandomnessResults, RequestType};
 use precompile_utils::{assert_event_emitted, testing::*, EvmDataWriter};
 use sp_core::{H160, H256, U256};
@@ -180,7 +181,7 @@ fn get_ready_request_status() {
 					PCall::request_local_randomness {
 						refund_address: precompile_utils::data::Address(H160::from(Bob)),
 						fee: U256::one(),
-						gas_limit: crate::fulfillment_overhead_gas_cost::<Runtime>(10u8) + 10u64,
+						gas_limit: 10u64,
 						salt: H256::default(),
 						num_words: 1u8,
 						delay: 2.into(),
@@ -216,7 +217,7 @@ fn get_expired_request_status() {
 					PCall::request_local_randomness {
 						refund_address: precompile_utils::data::Address(H160::from(Bob)),
 						fee: U256::one(),
-						gas_limit: crate::fulfillment_overhead_gas_cost::<Runtime>(10u8) + 10u64,
+						gas_limit: 10u64,
 						salt: H256::default(),
 						num_words: 1u8,
 						delay: 2.into(),
@@ -364,12 +365,17 @@ fn request_local_randomness_works() {
 }
 
 #[test]
-fn fulfill_request_fails_when_gas_limit_below_call_overhead_cost() {
+fn fulfill_request_reverts_if_not_enough_gas() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			let request_gas_limit = 100u64;
+			let total_cost = request_gas_limit
+				+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+				+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1);
+
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
@@ -377,30 +383,39 @@ fn fulfill_request_fails_when_gas_limit_below_call_overhead_cost() {
 					PCall::request_local_randomness {
 						refund_address: precompile_utils::data::Address(H160::from(Bob)),
 						fee: U256::one(),
-						gas_limit: 100u64,
+						gas_limit: request_gas_limit,
 						salt: H256::default(),
 						num_words: 1u8,
 						delay: 2.into(),
 					},
 				)
 				.execute_returns([0u8; 32].into());
+
 			// run to ready block
 			System::set_block_number(3);
+
 			// fill randomness results
 			let mut filled_results =
 				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
 			filled_results.randomness = Some(H256::default());
 			RandomnessResults::<Runtime>::insert(RequestType::Local(3), filled_results);
+
 			// fulfill request
 			PrecompilesValue::get()
 				.prepare_test(
-					Alice,
+					Charlie,
 					Precompile1,
 					PCall::fulfill_request {
 						request_id: 0.into(),
 					},
 				)
-				.expect_log(crate::log_fulfillment_failed(Alice));
+				.with_target_gas(Some(total_cost - 1))
+				.with_subcall_handle(|_| panic!("should not perform subcall"))
+				.expect_no_logs()
+				.execute_reverts(|revert| revert == b"not enough gas to perform the call");
+
+			// no refund
+			assert_eq!(Balances::free_balance(&AccountId::from(Charlie)), 0);
 		})
 }
 
@@ -411,6 +426,19 @@ fn fulfill_request_works() {
 		.build()
 		.execute_with(|| {
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			let request_gas_limit = 100u64;
+			let subcall_used_gas = 50u64;
+			let total_cost = request_gas_limit
+				+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+				+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1);
+			let refunded_amount = U256::from(
+				subcall_used_gas
+					+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+					+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1),
+			)
+				* <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price().0;
+
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
@@ -418,7 +446,7 @@ fn fulfill_request_works() {
 					PCall::request_local_randomness {
 						refund_address: precompile_utils::data::Address(H160::from(Bob)),
 						fee: U256::one(),
-						gas_limit: crate::fulfillment_overhead_gas_cost::<Runtime>(10u8) + 10u64,
+						gas_limit: request_gas_limit,
 						salt: H256::default(),
 						num_words: 1u8,
 						delay: 2.into(),
@@ -432,16 +460,278 @@ fn fulfill_request_works() {
 				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
 			filled_results.randomness = Some(H256::default());
 			RandomnessResults::<Runtime>::insert(RequestType::Local(3), filled_results);
+
+			let pallet_randomness::FulfillArgs {
+				randomness: random_words,
+				..
+			} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(0)
+				.expect("can prepare values");
+
+			let random_words: Vec<H256> = random_words.into_iter().map(|x| x.into()).collect();
+
 			// fulfill request
 			PrecompilesValue::get()
 				.prepare_test(
-					Alice,
+					Charlie,
 					Precompile1,
 					PCall::fulfill_request {
 						request_id: 0.into(),
 					},
 				)
-				.expect_log(crate::log_fulfillment_succeeded(Alice));
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, Precompile1.into());
+					assert_eq!(address, Alice.into());
+					assert_eq!(is_static, false);
+					assert_eq!(target_gas, Some(request_gas_limit));
+					assert!(transfer.is_none());
+					assert_eq!(context.address, Alice.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
+					assert_eq!(
+						&input,
+						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+							.write(0u64) // request id
+							.write(random_words.clone())
+							.build()
+					);
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"TEST".to_vec(),
+						cost: subcall_used_gas,
+						logs: vec![],
+					}
+				})
+				.with_target_gas(Some(total_cost))
+				.expect_log(crate::log_fulfillment_succeeded(Precompile1))
+				.execute_returns_encoded(());
+
+			// correctly refunded
+			assert_eq!(
+				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				refunded_amount
+			);
+		})
+}
+
+#[test]
+fn fulfill_request_works_with_higher_gas() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			let request_gas_limit = 100u64;
+			let subcall_used_gas = 50u64;
+			let total_cost = request_gas_limit
+				+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+				+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1);
+			let refunded_amount = U256::from(
+				subcall_used_gas
+					+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+					+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1),
+			)
+				* <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price().0;
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::request_local_randomness {
+						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						fee: U256::one(),
+						gas_limit: request_gas_limit,
+						salt: H256::default(),
+						num_words: 1u8,
+						delay: 2.into(),
+					},
+				)
+				.execute_returns([0u8; 32].into());
+
+			// run to ready block
+			System::set_block_number(3);
+
+			// fill randomness results
+			let mut filled_results =
+				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
+			filled_results.randomness = Some(H256::default());
+			RandomnessResults::<Runtime>::insert(RequestType::Local(3), filled_results);
+
+			let pallet_randomness::FulfillArgs {
+				randomness: random_words,
+				..
+			} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(0)
+				.expect("can prepare values");
+
+			let random_words: Vec<H256> = random_words.into_iter().map(|x| x.into()).collect();
+
+			// fulfill request
+			PrecompilesValue::get()
+				.prepare_test(
+					Charlie,
+					Precompile1,
+					PCall::fulfill_request {
+						request_id: 0.into(),
+					},
+				)
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, Precompile1.into());
+					assert_eq!(address, Alice.into());
+					assert_eq!(is_static, false);
+					assert_eq!(target_gas, Some(request_gas_limit));
+					assert!(transfer.is_none());
+					assert_eq!(context.address, Alice.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
+					assert_eq!(
+						&input,
+						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+							.write(0u64) // request id
+							.write(random_words.clone())
+							.build()
+					);
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"TEST".to_vec(),
+						cost: subcall_used_gas,
+						logs: vec![],
+					}
+				})
+				.with_target_gas(Some(total_cost + 10_000))
+				.expect_log(crate::log_fulfillment_succeeded(Precompile1))
+				.execute_returns_encoded(());
+
+			// correctly refunded
+			assert_eq!(
+				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				refunded_amount
+			);
+		})
+}
+
+#[test]
+fn fulfill_request_works_with_subcall_revert() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			let request_gas_limit = 100u64;
+			let subcall_used_gas = 50u64;
+			let total_cost = request_gas_limit
+				+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+				+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1);
+			let refunded_amount = U256::from(
+				subcall_used_gas
+					+ subcall_overhead_gas_costs::<Runtime>().unwrap()
+					+ prepare_and_finish_fulfillment_gas_cost::<Runtime>(1),
+			)
+				* <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price().0;
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::request_local_randomness {
+						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						fee: U256::one(),
+						gas_limit: request_gas_limit,
+						salt: H256::default(),
+						num_words: 1u8,
+						delay: 2.into(),
+					},
+				)
+				.execute_returns([0u8; 32].into());
+
+			// run to ready block
+			System::set_block_number(3);
+
+			// fill randomness results
+			let mut filled_results =
+				RandomnessResults::<Runtime>::get(RequestType::Local(3)).unwrap();
+			filled_results.randomness = Some(H256::default());
+			RandomnessResults::<Runtime>::insert(RequestType::Local(3), filled_results);
+
+			let pallet_randomness::FulfillArgs {
+				randomness: random_words,
+				..
+			} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(0)
+				.expect("can prepare values");
+
+			let random_words: Vec<H256> = random_words.into_iter().map(|x| x.into()).collect();
+
+			// fulfill request
+			PrecompilesValue::get()
+				.prepare_test(
+					Charlie,
+					Precompile1,
+					PCall::fulfill_request {
+						request_id: 0.into(),
+					},
+				)
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, Precompile1.into());
+					assert_eq!(address, Alice.into());
+					assert_eq!(is_static, false);
+					assert_eq!(target_gas, Some(request_gas_limit));
+					assert!(transfer.is_none());
+					assert_eq!(context.address, Alice.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
+					assert_eq!(
+						&input,
+						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+							.write(0u64) // request id
+							.write(random_words.clone())
+							.build()
+					);
+
+					SubcallOutput {
+						reason: ExitReason::Revert(ExitRevert::Reverted),
+						output: vec![],
+						cost: subcall_used_gas,
+						logs: vec![],
+					}
+				})
+				.with_target_gas(Some(total_cost))
+				.expect_log(crate::log_fulfillment_failed(Precompile1))
+				.execute_returns_encoded(());
+
+			// correctly refunded
+			assert_eq!(
+				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				refunded_amount
+			);
 		})
 }
 

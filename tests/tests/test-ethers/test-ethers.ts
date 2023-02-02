@@ -28,7 +28,7 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
     let contract = await new Promise<ethers.Contract>(async (resolve) => {
       const contractPromise = contractFactory.deploy({
         gasLimit: 1_000_000,
-        gasPrice: 1_000_000_000,
+        gasPrice: 10_000_000_000,
       });
       await context.createBlock();
       resolve(await contractPromise);
@@ -51,7 +51,7 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
     let contract = await new Promise<ethers.Contract>(async (resolve) => {
       const contractPromise = contractFactory.deploy({
         gasLimit: 1_000_000,
-        gasPrice: 1_000_000_000,
+        gasPrice: 10_000_000_000,
       });
       await context.createBlock();
       resolve(await contractPromise);
@@ -60,7 +60,7 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
     // Must create the block and then wait, because etherjs will wait until
     // the contract is mined to return;
     let result = await new Promise<string>(async (resolve) => {
-      const callPromise = contract.multiply(3, { gasLimit: 1_000_000, gasPrice: 1_000_000_000 });
+      const callPromise = contract.multiply(3, { gasLimit: 1_000_000, gasPrice: 10_000_000_000 });
       await context.createBlock();
       resolve(await callPromise);
     });
@@ -74,7 +74,7 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
     );
     expect(
       (
-        await contractFromAddress.multiply(3, { gasLimit: 1_000_000, gasPrice: 1_000_000_000 })
+        await contractFromAddress.multiply(3, { gasLimit: 1_000_000, gasPrice: 10_000_000_000 })
       ).toString()
     ).to.equal("21");
   });

@@ -4,7 +4,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:decoding");
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
-describeSmokeSuite("Polkadot API - Storage items", (context) => {
+describeSmokeSuite("S1500", `Polkadot API - Storage items`, (context, testIt) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
@@ -20,7 +20,7 @@ describeSmokeSuite("Polkadot API - Storage items", (context) => {
   // This test simply load all the storage items to make sure they can be loaded.
   // It prevents issue where a storage item type is modified but the data is not correctly
   // migrated.
-  it("should be decodable", async function () {
+  testIt("C100", `should be decodable`, async function () {
     this.timeout(600000); // 1 hour should be enough
     const modules = Object.keys(context.polkadotApi.query);
     for (const moduleName of modules) {

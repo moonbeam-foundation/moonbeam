@@ -6,7 +6,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
-describeSmokeSuite(`Ethereum contract bytecode should not be large...`, (context) => {
+describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (context, testIt) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -18,10 +18,10 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large...`, (context
     return (hex.length - 2) / 2;
   };
 
-  before("Retrieve all contrcact bytecode", async function () {
-    this.timeout(3_000_000);
+  before("Retrieve all contract bytecode", async function () {
+    this.timeout(6_000_000); // 30 minutes
 
-    const limit = 1000;
+    const limit = 500;
     let last_key = "";
     let count = 0;
 
@@ -77,9 +77,7 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large...`, (context
     debug(`Retrieved ${count} total accountCodes`);
   });
 
-  it("should not have excessively long account codes", async function () {
-    this.timeout(30_000);
-
+  testIt("C100", `should not have excessively long account codes`, async function () {
     // taken from geth, e.g. search "MaxCodeSize":
     // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
     const MAX_CONTRACT_SIZE_BYTES = 24576;

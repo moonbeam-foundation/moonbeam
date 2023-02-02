@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-current");
-
 // Ethereum use Patricia trees for the various trees in blocks.
 // Since we're going to check that no transactions means an empty receipt
 // tree, we must compute what is the root of such empty trie.
@@ -34,9 +33,10 @@ function* range(from, to, step = 1) {
 }
 
 describeSmokeSuite(
-  `Ethereum CurrentBlock and CurrentReceipts should never be 0x00..`,
-  (context) => {
-    it("should have non default field values", async function () {
+  "S700",
+  `Ethereum CurrentBlock and CurrentReceipts should never be 0x00`,
+  (context, testIt) => {
+    testIt("C100", `should have non default field values`, async function () {
       this.timeout(6_000_000); // 30 minutes
       const lastBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
       const roundLength = (
@@ -46,7 +46,7 @@ describeSmokeSuite(
         ? parseInt(process.env.BATCH_OF)
         : process.env.ROUNDS_TO_WAIT
         ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
-        : 300;
+        : 200;
       const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
       for (let blockNumber of range(firstBlockNumber, lastBlockNumber)) {

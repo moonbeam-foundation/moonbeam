@@ -24,15 +24,17 @@ import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 const debug = require("debug")("test:transaction");
 
+export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
+
 export interface TransactionOptions {
   from?: string;
   to?: string;
   privateKey?: string;
   nonce?: number;
   gas?: string | number;
-  gasPrice?: string | number;
-  maxFeePerGas?: string | number;
-  maxPriorityFeePerGas?: string | number;
+  gasPrice?: string | number | BigInt;
+  maxFeePerGas?: string | number | BigInt;
+  maxPriorityFeePerGas?: string | number | BigInt;
   value?: string | number;
   data?: string;
   accessList?: AccessListish; // AccessList | Array<[string, Array<string>]>
@@ -41,7 +43,6 @@ export interface TransactionOptions {
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
   gas: 500_000,
-  gasPrice: 1_000_000_000,
   value: "0x00",
 };
 
@@ -83,9 +84,39 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
-  const maxPriorityFeePerGas =
-    options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
+  // a transaction shouldn't have both Legacy and EIP1559 fields
+  if (options.gasPrice && options.maxFeePerGas) {
+    throw new Error(`txn has both gasPrice and maxFeePerGas!`);
+  }
+  if (options.gasPrice && options.maxPriorityFeePerGas) {
+    throw new Error(`txn has both gasPrice and maxPriorityFeePerGas!`);
+  }
+
+  // convert any bigints to hex
+  if (typeof options.gasPrice === "bigint") {
+    options.gasPrice = "0x" + options.gasPrice.toString(16);
+  }
+  if (typeof options.maxFeePerGas === "bigint") {
+    options.maxFeePerGas = "0x" + options.maxFeePerGas.toString(16);
+  }
+  if (typeof options.maxPriorityFeePerGas === "bigint") {
+    options.maxPriorityFeePerGas = "0x" + options.maxPriorityFeePerGas.toString(16);
+  }
+
+  let maxFeePerGas;
+  let maxPriorityFeePerGas;
+  if (options.gasPrice) {
+    maxFeePerGas = options.gasPrice;
+    maxPriorityFeePerGas = options.gasPrice;
+  } else {
+    maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
+    maxPriorityFeePerGas = options.maxPriorityFeePerGas || 0;
+  }
+
+  const gasPrice =
+    options.gasPrice !== undefined
+      ? options.gasPrice
+      : "0x" + BigInt(await context.web3.eth.getGasPrice()).toString(16);
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
@@ -99,7 +130,6 @@ export const createTransaction = async (
       data: options.data,
     }));
 
-  const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
   const nonce =
     options.nonce != null
@@ -310,7 +340,7 @@ export async function sendPrecompileTx(
   );
 }
 
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+const GAS_PRICE = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
 export async function callPrecompile(
   context: DevTestContext,
   precompileContractAddress: string,

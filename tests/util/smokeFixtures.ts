@@ -11,7 +11,7 @@ export async function mochaGlobalSetup() {
   await SubstrateApi.api(ApiType.ParaChain, wssUrl);
   await SubstrateApi.api(ApiType.RelayChain, relayWssUrl);
   EthersApi.api(wssUrl);
-  debug(`ApiConnections created.`);
+  debug(`📡  ApiConnections created.`);
 }
 
 export function mochaGlobalTeardown() {

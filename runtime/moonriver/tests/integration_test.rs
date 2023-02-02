@@ -43,17 +43,13 @@ use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
-use sp_runtime::{
-	traits::{Convert, One},
-	DispatchError, ModuleError, TokenError,
-};
+use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
@@ -125,6 +121,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::TechCommitteeCollective>("TechCommitteeCollective");
+	is_pallet_prefix::<moonriver_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonriver_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonriver_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
@@ -254,6 +253,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -297,6 +302,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonriver_runtime::TechCommitteeCollective>(71);
 	is_pallet_index::<moonriver_runtime::TreasuryCouncilCollective>(72);
+	is_pallet_index::<moonriver_runtime::OpenTechCommitteeCollective>(73);
 	// Treasury
 	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
@@ -1187,33 +1193,6 @@ fn multiplier_can_grow_from_zero() {
 			minimum_multiplier
 		);
 	})
-}
-
-#[test]
-#[ignore] // test runs for a very long time
-fn multiplier_growth_simulator() {
-	use frame_support::traits::Get;
-
-	// assume the multiplier is initially set to its minimum. We update it with values twice the
-	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-	let mut multiplier = moonriver_runtime::MinimumMultiplier::get();
-	let block_weight = moonriver_runtime::TargetBlockFullness::get()
-		* RuntimeBlockWeights::get()
-			.get(DispatchClass::Normal)
-			.max_total
-			.unwrap()
-		* 2;
-	let mut blocks = 0;
-	while multiplier <= Multiplier::one() {
-		run_with_system_weight(block_weight, || {
-			let next = moonriver_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
-			// ensure that it is growing as well.
-			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
-			multiplier = next;
-		});
-		blocks += 1;
-		println!("block = {} multiplier {:?}", blocks, multiplier);
-	}
 }
 
 #[test]
@@ -2769,7 +2748,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2060, 2062, 2063, 2064,
+			2056, 2057, 2058, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2912,4 +2891,97 @@ fn evm_success_keeps_substrate_events() {
 
 			assert_eq!(transfer_count, 1, "there should be 1 transfer event");
 		});
+}
+
+#[cfg(test)]
+mod fee_tests {
+	use super::*;
+	use frame_support::{
+		traits::ConstU128,
+		weights::{ConstantMultiplier, WeightToFee},
+	};
+	use moonriver_runtime::{
+		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
+		TargetBlockFullness, TransactionPayment,
+	};
+	use sp_core::Get;
+	use sp_runtime::FixedPointNumber;
+
+	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+	where
+		F: FnMut() -> (),
+	{
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			System::set_block_consumed_resources(w, 0);
+			assertions()
+		});
+	}
+
+	#[test]
+	fn test_multiplier_can_grow_from_zero() {
+		let minimum_multiplier = MinimumMultiplier::get();
+		let target = TargetBlockFullness::get()
+			* RuntimeBlockWeights::get()
+				.get(DispatchClass::Normal)
+				.max_total
+				.unwrap();
+		// if the min is too small, then this will not change, and we are doomed forever.
+		// the weight is 1/100th bigger than target.
+		run_with_system_weight(target * 101 / 100, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			assert!(
+				next > minimum_multiplier,
+				"{:?} !>= {:?}",
+				next,
+				minimum_multiplier
+			);
+		})
+	}
+
+	#[test]
+	fn test_fee_calculation() {
+		let base_extrinsic = RuntimeBlockWeights::get()
+			.get(DispatchClass::Normal)
+			.base_extrinsic;
+		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
+		let extrinsic_len = 100u32;
+		let extrinsic_weight = Weight::from_ref_time(5_000u64);
+		let tip = 42u128;
+		type WeightToFeeImpl = ConstantMultiplier<u128, ConstU128<{ currency::WEIGHT_FEE }>>;
+		type LengthToFeeImpl = LengthToFee;
+
+		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
+		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&extrinsic_weight))
+			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_ref_time(extrinsic_len as u64)))
+			+ tip;
+
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual_fee = TransactionPayment::compute_fee(
+				extrinsic_len,
+				&frame_support::dispatch::DispatchInfo {
+					class: DispatchClass::Normal,
+					pays_fee: frame_support::dispatch::Pays::Yes,
+					weight: extrinsic_weight,
+				},
+				tip,
+			);
+
+			assert_eq!(
+				expected_fee,
+				actual_fee,
+				"The actual fee did not match the expected fee, diff {}",
+				actual_fee - expected_fee
+			);
+		});
+	}
 }

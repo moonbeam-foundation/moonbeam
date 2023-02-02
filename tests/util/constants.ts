@@ -1,9 +1,13 @@
+import { Perbill } from "./common";
+
 export const SPECS_PATH = `./moonbeam-test-specs`;
 
 export const DEBUG_MODE = process.env.DEBUG_MODE || false;
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
+export const BASE_PATH = process.env.BASE_PATH;
+export const CUSTOM_SPEC_PATH = process.env.CUSTOM_SPEC_PATH;
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
 export const RELAY_LOG = process.env.RELAY_LOG;
@@ -49,7 +53,7 @@ export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1;
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
 
-export const MIN_GAS_PRICE = 1_000_000_000n;
+export const MIN_GAS_PRICE = 10_000_000_000n;
 
 export const PRECOMPILE_PARACHAIN_STAKING_ADDRESS = "0x0000000000000000000000000000000000000800";
 export const PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS = "0x0000000000000000000000000000000000000801";
@@ -94,3 +98,10 @@ export const CONTRACT_PROXY_TYPE_CANCEL_PROXY = 4;
 export const CONTRACT_PROXY_TYPE_BALANCES = 5;
 export const CONTRACT_PROXY_TYPE_AUTHOR_MAPPING = 6;
 export const CONTRACT_PROXY_TYPE_IDENTITY_JUDGEMENT = 7;
+
+export const MAX_BLOCK_WEIGHT = 500_000_000_000;
+
+// This is the target fill perbill amount accounting for base extrinsic fee, i.e. 187,000,000
+// Defined as a runtime constant: "TargetBlockFullness"
+export const TARGET_FILL_AMOUNT =
+  ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
