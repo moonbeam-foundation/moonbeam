@@ -17,7 +17,7 @@
 #[macro_export]
 macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 	{} => {
-		use fp_evm::{CallInfo, Context, Transfer};
+		use fp_evm::{CallInfo, CallOrCreateInfo, Context, Transfer};
 		use frame_support::dispatch::CallableCallFor;
 		use pallet_evm::{Runner, RunnerError};
 		use precompile_utils::prelude::*;
@@ -96,23 +96,27 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						})?,
 						access_list: Some(access_list),
 					});
-					CallDispatcher::dispatch(
-						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }),
-						pallet_ethereum_xcm::RawOrigin::XcmEthereumTransaction(source.into()).into(),
-					)
-					.map_err(|DispatchErrorWithPostInfo { error, .. }| RunnerError {
-						error,
-						weight: Default::default(),
+
+					let mut execution_info: Option<CallOrCreateInfo> = None;
+					pallet_ethereum::catch_exec_info(&mut execution_info, || {
+						CallDispatcher::dispatch(
+							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }),
+							pallet_ethereum_xcm::RawOrigin::XcmEthereumTransaction(source.into()).into(),
+						)
+						.map_err(|DispatchErrorWithPostInfo { error, .. }| RunnerError {
+							error,
+							weight: Default::default(),
+						})
 					})?;
 
-					// TODO: catch real info
-					todo!()
-					/*Ok(CallInfo {
-						exit_reason: fp_evm::ExitReason::Succeed(fp_evm::ExitSucceed::Stopped),
-						value: Default::default(),,
-						used_gas: U256::default(),
-						logs: Default::default(),
-					})*/
+					match execution_info {
+						Some(CallOrCreateInfo::Call(call_info)) => Ok(call_info),
+						Some(CallOrCreateInfo::Create(_)) => unreachable!(),
+						None => Err(RunnerError {
+							error: DispatchError::Unavailable,
+							weight: Default::default(),
+						}),
+					}
 				}
 			}
 
