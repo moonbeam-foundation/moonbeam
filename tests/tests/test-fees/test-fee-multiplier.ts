@@ -48,6 +48,10 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(125_000_000_000_000n);
   });
 
   it("should have spendable runtime upgrade", async () => {
@@ -175,6 +179,10 @@ describeDevMoonbeam("Min Fee Multiplier", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(multiplier).to.equal(100_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(125_000_000n);
   });
 
 });
@@ -185,6 +193,10 @@ describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(10_000_000_000n);
   });
 });
 
