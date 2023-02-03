@@ -18,13 +18,17 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod types;
+
 use frame_support::pallet;
 
 pub use pallet::*;
+pub use types::*;
 
 #[pallet]
 pub mod pallet {
 
+	use crate::types::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
@@ -47,6 +51,12 @@ pub mod pallet {
 		type Erc20SovereignAccount: Get<H160>;
 		type Matcher: MatchesFungibles<H160, U256>;
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn asset_data)]
+	/// Asset data
+	pub type AssetData<T: Config> =
+		StorageMap<_, Blake2_128Concat, H160, Erc20AssetData, ValueQuery>;
 
 	impl<T: Config> Pallet<T> {
 		fn erc20_transfer(
@@ -106,12 +116,24 @@ pub mod pallet {
 			let who = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
+			// We can't use mutate here because we shouldn't modify the bridge supply if an error
+			// throw further
+			let mut asset_data = AssetData::<T>::get(&contract_address);
+			asset_data.bridge_supply = asset_data
+				.bridge_supply
+				.checked_sub(amount)
+				.ok_or(XcmError::Overflow)?;
+
 			Self::erc20_transfer(
 				contract_address,
 				T::Erc20SovereignAccount::get(),
 				who,
 				amount,
-			)
+			)?;
+
+			AssetData::<T>::insert(&contract_address, asset_data);
+
+			Ok(())
 		}
 
 		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {
@@ -125,6 +147,16 @@ pub mod pallet {
 				T::Erc20SovereignAccount::get(),
 				amount,
 			)?;
+
+			AssetData::<T>::mutate(&contract_address, |asset_data| {
+				asset_data
+					.bridge_supply
+					.checked_add(amount)
+					.ok_or(XcmError::Overflow)
+					.map(|new_bridge_supply| {
+						asset_data.bridge_supply = new_bridge_supply;
+					})
+			})?;
 
 			Ok(what.clone().into())
 		}

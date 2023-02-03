@@ -14,6 +14,7 @@ frame-system = { git = "https://github.com/purestake/substrate", branch = "moonb
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Frontier
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -34,6 +35,7 @@ std = [
 	"scale-info/std",
 	"serde",
 	"sp-core/std",
+	"sp-runtime/std",
     "xcm/std",
     "xcm-executor/std"
 ]
