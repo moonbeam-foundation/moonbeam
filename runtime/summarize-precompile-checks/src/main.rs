@@ -86,8 +86,10 @@ fn main() {
 
 	let output = match args.format.unwrap_or_default() {
 		Format::Debug => format!("{summary:#?}"),
-		Format::Json => serde_json::to_string(&summary).unwrap(),
-		Format::JsonPretty => serde_json::to_string_pretty(&summary).unwrap(),
+		Format::Json => serde_json::to_string(&summary).expect("to serialize correctly"),
+		Format::JsonPretty => {
+			serde_json::to_string_pretty(&summary).expect("to serialize correctly")
+		}
 	};
 
 	println!("{output}");
