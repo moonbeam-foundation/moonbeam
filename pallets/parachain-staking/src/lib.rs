@@ -75,7 +75,7 @@ pub use traits::*;
 pub use types::*;
 pub use RoundIndex;
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
@@ -751,9 +751,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		pub fn set_staking_expectations(
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,

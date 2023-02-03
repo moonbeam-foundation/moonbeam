@@ -78,6 +78,6 @@ pub struct RpcConfig {
 	pub eth_statuses_cache: usize,
 	pub fee_history_limit: u64,
 	pub max_past_logs: u32,
-	pub relay_chain_rpc_url: Option<url::Url>,
+	pub relay_chain_rpc_urls: Vec<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
 }

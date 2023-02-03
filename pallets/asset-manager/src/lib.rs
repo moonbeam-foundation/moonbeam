@@ -54,7 +54,7 @@ pub mod mock;
 pub mod tests;
 pub mod weights;
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
@@ -112,26 +112,17 @@ pub mod pallet {
 		}
 
 		// How to destroy a foreign asset
-		fn destroy_foreign_asset(
-			_asset: T::AssetId,
-			_witness: T::AssetDestroyWitness,
-		) -> DispatchResult {
+		fn destroy_foreign_asset(_asset: T::AssetId) -> DispatchResult {
 			unimplemented!()
 		}
 
 		// How to destroy a local asset
-		fn destroy_local_asset(
-			_asset: T::AssetId,
-			_witness: T::AssetDestroyWitness,
-		) -> DispatchResult {
+		fn destroy_local_asset(_asset: T::AssetId) -> DispatchResult {
 			unimplemented!()
 		}
 
 		// Get destroy asset weight dispatch info
-		fn destroy_asset_dispatch_info_weight(
-			_asset: T::AssetId,
-			_witness: T::AssetDestroyWitness,
-		) -> Weight;
+		fn destroy_asset_dispatch_info_weight(_asset: T::AssetId) -> Weight;
 	}
 
 	// The local asset id creator. We cannot let users choose assetIds for their assets
@@ -208,9 +199,6 @@ pub mod pallet {
 
 		/// Ways of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
-
-		/// The asset destroy Witness
-		type AssetDestroyWitness: Member + Parameter + Copy;
 
 		/// The currency mechanism in which we reserve deposits for local assets.
 		type Currency: ReservableCurrency<Self::AccountId>;
@@ -609,7 +597,7 @@ pub mod pallet {
 		/// data
 		#[pallet::weight({
 			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
-				*asset_id, *destroy_asset_witness
+				*asset_id
 			);
 			T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint)
 			.saturating_add(dispatch_info_weight)
@@ -617,12 +605,11 @@ pub mod pallet {
 		pub fn destroy_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
-			destroy_asset_witness: T::AssetDestroyWitness,
 			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
-			T::AssetRegistrar::destroy_foreign_asset(asset_id, destroy_asset_witness)
+			T::AssetRegistrar::destroy_foreign_asset(asset_id)
 				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
 
 			// Grab supported assets
@@ -663,15 +650,11 @@ pub mod pallet {
 		/// to be counter here
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
-				*asset_id, *destroy_asset_witness
+				*asset_id
 			)
 			.saturating_add(T::DbWeight::get().reads_writes(2, 2))
 		})]
-		pub fn destroy_local_asset(
-			origin: OriginFor<T>,
-			asset_id: T::AssetId,
-			destroy_asset_witness: T::AssetDestroyWitness,
-		) -> DispatchResult {
+		pub fn destroy_local_asset(origin: OriginFor<T>, asset_id: T::AssetId) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
 			// Get asset creator and deposit amount
@@ -679,7 +662,7 @@ pub mod pallet {
 				LocalAssetDeposit::<T>::get(asset_id).ok_or(Error::<T>::NonExistentLocalAsset)?;
 
 			// Destroy local asset
-			T::AssetRegistrar::destroy_local_asset(asset_id, destroy_asset_witness)
+			T::AssetRegistrar::destroy_local_asset(asset_id)
 				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
 
 			// Unreserve deposit

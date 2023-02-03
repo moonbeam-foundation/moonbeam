@@ -46,7 +46,7 @@ pub use weights::WeightInfo;
 use frame_support::pallet;
 use nimbus_primitives::{AccountLookup, NimbusId};
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;

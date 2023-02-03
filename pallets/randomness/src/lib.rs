@@ -74,7 +74,7 @@ pub trait GetBabeData<EpochIndex, Randomness> {
 	fn get_epoch_randomness() -> Randomness;
 }
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
 	use crate::weights::{SubstrateWeight, WeightInfo};

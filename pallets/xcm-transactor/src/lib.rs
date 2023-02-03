@@ -84,13 +84,13 @@ pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
-	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
+	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
@@ -1068,10 +1068,10 @@ pub mod pallet {
 		/// Returns the fee for a given set of parameters
 		/// We always round up in case of fractional division
 		pub fn calculate_fee_per_second(weight: XcmV2Weight, fee_per_second: u128) -> u128 {
-			// grab WEIGHT_PER_SECOND as u128
-			let weight_per_second_u128 = WEIGHT_PER_SECOND.ref_time() as u128;
+			// grab WEIGHT_REF_TIME_PER_SECOND as u128
+			let weight_per_second_u128 = WEIGHT_REF_TIME_PER_SECOND as u128;
 
-			// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that
+			// we add WEIGHT_REF_TIME_PER_SECOND -1 after multiplication to make sure that
 			// if there is a fractional part we round up the result
 			let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight as u128))
 				.saturating_add(weight_per_second_u128 - 1);

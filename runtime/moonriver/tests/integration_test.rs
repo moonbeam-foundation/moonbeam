@@ -29,7 +29,7 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
@@ -1493,7 +1493,7 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 			assert_noop!(
 				RuntimeCall::LocalAssets(
 					pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
-						id: 11u128,
+						id: 11u128.into(),
 						admin: AccountId::from(ALICE),
 						min_balance: 1u128
 					}
@@ -1892,7 +1892,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 			// e.g., transfer_ownership again
 			assert_ok!(LocalAssets::transfer_ownership(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 		});
@@ -1933,18 +1933,18 @@ fn asset_erc20_precompiles_freeze_set_team() {
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(BOB),
 				1_000 * MOVR
 			));
 			assert_ok!(LocalAssets::freeze(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 			assert_ok!(LocalAssets::thaw(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 		});
@@ -2732,7 +2732,7 @@ fn test_xcm_utils_get_units_per_second() {
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 
 		let expected_units =
-			WEIGHT_PER_SECOND.ref_time() as u128 * moonriver_runtime::currency::WEIGHT_FEE;
+			WEIGHT_REF_TIME_PER_SECOND as u128 * moonriver_runtime::currency::WEIGHT_FEE;
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)

@@ -49,7 +49,7 @@ use frame_support::{
 		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	},
@@ -134,7 +134,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
 
@@ -361,7 +361,7 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
 
 parameter_types! {
 	pub BlockGasLimit: U256
@@ -984,7 +984,11 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// substrate side of things
 			RuntimeCall::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::destroy { .. } => false,
+				pallet_assets::Call::freeze_asset { .. } => false,
+				pallet_assets::Call::start_destroy { .. } => false,
+				pallet_assets::Call::destroy_accounts { .. } => false,
+				pallet_assets::Call::destroy_approvals { .. } => false,
+				pallet_assets::Call::finish_destroy { .. } => false,
 				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version

@@ -52,7 +52,7 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	#[cfg(feature = "xcm-support")]
 	use cumulus_primitives_core::{

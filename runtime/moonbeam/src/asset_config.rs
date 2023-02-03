@@ -29,14 +29,14 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	dispatch::GetDispatchInfo,
 	parameter_types,
-	traits::{ConstU128, EitherOfDiverse},
+	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, EitherOfDiverse},
 	weights::Weight,
 };
 
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSigned};
 use sp_core::{H160, H256};
 
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Compact, Decode, Encode};
 use scale_info::TypeInfo;
 
 use sp_std::{
@@ -83,6 +83,10 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetIdParameter = Compact<AssetId>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CallbackHandle = ();
 }
 
 // Local assets
@@ -101,6 +105,10 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetIdParameter = Compact<AssetId>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CallbackHandle = ();
 }
 
 // We instruct how to register the Assets
@@ -118,7 +126,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	) -> DispatchResult {
 		Assets::force_create(
 			RuntimeOrigin::root(),
-			asset,
+			asset.into(),
 			AssetManager::account_id(),
 			is_sufficient,
 			min_balance,
@@ -136,7 +144,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// Lastly, the metadata
 		Assets::force_set_metadata(
 			RuntimeOrigin::root(),
-			asset,
+			asset.into(),
 			metadata.name,
 			metadata.symbol,
 			metadata.decimals,
@@ -157,7 +165,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// in pallet-assets
 		LocalAssets::force_create(
 			RuntimeOrigin::root(),
-			asset,
+			asset.into(),
 			owner,
 			is_sufficient,
 			min_balance,
@@ -176,13 +184,19 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 
 	#[transactional]
-	fn destroy_foreign_asset(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
+	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// First destroy the asset
-		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness)
-			.map_err(|info| info.error)?;
+		Assets::freeze_asset(RuntimeOrigin::root(), asset.into())
+			.and_then(|_| Assets::start_destroy(RuntimeOrigin::root(), asset.into()))
+			.and_then(|_| {
+				Assets::destroy_accounts(RuntimeOrigin::root(), asset.into())
+					.map_err(|info| info.error)
+			})
+			.and_then(|_| {
+				Assets::destroy_approvals(RuntimeOrigin::root(), asset.into())
+					.map_err(|info| info.error)
+			})
+			.and_then(|_| Assets::finish_destroy(RuntimeOrigin::root(), asset.into()))?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
@@ -193,13 +207,19 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 
 	#[transactional]
-	fn destroy_local_asset(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
+	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
 		// First destroy the asset
-		LocalAssets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness)
-			.map_err(|info| info.error)?;
+		LocalAssets::freeze_asset(RuntimeOrigin::root(), asset.into())
+			.and_then(|_| LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into()))
+			.and_then(|_| {
+				LocalAssets::destroy_accounts(RuntimeOrigin::root(), asset.into())
+					.map_err(|info| info.error)
+			})
+			.and_then(|_| {
+				LocalAssets::destroy_approvals(RuntimeOrigin::root(), asset.into())
+					.map_err(|info| info.error)
+			})
+			.and_then(|_| LocalAssets::finish_destroy(RuntimeOrigin::root(), asset.into()))?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
@@ -209,10 +229,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Ok(())
 	}
 
-	fn destroy_asset_dispatch_info_weight(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> Weight {
+	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
 		// For us both of them (Foreign and Local) have the same annotated weight for a given
 		// witness
 		// We need to take the dispatch info from the destroy call, which is already annotated in
@@ -221,17 +238,40 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// EVM
 
 		// This is the dispatch info of destroy
-		let call = RuntimeCall::Assets(
-			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
-				id: asset,
-				witness: asset_destroy_witness,
-			},
-		);
+		let call_weight = [
+			RuntimeCall::Assets(
+				pallet_assets::Call::<Runtime, ForeignAssetInstance>::freeze_asset {
+					id: asset.into(),
+				},
+			),
+			RuntimeCall::Assets(
+				pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
+					id: asset.into(),
+				},
+			),
+			RuntimeCall::Assets(
+				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_accounts {
+					id: asset.into(),
+				},
+			),
+			RuntimeCall::Assets(
+				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_approvals {
+					id: asset.into(),
+				},
+			),
+			RuntimeCall::Assets(
+				pallet_assets::Call::<Runtime, ForeignAssetInstance>::finish_destroy {
+					id: asset.into(),
+				},
+			),
+		]
+		.into_iter()
+		.fold(Weight::zero(), |acc, call| {
+			acc.saturating_add(call.get_dispatch_info().weight)
+		});
 
 		// This is the db write
-		call.get_dispatch_info()
-			.weight
-			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))
+		call_weight.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))
 	}
 }
 
@@ -266,7 +306,6 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
-	type AssetDestroyWitness = pallet_assets::DestroyWitness;
 	type Currency = Balances;
 	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;

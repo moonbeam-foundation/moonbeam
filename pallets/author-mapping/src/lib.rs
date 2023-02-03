@@ -39,7 +39,7 @@ mod tests;
 
 pub mod migrations;
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;

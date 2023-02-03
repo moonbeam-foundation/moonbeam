@@ -89,7 +89,7 @@ impl GetMigrations for Tuple {
 	}
 }
 
-#[pallet]
+#[pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
