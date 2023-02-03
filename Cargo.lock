@@ -4916,6 +4916,7 @@ dependencies = [
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
+ "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
@@ -5451,6 +5452,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex-literal",
  "impl-trait-for-tuples",
  "log",
  "moonbeam-xcm-benchmarks",
@@ -6770,6 +6772,23 @@ dependencies = [
  "sp-npos-elections",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-erc20-xcm-bridge"
+version = "1.0.0"
+dependencies = [
+ "ethereum-types",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]

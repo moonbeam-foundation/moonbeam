@@ -19,8 +19,9 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
+	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -52,8 +53,8 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	XcmV2Weight,
+	AsPrefixedAccountKey20, FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact, XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -111,6 +112,17 @@ pub type LocationToAccountId = (
 	// The rest of multilocations convert via hashing it
 	xcm_primitives::Account20Hash<AccountId>,
 );
+
+/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
+pub struct LocationToH160;
+impl xcm_executor::traits::Convert<MultiLocation, H160> for LocationToH160 {
+	fn convert(location: MultiLocation) -> Result<H160, MultiLocation> {
+		<LocationToAccountId as xcm_executor::traits::Convert<MultiLocation, AccountId>>::convert(
+			location,
+		)
+		.map(Into::into)
+	}
+}
 
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
@@ -189,6 +201,7 @@ pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -406,6 +419,8 @@ pub enum CurrencyId {
 	ForeignAsset(AssetId),
 	// Our local assets
 	LocalAssetReserve(AssetId),
+	// Erc20 token
+	Erc20 { contract_address: H160 },
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -419,8 +434,12 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
 				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
 					CurrencyId::ForeignAsset(asset_id)
-				} else {
+				} else if prefix == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
 					CurrencyId::LocalAssetReserve(asset_id)
+				} else {
+					CurrencyId::Erc20 {
+						contract_address: account.into(),
+					}
 				}
 			}),
 		}
@@ -444,6 +463,16 @@ where
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
+			CurrencyId::Erc20 { contract_address } => {
+				let mut location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.0,
+						network: NetworkId::Any,
+					})
+					.ok();
 				Some(location)
 			}
 		}
@@ -564,6 +593,33 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 	type HrmpEncoder = moonbeam_relay_encoder::westend::WestendEncoder;
+}
+
+parameter_types! {
+	// This is the relative view of erc20 assets.
+	// Indentified by thix prefix + AccountKey20(contractAddress)
+	// We use the RELATIVE multilocation
+	pub Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<Erc20XcmBridge as PalletInfoAccess>::index() as u8)
+		)
+	};
+	pub NetworkAny: NetworkId = NetworkId::Any;
+}
+
+type Erc20Matcher = ConvertedConcreteAssetId<
+	H160,
+	U256,
+	AsPrefixedAccountKey20<Erc20XcmBridgePalletLocation, NetworkAny, H160, JustTry>,
+	JustTry,
+>;
+
+impl pallet_erc20_xcm_bridge::Config for Runtime {
+	type AccountIdConverter = LocationToH160;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type Erc20SovereignAccount = moonbeam_runtime_common::Erc20SovereignAccount;
+	type Matcher = Erc20Matcher;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

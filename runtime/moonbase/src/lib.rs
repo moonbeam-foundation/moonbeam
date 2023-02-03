@@ -1323,6 +1323,7 @@ construct_runtime! {
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 		OpenTechCommitteeCollective:
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
+		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 47,
 	}
 }
 
