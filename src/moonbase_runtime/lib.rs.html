@@ -2054,7 +2054,7 @@
 	<span class="doccomment">/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
-	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(<span class="number">1</span>, <span class="number">1_000</span>);
+	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(<span class="number">1</span>, <span class="number">10</span>);
 	<span class="doccomment">/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
