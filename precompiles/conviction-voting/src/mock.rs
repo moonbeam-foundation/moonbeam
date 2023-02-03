@@ -246,7 +246,6 @@ impl pallet_conviction_voting::Config for Runtime {
 	type Polls = TestPolls;
 }
 
-/// Build test externalities, prepopulated with data for testing democracy precompiles
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
