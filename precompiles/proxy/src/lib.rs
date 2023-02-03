@@ -24,7 +24,10 @@ use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::prelude::*;
-use precompile_utils::{data::Address, precompile_set::SelectorFilter};
+use precompile_utils::{
+	data::{Address, String},
+	precompile_set::SelectorFilter,
+};
 use sp_core::H160;
 use sp_core::U256;
 use sp_runtime::{
@@ -60,6 +63,10 @@ where
 				ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector)
 			}
 		}
+	}
+
+	fn description() -> String {
+		"Allowed for all callers only for selector 'is_proxy'".into()
 	}
 }
 

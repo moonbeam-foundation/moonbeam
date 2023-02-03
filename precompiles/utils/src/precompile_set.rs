@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::{revert, substrate::RuntimeHelper};
+use crate::{data::String, revert, substrate::RuntimeHelper};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -82,6 +82,34 @@ pub trait PrecompileChecks {
 	fn allow_subcalls() -> Option<bool> {
 		None
 	}
+
+	/// Summarize the checks when being called by a smart contract.
+	fn callable_by_smart_contract_summary() -> Option<String> {
+		None
+	}
+
+	/// Summarize the checks when being called by a precompile.
+	fn callable_by_precompile_summary() -> Option<String> {
+		None
+	}
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "testing", derive(serde::Serialize, serde::Deserialize))]
+pub enum PrecompileKind {
+	Single(H160),
+	Prefixed(Vec<u8>),
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "testing", derive(serde::Serialize, serde::Deserialize))]
+pub struct PrecompileCheckSummary {
+	pub name: Option<String>,
+	pub precompile_kind: PrecompileKind,
+	pub recursion_limit: Option<u16>,
+	pub accept_delegate_call: bool,
+	pub callable_by_smart_contract: String,
+	pub callable_by_precompile: String,
 }
 
 #[impl_for_tuples(0, 20)]
@@ -140,6 +168,26 @@ impl PrecompileChecks for Tuple {
 
 		None
 	}
+
+	fn callable_by_smart_contract_summary() -> Option<String> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::callable_by_smart_contract_summary() {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
+
+	fn callable_by_precompile_summary() -> Option<String> {
+		for_tuples!(#(
+			if let Some(check) = Tuple::callable_by_precompile_summary() {
+				return Some(check);
+			}
+		)*);
+
+		None
+	}
 }
 
 /// Precompile can be called using DELEGATECALL/CALLCODE.
@@ -169,11 +217,17 @@ impl<const R: u16> PrecompileChecks for SubcallWithMaxNesting<R> {
 
 pub trait SelectorFilter {
 	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool;
+
+	fn description() -> String;
 }
 pub struct ForAllSelectors;
 impl SelectorFilter for ForAllSelectors {
 	fn is_allowed(_caller: H160, _selector: Option<u32>) -> bool {
 		true
+	}
+
+	fn description() -> String {
+		"Allowed for all selectors and callers".into()
 	}
 }
 
@@ -181,6 +235,10 @@ pub struct OnlyFrom<T>(PhantomData<T>);
 impl<T: Get<H160>> SelectorFilter for OnlyFrom<T> {
 	fn is_allowed(caller: H160, _selector: Option<u32>) -> bool {
 		caller == T::get()
+	}
+
+	fn description() -> String {
+		alloc::format!("Allowed for all selectors only if called from {}", T::get())
 	}
 }
 
@@ -191,6 +249,10 @@ impl<T: SelectorFilter> PrecompileChecks for CallableByContract<T> {
 	fn callable_by_smart_contract(caller: H160, called_selector: Option<u32>) -> Option<bool> {
 		Some(T::is_allowed(caller, called_selector))
 	}
+
+	fn callable_by_smart_contract_summary() -> Option<String> {
+		Some(T::description())
+	}
 }
 
 /// Precompiles are allowed to call this precompile.
@@ -200,6 +262,10 @@ impl<T: SelectorFilter> PrecompileChecks for CallableByPrecompile<T> {
 	#[inline(always)]
 	fn callable_by_precompile(caller: H160, called_selector: Option<u32>) -> Option<bool> {
 		Some(T::is_allowed(caller, called_selector))
+	}
+
+	fn callable_by_precompile_summary() -> Option<String> {
+		Some(T::description())
 	}
 }
 
@@ -230,8 +296,8 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 	let caller = handle.context().caller;
 
 	// Check DELEGATECALL config.
-	let allow_delegate_call = C::accept_delegate_call().unwrap_or(false);
-	if !allow_delegate_call && code_address != handle.context().address {
+	let accept_delegate_call = C::accept_delegate_call().unwrap_or(false);
+	if !accept_delegate_call && code_address != handle.context().address {
 		return Err(revert("Cannot be called with DELEGATECALL or CALLCODE"));
 	}
 
@@ -355,6 +421,9 @@ pub trait PrecompileSetFragment {
 
 	/// Return the list of addresses covered by this fragment.
 	fn used_addresses(&self) -> Vec<H160>;
+
+	/// Summarize
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary>;
 }
 
 /// Wraps a stateless precompile: a type implementing the `Precompile` trait.
@@ -449,6 +518,19 @@ where
 	#[inline(always)]
 	fn used_addresses(&self) -> Vec<H160> {
 		vec![A::get()]
+	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		vec![PrecompileCheckSummary {
+			name: None,
+			precompile_kind: PrecompileKind::Single(A::get()),
+			recursion_limit: C::recursion_limit().unwrap_or(Some(0)),
+			accept_delegate_call: C::accept_delegate_call().unwrap_or(false),
+			callable_by_smart_contract: C::callable_by_smart_contract_summary()
+				.unwrap_or_else(|| "Not callable".into()),
+			callable_by_precompile: C::callable_by_precompile_summary()
+				.unwrap_or_else(|| "Not callable".into()),
+		}]
 	}
 }
 
@@ -552,6 +634,21 @@ where
 		// TODO: We currently can't get the list of used addresses.
 		vec![]
 	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		let prefix = A::get();
+
+		vec![PrecompileCheckSummary {
+			name: None,
+			precompile_kind: PrecompileKind::Prefixed(prefix.to_vec()),
+			recursion_limit: C::recursion_limit().unwrap_or(Some(0)),
+			accept_delegate_call: C::accept_delegate_call().unwrap_or(false),
+			callable_by_smart_contract: C::callable_by_smart_contract_summary()
+				.unwrap_or_else(|| "Not callable".into()),
+			callable_by_precompile: C::callable_by_precompile_summary()
+				.unwrap_or_else(|| "Not callable".into()),
+		}]
+	}
 }
 
 /// Make a precompile that always revert.
@@ -587,6 +684,17 @@ where
 	#[inline(always)]
 	fn used_addresses(&self) -> Vec<H160> {
 		vec![A::get()]
+	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		vec![PrecompileCheckSummary {
+			name: None,
+			precompile_kind: PrecompileKind::Single(A::get()),
+			recursion_limit: Some(0),
+			accept_delegate_call: true,
+			callable_by_smart_contract: "Reverts in all cases".into(),
+			callable_by_precompile: "Reverts in all cases".into(),
+		}]
 	}
 }
 
@@ -636,6 +744,17 @@ impl PrecompileSetFragment for Tuple {
 
 		used_addresses
 	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		let mut checks = Vec::new();
+
+		for_tuples!(#(
+			let mut inner = self.Tuple.summarize_checks();
+			checks.append(&mut inner);
+		)*);
+
+		checks
+	}
 }
 
 /// Wraps a precompileset fragment into a range, and will skip processing it if the address
@@ -682,6 +801,10 @@ where
 	fn used_addresses(&self) -> Vec<H160> {
 		self.inner.used_addresses()
 	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		self.inner.summarize_checks()
+	}
 }
 
 /// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.
@@ -716,5 +839,9 @@ impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSetBuilder<R, P>
 			.used_addresses()
 			.into_iter()
 			.map(|x| R::AddressMapping::into_account_id(x))
+	}
+
+	pub fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		self.inner.summarize_checks()
 	}
 }

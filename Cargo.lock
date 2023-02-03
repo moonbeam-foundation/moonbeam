@@ -5310,6 +5310,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -5637,6 +5638,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -13349,6 +13351,18 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
+
+[[package]]
+name = "summarize-precompile-checks"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "moonbase-runtime",
+ "moonbeam-runtime",
+ "moonriver-runtime",
+ "precompile-utils",
+ "serde_json",
+]
 
 [[package]]
 name = "syn"

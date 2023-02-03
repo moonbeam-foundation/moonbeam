@@ -29,7 +29,7 @@ use frame_support::{
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::precompile_set::SelectorFilter;
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
@@ -77,6 +77,10 @@ where
 					.contains(&selector)
 			}
 		}
+	}
+
+	fn description() -> String {
+		"Allowed for all callers for all selectors except 'execute'".into()
 	}
 }
 

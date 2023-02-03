@@ -96,7 +96,7 @@ use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
-	MoonbeamPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonbeamPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
