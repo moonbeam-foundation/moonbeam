@@ -421,7 +421,6 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
 			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
 		(min_gas_price.into(), <Runtime as frame_system::Config>::DbWeight::get().reads(1))
-		
 	}
 }
 
