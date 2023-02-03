@@ -24,7 +24,7 @@ use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
 
@@ -52,6 +52,9 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 	>,
 >>::Class;
+
+/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_VOTE: [u8; 32] = keccak256!("Vote(uint32,address,bool,uint256,uint8)");
 
 /// Direction of vote
 enum VoteDirection {
@@ -85,30 +88,45 @@ where
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
-		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
-
 		let aye = match vote {
 			VoteDirection::Yes => true,
 			VoteDirection::No => false,
 			_ => return Err(RevertReason::custom("Abstain not supported").into()),
 		};
 
-		let vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
-		};
+		{
+			let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
+			let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+			let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
-		log::trace!(target: "conviction-voting-precompile",
-			"Voting {:?} on poll {:?}, with conviction {:?}",
-			aye, poll_index, conviction
-		);
+			let vote = AccountVote::Standard {
+				vote: Vote { aye, conviction },
+				balance: vote_amount,
+			};
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
+			log::trace!(target: "conviction-voting-precompile",
+				"Voting {:?} on poll {:?}, with conviction {:?}",
+				aye, poll_index, conviction
+			);
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+			let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
+
+			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		}
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_VOTE,
+			H256::from_low_u64_be(poll_index as u64), // poll index,
+			EvmDataWriter::new()
+				.write::<Address>(handle.context().caller.into())
+				.write::<bool>(aye)
+				.write::<U256>(vote_amount)
+				.write::<u8>(conviction)
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}

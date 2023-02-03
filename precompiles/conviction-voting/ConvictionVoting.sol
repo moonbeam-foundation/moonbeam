@@ -94,4 +94,19 @@ interface ConvictionVoting {
     /// @param trackId The trackId
     /// @param target The target address
     function unlock(uint16 trackId, address target) external;
+
+    /// @dev An account made a vote in a poll.
+    /// @custom:selector 24052a032f75e3589c8c109de4f7b31ed98076e0ff7a9ce8ae548cf6ef45d67b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye bool Is it a vote for or against the poll.
+    /// @param voteAmount uint256 Amount used to vote.
+    /// @param conviction uint8 Conviction of the vote.
+    event Vote(
+        uint32 indexed pollIndex,
+        address voter,
+        bool aye,
+        uint256 voteAmount,
+        uint8 conviction
+    );
 }
