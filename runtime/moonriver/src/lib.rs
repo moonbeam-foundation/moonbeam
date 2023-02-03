@@ -899,7 +899,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// substrate side of things
 			RuntimeCall::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::freeze_asset { .. } => false,
 				pallet_assets::Call::start_destroy { .. } => false,
 				pallet_assets::Call::destroy_accounts { .. } => false,
 				pallet_assets::Call::destroy_approvals { .. } => false,

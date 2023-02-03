@@ -219,6 +219,13 @@ fn verify_pallet_prefixes() {
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
+				storage_name: b"InactiveIssuance".to_vec(),
+				prefix: prefix(b"Balances", b"InactiveIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: None,
@@ -238,13 +245,6 @@ fn verify_pallet_prefixes() {
 				max_values: None,
 				max_size: Some(1037),
 			},
-			StorageInfo {
-				pallet_name: b"Balances".to_vec(),
-				storage_name: b"StorageVersion".to_vec(),
-				prefix: prefix(b"Balances", b"StorageVersion"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
 		]
 	);
 	assert_eq!(
@@ -1284,7 +1284,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24083u64)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1336,7 +1336,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1357,7 +1357,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1409,7 +1409,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13204)
+				.expect_cost(13249)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1436,7 +1436,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13588)
+				.expect_cost(13575)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1481,7 +1481,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7107)
+				.expect_cost(7094)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1500,7 +1500,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7103)
+				.expect_cost(7074)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1535,7 +1535,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5970)
+				.expect_cost(5944)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1552,7 +1552,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5941)
+				.expect_cost(5964)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 		});
@@ -1584,7 +1584,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6983)
+				.expect_cost(6973)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 		});
@@ -1618,7 +1618,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5926)
+				.expect_cost(5940)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1739,7 +1739,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24083)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1803,7 +1803,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1824,7 +1824,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
