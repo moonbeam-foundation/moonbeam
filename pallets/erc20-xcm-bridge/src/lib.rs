@@ -32,6 +32,7 @@ pub mod pallet {
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
+	use orml_traits::location::Parse;
 	use pallet_evm::Runner;
 	use sp_core::{H160, H256, U256};
 	use xcm::latest::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult};
@@ -134,6 +135,27 @@ pub mod pallet {
 			AssetData::<T>::insert(&contract_address, asset_data);
 
 			Ok(())
+		}
+
+		fn internal_transfer_asset(
+			asset: &MultiAsset,
+			from: &MultiLocation,
+			to: &MultiLocation,
+		) -> Result<Assets, XcmError> {
+			// If `to` is a multi-location that specifies only chain part, it means that we trying
+			// to send the asset to another chain.
+			if to.non_chain_part() == None {
+				Self::withdraw_asset(asset, from)
+			} else {
+				let (contract_address, amount) = T::Matcher::matches_fungibles(asset)?;
+				let from = T::AccountIdConverter::convert_ref(from)
+					.map_err(|()| MatchError::AccountIdConversionFailed)?;
+				let to = T::AccountIdConverter::convert_ref(to)
+					.map_err(|()| MatchError::AccountIdConversionFailed)?;
+
+				Self::erc20_transfer(contract_address, from, to, amount)
+					.map(|()| Default::default())
+			}
 		}
 
 		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {

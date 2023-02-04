@@ -6782,6 +6782,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "orml-traits",
  "pallet-evm",
  "parity-scale-codec",
  "scale-info",

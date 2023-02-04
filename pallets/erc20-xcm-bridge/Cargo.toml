@@ -20,7 +20,8 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
-#Polkadot
+#Polkadot / XCM
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
@@ -30,6 +31,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"orml-traits/std",
 	"pallet-evm/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
