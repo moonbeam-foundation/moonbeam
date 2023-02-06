@@ -2168,7 +2168,10 @@ fn initial_gas_fee_is_correct() {
 
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
-			(10_000_000_000u128.into(), Weight::zero())
+			(
+				10_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
 		);
 	});
 }
