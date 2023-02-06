@@ -6778,17 +6778,18 @@ dependencies = [
 name = "pallet-erc20-xcm-bridge"
 version = "1.0.0"
 dependencies = [
+ "environmental",
  "ethereum-types",
  "fp-evm",
  "frame-support",
  "frame-system",
- "orml-traits",
  "pallet-evm",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "sp-core",
  "sp-runtime",
+ "sp-std",
  "xcm",
  "xcm-executor",
 ]
