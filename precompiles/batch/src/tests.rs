@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{
-	assert_err, assert_err_ignore_postinfo, assert_ok,
+	assert_ok,
 	dispatch::{DispatchError, Dispatchable},
 };
 use pallet_evm::Call as EvmCall;
