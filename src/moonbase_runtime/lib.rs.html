@@ -1658,6 +1658,9 @@
 <span id="1658">1658</span>
 <span id="1659">1659</span>
 <span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2080,7 +2083,10 @@
 		// is computed in frontier, but that&#39;s currently unavoidable.
 		</span><span class="kw">let </span>min_gas_price = TransactionPayment::next_fee_multiplier()
 			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS <span class="kw">as </span>u128));
-		(min_gas_price.into(), Weight::zero())
+		(
+			min_gas_price.into(),
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>),
+		)
 	}
 }
 

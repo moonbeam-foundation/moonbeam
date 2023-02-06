@@ -1983,7 +1983,7 @@
 	<span class="kw">fn </span>min_gas_price() -&gt; (U256, Weight) {
 		(
 			(<span class="number">1 </span>* currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			Weight::zero(),
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>),
 		)
 	}
 }
