@@ -109,4 +109,59 @@ interface ConvictionVoting {
         uint256 voteAmount,
         uint8 conviction
     );
+
+    /// @dev An account removed its vote from an ongoing poll.
+    /// @custom:selector a820291b6a38b0fe8789b35869564f6337ab2efc897e234c5cc269042b728f8f
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    event VoteRemove(
+        uint32 indexed pollIndex,
+        address voter
+    );
+
+    /// @dev An account removed a vote from a poll.
+    /// @custom:selector 9f94fe7d53f8c8e609724084f81da9d41be0505a8d5363953727a488d4f1250f
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param caller address Address of the origin caller.
+    /// @param target address Address of the address which's vote is being removed.
+    /// @param trackId uint16 The trackId.
+    event VoteRemoveOther(
+        uint32 indexed pollIndex,
+        address caller,
+        address target,
+        uint16 trackId
+    );
+
+    /// @dev An account delegated for the given trackId.
+    /// @custom:selector b1be766844177ed1f32c721f8d5c85a66fbb5ba6f18235aaeed18bf1856d529d
+    /// @param trackId uint16 The trackId.
+    /// @param from address Address of the caller.
+    /// @param to address Address of the representative.
+    /// @param delegatedAmount uint256 Amount being delegated.
+    /// @param conviction uint8 Conviction being delegated.
+    event Delegate(
+        uint16 indexed trackId,
+        address from,
+        address to,
+        uint256 delegatedAmount,
+        uint8 conviction
+    );
+
+    /// @dev An account undelegated for the given trackId.
+    /// @custom:selector 8884045fa295d3878585442c6a09c5567e5b30c2a19c8edc03c77c036baccb6e
+    /// @param trackId uint16 The trackId.
+    /// @param caller address Address of the caller.
+    event Undelegate(
+        uint16 indexed trackId,
+        address caller
+    );
+
+    /// @dev An account unlocked freeable tokens for the given trackId.
+    /// @custom:selector 5dcf630ebd6c48de9ece59c3378971de3f65f450c0c6e924d9607d80f58cfa79
+    /// @param trackId uint16 The trackId.
+    /// @param caller address Address of the caller.
+    event Unlock(
+        uint16 indexed trackId,
+        address caller
+    );
 }
