@@ -28,7 +28,7 @@ pub use moonriver_runtime::{
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, FixedGasPrice, InflationInfo, LocalAssets, ParachainStaking, Range,
+	Ethereum, Executive, TransactionPaymentAsGasPrice, InflationInfo, LocalAssets, ParachainStaking, Range,
 	Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter, UncheckedExtrinsic, HOURS,
 	WEEKS,
 };
