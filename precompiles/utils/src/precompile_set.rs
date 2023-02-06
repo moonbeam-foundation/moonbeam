@@ -35,10 +35,14 @@ mod sealed {
 
 /// Trait representing checks that can be made on a precompile call.
 /// Types implementing this trait are made to be chained in a tuple.
+///
 /// For that reason every method returns an Option, None meaning that
 /// the implementor have no constraint and the decision is left to
 /// latter elements in the chain. If None is returned by all elements of
 /// the chain then sensible defaults are used.
+///
+/// Both `PrecompileAt` and `PrecompileSetStartingWith` have a type parameter that must
+/// implement this trait to configure the checks of the precompile(set) it represents.
 pub trait PrecompileChecks {
 	#[inline(always)]
 	/// Is there a limit to the amount of recursions this precompile
