@@ -234,6 +234,16 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -264,7 +274,8 @@
 	traits::OriginTrait,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>precompile_utils::precompile_set::SelectorFilter;
+<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_std::boxed::Box;
 <span class="kw">use </span>sp_std::marker::PhantomData;
@@ -272,9 +283,9 @@
 <span class="kw">use </span>sp_std::vec::Vec;
 <span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 <span class="kw">use </span>xcm_executor::traits::ConvertOrigin;
-
 <span class="kw">use </span>xcm_executor::traits::WeightBounds;
 <span class="kw">use </span>xcm_executor::traits::WeightTrader;
+
 <span class="kw">pub type </span>XcmOriginOf&lt;XcmConfig&gt; =
 	&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin;
 <span class="kw">pub type </span>XcmAccountIdOf&lt;XcmConfig&gt; =
@@ -289,6 +300,35 @@
 </span><span class="kw">mod </span>mock;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AllExceptXcmExecute&lt;Runtime, XcmConfig&gt;(PhantomData&lt;(Runtime, XcmConfig)&gt;);
+
+<span class="kw">impl</span>&lt;Runtime, XcmConfig&gt; SelectorFilter <span class="kw">for </span>AllExceptXcmExecute&lt;Runtime, XcmConfig&gt;
+<span class="kw">where
+	</span>Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	XcmOriginOf&lt;XcmConfig&gt;: OriginTrait,
+	XcmAccountIdOf&lt;XcmConfig&gt;: Into&lt;H160&gt;,
+	XcmConfig: xcm_executor::Config,
+	SystemCallOf&lt;Runtime&gt;: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
+{
+	<span class="kw">fn </span>is_allowed(_caller: H160, selector: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; bool {
+		<span class="kw">match </span>selector {
+			<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
+			<span class="prelude-val">Some</span>(selector) =&gt; {
+				!XcmUtilsPrecompileCall::&lt;Runtime, XcmConfig&gt;::xcm_execute_selectors()
+					.contains(<span class="kw-2">&amp;</span>selector)
+			}
+		}
+	}
+
+	<span class="kw">fn </span>description() -&gt; String {
+		<span class="string">&quot;Allowed for all callers for all selectors except &#39;execute&#39;&quot;</span>.into()
+	}
+}
 
 <span class="doccomment">/// A precompile to wrap the functionality from xcm-utils
 </span><span class="kw">pub struct </span>XcmUtilsPrecompile&lt;Runtime, XcmConfig&gt;(PhantomData&lt;(Runtime, XcmConfig)&gt;);
@@ -305,26 +345,6 @@
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
 {
-	<span class="attribute">#[precompile::pre_check]
-	</span><span class="kw">fn </span>pre_check(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
-		<span class="comment">// Only avoid calling execute from SC
-		</span><span class="kw">if let </span><span class="prelude-val">Ok</span>(selector) = handle.read_u32_selector() {
-			<span class="kw">if </span>XcmUtilsPrecompileCall::&lt;Runtime, XcmConfig&gt;::xcm_execute_selectors()
-				.contains(<span class="kw-2">&amp;</span>selector)
-			{
-				handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-				<span class="kw">let </span>caller_code =
-					pallet_evm::Pallet::&lt;Runtime&gt;::account_codes(handle.context().caller);
-				<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into
-				// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
-				</span><span class="kw">if </span>!(caller_code.is_empty() || <span class="kw-2">&amp;</span>caller_code == <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
-					<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;XcmExecute not callable by smart contracts&quot;</span>));
-				}
-			}
-		}
-		<span class="prelude-val">Ok</span>(())
-	}
-
 	<span class="attribute">#[precompile::public(<span class="string">&quot;multilocationToAddress((uint8,bytes[]))&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>multilocation_to_address(

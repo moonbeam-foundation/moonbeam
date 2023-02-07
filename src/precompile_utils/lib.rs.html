@@ -91,18 +91,6 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -139,7 +127,7 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use </span><span class="kw">crate</span>::alloc::{borrow::ToOwned, vec::Vec};
-<span class="kw">use </span>fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
+<span class="kw">use </span>fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileOutput};
 
 <span class="kw">pub mod </span>data;
 
@@ -177,18 +165,6 @@
 <span class="doccomment">/// Alias for Result returning an EVM precompile error.
 </span><span class="kw">pub type </span>EvmResult&lt;T = ()&gt; = <span class="prelude-ty">Result</span>&lt;T, PrecompileFailure&gt;;
 
-<span class="doccomment">/// Trait similar to `fp_evm::Precompile` but with a `&amp;self` parameter to manage some
-/// state (this state is only kept in a single transaction and is lost afterward).
-</span><span class="kw">pub trait </span>StatefulPrecompile {
-	<span class="doccomment">/// Instanciate the precompile.
-	/// Will be called once when building the PrecompileSet at the start of each
-	/// Ethereum transaction.
-	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
-
-	<span class="doccomment">/// Execute the precompile with a reference to its state.
-	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;PrecompileOutput&gt;;
-}
-
 <span class="kw">pub mod </span>prelude {
 	<span class="kw">pub use </span>{
 		<span class="kw">crate</span>::{
@@ -202,7 +178,7 @@
 			read_args, read_struct, revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::{RuntimeHelper, TryDispatchError},
-			succeed, EvmResult, StatefulPrecompile,
+			succeed, EvmResult,
 		},
 		pallet_evm::{PrecompileHandle, PrecompileOutput},
 		precompile_utils_macro::{generate_function_selector, keccak256, precompile},

@@ -366,6 +366,14 @@
 <span id="366">366</span>
 <span id="367">367</span>
 <span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -391,8 +399,12 @@
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_proxy::Call <span class="kw">as </span>ProxyCall;
 <span class="kw">use </span>pallet_proxy::Pallet <span class="kw">as </span>ProxyPallet;
-<span class="kw">use </span>precompile_utils::data::Address;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>precompile_utils::{
+	data::{Address, String},
+	precompile_set::SelectorFilter,
+};
+<span class="kw">use </span>sp_core::H160;
 <span class="kw">use </span>sp_core::U256;
 <span class="kw">use </span>sp_runtime::{
 	codec::Decode,
@@ -404,6 +416,35 @@
 </span><span class="kw">mod </span>mock;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>OnlyIsProxy&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+
+<span class="kw">impl</span>&lt;Runtime&gt; SelectorFilter <span class="kw">for </span>OnlyIsProxy&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	&lt;&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::ProxyType: Decode + EvmProxyCallFilter,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ProxyCall&lt;Runtime&gt;&gt;,
+{
+	<span class="kw">fn </span>is_allowed(_caller: H160, selector: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; bool {
+		<span class="kw">match </span>selector {
+			<span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
+			<span class="prelude-val">Some</span>(selector) =&gt; {
+				ProxyPrecompileCall::&lt;Runtime&gt;::is_proxy_selectors().contains(<span class="kw-2">&amp;</span>selector)
+			}
+		}
+	}
+
+	<span class="kw">fn </span>description() -&gt; String {
+		<span class="string">&quot;Allowed for all callers only for selector &#39;is_proxy&#39;&quot;</span>.into()
+	}
+}
 
 <span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 
@@ -441,31 +482,6 @@
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ProxyCall&lt;Runtime&gt;&gt;,
 {
-	<span class="attribute">#[precompile::pre_check]
-	</span><span class="kw">fn </span>pre_check(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
-		<span class="comment">// Check if the selector is the one of `isProxy`, which is one which can
-		// be called by smart contrats.
-		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(bytes) = handle.input().get(<span class="number">0</span>..<span class="number">4</span>) {
-			<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
-			buffer.copy_from_slice(bytes);
-			<span class="kw">let </span>selector = u32::from_be_bytes(buffer);
-
-			<span class="kw">if </span>ProxyPrecompileCall::&lt;Runtime&gt;::is_proxy_selectors().contains(<span class="kw-2">&amp;</span>selector) {
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(());
-			}
-		}
-
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-		<span class="kw">let </span>caller_code = pallet_evm::Pallet::&lt;Runtime&gt;::account_codes(handle.context().caller);
-		<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into
-		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
-		</span><span class="kw">if </span>!(caller_code.is_empty() || <span class="kw-2">&amp;</span>caller_code == <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
-			<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Proxy not callable by smart contracts&quot;</span>))
-		} <span class="kw">else </span>{
-			<span class="prelude-val">Ok</span>(())
-		}
-	}
-
 	<span class="doccomment">/// Register a proxy account for the sender that is able to make calls on its behalf.
 	/// The dispatch origin for this call must be Signed.
 	///

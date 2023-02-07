@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["XCM_SIZE_LIMIT",""]],"enum":[["XcmUtilsPrecompileCall",""]],"struct":[["XcmUtilsPrecompile","A precompile to wrap the functionality from xcm-utils"]],"type":[["SystemCallOf",""],["XcmAccountIdOf",""],["XcmOriginOf",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["XCM_SIZE_LIMIT",""]],"enum":[["XcmUtilsPrecompileCall",""]],"struct":[["AllExceptXcmExecute",""],["XcmUtilsPrecompile","A precompile to wrap the functionality from xcm-utils"]],"type":[["SystemCallOf",""],["XcmAccountIdOf",""],["XcmOriginOf",""]]};

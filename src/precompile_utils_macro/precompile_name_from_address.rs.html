@@ -188,7 +188,7 @@
 			#(#attrs)*
 			#vis #type_token #ident #generics #eq_token #ty #semi_token
 
-			<span class="attribute">#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+			<span class="attribute">#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive, Debug)]
 			#[repr(u64)]
 			</span><span class="kw">pub enum </span>PrecompileName {
 				#(
