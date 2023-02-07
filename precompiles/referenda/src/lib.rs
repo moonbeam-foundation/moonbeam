@@ -179,6 +179,7 @@ where
 	) -> EvmResult<u32> {
 		// for read of referendumCount post dispatch to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let referendum_index = ReferendumCount::<Runtime>::get();
 		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
 			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
@@ -205,7 +206,7 @@ where
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(ReferendumCount::<Runtime>::get())
+		Ok(referendum_index)
 	}
 
 	/// Propose a referendum on a privileged action.
