@@ -19,7 +19,7 @@
 //! - Substrate DB read and write costs
 
 use {
-	crate::revert,
+	crate::{handle::using_precompile_handle, revert},
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
@@ -82,8 +82,7 @@ where
 		// However while Substrate handle checking weight while not making the sender pay for it,
 		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
 		// computations.
-		let post_dispatch_info = call
-			.dispatch(origin)
+		let post_dispatch_info = using_precompile_handle(handle, || call.dispatch(origin))
 			.map_err(|e| TryDispatchError::Substrate(e.error))?;
 
 		let used_weight = post_dispatch_info.actual_weight;
