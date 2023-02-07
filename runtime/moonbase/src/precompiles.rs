@@ -34,7 +34,7 @@ use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
-use pallet_evm_precompile_proxy::ProxyPrecompile;
+use pallet_evm_precompile_proxy::{OnlyIsProxy, ProxyPrecompile};
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
@@ -43,7 +43,7 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
 };
-use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
+use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -86,48 +86,140 @@ parameter_types! {
 	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
+type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
+
 #[precompile_utils::precompile_name_from_address]
 type MoonbasePrecompilesAt<R> = (
 	// Ethereum precompiles:
 	// We allow DELEGATECALL to stay compliant with Ethereum behavior.
-	PrecompileAt<AddressU64<1>, ECRecover, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<2>, Sha256, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<3>, Ripemd160, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<4>, Identity, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<5>, Modexp, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<6>, Bn128Add, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<7>, Bn128Mul, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<8>, Bn128Pairing, ForbidRecursion, AllowDelegateCall>,
-	PrecompileAt<AddressU64<9>, Blake2F, ForbidRecursion, AllowDelegateCall>,
+	PrecompileAt<AddressU64<1>, ECRecover, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<2>, Sha256, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<3>, Ripemd160, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<4>, Identity, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<5>, Modexp, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<6>, Bn128Add, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
-	PrecompileAt<AddressU64<1024>, Sha3FIPS256>,
+	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	// PrecompileAt<AddressU64<1025>, Dispatch<R>>,
-	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey>,
+	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
 	// Moonbeam specific precompiles:
-	PrecompileAt<AddressU64<2048>, ParachainStakingPrecompile<R>>,
-	PrecompileAt<AddressU64<2049>, CrowdloanRewardsPrecompile<R>>,
-	PrecompileAt<AddressU64<2050>, Erc20BalancesPrecompile<R, NativeErc20Metadata>>,
-	PrecompileAt<AddressU64<2051>, DemocracyPrecompile<R>>,
-	PrecompileAt<AddressU64<2052>, XtokensPrecompile<R>>,
-	PrecompileAt<AddressU64<2053>, RelayEncoderPrecompile<R, WestendEncoder>>,
-	PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>>,
-	PrecompileAt<AddressU64<2055>, AuthorMappingPrecompile<R>>,
-	PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-	PrecompileAt<AddressU64<2057>, RandomnessPrecompile<R>>,
-	PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
-	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>>,
-	PrecompileAt<AddressU64<2060>, XcmUtilsPrecompile<R, XcmExecutorConfig>>,
-	PrecompileAt<AddressU64<2061>, XcmTransactorPrecompileV2<R>>,
-	PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
-	PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
-	PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
+	PrecompileAt<
+		AddressU64<2048>,
+		ParachainStakingPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2049>,
+		CrowdloanRewardsPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2050>,
+		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2051>,
+		DemocracyPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2052>,
+		XtokensPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2053>,
+		RelayEncoderPrecompile<R, WestendEncoder>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2054>,
+		XcmTransactorPrecompileV1<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2055>,
+		AuthorMappingPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2056>,
+		BatchPrecompile<R>,
+		(
+			SubcallWithMaxNesting<2>,
+			// Batch is the only precompile allowed to call Batch.
+			CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
+		),
+	>,
+	PrecompileAt<
+		AddressU64<2057>,
+		RandomnessPrecompile<R>,
+		(SubcallWithMaxNesting<0>, CallableByContract),
+	>,
+	PrecompileAt<
+		AddressU64<2058>,
+		CallPermitPrecompile<R>,
+		(SubcallWithMaxNesting<0>, CallableByContract),
+	>,
+	PrecompileAt<
+		AddressU64<2059>,
+		ProxyPrecompile<R>,
+		(
+			CallableByContract<OnlyIsProxy<R>>,
+			SubcallWithMaxNesting<0>,
+			// Batch is the only precompile allowed to call Proxy.
+			CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
+		),
+	>,
+	PrecompileAt<
+		AddressU64<2060>,
+		XcmUtilsPrecompile<R, XcmExecutorConfig>,
+		CallableByContract<AllExceptXcmExecute<R, XcmExecutorConfig>>,
+	>,
+	PrecompileAt<
+		AddressU64<2061>,
+		XcmTransactorPrecompileV2<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2062>,
+		CollectivePrecompile<R, CouncilInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2063>,
+		CollectivePrecompile<R, TechCommitteeInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2064>,
+		CollectivePrecompile<R, TreasuryCouncilInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	PrecompileAt<
 		AddressU64<2065>,
 		ReferendaPrecompile<R, crate::governance::custom_origins::Origin>,
+		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<AddressU64<2066>, ConvictionVotingPrecompile<R>>,
-	PrecompileAt<AddressU64<2067>, PreimagePrecompile<R>>,
-	PrecompileAt<AddressU64<2068>, CollectivePrecompile<R, OpenTechCommitteeInstance>>,
+	PrecompileAt<
+		AddressU64<2066>,
+		ConvictionVotingPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2067>,
+		PreimagePrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2068>,
+		CollectivePrecompile<R, OpenTechCommitteeInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 );
 
 /// The PrecompileSet installed in the Moonbase runtime.
@@ -146,10 +238,12 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
+			(CallableByContract, CallableByPrecompile),
 		>,
 		PrecompileSetStartingWith<
 			LocalAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>,
+			(CallableByContract, CallableByPrecompile),
 		>,
 	),
 >;

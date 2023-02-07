@@ -448,7 +448,7 @@ where
     transfer_from { from: Address, to: Address, value: U256 },
     transfer_ownership { owner: Address },
     #[doc(hidden)]
-    __phantom(PhantomData<(Runtime)>, ::core::convert::Infallible),
+    __phantom(::core::marker::PhantomData<(Runtime)>, ::core::convert::Infallible),
 }
 impl<Runtime> PrecompileSetCall<Runtime>
 where
