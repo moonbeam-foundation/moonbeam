@@ -39,6 +39,7 @@ use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use pallet_transaction_payment::Multiplier;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
@@ -298,6 +299,14 @@ impl ExtBuilder {
 		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 			&pallet_xcm::GenesisConfig {
 				safe_xcm_version: self.safe_xcm_version,
+			},
+			&mut t,
+		)
+		.unwrap();
+
+		<pallet_transaction_payment::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_transaction_payment::GenesisConfig {
+				multiplier: Multiplier::from(10u128),
 			},
 			&mut t,
 		)
