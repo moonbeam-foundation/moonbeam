@@ -174,8 +174,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
-		at: bool,
-		block_number: u32,
+		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
 		// for read of referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -189,11 +188,6 @@ where
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
 			})?,
 		);
-		let enactment_moment = if at {
-			DispatchTime::At(block_number.into())
-		} else {
-			DispatchTime::After(block_number.into())
-		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -222,7 +216,12 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult<u32> {
-		Self::submit(handle, track_id, proposal, true, block_number)
+		Self::submit(
+			handle,
+			track_id,
+			proposal,
+			DispatchTime::At(block_number.into()),
+		)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -238,7 +237,12 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult<u32> {
-		Self::submit(handle, track_id, proposal, false, block_number)
+		Self::submit(
+			handle,
+			track_id,
+			proposal,
+			DispatchTime::After(block_number.into()),
+		)
 	}
 
 	/// Post the Decision Deposit for a referendum.
