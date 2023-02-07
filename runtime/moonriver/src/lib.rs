@@ -857,11 +857,12 @@ impl<T: pallet_evm::Config> Migration for InsertDummyCodeOpenGov<T> {
 			.into_iter()
 			.map(H160::from_low_u64_be)
 			.collect();
+		let mut num_writes = 0u64;
 		for a in open_gov_precompile_addresses {
 			pallet_evm::AccountCodes::<T>::insert(a, dummy_code.to_vec());
+			num_writes += 1u64;
 		}
-		// TODO: accurate weight
-		Weight::from_ref_time(0)
+		T::DbWeight::get().writes(num_writes)
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
@@ -874,7 +875,6 @@ impl<T: pallet_evm::Config> Migration for InsertDummyCodeOpenGov<T> {
 		for a in open_gov_precompile_addresses {
 			assert!(pallet_evm::AccountCodes::<T>::get(a).is_empty());
 		}
-		// TODO: check that dummy code dne pre upgrade
 		Ok(vec![])
 	}
 
