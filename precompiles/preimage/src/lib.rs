@@ -23,7 +23,7 @@ use frame_support::traits::ConstU32;
 use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
-use sp_core::H256;
+use sp_core::{Hasher, H256};
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -33,6 +33,12 @@ mod tests;
 
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
+
+/// Solidity selector of the PreimageNoted log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_PREIMAGE_NOTED: [u8; 32] = keccak256!("PreimageNoted(bytes32)");
+
+/// Solidity selector of the PreimageUnnoted log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_PREIMAGE_UNNOTED: [u8; 32] = keccak256!("PreimageUnnoted(bytes32)");
 
 /// A precompile to wrap the functionality from pallet-preimage.
 pub struct PreimagePrecompile<Runtime>(PhantomData<Runtime>);
@@ -57,12 +63,21 @@ where
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		let bytes = encoded_proposal.into();
+		let bytes: sp_std::vec::Vec<u8> = encoded_proposal.into();
+		let hash = sp_runtime::traits::BlakeTwo256::hash(&bytes);
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		handle.record_log_costs_manual(1, 32)?;
+		log1(
+			handle.context().address,
+			SELECTOR_LOG_PREIMAGE_NOTED,
+			EvmDataWriter::new().write::<H256>(hash).build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -73,14 +88,24 @@ where
 	/// * hash: The preimage cleared from storage
 	#[precompile::public("unnotePreimage(bytes32)")]
 	fn unnote_preimage(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult {
-		let hash: Runtime::Hash = hash
-			.try_into()
-			.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		{
+			let hash: Runtime::Hash = hash
+				.try_into()
+				.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+	
+			let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
+	
+			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		}
 
-		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
-
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		handle.record_log_costs_manual(1, 32)?;
+		log1(
+			handle.context().address,
+			SELECTOR_LOG_PREIMAGE_UNNOTED,
+			EvmDataWriter::new().write::<H256>(hash).build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
