@@ -29,6 +29,8 @@ use precompile_utils::prelude::*;
 use sp_core::U256;
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -109,12 +111,8 @@ where
 		Ok(deciding_count.into())
 	}
 
-	#[precompile::public("trackIds()")]
-	#[precompile::view]
-	fn track_ids(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
-		// Fetch data from runtime
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
+	fn get_track_ids() -> Vec<u16> {
+		Runtime::Tracks::tracks()
 			.into_iter()
 			.filter_map(|x| {
 				if let Ok(track_id) = x.0.try_into() {
@@ -123,9 +121,16 @@ where
 					None
 				}
 			})
-			.collect();
+			.collect()
+	}
 
-		Ok(track_ids)
+	#[precompile::public("trackIds()")]
+	#[precompile::view]
+	fn track_ids(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
+		// Fetch data from runtime
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		Ok(Self::get_track_ids())
 	}
 
 	#[precompile::public("trackInfo(uint16)")]
