@@ -156,7 +156,7 @@ interface ConvictionVoting {
         address caller
     );
 
-    /// @dev An account unlocked freeable tokens for the given trackId.
+    /// @dev An account called to unlock tokens for the given trackId.
     /// @custom:selector 5dcf630ebd6c48de9ece59c3378971de3f65f450c0c6e924d9607d80f58cfa79
     /// @param trackId uint16 The trackId.
     /// @param caller address Address of the caller.

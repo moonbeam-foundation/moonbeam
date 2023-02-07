@@ -23,7 +23,6 @@ use frame_support::{
 	assert_ok,
 	dispatch::{Dispatchable, Pays, PostDispatchInfo},
 };
-use pallet_evm::AddressMapping;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use sp_core::{H160, H256, U256};
 use sp_runtime::{
@@ -284,18 +283,17 @@ fn unlock_logs_work() {
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
 		.execute_with(|| {
-			// println!("{:?}",Balances::usable_balance(MockAccount::into_account_id(Alice.into())));
-			// Vote..
+			// Vote
 			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
 
-			// ..remove
+			// Remove
 			let input = PCall::remove_vote {
 				poll_index: ONGOING_POLL_INDEX,
 			}
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			// ..unlock
+			// Unlock
 			let input = PCall::unlock {
 				track_id: 0u16,
 				target: H160::from(Alice).into(),
