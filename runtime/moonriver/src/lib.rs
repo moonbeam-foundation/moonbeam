@@ -841,13 +841,64 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use frame_support::pallet_prelude::PhantomData;
+use pallet_migrations::{GetMigrations, Migration};
+
+// Migration to insert dummy code for Conviction, Referenda, Preimages
+pub struct InsertDummyCodeOpenGov<T>(PhantomData<T>);
+impl<T: pallet_evm::Config> Migration for InsertDummyCodeOpenGov<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_InsertDummyCodeOpenGov"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		let dummy_code = [0x60, 0x00, 0x60, 0x00, 0xfd];
+		let open_gov_addresses: Vec<T::AccountId> = vec![2065, 2066, 2067, 2068]
+			.into_iter()
+			.map(H160::from_low_u64_be)
+			.collect();
+		for open_gov_address in open_gov_addresses {
+			pallet_evm::AccountCodes::<T>::insert(open_gov_address, dummy_code.to_vec());
+		}
+		// TODO: accurate weight
+		Weight::from_ref_time(0)
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		// TODO: check that dummy code dne pre upgrade
+		Ok(vec![])
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+		// TODO: check that dummy code exists post upgrade
+		Ok(())
+	}
+}
+
+// include CommonMigrations + migration to insert dummy code for Conviction, Referenda, Preimages
+pub struct CommonMigrationsPlusInsertDummyCodeOpenGov<Runtime>(PhantomData<Runtime>);
+
+impl GetMigrations for CommonMigrationsPlusInsertDummyCodeOpenGov<Runtime> {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let mut common_migrations = moonbeam_runtime_common::migrations::CommonMigrations::<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>::get_migrations();
+		common_migrations.push(Box::new(InsertDummyCodeOpenGov::<Runtime>(
+			Default::default(),
+		)));
+		common_migrations
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = CommonMigrationsPlusInsertDummyCodeOpenGov<Runtime>;
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
