@@ -93,9 +93,9 @@ where
 				.try_into()
 				.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-	
+
 			let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
-	
+
 			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
