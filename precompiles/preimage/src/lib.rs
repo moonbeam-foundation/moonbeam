@@ -47,7 +47,7 @@ pub struct PreimagePrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> PreimagePrecompile<Runtime>
 where
 	Runtime: pallet_preimage::Config + pallet_evm::Config + frame_system::Config,
-	<Runtime as frame_system::Config>::Hash: TryFrom<H256>,
+	<Runtime as frame_system::Config>::Hash: TryFrom<H256> + Into<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -64,7 +64,7 @@ where
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
 		let bytes: sp_std::vec::Vec<u8> = encoded_proposal.into();
-		let hash = sp_runtime::traits::BlakeTwo256::hash(&bytes);
+		let hash = <Runtime as frame_system::Config>::Hashing::hash(&bytes);
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
@@ -75,7 +75,7 @@ where
 		log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_NOTED,
-			EvmDataWriter::new().write::<H256>(hash).build(),
+			EvmDataWriter::new().write::<H256>(hash.into()).build(),
 		)
 		.record(handle)?;
 
