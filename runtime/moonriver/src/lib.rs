@@ -1122,6 +1122,8 @@ impl pallet_randomness::Config for Runtime {
 	type EpochExpirationDelay = ConstU64<10_000>;
 }
 
+impl pallet_root_testing::Config for Runtime {}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1134,6 +1136,7 @@ construct_runtime! {
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,

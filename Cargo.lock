@@ -5280,6 +5280,7 @@ dependencies = [
  "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-referenda",
+ "pallet-root-testing",
  "pallet-scheduler",
  "pallet-society",
  "pallet-sudo",
@@ -5726,6 +5727,7 @@ dependencies = [
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
  "pallet-randomness-collective-flip",
+ "pallet-root-testing",
  "pallet-scheduler",
  "pallet-society",
  "pallet-timestamp",
@@ -6059,6 +6061,7 @@ dependencies = [
  "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-referenda",
+ "pallet-root-testing",
  "pallet-scheduler",
  "pallet-society",
  "pallet-timestamp",
@@ -8248,6 +8251,21 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-arithmetic",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-root-testing"
+version = "1.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.37#946507ba9ef13e263534176b7b74e26fc56efbd4"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",

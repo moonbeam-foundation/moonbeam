@@ -75,6 +75,7 @@ pallet-identity = { git = "https://github.com/purestake/substrate", branch = "mo
 pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+pallet-root-testing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-society = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
@@ -218,6 +219,7 @@ std = [
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-randomness/std",
+	"pallet-root-testing/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-timestamp/std",
@@ -306,6 +308,7 @@ try-runtime = [
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",

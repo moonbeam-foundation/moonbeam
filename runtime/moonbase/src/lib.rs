@@ -1268,6 +1268,8 @@ impl pallet_randomness::Config for Runtime {
 	type EpochExpirationDelay = ConstU64<10_000>;
 }
 
+impl pallet_root_testing::Config for Runtime {}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1324,6 +1326,7 @@ construct_runtime! {
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 		OpenTechCommitteeCollective:
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
 	}
 }
 
