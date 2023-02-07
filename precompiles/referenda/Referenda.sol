@@ -14,7 +14,7 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 interface Referenda {
     /// Return the total referendum count
     /// @custom:selector 3a42ee31
-    function referendumCount() external view returns (uint256);
+    function referendumCount() external view returns (uint32);
 
     /// Return the submission deposit for all referenda
     /// @custom:selector aa14c39a
