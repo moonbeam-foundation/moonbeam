@@ -11,8 +11,6 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 //! Custom origins for governance interventions.
 pub use custom_origins::*;
 

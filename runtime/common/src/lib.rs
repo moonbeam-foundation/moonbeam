@@ -16,7 +16,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_MILLIS;
 use sp_core::H160;
+use sp_runtime::Perbill;
 
 mod apis;
 mod impl_moonbeam_xcm_call;
@@ -25,9 +27,33 @@ mod impl_on_charge_evm_transaction;
 mod impl_self_contained_call;
 pub mod migrations;
 
+/// `WeightPerGas` is an approximate ratio of the amount of Weight per Gas.
+/// u64 works for approximations because Weight is a very small unit compared to gas.
+///
+/// `GAS_PER_MILLIS * WEIGHT_MILLIS_PER_BLOCK * TXN_RATIO ~= BLOCK_GAS_LIMIT`
+/// `WEIGHT_PER_GAS = WEIGHT_REF_TIME_PER_MILLIS / GAS_PER_MILLIS
+///       = WEIGHT_REF_TIME_PER_MILLIS / (BLOCK_GAS_LIMIT / TXN_RATIO / WEIGHT_MILLIS_PER_BLOCK)
+///       = TXN_RATIO * (WEIGHT_REF_TIME_PER_MILLIS * WEIGHT_MILLIS_PER_BLOCK) / BLOCK_GAS_LIMIT`
+///
+/// For example, given the 500ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is `GAS_PER_MILLIS * 500 * 75% = BLOCK_GAS_LIMIT`.
+pub fn weight_per_gas(
+	block_gas_limit: u64,
+	txn_ratio: Perbill,
+	weight_millis_per_block: u64,
+) -> u64 {
+	let weight_per_block = WEIGHT_REF_TIME_PER_MILLIS.saturating_mul(weight_millis_per_block);
+	let weight_per_gas = (txn_ratio * weight_per_block).saturating_div(block_gas_limit);
+	assert!(
+		weight_per_gas >= 1,
+		"WeightPerGas must greater than or equal with 1"
+	);
+	weight_per_gas
+}
+
 //TODO maybe this should be upstreamed into Frontier.
 
-/// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
+/// And implementation of Frontier's AddressMapping trait for Moonbeam Accounts.
 /// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
 /// that is Into<H160> like AccountId20 for example.
 pub struct IntoAddressMapping;
