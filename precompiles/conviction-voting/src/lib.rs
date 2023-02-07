@@ -134,6 +134,7 @@ where
 			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
+		handle.record_log_costs_manual(2, 32 * 4)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_VOTE,
@@ -210,6 +211,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVE,
@@ -255,6 +257,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
+		handle.record_log_costs_manual(2, 32 * 3)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVE_OTHER,
@@ -303,6 +306,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
+		handle.record_log_costs_manual(2, 32 * 4)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_DELEGATE,
@@ -327,6 +331,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_UNDELEGATE,
@@ -359,6 +364,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
+		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
 			SELECTOR_LOG_UNLOCK,
