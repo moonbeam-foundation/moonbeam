@@ -177,7 +177,7 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult<u32> {
-		// for read of referendumCount post dispatch to get the referendum index
+		// for read of referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
 		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
