@@ -191,7 +191,13 @@ describeSmokeSuite(
       ).to.equals(0);
     });
 
-    testIt("C300", "baseFeePerGas is within expected min/max", function () {
+    testIt("C300", "BaseFeePerGas is within expected min/max", function () {
+      const rtVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
+      if (rtVersion < 2200) {
+        debug(`Runtime Version ${rtVersion} is less than 2200, skipping`);
+        this.skip();
+      }
+
       const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
         return (
           ethers.utils
@@ -236,29 +242,6 @@ describeSmokeSuite(
         failures.length,
         `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
       ).to.equals(0);
-    });
-
-    testIt("C500", "BaseFeePerGas reported in emulated block header", function () {
-      this.skip(); // Feature-under-test not implemented yet
-
-      /*  -- UNCOMMENT AND WIRE UP WHEN FEATURE DELIVERED --
-      const failures = blockData
-          .map(({ blockNum, ethBlock, baseFeePerGasInGwei }) => {
-            const baseFeePerGasInWei = ethers.utils.parseUnits(baseFeePerGasInGwei, "gwei")
-            .toString()
-            const valid = ethBlock.header.BaseFee.toBn().eq( new BN(baseFeePerGasInWei))
-            return { blockNum, valid };
-          })
-          .filter(({ valid }) => !valid);
-
-          failures.forEach(({ blockNum }) => {
-            debug(`Block #${blockNum} reporting incorrect BaseFee in header`);
-          });
-          expect(
-            failures.length,
-            `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
-          ).to.equals(0);
-          */
     });
   }
 );
