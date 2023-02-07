@@ -26,7 +26,7 @@ use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
-use sp_core::U256;
+use sp_core::{Hasher, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
@@ -49,6 +49,22 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
+/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_SUBMITTED_AT: [u8; 32] =
+	keccak256!("SubmittedAt(uint16,uint32,bytes32)");
+
+/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_SUBMITTED_AFTER: [u8; 32] =
+	keccak256!("SubmittedAfter(uint16,uint32,bytes32)");
+
+/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
+	keccak256!("DecisionDepositPlaced(uint32)");
+
+/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
+	keccak256!("DecisionDepositRefunded(uint32)");
+
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
 
@@ -62,6 +78,7 @@ where
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
+	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
@@ -182,27 +199,43 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?,
-		);
-		let enactment_moment = DispatchTime::At(block_number.into());
+		{
+			let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
+				RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
+			})?;
+			let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
+			let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
+				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
+					RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+				})?,
+			);
+			let enactment_moment = DispatchTime::At(block_number.into());
+	
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+	
+			let call = ReferendaCall::<Runtime>::submit {
+				proposal_origin,
+				proposal,
+				enactment_moment,
+			}
+			.into();
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin,
-			proposal,
-			enactment_moment,
+			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
-		.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
+		let proposal: sp_std::vec::Vec<u8> = proposal.into();
+		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(block_number)
+				.write::<H256>(hash.into())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -220,27 +253,43 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?,
-		);
-		let enactment_moment = DispatchTime::After(block_number.into());
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin,
-			proposal,
-			enactment_moment,
+		{
+			let origin: GovOrigin = track_id.try_into().map_err(|_| {
+				RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
+			})?;
+			let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
+			let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
+				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
+					RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+				})?,
+			);
+			let enactment_moment = DispatchTime::After(block_number.into());
+	
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+	
+			let call = ReferendaCall::<Runtime>::submit {
+				proposal_origin,
+				proposal,
+				enactment_moment,
+			}
+			.into();
+	
+			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
-		.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
+		let proposal: sp_std::vec::Vec<u8> = proposal.into();
+		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(block_number)
+				.write::<H256>(hash.into())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -256,6 +305,16 @@ where
 		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		handle.record_log_costs_manual(1, 32)?;
+		log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.build(),
+		)
+		.record(handle)?;
 		Ok(())
 	}
 
@@ -270,6 +329,16 @@ where
 		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		handle.record_log_costs_manual(1, 32)?;
+		log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.build(),
+		)
+		.record(handle)?;
 		Ok(())
 	}
 }
