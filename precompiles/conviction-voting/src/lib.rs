@@ -64,14 +64,14 @@ pub(crate) const SELECTOR_LOG_VOTE_REMOVE: [u8; 32] = keccak256!("VoteRemove(uin
 pub(crate) const SELECTOR_LOG_VOTE_REMOVE_OTHER: [u8; 32] =
 	keccak256!("VoteRemoveOther(uint32,address,address,uint16)");
 
-/// Solidity selector of the VoteDelegate log, which is the Keccak of the Log signature.
+/// Solidity selector of the Delegate log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DELEGATE: [u8; 32] =
 	keccak256!("Delegate(uint16,address,address,uint256,uint8)");
 
-/// Solidity selector of the VoteUndelegate log, which is the Keccak of the Log signature.
+/// Solidity selector of the Undelegate log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_UNDELEGATE: [u8; 32] = keccak256!("Undelegate(uint16,address)");
 
-/// Solidity selector of the VoteUnlock log, which is the Keccak of the Log signature.
+/// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_UNLOCK: [u8; 32] = keccak256!("Unlock(uint16,address)");
 
 /// Direction of vote
