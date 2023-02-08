@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::DecodeLimit;
+use codec::DecodeLimit as _;
 use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{
@@ -86,13 +86,12 @@ pub fn log_closed(address: impl Into<H160>, hash: H256) -> Log {
 }
 
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
+type DecodeLimit = ConstU32<8>;
 
-pub struct CollectivePrecompile<Runtime, Instance: 'static, DecodeLimit = ConstU32<8>>(
-	PhantomData<(Runtime, Instance, DecodeLimit)>,
-);
+pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
 
 #[precompile_utils::precompile]
-impl<Runtime, Instance, DecodeLimit> CollectivePrecompile<Runtime, Instance, DecodeLimit>
+impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
@@ -103,7 +102,6 @@ where
 	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
-	DecodeLimit: Get<u32>,
 {
 	#[precompile::public("execute(bytes)")]
 	fn execute(
