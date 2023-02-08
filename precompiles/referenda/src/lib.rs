@@ -277,19 +277,17 @@ where
 
 	// Helper function for submit precompile functions
 	fn track_id_to_origin(track_id: u16) -> EvmResult<Box<OriginOf<Runtime>>> {
-		if track_id == 0 {
-			return Ok(Box::new(frame_system::RawOrigin::Root.try_into().map_err(
-				|_| {
-					// We should never see this error if the above conversion is done correctly
-					RevertReason::custom("Failed to convert root origin into runtime origin")
+		let origin: OriginOf<Runtime> = if track_id == 0 {
+			frame_system::RawOrigin::Root.into()
+		} else {
+			<u16 as TryInto<GovOrigin>>::try_into(track_id)
+				.map_err(|_| {
+					RevertReason::custom("Custom origin does not exist for TrackId")
 						.in_field("trackId")
-				},
-			)?));
-		}
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Custom origin does not exist for TrackId").in_field("trackId")
-		})?;
-		Ok(Box::new(origin.into()))
+				})?
+				.into()
+		};
+		Ok(Box::new(origin))
 	}
 
 	/// Propose a referendum on a privileged action.
