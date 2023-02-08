@@ -12,6 +12,18 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @title The interface through which solidity contracts will interact with the Referenda pallet
 /// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
+    struct TrackInfo {
+        string name;
+        uint256 maxDeciding;
+        uint256 decisionDeposit;
+        uint256 preparePeriod;
+        uint256 decisionPeriod;
+        uint256 confirmPeriod;
+        uint256 minEnactmentPeriod;
+        bytes minApproval;
+        bytes minSupport;
+    }
+
     /// Return the total referendum count
     /// @custom:selector 3a42ee31
     function referendumCount() external view returns (uint256);
@@ -33,30 +45,17 @@ interface Referenda {
     /// Return the governance parameters configured for the input TrackId
     /// @param trackId The track identifier
     /// @custom:selector 34038146
-    function trackInfo(uint16 trackId)
-        external
-        view
-        returns (
-            string memory,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            bytes memory,
-            bytes memory
-        );
+    function trackInfo(uint16 trackId) external view returns (TrackInfo memory);
 
     /// @dev Submit a referenda
     /// @custom:selector 95f9ed68
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
-    /// @param hash Hash of the proposal preimage
+    /// @param proposal The proposed runtime call
     /// @param block Block number at which this will be executed
     function submitAt(
         uint16 trackId,
-        bytes memory hash,
+        bytes memory proposal,
         uint32 block
     ) external;
 
@@ -64,11 +63,11 @@ interface Referenda {
     /// @custom:selector 0a1ecbe9
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
-    /// @param hash Hash of the proposal preimage
+    /// @param proposal The proposed runtime call
     /// @param block Block number after which this will be executed
     function submitAfter(
         uint16 trackId,
-        bytes memory hash,
+        bytes memory proposal,
         uint32 block
     ) external;
 

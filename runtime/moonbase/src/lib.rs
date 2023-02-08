@@ -100,9 +100,8 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
-use precompiles::PrecompileName;
 pub use precompiles::{
-	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -394,7 +393,7 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000);
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10);
 	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
@@ -420,7 +419,10 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
 			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
-		(min_gas_price.into(), Weight::zero())
+		(
+			min_gas_price.into(),
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
+		)
 	}
 }
 
