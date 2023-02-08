@@ -205,14 +205,17 @@ where
 			})?;
 			let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
 			let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-					RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-				})?,
+				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(
+					|_| {
+						RevertReason::custom("Proposal input is not a runtime call")
+							.in_field("proposal")
+					},
+				)?,
 			);
 			let enactment_moment = DispatchTime::At(block_number.into());
-	
+
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-	
+
 			let call = ReferendaCall::<Runtime>::submit {
 				proposal_origin,
 				proposal,
@@ -259,21 +262,24 @@ where
 			})?;
 			let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
 			let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-					RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-				})?,
+				frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(
+					|_| {
+						RevertReason::custom("Proposal input is not a runtime call")
+							.in_field("proposal")
+					},
+				)?,
 			);
 			let enactment_moment = DispatchTime::After(block_number.into());
-	
+
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-	
+
 			let call = ReferendaCall::<Runtime>::submit {
 				proposal_origin,
 				proposal,
 				enactment_moment,
 			}
 			.into();
-	
+
 			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		}
 
@@ -310,9 +316,7 @@ where
 		log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new()
-				.write::<u32>(index)
-				.build(),
+			EvmDataWriter::new().write::<u32>(index).build(),
 		)
 		.record(handle)?;
 		Ok(())
@@ -334,9 +338,7 @@ where
 		log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new()
-				.write::<u32>(index)
-				.build(),
+			EvmDataWriter::new().write::<u32>(index).build(),
 		)
 		.record(handle)?;
 		Ok(())

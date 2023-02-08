@@ -13,11 +13,15 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::{mock::*, SELECTOR_LOG_SUBMITTED_AT};
+use crate::{
+	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+	SELECTOR_LOG_SUBMITTED_AFTER, SELECTOR_LOG_SUBMITTED_AT,
+};
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
+use pallet_referenda::Call as ReferendaCall;
 
 use sp_core::{Hasher, H256, U256};
 
@@ -66,7 +70,7 @@ fn submitted_at_logs_work() {
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
 		.execute_with(|| {
-			let proposal = vec![1,2,3];
+			let proposal = vec![1, 2, 3];
 			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
 			let input = PCall::submit_at {
@@ -91,5 +95,117 @@ fn submitted_at_logs_work() {
 				}
 				.into()
 			));
+		});
+}
+
+#[test]
+fn submitted_after_logs_work() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			let proposal = vec![1, 2, 3];
+			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+
+			let input = PCall::submit_after {
+				track_id: 0u16,
+				proposal: proposal.into(),
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AFTER,
+						H256::from_low_u64_be(0u64),
+						EvmDataWriter::new()
+							.write::<u32>(0u32)
+							.write::<H256>(expected_hash.into())
+							.build(),
+					),
+				}
+				.into()
+			));
+		});
+}
+
+#[test]
+fn place_and_refund_decision_deposit_logs_work() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			let proposal = vec![1, 2, 3];
+			let referendum_index = 0u32;
+
+			// Create referendum
+			let input = PCall::submit_at {
+				track_id: 0u16,
+				proposal: proposal.into(),
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Place referendum decision deposit
+			let input = PCall::place_decision_deposit {
+				index: referendum_index,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Assert all place events are emitted
+			assert!(vec![
+				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::DecisionDepositPlaced {
+					index: referendum_index,
+					who: Alice.into(),
+					amount: 10
+				}),
+				EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+						EvmDataWriter::new().write::<u32>(referendum_index).build(),
+					)
+				}
+				.into()
+			]
+			.iter()
+			.all(|log| events().contains(log)));
+
+			// Cancel referendum so we can refund
+			assert_ok!(RuntimeCall::Referenda(ReferendaCall::cancel {
+				index: referendum_index,
+			})
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
+
+			// Refund referendum decision deposit
+			let input = PCall::refund_decision_deposit {
+				index: referendum_index,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Assert all refund events are emitted
+			assert!(vec![
+				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::DecisionDepositRefunded {
+					index: referendum_index,
+					who: Alice.into(),
+					amount: 10
+				}),
+				EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+						EvmDataWriter::new().write::<u32>(referendum_index).build(),
+					)
+				}
+				.into()
+			]
+			.iter()
+			.all(|log| events().contains(log)));
 		});
 }
