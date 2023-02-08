@@ -509,6 +509,7 @@
 <span id="509">509</span>
 <span id="510">510</span>
 <span id="511">511</span>
+<span id="512">512</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -781,8 +782,9 @@
 					.as_ref()
 					.map(|<span class="kw">_</span>| <span class="macro">quote!</span>(discriminant,));
 
-				<span class="kw">let </span>write_output =
-					<span class="macro">quote_spanned!</span>(output_span=&gt; EvmDataWriter::new().write(output<span class="question-mark">?</span>).build());
+				<span class="kw">let </span>write_output = <span class="macro">quote_spanned!</span>(output_span=&gt;
+					::precompile_utils::data::encode_as_function_return_value(output<span class="question-mark">?</span>)
+				);
 
 				<span class="macro">quote!</span>(
 					<span class="kw">use </span>::precompile_utils::EvmDataWriter;

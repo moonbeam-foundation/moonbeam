@@ -404,6 +404,20 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -445,6 +459,9 @@
 	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>);
 	<span class="kw">fn </span>has_static_size() -&gt; bool;
 	<span class="kw">fn </span>solidity_type() -&gt; String;
+	<span class="kw">fn </span>is_explicit_tuple() -&gt; bool {
+		<span class="bool-val">false
+	</span>}
 }
 
 <span class="doccomment">/// Wrapper around an EVM input slice, helping to parse it.
@@ -746,6 +763,17 @@
 
 	<span class="kw">fn </span>solidity_type() -&gt; String {
 		P::solidity_type()
+	}
+}
+
+<span class="doccomment">/// Wrapper around values being returned by functions.
+/// Handle special case with tuple encoding.
+</span><span class="kw">pub fn </span>encode_as_function_return_value&lt;T: EvmData&gt;(value: T) -&gt; Vec&lt;u8&gt; {
+	<span class="kw">let </span>output = EvmDataWriter::new().write(value).build();
+	<span class="kw">if </span>T::is_explicit_tuple() &amp;&amp; !T::has_static_size() {
+		output[<span class="number">32</span>..].to_vec()
+	} <span class="kw">else </span>{
+		output
 	}
 }
 

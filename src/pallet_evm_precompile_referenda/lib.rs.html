@@ -273,6 +273,77 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -300,7 +371,7 @@
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_referenda::{Call <span class="kw">as </span>ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 <span class="kw">use </span>parity_scale_codec::Encode;
-<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::U256;
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
@@ -323,6 +394,90 @@
 
 <span class="kw">type </span>OriginOf&lt;Runtime&gt; =
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::PalletsOrigin;
+
+<span class="kw">pub struct </span>TrackInfo {
+	name: UnboundedBytes,
+	max_deciding: U256,
+	decision_deposit: U256,
+	prepare_period: U256,
+	decision_period: U256,
+	confirm_period: U256,
+	min_enactment_period: U256,
+	min_approval: UnboundedBytes,
+	min_support: UnboundedBytes,
+}
+
+<span class="kw">impl </span>EvmData <span class="kw">for </span>TrackInfo {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="macro">precompile_utils::read_struct!</span>(reader, {
+			name: UnboundedBytes,
+			max_deciding: U256,
+			decision_deposit: U256,
+			prepare_period: U256,
+			decision_period: U256,
+			confirm_period: U256,
+			min_enactment_period: U256,
+			min_approval: UnboundedBytes,
+			min_support: UnboundedBytes
+		});
+		<span class="prelude-val">Ok</span>(TrackInfo {
+			name,
+			max_deciding,
+			decision_deposit,
+			prepare_period,
+			decision_period,
+			confirm_period,
+			min_enactment_period,
+			min_approval,
+			min_support,
+		})
+	}
+
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+		EvmData::write(
+			writer,
+			(
+				value.name,
+				value.max_deciding,
+				value.decision_deposit,
+				value.prepare_period,
+				value.decision_period,
+				value.confirm_period,
+				value.min_enactment_period,
+				value.min_approval,
+				value.min_support,
+			),
+		);
+	}
+
+	<span class="kw">fn </span>has_static_size() -&gt; bool {
+		&lt;(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)&gt;::has_static_size()
+	}
+
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		&lt;(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)&gt;::solidity_type()
+	}
+}
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-referenda.
 </span><span class="kw">pub struct </span>ReferendaPrecompile&lt;Runtime, GovOrigin: TryFrom&lt;u16&gt;&gt;(PhantomData&lt;(Runtime, GovOrigin)&gt;);
@@ -405,20 +560,7 @@
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;trackInfo(uint16)&quot;</span>)]
 	#[precompile::view]
-	</span><span class="kw">fn </span>track_info(
-		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		track_id: u16,
-	) -&gt; EvmResult&lt;(
-		UnboundedBytes,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		UnboundedBytes,
-		UnboundedBytes,
-	)&gt; {
+	</span><span class="kw">fn </span>track_info(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, track_id: u16) -&gt; EvmResult&lt;TrackInfo&gt; {
 		<span class="comment">// Fetch data from runtime
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>track_id: TrackIdOf&lt;Runtime&gt; = track_id
@@ -431,17 +573,17 @@
 			.unwrap_or_else(|x| x);
 		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>tracks[index].<span class="number">1</span>;
 
-		<span class="prelude-val">Ok</span>((
-			track_info.name.as_bytes().into(),
-			track_info.max_deciding.into(),
-			track_info.decision_deposit.into(),
-			track_info.prepare_period.into(),
-			track_info.decision_period.into(),
-			track_info.confirm_period.into(),
-			track_info.min_enactment_period.into(),
-			track_info.min_approval.encode().into(),
-			track_info.min_support.encode().into(),
-		))
+		<span class="prelude-val">Ok</span>(TrackInfo {
+			name: track_info.name.into(),
+			max_deciding: track_info.max_deciding.into(),
+			decision_deposit: track_info.decision_deposit.into(),
+			prepare_period: track_info.prepare_period.into(),
+			decision_period: track_info.decision_period.into(),
+			confirm_period: track_info.confirm_period.into(),
+			min_enactment_period: track_info.min_enactment_period.into(),
+			min_approval: track_info.min_approval.encode().into(),
+			min_support: track_info.min_support.encode().into(),
+		})
 	}
 
 	<span class="doccomment">/// Propose a referendum on a privileged action.

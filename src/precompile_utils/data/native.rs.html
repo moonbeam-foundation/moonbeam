@@ -371,6 +371,10 @@
 <span id="371">371</span>
 <span id="372">372</span>
 <span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -412,8 +416,7 @@
 	}
 
 	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
-		<span class="kw">if </span>!<span class="self">Self</span>::has_static_size() {
-			<span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>reader.read_pointer()<span class="question-mark">?</span>;
+		<span class="kw">if </span><span class="self">Self</span>::has_static_size() {
 			<span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
 			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( {
 				<span class="kw">let </span>elem = reader.read::&lt;Tuple&gt;().in_tuple(index)<span class="question-mark">?</span>;
@@ -421,6 +424,7 @@
 				elem
 			} ),* ) ))
 		} <span class="kw">else </span>{
+			<span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span>reader.read_pointer()<span class="question-mark">?</span>;
 			<span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
 			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( {
 				<span class="kw">let </span>elem = reader.read::&lt;Tuple&gt;().in_tuple(index)<span class="question-mark">?</span>;
@@ -431,12 +435,12 @@
 	}
 
 	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
-		<span class="kw">if </span>!<span class="self">Self</span>::has_static_size() {
+		<span class="kw">if </span><span class="self">Self</span>::has_static_size() {
+			<span class="macro">for_tuples!</span>( #( Tuple::write(writer, value.Tuple); )* );
+		} <span class="kw">else </span>{
 			<span class="kw">let </span><span class="kw-2">mut </span>inner_writer = EvmDataWriter::new();
 			<span class="macro">for_tuples!</span>( #( Tuple::write(<span class="kw-2">&amp;mut </span>inner_writer, value.Tuple); )* );
 			writer.write_pointer(inner_writer.build());
-		} <span class="kw">else </span>{
-			<span class="macro">for_tuples!</span>( #( Tuple::write(writer, value.Tuple); )* );
 		}
 	}
 
@@ -445,6 +449,10 @@
 		<span class="macro">for_tuples!</span>( #( subtypes.push(Tuple::solidity_type()); )* );
 		<span class="macro">alloc::format!</span>(<span class="string">&quot;({})&quot;</span>, subtypes.join(<span class="string">&quot;,&quot;</span>))
 	}
+
+	<span class="kw">fn </span>is_explicit_tuple() -&gt; bool {
+		<span class="bool-val">true
+	</span>}
 }
 
 <span class="kw">impl </span>EvmData <span class="kw">for </span>H256 {
