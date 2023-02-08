@@ -43,9 +43,9 @@ use pallet_transaction_payment::Multiplier;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
-	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
-	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
+	"02f86d8205018085174876e80085e8d4a5100082520894f24ff3a9cf04c71dbc94d0b566f7a27b9456\
+	6cac8080c001a0e1094e1a52520a75c0255db96132076dd0f1263089f838bea548cbdbfc64a4d19f031c\
+	92a8cb04e2d68d20a6158d542a07ac440cc8d07b6e36af02db046d92df";
 
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
