@@ -253,10 +253,7 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
+		let proposal_origin = Self::track_id_to_origin(track_id)?;
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
@@ -278,6 +275,23 @@ where
 		Ok(())
 	}
 
+	// Helper function for submit precompile functions
+	fn track_id_to_origin(track_id: u16) -> EvmResult<Box<OriginOf<Runtime>>> {
+		if track_id == 0 {
+			return Ok(Box::new(frame_system::RawOrigin::Root.try_into().map_err(
+				|_| {
+					// We should never see this error if the above conversion is done correctly
+					RevertReason::custom("Failed to convert root origin into runtime origin")
+						.in_field("trackId")
+				},
+			)?));
+		}
+		let origin: GovOrigin = track_id.try_into().map_err(|_| {
+			RevertReason::custom("Custom origin does not exist for TrackId").in_field("trackId")
+		})?;
+		Ok(Box::new(origin.into()))
+	}
+
 	/// Propose a referendum on a privileged action.
 	///
 	/// Parameters:
@@ -291,10 +305,7 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
+		let proposal_origin = Self::track_id_to_origin(track_id)?;
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
