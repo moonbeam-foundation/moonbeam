@@ -1,6 +1,7 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { ApiOptions } from "@polkadot/api/types";
 import { types } from "moonbeam-types-bundle";
+import { setTimeout } from "timers/promises";
 import { providers } from "ethers";
 
 let relayApi: SubstrateApi;
@@ -21,14 +22,12 @@ export class SubstrateApi {
     if (!wssUrl) {
       this._api = null;
     } else {
-      this._provider = new WsProvider(wssUrl);
+      this._provider = new WsProvider(wssUrl, 100);
 
       this._provider.on("error", async (error) => {
         console.error(error);
         console.log("Pausing before reconnecting..");
-        await new Promise((resolve) => {
-          setTimeout(resolve, 100);
-        });
+        await setTimeout(100);
       });
 
       this._api = await ApiPromise.create({
@@ -39,9 +38,7 @@ export class SubstrateApi {
 
       // Necessary hack to allow polkadotApi to finish its internal metadata loading
       // apiPromise.isReady unfortunately doesn't wait for those properly
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
-      });
+      await setTimeout(100);
       await this._api?.isReadyOrError;
     }
 
