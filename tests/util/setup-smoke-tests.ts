@@ -39,5 +39,14 @@ export function describeSmokeSuite(
     });
 
     cb(context, testIt);
+
+    afterEach(async function () {
+      // This timeout added to give the Websockets enough time to recover when running on K8 pods
+      if (this.currentTest.state !== "passed") {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+      }
+    });
   });
 }

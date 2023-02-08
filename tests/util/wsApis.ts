@@ -22,6 +22,15 @@ export class SubstrateApi {
       this._api = null;
     } else {
       this._provider = new WsProvider(wssUrl);
+
+      this._provider.on("error", async (error) => {
+        console.error(error);
+        console.log("Pausing before reconnecting..");
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
+      });
+
       this._api = await ApiPromise.create({
         provider: this._provider,
         noInitWarn: true,
