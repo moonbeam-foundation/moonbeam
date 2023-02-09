@@ -65,19 +65,21 @@ where
 	) -> EvmResult {
 		let bytes: sp_std::vec::Vec<u8> = encoded_proposal.into();
 		let hash = <Runtime as frame_system::Config>::Hashing::hash(&bytes);
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_PREIMAGE_NOTED,
+			EvmDataWriter::new().write::<H256>(hash.into()).build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		handle.record_log_costs_manual(1, 32)?;
-		log1(
-			handle.context().address,
-			SELECTOR_LOG_PREIMAGE_NOTED,
-			EvmDataWriter::new().write::<H256>(hash.into()).build(),
-		)
-		.record(handle)?;
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -88,24 +90,23 @@ where
 	/// * hash: The preimage cleared from storage
 	#[precompile::public("unnotePreimage(bytes32)")]
 	fn unnote_preimage(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult {
-		{
-			let hash: Runtime::Hash = hash
-				.try_into()
-				.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-			let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
-
-			<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
-		}
-
-		handle.record_log_costs_manual(1, 32)?;
-		log1(
+		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_UNNOTED,
 			EvmDataWriter::new().write::<H256>(hash).build(),
-		)
-		.record(handle)?;
+		);
+		handle.record_log_costs(&[&event])?;
+
+		let hash: Runtime::Hash = hash
+			.try_into()
+			.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
