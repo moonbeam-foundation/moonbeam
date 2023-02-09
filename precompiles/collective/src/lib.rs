@@ -236,7 +236,7 @@ where
 		proposal_weight_bound: u64,
 		length_bound: u32,
 	) -> EvmResult<bool> {
-		// Bbecause the actual log cannot be built before dispatch, we manually
+		// Because the actual log cannot be built before dispatch, we manually
 		// record it first (`executed` and `closed` have the same cost).
 		handle.record_log_costs_manual(2, 0)?;
 
