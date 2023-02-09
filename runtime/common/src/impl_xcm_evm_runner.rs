@@ -110,13 +110,14 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						})
 					})?;
 
-					match execution_info {
-						Some(CallOrCreateInfo::Call(call_info)) => Ok(call_info),
-						Some(CallOrCreateInfo::Create(_)) => unreachable!(),
-						None => Err(RunnerError {
+					if let Some(CallOrCreateInfo::Call(call_info))= execution_info {
+						Ok(call_info)
+					} else {
+						// `execution_info` must have been filled in
+						Err(RunnerError {
 							error: DispatchError::Unavailable,
 							weight: Default::default(),
-						}),
+						})
 					}
 				}
 			}
