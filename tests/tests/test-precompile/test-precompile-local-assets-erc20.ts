@@ -1004,7 +1004,7 @@ describeDevMoonbeamAllEthTxTypes(
         alith.address
       );
 
-      expect(baltatharFrozen.unwrap().isFrozen.isTrue).to.be.true;
+      expect(baltatharFrozen.unwrap().isFrozen.isFalse).to.be.true;
     });
   },
   true
