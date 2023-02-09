@@ -54,25 +54,25 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 >>::Class;
 
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_VOTE: [u8; 32] =
-	keccak256!("Vote(uint32,address,bool,uint256,uint8)");
+pub(crate) const SELECTOR_LOG_VOTED: [u8; 32] =
+	keccak256!("Voted(uint32,address,bool,uint256,uint8)");
 
 /// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_VOTE_REMOVE: [u8; 32] = keccak256!("VoteRemove(uint32,address)");
+pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
 
 /// Solidity selector of the VoteRemoveOther log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_VOTE_REMOVE_OTHER: [u8; 32] =
-	keccak256!("VoteRemoveOther(uint32,address,address,uint16)");
+pub(crate) const SELECTOR_LOG_VOTE_REMOVED_OTHER: [u8; 32] =
+	keccak256!("VoteRemovedOther(uint32,address,address,uint16)");
 
 /// Solidity selector of the Delegate log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_DELEGATE: [u8; 32] =
-	keccak256!("Delegate(uint16,address,address,uint256,uint8)");
+pub(crate) const SELECTOR_LOG_DELEGATED: [u8; 32] =
+	keccak256!("Delegated(uint16,address,address,uint256,uint8)");
 
 /// Solidity selector of the Undelegate log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_UNDELEGATE: [u8; 32] = keccak256!("Undelegate(uint16,address)");
+pub(crate) const SELECTOR_LOG_UNDELEGATED: [u8; 32] = keccak256!("Undelegated(uint16,address)");
 
 /// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_UNLOCK: [u8; 32] = keccak256!("Unlock(uint16,address)");
+pub(crate) const SELECTOR_LOG_UNLOCKED: [u8; 32] = keccak256!("Unlocked(uint16,address)");
 
 /// Direction of vote
 pub(crate) enum VoteDirection {
@@ -137,7 +137,7 @@ where
 		handle.record_log_costs_manual(2, 32 * 4)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_VOTE,
+			SELECTOR_LOG_VOTED,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
 			EvmDataWriter::new()
 				.write::<Address>(Address(caller))
@@ -214,7 +214,7 @@ where
 		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_VOTE_REMOVE,
+			SELECTOR_LOG_VOTE_REMOVED,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
 			EvmDataWriter::new()
 				.write::<Address>(Address(caller))
@@ -260,7 +260,7 @@ where
 		handle.record_log_costs_manual(2, 32 * 3)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_VOTE_REMOVE_OTHER,
+			SELECTOR_LOG_VOTE_REMOVED_OTHER,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
 			EvmDataWriter::new()
 				.write::<Address>(Address(caller))
@@ -309,7 +309,7 @@ where
 		handle.record_log_costs_manual(2, 32 * 4)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_DELEGATE,
+			SELECTOR_LOG_DELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
 			EvmDataWriter::new()
 				.write::<Address>(Address(caller))
@@ -334,7 +334,7 @@ where
 		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_UNDELEGATE,
+			SELECTOR_LOG_UNDELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
 			EvmDataWriter::new()
 				.write::<Address>(Address(caller))
@@ -367,7 +367,7 @@ where
 		handle.record_log_costs_manual(2, 32)?;
 		log2(
 			handle.context().address,
-			SELECTOR_LOG_UNLOCK,
+			SELECTOR_LOG_UNLOCKED,
 			H256::from_low_u64_be(track_id as u64), // track id,
 			EvmDataWriter::new().write::<Address>(target).build(),
 		)
