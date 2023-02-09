@@ -1048,7 +1048,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       const registeredAsset = (await context.polkadotApi.query.localAssets.asset(assetId)).unwrap();
 
-      expect(registeredAsset.isFrozen.isTrue).to.be.true;
+      expect(registeredAsset.status.isFrozen).to.be.true;
     });
   },
   true

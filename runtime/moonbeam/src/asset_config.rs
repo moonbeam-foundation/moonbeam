@@ -23,17 +23,16 @@ use super::{
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::traits::Hash as THash;
-
 use frame_support::{
 	dispatch::GetDispatchInfo,
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, EitherOfDiverse},
 	weights::Weight,
 };
+use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use sp_runtime::traits::Hash as THash;
 
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureNever, EnsureRoot};
 use sp_core::{H160, H256};
 
 use parity_scale_codec::{Compact, Decode, Encode};
@@ -85,7 +84,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = Compact<AssetId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
@@ -107,7 +106,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = Compact<AssetId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
@@ -185,18 +184,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	#[transactional]
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
-		// First destroy the asset
-		Assets::freeze_asset(RuntimeOrigin::root(), asset.into())
-			.and_then(|_| Assets::start_destroy(RuntimeOrigin::root(), asset.into()))
-			.and_then(|_| {
-				Assets::destroy_accounts(RuntimeOrigin::root(), asset.into())
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| {
-				Assets::destroy_approvals(RuntimeOrigin::root(), asset.into())
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| Assets::finish_destroy(RuntimeOrigin::root(), asset.into()))?;
+		// Mark the asset as destroying
+		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
@@ -208,18 +197,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	#[transactional]
 	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
-		// First destroy the asset
-		LocalAssets::freeze_asset(RuntimeOrigin::root(), asset.into())
-			.and_then(|_| LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into()))
-			.and_then(|_| {
-				LocalAssets::destroy_accounts(RuntimeOrigin::root(), asset.into())
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| {
-				LocalAssets::destroy_approvals(RuntimeOrigin::root(), asset.into())
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| LocalAssets::finish_destroy(RuntimeOrigin::root(), asset.into()))?;
+		// Mark the asset as destroying
+		LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into())?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
@@ -238,37 +217,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// EVM
 
 		// This is the dispatch info of destroy
-		let call_weight = [
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::freeze_asset {
-					id: asset.into(),
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
-					id: asset.into(),
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_accounts {
-					id: asset.into(),
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_approvals {
-					id: asset.into(),
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::finish_destroy {
-					id: asset.into(),
-				},
-			),
-		]
-		.into_iter()
-		.fold(Weight::zero(), |acc, call| {
-			acc.saturating_add(call.get_dispatch_info().weight)
-		});
+		let call_weight = RuntimeCall::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
+				id: asset.into(),
+			},
+		)
+		.get_dispatch_info()
+		.weight;
 
 		// This is the db write
 		call_weight.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))

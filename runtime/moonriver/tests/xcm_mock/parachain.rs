@@ -24,8 +24,7 @@ use frame_support::{
 	weights::Weight,
 	PalletId,
 };
-
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureNever, EnsureRoot};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
@@ -145,7 +144,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
@@ -166,7 +165,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
@@ -783,65 +782,25 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Ok(())
 	}
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
-		// First destroy the asset
-		Assets::freeze_asset(RuntimeOrigin::root(), asset)
-			.and_then(|_| Assets::start_destroy(RuntimeOrigin::root(), asset))
-			.and_then(|_| {
-				Assets::destroy_accounts(RuntimeOrigin::root(), asset).map_err(|info| info.error)
-			})
-			.and_then(|_| {
-				Assets::destroy_approvals(RuntimeOrigin::root(), asset).map_err(|info| info.error)
-			})
-			.and_then(|_| Assets::finish_destroy(RuntimeOrigin::root(), asset))?;
+		// Mark the asset as destroying
+		Assets::start_destroy(RuntimeOrigin::root(), asset)?;
 
 		Ok(())
 	}
 
 	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
-		// First destroy the asset
-		LocalAssets::freeze_asset(RuntimeOrigin::root(), asset)
-			.and_then(|_| LocalAssets::start_destroy(RuntimeOrigin::root(), asset))
-			.and_then(|_| {
-				LocalAssets::destroy_accounts(RuntimeOrigin::root(), asset)
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| {
-				LocalAssets::destroy_approvals(RuntimeOrigin::root(), asset)
-					.map_err(|info| info.error)
-			})
-			.and_then(|_| LocalAssets::finish_destroy(RuntimeOrigin::root(), asset))?;
+		// Mark the asset as destroying
+		LocalAssets::start_destroy(RuntimeOrigin::root(), asset)?;
 
 		Ok(())
 	}
 
 	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
-		let call_weight = [
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::freeze_asset { id: asset },
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy { id: asset },
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_accounts {
-					id: asset,
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy_approvals {
-					id: asset,
-				},
-			),
-			RuntimeCall::Assets(
-				pallet_assets::Call::<Runtime, ForeignAssetInstance>::finish_destroy { id: asset },
-			),
-		]
-		.into_iter()
-		.fold(Weight::zero(), |acc, call| {
-			acc.saturating_add(call.get_dispatch_info().weight)
-		});
-
-		call_weight
+		RuntimeCall::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy { id: asset },
+		)
+		.get_dispatch_info()
+		.weight
 	}
 }
 

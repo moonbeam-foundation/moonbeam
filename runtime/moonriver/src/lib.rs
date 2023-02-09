@@ -890,6 +890,9 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::approve_transfer { .. } => true,
 				pallet_assets::Call::transfer_approved { .. } => true,
 				pallet_assets::Call::cancel_approval { .. } => true,
+				pallet_assets::Call::destroy_accounts { .. } => true,
+				pallet_assets::Call::destroy_approvals { .. } => true,
+				pallet_assets::Call::finish_destroy { .. } => true,
 				_ => false,
 			},
 			// We want to disable create, as we dont want users to be choosing the
@@ -900,9 +903,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			RuntimeCall::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
 				pallet_assets::Call::start_destroy { .. } => false,
-				pallet_assets::Call::destroy_accounts { .. } => false,
-				pallet_assets::Call::destroy_approvals { .. } => false,
-				pallet_assets::Call::finish_destroy { .. } => false,
 				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version

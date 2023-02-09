@@ -24,7 +24,7 @@ use frame_support::{
 	weights::Weight,
 };
 
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureNever, EnsureRoot};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{
 	mock_account,
@@ -231,7 +231,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
@@ -252,7 +252,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 

@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{AsEnsureOriginWithArg, Everything, Nothing},
 	weights::Weight,
 };
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureNever, EnsureRoot};
 
 use sp_core::H256;
 use sp_runtime::{
@@ -133,7 +133,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = ();
 	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
 }
 
