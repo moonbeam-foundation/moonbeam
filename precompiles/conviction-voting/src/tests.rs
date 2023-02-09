@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, VoteDirection, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
-	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_OTHER,
+	mock::*, VoteDirection, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED,
+	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
+	SELECTOR_LOG_VOTE_REMOVED_OTHER,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 

@@ -287,14 +287,10 @@ where
 			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal).map_err(
-				|_| {
-					RevertReason::custom("Proposal input is not a runtime call")
-						.in_field("proposal")
-				},
-			)?,
-		);
+		let proposal: BoundedCallOf<Runtime> =
+			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
+				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+			})?);
 		let enactment_moment = DispatchTime::At(block_number.into());
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -343,14 +339,10 @@ where
 			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal).map_err(
-				|_| {
-					RevertReason::custom("Proposal input is not a runtime call")
-						.in_field("proposal")
-				},
-			)?,
-		);
+		let proposal: BoundedCallOf<Runtime> =
+			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
+				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+			})?);
 		let enactment_moment = DispatchTime::After(block_number.into());
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
