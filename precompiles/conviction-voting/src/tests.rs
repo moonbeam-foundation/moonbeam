@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, VoteDirection, SELECTOR_LOG_DELEGATE, SELECTOR_LOG_UNDELEGATE, SELECTOR_LOG_UNLOCK,
-	SELECTOR_LOG_VOTE, SELECTOR_LOG_VOTE_REMOVE, SELECTOR_LOG_VOTE_REMOVE_OTHER,
+	mock::*, VoteDirection, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
+	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_OTHER,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
@@ -121,7 +121,7 @@ fn vote_logs_work() {
 				EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_VOTE,
+						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
@@ -135,7 +135,7 @@ fn vote_logs_work() {
 				EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_VOTE,
+						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
@@ -173,7 +173,7 @@ fn remove_vote_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_VOTE_REMOVE,
+						SELECTOR_LOG_VOTE_REMOVED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
@@ -208,7 +208,7 @@ fn remove_other_vote_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_VOTE_REMOVE_OTHER,
+						SELECTOR_LOG_VOTE_REMOVED_OTHER,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
@@ -243,7 +243,7 @@ fn delegate_undelegate_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_DELEGATE,
+						SELECTOR_LOG_DELEGATED,
 						H256::from_low_u64_be(0 as u64), // track id
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // from
@@ -265,7 +265,7 @@ fn delegate_undelegate_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_UNDELEGATE,
+						SELECTOR_LOG_UNDELEGATED,
 						H256::from_low_u64_be(0 as u64), // track id
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
@@ -306,7 +306,7 @@ fn unlock_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_UNLOCK,
+						SELECTOR_LOG_UNLOCKED,
 						H256::from_low_u64_be(0 as u64), // track id
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
