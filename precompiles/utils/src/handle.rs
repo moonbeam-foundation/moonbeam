@@ -112,7 +112,7 @@ pub fn using_precompile_handle<'a, R, F: FnOnce() -> R>(
 	// The only risk here is that the lifetime 'a comes to its end while the global variable
 	// `EVM_CONTEXT` still contains the reference to the precompile handle.
 	// The `using` method guarantee that it can't happen because the global variable is freed right
-	// after the execution of the  `mutator` closure (whatever the result of the execution).
+	// after the execution of the `mutator` closure (whatever the result of the execution).
 	unsafe {
 		EVM_CONTEXT::using(
 			core::mem::transmute::<&'a mut dyn PrecompileHandle, &'static mut dyn PrecompileHandle>(

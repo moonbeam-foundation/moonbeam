@@ -53,9 +53,10 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_validate: bool,
 				_config: &fp_evm::Config,
 			) -> Result<CallInfo, RunnerError<Self::Error>> {
-				// The `with_precompile_handle` function will execute the closure (and return the result in a
-				// Some) if and only if there is an available EVM context. Otherwise, it will return None.
-				if let Some((exit_reason, value)) = with_precompile_handle(|evm_handle| {
+				// The `with_precompile_handle` function will execute the closure (and return the
+				// result in a Some) if and only if there is an available EVM context. Otherwise,
+				// it will return None.
+				if let Some((exit_reason, value)) = with_precompile_handle(|precompile_handle| {
 					let transfer = if value.is_zero() {
 						None
 					} else {
@@ -66,7 +67,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						})
 					};
 
-					evm_handle.call(
+					precompile_handle.call(
 						target,
 						transfer,
 						input.clone(),
