@@ -315,7 +315,7 @@ pub fn testnet_genesis(
 		// This should initialize it to whatever we have set in the pallet
 		polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
-			multiplier: Multiplier::from(10u128),
+			multiplier: Multiplier::from(8u128),
 		},
 	}
 }
