@@ -33,6 +33,9 @@ use {
 	sp_std::{convert::TryInto, vec, vec::Vec},
 };
 
+// derive macro
+pub use precompile_utils_macro::EvmData;
+
 /// Data that can be converted from and to EVM data types.
 pub trait EvmData: Sized {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self>;
