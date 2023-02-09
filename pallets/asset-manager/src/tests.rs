@@ -814,7 +814,7 @@ fn test_destroy_local_asset_works() {
 		.execute_with(|| {
 			let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
 
-			assert_ok!(AssetManager::set(
+			assert_ok!(AssetManager::register_local_asset(
 				RuntimeOrigin::root(),
 				1u64,
 				1u64,
