@@ -1,5 +1,5 @@
 error[E0277]: the trait bound `String: EvmData` is not satisfied
-  --> tests/precompile/compile-fail/evm-data/arg-dont-impl-evmdata.rs:26:43
+  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:43
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |                                              ^^^ the trait `EvmData` is not implemented for `String`
@@ -21,7 +21,7 @@ note: required by a bound in `EvmDataReader::<'a>::read`
    |                    ^^^^^^^ required by this bound in `EvmDataReader::<'a>::read`
 
 error[E0277]: the trait bound `String: EvmData` is not satisfied
-  --> tests/precompile/compile-fail/evm-data/arg-dont-impl-evmdata.rs:26:43
+  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:43
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |                                              ^^^ the trait `EvmData` is not implemented for `String`
@@ -43,7 +43,7 @@ note: required by a bound in `EvmDataWriter::write`
    |                     ^^^^^^^ required by this bound in `EvmDataWriter::write`
 
 error[E0277]: the trait bound `String: EvmData` is not satisfied
-  --> tests/precompile/compile-fail/evm-data/arg-dont-impl-evmdata.rs:26:5
+  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:5
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |        ^^^ the trait `EvmData` is not implemented for `String`

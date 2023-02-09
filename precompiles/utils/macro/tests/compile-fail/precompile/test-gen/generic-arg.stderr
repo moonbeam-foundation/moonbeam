@@ -1,5 +1,5 @@
 error[E0412]: cannot find type `R` in this scope
-  --> tests/precompile/compile-fail/test/generic-arg.rs:28:63
+  --> tests/compile-fail/precompile/test-gen/generic-arg.rs:28:63
    |
 26 | impl<R: Get<u32>> Precompile<R> {
    |                             - help: you might be missing a type parameter: `<R>`

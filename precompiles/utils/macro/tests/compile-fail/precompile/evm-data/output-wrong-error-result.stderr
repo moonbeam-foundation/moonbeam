@@ -1,5 +1,5 @@
 error[E0277]: `?` couldn't convert the error to `PrecompileFailure`
-  --> tests/precompile/compile-fail/evm-data/output-wrong-error-result.rs:25:63
+  --> tests/compile-fail/precompile/evm-data/output-wrong-error-result.rs:25:63
    |
 25 |     fn foo(test: &mut impl PrecompileHandle) -> Result<(), String> {
    |                                                                  ^ the trait `From<String>` is not implemented for `PrecompileFailure`

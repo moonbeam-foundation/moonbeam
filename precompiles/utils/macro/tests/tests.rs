@@ -50,3 +50,20 @@ fn test_generate_function_selector() {
 	);
 	assert_ne!(Action::Toto as u32, Action::Tata as u32);
 }
+
+#[test]
+fn ui() {
+	let t = trybuild::TestCases::new();
+	t.compile_fail("tests/compile-fail/**/*.rs");
+	t.pass("tests/pass/**/*.rs");
+}
+
+#[test]
+fn expand() {
+	// Use `expand` to update the expensions
+	// Replace it with `expand_without_refresh` afterward so that
+	// CI checks the expension don't change
+
+	// macrotest::expand("tests/expand/**/*.rs");
+	macrotest::expand_without_refresh("tests/expand/**/*.rs");
+}

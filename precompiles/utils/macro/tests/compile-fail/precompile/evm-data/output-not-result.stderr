@@ -1,5 +1,5 @@
 error[E0277]: the `?` operator can only be applied to values that implement `Try`
-  --> tests/precompile/compile-fail/evm-data/output-not-result.rs:25:46
+  --> tests/compile-fail/precompile/evm-data/output-not-result.rs:25:46
    |
 25 |     fn foo(test: &mut impl PrecompileHandle) -> String {
    |                                                 ^^^^^^ the `?` operator cannot be applied to type `String`
