@@ -90,8 +90,8 @@ describeSmokeSuite(
       runtime = context.polkadotApi.consts.system.version.specName.toUpperCase() as any;
 
       const { specVersion, specName } = context.polkadotApi.consts.system.version;
-      if (specVersion.toNumber() < 2100) {
-        debug(`Runtime version ${specVersion.toString()} is less than 2100, skipping test suite.`);
+      if (specVersion.toNumber() < 2200) {
+        debug(`Runtime version ${specVersion.toString()} is less than 2200, skipping test suite.`);
         this.skip();
       }
 
@@ -192,12 +192,6 @@ describeSmokeSuite(
     });
 
     testIt("C300", "BaseFeePerGas is within expected min/max", function () {
-      const rtVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
-      if (rtVersion < 2200) {
-        debug(`Runtime Version ${rtVersion} is less than 2200, skipping`);
-        this.skip();
-      }
-
       const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
         return (
           ethers.utils
