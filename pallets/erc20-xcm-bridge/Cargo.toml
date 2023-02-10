@@ -28,19 +28,5 @@ xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbe
 
 [features]
 default = [ "std" ]
-std = [
-	"environmental/std",
-	"fp-evm/std",
-	"frame-support/std",
-	"frame-system/std",
-	"pallet-evm/std",
-	"parity-scale-codec/std",
-	"scale-info/std",
-	"serde",
-	"sp-core/std",
-	"sp-runtime/std",
-	"sp-std/std",
-    "xcm/std",
-    "xcm-executor/std"
-]
+std = [ "environmental/std", "fp-evm/std", "frame-support/std", "frame-system/std", "pallet-evm/std", "parity-scale-codec/std", "scale-info/std", "serde", "sp-core/std", "sp-runtime/std", "sp-std/std", "xcm-executor/std", "xcm/std" ]
 try-runtime = [ "frame-support/try-runtime" ]

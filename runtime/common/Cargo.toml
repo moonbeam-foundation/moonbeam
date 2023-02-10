@@ -36,8 +36,8 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
@@ -51,14 +51,14 @@ xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbe
 
 [features]
 std = [
-	"fp-evm/std",
 	"fp-ethereum/std",
+	"fp-evm/std",
 	"frame-support/std",
 	"pallet-asset-manager/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
-	"pallet-ethereum-xcm/std",
 	"pallet-base-fee/std",
+	"pallet-ethereum-xcm/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
@@ -69,8 +69,8 @@ std = [
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"xcm/std",
 	"xcm-executor/std",
+	"xcm/std",
 ]
 try-runtime = [
 	"frame-support/try-runtime",
