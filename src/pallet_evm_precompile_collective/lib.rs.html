@@ -323,6 +323,12 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -433,6 +439,10 @@
 	) -&gt; EvmResult {
 		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
 		<span class="kw">let </span>proposal_hash: H256 = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
+
+		<span class="kw">let </span>log = log_executed(handle.context().address, proposal_hash);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
 			RevertReason::value_is_too_large(<span class="string">&quot;uint32&quot;</span>)
 				.in_field(<span class="string">&quot;length&quot;</span>)
@@ -454,9 +464,6 @@
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>log = log_executed(handle.context().address, proposal_hash);
-
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
@@ -479,6 +486,23 @@
 
 		<span class="kw">let </span>proposal_index = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposal_count();
 		<span class="kw">let </span>proposal_hash: H256 = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
+
+		<span class="comment">// In pallet_collective a threshold &lt; 2 means the proposal has been
+		// executed directly.
+		</span><span class="kw">let </span>log = <span class="kw">if </span>threshold &lt; <span class="number">2 </span>{
+			log_executed(handle.context().address, proposal_hash)
+		} <span class="kw">else </span>{
+			log_proposed(
+				handle.context().address,
+				handle.context().caller,
+				proposal_index,
+				proposal_hash,
+				threshold,
+			)
+		};
+
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>proposal = Runtime::RuntimeCall::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
 			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
 			</span>.into();
@@ -497,21 +521,6 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// In pallet_collective a threshold &lt; 2 means the proposal has been
-		// executed directly.
-		</span><span class="kw">let </span>log = <span class="kw">if </span>threshold &lt; <span class="number">2 </span>{
-			log_executed(handle.context().address, proposal_hash)
-		} <span class="kw">else </span>{
-			log_proposed(
-				handle.context().address,
-				handle.context().caller,
-				proposal_index,
-				proposal_hash,
-				threshold,
-			)
-		};
-
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(proposal_index)
@@ -524,6 +533,16 @@
 		proposal_index: u32,
 		approve: bool,
 	) -&gt; EvmResult {
+		<span class="comment">// TODO: Since we cannot access ayes/nays of a proposal we cannot
+		// include it in the EVM events to mirror Substrate events.
+		</span><span class="kw">let </span>log = log_voted(
+			handle.context().address,
+			handle.context().caller,
+			proposal_hash,
+			approve,
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 			handle,
@@ -535,16 +554,6 @@
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// TODO: Since we cannot access ayes/nays of a proposal we cannot
-		// include it in the EVM events to mirror Substrate events.
-
-		</span><span class="kw">let </span>log = log_voted(
-			handle.context().address,
-			handle.context().caller,
-			proposal_hash,
-			approve,
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
@@ -558,6 +567,10 @@
 		proposal_weight_bound: u64,
 		length_bound: u32,
 	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="comment">// Because the actual log cannot be built before dispatch, we manually
+		// record it first (`executed` and `closed` have the same cost).
+		</span>handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>post_dispatch_info = RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 			handle,
@@ -576,7 +589,6 @@
 			Pays::Yes =&gt; (<span class="bool-val">true</span>, log_executed(handle.context().address, proposal_hash)),
 			Pays::No =&gt; (<span class="bool-val">false</span>, log_closed(handle.context().address, proposal_hash)),
 		};
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(executed)
