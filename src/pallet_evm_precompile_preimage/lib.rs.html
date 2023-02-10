@@ -85,6 +85,8 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -110,8 +112,8 @@
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_preimage::Call <span class="kw">as </span>PreimageCall;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::H256;
-<span class="kw">use </span>sp_std::marker::PhantomData;
+<span class="kw">use </span>sp_core::{Hasher, H256};
+<span class="kw">use </span>sp_std::{marker::PhantomData, vec::Vec};
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -133,6 +135,7 @@
 		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: Into&lt;H256&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;PreimageCall&lt;Runtime&gt;&gt;,
 {
 	<span class="doccomment">/// Register a preimage on-chain.
@@ -143,15 +146,16 @@
 	</span><span class="kw">fn </span>note_preimage(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		encoded_proposal: BoundedBytes&lt;GetEncodedProposalSizeLimit&gt;,
-	) -&gt; EvmResult {
-		<span class="kw">let </span>bytes = encoded_proposal.into();
+	) -&gt; EvmResult&lt;H256&gt; {
+		<span class="kw">let </span>bytes: Vec&lt;u8&gt; = encoded_proposal.into();
+		<span class="kw">let </span>hash: H256 = Runtime::Hashing::hash(<span class="kw-2">&amp;</span>bytes).into();
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage { bytes }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(hash)
 	}
 
 	<span class="doccomment">/// Clear an unrequested preimage from the runtime storage.
