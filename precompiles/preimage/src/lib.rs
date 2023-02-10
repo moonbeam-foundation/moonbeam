@@ -23,7 +23,7 @@ use frame_support::traits::ConstU32;
 use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
-use sp_core::H256;
+use sp_core::{Hasher, H256};
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -46,6 +46,7 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<PreimageCall<Runtime>>,
 {
 	/// Register a preimage on-chain.
@@ -56,15 +57,16 @@ where
 	fn note_preimage(
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
-	) -> EvmResult {
-		let bytes = encoded_proposal.into();
+	) -> EvmResult<H256> {
+		let bytes: Vec<u8> = encoded_proposal.into();
+		let hash: H256 = Runtime::Hashing::hash(&bytes).into();
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(())
+		Ok(hash)
 	}
 
 	/// Clear an unrequested preimage from the runtime storage.

@@ -15,7 +15,10 @@ interface Preimage {
     /// @dev Register a Preimage on-chain.
     /// @custom:selector cb00f603
     /// @param encodedProposal The preimage to be registered on-chain
-    function notePreimage(bytes memory encodedProposal) external;
+    /// @return preimageHash The hash of the preimage
+    function notePreimage(bytes memory encodedProposal)
+        external
+        returns (bytes32 preimageHash);
 
     /// @dev Clear an unrequested preimage from storage.
     /// @custom:selector 02e71b45
