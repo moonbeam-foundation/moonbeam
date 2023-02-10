@@ -130,9 +130,9 @@ most straightforward is a debug build (omit `--release`), but this will produce 
 extremely large and performs very poorly. A `--release` build can provide some middle ground, and
 you may need some or all of:
 
-* `-g` (alias for `-C debuginfo=2`, the max)
-* `-C force-frame-pointers=yes`
-* `-Copt-level=0` (or 1, etc. This one has a big impact)
+- `-g` (alias for `-C debuginfo=2`, the max)
+- `-C force-frame-pointers=yes`
+- `-Copt-level=0` (or 1, etc. This one has a big impact)
 
 To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
 time before the node starts, but the terminal containing the node output will appear when it is

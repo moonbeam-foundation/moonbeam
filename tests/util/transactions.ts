@@ -121,14 +121,21 @@ export const createTransaction = async (
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
 
-  // Instead of hardcoding the gas limit, we estimate the gas
-  const gas =
-    options.gas ||
-    (await context.web3.eth.estimateGas({
+  // Allows to retrieve potential errors
+  let error = null;
+  const estimatedGas = await context.web3.eth
+    .estimateGas({
       from: from,
       to: options.to,
       data: options.data,
-    }));
+    })
+    .catch((e) => {
+      error = e;
+      return 0;
+    });
+
+  // Instead of hardcoding the gas limit, we estimate the gas
+  const gas = options.gas || estimatedGas;
 
   const accessList = options.accessList || [];
   const nonce =
@@ -204,7 +211,8 @@ export const createTransaction = async (
             data.data.length < 50
               ? data.data
               : data.data.substr(0, 5) + "..." + data.data.substr(data.data.length - 3)
-          }`)
+          }, `) +
+      (error ? `ERROR: ${error.toString()}, ` : "")
   );
   return rawTransaction;
 };

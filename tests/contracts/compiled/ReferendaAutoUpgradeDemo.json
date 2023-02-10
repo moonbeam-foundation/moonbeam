@@ -1,0 +1,112 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "contractCode", "type": "bytes" },
+          {
+            "internalType": "bytes",
+            "name": "contractStorageKey",
+            "type": "bytes"
+          }
+        ],
+        "name": "autoUpgrade",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "proposalId",
+        "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "rootTrackId",
+        "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "autoUpgrade(bytes,bytes)": "79688e99",
+        "proposalId()": "2dfca445",
+        "rootTrackId()": "6d72ffb6"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"contractCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"contractStorageKey\",\"type\":\"bytes\"}],\"name\":\"autoUpgrade\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proposalId\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rootTrackId\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"autoUpgrade(bytes,bytes)\":{\"notice\":\"TODO Add check for deposit value\"},\"constructor\":{\"notice\":\"construct the smart contract with the track id to send the proposal to\"},\"proposalId()\":{\"notice\":\"The id of the track used for root execution\"},\"rootTrackId()\":{\"notice\":\"The id of the track used for root execution\"}},\"notice\":\"Smart contract to demonstrate how to use Referenda Precompile to self-upgrade\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"ReferendaAutoUpgradeDemo\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xd37ea835ab26b7edc65a16cf9a652aa6f7c6d231b922a69102f4964f5304774b\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ba72a4ff7a198c61d4077edc2d185143626a5f7cf2a453f3a670638252e5f2cb\",\"dweb:/ipfs/Qmeu1YaroW94TuXgbLsbB7UpKjAvx97wB1RcMhLrLEnp4C\"]},\"precompiles/preimage/Preimage.sol\":{\"keccak256\":\"0xea8dd2cf2a4902b6b5d60fd906942927b09bef8685e09eadc3d2e2018fb09407\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://d9918874213683f96bab84bcaef9db332f8b5b25d4dbcc0a1ca13fdf04fbd95a\",\"dweb:/ipfs/QmWE9eyvfctHCjdWzHCfnoXy9vZwNMqNmq6ZV4edCV25NN\"]},\"precompiles/referenda/Referenda.sol\":{\"keccak256\":\"0x534f8ef04cedf5352348bd1c8c20c41d0a778c0bfdc784a198d0f25b11e555a7\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://f489b688d2474de33f3e69a7530aa2e351f69361d507c8c835a8e4971c8fc816\",\"dweb:/ipfs/Qmd6dGcFgTHbfJAG3uY2FDVyftbN4qd9qqwczEZg3bBfwo\"]}},\"version\":1}",
+    "storageLayout": {
+      "storage": [
+        {
+          "astId": 7,
+          "contract": "main.sol:ReferendaAutoUpgradeDemo",
+          "label": "rootTrackId",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint16"
+        },
+        {
+          "astId": 10,
+          "contract": "main.sol:ReferendaAutoUpgradeDemo",
+          "label": "proposalId",
+          "offset": 2,
+          "slot": "0",
+          "type": "t_uint16"
+        }
+      ],
+      "types": {
+        "t_uint16": {
+          "encoding": "inplace",
+          "label": "uint16",
+          "numberOfBytes": "2"
+        }
+      }
+    },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "autoUpgrade(bytes,bytes)": {
+          "notice": "TODO Add check for deposit value"
+        },
+        "constructor": {
+          "notice": "construct the smart contract with the track id to send the proposal to"
+        },
+        "proposalId()": {
+          "notice": "The id of the track used for root execution"
+        },
+        "rootTrackId()": {
+          "notice": "The id of the track used for root execution"
+        }
+      },
+      "notice": "Smart contract to demonstrate how to use Referenda Precompile to self-upgrade",
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\nimport \"../../../precompiles/referenda/Referenda.sol\";\nimport \"../../../precompiles/preimage/Preimage.sol\";\n\n/// @notice Smart contract to demonstrate how to use Referenda Precompile to self-upgrade\nabstract contract ReferendaAutoUpgradeDemo {\n    /// @notice The id of the track used for root execution\n    uint16 public rootTrackId;\n\n    /// @notice The id of the track used for root execution\n    uint16 public proposalId;\n\n    /// @notice construct the smart contract with the track id to send the proposal to\n    constructor(uint16 trackId) {\n        rootTrackId = trackId;\n    }\n\n    /// TODO Add check for deposit value\n    function autoUpgrade(\n        bytes memory contractCode,\n        bytes memory contractStorageKey\n    ) public {\n        bytes memory codeStorageKey = contractStorageKey;\n\n        // Moonbase: Pallet index 00 , call index 05\n        bytes memory systemSetStorageIndexes = bytes.concat(\n            bytes(\"\\x00\"),\n            bytes(\"\\x05\")\n        );\n        // 1 storage key to change, so 4 bytes\n        bytes memory itemCountBytes = bytes(\"\\x04\");\n        // Key value prefixed with key size in big endian (same for all the evm.accountStorage keys)\n        // Add 1 for encodings\n        uint16 keyLength = uint16(codeStorageKey.length * 4) + 1;\n        // conversion to big endian and\n        uint16 reversedkeyLength = ((keyLength >> 8) | (keyLength << 8));\n\n        // Add 1 for encodings\n        uint16 codeLength = uint16(contractCode.length * 4) + 1;\n        // conversion to big endian and add 1 for encoding\n        uint16 reversedCodeLength = ((codeLength >> 8) | (codeLength << 8));\n\n        bytes memory key = bytes.concat(\n            bytes2(reversedkeyLength),\n            codeStorageKey\n        );\n        bytes memory value = bytes.concat(\n            bytes2(reversedCodeLength),\n            contractCode\n        );\n        bytes memory setStorageCall = bytes.concat(\n            systemSetStorageIndexes,\n            itemCountBytes,\n            key,\n            value\n        );\n\n        /// Size of the call + the transaction metadata (1 byte);\n        uint16 txContentLength = uint16((setStorageCall.length) * 4 + 1);\n        // Because of SCALE Compact encoding we need to have a dynamic size of the\n        // transaction length\n        bytes memory fullLength;\n\n        if (txContentLength >= 64) {\n            // 2 bytes\n            fullLength = abi.encodePacked(\n                ((txContentLength >> 8) | (txContentLength << 8))\n            );\n        } else {\n            // 1 byte\n            fullLength = abi.encodePacked(uint8(txContentLength));\n        }\n\n        bytes memory setStorageTx = bytes.concat(\n            bytes32(uint256(txContentLength)),\n            setStorageCall\n        );\n\n        // /// If the block count is lower than the minimum allowed, it will pick the minimum\n        // /// allowed automatically.\n        uint32 blockCount = 1;\n        // /// Submit the proposal\n        // REFERENDA_CONTRACT.submitAfter(rootTrackId, setStorageTx, blockCount);\n\n        // uint256 referendumId = REFERENDA_CONTRACT.referendumCount();\n\n        // /// TODO once the referendumInfo is available\n        // /// Referenda.TrackInfo memory trackInfo = REFERENDA_CONTRACT.referendumInfo(referendumId);\n\n        // /// Directly place the deposit\n        // REFERENDA_CONTRACT.placeDecisionDeposit(uint32(referendumId));\n    }\n}\n\ncontract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {\n    constructor(uint16 trackId) ReferendaAutoUpgradeDemo(trackId) {}\n\n    function version() external pure returns (uint256) {\n        return 1;\n    }\n}\n\ncontract ReferendaAutoUpgradeDemoV2 is ReferendaAutoUpgradeDemo {\n    constructor(uint16 trackId) ReferendaAutoUpgradeDemo(trackId) {}\n\n    function version() external pure returns (uint256) {\n        return 2;\n    }\n}\n"
+}

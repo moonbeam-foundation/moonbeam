@@ -48,26 +48,30 @@ interface Referenda {
     function trackInfo(uint16 trackId) external view returns (TrackInfo memory);
 
     /// @dev Submit a referenda
-    /// @custom:selector 95f9ed68
+    /// @custom:selector 131f3468
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
-    /// @param proposal The proposed runtime call
+    /// @param proposal The proposed hash from the preimage pallet
+    /// @param proposalLen The length of the proposal call from the preimage pallet
     /// @param block Block number at which this will be executed
     function submitAt(
         uint16 trackId,
-        bytes memory proposal,
+        bytes32 proposal,
+        uint32 proposalLen,
         uint32 block
     ) external;
 
     /// @dev Submit a referenda
-    /// @custom:selector 0a1ecbe9
+    /// @custom:selector 5b2479db
     /// @param trackId The trackId corresponding to the origin from which the proposal is to be
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
-    /// @param proposal The proposed runtime call
+    /// @param proposal The proposed hash from the preimage pallet
+    /// @param proposalLen The length of the proposal call from the preimage pallet
     /// @param block Block number after which this will be executed
     function submitAfter(
         uint16 trackId,
-        bytes memory proposal,
+        bytes32 proposal,
+        uint32 proposalLen,
         uint32 block
     ) external;
 
