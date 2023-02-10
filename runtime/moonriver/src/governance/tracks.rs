@@ -148,3 +148,14 @@ fn vote_locking_always_longer_than_enactment_period() {
 		);
 	}
 }
+
+#[test]
+/// Precompile assumes the root origin corresponds to trackId 0 for submit* functions
+fn root_origin_has_track_id_0() {
+	for (id, track) in TRACKS_DATA {
+		if track.name == "root" {
+			assert_eq!(id, 0);
+			return;
+		}
+	}
+}
