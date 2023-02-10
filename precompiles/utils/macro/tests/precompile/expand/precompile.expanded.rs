@@ -211,26 +211,26 @@ where
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_all(handle, to, value, call_data, gas_limit);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some(handle, to, value, call_data, gas_limit);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some_until_failure(handle, to, value, call_data, gas_limit);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::fallback {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<Runtime>>::fallback(handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(

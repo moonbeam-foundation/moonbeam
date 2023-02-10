@@ -25,7 +25,7 @@ use frame_support::traits::{
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::U256;
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
@@ -48,6 +48,90 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
+
+pub struct TrackInfo {
+	name: UnboundedBytes,
+	max_deciding: U256,
+	decision_deposit: U256,
+	prepare_period: U256,
+	decision_period: U256,
+	confirm_period: U256,
+	min_enactment_period: U256,
+	min_approval: UnboundedBytes,
+	min_support: UnboundedBytes,
+}
+
+impl EvmData for TrackInfo {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		precompile_utils::read_struct!(reader, {
+			name: UnboundedBytes,
+			max_deciding: U256,
+			decision_deposit: U256,
+			prepare_period: U256,
+			decision_period: U256,
+			confirm_period: U256,
+			min_enactment_period: U256,
+			min_approval: UnboundedBytes,
+			min_support: UnboundedBytes
+		});
+		Ok(TrackInfo {
+			name,
+			max_deciding,
+			decision_deposit,
+			prepare_period,
+			decision_period,
+			confirm_period,
+			min_enactment_period,
+			min_approval,
+			min_support,
+		})
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(
+			writer,
+			(
+				value.name,
+				value.max_deciding,
+				value.decision_deposit,
+				value.prepare_period,
+				value.decision_period,
+				value.confirm_period,
+				value.min_enactment_period,
+				value.min_approval,
+				value.min_support,
+			),
+		);
+	}
+
+	fn has_static_size() -> bool {
+		<(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)>::solidity_type()
+	}
+}
 
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
@@ -130,20 +214,7 @@ where
 
 	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
-	fn track_info(
-		handle: &mut impl PrecompileHandle,
-		track_id: u16,
-	) -> EvmResult<(
-		UnboundedBytes,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		UnboundedBytes,
-		UnboundedBytes,
-	)> {
+	fn track_info(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<TrackInfo> {
 		// Fetch data from runtime
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
@@ -156,17 +227,17 @@ where
 			.unwrap_or_else(|x| x);
 		let track_info = &tracks[index].1;
 
-		Ok((
-			track_info.name.as_bytes().into(),
-			track_info.max_deciding.into(),
-			track_info.decision_deposit.into(),
-			track_info.prepare_period.into(),
-			track_info.decision_period.into(),
-			track_info.confirm_period.into(),
-			track_info.min_enactment_period.into(),
-			track_info.min_approval.encode().into(),
-			track_info.min_support.encode().into(),
-		))
+		Ok(TrackInfo {
+			name: track_info.name.into(),
+			max_deciding: track_info.max_deciding.into(),
+			decision_deposit: track_info.decision_deposit.into(),
+			prepare_period: track_info.prepare_period.into(),
+			decision_period: track_info.decision_period.into(),
+			confirm_period: track_info.confirm_period.into(),
+			min_enactment_period: track_info.min_enactment_period.into(),
+			min_approval: track_info.min_approval.encode().into(),
+			min_support: track_info.min_support.encode().into(),
+		})
 	}
 
 	// Helper function for submitAt and submitAfter

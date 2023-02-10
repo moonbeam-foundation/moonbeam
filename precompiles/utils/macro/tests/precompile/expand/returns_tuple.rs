@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#[test]
-fn ui() {
-	let t = trybuild::TestCases::new();
-	t.compile_fail("tests/precompile/compile-fail/**/*.rs");
-	t.pass("tests/precompile/pass/**/*.rs");
-}
+use {
+	precompile_utils::{EvmResult, prelude::*},
+	sp_core::{H160, U256},
+};
 
-#[test]
-fn expand() {
-	// use `expand` to refresh the output.
-	macrotest::expand_without_refresh("tests/precompile/expand/**/*.rs");
+struct ExamplePrecompile;
+
+#[precompile_utils_macro::precompile]
+impl ExamplePrecompile
+{
+	#[precompile::public("example()")]
+	fn example(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<(Address, U256, UnboundedBytes)> {
+		todo!("example")
+	}
 }

@@ -1,5 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { providers } from "ethers";
+import { setTimeout } from "timers/promises";
 import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
 
 export interface SmokeTestContext {
@@ -39,5 +40,12 @@ export function describeSmokeSuite(
     });
 
     cb(context, testIt);
+
+    afterEach(async function () {
+      // This timeout added to give the Websockets enough time to recover when running on K8 pods
+      if (this.currentTest.state !== "passed") {
+        await setTimeout(1000);
+      }
+    });
   });
 }
