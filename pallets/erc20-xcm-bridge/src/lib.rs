@@ -24,7 +24,7 @@ mod xcm_holding_ext;
 use frame_support::pallet;
 
 pub use pallet::*;
-pub use xcm_holding_ext::XcmExecutorWrapper;
+pub use xcm_holding_ext::{AssetTrapWrapper, XcmExecutorWrapper};
 
 #[pallet]
 pub mod pallet {
