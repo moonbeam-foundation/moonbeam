@@ -14,7 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::*;
+use crate::*;
 use precompile_utils::testing::*;
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
@@ -39,4 +44,25 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			}
 		}
 	}
+}
+
+#[test]
+fn note_preimage_returns_preimage_hash() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 40)])
+		.build()
+		.execute_with(|| {
+			let preimage = [1u8; 32];
+			let preimage_hash = <mock::Runtime as frame_system::Config>::Hashing::hash(&preimage);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::note_preimage {
+						encoded_proposal: BoundedBytes::from(preimage),
+					},
+				)
+				.execute_returns_encoded(preimage_hash);
+		})
 }
