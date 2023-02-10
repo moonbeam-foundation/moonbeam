@@ -64,9 +64,9 @@ impl pallet_whitelist::Config for Runtime {
 		MapSuccess<
 			pallet_collective::EnsureProportionAtLeast<
 				Self::AccountId,
-				TechCommitteeInstance,
-				2,
-				3,
+				OpenTechCommitteeInstance,
+				5,
+				9,
 			>,
 			Replace<ConstU16<6>>,
 		>,
