@@ -23,7 +23,7 @@ impl ExamplePrecompile {
 pub enum ExamplePrecompileCall {
     example {},
     #[doc(hidden)]
-    __phantom(PhantomData<()>, ::core::convert::Infallible),
+    __phantom(::core::marker::PhantomData<()>, ::core::convert::Infallible),
 }
 impl ExamplePrecompileCall {
     pub fn parse_call_data(
