@@ -50,7 +50,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config + pallet_evm::Config {
 		type AccountIdConverter: Convert<MultiLocation, H160>;
 		type EvmRunner: Runner<Self>;
-		type Erc20SovereignAccount: Get<H160>;
 		type Matcher: MatchesFungibles<H160, U256>;
 	}
 

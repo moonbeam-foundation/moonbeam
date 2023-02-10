@@ -26,11 +26,6 @@ mod impl_self_contained_call;
 mod impl_xcm_evm_runner;
 pub mod migrations;
 
-frame_support::parameter_types! {
-	/// ERC20 Sovereign Account used for transfer ERC20 token
-	pub const Erc20SovereignAccount: H160 = H160(hex_literal::hex!("000000000000000000ff00000000000000000000"));
-}
-
 //TODO maybe this should be upstreamed into Frontier.
 
 /// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.

@@ -623,7 +623,6 @@ type Erc20Matcher = ConvertedConcreteAssetId<
 impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type AccountIdConverter = LocationToH160;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type Erc20SovereignAccount = moonbeam_runtime_common::Erc20SovereignAccount;
 	type Matcher = Erc20Matcher;
 }
 
