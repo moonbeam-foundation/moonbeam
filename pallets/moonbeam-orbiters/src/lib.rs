@@ -46,7 +46,7 @@ pub use weights::WeightInfo;
 use frame_support::pallet;
 use nimbus_primitives::{AccountLookup, NimbusId};
 
-#[pallet(dev_mode)]
+#[pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
@@ -263,6 +263,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Add an orbiter in a collator pool
+		#[pallet::call_index(0)]
 		#[pallet::weight(T::WeightInfo::collator_add_orbiter())]
 		pub fn collator_add_orbiter(
 			origin: OriginFor<T>,
@@ -302,6 +303,7 @@ pub mod pallet {
 		}
 
 		/// Remove an orbiter from the caller collator pool
+		#[pallet::call_index(1)]
 		#[pallet::weight(T::WeightInfo::collator_remove_orbiter())]
 		pub fn collator_remove_orbiter(
 			origin: OriginFor<T>,
@@ -314,6 +316,7 @@ pub mod pallet {
 		}
 
 		/// Remove the caller from the specified collator pool
+		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::orbiter_leave_collator_pool())]
 		pub fn orbiter_leave_collator_pool(
 			origin: OriginFor<T>,
@@ -326,6 +329,7 @@ pub mod pallet {
 		}
 
 		/// Registering as an orbiter
+		#[pallet::call_index(3)]
 		#[pallet::weight(T::WeightInfo::orbiter_register())]
 		pub fn orbiter_register(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
@@ -350,6 +354,7 @@ pub mod pallet {
 		}
 
 		/// Deregistering from orbiters
+		#[pallet::call_index(4)]
 		#[pallet::weight(T::WeightInfo::orbiter_unregister(*collators_pool_count))]
 		pub fn orbiter_unregister(
 			origin: OriginFor<T>,
@@ -379,6 +384,7 @@ pub mod pallet {
 		}
 
 		/// Add a collator to orbiters program.
+		#[pallet::call_index(5)]
 		#[pallet::weight(T::WeightInfo::add_collator())]
 		pub fn add_collator(
 			origin: OriginFor<T>,
@@ -398,6 +404,7 @@ pub mod pallet {
 		}
 
 		/// Remove a collator from orbiters program.
+		#[pallet::call_index(6)]
 		#[pallet::weight(T::WeightInfo::remove_collator())]
 		pub fn remove_collator(
 			origin: OriginFor<T>,

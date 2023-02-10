@@ -54,7 +54,7 @@ pub mod mock;
 pub mod tests;
 pub mod weights;
 
-#[pallet(dev_mode)]
+#[pallet]
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
@@ -316,6 +316,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
+		#[pallet::call_index(0)]
 		#[pallet::weight(T::WeightInfo::register_foreign_asset())]
 		pub fn register_foreign_asset(
 			origin: OriginFor<T>,
@@ -356,6 +357,7 @@ pub mod pallet {
 
 		/// Change the amount of units we are charging per execution second
 		/// for a given ForeignAssetType
+		#[pallet::call_index(1)]
 		#[pallet::weight(T::WeightInfo::set_asset_units_per_second(*num_assets_weight_hint))]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
@@ -397,6 +399,7 @@ pub mod pallet {
 		/// Change the xcm type mapping for a given assetId
 		/// We also change this if the previous units per second where pointing at the old
 		/// assetType
+		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::change_existing_asset_type(*num_assets_weight_hint))]
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
@@ -451,6 +454,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[pallet::call_index(3)]
 		#[pallet::weight(T::WeightInfo::remove_supported_asset(*num_assets_weight_hint))]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
@@ -483,6 +487,7 @@ pub mod pallet {
 		}
 
 		/// Remove a given assetId -> assetType association
+		#[pallet::call_index(4)]
 		#[pallet::weight(T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint))]
 		pub fn remove_existing_asset_type(
 			origin: OriginFor<T>,
@@ -528,6 +533,7 @@ pub mod pallet {
 		/// The reason is that we dont need to hold a mapping between the multilocation
 		/// and the local asset, as this conversion is deterministic
 		/// Further, we dont allow xcm fee payment in local assets
+		#[pallet::call_index(5)]
 		#[pallet::weight(T::WeightInfo::register_local_asset())]
 		pub fn register_local_asset(
 			origin: OriginFor<T>,
@@ -595,6 +601,7 @@ pub mod pallet {
 		/// The weight in this case is the one returned by the trait
 		/// plus the db writes and reads from removing all the associated
 		/// data
+		#[pallet::call_index(6)]
 		#[pallet::weight({
 			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id
@@ -648,6 +655,7 @@ pub mod pallet {
 		/// We do not store anything related to local assets in this pallet other than the counter
 		/// and the counter is not used for destroying the asset, so no additional db reads/writes
 		/// to be counter here
+		#[pallet::call_index(7)]
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id

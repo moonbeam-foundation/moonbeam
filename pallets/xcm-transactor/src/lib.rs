@@ -84,7 +84,7 @@ pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
-#[pallet(dev_mode)]
+#[pallet]
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
@@ -384,7 +384,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(T::WeightInfo::register())]
 		/// Register a derivative index for an account id. Dispatchable by
 		/// DerivativeAddressRegistrationOrigin
 		///
@@ -393,6 +392,8 @@ pub mod pallet {
 		///
 		/// For now an index is registered for all possible destinations and not per-destination.
 		/// We can change this in the future although it would just make things more complicated
+		#[pallet::call_index(0)]
+		#[pallet::weight(T::WeightInfo::register())]
 		pub fn register(origin: OriginFor<T>, who: T::AccountId, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
@@ -412,9 +413,10 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(T::WeightInfo::deregister())]
 		/// De-Register a derivative index. This prevents an account to use a derivative address
 		/// (represented by an index) from our of our sovereign accounts anymore
+		#[pallet::call_index(1)]
+		#[pallet::weight(T::WeightInfo::deregister())]
 		pub fn deregister(origin: OriginFor<T>, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
@@ -432,6 +434,7 @@ pub mod pallet {
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
+		#[pallet::call_index(2)]
 		#[pallet::weight(
 			Weight::from_ref_time(Pallet::<T>::weight_of_initiate_reserve_withdraw())
 			.saturating_add(T::WeightInfo::transact_through_derivative())
@@ -515,6 +518,7 @@ pub mod pallet {
 		/// 'fee_payer' pays for the fee
 		///
 		/// SovereignAccountDispatcherOrigin callable only
+		#[pallet::call_index(3)]
 		#[pallet::weight(
 			Weight::from_ref_time(Pallet::<T>::weight_of_initiate_reserve_withdraw())
 			.saturating_add(T::WeightInfo::transact_through_sovereign())
@@ -584,6 +588,7 @@ pub mod pallet {
 		}
 
 		/// Change the transact info of a location
+		#[pallet::call_index(4)]
 		#[pallet::weight(T::WeightInfo::set_transact_info())]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
@@ -611,6 +616,7 @@ pub mod pallet {
 		}
 
 		/// Remove the transact info of a location
+		#[pallet::call_index(5)]
 		#[pallet::weight(T::WeightInfo::remove_transact_info())]
 		pub fn remove_transact_info(
 			origin: OriginFor<T>,
@@ -632,6 +638,7 @@ pub mod pallet {
 		/// by any method implemented in the destination chains runtime
 		///
 		/// This time we are giving the currency as a currencyId instead of multilocation
+		#[pallet::call_index(6)]
 		#[pallet::weight(T::WeightInfo::transact_through_signed())]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
@@ -694,6 +701,7 @@ pub mod pallet {
 		}
 
 		/// Set the fee per second of an asset on its reserve chain
+		#[pallet::call_index(7)]
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn set_fee_per_second(
 			origin: OriginFor<T>,
@@ -714,6 +722,7 @@ pub mod pallet {
 		}
 
 		/// Remove the fee per second of an asset on its reserve chain
+		#[pallet::call_index(8)]
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn remove_fee_per_second(
 			origin: OriginFor<T>,
@@ -732,6 +741,7 @@ pub mod pallet {
 		}
 
 		/// Manage HRMP operations
+		#[pallet::call_index(9)]
 		#[pallet::weight(T::WeightInfo::hrmp_manage())]
 		pub fn hrmp_manage(
 			origin: OriginFor<T>,
