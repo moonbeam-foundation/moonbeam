@@ -1053,7 +1053,7 @@ fn batch_not_callable_by_smart_contract() {
 }
 
 #[test]
-fn batch_is_callable_by_dummy_code() {
+fn batch_is_not_callable_by_dummy_code() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
