@@ -2198,7 +2198,7 @@
 
 <span class="kw">impl </span>pallet_author_slot_filter::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>RandomnessSource = RandomnessCollectiveFlip;
+	<span class="kw">type </span>RandomnessSource = Randomness;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
 	<span class="kw">type </span>WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight&lt;Runtime&gt;;
 }
