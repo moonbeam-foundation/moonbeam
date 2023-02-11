@@ -52,8 +52,8 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	AsPrefixedAccountKey20, FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact, XcmV2Weight,
+	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -316,10 +316,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type CallDispatcher = MoonbeamCall;
 }
 
-type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
-	RuntimeCall,
-	xcm_executor::XcmExecutor<XcmExecutorConfig>,
->;
+type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
@@ -610,20 +607,12 @@ parameter_types! {
 			PalletInstance(<Erc20XcmBridge as PalletInfoAccess>::index() as u8)
 		)
 	};
-	pub NetworkAny: NetworkId = NetworkId::Any;
 }
-
-type Erc20Matcher = ConvertedConcreteAssetId<
-	H160,
-	U256,
-	AsPrefixedAccountKey20<Erc20XcmBridgePalletLocation, NetworkAny, H160, JustTry>,
-	JustTry,
->;
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type AccountIdConverter = LocationToH160;
+	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type Matcher = Erc20Matcher;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_runtime::traits::Get;
 use sp_std::{borrow::Borrow, marker::PhantomData};
-use xcm::latest::{Junction, MultiLocation, NetworkId};
+use xcm::latest::MultiLocation;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -71,50 +70,4 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 pub trait AccountIdToCurrencyId<Account, CurrencyId> {
 	// Get assetId from account
 	fn account_to_currency_id(account: Account) -> Option<CurrencyId>;
-}
-
-/// Converter struct implementing `AssetIdConversion` converting a 20 bytes asset ID into
-/// a `AccountKey20` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value
-/// will typically be a `PalletInstance` junction.
-pub struct AsPrefixedAccountKey20<Prefix, Network, AssetId, ConvertAssetId>(
-	PhantomData<(Prefix, Network, AssetId, ConvertAssetId)>,
-);
-impl<
-		Prefix: Get<MultiLocation>,
-		Network: Get<NetworkId>,
-		AssetId: Clone,
-		ConvertAssetId: xcm_executor::traits::Convert<[u8; 20], AssetId>,
-	> xcm_executor::traits::Convert<MultiLocation, AssetId>
-	for AsPrefixedAccountKey20<Prefix, Network, AssetId, ConvertAssetId>
-{
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		let prefix = Prefix::get();
-		let id = id.borrow();
-		if prefix.parent_count() != id.parent_count()
-			|| prefix
-				.interior()
-				.iter()
-				.enumerate()
-				.any(|(index, junction)| id.interior().at(index) != Some(junction))
-		{
-			return Err(());
-		}
-		match id.interior().at(prefix.interior().len()) {
-			Some(Junction::AccountKey20 { key, network }) if network == &Network::get() => {
-				ConvertAssetId::convert_ref(key)
-			}
-			_ => Err(()),
-		}
-	}
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		let mut location = Prefix::get();
-		let key = ConvertAssetId::reverse_ref(what)?;
-		location
-			.push_interior(Junction::AccountKey20 {
-				key,
-				network: Network::get(),
-			})
-			.map_err(|_| ())?;
-		Ok(location)
-	}
 }
