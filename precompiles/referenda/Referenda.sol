@@ -12,6 +12,17 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @title The interface through which solidity contracts will interact with the Referenda pallet
 /// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
+    /// @dev Defines the referendum status.
+    /// The values start at `0` (most permissive) and are represented as `uint8`
+    enum ReferendumStatus {
+        Ongoing,
+        Approved,
+        Rejected,
+        Cancelled,
+        TimedOut,
+        Killed
+    }
+
     /// Return the total referendum count
     /// @custom:selector 3a42ee31
     function referendumCount() external view returns (uint256);
@@ -47,6 +58,36 @@ interface Referenda {
             bytes memory,
             bytes memory
         );
+
+    /// Return the ReferendumStatus for the input referendumIndex
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 8d407c0b
+    function referendumStatus(uint32 referendumIndex)
+        external
+        view
+        returns (ReferendumStatus);
+
+    // /// Return the referendumInfo for an approved referendum
+    // /// @param referendumIndex The index of the referendum
+    // /// @custom:selector 078e5678
+    // function approvedReferendumInfo(uint32 referendumIndex)
+    //     external
+    //     view
+    //     returns (
+    //         uint256,
+    //         address,
+    //         uint256,
+    //         address,
+    //         uint256
+    //     );
+
+    /// Return the block the referendum was killed
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 6414ddc5
+    function killedReferendumBlock(uint32 referendumIndex)
+        external
+        view
+        returns (uint256);
 
     /// @dev Submit a referenda
     /// @custom:selector 95f9ed68

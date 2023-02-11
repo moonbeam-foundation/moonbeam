@@ -23,7 +23,10 @@ use frame_support::traits::{
 	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
 };
 use pallet_evm::AddressMapping;
-use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
+use pallet_referenda::{
+	Call as ReferendaCall, DecidingCount, ReferendumCount, ReferendumInfo, ReferendumInfoFor,
+	TracksInfo,
+};
 use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::U256;
@@ -167,6 +170,70 @@ where
 			track_info.min_approval.encode().into(),
 			track_info.min_support.encode().into(),
 		))
+	}
+
+	#[precompile::public("referendumStatus(uint32)")]
+	#[precompile::view]
+	fn referendum_status(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<u8> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let status = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Ongoing(..) => 0,
+			ReferendumInfo::Approved(..) => 1,
+			ReferendumInfo::Rejected(..) => 2,
+			ReferendumInfo::Cancelled(..) => 3,
+			ReferendumInfo::TimedOut(..) => 4,
+			ReferendumInfo::Killed(..) => 5,
+		};
+
+		Ok(status)
+	}
+
+	// #[precompile::public("approvedReferendumInfo(uint32)")]
+	// #[precompile::view]
+	// fn approved_referendum_info(
+	// 	handle: &mut impl PrecompileHandle,
+	// 	referendum_index: u32,
+	// ) -> EvmResult<(U256, Address, U256, Address, U256)> {
+	// 	// Fetch data from pallet
+	// 	handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+	// 	let block = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+	// 		RevertReason::custom("Referendum does not exist for index")
+	// 			.in_field("referendum_index"),
+	// 	)? {
+	// 		ReferendumInfo::Approved(moment, d1, d2) => b,
+	// 		_ => return Err(RevertReason::custom("Referendum was not approved").into()),
+	// 	};
+
+	// 	Ok((moment.into(), ))
+	// }
+
+	#[precompile::public("killedReferendumBlock(uint32)")]
+	#[precompile::view]
+	fn killed_referendum_block(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<U256> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let block = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Killed(b) => b,
+			_ => return Err(RevertReason::custom("Referendum was not killed").into()),
+		};
+
+		Ok(block.into())
 	}
 
 	/// Propose a referendum on a privileged action.
