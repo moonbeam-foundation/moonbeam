@@ -81,4 +81,9 @@ interface Referenda {
     /// @custom:selector 1325d528
     /// @param  index The index of a closed referendum with decision deposit still locked
     function refundDecisionDeposit(uint32 index) external;
+
+    /// @dev Refund the Submission Deposit for a closed referendum back to the depositor
+    /// @custom:selector c28307ca
+    /// @param  index The index of a closed referendum with submission deposit still locked
+    function refundSubmissionDeposit(uint32 index) external;
 }
