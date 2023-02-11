@@ -11,7 +11,6 @@ import type {
   Null,
   Option,
   Result,
-  U256,
   U8aFixed,
   bool,
   u128,
@@ -21,30 +20,28 @@ import type {
   u8,
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
-import type {
-  AccountId20,
-  H160,
-  H256,
-  Perbill,
-  Percent,
-  Permill,
-} from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
 import type {
   EthereumLog,
   EvmCoreErrorExitReason,
   FrameSupportDispatchDispatchInfo,
+  FrameSupportDispatchPostDispatchInfo,
+  FrameSupportPreimagesBounded,
   FrameSupportTokensMiscBalanceStatus,
   MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
+  PalletConvictionVotingTally,
   PalletDemocracyVoteAccountVote,
   PalletDemocracyVoteThreshold,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpRuntimeDispatchError,
+  SpRuntimeDispatchErrorWithPostInfo,
   SpWeightsWeightV2Weight,
   XcmV1MultiAsset,
   XcmV1MultiLocation,
@@ -442,10 +439,15 @@ declare module "@polkadot/api-base/types/events" {
        */
       [key: string]: AugmentedEvent<ApiType>;
     };
-    baseFee: {
-      BaseFeeOverflow: AugmentedEvent<ApiType, []>;
-      NewBaseFeePerGas: AugmentedEvent<ApiType, [fee: U256], { fee: U256 }>;
-      NewElasticity: AugmentedEvent<ApiType, [elasticity: Permill], { elasticity: Permill }>;
+    convictionVoting: {
+      /**
+       * An account has delegated their vote to another account. [who, target]
+       */
+      Delegated: AugmentedEvent<ApiType, [AccountId20, AccountId20]>;
+      /**
+       * An [account] has cancelled a previous delegation operation.
+       */
+      Undelegated: AugmentedEvent<ApiType, [AccountId20]>;
       /**
        * Generic event
        */
@@ -1005,6 +1007,22 @@ declare module "@polkadot/api-base/types/events" {
     };
     migrations: {
       /**
+       * XCM execution resume failed with inner error
+       */
+      FailedToResumeIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
+      /**
+       * XCM execution suspension failed with inner error
+       */
+      FailedToSuspendIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
+      /**
        * Migration completed
        */
       MigrationCompleted: AugmentedEvent<
@@ -1078,6 +1096,64 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [account: AccountId20],
         { account: AccountId20 }
+      >;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /**
+       * A motion was approved by the required threshold.
+       */
+      Approved: AugmentedEvent<ApiType, [proposalHash: H256], { proposalHash: H256 }>;
+      /**
+       * A proposal was closed because its threshold was reached or after its
+       * duration was up.
+       */
+      Closed: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, yes: u32, no: u32],
+        { proposalHash: H256; yes: u32; no: u32 }
+      >;
+      /**
+       * A motion was not approved by the required threshold.
+       */
+      Disapproved: AugmentedEvent<ApiType, [proposalHash: H256], { proposalHash: H256 }>;
+      /**
+       * A motion was executed; result will be `Ok` if it returned without error.
+       */
+      Executed: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, result: Result<Null, SpRuntimeDispatchError>],
+        { proposalHash: H256; result: Result<Null, SpRuntimeDispatchError> }
+      >;
+      /**
+       * A single member did some action; result will be `Ok` if it returned
+       * without error.
+       */
+      MemberExecuted: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, result: Result<Null, SpRuntimeDispatchError>],
+        { proposalHash: H256; result: Result<Null, SpRuntimeDispatchError> }
+      >;
+      /**
+       * A motion (given hash) has been proposed (by given account) with a
+       * threshold (given `MemberCount`).
+       */
+      Proposed: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, proposalIndex: u32, proposalHash: H256, threshold: u32],
+        { account: AccountId20; proposalIndex: u32; proposalHash: H256; threshold: u32 }
+      >;
+      /**
+       * A motion (given hash) has been voted on by given account, leaving a
+       * tally (yes votes and no votes given respectively as `MemberCount`).
+       */
+      Voted: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, proposalHash: H256, voted: bool, yes: u32, no: u32],
+        { account: AccountId20; proposalHash: H256; voted: bool; yes: u32; no: u32 }
       >;
       /**
        * Generic event
@@ -1754,6 +1830,108 @@ declare module "@polkadot/api-base/types/events" {
        */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    referenda: {
+      /**
+       * A referendum has been approved and its proposal has been scheduled.
+       */
+      Approved: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
+       * A referendum has been cancelled.
+       */
+      Cancelled: AugmentedEvent<
+        ApiType,
+        [index: u32, tally: PalletConvictionVotingTally],
+        { index: u32; tally: PalletConvictionVotingTally }
+      >;
+      ConfirmAborted: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
+       * A referendum has ended its confirmation phase and is ready for approval.
+       */
+      Confirmed: AugmentedEvent<
+        ApiType,
+        [index: u32, tally: PalletConvictionVotingTally],
+        { index: u32; tally: PalletConvictionVotingTally }
+      >;
+      ConfirmStarted: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
+       * The decision deposit has been placed.
+       */
+      DecisionDepositPlaced: AugmentedEvent<
+        ApiType,
+        [index: u32, who: AccountId20, amount: u128],
+        { index: u32; who: AccountId20; amount: u128 }
+      >;
+      /**
+       * The decision deposit has been refunded.
+       */
+      DecisionDepositRefunded: AugmentedEvent<
+        ApiType,
+        [index: u32, who: AccountId20, amount: u128],
+        { index: u32; who: AccountId20; amount: u128 }
+      >;
+      /**
+       * A referendum has moved into the deciding phase.
+       */
+      DecisionStarted: AugmentedEvent<
+        ApiType,
+        [
+          index: u32,
+          track: u16,
+          proposal: FrameSupportPreimagesBounded,
+          tally: PalletConvictionVotingTally
+        ],
+        {
+          index: u32;
+          track: u16;
+          proposal: FrameSupportPreimagesBounded;
+          tally: PalletConvictionVotingTally;
+        }
+      >;
+      /**
+       * A deposit has been slashaed.
+       */
+      DepositSlashed: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /**
+       * A referendum has been killed.
+       */
+      Killed: AugmentedEvent<
+        ApiType,
+        [index: u32, tally: PalletConvictionVotingTally],
+        { index: u32; tally: PalletConvictionVotingTally }
+      >;
+      /**
+       * A proposal has been rejected by referendum.
+       */
+      Rejected: AugmentedEvent<
+        ApiType,
+        [index: u32, tally: PalletConvictionVotingTally],
+        { index: u32; tally: PalletConvictionVotingTally }
+      >;
+      /**
+       * A referendum has being submitted.
+       */
+      Submitted: AugmentedEvent<
+        ApiType,
+        [index: u32, track: u16, proposal: FrameSupportPreimagesBounded],
+        { index: u32; track: u16; proposal: FrameSupportPreimagesBounded }
+      >;
+      /**
+       * A referendum has been timed out without being decided.
+       */
+      TimedOut: AugmentedEvent<
+        ApiType,
+        [index: u32, tally: PalletConvictionVotingTally],
+        { index: u32; tally: PalletConvictionVotingTally }
+      >;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     scheduler: {
       /**
        * The call for the provided hash was not found so the task has been aborted.
@@ -2074,6 +2252,25 @@ declare module "@polkadot/api-base/types/events" {
        */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    whitelist: {
+      CallWhitelisted: AugmentedEvent<ApiType, [callHash: H256], { callHash: H256 }>;
+      WhitelistedCallDispatched: AugmentedEvent<
+        ApiType,
+        [
+          callHash: H256,
+          result: Result<FrameSupportDispatchPostDispatchInfo, SpRuntimeDispatchErrorWithPostInfo>
+        ],
+        {
+          callHash: H256;
+          result: Result<FrameSupportDispatchPostDispatchInfo, SpRuntimeDispatchErrorWithPostInfo>;
+        }
+      >;
+      WhitelistedCallRemoved: AugmentedEvent<ApiType, [callHash: H256], { callHash: H256 }>;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     xcmpQueue: {
       /**
        * Bad XCM format used.
@@ -2161,6 +2358,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [location: XcmV1MultiLocation],
         { location: XcmV1MultiLocation }
+      >;
+      /**
+       * HRMP manage action succesfully sent
+       */
+      HrmpManagementSent: AugmentedEvent<
+        ApiType,
+        [action: PalletXcmTransactorHrmpOperation],
+        { action: PalletXcmTransactorHrmpOperation }
       >;
       /**
        * Registered a derivative index for an account id.
