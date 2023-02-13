@@ -380,7 +380,7 @@ parameter_types! {
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
-	pub MinimumMultiplier: Multiplier = Multiplier::from(10u128);
+	pub MinimumMultiplier: Multiplier = Multiplier::from(1u128);
 	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);

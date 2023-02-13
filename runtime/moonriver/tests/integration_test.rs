@@ -1243,12 +1243,12 @@ fn min_gas_fee_is_correct() {
 		TransactionPayment::on_finalize(System::block_number()); // should trigger min to kick in
 
 		let multiplier = TransactionPayment::next_fee_multiplier();
-		assert_eq!(multiplier, Multiplier::from(10u128));
+		assert_eq!(multiplier, Multiplier::from(1u128));
 
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				12_500_000_000u128.into(),
+				1_250_000_000u128.into(),
 				Weight::from_ref_time(25_000_000u64)
 			)
 		);
