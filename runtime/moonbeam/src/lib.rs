@@ -96,7 +96,7 @@ use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
-	MoonbeamPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonbeamPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -390,7 +390,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			Weight::zero(),
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
 		)
 	}
 }

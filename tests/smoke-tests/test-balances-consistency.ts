@@ -118,7 +118,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
         ? apiAt.query.preimage.statusFor.entries()
         : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
-      specVersion >= 1900 && runtimeName == "moonbase"
+      (specVersion >= 1900 && runtimeName == "moonbase") ||
+      (specVersion >= 2100 && runtimeName == "moonriver")
         ? apiAt.query.referenda.referendumInfoFor.entries()
         : ([] as [StorageKey<[u32]>, Option<any>][]),
       apiAt.query.assets.asset.entries(),

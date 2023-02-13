@@ -28,7 +28,8 @@ use frame_support::{
 	traits::OriginTrait,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::prelude::*;
+use precompile_utils::precompile_set::SelectorFilter;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
@@ -36,9 +37,9 @@ use sp_std::vec;
 use sp_std::vec::Vec;
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
-
 use xcm_executor::traits::WeightBounds;
 use xcm_executor::traits::WeightTrader;
+
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
 pub type XcmAccountIdOf<XcmConfig> =
@@ -53,6 +54,35 @@ type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
 mod mock;
 #[cfg(test)]
 mod tests;
+
+#[derive(Debug)]
+pub struct AllExceptXcmExecute<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
+
+impl<Runtime, XcmConfig> SelectorFilter for AllExceptXcmExecute<Runtime, XcmConfig>
+where
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	XcmOriginOf<XcmConfig>: OriginTrait,
+	XcmAccountIdOf<XcmConfig>: Into<H160>,
+	XcmConfig: xcm_executor::Config,
+	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
+{
+	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
+		match selector {
+			None => true,
+			Some(selector) => {
+				!XcmUtilsPrecompileCall::<Runtime, XcmConfig>::xcm_execute_selectors()
+					.contains(&selector)
+			}
+		}
+	}
+
+	fn description() -> String {
+		"Allowed for all callers for all selectors except 'execute'".into()
+	}
+}
 
 /// A precompile to wrap the functionality from xcm-utils
 pub struct XcmUtilsPrecompile<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
@@ -69,26 +99,6 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 {
-	#[precompile::pre_check]
-	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
-		// Only avoid calling execute from SC
-		if let Ok(selector) = handle.read_u32_selector() {
-			if XcmUtilsPrecompileCall::<Runtime, XcmConfig>::xcm_execute_selectors()
-				.contains(&selector)
-			{
-				handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-				let caller_code =
-					pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
-				// Check that caller is not a smart contract s.t. no code is inserted into
-				// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
-				if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
-					return Err(revert("XcmExecute not callable by smart contracts"));
-				}
-			}
-		}
-		Ok(())
-	}
-
 	#[precompile::public("multilocationToAddress((uint8,bytes[]))")]
 	#[precompile::view]
 	fn multilocation_to_address(

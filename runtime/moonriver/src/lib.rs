@@ -96,7 +96,7 @@ use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
-	MoonriverPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonriverPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -393,7 +393,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			Weight::zero(),
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
 		)
 	}
 }
@@ -680,7 +680,7 @@ impl pallet_author_inherent::Config for Runtime {
 
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RandomnessSource = RandomnessCollectiveFlip;
+	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight<Runtime>;
 }

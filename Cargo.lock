@@ -3444,6 +3444,19 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "wasm-bindgen",
+<<<<<<< HEAD
+=======
+]
+
+[[package]]
+name = "ghash"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97304e4cd182c3846f7575ced3890c53012ce534ad9114046b0a9e00bb30a375"
+dependencies = [
+ "opaque-debug 0.3.0",
+ "polyval 0.4.5",
+>>>>>>> master
 ]
 
 [[package]]
@@ -5680,6 +5693,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -6009,6 +6023,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -10160,6 +10175,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "precompile-utils-tests-external"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3 0.10.6",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "predicates"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13761,6 +13800,18 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
+
+[[package]]
+name = "summarize-precompile-checks"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "moonbase-runtime",
+ "moonbeam-runtime",
+ "moonriver-runtime",
+ "precompile-utils",
+ "serde_json",
+]
 
 [[package]]
 name = "syn"

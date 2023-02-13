@@ -39,8 +39,7 @@ impl EvmData for Tuple {
 	}
 
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		if !Self::has_static_size() {
-			let reader = &mut reader.read_pointer()?;
+		if Self::has_static_size() {
 			let mut index = 0;
 			Ok(for_tuples!( ( #( {
 				let elem = reader.read::<Tuple>().in_tuple(index)?;
@@ -48,6 +47,7 @@ impl EvmData for Tuple {
 				elem
 			} ),* ) ))
 		} else {
+			let reader = &mut reader.read_pointer()?;
 			let mut index = 0;
 			Ok(for_tuples!( ( #( {
 				let elem = reader.read::<Tuple>().in_tuple(index)?;
@@ -58,12 +58,12 @@ impl EvmData for Tuple {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		if !Self::has_static_size() {
+		if Self::has_static_size() {
+			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
+		} else {
 			let mut inner_writer = EvmDataWriter::new();
 			for_tuples!( #( Tuple::write(&mut inner_writer, value.Tuple); )* );
 			writer.write_pointer(inner_writer.build());
-		} else {
-			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
 		}
 	}
 
@@ -71,6 +71,10 @@ impl EvmData for Tuple {
 		let mut subtypes = Vec::new();
 		for_tuples!( #( subtypes.push(Tuple::solidity_type()); )* );
 		alloc::format!("({})", subtypes.join(","))
+	}
+
+	fn is_explicit_tuple() -> bool {
+		true
 	}
 }
 

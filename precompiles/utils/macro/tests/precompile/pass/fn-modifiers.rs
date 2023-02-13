@@ -12,7 +12,6 @@
 // GNU General Public License for more details.
 
 use {
-	core::marker::PhantomData,
 	precompile_utils::{EvmResult, prelude::*, testing::PrecompileTesterExt},
 	sp_core::H160
 };
@@ -45,7 +44,7 @@ impl PrecompileSet {
 	}
 }
 
-fn main() { 
+fn main() {
 	PrecompileSet.prepare_test(
 		[0u8;20],
 		[0u8;20],

@@ -23,5 +23,6 @@ fn ui() {
 
 #[test]
 fn expand() {
+	// use `expand` to refresh the output.
 	macrotest::expand_without_refresh("tests/precompile/expand/**/*.rs");
 }
