@@ -60,7 +60,7 @@ fn ui() {
 
 #[test]
 fn expand() {
-	// Use `expand` to update the expensions
+	// Use `expand` to update the expansions
 	// Replace it with `expand_without_refresh` afterward so that
 	// CI checks the expension don't change
 
