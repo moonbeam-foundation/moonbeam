@@ -29,7 +29,7 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
@@ -219,6 +219,13 @@ fn verify_pallet_prefixes() {
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
+				storage_name: b"InactiveIssuance".to_vec(),
+				prefix: prefix(b"Balances", b"InactiveIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: None,
@@ -238,13 +245,6 @@ fn verify_pallet_prefixes() {
 				max_values: None,
 				max_size: Some(1037),
 			},
-			StorageInfo {
-				pallet_name: b"Balances".to_vec(),
-				storage_name: b"StorageVersion".to_vec(),
-				prefix: prefix(b"Balances", b"StorageVersion"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
 		]
 	);
 	assert_eq!(
@@ -1201,7 +1201,7 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 			assert_noop!(
 				RuntimeCall::LocalAssets(
 					pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
-						id: 11u128,
+						id: 11u128.into(),
 						admin: AccountId::from(ALICE),
 						min_balance: 1u128
 					}
@@ -1284,7 +1284,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24083u64)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1336,7 +1336,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1357,7 +1357,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1409,7 +1409,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13204)
+				.expect_cost(13249)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1436,7 +1436,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13588)
+				.expect_cost(13575)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1481,7 +1481,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7107)
+				.expect_cost(7094)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1500,7 +1500,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7103)
+				.expect_cost(7074)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1535,7 +1535,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5970)
+				.expect_cost(5944)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1552,7 +1552,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5941)
+				.expect_cost(5964)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 		});
@@ -1584,7 +1584,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6983)
+				.expect_cost(6973)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 		});
@@ -1618,25 +1618,25 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5926)
+				.expect_cost(5940)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(BOB),
 				1_000 * UNIT
 			));
 			assert_ok!(LocalAssets::freeze(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 			assert_ok!(LocalAssets::thaw(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 		});
@@ -1739,7 +1739,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24083)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1803,7 +1803,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1824,7 +1824,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2933,7 +2933,7 @@ fn test_xcm_utils_get_units_per_second() {
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 
 		let expected_units =
-			WEIGHT_PER_SECOND.ref_time() as u128 * moonbase_runtime::currency::WEIGHT_FEE;
+			WEIGHT_REF_TIME_PER_SECOND as u128 * moonbase_runtime::currency::WEIGHT_FEE;
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)

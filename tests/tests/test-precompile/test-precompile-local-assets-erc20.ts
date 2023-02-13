@@ -955,7 +955,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       let alithFrozen = await context.polkadotApi.query.localAssets.account(assetId, alith.address);
 
-      expect(alithFrozen.unwrap()["isFrozen"].toHuman()).to.be.true;
+      expect(alithFrozen.unwrap().isFrozen.isTrue).to.be.true;
     });
   },
   true
@@ -1048,7 +1048,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       const registeredAsset = (await context.polkadotApi.query.localAssets.asset(assetId)).unwrap();
 
-      expect(registeredAsset.isFrozen.isTrue).to.be.true;
+      expect(registeredAsset.status.isFrozen).to.be.true;
     });
   },
   true
@@ -1093,7 +1093,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       const registeredAsset = (await context.polkadotApi.query.localAssets.asset(assetId)).unwrap();
 
-      expect(registeredAsset.isFrozen.toHuman()).to.be.false;
+      expect(registeredAsset.status.isFrozen).to.be.false;
     });
   },
   true

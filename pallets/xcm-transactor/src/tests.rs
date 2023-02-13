@@ -18,7 +18,7 @@ use crate::mock::*;
 use crate::*;
 use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_support::dispatch::DispatchError;
-use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_PER_SECOND};
+use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
@@ -546,7 +546,7 @@ fn test_fee_calculation_works() {
 			assert_eq!(
 				XcmTransactor::calculate_fee_per_second(
 					1000000000,
-					8 * WEIGHT_PER_SECOND.ref_time() as u128
+					8 * WEIGHT_REF_TIME_PER_SECOND as u128
 				),
 				8000000000
 			);

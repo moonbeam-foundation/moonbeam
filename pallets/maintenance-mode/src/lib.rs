@@ -153,6 +153,7 @@ pub mod pallet {
 		/// Weight cost is:
 		/// * One DB read to ensure we're not already in maintenance mode
 		/// * Three DB writes - 1 for the mode, 1 for suspending xcm execution, 1 for the event
+		#[pallet::call_index(0)]
 		#[pallet::weight(T::DbWeight::get().read + 3 * T::DbWeight::get().write)]
 		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
@@ -184,6 +185,7 @@ pub mod pallet {
 		/// Weight cost is:
 		/// * One DB read to ensure we're in maintenance mode
 		/// * Three DB writes - 1 for the mode, 1 for resuming xcm execution, 1 for the event
+		#[pallet::call_index(1)]
 		#[pallet::weight(T::DbWeight::get().read + 3 * T::DbWeight::get().write)]
 		pub fn resume_normal_operation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin

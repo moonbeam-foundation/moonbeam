@@ -23,10 +23,14 @@ use crate::{
 };
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::{
+	assert_ok,
+	dispatch::{DispatchError, Dispatchable},
+};
 use pallet_evm::Call as EvmCall;
 use precompile_utils::{costs::call_cost, prelude::*, revert::RevertSelector, testing::*};
 use sp_core::{H160, H256, U256};
+use sp_runtime::{DispatchErrorWithPostInfo, ModuleError};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -1034,16 +1038,22 @@ fn batch_not_callable_by_smart_contract() {
 			}
 			.into();
 
-			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
-
-			// batch failed so state is same
-			assert_eq!(balance(Alice), 10_000);
-			assert_eq!(balance(Bob), 0);
+			match RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()) {
+				Err(DispatchErrorWithPostInfo {
+					error:
+						DispatchError::Module(ModuleError {
+							message: Some(err_msg),
+							..
+						}),
+					..
+				}) => assert_eq!("TransactionMustComeFromEOA", err_msg),
+				_ => panic!("expected error 'TransactionMustComeFromEOA'"),
+			}
 		})
 }
 
 #[test]
-fn batch_is_callable_by_dummy_code() {
+fn batch_is_not_callable_by_dummy_code() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
@@ -1072,11 +1082,17 @@ fn batch_is_callable_by_dummy_code() {
 			}
 			.into();
 
-			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
-
-			// batch succeeds
-			assert_eq!(balance(Alice), 9_000);
-			assert_eq!(balance(Bob), 1_000);
+			match RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()) {
+				Err(DispatchErrorWithPostInfo {
+					error:
+						DispatchError::Module(ModuleError {
+							message: Some(err_msg),
+							..
+						}),
+					..
+				}) => assert_eq!("TransactionMustComeFromEOA", err_msg),
+				_ => panic!("expected error 'TransactionMustComeFromEOA'"),
+			}
 		})
 }
 

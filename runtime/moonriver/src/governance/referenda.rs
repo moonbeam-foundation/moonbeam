@@ -72,7 +72,7 @@ impl pallet_whitelist::Config for Runtime {
 		>,
 	>;
 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
-	type PreimageProvider = Preimage;
+	type Preimages = Preimage;
 }
 
 pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);
