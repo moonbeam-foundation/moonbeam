@@ -49,6 +49,7 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
+#[derive(EvmData)]
 pub struct TrackInfo {
 	name: UnboundedBytes,
 	max_deciding: U256,
@@ -59,78 +60,6 @@ pub struct TrackInfo {
 	min_enactment_period: U256,
 	min_approval: UnboundedBytes,
 	min_support: UnboundedBytes,
-}
-
-impl EvmData for TrackInfo {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		precompile_utils::read_struct!(reader, {
-			name: UnboundedBytes,
-			max_deciding: U256,
-			decision_deposit: U256,
-			prepare_period: U256,
-			decision_period: U256,
-			confirm_period: U256,
-			min_enactment_period: U256,
-			min_approval: UnboundedBytes,
-			min_support: UnboundedBytes
-		});
-		Ok(TrackInfo {
-			name,
-			max_deciding,
-			decision_deposit,
-			prepare_period,
-			decision_period,
-			confirm_period,
-			min_enactment_period,
-			min_approval,
-			min_support,
-		})
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(
-			writer,
-			(
-				value.name,
-				value.max_deciding,
-				value.decision_deposit,
-				value.prepare_period,
-				value.decision_period,
-				value.confirm_period,
-				value.min_enactment_period,
-				value.min_approval,
-				value.min_support,
-			),
-		);
-	}
-
-	fn has_static_size() -> bool {
-		<(
-			UnboundedBytes,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			UnboundedBytes,
-			UnboundedBytes,
-		)>::has_static_size()
-	}
-
-	fn solidity_type() -> String {
-		<(
-			UnboundedBytes,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			UnboundedBytes,
-			UnboundedBytes,
-		)>::solidity_type()
-	}
 }
 
 /// A precompile to wrap the functionality from pallet-referenda.

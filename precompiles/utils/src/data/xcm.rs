@@ -258,9 +258,13 @@ impl EvmData for Junctions {
 	}
 }
 
+// Cannot used derive macro since it is a foreign struct.
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		crate::read_struct!(reader, {parents: u8, interior: Junctions});
+		use crate::revert::BacktraceExt;
+		let (parents, interior) = reader
+			.read()
+			.map_in_tuple_to_field(&["parents", "interior"])?;
 		Ok(MultiLocation { parents, interior })
 	}
 
