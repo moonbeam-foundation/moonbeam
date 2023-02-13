@@ -37,10 +37,12 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use pallet_evm::Runner;
 	use sp_core::{H160, H256, U256};
+	use sp_std::vec::Vec;
 	use xcm::latest::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult};
 	use xcm_executor::traits::{Convert, Error as MatchError};
 	use xcm_executor::Assets;
 
+	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
 	const ERC20_TRANSFER_GAS_LIMIT: u64 = 200_000;
 	const ERC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
@@ -61,8 +63,9 @@ pub mod pallet {
 			to: H160,
 			amount: U256,
 		) -> Result<(), Erc20TransferError> {
+			let mut input = Vec::with_capacity(ERC20_TRANSFER_CALL_DATA_SIZE);
 			// ERC20.transfer method hash
-			let mut input = ERC20_TRANSFER_SELECTOR.to_vec();
+			input.extend_from_slice(&ERC20_TRANSFER_SELECTOR);
 			// append receiver address
 			input.extend_from_slice(H256::from(to).as_bytes());
 			// append amount to be transferred
