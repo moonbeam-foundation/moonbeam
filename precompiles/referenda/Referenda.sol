@@ -53,11 +53,12 @@ interface Referenda {
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
     /// @param proposal The proposed runtime call
     /// @param block Block number at which this will be executed
+    /// @return referendumIndex Index of submitted referenda
     function submitAt(
         uint16 trackId,
         bytes memory proposal,
         uint32 block
-    ) external;
+    ) external returns (uint32 referendumIndex);
 
     /// @dev Submit a referenda
     /// @custom:selector 0a1ecbe9
@@ -65,11 +66,12 @@ interface Referenda {
     /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`
     /// @param proposal The proposed runtime call
     /// @param block Block number after which this will be executed
+    /// @return referendumIndex Index of submitted referenda
     function submitAfter(
         uint16 trackId,
         bytes memory proposal,
         uint32 block
-    ) external;
+    ) external returns (uint32 referendumIndex);
 
     /// @dev Post the Decision Deposit for a referendum
     /// @custom:selector 245ce18d
