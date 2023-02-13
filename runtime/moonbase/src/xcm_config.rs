@@ -602,7 +602,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 
 parameter_types! {
 	// This is the relative view of erc20 assets.
-	// Indentified by thix prefix + AccountKey20(contractAddress)
+	// Identified by this prefix + AccountKey20(contractAddress)
 	// We use the RELATIVE multilocation
 	pub Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
 		parents:0,
