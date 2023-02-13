@@ -31,23 +31,23 @@ pub fn main(input: TokenStream) -> TokenStream {
 	} = parse_macro_input!(input as DeriveInput);
 
 	let syn::Data::Struct (syn::DataStruct {fields: syn::Fields::Named(fields), ..}) = data else {
-		return quote_spanned! {
-			ident.span() => compile_error!("EvmData can only be derived for structs with named fields");
+		return quote_spanned! { ident.span() =>
+			compile_error!("EvmData can only be derived for structs with named fields");
 		}
 		.into()
 	};
 	let fields = fields.named;
 
 	if fields.len() == 0 {
-		return quote_spanned! {
-			ident.span() => compile_error!("EvmData can only be derived for structs with at least one field");
+		return quote_spanned! { ident.span() =>
+			compile_error!("EvmData can only be derived for structs with at least one field");
 		}
 		.into();
 	}
 
 	if let Some(unamed_field) = fields.iter().find(|f| f.ident.is_none()) {
-		return quote_spanned! {
-			unamed_field.ty.span() => compile_error!("EvmData can only be derived for structs with named fields");
+		return quote_spanned! { unamed_field.ty.span() =>
+			compile_error!("EvmData can only be derived for structs with named fields");
 		}
 		.into();
 	}
@@ -99,7 +99,8 @@ pub fn main(input: TokenStream) -> TokenStream {
 
 	let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 	quote! {
-		impl #impl_generics ::precompile_utils::data::EvmData for #ident #ty_generics #where_clause {
+		impl #impl_generics ::precompile_utils::data::EvmData for #ident #ty_generics
+		#where_clause {
 			fn read(
 				reader: &mut ::precompile_utils::data::EvmDataReader
 			) -> ::precompile_utils::revert::MayRevert<Self> {
