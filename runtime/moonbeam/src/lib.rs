@@ -848,6 +848,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(
 					c,
 					RuntimeCall::System(..)
+						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
