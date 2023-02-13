@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::*;
 use crate::*;
-use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
+use precompile_utils::{testing::*, EvmDataWriter};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -34,10 +34,6 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		nonce: None,
 		access_list: Vec::new(),
 	}
-}
-
-fn precompiles() -> Precompiles<Runtime> {
-	PrecompilesValue::get()
 }
 
 fn precompiles() -> Precompiles<Runtime> {
