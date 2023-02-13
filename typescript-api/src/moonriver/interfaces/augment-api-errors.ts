@@ -187,6 +187,62 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    convictionVoting: {
+      /**
+       * The account is already delegating.
+       */
+      AlreadyDelegating: AugmentedError<ApiType>;
+      /**
+       * The account currently has votes attached to it and the operation cannot
+       * succeed until these are removed, either through `unvote` or `reap_vote`.
+       */
+      AlreadyVoting: AugmentedError<ApiType>;
+      /**
+       * The class ID supplied is invalid.
+       */
+      BadClass: AugmentedError<ApiType>;
+      /**
+       * The class must be supplied since it is not easily determinable from the state.
+       */
+      ClassNeeded: AugmentedError<ApiType>;
+      /**
+       * Too high a balance was provided that the account cannot afford.
+       */
+      InsufficientFunds: AugmentedError<ApiType>;
+      /**
+       * Maximum number of votes reached.
+       */
+      MaxVotesReached: AugmentedError<ApiType>;
+      /**
+       * Delegation to oneself makes no sense.
+       */
+      Nonsense: AugmentedError<ApiType>;
+      /**
+       * The actor has no permission to conduct the action.
+       */
+      NoPermission: AugmentedError<ApiType>;
+      /**
+       * The actor has no permission to conduct the action right now but will do
+       * in the future.
+       */
+      NoPermissionYet: AugmentedError<ApiType>;
+      /**
+       * The account is not currently delegating.
+       */
+      NotDelegating: AugmentedError<ApiType>;
+      /**
+       * Poll is not ongoing.
+       */
+      NotOngoing: AugmentedError<ApiType>;
+      /**
+       * The given account did not vote on the poll.
+       */
+      NotVoter: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     councilCollective: {
       /**
        * Members are already initialized!
@@ -705,6 +761,52 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    openTechCommitteeCollective: {
+      /**
+       * Members are already initialized!
+       */
+      AlreadyInitialized: AugmentedError<ApiType>;
+      /**
+       * Duplicate proposals not allowed
+       */
+      DuplicateProposal: AugmentedError<ApiType>;
+      /**
+       * Duplicate vote ignored
+       */
+      DuplicateVote: AugmentedError<ApiType>;
+      /**
+       * Account is not a member
+       */
+      NotMember: AugmentedError<ApiType>;
+      /**
+       * Proposal must exist
+       */
+      ProposalMissing: AugmentedError<ApiType>;
+      /**
+       * The close call was made too early, before the end of the voting.
+       */
+      TooEarly: AugmentedError<ApiType>;
+      /**
+       * There can only be a maximum of `MaxProposals` active proposals.
+       */
+      TooManyProposals: AugmentedError<ApiType>;
+      /**
+       * Mismatched index
+       */
+      WrongIndex: AugmentedError<ApiType>;
+      /**
+       * The given length bound for the proposal was too low.
+       */
+      WrongProposalLength: AugmentedError<ApiType>;
+      /**
+       * The given weight bound for the proposal was too low.
+       */
+      WrongProposalWeight: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     parachainStaking: {
       AlreadyActive: AugmentedError<ApiType>;
       AlreadyDelegatedCandidate: AugmentedError<ApiType>;
@@ -740,7 +842,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
-      RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -943,6 +1045,56 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    referenda: {
+      /**
+       * The referendum index provided is invalid in this context.
+       */
+      BadReferendum: AugmentedError<ApiType>;
+      /**
+       * The track identifier given was invalid.
+       */
+      BadTrack: AugmentedError<ApiType>;
+      /**
+       * There are already a full complement of referendums in progress for this track.
+       */
+      Full: AugmentedError<ApiType>;
+      /**
+       * Referendum's decision deposit is already paid.
+       */
+      HasDeposit: AugmentedError<ApiType>;
+      /**
+       * The deposit cannot be refunded since none was made.
+       */
+      NoDeposit: AugmentedError<ApiType>;
+      /**
+       * The deposit refunder is not the depositor.
+       */
+      NoPermission: AugmentedError<ApiType>;
+      /**
+       * There was nothing to do in the advancement.
+       */
+      NothingToDo: AugmentedError<ApiType>;
+      /**
+       * Referendum is not ongoing.
+       */
+      NotOngoing: AugmentedError<ApiType>;
+      /**
+       * No track exists for the proposal origin.
+       */
+      NoTrack: AugmentedError<ApiType>;
+      /**
+       * The queue of the track is empty.
+       */
+      QueueEmpty: AugmentedError<ApiType>;
+      /**
+       * Any deposit cannot be refunded until after the decision is over.
+       */
+      Unfinished: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     scheduler: {
       /**
        * Failed to schedule a call
@@ -1132,6 +1284,32 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    whitelist: {
+      /**
+       * The call was already whitelisted; No-Op.
+       */
+      CallAlreadyWhitelisted: AugmentedError<ApiType>;
+      /**
+       * The call was not whitelisted.
+       */
+      CallIsNotWhitelisted: AugmentedError<ApiType>;
+      /**
+       * The weight of the decoded call was higher than the witness.
+       */
+      InvalidCallWeightWitness: AugmentedError<ApiType>;
+      /**
+       * The preimage of the call hash could not be loaded.
+       */
+      UnavailablePreImage: AugmentedError<ApiType>;
+      /**
+       * The call could not be decoded.
+       */
+      UndecodableCall: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     xcmpQueue: {
       /**
        * Bad overweight index.
@@ -1169,6 +1347,7 @@ declare module "@polkadot/api-base/types/errors" {
       ErrorSending: AugmentedError<ApiType>;
       FailedMultiLocationToJunction: AugmentedError<ApiType>;
       FeePerSecondNotSet: AugmentedError<ApiType>;
+      HrmpHandlerNotImplemented: AugmentedError<ApiType>;
       IndexAlreadyClaimed: AugmentedError<ApiType>;
       InvalidDest: AugmentedError<ApiType>;
       MaxWeightTransactReached: AugmentedError<ApiType>;
@@ -1176,6 +1355,7 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       NotOwner: AugmentedError<ApiType>;
       SignedTransactNotAllowedForDestination: AugmentedError<ApiType>;
+      TooMuchFeeUsed: AugmentedError<ApiType>;
       TransactorInfoNotSet: AugmentedError<ApiType>;
       UnableToWithdrawAsset: AugmentedError<ApiType>;
       UnclaimedIndex: AugmentedError<ApiType>;

@@ -127,10 +127,9 @@ where
 				continue; // no traces for genesis block.
 			}
 
-			let block_id = BlockId::<B>::Number(block_height);
-			let block_header = self
+			let block_hash = self
 				.client
-				.header(block_id)
+				.hash(block_height)
 				.map_err(|e| {
 					format!(
 						"Error when fetching block {} header : {:?}",
@@ -138,8 +137,6 @@ where
 					)
 				})?
 				.ok_or_else(|| format!("Block with height {} don't exist", block_height))?;
-
-			let block_hash = block_header.hash();
 
 			block_hashes.push(block_hash);
 		}
@@ -448,7 +445,7 @@ where
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
 		let (requester_tx, mut requester_rx) =
-			sc_utils::mpsc::tracing_unbounded("trace-filter-cache");
+			sc_utils::mpsc::tracing_unbounded("trace-filter-cache", 100_000);
 
 		// Task running in the service.
 		let task = async move {
@@ -782,7 +779,7 @@ where
 		// Get Subtrate block data.
 		let api = client.runtime_api();
 		let block_header = client
-			.header(substrate_block_id)
+			.header(substrate_hash)
 			.map_err(|e| {
 				format!(
 					"Error when fetching substrate block {} header : {:?}",
@@ -825,7 +822,7 @@ where
 		// Get extrinsics (containing Ethereum ones)
 		let extrinsics = backend
 			.blockchain()
-			.body(substrate_block_id)
+			.body(substrate_hash)
 			.map_err(|e| {
 				format!(
 					"Blockchain error when fetching extrinsics of block {} : {:?}",

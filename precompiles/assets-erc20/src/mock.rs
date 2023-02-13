@@ -18,9 +18,13 @@
 
 use super::*;
 
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{AsEnsureOriginWithArg, Everything},
+	weights::Weight,
+};
 
-use frame_system::EnsureRoot;
+use frame_system::{EnsureNever, EnsureRoot};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{
 	mock_account,
@@ -28,7 +32,7 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use sp_core::{H160, H256};
-use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
+use sp_runtime::traits::{BlakeTwo256, ConstU32, IdentityLookup};
 
 pub type AccountId = MockAccount;
 pub type AssetId = u128;
@@ -225,6 +229,10 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetIdParameter = AssetId;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+	type CallbackHandle = ();
 }
 
 impl pallet_assets::Config<LocalAssetInstance> for Runtime {
@@ -242,6 +250,10 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetIdParameter = AssetId;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+	type CallbackHandle = ();
 }
 
 // Configure a mock runtime to test the pallet.

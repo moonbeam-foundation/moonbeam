@@ -11,6 +11,7 @@ import type {
   PalletAssetsAssetDetails,
   PalletAssetsDestroyWitness,
 } from "@polkadot/types/lookup";
+import { expectOk } from "../../util/expect";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -83,16 +84,6 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
   });
 
   it("should destroy asset Balance, ", async function () {
-    // We first create the witness
-    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
-      "PalletAssetsDestroyWitness",
-      {
-        accounts: 1,
-        sufficients: 1,
-        approvals: 0,
-      }
-    );
-
     const metadataBefore = await context.polkadotApi.query.assets.metadata(assetId.toU8a());
 
     // Name is equal to "DOT" in hex
@@ -103,11 +94,14 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
     expect(assetDetailsBefore.isNone).to.eq(false);
 
     // Destroy asset
-    await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assets.destroy(assetId, assetDestroyWitness)
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.assets.startDestroy(assetId))
       )
     );
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.destroyAccounts(assetId)));
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.destroyApprovals(assetId)));
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.finishDestroy(assetId)));
 
     // Baltathar balance is None
     const baltatharBalance = await context.polkadotApi.query.assets.account(

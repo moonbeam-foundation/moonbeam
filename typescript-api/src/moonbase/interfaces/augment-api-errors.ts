@@ -771,6 +771,52 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    openTechCommitteeCollective: {
+      /**
+       * Members are already initialized!
+       */
+      AlreadyInitialized: AugmentedError<ApiType>;
+      /**
+       * Duplicate proposals not allowed
+       */
+      DuplicateProposal: AugmentedError<ApiType>;
+      /**
+       * Duplicate vote ignored
+       */
+      DuplicateVote: AugmentedError<ApiType>;
+      /**
+       * Account is not a member
+       */
+      NotMember: AugmentedError<ApiType>;
+      /**
+       * Proposal must exist
+       */
+      ProposalMissing: AugmentedError<ApiType>;
+      /**
+       * The close call was made too early, before the end of the voting.
+       */
+      TooEarly: AugmentedError<ApiType>;
+      /**
+       * There can only be a maximum of `MaxProposals` active proposals.
+       */
+      TooManyProposals: AugmentedError<ApiType>;
+      /**
+       * Mismatched index
+       */
+      WrongIndex: AugmentedError<ApiType>;
+      /**
+       * The given length bound for the proposal was too low.
+       */
+      WrongProposalLength: AugmentedError<ApiType>;
+      /**
+       * The given weight bound for the proposal was too low.
+       */
+      WrongProposalWeight: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     parachainStaking: {
       AlreadyActive: AugmentedError<ApiType>;
       AlreadyDelegatedCandidate: AugmentedError<ApiType>;
@@ -806,7 +852,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
-      RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -1321,6 +1367,7 @@ declare module "@polkadot/api-base/types/errors" {
       ErrorSending: AugmentedError<ApiType>;
       FailedMultiLocationToJunction: AugmentedError<ApiType>;
       FeePerSecondNotSet: AugmentedError<ApiType>;
+      HrmpHandlerNotImplemented: AugmentedError<ApiType>;
       IndexAlreadyClaimed: AugmentedError<ApiType>;
       InvalidDest: AugmentedError<ApiType>;
       MaxWeightTransactReached: AugmentedError<ApiType>;
@@ -1328,6 +1375,7 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       NotOwner: AugmentedError<ApiType>;
       SignedTransactNotAllowedForDestination: AugmentedError<ApiType>;
+      TooMuchFeeUsed: AugmentedError<ApiType>;
       TransactorInfoNotSet: AugmentedError<ApiType>;
       UnableToWithdrawAsset: AugmentedError<ApiType>;
       UnclaimedIndex: AugmentedError<ApiType>;
