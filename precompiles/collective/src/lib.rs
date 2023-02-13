@@ -110,6 +110,10 @@ where
 	) -> EvmResult {
 		let proposal: Vec<_> = proposal.into();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
+
+		let log = log_executed(handle.context().address, proposal_hash);
+		handle.record_log_costs(&[&log])?;
+
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
 				.in_field("length")
@@ -134,9 +138,6 @@ where
 			},
 		)?;
 
-		let log = log_executed(handle.context().address, proposal_hash);
-
-		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
 		Ok(())
@@ -159,6 +160,23 @@ where
 
 		let proposal_index = pallet_collective::Pallet::<Runtime, Instance>::proposal_count();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
+
+		// In pallet_collective a threshold < 2 means the proposal has been
+		// executed directly.
+		let log = if threshold < 2 {
+			log_executed(handle.context().address, proposal_hash)
+		} else {
+			log_proposed(
+				handle.context().address,
+				handle.context().caller,
+				proposal_index,
+				proposal_hash,
+				threshold,
+			)
+		};
+
+		handle.record_log_costs(&[&log])?;
+
 		let proposal =
 			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), &mut &*proposal)
 				.map_err(|_| {
@@ -180,21 +198,6 @@ where
 			)?;
 		}
 
-		// In pallet_collective a threshold < 2 means the proposal has been
-		// executed directly.
-		let log = if threshold < 2 {
-			log_executed(handle.context().address, proposal_hash)
-		} else {
-			log_proposed(
-				handle.context().address,
-				handle.context().caller,
-				proposal_index,
-				proposal_hash,
-				threshold,
-			)
-		};
-
-		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
 		Ok(proposal_index)
@@ -207,6 +210,16 @@ where
 		proposal_index: u32,
 		approve: bool,
 	) -> EvmResult {
+		// TODO: Since we cannot access ayes/nays of a proposal we cannot
+		// include it in the EVM events to mirror Substrate events.
+		let log = log_voted(
+			handle.context().address,
+			handle.context().caller,
+			proposal_hash,
+			approve,
+		);
+		handle.record_log_costs(&[&log])?;
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -218,16 +231,6 @@ where
 			},
 		)?;
 
-		// TODO: Since we cannot access ayes/nays of a proposal we cannot
-		// include it in the EVM events to mirror Substrate events.
-
-		let log = log_voted(
-			handle.context().address,
-			handle.context().caller,
-			proposal_hash,
-			approve,
-		);
-		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
 		Ok(())
@@ -241,6 +244,10 @@ where
 		proposal_weight_bound: u64,
 		length_bound: u32,
 	) -> EvmResult<bool> {
+		// Because the actual log cannot be built before dispatch, we manually
+		// record it first (`executed` and `closed` have the same cost).
+		handle.record_log_costs_manual(2, 0)?;
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -259,7 +266,6 @@ where
 			Pays::Yes => (true, log_executed(handle.context().address, proposal_hash)),
 			Pays::No => (false, log_closed(handle.context().address, proposal_hash)),
 		};
-		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
 		Ok(executed)
