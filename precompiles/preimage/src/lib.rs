@@ -24,7 +24,7 @@ use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
 use sp_core::{Hasher, H256};
-use sp_std::marker::PhantomData;
+use sp_std::{marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -52,6 +52,7 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<PreimageCall<Runtime>>,
 {
 	/// Register a preimage on-chain.
@@ -62,9 +63,9 @@ where
 	fn note_preimage(
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
-	) -> EvmResult {
-		let bytes: sp_std::vec::Vec<u8> = encoded_proposal.into();
-		let hash = <Runtime as frame_system::Config>::Hashing::hash(&bytes);
+	) -> EvmResult<H256> {
+		let bytes: Vec<u8> = encoded_proposal.into();
+		let hash = Runtime::Hashing::hash(&bytes).into();
 
 		let event = log1(
 			handle.context().address,
@@ -81,7 +82,7 @@ where
 
 		event.record(handle)?;
 
-		Ok(())
+		Ok(hash)
 	}
 
 	/// Clear an unrequested preimage from the runtime storage.

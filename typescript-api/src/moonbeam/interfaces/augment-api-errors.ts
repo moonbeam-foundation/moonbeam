@@ -740,7 +740,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
-      RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -1169,6 +1169,7 @@ declare module "@polkadot/api-base/types/errors" {
       ErrorSending: AugmentedError<ApiType>;
       FailedMultiLocationToJunction: AugmentedError<ApiType>;
       FeePerSecondNotSet: AugmentedError<ApiType>;
+      HrmpHandlerNotImplemented: AugmentedError<ApiType>;
       IndexAlreadyClaimed: AugmentedError<ApiType>;
       InvalidDest: AugmentedError<ApiType>;
       MaxWeightTransactReached: AugmentedError<ApiType>;
@@ -1176,6 +1177,7 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       NotOwner: AugmentedError<ApiType>;
       SignedTransactNotAllowedForDestination: AugmentedError<ApiType>;
+      TooMuchFeeUsed: AugmentedError<ApiType>;
       TransactorInfoNotSet: AugmentedError<ApiType>;
       UnableToWithdrawAsset: AugmentedError<ApiType>;
       UnclaimedIndex: AugmentedError<ApiType>;

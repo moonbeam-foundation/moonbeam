@@ -13,7 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::{mock::*, SELECTOR_LOG_PREIMAGE_NOTED, SELECTOR_LOG_PREIMAGE_UNNOTED};
+use crate::mock::*;
+use crate::*;
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -33,6 +34,10 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		nonce: None,
 		access_list: Vec::new(),
 	}
+}
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
 }
 
 #[test]
@@ -111,5 +116,26 @@ fn note_unnote_preimage_logs_work() {
 				}
 				.into()
 			));
+		})
+}
+
+#[test]
+fn note_preimage_returns_preimage_hash() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 40)])
+		.build()
+		.execute_with(|| {
+			let preimage = [1u8; 32];
+			let preimage_hash = <mock::Runtime as frame_system::Config>::Hashing::hash(&preimage);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::note_preimage {
+						encoded_proposal: BoundedBytes::from(preimage),
+					},
+				)
+				.execute_returns_encoded(preimage_hash);
 		})
 }
