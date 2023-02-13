@@ -64,15 +64,15 @@ impl pallet_whitelist::Config for Runtime {
 		MapSuccess<
 			pallet_collective::EnsureProportionAtLeast<
 				Self::AccountId,
-				TechCommitteeInstance,
-				2,
-				3,
+				OpenTechCommitteeInstance,
+				5,
+				9,
 			>,
 			Replace<ConstU16<6>>,
 		>,
 	>;
 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
-	type PreimageProvider = Preimage;
+	type Preimages = Preimage;
 }
 
 pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);

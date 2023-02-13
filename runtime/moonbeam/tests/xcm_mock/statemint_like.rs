@@ -18,14 +18,14 @@
 
 use frame_support::{
 	construct_runtime, match_types, parameter_types,
-	traits::{Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, Everything, Nothing},
 	weights::Weight,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSigned};
 
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, Hash, IdentityLookup},
+	traits::{BlakeTwo256, ConstU32, Hash, IdentityLookup},
 	AccountId32,
 };
 
@@ -131,6 +131,10 @@ impl pallet_assets::Config for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = ();
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetIdParameter = AssetId;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CallbackHandle = ();
 }
 
 parameter_types! {

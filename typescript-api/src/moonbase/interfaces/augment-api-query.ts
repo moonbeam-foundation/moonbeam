@@ -29,7 +29,6 @@ import type {
   H256,
   Perbill,
   Percent,
-  Permill,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletDmpQueueConfigData,
@@ -354,16 +353,6 @@ declare module "@polkadot/api-base/types/storage" {
        * The total units issued in the system.
        */
       totalIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    baseFee: {
-      baseFeePerGas: AugmentedQuery<ApiType, () => Observable<U256>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      elasticity: AugmentedQuery<ApiType, () => Observable<Permill>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
@@ -866,6 +855,12 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [Bytes]>;
       /**
+       * Temporary value that is set to true at the beginning of the block
+       * during which the execution of xcm messages must be paused.
+       */
+      shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Generic query
        */
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -934,6 +929,51 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /**
+       * The current members of the collective. This is stored sorted (just by value).
+       */
+      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The prime member that helps determine the default vote behavior in case
+       * of absentations.
+       */
+      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Proposals so far.
+       */
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Actual proposal for a given hash, if it's current.
+       */
+      proposalOf: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * The hashes of the active proposals.
+       */
+      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Votes on a given proposal, if it is ongoing.
+       */
+      voting: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
       /**
        * Generic query
        */
@@ -1487,6 +1527,11 @@ declare module "@polkadot/api-base/types/storage" {
        * Records whether this is the first block (genesis or runtime upgrade)
        */
       notFirstBlock: AugmentedQuery<ApiType, () => Observable<Option<Null>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Previous local per-block VRF randomness Set in `on_finalize` of last block
+       */
+      previousLocalVrfOutput: AugmentedQuery<ApiType, () => Observable<H256>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Snapshot of randomness to fulfill all requests that are for the same

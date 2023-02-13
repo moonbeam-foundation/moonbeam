@@ -350,6 +350,8 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn elasticity() -> Option<Permill> {
 					None
 				}
+
+				fn gas_limit_multiplier_support() {}
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {

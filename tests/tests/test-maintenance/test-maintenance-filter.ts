@@ -247,7 +247,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       name: "FOREIGN",
       symbol: "FOREIGN",
       decimals: new BN(12),
-      isFrozen: false,
+      isFroze: false,
     };
 
     const sourceLocation = {
