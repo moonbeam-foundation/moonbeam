@@ -65,7 +65,7 @@ where
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult<H256> {
 		let bytes: Vec<u8> = encoded_proposal.into();
-		let hash = Runtime::Hashing::hash(&bytes).into();
+		let hash: H256 = Runtime::Hashing::hash(&bytes).into();
 
 		let event = log1(
 			handle.context().address,
@@ -73,7 +73,6 @@ where
 			EvmDataWriter::new().write::<H256>(hash.into()).build(),
 		);
 		handle.record_log_costs(&[&event])?;
-
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
@@ -81,7 +80,6 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		event.record(handle)?;
-
 		Ok(hash)
 	}
 

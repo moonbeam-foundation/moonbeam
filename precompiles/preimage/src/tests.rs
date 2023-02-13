@@ -40,6 +40,10 @@ fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
+
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Preimage.sol"] {
