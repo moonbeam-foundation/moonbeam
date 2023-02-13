@@ -455,7 +455,10 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header = match client.header(hash) {
+		let Ok(reference_hash) = client.expect_block_hash_from_id(&reference_id) else {
+			return Err(internal_err("Block header not found"))
+		};
+		let header = match client.header(reference_hash) {
 			Ok(Some(h)) => h,
 			_ => return Err(internal_err("Block header not found")),
 		};
@@ -464,7 +467,7 @@ where
 
 		// Get block extrinsics.
 		let exts = blockchain
-			.body(hash)
+			.body(reference_hash)
 			.map_err(|e| internal_err(format!("Fail to read blockchain db: {:?}", e)))?
 			.unwrap_or_default();
 
