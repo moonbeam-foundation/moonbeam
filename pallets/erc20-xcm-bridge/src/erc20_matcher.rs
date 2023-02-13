@@ -98,8 +98,3 @@ impl<Runtime: crate::Config> Erc20Matcher<Runtime> {
 		}
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-}
