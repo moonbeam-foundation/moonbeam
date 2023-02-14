@@ -8,7 +8,7 @@ version = "0.1.0"
 [dependencies]
 
 # Local
-xcm-primitives = { path = "../../primitives/xcm", optional = true, default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false, optional = true }
 
 # Crates.io
 log = "0.4"
@@ -22,7 +22,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37", optional = true, default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37", default-features = false, optional = true }
 
 [dev-dependencies]
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
