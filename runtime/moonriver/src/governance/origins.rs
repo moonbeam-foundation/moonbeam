@@ -19,6 +19,7 @@ pub use custom_origins::*;
 #[frame_support::pallet]
 pub mod custom_origins {
 	use frame_support::pallet_prelude::*;
+	use scale_info::prelude::string::String;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -39,45 +40,17 @@ pub mod custom_origins {
 		ReferendumKiller,
 	}
 
-	impl TryFrom<u16> for Origin {
+	impl TryFrom<String> for Origin {
 		type Error = ();
-		/// TrackId => Origin
-		fn try_from(value: u16) -> Result<Origin, ()> {
-			match value {
-				1 => Ok(Origin::WhitelistedCaller),
-				2 => Ok(Origin::GeneralAdmin),
-				3 => Ok(Origin::ReferendumCanceller),
-				4 => Ok(Origin::ReferendumKiller),
+		fn try_from(value: String) -> Result<Origin, ()> {
+			match &value[..] {
+				"whitelisted_caller" => Ok(Origin::WhitelistedCaller),
+				"general_admin" => Ok(Origin::GeneralAdmin),
+				"referendum_canceller" => Ok(Origin::ReferendumCanceller),
+				"referendum_killer" => Ok(Origin::ReferendumKiller),
 				_ => Err(()),
 			}
 		}
-	}
-
-	impl Into<u16> for Origin {
-		/// Origin => TrackId
-		fn into(self) -> u16 {
-			match self {
-				Origin::WhitelistedCaller => 1,
-				Origin::GeneralAdmin => 2,
-				Origin::ReferendumCanceller => 3,
-				Origin::ReferendumKiller => 4,
-			}
-		}
-	}
-
-	#[test]
-	fn origin_track_conversion_is_consistent() {
-		macro_rules! has_consistent_conversions {
-			( $o:expr ) => {
-				let origin_as_u16 = <Origin as Into<u16>>::into($o);
-				let u16_as_origin: Origin = origin_as_u16.try_into().unwrap();
-				assert_eq!($o, u16_as_origin);
-			};
-		}
-		has_consistent_conversions!(Origin::WhitelistedCaller);
-		has_consistent_conversions!(Origin::GeneralAdmin);
-		has_consistent_conversions!(Origin::ReferendumCanceller);
-		has_consistent_conversions!(Origin::ReferendumKiller);
 	}
 
 	macro_rules! decl_unit_ensures {

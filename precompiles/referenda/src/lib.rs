@@ -24,7 +24,7 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
-use parity_scale_codec::Encode;
+use parity_scale_codec::{alloc::string::ToString, Encode};
 use precompile_utils::{data::String, prelude::*};
 use sp_core::U256;
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
@@ -134,7 +134,8 @@ impl EvmData for TrackInfo {
 }
 
 /// A precompile to wrap the functionality from pallet-referenda.
-pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
+// TODO: remove GovOrigins usage in code and then remove the trait bound and usage
+pub struct ReferendaPrecompile<Runtime, GovOrigin>(PhantomData<(Runtime, GovOrigin)>);
 
 #[precompile_utils::precompile]
 impl<Runtime, GovOrigin> ReferendaPrecompile<Runtime, GovOrigin>
@@ -149,7 +150,7 @@ where
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
-	GovOrigin: TryFrom<u16>,
+	GovOrigin: TryFrom<String>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
@@ -240,6 +241,28 @@ where
 		})
 	}
 
+	/// Use Runtime::Tracks::tracks_for to get the origin for input trackId
+	fn get_track_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
+		let tracks = Runtime::Tracks::tracks();
+		let index = tracks
+			.binary_search_by_key(&track_id, |x| x.0)
+			.unwrap_or_else(|x| x);
+		let track_info = &tracks[index].1;
+		let name_to_origin = |track_name| -> EvmResult<OriginOf<Runtime>> {
+			if track_name == "root" {
+				Ok(frame_system::RawOrigin::Root.into())
+			} else {
+				Ok(<String as TryInto<GovOrigin>>::try_into(track_name)
+					.map_err(|_| {
+						RevertReason::custom("Custom origin does not exist for track_info.name")
+							.in_field("trackId")
+					})?
+					.into())
+			}
+		};
+		Ok(Box::new(name_to_origin(track_info.name.to_string())?))
+	}
+
 	/// Propose a referendum on a privileged action.
 	///
 	/// Parameters:
@@ -253,7 +276,11 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin = Self::track_id_to_origin(track_id)?;
+		let track_id: TrackIdOf<Runtime> = track_id
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
+			.in_field("trackId")?;
+		let proposal_origin = Self::get_track_origin(track_id)?;
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
@@ -275,21 +302,6 @@ where
 		Ok(())
 	}
 
-	// Helper function for submit precompile functions
-	fn track_id_to_origin(track_id: u16) -> EvmResult<Box<OriginOf<Runtime>>> {
-		let origin: OriginOf<Runtime> = if track_id == 0 {
-			frame_system::RawOrigin::Root.into()
-		} else {
-			<u16 as TryInto<GovOrigin>>::try_into(track_id)
-				.map_err(|_| {
-					RevertReason::custom("Custom origin does not exist for TrackId")
-						.in_field("trackId")
-				})?
-				.into()
-		};
-		Ok(Box::new(origin))
-	}
-
 	/// Propose a referendum on a privileged action.
 	///
 	/// Parameters:
@@ -303,7 +315,11 @@ where
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin = Self::track_id_to_origin(track_id)?;
+		let track_id: TrackIdOf<Runtime> = track_id
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
+			.in_field("trackId")?;
+		let proposal_origin = Self::get_track_origin(track_id)?;
 		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
 			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")

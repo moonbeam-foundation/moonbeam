@@ -18,6 +18,7 @@
 
 use super::*;
 use crate::currency::{KILOUNIT, SUPPLY_FACTOR, UNIT};
+use parity_scale_codec::alloc::string::ToString;
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
@@ -122,12 +123,25 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
 		if let Ok(system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
 			match system_origin {
-				frame_system::RawOrigin::Root => Ok(0),
+				frame_system::RawOrigin::Root => {
+					for track in &TRACKS_DATA[..] {
+						if track.1.name == "root" {
+							return Ok(track.0);
+						}
+					}
+					Err(())
+				}
 				_ => Err(()),
 			}
 		} else if let Ok(custom_origin) = custom_origins::Origin::try_from(id.clone()) {
-			// Origins => TrackId defined in Into<u16> for Origin
-			Ok(custom_origin.into())
+			for track in &TRACKS_DATA[..] {
+				if let Ok(track_custom_origin) = track.1.name.to_string().try_into() {
+					if custom_origin == track_custom_origin {
+						return Ok(track.0);
+					}
+				}
+			}
+			Err(())
 		} else {
 			Err(())
 		}
@@ -146,16 +160,5 @@ fn vote_locking_always_longer_than_enactment_period() {
 			track.min_enactment_period,
 			<Runtime as pallet_conviction_voting::Config>::VoteLockingPeriod::get(),
 		);
-	}
-}
-
-#[test]
-/// Precompile assumes the root origin corresponds to trackId 0 for submit* functions
-fn root_origin_has_track_id_0() {
-	for (id, track) in TRACKS_DATA {
-		if track.name == "root" {
-			assert_eq!(id, 0);
-			return;
-		}
 	}
 }
