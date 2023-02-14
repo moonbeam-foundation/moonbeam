@@ -3008,7 +3008,7 @@ fn precompile_existence() {
 #[test]
 fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 	use frame_support::dispatch::{DispatchInfo, Pays};
-	use moonbase_runtime::{currency, EXTRINSIC_BASE_WEIGHT};
+	use moonbase_runtime::{currency, WeightPerGas};
 
 	ExtBuilder::default().build().execute_with(|| {
 		let size_bytes = 0;
@@ -3021,7 +3021,7 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 
 		assert_eq!(
 			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
-			EXTRINSIC_BASE_WEIGHT.ref_time() as u128 * currency::WEIGHT_FEE,
+			(WeightPerGas::get().ref_time() * 10000) as u128 * currency::WEIGHT_FEE,
 		);
 	});
 }
@@ -3146,7 +3146,7 @@ mod fee_tests {
 	};
 	use moonbase_runtime::{
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, WeightPerGas, NORMAL_WEIGHT,
 	};
 	use sp_runtime::{FixedPointNumber, Perbill};
 
@@ -3242,7 +3242,9 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.saturating_mul_int(
+					currency::WEIGHT_FEE.saturating_mul(WeightPerGas::get().ref_time() as u128),
+				)
 				.into();
 
 			assert_eq!(expected, actual);
@@ -3279,7 +3281,8 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas =
+				currency::WEIGHT_FEE.saturating_mul(WeightPerGas::get().ref_time() as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
