@@ -154,13 +154,13 @@ where
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
 	#[precompile::view]
-	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
+	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let ref_count = ReferendumCount::<Runtime>::get();
 		log::trace!(target: "referendum-precompile", "Referendum count is {:?}", ref_count);
 
-		Ok(ref_count.into())
+		Ok(ref_count)
 	}
 
 	#[precompile::public("submissionDeposit()")]
@@ -240,19 +240,16 @@ where
 		})
 	}
 
-	/// Propose a referendum on a privileged action.
-	///
-	/// Parameters:
-	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
-	/// * block_number: Block number at which proposal is dispatched.
-	#[precompile::public("submitAt(uint16,bytes,uint32)")]
-	fn submit_at(
+	// Helper function for submitAt and submitAfter
+	fn submit(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
-		block_number: u32,
-	) -> EvmResult {
+		enactment_moment: DispatchTime<Runtime::BlockNumber>,
+	) -> EvmResult<u32> {
+		// for read of referendumCount to get the referendum index
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let referendum_index = ReferendumCount::<Runtime>::get();
 		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
 			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
 		})?;
@@ -262,7 +259,6 @@ where
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
 			})?,
 		);
-		let enactment_moment = DispatchTime::At(block_number.into());
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -275,7 +271,28 @@ where
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(())
+		Ok(referendum_index)
+	}
+
+	/// Propose a referendum on a privileged action.
+	///
+	/// Parameters:
+	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
+	/// * proposal: The proposed runtime call.
+	/// * block_number: Block number at which proposal is dispatched.
+	#[precompile::public("submitAt(uint16,bytes,uint32)")]
+	fn submit_at(
+		handle: &mut impl PrecompileHandle,
+		track_id: u16,
+		proposal: BoundedBytes<GetCallDataLimit>,
+		block_number: u32,
+	) -> EvmResult<u32> {
+		Self::submit(
+			handle,
+			track_id,
+			proposal,
+			DispatchTime::At(block_number.into()),
+		)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -290,30 +307,13 @@ where
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
-	) -> EvmResult {
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?,
-		);
-		let enactment_moment = DispatchTime::After(block_number.into());
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin,
+	) -> EvmResult<u32> {
+		Self::submit(
+			handle,
+			track_id,
 			proposal,
-			enactment_moment,
-		}
-		.into();
-
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
+			DispatchTime::After(block_number.into()),
+		)
 	}
 
 	/// Post the Decision Deposit for a referendum.
