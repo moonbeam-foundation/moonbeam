@@ -769,6 +769,12 @@
 <a href="#769" id="769">769</a>
 <a href="#770" id="770">770</a>
 <a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1511,12 +1517,12 @@
 
 			<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 			</span><span class="kw">impl </span>frame_try_runtime::TryRuntime&lt;Block&gt; <span class="kw">for </span>Runtime {
-				<span class="kw">fn </span>on_runtime_upgrade() -&gt; (Weight, Weight) {
+				<span class="kw">fn </span>on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -&gt; (Weight, Weight) {
 					<span class="macro">log::info!</span>(<span class="string">&quot;try-runtime::on_runtime_upgrade()&quot;</span>);
 					<span class="comment">// NOTE: intentional expect: we don&#39;t want to propagate the error backwards,
 					// and want to have a backtrace here. If any of the pre/post migration checks
 					// fail, we shall stop right here and right now.
-					</span><span class="kw">let </span>weight = Executive::try_runtime_upgrade()
+					</span><span class="kw">let </span>weight = Executive::try_runtime_upgrade(checks)
 						.expect(<span class="string">&quot;runtime upgrade logic *must* be infallible&quot;</span>);
 					(weight, RuntimeBlockWeights::get().max_block)
 				}
@@ -1524,6 +1530,7 @@
 				<span class="kw">fn </span>execute_block(
 					block: Block,
 					state_root_check: bool,
+					signature_check: bool,
 					select: frame_try_runtime::TryStateSelect
 				) -&gt; Weight {
 					<span class="macro">log::info!</span>(
@@ -1532,9 +1539,14 @@
 						state_root_check,
 						select,
 					);
-					<span class="comment">// NOTE: intentional unwrap: we don&#39;t want to propagate the error backwards, and want to
-					// have a backtrace here.
-					</span>Executive::try_execute_block(block, state_root_check, select).expect(<span class="string">&quot;execute-block failed&quot;</span>)
+					<span class="comment">// NOTE: intentional unwrap: we don&#39;t want to propagate the error backwards,
+					// and want to have a backtrace here.
+					</span>Executive::try_execute_block(
+						block,
+						state_root_check,
+						signature_check,
+						select,
+					).expect(<span class="string">&quot;execute-block failed&quot;</span>)
 				}
 			}
 		}

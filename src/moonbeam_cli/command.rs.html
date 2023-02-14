@@ -993,6 +993,9 @@
 <a href="#993" id="993">993</a>
 <a href="#994" id="994">994</a>
 <a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1631,21 +1634,22 @@
 			<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 			<span class="kw">match </span>chain_spec {
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
-					runner.async_run(|config| {
-						<span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
-						<span class="kw">let </span>task_manager =
-							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-								.map_err(|e| {
-									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-								})<span class="question-mark">?</span>;
+				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; runner.async_run(|config| {
+					<span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
+					<span class="kw">let </span>task_manager =
+						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})<span class="question-mark">?</span>;
 
-						<span class="prelude-val">Ok</span>((
-							cmd.run::&lt;service::moonriver_runtime::Block, service::MoonriverExecutor&gt;(config),
+					<span class="prelude-val">Ok</span>((
+							cmd.run::&lt;service::moonriver_runtime::Block, sp_wasm_interface::ExtendedHostFunctions&lt;
+							sp_io::SubstrateHostFunctions,
+							&lt;service::MoonriverExecutor <span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
+						&gt;&gt;(),
 							task_manager,
 						))
-					})
-				}
+				}),
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; runner.async_run(|config| {
 					<span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
@@ -1656,9 +1660,10 @@
 							})<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;service::moonbeam_runtime::Block, service::MoonbeamExecutor&gt;(
-							config,
-						),
+						cmd.run::&lt;service::moonbeam_runtime::Block, sp_wasm_interface::ExtendedHostFunctions&lt;
+						sp_io::SubstrateHostFunctions,
+						&lt;service::MoonbeamExecutor <span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
+					&gt;&gt;(),
 						task_manager,
 					))
 				}),
@@ -1675,9 +1680,10 @@
 								})<span class="question-mark">?</span>;
 
 						<span class="prelude-val">Ok</span>((
-							cmd.run::&lt;service::moonbase_runtime::Block, service::MoonbaseExecutor&gt;(
-								config,
-							),
+							cmd.run::&lt;service::moonbase_runtime::Block, sp_wasm_interface::ExtendedHostFunctions&lt;
+							sp_io::SubstrateHostFunctions,
+							&lt;service::MoonbaseExecutor <span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
+						&gt;&gt;(),
 							task_manager,
 						))
 					})
