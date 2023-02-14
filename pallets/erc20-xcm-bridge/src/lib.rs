@@ -117,7 +117,8 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &MultiAsset, who: &MultiLocation) -> XcmResult {
-			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(what)?;
+			let (contract_address, amount) =
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 
 			let beneficiary = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
@@ -152,7 +153,8 @@ pub mod pallet {
 			from: &MultiLocation,
 			to: &MultiLocation,
 		) -> Result<Assets, XcmError> {
-			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(asset)?;
+			let (contract_address, amount) =
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 
 			let from = T::AccountIdConverter::convert_ref(from)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
@@ -173,7 +175,8 @@ pub mod pallet {
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
 		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {
-			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(what)?;
+			let (contract_address, amount) =
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 			let who = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
