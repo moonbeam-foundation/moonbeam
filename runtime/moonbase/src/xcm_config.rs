@@ -610,11 +610,16 @@ parameter_types! {
 			PalletInstance(<Erc20XcmBridge as PalletInfoAccess>::index() as u8)
 		)
 	};
+
+	// To be able to support almost all erc20 implementations,
+	// we provide a sufficiently hight gas limit.
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 200_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type AccountIdConverter = LocationToH160;
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
+	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 

@@ -46,7 +46,6 @@ pub mod pallet {
 	use xcm_executor::Assets;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
-	const ERC20_TRANSFER_GAS_LIMIT: u64 = 200_000;
 	const ERC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
 	#[pallet::pallet]
@@ -56,6 +55,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config + pallet_evm::Config {
 		type AccountIdConverter: Convert<MultiLocation, H160>;
 		type Erc20MultilocationPrefix: Get<MultiLocation>;
+		type Erc20TransferGasLimit: Get<u64>;
 		type EvmRunner: Runner<Self>;
 	}
 
@@ -79,7 +79,7 @@ pub mod pallet {
 				erc20_contract_address,
 				input,
 				U256::default(),
-				ERC20_TRANSFER_GAS_LIMIT,
+				T::Erc20TransferGasLimit::get(),
 				None,
 				None,
 				None,
