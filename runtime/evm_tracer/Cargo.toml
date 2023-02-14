@@ -10,28 +10,27 @@ version = "0.1.0"
 [dependencies]
 
 # Moonbeam
-evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false, features = [ "evm-tracing" ] }
-moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
+evm-tracing-events = { workspace = true, features = [ "evm-tracing" ] }
+moonbeam-primitives-ext = { workspace = true }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+parity-scale-codec = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-ethereum-types = { version = "0.14", default-features = false }
-evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { version = "0.37.0", default-features = false }
-evm-runtime = { version = "0.37.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+ethereum-types = { workspace = true }
+evm = { workspace = true }
+evm-gasometer = { workspace = true }
+evm-runtime = { workspace = true }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true }
 
 [features]
 default = [ "std" ]
 std = [
-	"codec/std",
 	"ethereum-types/std",
 	"evm-gasometer/std",
 	"evm-runtime/std",
@@ -41,6 +40,7 @@ std = [
 	"fp-evm/std",
 	"moonbeam-primitives-ext/std",
 	"pallet-evm/std",
+	"parity-scale-codec/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",

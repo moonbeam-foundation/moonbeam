@@ -25,8 +25,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod tracer {
-	use codec::Encode;
 	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
+	use parity_scale_codec::Encode;
 
 	use evm::tracing::{using as evm_using, EventListener as EvmListener};
 	use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};
