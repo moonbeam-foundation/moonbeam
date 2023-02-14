@@ -827,23 +827,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	) -> bool {
 		use pallet_evm::PrecompileSet as _;
 		match self {
-			ProxyType::Any => {
-				match PrecompileName::from_address(call.to.0) {
-					// Any precompile that can execute a subcall should be forbidden here,
-					// to ensure that unauthorized smart contract can't be called
-					// indirectly.
-					// To be safe, we only allow the precompiles we need.
-					Some(
-						PrecompileName::AuthorMappingPrecompile
-						| PrecompileName::ParachainStakingPrecompile,
-					) => true,
-					Some(ref precompile) if is_governance_precompile(precompile) => true,
-					// All non-whitelisted precompiles are forbidden
-					Some(_) => false,
-					// Allow evm transfer to "simple" account (no code nor precompile)
-					None => true,
-				}
-			}
+			ProxyType::Any => true,
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
 					&& match PrecompileName::from_address(call.to.0) {
