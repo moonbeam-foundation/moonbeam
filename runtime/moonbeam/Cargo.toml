@@ -294,6 +294,7 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
+	"fp-self-contained/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",
@@ -313,5 +314,4 @@ try-runtime = [
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
-	"fp-self-contained/try-runtime",
 ]

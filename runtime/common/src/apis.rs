@@ -762,9 +762,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						state_root_check,
 						select,
 					);
-					// NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
-					// have a backtrace here.
-					Executive::try_execute_block(block, state_root_check, signature_check, select).expect("execute-block failed")
+					// NOTE: intentional unwrap: we don't want to propagate the error backwards,
+					// and want to have a backtrace here.
+					Executive::try_execute_block(
+						block,
+						state_root_check,
+						signature_check,
+						select,
+					).expect("execute-block failed")
 				}
 			}
 		}
