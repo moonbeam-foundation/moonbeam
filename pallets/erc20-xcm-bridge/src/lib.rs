@@ -86,7 +86,7 @@ pub mod pallet {
 				Default::default(),
 				false,
 				false,
-				&fp_evm::Config::london(),
+				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;
 
