@@ -313,4 +313,5 @@ try-runtime = [
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
+	"fp-self-contained/try-runtime",
 ]

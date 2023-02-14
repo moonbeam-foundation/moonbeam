@@ -334,4 +334,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-whitelist/try-runtime",
+	"fp-self-contained/try-runtime",
 ]
