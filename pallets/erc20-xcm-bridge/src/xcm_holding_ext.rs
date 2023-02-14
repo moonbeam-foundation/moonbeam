@@ -16,12 +16,10 @@
 
 //! Module that provides types to extend xcm holding.
 
-use crate::erc20_matcher::Erc20Matcher;
 use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
-use xcm_executor::traits::{DropAssets, MatchesFungibles};
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
@@ -95,39 +93,6 @@ impl XcmHoldingErc20sOrigins {
 		F: FnOnce(&mut Self) -> R,
 	{
 		XCM_HOLDING_ERC20_ORIGINS::with(|erc20s_origins| f(erc20s_origins))
-	}
-}
-
-// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
-pub struct AssetTrapWrapper<AssetTrap, Runtime>(core::marker::PhantomData<(AssetTrap, Runtime)>);
-
-impl<AssetTrap: DropAssets, Runtime: crate::Config> DropAssets
-	for AssetTrapWrapper<AssetTrap, Runtime>
-{
-	fn drop_assets(
-		origin: &xcm::latest::MultiLocation,
-		mut assets: xcm_executor::Assets,
-	) -> xcm::latest::Weight {
-		// Remove all erc20 assets
-		let assets_to_remove: Vec<_> = assets
-			.fungible_assets_iter()
-			.filter_map(|multiasset| {
-				if Erc20Matcher::<Runtime>::matches_fungibles(&multiasset).is_ok() {
-					Some(multiasset.id)
-				} else {
-					None
-				}
-			})
-			.collect();
-		for id in assets_to_remove {
-			assets.saturating_take(xcm::latest::MultiAssetFilter::Wild(
-				xcm::latest::WildMultiAsset::AllOf {
-					fun: xcm::latest::prelude::WildFungible,
-					id,
-				},
-			));
-		}
-		AssetTrap::drop_assets(origin, assets)
 	}
 }
 
