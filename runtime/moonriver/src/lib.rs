@@ -1199,8 +1199,6 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
-		// Reserving id 109 for future integration of pallet_erc20_xcm_bridge
-		//Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 109,
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
