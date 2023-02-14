@@ -344,6 +344,74 @@
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -372,7 +440,7 @@
 <span class="kw">use </span>pallet_referenda::{Call <span class="kw">as </span>ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>sp_core::U256;
+<span class="kw">use </span>sp_core::{Hasher, H256, U256};
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -394,6 +462,22 @@
 
 <span class="kw">type </span>OriginOf&lt;Runtime&gt; =
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::PalletsOrigin;
+
+<span class="doccomment">/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AT: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAt(uint16,uint32,bytes32)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AFTER: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAfter(uint16,uint32,bytes32)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositPlaced(uint32)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositRefunded(uint32)&quot;</span>);
 
 <span class="kw">pub struct </span>TrackInfo {
 	name: UnboundedBytes,
@@ -492,6 +576,7 @@
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ReferendaCall&lt;Runtime&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: Into&lt;H256&gt;,
 	Runtime::BlockNumber: Into&lt;U256&gt;,
 	TrackIdOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
@@ -590,7 +675,7 @@
 	</span><span class="kw">fn </span>submit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
-		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
+		proposal: Vec&lt;u8&gt;,
 		enactment_moment: DispatchTime&lt;Runtime::BlockNumber&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="comment">// for read of referendumCount to get the referendum index
@@ -600,11 +685,10 @@
 			RevertReason::custom(<span class="string">&quot;Origin does not exist for TrackId&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>)
 		})<span class="question-mark">?</span>;
 		<span class="kw">let </span>proposal_origin: Box&lt;OriginOf&lt;Runtime&gt;&gt; = Box::new(proposal_origin.into());
-		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|<span class="kw">_</span>| {
+		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; =
+			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|<span class="kw">_</span>| {
 				RevertReason::custom(<span class="string">&quot;Proposal input is not a runtime call&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
-			})<span class="question-mark">?</span>,
-		);
+			})<span class="question-mark">?</span>);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -633,12 +717,29 @@
 		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="self">Self</span>::submit(
+		<span class="kw">let </span>proposal: sp_std::vec::Vec&lt;u8&gt; = proposal.into();
+		<span class="kw">let </span>hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(block_number)
+				.write::&lt;H256&gt;(hash.into())
+				.build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>submit_result = <span class="self">Self</span>::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::At(block_number.into()),
-		)
+		)<span class="question-mark">?</span>;
+
+		event.record(handle)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(submit_result)
 	}
 
 	<span class="doccomment">/// Propose a referendum on a privileged action.
@@ -654,12 +755,29 @@
 		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="self">Self</span>::submit(
+		<span class="kw">let </span>proposal: sp_std::vec::Vec&lt;u8&gt; = proposal.into();
+		<span class="kw">let </span>hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(block_number)
+				.write::&lt;H256&gt;(hash.into())
+				.build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>submit_result = <span class="self">Self</span>::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::After(block_number.into()),
-		)
+		)<span class="question-mark">?</span>;
+
+		event.record(handle)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(submit_result)
 	}
 
 	<span class="doccomment">/// Post the Decision Deposit for a referendum.
@@ -668,11 +786,20 @@
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;placeDecisionDeposit(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>place_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new().write::&lt;u32&gt;(index).build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::place_decision_deposit { index }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
 	}
 
@@ -682,11 +809,20 @@
 	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;refundDecisionDeposit(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>refund_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new().write::&lt;u32&gt;(index).build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::refund_decision_deposit { index }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
 	}
 }

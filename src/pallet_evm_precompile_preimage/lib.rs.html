@@ -87,6 +87,29 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -123,6 +146,12 @@
 <span class="kw">pub const </span>ENCODED_PROPOSAL_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetEncodedProposalSizeLimit = ConstU32&lt;ENCODED_PROPOSAL_SIZE_LIMIT&gt;;
 
+<span class="doccomment">/// Solidity selector of the PreimageNoted log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_PREIMAGE_NOTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;PreimageNoted(bytes32)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the PreimageUnnoted log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_PREIMAGE_UNNOTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;PreimageUnnoted(bytes32)&quot;</span>);
+
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-preimage.
 </span><span class="kw">pub struct </span>PreimagePrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
@@ -130,7 +159,7 @@
 </span><span class="kw">impl</span>&lt;Runtime&gt; PreimagePrecompile&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: pallet_preimage::Config + pallet_evm::Config + frame_system::Config,
-	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: TryFrom&lt;H256&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: TryFrom&lt;H256&gt; + Into&lt;H256&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
 		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
@@ -149,12 +178,20 @@
 	) -&gt; EvmResult&lt;H256&gt; {
 		<span class="kw">let </span>bytes: Vec&lt;u8&gt; = encoded_proposal.into();
 		<span class="kw">let </span>hash: H256 = Runtime::Hashing::hash(<span class="kw-2">&amp;</span>bytes).into();
+
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_PREIMAGE_NOTED,
+			EvmDataWriter::new().write::&lt;H256&gt;(hash.into()).build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage { bytes }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
+		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(hash)
 	}
 
@@ -164,6 +201,13 @@
 	/// * hash: The preimage cleared from storage
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;unnotePreimage(bytes32)&quot;</span>)]
 	</span><span class="kw">fn </span>unnote_preimage(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, hash: H256) -&gt; EvmResult {
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_PREIMAGE_UNNOTED,
+			EvmDataWriter::new().write::&lt;H256&gt;(hash).build(),
+		);
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+
 		<span class="kw">let </span>hash: Runtime::Hash = hash
 			.try_into()
 			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;H256 is Runtime::Hash&quot;</span>).in_field(<span class="string">&quot;hash&quot;</span>))<span class="question-mark">?</span>;
@@ -172,6 +216,8 @@
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::unnote_preimage { hash }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		event.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
