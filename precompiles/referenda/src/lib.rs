@@ -134,7 +134,6 @@ impl EvmData for TrackInfo {
 }
 
 /// A precompile to wrap the functionality from pallet-referenda.
-// TODO: remove GovOrigins usage in code and then remove the trait bound and usage
 pub struct ReferendaPrecompile<Runtime, GovOrigin>(PhantomData<(Runtime, GovOrigin)>);
 
 #[precompile_utils::precompile]
