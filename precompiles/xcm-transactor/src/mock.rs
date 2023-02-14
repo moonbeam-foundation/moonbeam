@@ -149,8 +149,8 @@ parameter_types! {
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, XcmTransactorPrecompileV1<R>>,
-		PrecompileAt<AddressU64<2>, XcmTransactorPrecompileV2<R>>,
+		PrecompileAt<AddressU64<1>, XcmTransactorPrecompileV1<R>, CallableByContract>,
+		PrecompileAt<AddressU64<2>, XcmTransactorPrecompileV2<R>, CallableByContract>,
 	),
 >;
 

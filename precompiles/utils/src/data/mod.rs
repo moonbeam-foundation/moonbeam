@@ -39,6 +39,9 @@ pub trait EvmData: Sized {
 	fn write(writer: &mut EvmDataWriter, value: Self);
 	fn has_static_size() -> bool;
 	fn solidity_type() -> String;
+	fn is_explicit_tuple() -> bool {
+		false
+	}
 }
 
 /// Wrapper around an EVM input slice, helping to parse it.
@@ -340,6 +343,17 @@ where
 
 	fn solidity_type() -> String {
 		P::solidity_type()
+	}
+}
+
+/// Wrapper around values being returned by functions.
+/// Handle special case with tuple encoding.
+pub fn encode_as_function_return_value<T: EvmData>(value: T) -> Vec<u8> {
+	let output = EvmDataWriter::new().write(value).build();
+	if T::is_explicit_tuple() && !T::has_static_size() {
+		output[32..].to_vec()
+	} else {
+		output
 	}
 }
 

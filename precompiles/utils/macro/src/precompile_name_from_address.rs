@@ -45,7 +45,7 @@ pub fn main(_: TokenStream, input: TokenStream) -> TokenStream {
 			#(#attrs)*
 			#vis #type_token #ident #generics #eq_token #ty #semi_token
 
-			#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
+			#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive, Debug)]
 			#[repr(u64)]
 			pub enum PrecompileName {
 				#(

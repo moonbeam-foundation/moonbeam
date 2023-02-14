@@ -95,7 +95,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     let fillAmount = 600_000_000; // equal to 60% Perbill
 
     const { block, result } = await context.createBlock(
-      context.polkadotApi.tx.system.fillBlock(fillAmount)
+      context.polkadotApi.tx.rootTesting.fillBlock(fillAmount)
     );
 
     // grab the first withdraw event and hope it's the right one...
@@ -249,7 +249,9 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
   it("should not decay when block size at target amount", async function () {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT)
+      )
     );
     const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be.true;
@@ -261,7 +263,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .transfer(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
       .signAndSend(alith, { nonce: -1 });
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     await context.createBlock();
 
@@ -283,7 +285,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {
@@ -394,7 +396,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {

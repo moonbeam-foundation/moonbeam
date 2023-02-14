@@ -76,7 +76,7 @@ import type {
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin,
+  MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
   MoonbaseRuntimeRuntime,
@@ -116,8 +116,6 @@ import type {
   PalletBalancesReasons,
   PalletBalancesReleases,
   PalletBalancesReserveData,
-  PalletBaseFeeCall,
-  PalletBaseFeeEvent,
   PalletCollectiveCall,
   PalletCollectiveError,
   PalletCollectiveEvent,
@@ -260,12 +258,15 @@ import type {
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorError,
   PalletXcmTransactorEvent,
+  PalletXcmTransactorHrmpInitParams,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
+  PolkadotParachainPrimitivesHrmpChannelId,
   PolkadotParachainPrimitivesXcmpMessageFormat,
   PolkadotPrimitivesV2AbridgedHostConfiguration,
   PolkadotPrimitivesV2AbridgedHrmpChannel,
@@ -405,7 +406,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
     MoonbaseRuntimeAssetConfigAssetRegistrarMetadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
-    MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin;
+    MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonbaseRuntimeOriginCaller: MoonbaseRuntimeOriginCaller;
     MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
     MoonbaseRuntimeRuntime: MoonbaseRuntimeRuntime;
@@ -445,8 +446,6 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReleases: PalletBalancesReleases;
     PalletBalancesReserveData: PalletBalancesReserveData;
-    PalletBaseFeeCall: PalletBaseFeeCall;
-    PalletBaseFeeEvent: PalletBaseFeeEvent;
     PalletCollectiveCall: PalletCollectiveCall;
     PalletCollectiveError: PalletCollectiveError;
     PalletCollectiveEvent: PalletCollectiveEvent;
@@ -589,12 +588,15 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmTransactorCurrencyPayment: PalletXcmTransactorCurrencyPayment;
     PalletXcmTransactorError: PalletXcmTransactorError;
     PalletXcmTransactorEvent: PalletXcmTransactorEvent;
+    PalletXcmTransactorHrmpInitParams: PalletXcmTransactorHrmpInitParams;
+    PalletXcmTransactorHrmpOperation: PalletXcmTransactorHrmpOperation;
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
     PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
+    PolkadotParachainPrimitivesHrmpChannelId: PolkadotParachainPrimitivesHrmpChannelId;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
     PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
     PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;

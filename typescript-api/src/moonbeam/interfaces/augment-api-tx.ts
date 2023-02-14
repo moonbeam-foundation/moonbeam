@@ -35,7 +35,6 @@ import type {
   H256,
   Perbill,
   Percent,
-  Permill,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPrimitivesParachainInherentParachainInherentData,
@@ -55,6 +54,7 @@ import type {
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
   PalletXcmTransactorCurrencyPayment,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
   SpRuntimeMultiSignature,
   SpWeightsWeightV2Weight,
@@ -1030,20 +1030,6 @@ declare module "@polkadot/api-base/types/submittable" {
           value: Compact<u128> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Compact<u128>]
-      >;
-      /**
-       * Generic tx
-       */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    baseFee: {
-      setBaseFeePerGas: AugmentedSubmittable<
-        (fee: U256 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [U256]
-      >;
-      setElasticity: AugmentedSubmittable<
-        (elasticity: Permill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Permill]
       >;
       /**
        * Generic tx
@@ -3210,7 +3196,10 @@ declare module "@polkadot/api-base/types/submittable" {
         [u128]
       >;
       /**
-       * Request bond less for delegators wrt a specific collator candidate.
+       * Request bond less for delegators wrt a specific collator candidate. The
+       * delegation's rewards for rounds while the request is pending use the
+       * reduced bonded amount. A bond less may not be performed if any other
+       * scheduled request is pending.
        */
       scheduleDelegatorBondLess: AugmentedSubmittable<
         (
@@ -3238,7 +3227,9 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Request to revoke an existing delegation. If successful, the delegation
        * is scheduled to be allowed to be revoked via the
-       * `execute_delegation_request` extrinsic.
+       * `execute_delegation_request` extrinsic. The delegation receives no
+       * rewards for the rounds while a revoke is pending. A revoke may not be
+       * performed if any other scheduled request is pending.
        */
       scheduleRevokeDelegation: AugmentedSubmittable<
         (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -5015,6 +5006,35 @@ declare module "@polkadot/api-base/types/submittable" {
       deregister: AugmentedSubmittable<
         (index: u16 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u16]
+      >;
+      /**
+       * Manage HRMP operations
+       */
+      hrmpManage: AugmentedSubmittable<
+        (
+          action:
+            | PalletXcmTransactorHrmpOperation
+            | { InitOpen: any }
+            | { Accept: any }
+            | { Close: any }
+            | string
+            | Uint8Array,
+          fee:
+            | PalletXcmTransactorCurrencyPayment
+            | { currency?: any; feeAmount?: any }
+            | string
+            | Uint8Array,
+          weightInfo:
+            | PalletXcmTransactorTransactWeights
+            | { transactRequiredWeightAtMost?: any; overallWeight?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          PalletXcmTransactorHrmpOperation,
+          PalletXcmTransactorCurrencyPayment,
+          PalletXcmTransactorTransactWeights
+        ]
       >;
       /**
        * Register a derivative index for an account id. Dispatchable by

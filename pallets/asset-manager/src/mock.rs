@@ -171,15 +171,15 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 		Ok(())
 	}
 
-	fn destroy_foreign_asset(_asset: u32, _witness: u32) -> Result<(), DispatchError> {
+	fn destroy_foreign_asset(_asset: u32) -> Result<(), DispatchError> {
 		Ok(())
 	}
 
-	fn destroy_local_asset(_asset: u32, _witness: u32) -> Result<(), DispatchError> {
+	fn destroy_local_asset(_asset: u32) -> Result<(), DispatchError> {
 		Ok(())
 	}
 
-	fn destroy_asset_dispatch_info_weight(_asset: u32, _witness: u32) -> Weight {
+	fn destroy_asset_dispatch_info_weight(_asset: u32) -> Weight {
 		Weight::from_ref_time(0)
 	}
 }
@@ -210,7 +210,6 @@ impl Config for Test {
 	type ForeignAssetModifierOrigin = EnsureRoot<u64>;
 	type LocalAssetModifierOrigin = EnsureRoot<u64>;
 	type LocalAssetIdCreator = MockLocalAssetIdCreator;
-	type AssetDestroyWitness = u32;
 	type Currency = Balances;
 	type LocalAssetDeposit = LocalAssetDeposit;
 	type WeightInfo = ();

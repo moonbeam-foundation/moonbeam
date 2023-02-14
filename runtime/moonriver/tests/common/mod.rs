@@ -318,9 +318,10 @@ impl ExtBuilder {
 		ext.execute_with(|| {
 			// If any local assets specified, we create them here
 			for (asset_id, balances, owner) in local_assets.clone() {
-				LocalAssets::force_create(root_origin(), asset_id, owner, true, 1).unwrap();
+				LocalAssets::force_create(root_origin(), asset_id.into(), owner, true, 1).unwrap();
 				for (account, balance) in balances {
-					LocalAssets::mint(origin_of(owner.into()), asset_id, account, balance).unwrap();
+					LocalAssets::mint(origin_of(owner.into()), asset_id.into(), account, balance)
+						.unwrap();
 				}
 			}
 			// If any xcm assets specified, we register them here
@@ -337,7 +338,7 @@ impl ExtBuilder {
 				for (account, balance) in xcm_asset_initialization.balances {
 					Assets::mint(
 						origin_of(AssetManager::account_id()),
-						asset_id,
+						asset_id.into(),
 						account,
 						balance,
 					)

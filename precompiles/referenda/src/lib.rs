@@ -25,8 +25,8 @@ use frame_support::traits::{
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
-use precompile_utils::prelude::*;
-use sp_core::U256;
+use precompile_utils::{data::String, prelude::*};
+use sp_core::{Hasher, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
@@ -49,6 +49,106 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
+/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_SUBMITTED_AT: [u8; 32] =
+	keccak256!("SubmittedAt(uint16,uint32,bytes32)");
+
+/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_SUBMITTED_AFTER: [u8; 32] =
+	keccak256!("SubmittedAfter(uint16,uint32,bytes32)");
+
+/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
+	keccak256!("DecisionDepositPlaced(uint32)");
+
+/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
+	keccak256!("DecisionDepositRefunded(uint32)");
+
+pub struct TrackInfo {
+	name: UnboundedBytes,
+	max_deciding: U256,
+	decision_deposit: U256,
+	prepare_period: U256,
+	decision_period: U256,
+	confirm_period: U256,
+	min_enactment_period: U256,
+	min_approval: UnboundedBytes,
+	min_support: UnboundedBytes,
+}
+
+impl EvmData for TrackInfo {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		precompile_utils::read_struct!(reader, {
+			name: UnboundedBytes,
+			max_deciding: U256,
+			decision_deposit: U256,
+			prepare_period: U256,
+			decision_period: U256,
+			confirm_period: U256,
+			min_enactment_period: U256,
+			min_approval: UnboundedBytes,
+			min_support: UnboundedBytes
+		});
+		Ok(TrackInfo {
+			name,
+			max_deciding,
+			decision_deposit,
+			prepare_period,
+			decision_period,
+			confirm_period,
+			min_enactment_period,
+			min_approval,
+			min_support,
+		})
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(
+			writer,
+			(
+				value.name,
+				value.max_deciding,
+				value.decision_deposit,
+				value.prepare_period,
+				value.decision_period,
+				value.confirm_period,
+				value.min_enactment_period,
+				value.min_approval,
+				value.min_support,
+			),
+		);
+	}
+
+	fn has_static_size() -> bool {
+		<(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(
+			UnboundedBytes,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			U256,
+			UnboundedBytes,
+			UnboundedBytes,
+		)>::solidity_type()
+	}
+}
+
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
 
@@ -62,6 +162,7 @@ where
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
+	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
@@ -70,13 +171,13 @@ where
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
 	#[precompile::view]
-	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
+	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let ref_count = ReferendumCount::<Runtime>::get();
 		log::trace!(target: "referendum-precompile", "Referendum count is {:?}", ref_count);
 
-		Ok(ref_count.into())
+		Ok(ref_count)
 	}
 
 	#[precompile::public("submissionDeposit()")]
@@ -130,20 +231,7 @@ where
 
 	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
-	fn track_info(
-		handle: &mut impl PrecompileHandle,
-		track_id: u16,
-	) -> EvmResult<(
-		UnboundedBytes,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		U256,
-		UnboundedBytes,
-		UnboundedBytes,
-	)> {
+	fn track_info(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<TrackInfo> {
 		// Fetch data from runtime
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_id: TrackIdOf<Runtime> = track_id
@@ -156,17 +244,50 @@ where
 			.unwrap_or_else(|x| x);
 		let track_info = &tracks[index].1;
 
-		Ok((
-			track_info.name.as_bytes().into(),
-			track_info.max_deciding.into(),
-			track_info.decision_deposit.into(),
-			track_info.prepare_period.into(),
-			track_info.decision_period.into(),
-			track_info.confirm_period.into(),
-			track_info.min_enactment_period.into(),
-			track_info.min_approval.encode().into(),
-			track_info.min_support.encode().into(),
-		))
+		Ok(TrackInfo {
+			name: track_info.name.into(),
+			max_deciding: track_info.max_deciding.into(),
+			decision_deposit: track_info.decision_deposit.into(),
+			prepare_period: track_info.prepare_period.into(),
+			decision_period: track_info.decision_period.into(),
+			confirm_period: track_info.confirm_period.into(),
+			min_enactment_period: track_info.min_enactment_period.into(),
+			min_approval: track_info.min_approval.encode().into(),
+			min_support: track_info.min_support.encode().into(),
+		})
+	}
+
+	// Helper function for submitAt and submitAfter
+	fn submit(
+		handle: &mut impl PrecompileHandle,
+		track_id: u16,
+		proposal: Vec<u8>,
+		enactment_moment: DispatchTime<Runtime::BlockNumber>,
+	) -> EvmResult<u32> {
+		// for read of referendumCount to get the referendum index
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let referendum_index = ReferendumCount::<Runtime>::get();
+		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
+			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
+		})?;
+		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
+		let proposal: BoundedCallOf<Runtime> =
+			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
+				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+			})?);
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = ReferendaCall::<Runtime>::submit {
+			proposal_origin,
+			proposal,
+			enactment_moment,
+		}
+		.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(referendum_index)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -181,30 +302,30 @@ where
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
-	) -> EvmResult {
-		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?,
+	) -> EvmResult<u32> {
+		let proposal: sp_std::vec::Vec<u8> = proposal.into();
+		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(block_number)
+				.write::<H256>(hash.into())
+				.build(),
 		);
-		let enactment_moment = DispatchTime::At(block_number.into());
+		handle.record_log_costs(&[&event])?;
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin,
+		let submit_result = Self::submit(
+			handle,
+			track_id,
 			proposal,
-			enactment_moment,
-		}
-		.into();
+			DispatchTime::At(block_number.into()),
+		)?;
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		event.record(handle)?;
 
-		Ok(())
+		Ok(submit_result)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -219,30 +340,30 @@ where
 		track_id: u16,
 		proposal: BoundedBytes<GetCallDataLimit>,
 		block_number: u32,
-	) -> EvmResult {
-		let origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(origin.into());
-		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?,
+	) -> EvmResult<u32> {
+		let proposal: sp_std::vec::Vec<u8> = proposal.into();
+		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(block_number)
+				.write::<H256>(hash.into())
+				.build(),
 		);
-		let enactment_moment = DispatchTime::After(block_number.into());
+		handle.record_log_costs(&[&event])?;
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin,
+		let submit_result = Self::submit(
+			handle,
+			track_id,
 			proposal,
-			enactment_moment,
-		}
-		.into();
+			DispatchTime::After(block_number.into()),
+		)?;
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		event.record(handle)?;
 
-		Ok(())
+		Ok(submit_result)
 	}
 
 	/// Post the Decision Deposit for a referendum.
@@ -251,11 +372,20 @@ where
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	#[precompile::public("placeDecisionDeposit(uint32)")]
 	fn place_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new().write::<u32>(index).build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 		Ok(())
 	}
 
@@ -265,11 +395,20 @@ where
 	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
 	#[precompile::public("refundDecisionDeposit(uint32)")]
 	fn refund_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new().write::<u32>(index).build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 		Ok(())
 	}
 }

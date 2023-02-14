@@ -448,7 +448,7 @@ where
     transfer_from { from: Address, to: Address, value: U256 },
     transfer_ownership { owner: Address },
     #[doc(hidden)]
-    __phantom(PhantomData<(Runtime)>, ::core::convert::Infallible),
+    __phantom(::core::marker::PhantomData<(Runtime)>, ::core::convert::Infallible),
 }
 impl<Runtime> PrecompileSetCall<Runtime>
 where
@@ -783,54 +783,54 @@ where
                 let output = <PrecompileSet<
                     Runtime,
                 >>::allowance(discriminant, handle, owner, spender);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::approve { spender, value } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::approve(discriminant, handle, spender, value);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::balance_of { who } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::balance_of(discriminant, handle, who);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::burn { from, value } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::burn(discriminant, handle, from, value);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::clear_metadata {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::clear_metadata(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::decimals {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<Runtime>>::decimals(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::eip2612_domain_separator {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_domain_separator(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::eip2612_nonces { owner } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_nonces(discriminant, handle, owner);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::eip2612_permit { owner, spender, value, deadline, v, r, s } => {
                 use ::precompile_utils::EvmDataWriter;
@@ -847,92 +847,92 @@ where
                     r,
                     s,
                 );
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::freeze { account } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze(discriminant, handle, account);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::freeze_asset {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze_asset(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::mint { to, value } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::mint(discriminant, handle, to, value);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::name {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<Runtime>>::name(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::set_metadata { name, symbol, decimals } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_metadata(discriminant, handle, name, symbol, decimals);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::set_team { issuer, admin, freezer } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_team(discriminant, handle, issuer, admin, freezer);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::symbol {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<Runtime>>::symbol(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::thaw { account } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::thaw(discriminant, handle, account);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::thaw_asset {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<Runtime>>::thaw_asset(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::total_supply {} => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::total_supply(discriminant, handle);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::transfer { to, value } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer(discriminant, handle, to, value);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::transfer_from { from, to, value } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_from(discriminant, handle, from, to, value);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::transfer_ownership { owner } => {
                 use ::precompile_utils::EvmDataWriter;
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_ownership(discriminant, handle, owner);
-                EvmDataWriter::new().write(output?).build()
+                ::precompile_utils::data::encode_as_function_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
