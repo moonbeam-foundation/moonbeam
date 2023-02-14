@@ -500,13 +500,13 @@
 	<span class="comment">// The accessors are first. They directly return their result.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;referendumCount()&quot;</span>)]
 	#[precompile::view]
-	</span><span class="kw">fn </span>referendum_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
+	</span><span class="kw">fn </span>referendum_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
 		<span class="comment">// Fetch data from pallet
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>ref_count = ReferendumCount::&lt;Runtime&gt;::get();
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;referendum-precompile&quot;</span>, <span class="string">&quot;Referendum count is {:?}&quot;</span>, ref_count);
 
-		<span class="prelude-val">Ok</span>(ref_count.into())
+		<span class="prelude-val">Ok</span>(ref_count)
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;submissionDeposit()&quot;</span>)]
@@ -586,19 +586,16 @@
 		})
 	}
 
-	<span class="doccomment">/// Propose a referendum on a privileged action.
-	///
-	/// Parameters:
-	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
-	/// * block_number: Block number at which proposal is dispatched.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAt(uint16,bytes,uint32)&quot;</span>)]
-	</span><span class="kw">fn </span>submit_at(
+	<span class="comment">// Helper function for submitAt and submitAfter
+	</span><span class="kw">fn </span>submit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
-		block_number: u32,
-	) -&gt; EvmResult {
+		enactment_moment: DispatchTime&lt;Runtime::BlockNumber&gt;,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="comment">// for read of referendumCount to get the referendum index
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>referendum_index = ReferendumCount::&lt;Runtime&gt;::get();
 		<span class="kw">let </span>proposal_origin: GovOrigin = track_id.try_into().map_err(|<span class="kw">_</span>| {
 			RevertReason::custom(<span class="string">&quot;Origin does not exist for TrackId&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>)
 		})<span class="question-mark">?</span>;
@@ -608,7 +605,6 @@
 				RevertReason::custom(<span class="string">&quot;Proposal input is not a runtime call&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
 			})<span class="question-mark">?</span>,
 		);
-		<span class="kw">let </span>enactment_moment = DispatchTime::At(block_number.into());
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -621,7 +617,28 @@
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(referendum_index)
+	}
+
+	<span class="doccomment">/// Propose a referendum on a privileged action.
+	///
+	/// Parameters:
+	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
+	/// * proposal: The proposed runtime call.
+	/// * block_number: Block number at which proposal is dispatched.
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAt(uint16,bytes,uint32)&quot;</span>)]
+	</span><span class="kw">fn </span>submit_at(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		track_id: u16,
+		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
+		block_number: u32,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="self">Self</span>::submit(
+			handle,
+			track_id,
+			proposal,
+			DispatchTime::At(block_number.into()),
+		)
 	}
 
 	<span class="doccomment">/// Propose a referendum on a privileged action.
@@ -636,30 +653,13 @@
 		track_id: u16,
 		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
 		block_number: u32,
-	) -&gt; EvmResult {
-		<span class="kw">let </span>origin: GovOrigin = track_id.try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::custom(<span class="string">&quot;Origin does not exist for TrackId&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>)
-		})<span class="question-mark">?</span>;
-		<span class="kw">let </span>proposal_origin: Box&lt;OriginOf&lt;Runtime&gt;&gt; = Box::new(origin.into());
-		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Inline(
-			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|<span class="kw">_</span>| {
-				RevertReason::custom(<span class="string">&quot;Proposal input is not a runtime call&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
-			})<span class="question-mark">?</span>,
-		);
-		<span class="kw">let </span>enactment_moment = DispatchTime::After(block_number.into());
-
-		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::submit {
-			proposal_origin,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="self">Self</span>::submit(
+			handle,
+			track_id,
 			proposal,
-			enactment_moment,
-		}
-		.into();
-
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
+			DispatchTime::After(block_number.into()),
+		)
 	}
 
 	<span class="doccomment">/// Post the Decision Deposit for a referendum.
