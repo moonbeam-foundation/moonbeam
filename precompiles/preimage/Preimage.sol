@@ -24,4 +24,18 @@ interface Preimage {
     /// @custom:selector 02e71b45
     /// @param hash The preimage to be cleared from storage
     function unnotePreimage(bytes32 hash) external;
+
+    /// @dev A Preimage was registered on-chain.
+    /// @custom:selector 8cb56a8ebdafbb14e25ec706da62a7dde761968dbf1fb45be207d1b15c88c187
+    /// @param hash bytes32 The computed hash.
+    event PreimageNoted(
+        bytes32 hash
+    );
+
+    /// @dev A Preimage was un-registered on-chain.
+    /// @custom:selector be6cb9502cce812b6de50cc08f2481900ff6c7c6466df7d39c9f27a5f2b9c572
+    /// @param hash bytes32 The target preimage hash.
+    event PreimageUnnoted(
+        bytes32 hash
+    );
 }

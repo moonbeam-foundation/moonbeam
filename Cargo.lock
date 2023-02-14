@@ -5369,7 +5369,9 @@ dependencies = [
  "sc-telemetry",
  "sc-tracing",
  "sp-core",
+ "sp-io",
  "sp-runtime",
+ "sp-wasm-interface",
  "substrate-build-script-utils",
  "substrate-prometheus-endpoint",
  "try-runtime-cli",
@@ -14444,6 +14446,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "clap",
  "frame-remote-externalities",
+ "frame-try-runtime",
  "hex",
  "log",
  "parity-scale-codec",
