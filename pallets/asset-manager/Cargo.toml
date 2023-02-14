@@ -1,6 +1,6 @@
 [package]
 name = "pallet-asset-manager"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 version = "0.1.0"
 

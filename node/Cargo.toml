@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Moonbeam Collator"
 edition = "2021"
 homepage = "https://moonbeam.network"

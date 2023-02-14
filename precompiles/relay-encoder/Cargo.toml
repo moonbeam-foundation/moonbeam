@@ -1,6 +1,6 @@
 [package]
 name = "pallet-evm-precompile-relay-encoder"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "A Precompile to make relay staking calls encoding accessible to pallet-evm"
 edition = "2021"
 version = "0.1.0"

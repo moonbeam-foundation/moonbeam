@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-service"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"

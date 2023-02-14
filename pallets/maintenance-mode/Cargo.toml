@@ -1,6 +1,6 @@
 [package]
 name = "pallet-maintenance-mode"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Puts a FRAME-based runtime into maintenance mode where restricted interactions are allowed."
 edition = "2021"
 version = "0.1.0"

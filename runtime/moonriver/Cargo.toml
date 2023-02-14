@@ -1,6 +1,6 @@
 [package]
 name = "moonriver-runtime"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 build = "build.rs"
 description = "Moonriver Runtime"
 edition = "2021"

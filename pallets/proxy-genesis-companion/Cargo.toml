@@ -1,6 +1,6 @@
 [package]
 name = "pallet-proxy-genesis-companion"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "A simple pallet that expands pallet-proxy with a genesis configuration"
 edition = "2021"
 version = "0.1.0"

@@ -1,6 +1,6 @@
 [package]
 name = "precompile-utils-macro"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = ""
 edition = "2021"
 version = "0.1.0"

@@ -1,6 +1,6 @@
 [package]
 name = "moonbase-runtime"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 build = "build.rs"
 description = "Moonbase Runtime"
 edition = "2021"

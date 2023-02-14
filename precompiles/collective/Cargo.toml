@@ -1,6 +1,6 @@
 [package]
 name = "pallet-evm-precompile-collective"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "A Precompile wrapping the collective pallet."
 edition = "2021"
 version = "0.1.0"

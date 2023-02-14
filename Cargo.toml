@@ -37,6 +37,10 @@ members = [
 	"runtime/summarize-precompile-checks",
 ]
 
+[workspace.package]
+authors = [ "PureStake" ]
+repository = "https://github.com/PureStake/moonbeam"
+
 [patch.crates-io]
 evm = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
 evm-core = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }

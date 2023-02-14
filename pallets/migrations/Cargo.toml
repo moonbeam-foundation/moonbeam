@@ -1,6 +1,6 @@
 [package]
 name = "pallet-migrations"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "migrations management pallet"
 edition = "2021"
 version = "0.1.0"

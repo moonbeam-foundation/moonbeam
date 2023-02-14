@@ -1,11 +1,11 @@
 [package]
 name = "moonbeam-finality-rpc"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "An experimental RPC to check for block and transaction finality in the moonbeam parachain"
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]

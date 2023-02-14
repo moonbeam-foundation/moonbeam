@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-cli"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 version = "0.29.0"
 [dependencies]

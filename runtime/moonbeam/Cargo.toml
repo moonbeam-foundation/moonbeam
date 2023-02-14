@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-runtime"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 build = "build.rs"
 description = "Moonbeam Runtime"
 edition = "2021"

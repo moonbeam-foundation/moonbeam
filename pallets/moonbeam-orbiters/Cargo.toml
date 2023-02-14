@@ -1,6 +1,6 @@
 [package]
 name = "pallet-moonbeam-orbiters"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "FRAME-based pallet for Moonbeam orbiters program."
 edition = "2021"
 version = "0.1.0"

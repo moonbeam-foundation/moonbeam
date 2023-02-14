@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-runtime-common"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Common code shared between runtimes"
 edition = "2021"
 homepage = "https://moonbeam.network"

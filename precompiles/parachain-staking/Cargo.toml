@@ -1,6 +1,6 @@
 [package]
 name = "pallet-evm-precompile-parachain-staking"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "A Precompile to make parachain staking accessible to pallet-evm"
 edition = "2021"
 version = "1.0.0"

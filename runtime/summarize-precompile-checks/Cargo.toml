@@ -1,6 +1,6 @@
 [package]
 name = "summarize-precompile-checks"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Summarize precompile checks in all runtimes"
 edition = "2021"
 homepage = "https://moonbeam.network"

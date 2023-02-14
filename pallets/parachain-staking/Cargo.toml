@@ -1,6 +1,6 @@
 [package]
 name = "pallet-parachain-staking"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "parachain staking pallet for collator selection and reward distribution"
 edition = "2021"
 version = "3.0.0"
