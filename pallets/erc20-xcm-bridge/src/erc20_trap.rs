@@ -17,7 +17,7 @@
 use crate::erc20_matcher::Erc20Matcher;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
-use xcm_executor::traits::DropAssets;
+use xcm_executor::traits::{DropAssets, MatchesFungibles};
 
 // Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 pub struct AssetTrapWrapper<AssetTrap, T>(core::marker::PhantomData<(AssetTrap, T)>);
@@ -31,7 +31,7 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 		let assets_to_remove: Vec<_> = assets
 			.fungible_assets_iter()
 			.filter_map(|multiasset| {
-				if Erc20Matcher::<T>::matches_erc20(&multiasset).is_ok() {
+				if Erc20Matcher::<T>::matches_fungibles(&multiasset).is_ok() {
 					Some(multiasset.id)
 				} else {
 					None

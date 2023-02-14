@@ -21,17 +21,20 @@
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
+mod xcm_holding_ext;
 
 use frame_support::pallet;
 
 pub use erc20_trap::AssetTrapWrapper;
 pub use pallet::*;
+pub use xcm_holding_ext::XcmExecutorWrapper;
 
 #[pallet]
 pub mod pallet {
 
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
+	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
@@ -39,7 +42,7 @@ pub mod pallet {
 	use sp_core::{H160, H256, U256};
 	use sp_std::vec::Vec;
 	use xcm::latest::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult};
-	use xcm_executor::traits::{Convert, Error as MatchError};
+	use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
 	use xcm_executor::Assets;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
@@ -114,22 +117,34 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &MultiAsset, who: &MultiLocation) -> XcmResult {
-			let Erc20Asset {
-				contract_address,
-				amount,
-				maybe_holder,
-			} = Erc20Matcher::<T>::matches_erc20(what)?;
-
-			let from = maybe_holder.ok_or(MatchError::AssetIdConversionFailed)?;
+			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(what)?;
 
 			let beneficiary = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			frame_support::storage::with_storage_layer(|| {
-				Self::erc20_transfer(contract_address, from, beneficiary, amount)
-					.map_err(DepositError::Erc20TransferError)
+			// Get the global context to recover accounts origins.
+			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+				match erc20s_origins.drain(contract_address, amount) {
+					// We perform the evm transfers in a storage transaction to ensure that if one
+					// of them fails all the changes of the previous evm calls are rolled back.
+					Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
+						tokens_to_transfer
+							.into_iter()
+							.try_for_each(|(from, subamount)| {
+								Self::erc20_transfer(contract_address, from, beneficiary, subamount)
+							})
+							.map_err(DepositError::Erc20TransferError)
+					})
+					.map_err(Into::into),
+					Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
+					Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
+						"not enough founds in xcm holding",
+					)),
+				}
 			})
-			.map_err(Into::into)
+			.ok_or(XcmError::FailedToTransactAsset(
+				"missing erc20 executor context",
+			))?
 		}
 
 		fn internal_transfer_asset(
@@ -137,16 +152,7 @@ pub mod pallet {
 			from: &MultiLocation,
 			to: &MultiLocation,
 		) -> Result<Assets, XcmError> {
-			let Erc20Asset {
-				contract_address,
-				amount,
-				maybe_holder,
-			} = Erc20Matcher::<T>::matches_erc20(asset)?;
-
-			ensure!(
-				maybe_holder.is_none(),
-				XcmError::from(MatchError::AssetIdConversionFailed)
-			);
+			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(asset)?;
 
 			let from = T::AccountIdConverter::convert_ref(from)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
@@ -167,21 +173,18 @@ pub mod pallet {
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
 		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {
-			let Erc20Asset {
-				contract_address: _,
-				amount: _,
-				maybe_holder,
-			} = Erc20Matcher::<T>::matches_erc20(what)?;
-
-			ensure!(
-				maybe_holder.is_none(),
-				XcmError::from(MatchError::AssetIdConversionFailed)
-			);
-
+			let (contract_address, amount) = Erc20Matcher::<T>::matches_fungibles(what)?;
 			let who = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			Ok(Erc20Matcher::<T>::insert_holder(what, who)?.into())
+			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
+				erc20s_origins.insert(contract_address, who, amount)
+			})
+			.ok_or(XcmError::FailedToTransactAsset(
+				"missing erc20 executor context",
+			))?;
+
+			Ok(what.clone().into())
 		}
 	}
 }

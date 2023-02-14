@@ -18,56 +18,28 @@
 
 use sp_core::{Get, H160, U256};
 use xcm::latest::prelude::*;
-use xcm::latest::{Junction, MultiLocation, NetworkId};
-use xcm_executor::traits::Error as MatchError;
-
-pub(crate) struct Erc20Asset {
-	pub contract_address: H160,
-	pub amount: U256,
-	pub maybe_holder: Option<H160>,
-}
+use xcm::latest::{Junction, MultiLocation};
+use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 
 pub(crate) struct Erc20Matcher<Runtime>(core::marker::PhantomData<Runtime>);
 
-impl<Runtime: crate::Config> Erc20Matcher<Runtime> {
-	pub(crate) fn insert_holder(
-		multiasset: &MultiAsset,
-		who: H160,
-	) -> Result<MultiAsset, MatchError> {
-		match (&multiasset.fun, &multiasset.id) {
-			(Fungible(ref amount), Concrete(ref multilocation)) => Ok(MultiAsset {
-				fun: Fungible(*amount),
-				id: Concrete(
-					multilocation
-						.clone()
-						.pushed_with_interior(Junction::AccountKey20 {
-							key: who.0,
-							network: NetworkId::Any,
-						})
-						.map_err(|_| MatchError::AssetIdConversionFailed)?,
-				),
-			}),
-			_ => Err(MatchError::AssetNotFound),
-		}
-	}
-	pub(crate) fn matches_erc20(multiasset: &MultiAsset) -> Result<Erc20Asset, MatchError> {
+impl<Runtime: crate::Config> MatchesFungibles<H160, U256> for Erc20Matcher<Runtime> {
+	fn matches_fungibles(multiasset: &MultiAsset) -> Result<(H160, U256), MatchError> {
 		let (amount, id) = match (&multiasset.fun, &multiasset.id) {
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
 			_ => return Err(MatchError::AssetNotFound),
 		};
-		let (contract_address, maybe_holder) = Self::matches_erc20_multilocation(id)
+		let contract_address = Self::matches_erc20_multilocation(id)
 			.map_err(|_| MatchError::AssetIdConversionFailed)?;
 		let amount =
 			U256::try_from(*amount).map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
-		Ok(Erc20Asset {
-			contract_address,
-			amount,
-			maybe_holder,
-		})
+
+		Ok((contract_address, amount))
 	}
-	fn matches_erc20_multilocation(
-		multilocation: &MultiLocation,
-	) -> Result<(H160, Option<H160>), ()> {
+}
+
+impl<Runtime: crate::Config> Erc20Matcher<Runtime> {
+	fn matches_erc20_multilocation(multilocation: &MultiLocation) -> Result<H160, ()> {
 		let prefix = Runtime::Erc20MultilocationPrefix::get();
 		if prefix.parent_count() != multilocation.parent_count()
 			|| prefix
@@ -78,22 +50,11 @@ impl<Runtime: crate::Config> Erc20Matcher<Runtime> {
 		{
 			return Err(());
 		}
-		let prefix_len = prefix.interior().len();
-		match multilocation.interior().at(prefix_len) {
+		match multilocation.interior().at(prefix.interior().len()) {
 			Some(Junction::AccountKey20 {
 				key: contract_address,
 				..
-			}) => match prefix_len.checked_add(1) {
-				Some(prefix_len_plus_one) => match multilocation.interior().at(prefix_len_plus_one)
-				{
-					Some(Junction::AccountKey20 { key: holder, .. }) => {
-						Ok((H160(*contract_address), Some(H160(*holder))))
-					}
-					None => Ok((H160(*contract_address), None)),
-					_ => Err(()),
-				},
-				_ => Err(()),
-			},
+			}) => Ok(H160(*contract_address)),
 			_ => Err(()),
 		}
 	}
