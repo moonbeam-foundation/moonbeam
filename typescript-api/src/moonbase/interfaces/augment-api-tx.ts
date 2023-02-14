@@ -35,7 +35,6 @@ import type {
   H256,
   Perbill,
   Percent,
-  Permill,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPrimitivesParachainInherentParachainInherentData,
@@ -58,6 +57,7 @@ import type {
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
   PalletXcmTransactorCurrencyPayment,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
   SpRuntimeMultiSignature,
   SpWeightsWeightV2Weight,
@@ -1034,20 +1034,6 @@ declare module "@polkadot/api-base/types/submittable" {
           value: Compact<u128> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Compact<u128>]
-      >;
-      /**
-       * Generic tx
-       */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    baseFee: {
-      setBaseFeePerGas: AugmentedSubmittable<
-        (fee: U256 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [U256]
-      >;
-      setElasticity: AugmentedSubmittable<
-        (elasticity: Permill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Permill]
       >;
       /**
        * Generic tx
@@ -3294,6 +3280,279 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    openTechCommitteeCollective: {
+      /**
+       * Close a vote that is either approved, disapproved or whose voting
+       * period has ended.
+       *
+       * May be called by any signed account in order to finish voting and close
+       * the proposal.
+       *
+       * If called before the end of the voting period it will only close the
+       * vote if it is has enough votes to be approved or disapproved.
+       *
+       * If called after the end of the voting period abstentions are counted as
+       * rejections unless there is a prime member set and the prime member cast
+       * an approval.
+       *
+       * If the close operation completes successfully with disapproval, the
+       * transaction fee will be waived. Otherwise execution of the approved
+       * operation will be charged to the caller.
+       *
+       * - `proposal_weight_bound`: The maximum amount of weight consumed by
+       *   executing the closed proposal.
+       * - `length_bound`: The upper bound for the length of the proposal in
+       *   storage. Checked via `storage::read` so it is `size_of::<u32>() == 4`
+       *   larger than the pure length.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(B + M + P1 + P2)` where:
+       * - `B` is `proposal` size in bytes (length-fee-bounded)
+       * - `M` is members-count (code- and governance-bounded)
+       * - `P1` is the complexity of `proposal` preimage.
+       * - `P2` is proposal-count (code-bounded)
+       * - DB:
+       * - 2 storage reads (`Members`: codec `O(M)`, `Prime`: codec `O(1)`)
+       * - 3 mutations (`Voting`: codec `O(M)`, `ProposalOf`: codec `O(B)`,
+       *   `Proposals`: codec `O(P2)`)
+       * - Any mutations done while executing `proposal` (`P1`)
+       * - Up to 3 events
+       *
+       * # </weight>
+       */
+      close: AugmentedSubmittable<
+        (
+          proposalHash: H256 | string | Uint8Array,
+          index: Compact<u32> | AnyNumber | Uint8Array,
+          proposalWeightBound:
+            | SpWeightsWeightV2Weight
+            | { refTime?: any; proofSize?: any }
+            | string
+            | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
+      >;
+      /**
+       * Close a vote that is either approved, disapproved or whose voting
+       * period has ended.
+       *
+       * May be called by any signed account in order to finish voting and close
+       * the proposal.
+       *
+       * If called before the end of the voting period it will only close the
+       * vote if it is has enough votes to be approved or disapproved.
+       *
+       * If called after the end of the voting period abstentions are counted as
+       * rejections unless there is a prime member set and the prime member cast
+       * an approval.
+       *
+       * If the close operation completes successfully with disapproval, the
+       * transaction fee will be waived. Otherwise execution of the approved
+       * operation will be charged to the caller.
+       *
+       * - `proposal_weight_bound`: The maximum amount of weight consumed by
+       *   executing the closed proposal.
+       * - `length_bound`: The upper bound for the length of the proposal in
+       *   storage. Checked via `storage::read` so it is `size_of::<u32>() == 4`
+       *   larger than the pure length.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(B + M + P1 + P2)` where:
+       * - `B` is `proposal` size in bytes (length-fee-bounded)
+       * - `M` is members-count (code- and governance-bounded)
+       * - `P1` is the complexity of `proposal` preimage.
+       * - `P2` is proposal-count (code-bounded)
+       * - DB:
+       * - 2 storage reads (`Members`: codec `O(M)`, `Prime`: codec `O(1)`)
+       * - 3 mutations (`Voting`: codec `O(M)`, `ProposalOf`: codec `O(B)`,
+       *   `Proposals`: codec `O(P2)`)
+       * - Any mutations done while executing `proposal` (`P1`)
+       * - Up to 3 events
+       *
+       * # </weight>
+       */
+      closeOldWeight: AugmentedSubmittable<
+        (
+          proposalHash: H256 | string | Uint8Array,
+          index: Compact<u32> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
+      >;
+      /**
+       * Disapprove a proposal, close, and remove it from the system, regardless
+       * of its current state.
+       *
+       * Must be called by the Root origin.
+       *
+       * Parameters:
+       *
+       * - `proposal_hash`: The hash of the proposal that should be disapproved.
+       *
+       * # <weight>
+       *
+       * Complexity: O(P) where P is the number of max proposals DB Weight:
+       *
+       * - Reads: Proposals
+       * - Writes: Voting, Proposals, ProposalOf
+       *
+       * # </weight>
+       */
+      disapproveProposal: AugmentedSubmittable<
+        (proposalHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
+      /**
+       * Dispatch a proposal from a member using the `Member` origin.
+       *
+       * Origin must be a member of the collective.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(M + P)` where `M` members-count (code-bounded) and `P` complexity of
+       *   dispatching `proposal`
+       * - DB: 1 read (codec `O(M)`) + DB access of `proposal`
+       * - 1 event
+       *
+       * # </weight>
+       */
+      execute: AugmentedSubmittable<
+        (
+          proposal: Call | IMethod | string | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Call, Compact<u32>]
+      >;
+      /**
+       * Add a new proposal to either be voted on or executed directly.
+       *
+       * Requires the sender to be member.
+       *
+       * `threshold` determines whether `proposal` is executed directly
+       * (`threshold < 2`) or put up for voting.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(B + M + P1)` or `O(B + M + P2)` where:
+       * - `B` is `proposal` size in bytes (length-fee-bounded)
+       * - `M` is members-count (code- and governance-bounded)
+       * - Branching is influenced by `threshold` where:
+       * - `P1` is proposal execution complexity (`threshold < 2`)
+       * - `P2` is proposals-count (code-bounded) (`threshold >= 2`)
+       * - DB:
+       * - 1 storage read `is_member` (codec `O(M)`)
+       * - 1 storage read `ProposalOf::contains_key` (codec `O(1)`)
+       * - DB accesses influenced by `threshold`:
+       * - EITHER storage accesses done by `proposal` (`threshold < 2`)
+       * - OR proposal insertion (`threshold <= 2`)
+       * - 1 storage mutation `Proposals` (codec `O(P2)`)
+       * - 1 storage mutation `ProposalCount` (codec `O(1)`)
+       * - 1 storage write `ProposalOf` (codec `O(B)`)
+       * - 1 storage write `Voting` (codec `O(M)`)
+       * - 1 event
+       *
+       * # </weight>
+       */
+      propose: AugmentedSubmittable<
+        (
+          threshold: Compact<u32> | AnyNumber | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>, Call, Compact<u32>]
+      >;
+      /**
+       * Set the collective's membership.
+       *
+       * - `new_members`: The new member list. Be nice to the chain and provide it sorted.
+       * - `prime`: The prime member whose vote sets the default.
+       * - `old_count`: The upper bound for the previous number of members in
+       *   storage. Used for weight estimation.
+       *
+       * Requires root origin.
+       *
+       * NOTE: Does not enforce the expected `MaxMembers` limit on the amount of
+       * members, but the weight estimations rely on it to estimate dispatchable weight.
+       *
+       * # WARNING:
+       *
+       * The `pallet-collective` can also be managed by logic outside of the
+       * pallet through the implementation of the trait [`ChangeMembers`]. Any
+       * call to `set_members` must be careful that the member set doesn't get
+       * out of sync with other logic managing the member set.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(MP + N)` where:
+       * - `M` old-members-count (code- and governance-bounded)
+       * - `N` new-members-count (code- and governance-bounded)
+       * - `P` proposals-count (code-bounded)
+       * - DB:
+       * - 1 storage mutation (codec `O(M)` read, `O(N)` write) for reading and
+       *   writing the members
+       * - 1 storage read (codec `O(P)`) for reading the proposals
+       * - `P` storage mutations (codec `O(M)`) for updating the votes for each proposal
+       * - 1 storage write (codec `O(1)`) for deleting the old `prime` and setting
+       *   the new one
+       *
+       * # </weight>
+       */
+      setMembers: AugmentedSubmittable<
+        (
+          newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
+          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
+          oldCount: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>, Option<AccountId20>, u32]
+      >;
+      /**
+       * Add an aye or nay vote for the sender to the given proposal.
+       *
+       * Requires the sender to be a member.
+       *
+       * Transaction fees will be waived if the member is voting on any
+       * particular proposal for the first time and the call is successful.
+       * Subsequent vote changes will charge a fee.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(M)` where `M` is members-count (code- and governance-bounded)
+       * - DB:
+       * - 1 storage read `Members` (codec `O(M)`)
+       * - 1 storage mutation `Voting` (codec `O(M)`)
+       * - 1 event
+       *
+       * # </weight>
+       */
+      vote: AugmentedSubmittable<
+        (
+          proposal: H256 | string | Uint8Array,
+          index: Compact<u32> | AnyNumber | Uint8Array,
+          approve: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [H256, Compact<u32>, bool]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     parachainStaking: {
       /**
        * Cancel pending request to adjust the collator candidate self bond
@@ -3444,7 +3703,10 @@ declare module "@polkadot/api-base/types/submittable" {
         [u128]
       >;
       /**
-       * Request bond less for delegators wrt a specific collator candidate.
+       * Request bond less for delegators wrt a specific collator candidate. The
+       * delegation's rewards for rounds while the request is pending use the
+       * reduced bonded amount. A bond less may not be performed if any other
+       * scheduled request is pending.
        */
       scheduleDelegatorBondLess: AugmentedSubmittable<
         (
@@ -3472,7 +3734,9 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Request to revoke an existing delegation. If successful, the delegation
        * is scheduled to be allowed to be revoked via the
-       * `execute_delegation_request` extrinsic.
+       * `execute_delegation_request` extrinsic. The delegation receives no
+       * rewards for the rounds while a revoke is pending. A revoke may not be
+       * performed if any other scheduled request is pending.
        */
       scheduleRevokeDelegation: AugmentedSubmittable<
         (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -4313,6 +4577,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { EthereumXcm: any }
             | { TreasuryCouncilCollective: any }
             | { Origins: any }
+            | { OpenTechCommitteeCollective: any }
             | string
             | Uint8Array,
           proposal:
@@ -5422,6 +5687,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { EthereumXcm: any }
             | { TreasuryCouncilCollective: any }
             | { Origins: any }
+            | { OpenTechCommitteeCollective: any }
             | string
             | Uint8Array,
           call: Call | IMethod | string | Uint8Array
@@ -5611,6 +5877,35 @@ declare module "@polkadot/api-base/types/submittable" {
       deregister: AugmentedSubmittable<
         (index: u16 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u16]
+      >;
+      /**
+       * Manage HRMP operations
+       */
+      hrmpManage: AugmentedSubmittable<
+        (
+          action:
+            | PalletXcmTransactorHrmpOperation
+            | { InitOpen: any }
+            | { Accept: any }
+            | { Close: any }
+            | string
+            | Uint8Array,
+          fee:
+            | PalletXcmTransactorCurrencyPayment
+            | { currency?: any; feeAmount?: any }
+            | string
+            | Uint8Array,
+          weightInfo:
+            | PalletXcmTransactorTransactWeights
+            | { transactRequiredWeightAtMost?: any; overallWeight?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          PalletXcmTransactorHrmpOperation,
+          PalletXcmTransactorCurrencyPayment,
+          PalletXcmTransactorTransactWeights
+        ]
       >;
       /**
        * Register a derivative index for an account id. Dispatchable by

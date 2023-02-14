@@ -783,7 +783,6 @@ fn test_destroy_foreign_asset_also_removes_everything() {
 			RuntimeOrigin::root(),
 			1,
 			0,
-			1
 		));
 
 		// Mappings are deleted
@@ -830,11 +829,7 @@ fn test_destroy_local_asset_works() {
 				})
 			);
 
-			assert_ok!(AssetManager::destroy_local_asset(
-				RuntimeOrigin::root(),
-				0,
-				0
-			));
+			assert_ok!(AssetManager::destroy_local_asset(RuntimeOrigin::root(), 0,));
 
 			assert_eq!(AssetManager::local_asset_counter(), 1);
 			assert_eq!(AssetManager::local_asset_deposit(asset_id), None);

@@ -721,7 +721,7 @@ pub fn run() -> Result<()> {
 					eth_statuses_cache: cli.run.eth_statuses_cache,
 					fee_history_limit: cli.run.fee_history_limit,
 					max_past_logs: cli.run.max_past_logs,
-					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+					relay_chain_rpc_urls: cli.run.base.relay_chain_rpc_urls,
 					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				};
 
@@ -821,7 +821,7 @@ pub fn run() -> Result<()> {
 					}
 				);
 
-				if rpc_config.relay_chain_rpc_url.is_some() && cli.relaychain_args.len() > 0 {
+				if !rpc_config.relay_chain_rpc_urls.is_empty() && cli.relaychain_args.len() > 0 {
 					warn!(
 						"Detected relay chain node arguments together with \
 					--relay-chain-rpc-url. This command starts a minimal Polkadot node that only \

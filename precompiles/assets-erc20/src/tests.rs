@@ -267,7 +267,7 @@ fn approve() {
 						value: 500.into(),
 					},
 				)
-				.expect_cost(46033756u64)
+				.expect_cost(46005756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -308,7 +308,7 @@ fn approve_saturating() {
 						value: U256::MAX,
 					},
 				)
-				.expect_cost(46033756u64)
+				.expect_cost(46005756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -437,7 +437,7 @@ fn transfer() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(58180756u64) // 1 weight => 1 gas in mock
+				.expect_cost(59448756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -564,7 +564,7 @@ fn transfer_from() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(73187756u64) // 1 weight => 1 gas in mock
+				.expect_cost(71723756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -642,7 +642,7 @@ fn transfer_from_non_incremental_approval() {
 						value: 500.into(),
 					},
 				)
-				.expect_cost(46033756u64)
+				.expect_cost(46005756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -665,7 +665,7 @@ fn transfer_from_non_incremental_approval() {
 						value: 300.into(),
 					},
 				)
-				.expect_cost(93745756u64)
+				.expect_cost(92915756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -773,7 +773,7 @@ fn transfer_from_self() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(58180756u64) // 1 weight => 1 gas in mock
+				.expect_cost(59448756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -940,7 +940,7 @@ fn mint_local_assets() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(36218756u64) // 1 weight => 1 gas in mock
+				.expect_cost(37341756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1001,7 +1001,7 @@ fn burn_local_assets() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(45808756u64) // 1 weight => 1 gas in mock
+				.expect_cost(45486756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1061,7 +1061,7 @@ fn freeze_local_assets() {
 						account: Address(Bob.into()),
 					},
 				)
-				.expect_cost(27689000u64) // 1 weight => 1 gas in mock
+				.expect_cost(27373000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1119,7 +1119,7 @@ fn thaw_local_assets() {
 						account: Address(Bob.into()),
 					},
 				)
-				.expect_cost(27689000u64) // 1 weight => 1 gas in mock
+				.expect_cost(27373000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1131,7 +1131,7 @@ fn thaw_local_assets() {
 						account: Address(Bob.into()),
 					},
 				)
-				.expect_cost(27591000u64) // 1 weight => 1 gas in mock
+				.expect_cost(26854000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1144,7 +1144,7 @@ fn thaw_local_assets() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(58180756u64) // 1 weight => 1 gas in mock
+				.expect_cost(59448756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1190,7 +1190,7 @@ fn freeze_asset_local_asset() {
 					LocalAssetId(0u128),
 					LocalPCall::freeze_asset {},
 				)
-				.expect_cost(24269000u64) // 1 weight => 1 gas in mock
+				.expect_cost(23613000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1207,7 +1207,7 @@ fn freeze_asset_local_asset() {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("Frozen")
+						&& from_utf8(&output).unwrap().contains("AssetNotLive")
 				});
 		});
 }
@@ -1246,13 +1246,13 @@ fn thaw_asset_local_assets() {
 					LocalAssetId(0u128),
 					LocalPCall::freeze_asset {},
 				)
-				.expect_cost(24269000u64) // 1 weight => 1 gas in mock
+				.expect_cost(23613000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::thaw_asset {})
-				.expect_cost(23527000u64) // 1 weight => 1 gas in mock
+				.expect_cost(24121000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1265,7 +1265,7 @@ fn thaw_asset_local_assets() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(58180756u64) // 1 weight => 1 gas in mock
+				.expect_cost(59448756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1307,7 +1307,7 @@ fn transfer_ownership_local_assets() {
 						owner: Address(Bob.into()),
 					},
 				)
-				.expect_cost(24597000u64) // 1 weight => 1 gas in mock
+				.expect_cost(24347000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1335,7 +1335,7 @@ fn transfer_ownership_local_assets() {
 						owner: Address(CryptoAlith.into()),
 					},
 				)
-				.expect_cost(24597000u64) // 1 weight => 1 gas in mock
+				.expect_cost(24347000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 		});
@@ -1373,7 +1373,7 @@ fn set_team_local_assets() {
 						freezer: Address(Bob.into()),
 					},
 				)
-				.expect_cost(23173000u64) // 1 weight => 1 gas in mock
+				.expect_cost(23518000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1403,7 +1403,7 @@ fn set_team_local_assets() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(36218756u64) // 1 weight => 1 gas in mock
+				.expect_cost(37341756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1459,7 +1459,7 @@ fn set_metadata() {
 						decimals: 12,
 					},
 				)
-				.expect_cost(42869113u64) // 1 weight => 1 gas in mock
+				.expect_cost(42853124) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1523,7 +1523,7 @@ fn clear_metadata() {
 						decimals: 12,
 					},
 				)
-				.expect_cost(42869113u64) // 1 weight => 1 gas in mock
+				.expect_cost(42853124) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1533,7 +1533,7 @@ fn clear_metadata() {
 					LocalAssetId(0u128),
 					LocalPCall::clear_metadata {},
 				)
-				.expect_cost(42912000u64) // 1 weight => 1 gas in mock
+				.expect_cost(42957000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1630,7 +1630,7 @@ fn permit_valid() {
 						s: H256::from(rs.s.b32()),
 					},
 				)
-				.expect_cost(46032000u64)
+				.expect_cost(46004000)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -1739,7 +1739,7 @@ fn permit_valid_named_asset() {
 						s: H256::from(rs.s.b32()),
 					},
 				)
-				.expect_cost(46032000u64)
+				.expect_cost(46004000)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -2217,7 +2217,7 @@ fn permit_valid_with_metamask_signed_data() {
 						s: H256::from(s_real),
 					},
 				)
-				.expect_cost(46032000u64)
+				.expect_cost(46004000)
 				.expect_log(log3(
 					ForeignAssetId(1u128),
 					SELECTOR_LOG_APPROVAL,

@@ -20,7 +20,7 @@ mod xcm_mock;
 use frame_support::{
 	assert_ok,
 	traits::{ConstU32, PalletInfo, PalletInfoAccess},
-	weights::constants::WEIGHT_PER_SECOND,
+	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	BoundedVec,
 };
 use pallet_asset_manager::LocalAssetIdCreator;
@@ -970,7 +970,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			WEIGHT_PER_SECOND.ref_time() as u128,
+			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
 
@@ -1290,7 +1290,7 @@ fn transact_through_sovereign() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			WEIGHT_PER_SECOND.ref_time() as u128,
+			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
 
@@ -2507,7 +2507,7 @@ fn transact_through_signed_multilocation() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			WEIGHT_PER_SECOND.ref_time() as u128,
+			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 		ancestry = parachain::Ancestry::get();
 	});

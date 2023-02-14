@@ -54,6 +54,7 @@ use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
 use sc_client_api::ExecutorProvider;
+use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
@@ -509,17 +510,21 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	match collator_options.relay_chain_rpc_url {
-		Some(relay_chain_url) => {
-			build_minimal_relay_chain_node(polkadot_config, task_manager, relay_chain_url).await
-		}
-		None => build_inprocess_relay_chain(
+	if !collator_options.relay_chain_rpc_urls.is_empty() {
+		build_minimal_relay_chain_node(
+			polkadot_config,
+			task_manager,
+			collator_options.relay_chain_rpc_urls,
+		)
+		.await
+	} else {
+		build_inprocess_relay_chain(
 			polkadot_config,
 			parachain_config,
 			telemetry_worker_handle,
 			task_manager,
 			hwbench,
-		),
+		)
 	}
 }
 
@@ -543,6 +548,7 @@ where
 	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		Arc<sc_client_db::Backend<Block>>,
 		Option<&Registry>,
 		Option<TelemetryHandle>,
 		&TaskManager,
@@ -561,7 +567,7 @@ where
 	let mut parachain_config = prepare_node_config(parachain_config);
 
 	let collator_options = CollatorOptions {
-		relay_chain_rpc_url: rpc_config.relay_chain_rpc_url.clone(),
+		relay_chain_rpc_urls: rpc_config.relay_chain_rpc_urls.clone(),
 	};
 
 	let params = new_partial(&mut parachain_config, false)?;
@@ -598,14 +604,14 @@ where
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
-	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
+	let import_queue_service = params.import_queue.service();
 	let (network, system_rpc_tx, tx_handler_controller, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
-			import_queue: import_queue.clone(),
+			import_queue: params.import_queue,
 			block_announce_validator_builder: Some(Box::new(|_| {
 				Box::new(block_announce_validator)
 			})),
@@ -743,6 +749,7 @@ where
 	if collator {
 		let parachain_consensus = build_consensus(
 			client.clone(),
+			backend.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -764,7 +771,7 @@ where
 			relay_chain_interface,
 			spawner,
 			parachain_consensus,
-			import_queue,
+			import_queue: import_queue_service,
 			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
 				"Collator Key is None".to_string(),
 			))?,
@@ -780,7 +787,7 @@ where
 			para_id: id,
 			relay_chain_interface,
 			relay_chain_slot_duration,
-			import_queue,
+			import_queue: import_queue_service,
 		};
 
 		start_full_node(params)?;
@@ -816,6 +823,7 @@ where
 		hwbench,
 		|
 			client,
+			backend,
 			prometheus_registry,
 			telemetry,
 			task_manager,
@@ -877,6 +885,7 @@ where
 				para_id: id,
 				proposer_factory,
 				block_import: client.clone(),
+				backend,
 				parachain_client: client.clone(),
 				keystore,
 				skip_prediction: force_authoring,

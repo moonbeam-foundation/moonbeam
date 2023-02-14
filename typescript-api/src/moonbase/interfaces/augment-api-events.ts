@@ -11,7 +11,6 @@ import type {
   Null,
   Option,
   Result,
-  U256,
   U8aFixed,
   bool,
   u128,
@@ -21,14 +20,7 @@ import type {
   u8,
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
-import type {
-  AccountId20,
-  H160,
-  H256,
-  Perbill,
-  Percent,
-  Permill,
-} from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
 import type {
   EthereumLog,
   EvmCoreErrorExitReason,
@@ -45,6 +37,7 @@ import type {
   PalletDemocracyVoteThreshold,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
+  PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpRuntimeDispatchError,
@@ -441,15 +434,6 @@ declare module "@polkadot/api-base/types/events" {
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
       >;
-      /**
-       * Generic event
-       */
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    baseFee: {
-      BaseFeeOverflow: AugmentedEvent<ApiType, []>;
-      NewBaseFeePerGas: AugmentedEvent<ApiType, [fee: U256], { fee: U256 }>;
-      NewElasticity: AugmentedEvent<ApiType, [elasticity: Permill], { elasticity: Permill }>;
       /**
        * Generic event
        */
@@ -1023,6 +1007,22 @@ declare module "@polkadot/api-base/types/events" {
     };
     migrations: {
       /**
+       * XCM execution resume failed with inner error
+       */
+      FailedToResumeIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
+      /**
+       * XCM execution suspension failed with inner error
+       */
+      FailedToSuspendIdleXcmExecution: AugmentedEvent<
+        ApiType,
+        [error: SpRuntimeDispatchError],
+        { error: SpRuntimeDispatchError }
+      >;
+      /**
        * Migration completed
        */
       MigrationCompleted: AugmentedEvent<
@@ -1096,6 +1096,64 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [account: AccountId20],
         { account: AccountId20 }
+      >;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /**
+       * A motion was approved by the required threshold.
+       */
+      Approved: AugmentedEvent<ApiType, [proposalHash: H256], { proposalHash: H256 }>;
+      /**
+       * A proposal was closed because its threshold was reached or after its
+       * duration was up.
+       */
+      Closed: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, yes: u32, no: u32],
+        { proposalHash: H256; yes: u32; no: u32 }
+      >;
+      /**
+       * A motion was not approved by the required threshold.
+       */
+      Disapproved: AugmentedEvent<ApiType, [proposalHash: H256], { proposalHash: H256 }>;
+      /**
+       * A motion was executed; result will be `Ok` if it returned without error.
+       */
+      Executed: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, result: Result<Null, SpRuntimeDispatchError>],
+        { proposalHash: H256; result: Result<Null, SpRuntimeDispatchError> }
+      >;
+      /**
+       * A single member did some action; result will be `Ok` if it returned
+       * without error.
+       */
+      MemberExecuted: AugmentedEvent<
+        ApiType,
+        [proposalHash: H256, result: Result<Null, SpRuntimeDispatchError>],
+        { proposalHash: H256; result: Result<Null, SpRuntimeDispatchError> }
+      >;
+      /**
+       * A motion (given hash) has been proposed (by given account) with a
+       * threshold (given `MemberCount`).
+       */
+      Proposed: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, proposalIndex: u32, proposalHash: H256, threshold: u32],
+        { account: AccountId20; proposalIndex: u32; proposalHash: H256; threshold: u32 }
+      >;
+      /**
+       * A motion (given hash) has been voted on by given account, leaving a
+       * tally (yes votes and no votes given respectively as `MemberCount`).
+       */
+      Voted: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, proposalHash: H256, voted: bool, yes: u32, no: u32],
+        { account: AccountId20; proposalHash: H256; voted: bool; yes: u32; no: u32 }
       >;
       /**
        * Generic event
@@ -2330,6 +2388,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [location: XcmV1MultiLocation],
         { location: XcmV1MultiLocation }
+      >;
+      /**
+       * HRMP manage action succesfully sent
+       */
+      HrmpManagementSent: AugmentedEvent<
+        ApiType,
+        [action: PalletXcmTransactorHrmpOperation],
+        { action: PalletXcmTransactorHrmpOperation }
       >;
       /**
        * Registered a derivative index for an account id.

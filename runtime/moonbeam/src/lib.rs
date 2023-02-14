@@ -49,7 +49,7 @@ use frame_support::{
 		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	},
@@ -134,7 +134,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
 
@@ -361,7 +361,7 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
 
 parameter_types! {
 	pub BlockGasLimit: U256
@@ -848,6 +848,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(
 					c,
 					RuntimeCall::System(..)
+						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
@@ -975,6 +976,9 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::approve_transfer { .. } => true,
 				pallet_assets::Call::transfer_approved { .. } => true,
 				pallet_assets::Call::cancel_approval { .. } => true,
+				pallet_assets::Call::destroy_accounts { .. } => true,
+				pallet_assets::Call::destroy_approvals { .. } => true,
+				pallet_assets::Call::finish_destroy { .. } => true,
 				_ => false,
 			},
 			// We want to disable create, as we dont want users to be choosing the
@@ -984,7 +988,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// substrate side of things
 			RuntimeCall::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::destroy { .. } => false,
+				pallet_assets::Call::start_destroy { .. } => false,
 				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
@@ -1199,6 +1203,8 @@ impl pallet_randomness::Config for Runtime {
 	type EpochExpirationDelay = ConstU64<10_000>;
 }
 
+impl pallet_root_testing::Config for Runtime {}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1211,6 +1217,7 @@ construct_runtime! {
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
