@@ -18,7 +18,7 @@
 
 use super::*;
 use crate::currency::{KILOUNIT, SUPPLY_FACTOR, UNIT};
-use parity_scale_codec::alloc::string::ToString;
+use sp_std::str::FromStr;
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
@@ -135,7 +135,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 			}
 		} else if let Ok(custom_origin) = custom_origins::Origin::try_from(id.clone()) {
 			for track in &TRACKS_DATA[..] {
-				if let Ok(track_custom_origin) = track.1.name.to_string().try_into() {
+				if let Ok(track_custom_origin) = custom_origins::Origin::from_str(track.1.name) {
 					if custom_origin == track_custom_origin {
 						return Ok(track.0);
 					}

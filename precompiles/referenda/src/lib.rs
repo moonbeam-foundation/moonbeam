@@ -24,10 +24,10 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
-use parity_scale_codec::{alloc::string::ToString, Encode};
+use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
 use sp_core::{Hasher, H256, U256};
-use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
+use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -166,7 +166,7 @@ where
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
-	GovOrigin: TryFrom<String>,
+	GovOrigin: FromStr,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
@@ -268,7 +268,7 @@ where
 			if track_name == "root" {
 				Ok(frame_system::RawOrigin::Root.into())
 			} else {
-				Ok(<String as TryInto<GovOrigin>>::try_into(track_name)
+				Ok(GovOrigin::from_str(track_name)
 					.map_err(|_| {
 						RevertReason::custom("Custom origin does not exist for track_info.name")
 							.in_field("trackId")
@@ -276,7 +276,7 @@ where
 					.into())
 			}
 		};
-		Ok(Box::new(name_to_origin(track_info.name.to_string())?))
+		Ok(Box::new(name_to_origin(track_info.name)?))
 	}
 
 	// Helper function for submitAt and submitAfter

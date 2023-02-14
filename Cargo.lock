@@ -5317,6 +5317,8 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "strum",
+ "strum_macros",
  "substrate-wasm-builder",
  "xcm",
  "xcm-builder",

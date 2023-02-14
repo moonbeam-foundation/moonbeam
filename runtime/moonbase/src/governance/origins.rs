@@ -19,7 +19,7 @@ pub use custom_origins::*;
 #[frame_support::pallet]
 pub mod custom_origins {
 	use frame_support::pallet_prelude::*;
-	use scale_info::prelude::string::String;
+	use strum_macros::EnumString;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -27,7 +27,10 @@ pub mod custom_origins {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
+	#[derive(
+		PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug, EnumString,
+	)]
+	#[strum(serialize_all = "snake_case")]
 	#[pallet::origin]
 	pub enum Origin {
 		/// Origin able to dispatch a whitelisted call.
@@ -38,19 +41,6 @@ pub mod custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
-	}
-
-	impl TryFrom<String> for Origin {
-		type Error = ();
-		fn try_from(value: String) -> Result<Origin, ()> {
-			match &value[..] {
-				"whitelisted_caller" => Ok(Origin::WhitelistedCaller),
-				"general_admin" => Ok(Origin::GeneralAdmin),
-				"referendum_canceller" => Ok(Origin::ReferendumCanceller),
-				"referendum_killer" => Ok(Origin::ReferendumKiller),
-				_ => Err(()),
-			}
-		}
 	}
 
 	macro_rules! decl_unit_ensures {
