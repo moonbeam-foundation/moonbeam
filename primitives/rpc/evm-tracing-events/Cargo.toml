@@ -8,29 +8,29 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
-environmental = { version = "1.1.2", default-features = false }
+environmental = { workspace = true }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+parity-scale-codec = { workspace = true }
+sp-runtime-interface = { workspace = true }
 
 # Ethereum
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.14", default-features = false }
-evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { version = "0.37.0", default-features = false }
-evm-runtime = { version = "0.37.0", default-features = false }
+ethereum = { workspace = true, features = [ "with-codec" ] }
+ethereum-types = { workspace = true }
+evm = { workspace = true, features = [ "with-codec" ] }
+evm-gasometer = { workspace = true }
+evm-runtime = { workspace = true }
 
 [features]
 default = [ "std" ]
 std = [
-	"codec/std",
 	"environmental/std",
 	"ethereum-types/std",
 	"ethereum/std",
 	"evm-gasometer/std",
 	"evm-runtime/std",
 	"evm/std",
+	"parity-scale-codec/std",
 	"sp-runtime-interface/std",
 ]
 evm-tracing = [ "evm-gasometer/tracing", "evm-runtime/tracing", "evm/tracing" ]
