@@ -17,40 +17,33 @@
 use sp_runtime::DispatchError;
 use xcm::latest::Error as XcmError;
 
-pub(crate) enum DepositError {
+pub(crate) enum Erc20TransferError {
+	ContractTransferFail,
+	ContractReturnInvalidValue,
 	DispatchError(DispatchError),
-	Erc20TransferError(Erc20TransferError),
+	EvmCallFail,
 }
-impl From<DispatchError> for DepositError {
+
+impl From<DispatchError> for Erc20TransferError {
 	fn from(e: DispatchError) -> Self {
 		Self::DispatchError(e)
 	}
 }
-impl Into<XcmError> for DepositError {
-	fn into(self) -> XcmError {
-		match self {
-			Self::DispatchError(_) => XcmError::FailedToTransactAsset("storage layer error"),
-			Self::Erc20TransferError(e) => e.into(),
-		}
-	}
-}
 
-pub(crate) enum Erc20TransferError {
-	EvmCallFail,
-	ContractTransferFail,
-	ContractReturnInvalidValue,
-}
 impl From<Erc20TransferError> for XcmError {
 	fn from(error: Erc20TransferError) -> XcmError {
 		match error {
-			Erc20TransferError::EvmCallFail => {
-				XcmError::FailedToTransactAsset("Fail to call erc20 contract")
-			}
 			Erc20TransferError::ContractTransferFail => {
 				XcmError::FailedToTransactAsset("Erc20 contract transfer fail")
 			}
 			Erc20TransferError::ContractReturnInvalidValue => {
 				XcmError::FailedToTransactAsset("Erc20 contract return invalid value")
+			}
+			Erc20TransferError::DispatchError(_) => {
+				Self::FailedToTransactAsset("storage layer error")
+			}
+			Erc20TransferError::EvmCallFail => {
+				XcmError::FailedToTransactAsset("Fail to call erc20 contract")
 			}
 		}
 	}

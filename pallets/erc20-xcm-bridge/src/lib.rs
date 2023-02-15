@@ -134,7 +134,6 @@ pub mod pallet {
 							.try_for_each(|(from, subamount)| {
 								Self::erc20_transfer(contract_address, from, beneficiary, subamount)
 							})
-							.map_err(DepositError::Erc20TransferError)
 					})
 					.map_err(Into::into),
 					Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
@@ -162,7 +161,11 @@ pub mod pallet {
 			let to = T::AccountIdConverter::convert_ref(to)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			Self::erc20_transfer(contract_address, from, to, amount)?;
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				Self::erc20_transfer(contract_address, from, to, amount)
+			})?;
 
 			Ok(asset.clone().into())
 		}
