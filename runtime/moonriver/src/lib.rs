@@ -379,7 +379,9 @@ parameter_types! {
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonriverPrecompiles<Runtime> = MoonriverPrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_ref_time(
-		moonbeam_runtime_common::weight_per_gas(BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK)
+		moonbeam_runtime_common::weight_per_gas(
+			BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK
+		)
 	);
 }
 
