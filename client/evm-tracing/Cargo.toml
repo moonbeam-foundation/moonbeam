@@ -8,15 +8,15 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
-ethereum-types = { version = "0.14" }
-hex = { version = "0.4", features = [ "serde" ] }
-serde = { version = "1.0", features = [ "derive" ] }
-serde_json = { version = "1.0" }
+ethereum-types = { workspace = true, features = [ "std" ] }
+hex = { workspace = true, features = [ "serde" ] }
+serde = { workspace = true, features = [ "derive", "std" ] }
+serde_json = { workspace = true }
 
 # Moonbeam
-evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events" }
-moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
+evm-tracing-events = { workspace = true, features = [ "std" ] }
+moonbeam-rpc-primitives-debug = { workspace = true, features = [ "std" ] }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+parity-scale-codec = { workspace = true, features = [ "std" ] }
+sp-std = { workspace = true, features = [ "std" ] }
