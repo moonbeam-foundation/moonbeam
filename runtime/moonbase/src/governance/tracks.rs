@@ -124,24 +124,29 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 		if let Ok(system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
 			match system_origin {
 				frame_system::RawOrigin::Root => {
-					for track in &TRACKS_DATA[..] {
-						if track.1.name == "root" {
-							return Ok(track.0);
-						}
+					if let Some((track_id, _)) = Self::tracks()
+						.into_iter()
+						.find(|(_, track)| track.name == "root")
+					{
+						Ok(*track_id)
+					} else {
+						Err(())
 					}
-					Err(())
 				}
 				_ => Err(()),
 			}
 		} else if let Ok(custom_origin) = custom_origins::Origin::try_from(id.clone()) {
-			for track in &TRACKS_DATA[..] {
-				if let Ok(track_custom_origin) = custom_origins::Origin::from_str(track.1.name) {
-					if custom_origin == track_custom_origin {
-						return Ok(track.0);
-					}
+			if let Some((track_id, _)) = Self::tracks().into_iter().find(|(_, track)| {
+				if let Ok(track_custom_origin) = custom_origins::Origin::from_str(track.name) {
+					track_custom_origin == custom_origin
+				} else {
+					false
 				}
+			}) {
+				Ok(*track_id)
+			} else {
+				Err(())
 			}
-			Err(())
 		} else {
 			Err(())
 		}
@@ -160,5 +165,15 @@ fn vote_locking_always_longer_than_enactment_period() {
 			track.min_enactment_period,
 			<Runtime as pallet_conviction_voting::Config>::VoteLockingPeriod::get(),
 		);
+	}
+}
+
+#[test]
+fn all_tracks_have_origins() {
+	for (_, track) in TRACKS_DATA {
+		// check name.into() is successful either converts into "root" or custom origin
+		let track_is_root = track.name == "root";
+		let track_has_custom_origin = custom_origins::Origin::from_str(track.name).is_ok();
+		assert!(track_is_root || track_has_custom_origin);
 	}
 }
