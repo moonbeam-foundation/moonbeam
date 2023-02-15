@@ -333,12 +333,26 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+// Filter out instructions: InitiateReserveWithdraw, InitiateTeleport
+pub struct XcmExecuteFilter;
+impl frame_support::traits::Contains<(MultiLocation, Xcm<RuntimeCall>)> for XcmExecuteFilter {
+	fn contains((_location, message): &(MultiLocation, Xcm<RuntimeCall>)) -> bool {
+		!message.0.iter().any(|instruction| {
+			matches!(
+				instruction,
+				Instruction::<RuntimeCall>::InitiateReserveWithdraw { .. }
+					| Instruction::<RuntimeCall>::InitiateTeleport { .. }
+			)
+		})
+	}
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Everything;
+	type XcmExecuteFilter = XcmExecuteFilter;
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
