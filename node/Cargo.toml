@@ -12,7 +12,7 @@ name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
-futures = { version = "0.3.1", features = [ "compat" ] }
+futures = { version = "0.3.26", features = [ "compat" ] }
 
 moonbeam-cli = { path = "cli", default-features = false }
 moonbeam-service = { path = "service", default-features = false }

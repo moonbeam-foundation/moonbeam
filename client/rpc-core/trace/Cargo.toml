@@ -9,7 +9,7 @@ version = "0.6.0"
 
 [dependencies]
 ethereum-types = "0.14"
-futures = { version = "0.3.1", features = [ "compat" ] }
+futures = { version = "0.3.26", features = [ "compat" ] }
 jsonrpsee = { version = "0.16.2", default-features = false, features = [ "macros", "server" ] }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-core-types = { path = "../types" }

@@ -127,6 +127,21 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 }
 
+/// Available Frontier backend types.
+#[derive(Debug, Copy, Clone, clap::ValueEnum)]
+pub enum FrontierBackendType {
+	/// Either RocksDb or ParityDb as per inherited from the global backend settings.
+	KeyValue,
+	/// Sql database with custom log indexing.
+	Sql,
+}
+
+impl Default for FrontierBackendType {
+	fn default() -> Self {
+		FrontierBackendType::KeyValue
+	}
+}
+
 #[derive(Debug, Parser)]
 #[group(skip)]
 pub struct RunCmd {
@@ -205,6 +220,27 @@ pub struct RunCmd {
 	#[clap(long, default_value = "2048")]
 	pub fee_history_limit: u64,
 
+	/// Sets the backend type (KeyValue or Sql)
+	#[clap(long, value_enum, ignore_case = true, default_value_t = FrontierBackendType::default())]
+	pub frontier_backend_type: FrontierBackendType,
+
+	/// Sets the SQL backend's pool size.
+	#[arg(long, default_value = "100")]
+	pub frontier_sql_backend_pool_size: u32,
+
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	#[clap(long, default_value = "10000000")]
+	pub frontier_sql_backend_num_ops_timeout: u32,
+
+	/// Sets the SQL backend's auxiliary thread limit.
+	#[clap(long, default_value = "4")]
+	pub frontier_sql_backend_thread_count: u32,
+
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Default value is 200MB.
+	#[clap(long, default_value = "209715200")]
+	pub frontier_sql_backend_cache_size: u64,
+
 	/// Disable automatic hardware benchmarks.
 	///
 	/// By default these benchmarks are automatically ran at startup and measure
@@ -214,6 +250,32 @@ pub struct RunCmd {
 	/// telemetry, if telemetry is enabled.
 	#[clap(long)]
 	pub no_hardware_benchmarks: bool,
+}
+
+impl RunCmd {
+	pub fn new_rpc_config(&self) -> cli_opt::RpcConfig {
+		cli_opt::RpcConfig {
+			ethapi: self.ethapi.clone(),
+			ethapi_max_permits: self.ethapi_max_permits,
+			ethapi_trace_max_count: self.ethapi_trace_max_count,
+			ethapi_trace_cache_duration: self.ethapi_trace_cache_duration,
+			eth_log_block_cache: self.eth_log_block_cache,
+			eth_statuses_cache: self.eth_statuses_cache,
+			fee_history_limit: self.fee_history_limit,
+			max_past_logs: self.max_past_logs,
+			relay_chain_rpc_urls: self.base.relay_chain_rpc_urls.clone(),
+			tracing_raw_max_memory_usage: self.tracing_raw_max_memory_usage,
+			frontier_backend_config: match self.frontier_backend_type {
+				FrontierBackendType::KeyValue => cli_opt::FrontierBackendConfig::KeyValue,
+				FrontierBackendType::Sql => cli_opt::FrontierBackendConfig::Sql {
+					pool_size: self.frontier_sql_backend_pool_size,
+					num_ops_timeout: self.frontier_sql_backend_num_ops_timeout,
+					thread_count: self.frontier_sql_backend_thread_count,
+					cache_size: self.frontier_sql_backend_cache_size,
+				},
+			},
+		}
+	}
 }
 
 impl std::ops::Deref for RunCmd {

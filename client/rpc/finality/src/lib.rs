@@ -30,22 +30,22 @@ pub trait MoonbeamFinalityApi {
 	/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
 	#[method(name = "moon_isBlockFinalized")]
-	fn is_block_finalized(&self, block_hash: H256) -> RpcResult<bool>;
+	async fn is_block_finalized(&self, block_hash: H256) -> RpcResult<bool>;
 
 	/// Reports whether an Ethereum transaction is finalized.
 	/// Returns false if the transaction is not found
 	#[method(name = "moon_isTxFinalized")]
-	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
+	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
-	pub backend: Arc<FrontierBackend<B>>,
+	pub backend: FrontierBackend<B>,
 	pub client: Arc<C>,
 	_phdata: PhantomData<B>,
 }
 
 impl<B: Block, C> MoonbeamFinality<B, C> {
-	pub fn new(client: Arc<C>, backend: Arc<FrontierBackend<B>>) -> Self {
+	pub fn new(client: Arc<C>, backend: FrontierBackend<B>) -> Self {
 		Self {
 			backend,
 			client,
@@ -54,41 +54,42 @@ impl<B: Block, C> MoonbeamFinality<B, C> {
 	}
 }
 
+#[async_trait::async_trait]
 impl<B, C> MoonbeamFinalityApiServer for MoonbeamFinality<B, C>
 where
 	B: Block<Hash = H256>,
 	C: HeaderBackend<B> + Send + Sync + 'static,
 {
-	fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
-		let backend = self.backend.clone();
+	async fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
-		is_block_finalized_inner::<B, C>(&backend, &client, raw_hash)
+		is_block_finalized_inner::<B, C>(&self.backend, &client, raw_hash).await
 	}
 
-	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
-		let backend = self.backend.clone();
+	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
 		if let Some((ethereum_block_hash, _ethereum_index)) =
 			frontier_backend_client::load_transactions::<B, C>(
 				&client,
-				backend.as_ref(),
+				&self.backend,
 				tx_hash,
 				true,
-			)? {
-			is_block_finalized_inner::<B, C>(&backend, &client, ethereum_block_hash)
+			)
+			.await?
+		{
+			is_block_finalized_inner::<B, C>(&self.backend, &client, ethereum_block_hash).await
 		} else {
 			Ok(false)
 		}
 	}
 }
 
-fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
+async fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
 	backend: &FrontierBackend<B>,
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {
 	let substrate_hash =
-		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash)? {
+		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash).await? {
 			// If we find this hash in the frontier data base, we know it is an eth hash
 			Some(BlockId::Hash(hash)) => hash,
 			Some(BlockId::Number(_)) => panic!("is_canon test only works with hashes."),

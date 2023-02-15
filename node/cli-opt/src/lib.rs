@@ -69,6 +69,17 @@ impl FromStr for EthApi {
 	}
 }
 
+/// Defines the generic backend configuration.
+pub enum FrontierBackendConfig {
+	KeyValue,
+	Sql {
+		pool_size: u32,
+		num_ops_timeout: u32,
+		thread_count: u32,
+		cache_size: u64,
+	},
+}
+
 pub struct RpcConfig {
 	pub ethapi: Vec<EthApi>,
 	pub ethapi_max_permits: u32,
@@ -80,4 +91,5 @@ pub struct RpcConfig {
 	pub max_past_logs: u32,
 	pub relay_chain_rpc_urls: Vec<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
+	pub frontier_backend_config: FrontierBackendConfig,
 }

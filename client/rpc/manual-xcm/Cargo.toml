@@ -9,7 +9,7 @@ version = "0.1.0"
 
 [dependencies]
 flume = "0.10.9"
-futures = { version = "0.3", features = [ "compat" ] }
+futures = { version = "0.3.26", features = [ "compat" ] }
 hex-literal = "0.3.3"
 jsonrpsee = { version = "0.16.2", default-features = false, features = [ "macros", "server" ] }
 parity-scale-codec = "3.0.0"

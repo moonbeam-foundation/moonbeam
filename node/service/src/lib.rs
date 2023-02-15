@@ -24,7 +24,7 @@
 
 pub mod rpc;
 
-use cli_opt::{EthApi as EthApiCmd, RpcConfig};
+use cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
@@ -40,7 +40,6 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
 use fc_consensus::FrontierBlockImport;
-use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use maplit::hashmap;
@@ -53,7 +52,11 @@ pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
-use sc_client_api::ExecutorProvider;
+use sc_client_api::{
+	backend::{AuxStore, Backend, StateBackend, StorageProvider},
+	ExecutorProvider,
+};
+use sc_client_db::DatabaseSource;
 use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
@@ -64,7 +67,8 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::ConstructRuntimeApi;
-use sp_blockchain::HeaderBackend;
+use sp_api::ProvideRuntimeApi;
+use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_keystore::SyncCryptoStorePtr;
 use std::sync::Arc;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
@@ -244,35 +248,74 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend<C>(
+pub fn open_frontier_backend<C, BE>(
 	client: Arc<C>,
 	config: &Configuration,
-) -> Result<Arc<fc_db::Backend<Block>>, String>
+	rpc_config: &RpcConfig,
+) -> Result<fc_db::Backend<Block>, String>
 where
-	C: sp_blockchain::HeaderBackend<Block>,
+	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
+	C: Send + Sync + 'static,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	BE: Backend<Block> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 {
-	Ok(Arc::new(fc_db::Backend::<Block>::new(
-		client,
-		&fc_db::DatabaseSettings {
-			source: match config.database {
-				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-					path: frontier_database_dir(config, "db"),
-					cache_size: 0,
+	let frontier_backend = match rpc_config.frontier_backend_config {
+		FrontierBackendConfig::KeyValue => {
+			fc_db::Backend::KeyValue(Arc::new(fc_db::kv::Backend::new(
+				client.clone(),
+				&fc_db::kv::DatabaseSettings {
+					source: match config.database {
+						DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+							path: frontier_database_dir(config, "db"),
+							cache_size: 0,
+						},
+						DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+							path: frontier_database_dir(config, "paritydb"),
+						},
+						DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+							rocksdb_path: frontier_database_dir(config, "db"),
+							paritydb_path: frontier_database_dir(config, "paritydb"),
+							cache_size: 0,
+						},
+						_ => {
+							return Err(
+								"Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string()
+							)
+						}
+					},
 				},
-				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-					path: frontier_database_dir(config, "paritydb"),
-				},
-				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
-					rocksdb_path: frontier_database_dir(config, "db"),
-					paritydb_path: frontier_database_dir(config, "paritydb"),
-					cache_size: 0,
-				},
-				_ => {
-					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
-				}
-			},
-		},
-	)?))
+			)?))
+		}
+		FrontierBackendConfig::Sql {
+			pool_size,
+			num_ops_timeout,
+			thread_count,
+			cache_size,
+		} => {
+			let overrides = crate::rpc::overrides_handle(client.clone());
+			let sqlite_db_path = frontier_database_dir(config, "sql/frontier.db3");
+			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
+				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
+					path: std::path::Path::new("sqlite:///")
+						.join(sqlite_db_path)
+						.to_str()
+						.unwrap(),
+					create_if_missing: true,
+					thread_count,
+					cache_size,
+				}),
+				pool_size,
+				num_ops_timeout,
+				overrides,
+			))
+			.expect("indexer pool to be created");
+			fc_db::Backend::Sql(Arc::new(backend))
+		}
+	};
+
+	Ok(frontier_backend)
 }
 
 use sp_runtime::{traits::BlakeTwo256, Percent};
@@ -284,6 +327,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 #[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
 	config: &mut Configuration,
+	rpc_config: &RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -295,15 +339,20 @@ pub fn new_chain_ops(
 > {
 	match &config.chain_spec {
 		#[cfg(feature = "moonriver-native")]
-		spec if spec.is_moonriver() => {
-			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
-		}
+		spec if spec.is_moonriver() => new_chain_ops_inner::<
+			moonriver_runtime::RuntimeApi,
+			MoonriverExecutor,
+		>(config, rpc_config),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => {
-			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+				config, rpc_config,
+			)
 		}
 		#[cfg(feature = "moonbase-native")]
-		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+			config, rpc_config,
+		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
 	}
@@ -312,6 +361,7 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 fn new_chain_ops_inner<RuntimeApi, Executor>(
 	mut config: &mut Configuration,
+	rpc_config: &RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -336,7 +386,7 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Executor>(config, &rpc_config, config.chain_spec.is_dev())?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -364,6 +414,7 @@ fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceErro
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
+	rpc_config: &RpcConfig,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -381,7 +432,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block>>,
+			fc_db::Backend<Block>,
 			FeeHistoryCache,
 		),
 	>,
@@ -461,7 +512,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config)?;
+	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 
 	let frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
@@ -570,7 +621,7 @@ where
 		relay_chain_rpc_urls: rpc_config.relay_chain_rpc_urls.clone(),
 	};
 
-	let params = new_partial(&mut parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
 		_block_import,
 		filter_pool,
@@ -935,7 +986,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {

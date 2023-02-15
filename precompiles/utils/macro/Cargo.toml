@@ -31,7 +31,7 @@ trybuild = "1.0"
 
 precompile-utils = { path = "../", features = [ "testing" ] }
 
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "frontier-db-sql" }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
