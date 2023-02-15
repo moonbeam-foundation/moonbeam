@@ -315,6 +315,7 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 ]
 try-runtime = [
+	"fp-self-contained/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",

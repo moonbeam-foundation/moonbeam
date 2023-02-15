@@ -434,4 +434,18 @@ where
 		event.record(handle)?;
 		Ok(())
 	}
+
+	/// Refund the Submission Deposit for a closed referendum back to the depositor.
+	///
+	/// Parameters:
+	/// * index: The index of a closed referendum whose Submission Deposit has not yet been refunded.
+	#[precompile::public("refundSubmissionDeposit(uint32)")]
+	fn refund_submission_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		Ok(())
+	}
 }

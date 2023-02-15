@@ -21,7 +21,9 @@ sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", optional = true }
 
@@ -52,7 +54,7 @@ moonriver-native = [ "service/moonriver-native" ]
 runtime-benchmarks = [ "polkadot-service/runtime-benchmarks", "service/runtime-benchmarks" ]
 try-runtime = [
 	"service/try-runtime",
-	"try-runtime-cli",
+	"try-runtime-cli/try-runtime",
 ]
 
 moonbase-runtime-benchmarks = [ "service/moonbase-runtime-benchmarks" ]
