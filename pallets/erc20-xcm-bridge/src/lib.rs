@@ -60,6 +60,14 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		pub fn is_erc20_asset(asset: &MultiAsset) -> bool {
+			Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset).is_ok()
+		}
+		pub fn weight_of_erc20_transfer() -> Weight {
+			Weight::from_ref_time(
+				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
+			)
+		}
 		fn erc20_transfer(
 			erc20_contract_address: H160,
 			from: H160,

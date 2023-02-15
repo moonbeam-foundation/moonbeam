@@ -9,6 +9,7 @@ log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
+pallet-erc20-xcm-bridge = { path = "../erc20-xcm-bridge/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 # Substrate
@@ -39,6 +40,7 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-erc20-xcm-bridge/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-std/std",

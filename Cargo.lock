@@ -5961,6 +5961,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
+ "pallet-erc20-xcm-bridge",
  "pallet-xcm-benchmarks",
  "parity-scale-codec",
  "scale-info",
