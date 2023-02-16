@@ -23,21 +23,31 @@ type RuntimeCallOf<T> = <T as frame_system::Config>::RuntimeCall;
 /// some XCM instructions if they could manipulate erc20 assets.
 /// If your runtime allows arbitrary xcm messages to be executed locally you should use this
 // wrapper.
-pub struct XcmExecuteFilterWrapper<Runtime, FallbackFilter>(
-	core::marker::PhantomData<(Runtime, FallbackFilter)>,
+pub struct XcmExecuteFilterWrapper<Runtime, InnerFilter>(
+	core::marker::PhantomData<(Runtime, InnerFilter)>,
 );
 
-impl<T, FallbackFilter> Contains<(MultiLocation, Xcm<RuntimeCallOf<T>>)>
-	for XcmExecuteFilterWrapper<T, FallbackFilter>
+impl<T, InnerFilter> Contains<(MultiLocation, Xcm<RuntimeCallOf<T>>)>
+	for XcmExecuteFilterWrapper<T, InnerFilter>
 where
 	T: crate::Config,
-	FallbackFilter: Contains<(MultiLocation, Xcm<RuntimeCallOf<T>>)>,
+	InnerFilter: Contains<(MultiLocation, Xcm<RuntimeCallOf<T>>)>,
+{
+	fn contains(tuple: &(MultiLocation, Xcm<RuntimeCallOf<T>>)) -> bool {
+		Self::inner_contains(tuple) && InnerFilter::contains(tuple)
+	}
+}
+
+impl<T, InnerFilter> XcmExecuteFilterWrapper<T, InnerFilter>
+where
+	T: crate::Config,
+	InnerFilter: Contains<(MultiLocation, Xcm<RuntimeCallOf<T>>)>,
 {
 	// To be sure that the execution of this message will not lead to instructions incompatible
 	// with the erc20 assets to manipulate them, we must "quickly simulate" the execution of the
 	// message to know what will be in the xcm holding when we wait for the problematic
 	// instructions.
-	fn contains((_location, message): &(MultiLocation, Xcm<RuntimeCallOf<T>>)) -> bool {
+	fn inner_contains((_location, message): &(MultiLocation, Xcm<RuntimeCallOf<T>>)) -> bool {
 		// Track erc20 assets in the "simulated xcm holding"
 		let mut erc20_assets = sp_std::collections::btree_set::BTreeSet::new();
 		for instruction in &message.0 {
