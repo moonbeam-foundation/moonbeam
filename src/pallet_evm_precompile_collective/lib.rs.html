@@ -329,6 +329,14 @@
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -349,7 +357,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-</span><span class="kw">use </span>core::marker::PhantomData;
+</span><span class="kw">use </span>codec::DecodeLimit <span class="kw">as _</span>;
+<span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>fp_evm::Log;
 <span class="kw">use </span>frame_support::{
 	dispatch::Dispatchable,
@@ -360,7 +369,7 @@
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::{Decode, H160, H256};
+<span class="kw">use </span>sp_core::{Decode, Get, H160, H256};
 <span class="kw">use </span>sp_std::{boxed::Box, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -416,6 +425,7 @@
 }
 
 <span class="kw">type </span>GetProposalLimit = ConstU32&lt;{ <span class="number">2u32</span>.pow(<span class="number">16</span>) }&gt;;
+<span class="kw">type </span>DecodeLimit = ConstU32&lt;<span class="number">8</span>&gt;;
 
 <span class="kw">pub struct </span>CollectivePrecompile&lt;Runtime, Instance: <span class="lifetime">&#39;static</span>&gt;(PhantomData&lt;(Runtime, Instance)&gt;);
 
@@ -449,9 +459,12 @@
 				.in_field(<span class="string">&quot;proposal&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>proposal = Runtime::RuntimeCall::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
-			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
-			</span>.into();
+		<span class="kw">let </span>proposal =
+			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), <span class="kw-2">&amp;mut &amp;*</span>proposal)
+				.map_err(|<span class="kw">_</span>| {
+					RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
+				})<span class="question-mark">?
+				</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -503,9 +516,12 @@
 
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>proposal = Runtime::RuntimeCall::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
-			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
-			</span>.into();
+		<span class="kw">let </span>proposal =
+			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), <span class="kw-2">&amp;mut &amp;*</span>proposal)
+				.map_err(|<span class="kw">_</span>| {
+					RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
+				})<span class="question-mark">?
+				</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);
 
 		{
