@@ -21,12 +21,14 @@
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
+mod xcm_exec_filter;
 mod xcm_holding_ext;
 
 use frame_support::pallet;
 
 pub use erc20_trap::AssetTrapWrapper;
 pub use pallet::*;
+pub use xcm_exec_filter::XcmExecuteFilterWrapper;
 pub use xcm_holding_ext::XcmExecutorWrapper;
 
 #[pallet]

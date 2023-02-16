@@ -333,23 +333,9 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-/// Filter out some XCM instructions in arbitrary local XCM execution.
-/// For compatibility with erc20 assets we neet to forbid any instruction that can remove assets
-/// from holding to "send" them on another chain. Impacted instructions are:
-/// InitiateReserveWithdraw, InitiateTeleport
-/// These instructions can only be supported in specific use cases ((thus via dedicated extrinsics).
-pub struct XcmExecuteFilter;
-impl frame_support::traits::Contains<(MultiLocation, Xcm<RuntimeCall>)> for XcmExecuteFilter {
-	fn contains((_location, message): &(MultiLocation, Xcm<RuntimeCall>)) -> bool {
-		!message.0.iter().any(|instruction| {
-			matches!(
-				instruction,
-				Instruction::<RuntimeCall>::InitiateReserveWithdraw { .. }
-					| Instruction::<RuntimeCall>::InitiateTeleport { .. }
-			)
-		})
-	}
-}
+/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
+/// erc20 assets in an unsupported way.
+pub type XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper<Runtime, Everything>;
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
