@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::erc20_matcher::Erc20Matcher;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{DropAssets, MatchesFungibles};
+use xcm_executor::traits::DropAssets;
 
-// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
+/// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 pub struct AssetTrapWrapper<AssetTrap, T>(core::marker::PhantomData<(AssetTrap, T)>);
 
+// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<AssetTrap, T> {
 	fn drop_assets(
 		origin: &xcm::latest::MultiLocation,
@@ -31,9 +31,7 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 		let assets_to_remove: Vec<_> = assets
 			.fungible_assets_iter()
 			.filter_map(|multiasset| {
-				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&multiasset)
-					.ok()
-					.map(|_| multiasset.id)
+				crate::Pallet::<T>::is_erc20_asset(&multiasset).then_some(multiasset.id)
 			})
 			.collect();
 		for id in assets_to_remove {

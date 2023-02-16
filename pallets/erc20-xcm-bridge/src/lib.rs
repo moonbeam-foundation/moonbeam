@@ -61,7 +61,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		pub fn is_erc20_asset(asset: &MultiAsset) -> bool {
-			Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset).is_ok()
+			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn weight_of_erc20_transfer() -> Weight {
 			Weight::from_ref_time(

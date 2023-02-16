@@ -43,6 +43,12 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> MatchesFungibles<H160, U256>
 }
 
 impl<Erc20MultilocationPrefix: Get<MultiLocation>> Erc20Matcher<Erc20MultilocationPrefix> {
+	pub(crate) fn is_erc20_asset(multiasset: &MultiAsset) -> bool {
+		match (&multiasset.fun, &multiasset.id) {
+			(Fungible(_), Concrete(ref id)) => Self::matches_erc20_multilocation(id).is_ok(),
+			_ => false,
+		}
+	}
 	fn matches_erc20_multilocation(multilocation: &MultiLocation) -> Result<H160, ()> {
 		let prefix = Erc20MultilocationPrefix::get();
 		if prefix.parent_count() != multilocation.parent_count()
