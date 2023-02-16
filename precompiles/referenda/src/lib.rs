@@ -257,26 +257,24 @@ where
 		})
 	}
 
-	/// Use Runtime::Tracks::tracks_for to get the origin for input trackId
-	fn get_track_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
+	/// Use Runtime::Tracks::tracks to get the origin for input trackId
+	fn track_id_to_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
 		let tracks = Runtime::Tracks::tracks();
 		let index = tracks
 			.binary_search_by_key(&track_id, |x| x.0)
 			.unwrap_or_else(|x| x);
 		let track_info = &tracks[index].1;
-		let name_to_origin = |track_name| -> EvmResult<OriginOf<Runtime>> {
-			if track_name == "root" {
-				Ok(frame_system::RawOrigin::Root.into())
-			} else {
-				Ok(GovOrigin::from_str(track_name)
-					.map_err(|_| {
-						RevertReason::custom("Custom origin does not exist for track_info.name")
-							.in_field("trackId")
-					})?
-					.into())
-			}
+		let origin = if track_info.name == "root" {
+			frame_system::RawOrigin::Root.into()
+		} else {
+			GovOrigin::from_str(track_info.name)
+				.map_err(|_| {
+					RevertReason::custom("Custom origin does not exist for {track_info.name}")
+						.in_field("trackId")
+				})?
+				.into()
 		};
-		Ok(Box::new(name_to_origin(track_info.name)?))
+		Ok(Box::new(origin))
 	}
 
 	// Helper function for submitAt and submitAfter
@@ -286,14 +284,15 @@ where
 		proposal: Vec<u8>,
 		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
-		// for read of referendumCount to get the referendum index
+		// record cost to read referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
-		let track_id: TrackIdOf<Runtime> = track_id
-			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
-			.in_field("trackId")?;
-		let proposal_origin = Self::get_track_origin(track_id)?;
+		let proposal_origin = Self::track_id_to_origin(
+			track_id
+				.try_into()
+				.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
+				.in_field("trackId")?,
+		)?;
 		let proposal: BoundedCallOf<Runtime> =
 			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
