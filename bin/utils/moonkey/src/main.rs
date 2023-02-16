@@ -17,7 +17,7 @@
 //! Generate an Ethereum account.
 
 use clap::Parser;
-use cli_opt::account_key::GenerateAccountKey;
+use moonbeam_cli_opt::account_key::GenerateAccountKey;
 
 #[derive(Debug, Parser)]
 #[clap(author = "PureStake")]

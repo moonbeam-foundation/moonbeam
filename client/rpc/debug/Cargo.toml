@@ -11,7 +11,7 @@ version = "0.1.0"
 futures = { workspace = true, features = [ "compat" ] }
 hex-literal = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
-tokio = { features = [ "sync", "time" ], workspace = true }
+tokio = { workspace = true, features = [ "sync", "time" ] }
 
 # Moonbeam
 moonbeam-client-evm-tracing = { workspace = true }

@@ -24,7 +24,7 @@
 
 pub mod rpc;
 
-use cli_opt::{EthApi as EthApiCmd, RpcConfig};
+use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
@@ -902,7 +902,7 @@ where
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
-	sealing: cli_opt::Sealing,
+	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
@@ -975,7 +975,7 @@ where
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
-				cli_opt::Sealing::Instant => {
+				moonbeam_cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
 						transaction_pool
@@ -990,13 +990,13 @@ where
 							}),
 					)
 				}
-				cli_opt::Sealing::Manual => {
+				moonbeam_cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
 				}
-				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
+				moonbeam_cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,
