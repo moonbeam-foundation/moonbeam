@@ -217,8 +217,8 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
 			.into_iter()
-			.filter_map(|x| {
-				if let Ok(track_id) = x.0.try_into() {
+			.filter_map(|(id, _)| {
+				if let Ok(track_id) = (*id).try_into() {
 					Some(track_id)
 				} else {
 					None
@@ -240,9 +240,9 @@ where
 			.in_field("trackId")?;
 		let tracks = Runtime::Tracks::tracks();
 		let index = tracks
-			.binary_search_by_key(&track_id, |x| x.0)
+			.binary_search_by_key(&track_id, |(id, _)| *id)
 			.unwrap_or_else(|x| x);
-		let track_info = &tracks[index].1;
+		let (_, track_info) = &tracks[index];
 
 		Ok(TrackInfo {
 			name: track_info.name.into(),
@@ -261,9 +261,9 @@ where
 	fn track_id_to_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
 		let tracks = Runtime::Tracks::tracks();
 		let index = tracks
-			.binary_search_by_key(&track_id, |x| x.0)
+			.binary_search_by_key(&track_id, |(id, _)| *id)
 			.unwrap_or_else(|x| x);
-		let track_info = &tracks[index].1;
+		let (_, track_info) = &tracks[index];
 		let origin = if track_info.name == "root" {
 			frame_system::RawOrigin::Root.into()
 		} else {
