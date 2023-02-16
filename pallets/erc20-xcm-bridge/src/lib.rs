@@ -148,6 +148,9 @@ pub mod pallet {
 					Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
 						"not enough founds in xcm holding",
 					)),
+					Err(DrainError::SplitError) => Err(XcmError::FailedToTransactAsset(
+						"SplitError: each withdrawal of erc20 tokens must be deposited at once",
+					)),
 				}
 			})
 			.ok_or(XcmError::FailedToTransactAsset(

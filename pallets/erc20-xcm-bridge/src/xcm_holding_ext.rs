@@ -25,8 +25,9 @@ environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins
 
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub(crate) enum DrainError {
-	NotEnoughFounds,
 	AssetNotFound,
+	NotEnoughFounds,
+	SplitError,
 }
 
 /// Xcm holding erc20 origins extension.
@@ -49,13 +50,7 @@ impl XcmHoldingErc20sOrigins {
 		self.map
 			.entry(contract_address)
 			.and_modify(|erc20_origins| {
-				if tokens_to_transfer.len() > 1 {
-					*erc20_origins = erc20_origins.split_off(tokens_to_transfer.len() - 1);
-				}
-				if erc20_origins.len() > 0 && tokens_to_transfer.len() > 0 {
-					let last_index = erc20_origins.len() - 1;
-					erc20_origins[last_index] = tokens_to_transfer[tokens_to_transfer.len() - 1];
-				}
+				*erc20_origins = erc20_origins.split_off(tokens_to_transfer.len());
 			});
 
 		Ok(tokens_to_transfer)
@@ -68,19 +63,19 @@ impl XcmHoldingErc20sOrigins {
 		let mut tokens_to_transfer = Vec::new();
 		if let Some(erc20_origins) = self.map.get(contract_address) {
 			for (from, subamount) in erc20_origins {
-				let amount_to_transfer = core::cmp::min(amount, *subamount);
-				amount -= amount_to_transfer;
-				tokens_to_transfer.push((*from, amount_to_transfer));
-				//*subamount -= amount_to_transfer;
-				if amount == U256::zero() {
+				if &amount > subamount {
+					tokens_to_transfer.push((*from, *subamount));
+					amount -= *subamount;
+				} else if &amount == subamount {
+					tokens_to_transfer.push((*from, *subamount));
 					return Ok(tokens_to_transfer);
+				} else {
+					// Each insertion of tokens must be drain at once
+					return Err(DrainError::SplitError);
 				}
 			}
-			if amount == U256::zero() {
-				Ok(tokens_to_transfer)
-			} else {
-				Err(DrainError::NotEnoughFounds)
-			}
+			// If there were enough tokens, we had to return in the for loop
+			Err(DrainError::NotEnoughFounds)
 		} else {
 			Err(DrainError::AssetNotFound)
 		}
@@ -155,16 +150,20 @@ mod tests {
 				erc20s_origins.insert(TOKEN1, USER1, U256::from(100));
 				erc20s_origins.insert(TOKEN1, USER2, U256::from(200));
 				assert_eq!(
-					erc20s_origins.drain(TOKEN1, U256::from(200)),
-					Ok(vec![(USER1, U256::from(100)), (USER2, U256::from(100))])
+					erc20s_origins.drain(TOKEN1, U256::from(100)),
+					Ok(vec![(USER1, U256::from(100))])
 				);
 				assert_eq!(
-					erc20s_origins.drain(TOKEN1, U256::from(50)),
-					Ok(vec![(USER2, U256::from(50))])
-				);
-				assert_eq!(
-					erc20s_origins.drain(TOKEN1, U256::from(51)),
+					erc20s_origins.drain(TOKEN1, U256::from(201)),
 					Err(DrainError::NotEnoughFounds)
+				);
+				assert_eq!(
+					erc20s_origins.drain(TOKEN1, U256::from(199)),
+					Err(DrainError::SplitError)
+				);
+				assert_eq!(
+					erc20s_origins.drain(TOKEN1, U256::from(200)),
+					Ok(vec![(USER2, U256::from(200))])
 				);
 			})
 		});
