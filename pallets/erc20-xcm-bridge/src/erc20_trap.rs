@@ -31,13 +31,9 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 		let assets_to_remove: Vec<_> = assets
 			.fungible_assets_iter()
 			.filter_map(|multiasset| {
-				if Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&multiasset)
-					.is_ok()
-				{
-					Some(multiasset.id)
-				} else {
-					None
-				}
+				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(&multiasset)
+					.ok()
+					.map(|_| multiasset.id)
 			})
 			.collect();
 		for id in assets_to_remove {
