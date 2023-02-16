@@ -167,6 +167,7 @@ sp-session = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 sp-version = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
 
 # Substrate (client)
 frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
@@ -213,6 +214,7 @@ ethereum-types = { version = "0.14", default-features = false }
 evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.37.0", default-features = false }
 evm-runtime = { version = "0.37.0", default-features = false }
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
@@ -295,9 +297,9 @@ environmental = { version = "1.1.2", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
 impl-serde = { version = "0.3.1", default-features = false }
-impl-trait-for-tuples = "0.2.0"
+impl-trait-for-tuples = "0.2.1"
 libsecp256k1 = { version = "0.7", default-features = false }
-log = "0.4"
+log = { version = "0.4", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 rlp = { version = "0.5", default-features = false }
 serde = { version = "1.0.101", default-features = false }
@@ -322,6 +324,7 @@ primitive-types = "0.12.0"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 serde_json = { version = "1.0" }
+similar-asserts = "1.1.0"
 tempfile = "3.2.0"
 tiny-bip39 = { version = "0.8", default-features = false }
 tokio = { version = "1.13" }

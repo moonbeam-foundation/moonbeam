@@ -6,21 +6,21 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-parity-scale-codec = { version = "3.0.0", default-features = false }
-scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-proxy = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-runtime = { workspace = true }
 
 [dev-dependencies]
-serde = "1.0.124"
+serde = { workspace = true }
 
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+pallet-balances = { workspace = true, features = [ "std" ] }
+sp-core = { workspace = true, features = [ "std" ] }
+sp-io = { workspace = true, features = [ "std" ] }
 
-pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+pallet-evm-precompile-proxy = { workspace = true }
 
 [features]
 default = [ "std" ]
