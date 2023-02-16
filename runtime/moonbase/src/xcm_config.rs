@@ -333,7 +333,11 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-// Filter out instructions: InitiateReserveWithdraw, InitiateTeleport
+/// Filter out some XCM instructions in arbitrary local XCM execution.
+/// For compatibility with erc20 assets we neet to forbid any instruction that can remove assets
+/// from holding to "send" them on another chain. Impacted instructions are:
+/// InitiateReserveWithdraw, InitiateTeleport
+/// These instructions can only be supported in specific use cases ((thus via dedicated extrinsics).
 pub struct XcmExecuteFilter;
 impl frame_support::traits::Contains<(MultiLocation, Xcm<RuntimeCall>)> for XcmExecuteFilter {
 	fn contains((_location, message): &(MultiLocation, Xcm<RuntimeCall>)) -> bool {

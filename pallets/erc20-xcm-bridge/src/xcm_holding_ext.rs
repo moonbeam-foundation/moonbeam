@@ -36,6 +36,9 @@ pub(crate) struct XcmHoldingErc20sOrigins {
 	map: BTreeMap<H160, Vec<(H160, U256)>>,
 }
 impl XcmHoldingErc20sOrigins {
+	/// Take and remove a given amounts of erc20 tokens from the XCM holding.
+	/// These tokens can come from one or more holders that we had tracked earlier in the XCM
+	/// execution, so we return an array of (holder, balance).
 	pub(crate) fn drain(
 		&mut self,
 		contract_address: H160,
