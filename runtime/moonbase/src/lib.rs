@@ -205,11 +205,8 @@ impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
 	fn get() -> frame_system::limits::BlockWeights {
 		frame_system::limits::BlockWeights::builder()
 			.for_class(DispatchClass::Normal, |weights| {
-				// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
-				// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
-				// and some cost to account for per-byte-fee.
-				// TODO: we should use benchmarking's overhead feature to measure this
-				weights.base_extrinsic = WeightPerGas::get() * 10000;
+				weights.base_extrinsic =
+					moonbeam_runtime_common::extrinsic_base_weight(WeightPerGas::get());
 				weights.max_total = NORMAL_WEIGHT.into();
 			})
 			.for_class(DispatchClass::Operational, |weights| {

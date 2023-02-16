@@ -3021,7 +3021,8 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 
 		assert_eq!(
 			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
-			(WeightPerGas::get().ref_time() * 10000) as u128 * currency::WEIGHT_FEE,
+			moonbeam_runtime_common::extrinsic_base_weight(WeightPerGas::get()).ref_time() as u128
+				* currency::WEIGHT_FEE,
 		);
 	});
 }

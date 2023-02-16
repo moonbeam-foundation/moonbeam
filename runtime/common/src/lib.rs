@@ -16,7 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::weights::constants::WEIGHT_REF_TIME_PER_MILLIS;
+use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_MILLIS, Weight};
 use sp_core::H160;
 use sp_runtime::Perbill;
 
@@ -26,6 +26,14 @@ mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;
 mod impl_self_contained_call;
 pub mod migrations;
+
+// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
+// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
+// and some cost to account for per-byte-fee.
+// TODO: we should use benchmarking's overhead feature to measure this
+pub fn extrinsic_base_weight(weight_per_gas: Weight) -> Weight {
+	weight_per_gas * 10000
+}
 
 /// `WeightPerGas` is an approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
