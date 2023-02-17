@@ -24,7 +24,7 @@ use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{Hasher, H256, U256};
+use sp_core::{H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
