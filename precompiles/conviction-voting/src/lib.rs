@@ -24,7 +24,7 @@ use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
 
@@ -53,8 +53,29 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 	>,
 >>::Class;
 
+/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_VOTED: [u8; 32] =
+	keccak256!("Voted(uint32,address,bool,uint256,uint8)");
+
+/// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
+
+/// Solidity selector of the VoteRemoveOther log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_VOTE_REMOVED_OTHER: [u8; 32] =
+	keccak256!("VoteRemovedOther(uint32,address,address,uint16)");
+
+/// Solidity selector of the Delegate log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_DELEGATED: [u8; 32] =
+	keccak256!("Delegated(uint16,address,address,uint256,uint8)");
+
+/// Solidity selector of the Undelegate log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_UNDELEGATED: [u8; 32] = keccak256!("Undelegated(uint16,address)");
+
+/// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_UNLOCKED: [u8; 32] = keccak256!("Unlocked(uint16,address)");
+
 /// Direction of vote
-enum VoteDirection {
+pub(crate) enum VoteDirection {
 	Yes,
 	No,
 	#[allow(unused)]
@@ -85,15 +106,28 @@ where
 		vote_amount: U256,
 		conviction: u8,
 	) -> EvmResult {
-		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
-
+		let caller = handle.context().caller;
 		let aye = match vote {
 			VoteDirection::Yes => true,
 			VoteDirection::No => false,
 			_ => return Err(RevertReason::custom("Abstain not supported").into()),
 		};
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_VOTED,
+			H256::from_low_u64_be(poll_index as u64), // poll index,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.write::<bool>(aye)
+				.write::<U256>(vote_amount)
+				.write::<u8>(conviction)
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
+		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
+		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
 
 		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
@@ -105,10 +139,12 @@ where
 			aye, poll_index, conviction
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -159,6 +195,17 @@ where
 
 	#[precompile::public("removeVote(uint32)")]
 	fn remove_vote(handle: &mut impl PrecompileHandle, poll_index: u32) -> EvmResult {
+		let caller = handle.context().caller;
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_VOTE_REMOVED,
+			H256::from_low_u64_be(poll_index as u64), // poll index,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
 
 		log::trace!(
@@ -167,10 +214,12 @@ where
 			index
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::remove_vote { class: None, index };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -182,6 +231,20 @@ where
 		track_id: u16,
 		poll_index: u32,
 	) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_VOTE_REMOVED_OTHER,
+			H256::from_low_u64_be(poll_index as u64), // poll index,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.write::<Address>(target)
+				.write::<u16>(track_id)
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
 
@@ -195,7 +258,7 @@ where
 			index
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::remove_other_vote {
 			target,
 			class,
@@ -203,6 +266,8 @@ where
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -215,6 +280,21 @@ where
 		conviction: u8,
 		amount: U256,
 	) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_DELEGATED,
+			H256::from_low_u64_be(track_id as u64), // track id,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.write::<Address>(representative)
+				.write::<U256>(amount)
+				.write::<u8>(conviction)
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
@@ -227,7 +307,7 @@ where
 		let representative = Runtime::AddressMapping::into_account_id(representative.into());
 		let to: <Runtime::Lookup as StaticLookup>::Source =
 			Runtime::Lookup::unlookup(representative.clone());
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::delegate {
 			class,
 			to,
@@ -237,21 +317,46 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		event.record(handle)?;
+
 		Ok(())
 	}
 	#[precompile::public("undelegate(uint16)")]
 	fn undelegate(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_UNDELEGATED,
+			H256::from_low_u64_be(track_id as u64), // track id,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
 	#[precompile::public("unlock(uint16,address)")]
 	fn unlock(handle: &mut impl PrecompileHandle, track_id: u16, target: Address) -> EvmResult {
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
+
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_UNLOCKED,
+			H256::from_low_u64_be(track_id as u64), // track id,
+			EvmDataWriter::new().write::<Address>(target).build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -266,6 +371,8 @@ where
 		let call = ConvictionVotingCall::<Runtime>::unlock { class, target };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}

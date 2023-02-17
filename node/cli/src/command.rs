@@ -636,21 +636,22 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => {
-					runner.async_run(|config| {
-						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-						let task_manager =
-							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-								.map_err(|e| {
-									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-								})?;
+				spec if spec.is_moonriver() => runner.async_run(|config| {
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager =
+						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})?;
 
-						Ok((
-							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(config),
+					Ok((
+							cmd.run::<service::moonriver_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+							sp_io::SubstrateHostFunctions,
+							<service::MoonriverExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
 							task_manager,
 						))
-					})
-				}
+				}),
 				#[cfg(feature = "moonbeam-native")]
 				spec if spec.is_moonbeam() => runner.async_run(|config| {
 					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
@@ -661,9 +662,10 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
-							config,
-						),
+						cmd.run::<service::moonbeam_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+						sp_io::SubstrateHostFunctions,
+						<service::MoonbeamExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+					>>(),
 						task_manager,
 					))
 				}),
@@ -680,9 +682,10 @@ pub fn run() -> Result<()> {
 								})?;
 
 						Ok((
-							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
-								config,
-							),
+							cmd.run::<service::moonbase_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+							sp_io::SubstrateHostFunctions,
+							<service::MoonbaseExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
 							task_manager,
 						))
 					})
@@ -721,7 +724,7 @@ pub fn run() -> Result<()> {
 					eth_statuses_cache: cli.run.eth_statuses_cache,
 					fee_history_limit: cli.run.fee_history_limit,
 					max_past_logs: cli.run.max_past_logs,
-					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+					relay_chain_rpc_urls: cli.run.base.relay_chain_rpc_urls,
 					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				};
 
@@ -821,7 +824,7 @@ pub fn run() -> Result<()> {
 					}
 				);
 
-				if rpc_config.relay_chain_rpc_url.is_some() && cli.relaychain_args.len() > 0 {
+				if !rpc_config.relay_chain_rpc_urls.is_empty() && cli.relaychain_args.len() > 0 {
 					warn!(
 						"Detected relay chain node arguments together with \
 					--relay-chain-rpc-url. This command starts a minimal Polkadot node that only \

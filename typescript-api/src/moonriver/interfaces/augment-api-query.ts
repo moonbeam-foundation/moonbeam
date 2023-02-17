@@ -29,7 +29,6 @@ import type {
   H256,
   Perbill,
   Percent,
-  Permill,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletDmpQueueConfigData,
@@ -61,6 +60,7 @@ import type {
   PalletBalancesReleases,
   PalletBalancesReserveData,
   PalletCollectiveVotes,
+  PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
   PalletDemocracyReferendumInfo,
   PalletDemocracyVoteThreshold,
@@ -86,6 +86,7 @@ import type {
   PalletRandomnessRandomnessResult,
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
+  PalletReferendaReferendumInfo,
   PalletSchedulerScheduled,
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
@@ -358,11 +359,31 @@ declare module "@polkadot/api-base/types/storage" {
        */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    baseFee: {
-      baseFeePerGas: AugmentedQuery<ApiType, () => Observable<U256>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      elasticity: AugmentedQuery<ApiType, () => Observable<Permill>, []> &
-        QueryableStorageEntry<ApiType, []>;
+    convictionVoting: {
+      /**
+       * The voting classes which have a non-zero lock requirement and the lock
+       * amounts which they require. The actual amount locked on behalf of this
+       * pallet should always be the maximum of this list.
+       */
+      classLocksFor: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<ITuple<[u16, u128]>>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * All voting for a particular voter in a particular voting class. We
+       * store the balance for the number of votes that we have recorded.
+       */
+      votingFor: AugmentedQuery<
+        ApiType,
+        (
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: u16 | AnyNumber | Uint8Array
+        ) => Observable<PalletConvictionVotingVoteVoting>,
+        [AccountId20, u16]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, u16]>;
       /**
        * Generic query
        */
@@ -818,6 +839,12 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [Bytes]>;
       /**
+       * Temporary value that is set to true at the beginning of the block
+       * during which the execution of xcm messages must be paused.
+       */
+      shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Generic query
        */
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -886,6 +913,51 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /**
+       * The current members of the collective. This is stored sorted (just by value).
+       */
+      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The prime member that helps determine the default vote behavior in case
+       * of absentations.
+       */
+      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Proposals so far.
+       */
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Actual proposal for a given hash, if it's current.
+       */
+      proposalOf: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * The hashes of the active proposals.
+       */
+      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Votes on a given proposal, if it is ongoing.
+       */
+      voting: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
       /**
        * Generic query
        */
@@ -1441,6 +1513,11 @@ declare module "@polkadot/api-base/types/storage" {
       notFirstBlock: AugmentedQuery<ApiType, () => Observable<Option<Null>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * Previous local per-block VRF randomness Set in `on_finalize` of last block
+       */
+      previousLocalVrfOutput: AugmentedQuery<ApiType, () => Observable<H256>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Snapshot of randomness to fulfill all requests that are for the same
        * raw randomness Removed once $value.request_count == 0
        */
@@ -1490,6 +1567,47 @@ declare module "@polkadot/api-base/types/storage" {
        */
       randomMaterial: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    referenda: {
+      /**
+       * The number of referenda being decided currently.
+       */
+      decidingCount: AugmentedQuery<
+        ApiType,
+        (arg: u16 | AnyNumber | Uint8Array) => Observable<u32>,
+        [u16]
+      > &
+        QueryableStorageEntry<ApiType, [u16]>;
+      /**
+       * The next free referendum index, aka the number of referenda started so far.
+       */
+      referendumCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Information concerning any given referendum.
+       */
+      referendumInfoFor: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletReferendaReferendumInfo>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The sorted list of referenda ready to be decided but not yet being
+       * decided, ordered by conviction-weighted approvals.
+       *
+       * This should be empty if `DecidingCount` is less than `TrackInfo::max_deciding`.
+       */
+      trackQueue: AugmentedQuery<
+        ApiType,
+        (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<ITuple<[u32, u128]>>>,
+        [u16]
+      > &
+        QueryableStorageEntry<ApiType, [u16]>;
       /**
        * Generic query
        */
@@ -1790,6 +1908,18 @@ declare module "@polkadot/api-base/types/storage" {
       voting: AugmentedQuery<
         ApiType,
         (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    whitelist: {
+      whitelistedCall: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Null>>,
         [H256]
       > &
         QueryableStorageEntry<ApiType, [H256]>;

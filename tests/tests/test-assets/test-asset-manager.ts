@@ -14,6 +14,7 @@ import { verifyLatestBlockFees } from "../../util/block";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { PalletAssetsDestroyWitness } from "@polkadot/types/lookup";
+import { expectOk } from "../../util/expect";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -190,21 +191,18 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
   });
 
   it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
-      "PalletAssetsDestroyWitness",
-      {
-        accounts: 0,
-        sufficients: 0,
-        approvals: 0,
-      }
-    );
-
     // Destroy foreign asset
-    await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.destroyForeignAsset(assetId, assetDestroyWitness, 1)
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.sudo.sudo(
+          (context.polkadotApi.tx.assetManager as any).destroyForeignAsset(assetId, 1)
+        )
       )
     );
+
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.destroyAccounts(assetId)));
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.destroyApprovals(assetId)));
+    await expectOk(context.createBlock(context.polkadotApi.tx.assets.finishDestroy(assetId)));
 
     // assetId
     const id = await context.polkadotApi.query.assetManager.assetTypeId(RELAY_SOURCE_LOCATION);
@@ -268,23 +266,23 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
   });
 
   it("should be able to destroy a local asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
-      "PalletAssetsDestroyWitness",
-      {
-        accounts: 0,
-        sufficients: 0,
-        approvals: 0,
-      }
-    );
-
     // Reserved amount back to creator
     const accountDetailsBefore = await context.polkadotApi.query.system.account(alith.address);
 
-    await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.destroyLocalAsset(assetId, assetDestroyWitness)
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.sudo.sudo(
+          (context.polkadotApi.tx.assetManager as any).destroyLocalAsset(assetId)
+        )
       )
     );
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.localAssets.destroyAccounts(assetId))
+    );
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.localAssets.destroyApprovals(assetId))
+    );
+    await expectOk(context.createBlock(context.polkadotApi.tx.localAssets.finishDestroy(assetId)));
 
     // assetDetails should have dissapeared
     let assetDetails = await context.polkadotApi.query.localAssets.asset(assetId);

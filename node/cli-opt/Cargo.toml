@@ -19,4 +19,4 @@ url = "2.2.2"
 account = { path = "../../primitives/account" }
 
 # Substrate
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }

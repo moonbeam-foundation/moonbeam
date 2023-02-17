@@ -28,9 +28,9 @@ pub use moonriver_runtime::{
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, FixedGasPrice, InflationInfo, LocalAssets, ParachainStaking, Range,
-	Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter, UncheckedExtrinsic, HOURS,
-	WEEKS,
+	Ethereum, Executive, InflationInfo, LocalAssets, ParachainStaking, Range, Runtime, RuntimeCall,
+	RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
+	HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
@@ -39,12 +39,13 @@ use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use pallet_transaction_payment::Multiplier;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a\
-	08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac\
-	61125a81a582a717d9c5d6554326c01b878297c6522b12282";
+	"02f86d8205018085174876e80085e8d4a5100082520894f24ff3a9cf04c71dbc94d0b566f7a27b9456\
+	6cac8080c001a0e1094e1a52520a75c0255db96132076dd0f1263089f838bea548cbdbfc64a4d19f031c\
+	92a8cb04e2d68d20a6158d542a07ac440cc8d07b6e36af02db046d92df";
 
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
@@ -303,15 +304,24 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
+		<pallet_transaction_payment::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_transaction_payment::GenesisConfig {
+				multiplier: Multiplier::from(10u128),
+			},
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
 			// If any local assets specified, we create them here
 			for (asset_id, balances, owner) in local_assets.clone() {
-				LocalAssets::force_create(root_origin(), asset_id, owner, true, 1).unwrap();
+				LocalAssets::force_create(root_origin(), asset_id.into(), owner, true, 1).unwrap();
 				for (account, balance) in balances {
-					LocalAssets::mint(origin_of(owner.into()), asset_id, account, balance).unwrap();
+					LocalAssets::mint(origin_of(owner.into()), asset_id.into(), account, balance)
+						.unwrap();
 				}
 			}
 			// If any xcm assets specified, we register them here
@@ -328,7 +338,7 @@ impl ExtBuilder {
 				for (account, balance) in xcm_asset_initialization.balances {
 					Assets::mint(
 						origin_of(AssetManager::account_id()),
-						asset_id,
+						asset_id.into(),
 						account,
 						balance,
 					)
