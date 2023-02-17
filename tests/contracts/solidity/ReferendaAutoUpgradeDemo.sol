@@ -9,12 +9,36 @@ abstract contract ReferendaAutoUpgradeDemo {
     /// @notice The id of the track used for root execution
     uint16 public rootTrackId;
 
+    /// @notice SetStorageCall index (pallet Index concatenated with call index, usually "\x00\x04")
+    bytes2 public setStorageCallIndex;
+
     /// @notice The id of the track used for root execution
     uint16 public proposalId;
 
     /// @notice construct the smart contract with the track id to send the proposal to
-    constructor(uint16 trackId) {
-        rootTrackId = trackId;
+    constructor(string memory trackName, bytes2 pSetStorageCallIndex) {
+        setStorageCallIndex = pSetStorageCallIndex;
+        uint16[] memory trackIds = REFERENDA_CONTRACT.trackIds();
+
+        // This is obviously NOT THE RIGHT WAY to find/store the track id.
+        // The track id should be passed as an argument of the constructor instead of the
+        // track name.
+        // In this demo, it is using the track name to show how to loop through the trackIds.
+        for (uint256 i = 0; i < trackIds.length; i++) {
+            Referenda.TrackInfo memory info = REFERENDA_CONTRACT.trackInfo(
+                trackIds[i]
+            );
+
+            if (
+                keccak256(abi.encodePacked((info.name))) ==
+                keccak256(abi.encodePacked((trackName))) // Compare the 2 strings
+            ) {
+                rootTrackId = trackIds[i];
+                return;
+            }
+        }
+
+        revert("Couldn't find track");
     }
 
     /// TODO Add check for deposit value
@@ -24,11 +48,6 @@ abstract contract ReferendaAutoUpgradeDemo {
     ) public {
         bytes memory codeStorageKey = contractStorageKey;
 
-        // Moonbase: Pallet index 00 , call index 05
-        bytes memory systemSetStorageIndexes = bytes.concat(
-            bytes("\x00"),
-            bytes("\x05")
-        );
         // 1 storage key to change, so 4 bytes
         bytes memory itemCountBytes = bytes("\x04");
         // Key value prefixed with key size in big endian (same for all the evm.accountStorage keys)
@@ -51,10 +70,22 @@ abstract contract ReferendaAutoUpgradeDemo {
             contractCode
         );
         bytes memory setStorageCall = bytes.concat(
-            systemSetStorageIndexes,
+            setStorageCallIndex,
             itemCountBytes,
             key,
             value
+        );
+
+        bytes32 preimageHash = PREIMAGE_CONTRACT.notePreimage(setStorageCall);
+
+        // /// If the block count is lower than the minimum allowed, it will pick the minimum
+        // /// allowed automatically.
+        uint32 blockCount = 1;
+        uint256 referendumId = REFERENDA_CONTRACT.submitAfter(
+            rootTrackId,
+            preimageHash,
+            uint32(setStorageCall.length),
+            blockCount
         );
 
         /// Size of the call + the transaction metadata (1 byte);
@@ -78,9 +109,6 @@ abstract contract ReferendaAutoUpgradeDemo {
             setStorageCall
         );
 
-        // /// If the block count is lower than the minimum allowed, it will pick the minimum
-        // /// allowed automatically.
-        uint32 blockCount = 1;
         // /// Submit the proposal
         // REFERENDA_CONTRACT.submitAfter(rootTrackId, setStorageTx, blockCount);
 
@@ -95,7 +123,9 @@ abstract contract ReferendaAutoUpgradeDemo {
 }
 
 contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
-    constructor(uint16 trackId) ReferendaAutoUpgradeDemo(trackId) {}
+    constructor(string memory trackName, bytes2 pSetStorageCallIndex)
+        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)
+    {}
 
     function version() external pure returns (uint256) {
         return 1;
@@ -103,7 +133,9 @@ contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
 }
 
 contract ReferendaAutoUpgradeDemoV2 is ReferendaAutoUpgradeDemo {
-    constructor(uint16 trackId) ReferendaAutoUpgradeDemo(trackId) {}
+    constructor(string memory trackName, bytes2 pSetStorageCallIndex)
+        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)
+    {}
 
     function version() external pure returns (uint256) {
         return 2;
