@@ -7784,7 +7784,6 @@ dependencies = [
  "scale-info",
  "serde",
  "sha3 0.10.6",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
