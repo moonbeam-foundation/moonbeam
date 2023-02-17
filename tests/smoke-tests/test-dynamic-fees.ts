@@ -2,9 +2,18 @@ import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
 import { getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import type { DispatchInfo } from "@polkadot/types/interfaces";
 import Bottleneck from "bottleneck";
 import { BigNumber, ethers } from "ethers";
-import { FrameSupportDispatchPerDispatchClassWeight, EthereumBlock } from "@polkadot/types/lookup";
+import { GenericExtrinsic } from "@polkadot/types";
+import {
+  FrameSupportDispatchPerDispatchClassWeight,
+  EthereumBlock,
+  FrameSystemEventRecord,
+  EthereumReceiptReceiptV3,
+  SpWeightsWeightV2Weight,
+} from "@polkadot/types/lookup";
+import { AnyTuple } from "@polkadot/types/types";
 import BN from "bn.js";
 import type { u128 } from "@polkadot/types-codec";
 import {
@@ -24,9 +33,12 @@ type BlockFilteredRecord = {
   blockNum: number;
   nextFeeMultiplier: u128;
   ethBlock: EthereumBlock;
-  ethersBlock: ethers.providers.Block;
+  extrinsics: GenericExtrinsic<AnyTuple>[];
+  ethersTransactionsFees: BigNumber[];
   baseFeePerGasInGwei: string;
   weights: FrameSupportDispatchPerDispatchClassWeight;
+  events: FrameSystemEventRecord[];
+  receipts: EthereumReceiptReceiptV3[];
 };
 
 enum Change {
@@ -95,7 +107,7 @@ describeSmokeSuite(
         this.skip();
       }
 
-      if (specVersion.toNumber() < 2100 && specName.toString() == "moonriver") {
+      if (specVersion.toNumber() < 2200 && specName.toString() == "moonriver") {
         debug(
           `Runtime version ${specVersion.toString()} for ${specName.toString()}` +
             ` is less than 2100, skipping test suite.`
@@ -114,17 +126,28 @@ describeSmokeSuite(
 
       const getBlockData = async (blockNum: number) => {
         const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
+        const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
         const apiAt = await context.polkadotApi.at(blockHash);
         const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrapOrDefault();
         const ethersBlock = await context.ethers.getBlock(blockNum);
+        const ethersTransactionsFees = await Promise.all(
+          ethersBlock.transactions.map(
+            async (a) => (await context.ethers.getTransactionReceipt(a)).gasUsed
+          )
+        );
         const weights = await apiAt.query.system.blockWeight();
+        const receipts = (await apiAt.query.ethereum.currentReceipts()).unwrapOr([]);
+        const events = await apiAt.query.system.events();
         return {
           blockNum: blockNum,
           nextFeeMultiplier: await apiAt.query.transactionPayment.nextFeeMultiplier(),
           ethBlock,
-          ethersBlock,
+          ethersTransactionsFees,
+          extrinsics: signedBlock.block.extrinsics,
           baseFeePerGasInGwei: ethers.utils.formatUnits(ethersBlock.baseFeePerGas, "gwei"),
           weights,
+          receipts,
+          events,
         };
       };
 
@@ -134,6 +157,7 @@ describeSmokeSuite(
     });
 
     testIt("C100", "Block utilization by weight corresponds to fee multiplier", function () {
+      this.timeout(30000);
       const maxWeights = context.polkadotApi.consts.system.blockWeights;
       const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
         const fillPermill = weights.normal.refTime
@@ -173,7 +197,8 @@ describeSmokeSuite(
       "C200",
       "Block utilization from normal class exts corresponds to fee multiplier",
       async function () {
-        const enriched = blockData.map(({ blockNum, ethersBlock, nextFeeMultiplier, weights }) => {
+        this.timeout(30000);
+        const enriched = blockData.map(({ blockNum, nextFeeMultiplier, weights }) => {
           const fillPermill = weights.normal.refTime
             .unwrap()
             .toBn()
@@ -213,6 +238,7 @@ describeSmokeSuite(
     );
 
     testIt("C300", "BaseFeePerGas is within expected min/max", function () {
+      this.timeout(30000);
       const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
         return (
           ethers.utils
@@ -234,6 +260,7 @@ describeSmokeSuite(
     });
 
     testIt("C400", "BaseFeePerGas is correctly calculated", function () {
+      this.timeout(30000);
       const supplyFactor =
         context.polkadotApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
 
@@ -257,6 +284,72 @@ describeSmokeSuite(
         failures.length,
         `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
       ).to.equals(0);
+    });
+
+    testIt("C500", "Ext fee matches on chain", function () {
+      this.timeout(30000);
+      const filteredEvents = blockData
+        .map(({ blockNum, events, receipts, ethersTransactionsFees }) => {
+          const matchedEvents = events.filter(({ event }) =>
+            context.polkadotApi.events.system.ExtrinsicSuccess.is(event)
+          );
+          return { blockNum, matchedEvents, receipts, ethersTransactionsFees };
+        })
+        .filter(({ matchedEvents }) => matchedEvents.length > 0);
+
+      const isEthereumTxn = (blockNum: number, index: number) => {
+        const extrinsic = blockData.find((a) => a.blockNum === blockNum).extrinsics[index];
+        return (
+          extrinsic.method.section.toString() === "ethereum" &&
+          extrinsic.method.method.toString() === "transact"
+        );
+      };
+
+      const failures = filteredEvents
+        .map(({ blockNum, matchedEvents, receipts, ethersTransactionsFees }) => {
+          const ethExtFees = matchedEvents
+            .filter((a) => isEthereumTxn(blockNum, a.phase.asApplyExtrinsic.toNumber()))
+            .map(({ event }, index) => {
+              const info = event.data[0] as DispatchInfo;
+              const fee = info.weight as unknown as SpWeightsWeightV2Weight;
+              return fee;
+            });
+          const ethExtGas = receipts.map((item) => {
+            switch (true) {
+              case item.isEip1559:
+                return item.asEip1559.usedGas;
+              case item.isEip2930:
+                return item.asEip2930.usedGas;
+              case item.isLegacy:
+                return item.asLegacy.usedGas;
+              default:
+                throw new Error("Update test to include new transaction type");
+            }
+          });
+          return { blockNum, ethExtFees, ethExtGas, ethersTransactionsFees };
+        })
+        .filter((a) => a.ethExtFees.length > 0)
+        .filter((item) => {
+          const match = item.ethExtFees
+            .map((subitem, index) =>
+              subitem.refTime.eq(item.ethersTransactionsFees[index].mul(WEIGHT_PER_GAS.toString()))
+            )
+            .reduce((acc, curr) => acc && curr, true);
+
+          return !match;
+        });
+
+      failures.forEach(({ blockNum, ethExtFees, ethExtGas }) => {
+        debug(
+          `Incorrect Block #${blockNum}, fees: ` +
+            `[${ethExtFees.map((a) => a.refTime).toString()}] vs gas: [${ethExtGas.toString()}]`
+        );
+      });
+
+      expect(
+        failures.length,
+        `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
+      ).to.equal(0);
     });
   }
 );
