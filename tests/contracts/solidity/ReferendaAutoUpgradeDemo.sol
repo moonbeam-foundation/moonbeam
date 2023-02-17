@@ -3,6 +3,7 @@ pragma solidity >=0.8.3;
 
 import "../../../precompiles/referenda/Referenda.sol";
 import "../../../precompiles/preimage/Preimage.sol";
+import "../../../precompiles/conviction-voting/ConvictionVoting.sol";
 
 /// @notice Smart contract to demonstrate how to use Referenda Precompile to self-upgrade
 abstract contract ReferendaAutoUpgradeDemo {
@@ -18,12 +19,22 @@ abstract contract ReferendaAutoUpgradeDemo {
     /// @notice construct the smart contract with the track id to send the proposal to
     constructor(string memory trackName, bytes2 pSetStorageCallIndex) {
         setStorageCallIndex = pSetStorageCallIndex;
-        uint16[] memory trackIds = REFERENDA_CONTRACT.trackIds();
 
         // This is obviously NOT THE RIGHT WAY to find/store the track id.
         // The track id should be passed as an argument of the constructor instead of the
         // track name.
         // In this demo, it is using the track name to show how to loop through the trackIds.
+        rootTrackId = getTrackId(trackName);
+    }
+
+    /// @notice retrieves the track id matching the track name
+    /// @notice this is ineficient and only used for a demo.
+    function getTrackId(string memory trackName)
+        internal
+        view
+        returns (uint16)
+    {
+        uint16[] memory trackIds = REFERENDA_CONTRACT.trackIds();
         for (uint256 i = 0; i < trackIds.length; i++) {
             Referenda.TrackInfo memory info = REFERENDA_CONTRACT.trackInfo(
                 trackIds[i]
@@ -33,95 +44,89 @@ abstract contract ReferendaAutoUpgradeDemo {
                 keccak256(abi.encodePacked((info.name))) ==
                 keccak256(abi.encodePacked((trackName))) // Compare the 2 strings
             ) {
-                rootTrackId = trackIds[i];
-                return;
+                return trackIds[i];
             }
         }
-
         revert("Couldn't find track");
     }
 
-    /// TODO Add check for deposit value
+    /// @notice concatenated bytes of the string, prefixed by the length in big endian
+    function buildSubstrateString(bytes memory value)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        // Add 1 for encodings
+        uint16 length = uint16(value.length * 4) + 1;
+        // conversion to big endian
+        uint16 reversedlength = ((length >> 8) | (length << 8));
+        // string prefixed by big endian length
+        return bytes.concat(bytes2(reversedlength), value);
+    }
+
+    /// @notice build the storage key/item
+    function buildSetStorageItem(bytes memory key, bytes memory value)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return
+            bytes.concat(
+                buildSubstrateString(key),
+                buildSubstrateString(value)
+            );
+    }
+
+    /// @notice build the set storage proposal. It includes the setStorage call + the number of
+    /// @notice storages to change and the key/value of each storage.
+    function buildSetStorageProposal(
+        bytes memory contractStorageKey,
+        bytes memory contractCode
+    ) internal view returns (bytes memory) {
+        return
+            bytes.concat(
+                setStorageCallIndex,
+                bytes1(uint8(1 * 4)), // 1 storage item to change, so 4 bytes
+                buildSetStorageItem(contractStorageKey, contractCode)
+            );
+    }
+
+    /// @notice submits to upgrade contract for given storage key
+    /// @param contractCode The code as deployed of the new contract
+    /// @param contractStorageKey The storage key associated with the current smart contract
     function autoUpgrade(
         bytes memory contractCode,
         bytes memory contractStorageKey
     ) public {
-        bytes memory codeStorageKey = contractStorageKey;
-
-        // 1 storage key to change, so 4 bytes
-        bytes memory itemCountBytes = bytes("\x04");
-        // Key value prefixed with key size in big endian (same for all the evm.accountStorage keys)
-        // Add 1 for encodings
-        uint16 keyLength = uint16(codeStorageKey.length * 4) + 1;
-        // conversion to big endian and
-        uint16 reversedkeyLength = ((keyLength >> 8) | (keyLength << 8));
-
-        // Add 1 for encodings
-        uint16 codeLength = uint16(contractCode.length * 4) + 1;
-        // conversion to big endian and add 1 for encoding
-        uint16 reversedCodeLength = ((codeLength >> 8) | (codeLength << 8));
-
-        bytes memory key = bytes.concat(
-            bytes2(reversedkeyLength),
-            codeStorageKey
-        );
-        bytes memory value = bytes.concat(
-            bytes2(reversedCodeLength),
+        bytes memory setStorageCall = buildSetStorageProposal(
+            contractStorageKey,
             contractCode
         );
-        bytes memory setStorageCall = bytes.concat(
-            setStorageCallIndex,
-            itemCountBytes,
-            key,
-            value
-        );
-
         bytes32 preimageHash = PREIMAGE_CONTRACT.notePreimage(setStorageCall);
 
         // /// If the block count is lower than the minimum allowed, it will pick the minimum
         // /// allowed automatically.
         uint32 blockCount = 1;
-        uint256 referendumId = REFERENDA_CONTRACT.submitAfter(
+        uint32 referendumId = REFERENDA_CONTRACT.submitAfter(
             rootTrackId,
             preimageHash,
             uint32(setStorageCall.length),
             blockCount
         );
 
-        /// Size of the call + the transaction metadata (1 byte);
-        uint16 txContentLength = uint16((setStorageCall.length) * 4 + 1);
-        // Because of SCALE Compact encoding we need to have a dynamic size of the
-        // transaction length
-        bytes memory fullLength;
+        /// Directly place the deposit
+        REFERENDA_CONTRACT.placeDecisionDeposit(referendumId);
 
-        if (txContentLength >= 64) {
-            // 2 bytes
-            fullLength = abi.encodePacked(
-                ((txContentLength >> 8) | (txContentLength << 8))
-            );
-        } else {
-            // 1 byte
-            fullLength = abi.encodePacked(uint8(txContentLength));
-        }
-
-        bytes memory setStorageTx = bytes.concat(
-            bytes32(uint256(txContentLength)),
-            setStorageCall
+        /// Vote for the referendum
+        CONVICTION_VOTING_CONTRACT.voteYes(
+            referendumId,
+            address(this).balance, // Uses all the contract available balance
+            ConvictionVoting.Conviction.Locked1x
         );
-
-        // /// Submit the proposal
-        // REFERENDA_CONTRACT.submitAfter(rootTrackId, setStorageTx, blockCount);
-
-        // uint256 referendumId = REFERENDA_CONTRACT.referendumCount();
-
-        // /// TODO once the referendumInfo is available
-        // /// Referenda.TrackInfo memory trackInfo = REFERENDA_CONTRACT.referendumInfo(referendumId);
-
-        // /// Directly place the deposit
-        // REFERENDA_CONTRACT.placeDecisionDeposit(uint32(referendumId));
     }
 }
 
+/// @notice First version of the contract
 contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
     constructor(string memory trackName, bytes2 pSetStorageCallIndex)
         ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)
@@ -132,6 +137,7 @@ contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
     }
 }
 
+/// @notice Second version of the contract
 contract ReferendaAutoUpgradeDemoV2 is ReferendaAutoUpgradeDemo {
     constructor(string memory trackName, bytes2 pSetStorageCallIndex)
         ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)

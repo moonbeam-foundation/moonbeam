@@ -24,7 +24,7 @@ use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{Hasher, H256, U256};
+use sp_core::{H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
@@ -62,6 +62,7 @@ pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
 	keccak256!("DecisionDepositRefunded(uint32)");
 
+#[derive(EvmData)]
 pub struct TrackInfo {
 	name: UnboundedBytes,
 	max_deciding: U256,
