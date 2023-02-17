@@ -841,6 +841,10 @@ impl Default for ProxyType {
 }
 
 fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	// Add these precompiles when they are available in Moonbeam:
+	//| PrecompileName::ReferendaPrecompile
+	//| PrecompileName::ConvictionVotingPrecompile
+	//| PrecompileName::OpenTechCommitteeInstance
 	matches!(
 		precompile_name,
 		PrecompileName::DemocracyPrecompile
