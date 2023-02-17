@@ -276,6 +276,10 @@
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
 <a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -536,9 +540,13 @@
 	}
 }
 
-<span class="kw">impl </span>EvmData <span class="kw">for </span>MultiLocation {
+<span class="comment">// Cannot used derive macro since it is a foreign struct.
+</span><span class="kw">impl </span>EvmData <span class="kw">for </span>MultiLocation {
 	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
-		<span class="macro">crate::read_struct!</span>(reader, {parents: u8, interior: Junctions});
+		<span class="kw">use </span><span class="kw">crate</span>::revert::BacktraceExt;
+		<span class="kw">let </span>(parents, interior) = reader
+			.read()
+			.map_in_tuple_to_field(<span class="kw-2">&amp;</span>[<span class="string">&quot;parents&quot;</span>, <span class="string">&quot;interior&quot;</span>])<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(MultiLocation { parents, interior })
 	}
 

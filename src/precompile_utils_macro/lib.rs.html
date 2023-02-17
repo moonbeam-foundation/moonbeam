@@ -102,6 +102,12 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -130,6 +136,7 @@
 	LitStr,
 };
 
+<span class="kw">mod </span>derive_evm_data;
 <span class="kw">mod </span>generate_function_selector;
 <span class="kw">mod </span>precompile;
 <span class="kw">mod </span>precompile_name_from_address;
@@ -205,6 +212,11 @@
 <span class="attr">#[proc_macro_attribute]
 </span><span class="kw">pub fn </span>precompile_name_from_address(attr: TokenStream, input: TokenStream) -&gt; TokenStream {
 	precompile_name_from_address::main(attr, input)
+}
+
+<span class="attr">#[proc_macro_derive(EvmData)]
+</span><span class="kw">pub fn </span>derive_evm_data(input: TokenStream) -&gt; TokenStream {
+	derive_evm_data::main(input)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="precompile_utils_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (e631891f7 2022-11-13)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

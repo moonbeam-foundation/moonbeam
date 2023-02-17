@@ -91,6 +91,10 @@
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -111,6 +115,10 @@
 #![feature(assert_matches)]
 
 </span><span class="kw">extern crate </span>alloc;
+
+<span class="comment">// Allows to use inside this crate `EvmData` derive macro,which depends on
+// `precompile_utils` being in the list of imported crates.
+</span><span class="kw">extern crate </span><span class="self">self </span><span class="kw">as </span>precompile_utils;
 
 <span class="kw">pub mod </span>costs;
 <span class="kw">pub mod </span>handle;
@@ -175,7 +183,7 @@
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
-			read_args, read_struct, revert,
+			revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::{RuntimeHelper, TryDispatchError},
 			succeed, EvmResult,

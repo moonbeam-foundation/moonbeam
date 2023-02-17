@@ -359,65 +359,6 @@
 <a href="#359" id="359">359</a>
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -452,6 +393,9 @@
 	sp_core::{H160, H256, U256},
 	sp_std::{convert::TryInto, vec, vec::Vec},
 };
+
+<span class="comment">// derive macro
+</span><span class="kw">pub use </span>precompile_utils_macro::EvmData;
 
 <span class="doccomment">/// Data that can be converted from and to EVM data types.
 </span><span class="kw">pub trait </span>EvmData: Sized {
@@ -775,68 +719,6 @@
 	} <span class="kw">else </span>{
 		output
 	}
-}
-
-<span class="doccomment">/// Helper to write `EvmData` impl for Solidity structs.
-/// Identifiers used should match Solidity ones.
-/// Types are infered from context, which should always be
-/// possible when parsing input to build a Rust struct.
-///
-/// ```rust,ignore
-/// impl EvmData for Currency {
-/// 	fn read(reader: &amp;mut EvmDataReader) -&gt; MayRevert&lt;Self&gt; {
-/// 		read_struct!(reader, (address, amount));
-/// 		Ok(Currency { address, amount })
-/// 	}
-///
-/// 	fn write(writer: &amp;mut EvmDataWriter, value: Self) {
-/// 		EvmData::write(writer, (value.address, value.amount));
-/// 	}
-///
-/// 	fn has_static_size() -&gt; bool {
-/// 		&lt;(Address, U256)&gt;::has_static_size()
-/// 	}
-/// }
-/// ```
-</span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>read_struct {
-	(<span class="macro-nonterminal">$reader</span>:ident, {$(<span class="macro-nonterminal">$field</span>:ident: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),+}) =&gt; {
-		<span class="kw">use </span><span class="macro-nonterminal">$crate::revert::BacktraceExt </span><span class="kw">as _</span>;
-		<span class="kw">let </span>($(<span class="macro-nonterminal">$field</span>),<span class="kw-2">*</span>): ($(<span class="macro-nonterminal">$</span><span class="kw">type</span>),<span class="kw-2">*</span>) = <span class="macro-nonterminal">$reader
-			</span>.read()
-			.map_in_tuple_to_field(<span class="kw-2">&amp;</span>[$(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$field</span>)),<span class="kw-2">*</span>])<span class="question-mark">?</span>;
-	};
-}
-
-<span class="doccomment">/// Helper to read arguments of a Solidity function.
-/// Arguments are read in the provided order using the provided types.
-/// Those types should match the ones in the Solidity file,
-/// and identifiers used should match Solidity ones.
-///
-/// Identifiers written in Rust in snake_case are converted to
-/// camelCase to match Solidity conventions.
-///
-/// ```rust,ignore
-/// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.
-/// read_args!(handle, {owner: Address, account_index: U256});
-/// let owner: H160 = owner.into();
-///
-/// ```
-</span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>read_args {
-	(@count) =&gt; (<span class="number">0usize</span>);
-	(@count <span class="macro-nonterminal">$x</span>:ident $(<span class="macro-nonterminal">$xs</span>:ident)* ) =&gt; (<span class="number">1usize </span>+ <span class="macro">read_args!</span>(@count $(<span class="macro-nonterminal">$xs</span>)<span class="kw-2">*</span>));
-	(<span class="macro-nonterminal">$handle</span>:ident, {$(<span class="macro-nonterminal">$field</span>:ident: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),<span class="kw-2">*</span>}) =&gt; {
-		<span class="macro-nonterminal">$</span><span class="macro">crate::data::paste! </span>{
-			<span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">input </span>= <span class="macro-nonterminal">$handle</span>.read_after_selector()<span class="question-mark">?</span>;
-			input.expect_arguments(<span class="macro">read_args!</span>(@count $(<span class="macro-nonterminal">$field</span>)<span class="kw-2">*</span>))<span class="question-mark">?</span>;
-			$(
-				<span class="kw">let </span><span class="macro-nonterminal">$field</span>: <span class="macro-nonterminal">$</span><span class="kw">type </span>= <span class="macro-nonterminal">input</span>.read().in_field(
-					<span class="macro">stringify!</span>([&lt;<span class="macro-nonterminal">$field</span>:camel&gt;])
-				)<span class="question-mark">?</span>;
-			)*
-		}
-	};
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (e631891f7 2022-11-13)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
