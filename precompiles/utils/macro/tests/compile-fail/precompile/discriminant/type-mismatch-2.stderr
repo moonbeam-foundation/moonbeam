@@ -1,0 +1,5 @@
+error: All discriminants must have the same type (found u32 before)
+  --> tests/compile-fail/precompile/discriminant/type-mismatch-2.rs:30:43
+   |
+30 |     fn discriminant(address: H160) -> Option<u64> {
+   |                                              ^^^

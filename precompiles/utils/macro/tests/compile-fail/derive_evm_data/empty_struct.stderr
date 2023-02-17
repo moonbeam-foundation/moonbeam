@@ -1,0 +1,17 @@
+error: EvmData can only be derived for structs with named fields
+  --> tests/compile-fail/derive_evm_data/empty_struct.rs:20:8
+   |
+20 | struct Empty1;
+   |        ^^^^^^
+
+error: EvmData can only be derived for structs with at least one field
+  --> tests/compile-fail/derive_evm_data/empty_struct.rs:23:8
+   |
+23 | struct Empty2 {}
+   |        ^^^^^^
+
+error: EvmData can only be derived for structs with named fields
+  --> tests/compile-fail/derive_evm_data/empty_struct.rs:26:8
+   |
+26 | struct Empty3 ();
+   |        ^^^^^^
