@@ -13,6 +13,7 @@ import {
   WEIGHT_FEE,
   WEIGHT_PER_GAS,
 } from "../util/constants";
+import { BN_MILLION } from "@polkadot/util";
 const debug = require("debug")("smoke:dynamic-fees");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
@@ -86,16 +87,23 @@ describeSmokeSuite(
 
     before("Retrieve events for previous blocks", async function () {
       this.timeout(timeout);
-
-      runtime = context.polkadotApi.consts.system.version.specName.toUpperCase() as any;
-
       const { specVersion, specName } = context.polkadotApi.consts.system.version;
-      if (specVersion.toNumber() < 2200) {
+      runtime = specName.toUpperCase() as any;
+
+      if (specVersion.toNumber() < 2200 && specName.toString() == "moonbase") {
         debug(`Runtime version ${specVersion.toString()} is less than 2200, skipping test suite.`);
         this.skip();
       }
 
-      if (specName.toString() !== "moonbase") {
+      if (specVersion.toNumber() < 2100 && specName.toString() == "moonriver") {
+        debug(
+          `Runtime version ${specVersion.toString()} for ${specName.toString()}` +
+            ` is less than 2100, skipping test suite.`
+        );
+        this.skip();
+      }
+
+      if (specName.toString() == "moonbeam") {
         debug(`Runtime ${specName.toString()} not supported by these tests, skipping.`);
         this.skip();
       }
@@ -161,35 +169,48 @@ describeSmokeSuite(
       ).to.equals(0);
     });
 
-    testIt("C200", "Block utilization by gas corresponds to fee multiplier", async function () {
-      const enriched = blockData.map(({ blockNum, ethersBlock, nextFeeMultiplier }) => {
-        const fillPermill = ethersBlock.gasUsed.mul("1000000").div(ethersBlock.gasLimit);
-        const change = checkMultiplier(
-          blockData.find((a) => a.blockNum == blockNum - 1),
-          nextFeeMultiplier
-        );
-        const valid = isChangeDirectionValid(
-          new BN(fillPermill.toString()),
-          change,
-          nextFeeMultiplier
-        );
+    testIt(
+      "C200",
+      "Block utilization from normal class exts corresponds to fee multiplier",
+      async function () {
+        const enriched = blockData.map(({ blockNum, ethersBlock, nextFeeMultiplier, weights }) => {
+          const fillPermill = weights.normal.refTime
+            .unwrap()
+            .toBn()
+            .mul(BN_MILLION)
+            .div(
+              context.polkadotApi.consts.system.blockWeights.perClass.normal.maxTotal
+                .unwrap()
+                .refTime.toBn()
+            );
 
-        return { blockNum, fillPermill, change, valid };
-      });
+          const change = checkMultiplier(
+            blockData.find((a) => a.blockNum == blockNum - 1),
+            nextFeeMultiplier
+          );
+          const valid = isChangeDirectionValid(
+            new BN(fillPermill.toString()),
+            change,
+            nextFeeMultiplier
+          );
 
-      const failures = enriched.filter(({ valid }) => !valid);
-      failures.forEach(({ blockNum, fillPermill, change }) => {
-        debug(
-          `Block #${blockNum} is ${(fillPermill.toNumber() / 1_000_000).toFixed(
-            2
-          )}% full with feeMultiplier ${change}`
-        );
-      });
-      expect(
-        failures.length,
-        `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
-      ).to.equals(0);
-    });
+          return { blockNum, fillPermill, change, valid };
+        });
+
+        const failures = enriched.filter(({ valid }) => !valid);
+        failures.forEach(({ blockNum, fillPermill, change }) => {
+          debug(
+            `Block #${blockNum} is ${(fillPermill.toNumber() / 1_000_000).toFixed(
+              2
+            )}% full with feeMultiplier ${change}`
+          );
+        });
+        expect(
+          failures.length,
+          `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
+        ).to.equals(0);
+      }
+    );
 
     testIt("C300", "BaseFeePerGas is within expected min/max", function () {
       const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
