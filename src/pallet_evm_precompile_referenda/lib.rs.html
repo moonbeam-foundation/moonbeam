@@ -355,6 +355,28 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -384,7 +406,7 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::{Hasher, H256, U256};
-<span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
+<span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -436,7 +458,7 @@
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-referenda.
-</span><span class="kw">pub struct </span>ReferendaPrecompile&lt;Runtime, GovOrigin: TryFrom&lt;u16&gt;&gt;(PhantomData&lt;(Runtime, GovOrigin)&gt;);
+</span><span class="kw">pub struct </span>ReferendaPrecompile&lt;Runtime, GovOrigin&gt;(PhantomData&lt;(Runtime, GovOrigin)&gt;);
 
 <span class="attr">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime, GovOrigin&gt; ReferendaPrecompile&lt;Runtime, GovOrigin&gt;
@@ -452,7 +474,7 @@
 	Runtime::BlockNumber: Into&lt;U256&gt;,
 	TrackIdOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
-	GovOrigin: TryFrom&lt;u16&gt;,
+	GovOrigin: FromStr,
 {
 	<span class="comment">// The accessors are first. They directly return their result.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;referendumCount()&quot;</span>)]
@@ -503,8 +525,8 @@
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>track_ids: Vec&lt;u16&gt; = Runtime::Tracks::tracks()
 			.into_iter()
-			.filter_map(|x| {
-				<span class="kw">if let </span><span class="prelude-val">Ok</span>(track_id) = x.<span class="number">0</span>.try_into() {
+			.filter_map(|(id, <span class="kw">_</span>)| {
+				<span class="kw">if let </span><span class="prelude-val">Ok</span>(track_id) = (<span class="kw-2">*</span>id).try_into() {
 					<span class="prelude-val">Some</span>(track_id)
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
@@ -526,9 +548,9 @@
 			.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>tracks = Runtime::Tracks::tracks();
 		<span class="kw">let </span>index = tracks
-			.binary_search_by_key(<span class="kw-2">&amp;</span>track_id, |x| x.<span class="number">0</span>)
+			.binary_search_by_key(<span class="kw-2">&amp;</span>track_id, |(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id)
 			.unwrap_or_else(|x| x);
-		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>tracks[index].<span class="number">1</span>;
+		<span class="kw">let </span>(<span class="kw">_</span>, track_info) = <span class="kw-2">&amp;</span>tracks[index];
 
 		<span class="prelude-val">Ok</span>(TrackInfo {
 			name: track_info.name.into(),
@@ -543,6 +565,26 @@
 		})
 	}
 
+	<span class="doccomment">/// Use Runtime::Tracks::tracks to get the origin for input trackId
+	</span><span class="kw">fn </span>track_id_to_origin(track_id: TrackIdOf&lt;Runtime&gt;) -&gt; EvmResult&lt;Box&lt;OriginOf&lt;Runtime&gt;&gt;&gt; {
+		<span class="kw">let </span>tracks = Runtime::Tracks::tracks();
+		<span class="kw">let </span>index = tracks
+			.binary_search_by_key(<span class="kw-2">&amp;</span>track_id, |(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id)
+			.unwrap_or_else(|x| x);
+		<span class="kw">let </span>(<span class="kw">_</span>, track_info) = <span class="kw-2">&amp;</span>tracks[index];
+		<span class="kw">let </span>origin = <span class="kw">if </span>track_info.name == <span class="string">&quot;root&quot; </span>{
+			frame_system::RawOrigin::Root.into()
+		} <span class="kw">else </span>{
+			GovOrigin::from_str(track_info.name)
+				.map_err(|<span class="kw">_</span>| {
+					RevertReason::custom(<span class="string">&quot;Custom origin does not exist for {track_info.name}&quot;</span>)
+						.in_field(<span class="string">&quot;trackId&quot;</span>)
+				})<span class="question-mark">?
+				</span>.into()
+		};
+		<span class="prelude-val">Ok</span>(Box::new(origin))
+	}
+
 	<span class="comment">// Helper function for submitAt and submitAfter
 	</span><span class="kw">fn </span>submit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -550,13 +592,15 @@
 		proposal: Vec&lt;u8&gt;,
 		enactment_moment: DispatchTime&lt;Runtime::BlockNumber&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="comment">// for read of referendumCount to get the referendum index
+		<span class="comment">// record cost to read referendumCount to get the referendum index
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>referendum_index = ReferendumCount::&lt;Runtime&gt;::get();
-		<span class="kw">let </span>proposal_origin: GovOrigin = track_id.try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::custom(<span class="string">&quot;Origin does not exist for TrackId&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>)
-		})<span class="question-mark">?</span>;
-		<span class="kw">let </span>proposal_origin: Box&lt;OriginOf&lt;Runtime&gt;&gt; = Box::new(proposal_origin.into());
+		<span class="kw">let </span>proposal_origin = <span class="self">Self</span>::track_id_to_origin(
+			track_id
+				.try_into()
+				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type&quot;</span>).into())
+				.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>,
+		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; =
 			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|<span class="kw">_</span>| {
 				RevertReason::custom(<span class="string">&quot;Proposal input is not a runtime call&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
