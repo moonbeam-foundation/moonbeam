@@ -18,6 +18,7 @@
 
 use super::*;
 use crate::currency::{KILOMOVR, MOVR, SUPPLY_FACTOR};
+use sp_std::str::FromStr;
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
@@ -122,12 +123,30 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
 		if let Ok(system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
 			match system_origin {
-				frame_system::RawOrigin::Root => Ok(0),
+				frame_system::RawOrigin::Root => {
+					if let Some((track_id, _)) = Self::tracks()
+						.into_iter()
+						.find(|(_, track)| track.name == "root")
+					{
+						Ok(*track_id)
+					} else {
+						Err(())
+					}
+				}
 				_ => Err(()),
 			}
 		} else if let Ok(custom_origin) = custom_origins::Origin::try_from(id.clone()) {
-			// Origins => TrackId defined in Into<u16> for Origin
-			Ok(custom_origin.into())
+			if let Some((track_id, _)) = Self::tracks().into_iter().find(|(_, track)| {
+				if let Ok(track_custom_origin) = custom_origins::Origin::from_str(track.name) {
+					track_custom_origin == custom_origin
+				} else {
+					false
+				}
+			}) {
+				Ok(*track_id)
+			} else {
+				Err(())
+			}
 		} else {
 			Err(())
 		}
@@ -146,5 +165,15 @@ fn vote_locking_always_longer_than_enactment_period() {
 			track.min_enactment_period,
 			<Runtime as pallet_conviction_voting::Config>::VoteLockingPeriod::get(),
 		);
+	}
+}
+
+#[test]
+fn all_tracks_have_origins() {
+	for (_, track) in TRACKS_DATA {
+		// check name.into() is successful either converts into "root" or custom origin
+		let track_is_root = track.name == "root";
+		let track_has_custom_origin = custom_origins::Origin::from_str(track.name).is_ok();
+		assert!(track_is_root || track_has_custom_origin);
 	}
 }
