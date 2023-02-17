@@ -260,7 +260,7 @@ fn execute_fails_if_called_by_smart_contract() {
 
 			PrecompilesValue::get()
 				.prepare_test(Alice, Precompile1, input)
-				.execute_reverts(|output| output == b"XcmExecute not callable by smart contracts");
+				.execute_reverts(|output| output == b"Function not callable by smart contracts");
 		})
 }
 

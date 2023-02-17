@@ -107,7 +107,11 @@ impl pallet_balances::Config for Runtime {
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, RandomnessPrecompile<R>, LimitRecursionTo<1>>,
+		PrecompileAt<
+			AddressU64<1>,
+			RandomnessPrecompile<R>,
+			(SubcallWithMaxNesting<1>, CallableByContract),
+		>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;

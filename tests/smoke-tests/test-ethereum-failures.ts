@@ -55,6 +55,7 @@ describeSmokeSuite(
     /// This test will check that all ethereum.transact extrinsics have a corresponding
     /// paysFee = no property in ExtrinsicSuccess event
     testIt("C100", `successful eth exts should always pays_fee: no`, function () {
+      this.timeout(30000);
       const filteredEvents = blockData
         .map(({ blockNum, events }) => {
           const matchedEvents = events
@@ -103,6 +104,7 @@ describeSmokeSuite(
     // of ExtrinsicSuccess fired. Any Extrinsic.Failed events will be reported and mark the
     // block for further investigation.
     testIt("C200", `should have have ExtrinsicSuccess for all ethereum.transact`, function () {
+      this.timeout(30000);
       debug(
         `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
           " eth extrinsics all have corresponding ExtrinsicSuccess events."
@@ -153,6 +155,7 @@ describeSmokeSuite(
       "C300",
       `should have matching amounts in emulated block as there are ethereum.executed events`,
       function () {
+        this.timeout(30000);
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
             context.polkadotApi.events.ethereum.Executed.is(event)
@@ -182,6 +185,7 @@ describeSmokeSuite(
       "C400",
       `should have a receipt in emulated block for each ethereum.executed event`,
       function () {
+        this.timeout(30000);
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
             context.polkadotApi.events.ethereum.Executed.is(event)

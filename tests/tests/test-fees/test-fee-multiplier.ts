@@ -29,14 +29,13 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
       .toString();
 
     const U128_MAX = new BN("340282366920938463463374607431768211455");
-    const newMultiplierValue = context.polkadotApi.createType("u128", U128_MAX);
 
     // set transaction-payment's multiplier to something above max in storage. on the next round,
     // it should enforce its upper bound and reset it.
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
-          [MULTIPLIER_STORAGE_KEY, bnToHex(newMultiplierValue)],
+          [MULTIPLIER_STORAGE_KEY, bnToHex(U128_MAX, { isLe: true, bitLength: 128 })],
         ])
       )
       .signAndSend(alith);
@@ -49,6 +48,10 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(125_000_000_000_000n);
   });
 
   it("should have spendable runtime upgrade", async () => {
@@ -92,7 +95,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     let fillAmount = 600_000_000; // equal to 60% Perbill
 
     const { block, result } = await context.createBlock(
-      context.polkadotApi.tx.system.fillBlock(fillAmount)
+      context.polkadotApi.tx.rootTesting.fillBlock(fillAmount)
     );
 
     // grab the first withdraw event and hope it's the right one...
@@ -109,7 +112,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     expect(baseFeePerGas).to.equal(125_000_000_000_000n);
 
     const { contract, rawTx } = await createContract(context, "Fibonacci", {
-      gasPrice: "0x" + baseFeePerGas.toString(16),
+      gasPrice: baseFeePerGas,
     });
     const {
       result: { hash: createTxHash },
@@ -129,7 +132,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
         contract,
         contractCall: contract.methods.fib2(370),
       },
-      { gasPrice: "0x" + baseFeePerGas.toString(16) }
+      { gasPrice: baseFeePerGas }
     );
     let { result } = await context.createBlock(tx);
 
@@ -148,12 +151,51 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
   });
 });
 
+describeDevMoonbeam("Min Fee Multiplier", (context) => {
+  beforeEach("set to min multiplier", async () => {
+    const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
+      .key(0)
+      .toString();
+
+    // set transaction-payment's multiplier to something above max in storage. on the next round,
+    // it should enforce its upper bound and reset it.
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [MULTIPLIER_STORAGE_KEY, bnToHex(1n, { isLe: true, bitLength: 128 })],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+  });
+
+  it("should enforce lower bound", async () => {
+    const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
+      .key(0)
+      .toString();
+
+    // we set it to u128_max, but the max should have been enforced in on_finalize()
+    const multiplier = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
+    expect(multiplier).to.equal(100_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(125_000_000n);
+  });
+});
+
 describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
   it("should start with genesis value", async () => {
     const initialValue = (
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
+
+    const result = await context.ethers.send("eth_gasPrice", []);
+    const gasPrice = BigInt(result);
+    expect(gasPrice).to.eq(10_000_000_000n);
   });
 });
 
@@ -207,7 +249,9 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
   it("should not decay when block size at target amount", async function () {
     const initialValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT)
+      )
     );
     const postValue = await context.polkadotApi.query.transactionPayment.nextFeeMultiplier();
     expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be.true;
@@ -219,7 +263,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .transfer(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
       .signAndSend(alith, { nonce: -1 });
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     await context.createBlock();
 
@@ -241,7 +285,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {
@@ -352,7 +396,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     ).block.header.number.toNumber();
 
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.system.fillBlock(TARGET_FILL_AMOUNT))
+      .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
       fees: {

@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::{Context, FeeCalculator};
+use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -29,20 +29,22 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AssetId, LocalAssets, PolkadotXcm, Precompiles, RuntimeBlockWeights, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AssetId, LocalAssets, PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
+	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
@@ -71,6 +73,8 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 >;
 type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+
+const BASE_FEE_GENESIS: u128 = 100 * GIGAWEI;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -181,6 +185,13 @@ fn verify_pallet_prefixes() {
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
+				storage_name: b"InactiveIssuance".to_vec(),
+				prefix: prefix(b"Balances", b"InactiveIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
 				max_values: None,
@@ -200,13 +211,6 @@ fn verify_pallet_prefixes() {
 				max_values: None,
 				max_size: Some(1037),
 			},
-			StorageInfo {
-				pallet_name: b"Balances".to_vec(),
-				storage_name: b"StorageVersion".to_vec(),
-				prefix: prefix(b"Balances", b"StorageVersion"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
 		]
 	);
 	assert_eq!(
@@ -439,7 +443,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MOVR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -845,7 +849,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1091,7 +1095,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1212,6 +1216,46 @@ fn ethereum_invalid_transaction() {
 }
 
 #[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(10u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				12_500_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
+fn min_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+	use frame_support::traits::Hooks;
+
+	ExtBuilder::default().build().execute_with(|| {
+		pallet_transaction_payment::NextFeeMultiplier::<Runtime>::put(Multiplier::from(0));
+		TransactionPayment::on_finalize(System::block_number()); // should trigger min to kick in
+
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				1_250_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
 fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1237,7 +1281,7 @@ fn transfer_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * MOVR) + (21_000 * 1_000_000_000)) + (1 * WEI),
+				((1 * MOVR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1250,8 +1294,8 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * MOVR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
+				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENESIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1267,7 +1311,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * MOVR) + (21_777 * 1_000_000_000)),
+				((1 * MOVR) + (21_777 * BASE_FEE_GENESIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1280,8 +1324,8 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * MOVR).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
+				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENESIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1289,7 +1333,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * 1_000_000_000,
+				777 * BASE_FEE_GENESIS,
 			);
 		});
 }
@@ -1333,7 +1377,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * MOVR) + (21_000 * (2 * GIGAWEI)),
+			(1 * MOVR) + (21_000 * (2 * BASE_FEE_GENESIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -1345,16 +1389,15 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				input: Vec::new(),
 				value: (1 * MOVR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(2 * GIGAWEI),
-				max_priority_fee_per_gas: Some(U256::from(1 * GIGAWEI)),
+				max_fee_per_gas: U256::from(2u128 * BASE_FEE_GENESIS),
+				max_priority_fee_per_gas: Some(U256::from(2u128 * BASE_FEE_GENESIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 GWEI base fee + 1 GWEI tip.
-			let fee = ((2 * GIGAWEI) * 21_000) as f64;
+			let fee = ((2 * BASE_FEE_GENESIS) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -1369,7 +1412,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * MOVR) + (21_000 * (2 * GIGAWEI)),
+			(1 * MOVR) + (21_000 * (2 * BASE_FEE_GENESIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -1381,16 +1424,15 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * MOVR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
+				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENESIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 GWEI base fee.
-			let fee = ((1 * GIGAWEI) * 21_000) as f64;
+			let fee = ((1 * BASE_FEE_GENESIS) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -1493,7 +1535,7 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 			assert_noop!(
 				RuntimeCall::LocalAssets(
 					pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
-						id: 11u128,
+						id: 11u128.into(),
 						admin: AccountId::from(ALICE),
 						min_balance: 1u128
 					}
@@ -1579,7 +1621,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24083u64)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1631,7 +1673,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1652,7 +1694,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1704,7 +1746,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * MOVR }.into(),
 					},
 				)
-				.expect_cost(13204)
+				.expect_cost(13249)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1731,7 +1773,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * MOVR }.into(),
 					},
 				)
-				.expect_cost(13588)
+				.expect_cost(13575)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1776,7 +1818,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7107)
+				.expect_cost(7094)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1795,7 +1837,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7103)
+				.expect_cost(7074)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1830,7 +1872,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5970)
+				.expect_cost(5944)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1847,7 +1889,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5941)
+				.expect_cost(5964)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1884,7 +1926,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6983)
+				.expect_cost(6973)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1892,7 +1934,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 			// e.g., transfer_ownership again
 			assert_ok!(LocalAssets::transfer_ownership(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 		});
@@ -1926,25 +1968,25 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5926)
+				.expect_cost(5940)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(BOB),
 				1_000 * MOVR
 			));
 			assert_ok!(LocalAssets::freeze(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 			assert_ok!(LocalAssets::thaw(
 				origin_of(AccountId::from(BOB)),
-				0u128,
+				0u128.into(),
 				AccountId::from(ALICE)
 			));
 		});
@@ -2047,7 +2089,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24083)
+				.expect_cost(24133)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2111,7 +2153,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14597)
+				.expect_cost(14596)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2132,7 +2174,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29683)
+				.expect_cost(29624)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2732,7 +2774,7 @@ fn test_xcm_utils_get_units_per_second() {
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 
 		let expected_units =
-			WEIGHT_PER_SECOND.ref_time() as u128 * moonriver_runtime::currency::WEIGHT_FEE;
+			WEIGHT_REF_TIME_PER_SECOND as u128 * moonriver_runtime::currency::WEIGHT_FEE;
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
@@ -2748,7 +2790,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+			2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2805,15 +2847,6 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
-	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonriver_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
-}
-
-#[test]
 fn evm_revert_substrate_events() {
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
@@ -2835,7 +2868,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2874,7 +2907,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),

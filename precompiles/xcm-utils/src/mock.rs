@@ -239,8 +239,16 @@ impl pallet_xcm::Config for Runtime {
 	// We use a custom one to test runtime ugprades
 	type AdvertisedXcmVersion = ();
 }
-pub type Precompiles<R> =
-	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, XcmUtilsPrecompile<R, XcmConfig>>,)>;
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<
+			AddressU64<1>,
+			XcmUtilsPrecompile<R, XcmConfig>,
+			CallableByContract<AllExceptXcmExecute<R, XcmConfig>>,
+		>,
+	),
+>;
 
 pub type PCall = XcmUtilsPrecompileCall<Runtime, XcmConfig>;
 

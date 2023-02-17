@@ -26,6 +26,7 @@ use syn::{
 	LitStr,
 };
 
+mod derive_evm_data;
 mod generate_function_selector;
 mod precompile;
 mod precompile_name_from_address;
@@ -101,4 +102,9 @@ pub fn precompile(attr: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn precompile_name_from_address(attr: TokenStream, input: TokenStream) -> TokenStream {
 	precompile_name_from_address::main(attr, input)
+}
+
+#[proc_macro_derive(EvmData)]
+pub fn derive_evm_data(input: TokenStream) -> TokenStream {
+	derive_evm_data::main(input)
 }

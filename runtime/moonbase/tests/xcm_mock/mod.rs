@@ -25,7 +25,9 @@ use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chai
 use polkadot_runtime_parachains::configuration::{
 	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
 };
-use polkadot_runtime_parachains::paras::{GenesisConfig as ParasGenesisConfig, ParaGenesisArgs};
+use polkadot_runtime_parachains::paras::{
+	GenesisConfig as ParasGenesisConfig, ParaGenesisArgs, ParaKind,
+};
 
 use sp_core::{H160, U256};
 use std::{collections::BTreeMap, str::FromStr};
@@ -53,7 +55,7 @@ pub fn mock_para_genesis_info() -> ParaGenesisArgs {
 	ParaGenesisArgs {
 		genesis_head: vec![1u8].into(),
 		validation_code: vec![1u8].into(),
-		parachain: true,
+		para_kind: ParaKind::Parachain,
 	}
 }
 

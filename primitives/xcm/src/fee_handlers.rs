@@ -22,7 +22,7 @@
 
 use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get},
-	weights::constants::WEIGHT_PER_SECOND,
+	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 };
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;
@@ -83,7 +83,7 @@ impl<
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
 					let amount = units_per_second.saturating_mul(weight as u128)
-						/ (WEIGHT_PER_SECOND.ref_time() as u128);
+						/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 
 					// We dont need to proceed if the amount is 0
 					// For cases (specially tests) where the asset is very cheap with respect
@@ -117,8 +117,7 @@ impl<
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
-			let amount =
-				units_per_second * (weight as u128) / (WEIGHT_PER_SECOND.ref_time() as u128);
+			let amount = units_per_second * (weight as u128) / (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
 				id.clone(),
@@ -205,9 +204,9 @@ mod test {
 			true
 		}
 		fn get_units_per_second(_asset_type: MultiLocation) -> Option<u128> {
-			// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
+			// return WEIGHT_REF_TIME_PER_SECOND to cancel the division out in buy_weight()
 			// this should make weight and payment amounts directly comparable
-			Some(WEIGHT_PER_SECOND.ref_time() as u128)
+			Some(WEIGHT_REF_TIME_PER_SECOND as u128)
 		}
 	}
 
@@ -258,7 +257,7 @@ mod test {
 					interior: Junctions::X1(Junction::Parachain(1000))
 				},
 				100,
-				WEIGHT_PER_SECOND.ref_time() as u128
+				WEIGHT_REF_TIME_PER_SECOND as u128
 			))
 		);
 
@@ -286,7 +285,7 @@ mod test {
 					interior: Junctions::X1(Junction::Parachain(1000))
 				},
 				100,
-				WEIGHT_PER_SECOND.ref_time() as u128
+				WEIGHT_REF_TIME_PER_SECOND as u128
 			))
 		);
 	}

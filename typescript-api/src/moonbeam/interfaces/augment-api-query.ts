@@ -29,7 +29,6 @@ import type {
   H256,
   Perbill,
   Percent,
-  Permill,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletDmpQueueConfigData,
@@ -352,16 +351,6 @@ declare module "@polkadot/api-base/types/storage" {
        * The total units issued in the system.
        */
       totalIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    baseFee: {
-      baseFeePerGas: AugmentedQuery<ApiType, () => Observable<U256>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      elasticity: AugmentedQuery<ApiType, () => Observable<Permill>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
@@ -817,6 +806,12 @@ declare module "@polkadot/api-base/types/storage" {
         [Bytes]
       > &
         QueryableStorageEntry<ApiType, [Bytes]>;
+      /**
+       * Temporary value that is set to true at the beginning of the block
+       * during which the execution of xcm messages must be paused.
+       */
+      shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
        */
@@ -1439,6 +1434,11 @@ declare module "@polkadot/api-base/types/storage" {
        * Records whether this is the first block (genesis or runtime upgrade)
        */
       notFirstBlock: AugmentedQuery<ApiType, () => Observable<Option<Null>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Previous local per-block VRF randomness Set in `on_finalize` of last block
+       */
+      previousLocalVrfOutput: AugmentedQuery<ApiType, () => Observable<H256>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Snapshot of randomness to fulfill all requests that are for the same
