@@ -221,6 +221,9 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -255,6 +258,9 @@
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
+<span class="kw">use </span>pallet_evm_precompile_proxy::OnlyIsProxy;
+<span class="kw">use </span>pallet_evm_precompile_proxy::ProxyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -382,13 +388,8 @@
 		CallPermitPrecompile&lt;R&gt;,
 		(SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;, CallableByContract),
 	&gt;,
-	<span class="comment">// (Moonbase only)
-	// PrecompileAt&lt;
-	// 	AddressU64&lt;2059&gt;,
-	// 	ProxyPrecompile&lt;R&gt;,
-	// 	CallableByContract&lt;OnlyIsProxy&lt;R&gt;&gt;,
-	// &gt;,
-	</span>PrecompileAt&lt;
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2059</span>&gt;, ProxyPrecompile&lt;R&gt;, CallableByContract&lt;OnlyIsProxy&lt;R&gt;&gt;&gt;,
+	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2060</span>&gt;,
 		XcmUtilsPrecompile&lt;R, XcmExecutorConfig&gt;,
 		CallableByContract&lt;
@@ -414,6 +415,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2064</span>&gt;,
 		CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2067</span>&gt;,
+		PreimagePrecompile&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 );
