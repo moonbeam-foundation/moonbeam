@@ -13,9 +13,6 @@ abstract contract ReferendaAutoUpgradeDemo {
     /// @notice SetStorageCall index (pallet Index concatenated with call index, usually "\x00\x04")
     bytes2 public setStorageCallIndex;
 
-    /// @notice The id of the track used for root execution
-    uint16 public proposalId;
-
     /// @notice construct the smart contract with the track id to send the proposal to
     constructor(string memory trackName, bytes2 pSetStorageCallIndex) {
         setStorageCallIndex = pSetStorageCallIndex;
