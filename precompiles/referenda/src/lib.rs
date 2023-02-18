@@ -213,10 +213,10 @@ where
 		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
 		log::trace!(
-			target: "referendum-precompile", 
-		    "Submitting proposal {} [len: {:?}] to track {}",
-			proposal.hash(), 
-			proposal.len(), 
+			target: "referendum-precompile",
+			"Submitting proposal {} [len: {:?}] to track {}",
+			proposal.hash(),
+			proposal.len(),
 			track_id
 		);
 		// for read of referendumCount to get the referendum index
