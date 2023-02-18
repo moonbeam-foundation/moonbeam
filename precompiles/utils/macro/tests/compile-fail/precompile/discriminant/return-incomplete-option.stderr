@@ -1,0 +1,5 @@
+error: The discriminant function must return an Option<_> (no type alias)
+  --> tests/compile-fail/precompile/discriminant/return-incomplete-option.rs:25:36
+   |
+25 |     fn discriminant(address: H160) -> Option {
+   |                                       ^^^^^^

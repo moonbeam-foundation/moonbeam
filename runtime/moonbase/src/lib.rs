@@ -100,9 +100,8 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
-use precompiles::PrecompileName;
 pub use precompiles::{
-	MoonbasePrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -394,7 +393,7 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000);
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10);
 	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
@@ -420,7 +419,10 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
 			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
-		(min_gas_price.into(), Weight::zero())
+		(
+			min_gas_price.into(),
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
+		)
 	}
 }
 
@@ -825,32 +827,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 	) -> bool {
 		use pallet_evm::PrecompileSet as _;
 		match self {
-			ProxyType::Any => {
-				match PrecompileName::from_address(call.to.0) {
-					// Any precompile that can execute a subcall should be forbidden here,
-					// to ensure that unauthorized smart contract can't be called
-					// indirectly.
-					// To be safe, we only allow the precompiles we need.
-					Some(
-						PrecompileName::AuthorMappingPrecompile
-						| PrecompileName::ParachainStakingPrecompile,
-					) => true,
-					Some(ref precompile) if is_governance_precompile(precompile) => true,
-					// All non-whitelisted precompiles are forbidden
-					Some(_) => false,
-					// Allow evm transfer to "simple" account (no code nor precompile)
-					// For the moment, no smart contract other than precompiles is allowed.
-					// In the future, we may create a dynamic whitelist to authorize some audited
-					// smart contracts through governance.
-					None => {
-						// If the address is not recognized, allow only evm transfert to "simple"
-						// accounts (no code nor precompile).
-						// Note: Checking the presence of the code is not enough because some
-						// precompiles have no code.
-						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
-					}
-				}
-			}
+			ProxyType::Any => true,
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
 					&& match PrecompileName::from_address(call.to.0) {
@@ -909,6 +886,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(
 					c,
 					RuntimeCall::System(..)
+						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)

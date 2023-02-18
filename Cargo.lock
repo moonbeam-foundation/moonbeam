@@ -5020,6 +5020,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "md-5"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6365506850d44bff6e2fbcb5176cf63650e48bd45ef2fe2665ae1570e0f4b9ca"
+dependencies = [
+ "digest 0.10.5",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5317,6 +5326,8 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "strum",
+ "strum_macros",
  "substrate-wasm-builder",
  "xcm",
  "xcm-builder",
@@ -5368,7 +5379,9 @@ dependencies = [
  "sc-telemetry",
  "sc-tracing",
  "sp-core",
+ "sp-io",
  "sp-runtime",
+ "sp-wasm-interface",
  "substrate-build-script-utils",
  "substrate-prometheus-endpoint",
  "try-runtime-cli",
@@ -5680,6 +5693,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -5708,6 +5722,7 @@ dependencies = [
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-relay-encoder",
@@ -6009,6 +6024,7 @@ dependencies = [
  "moonbeam-runtime-common",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
+ "num_enum",
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
@@ -6097,6 +6113,8 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "strum",
+ "strum_macros",
  "substrate-wasm-builder",
  "xcm",
  "xcm-builder",
@@ -10160,6 +10178,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "precompile-utils-tests-external"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3 0.10.6",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "predicates"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12237,6 +12279,16 @@ dependencies = [
 
 [[package]]
 name = "sct"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
+name = "sct"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d53dcdb7c9f8158937a7981b48accfd39a43af418591a5d008c7b22b5e1b7ca4"
@@ -13763,6 +13815,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
+name = "summarize-precompile-checks"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "moonbase-runtime",
+ "moonbeam-runtime",
+ "moonriver-runtime",
+ "precompile-utils",
+ "serde_json",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14376,6 +14440,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "clap",
  "frame-remote-externalities",
+ "frame-try-runtime",
  "hex",
  "log",
  "parity-scale-codec",

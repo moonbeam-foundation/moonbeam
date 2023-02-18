@@ -16,6 +16,8 @@ rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.10", optional = true, default-features = false }
 smallvec = "1.8.0"
+strum = { version = "0.24", default-features = false, features = [ "derive" ] }
+strum_macros = "0.24"
 
 # Moonbeam
 account = { path = "../../primitives/account/", default-features = false }
@@ -263,6 +265,7 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
@@ -317,6 +320,7 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 ]
 try-runtime = [
+	"fp-self-contained/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",

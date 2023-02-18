@@ -11,14 +11,15 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-//! Custom origins for governance interventions.
 #![cfg_attr(not(feature = "std"), no_std)]
 
+//! Custom origins for governance interventions.
 pub use custom_origins::*;
 
 #[frame_support::pallet]
 pub mod custom_origins {
 	use frame_support::pallet_prelude::*;
+	use strum_macros::EnumString;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -26,7 +27,10 @@ pub mod custom_origins {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
+	#[derive(
+		PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug, EnumString,
+	)]
+	#[strum(serialize_all = "snake_case")]
 	#[pallet::origin]
 	pub enum Origin {
 		/// Origin able to dispatch a whitelisted call.
@@ -37,47 +41,6 @@ pub mod custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
-	}
-
-	impl TryFrom<u16> for Origin {
-		type Error = ();
-		/// TrackId => Origin
-		fn try_from(value: u16) -> Result<Origin, ()> {
-			match value {
-				1 => Ok(Origin::WhitelistedCaller),
-				2 => Ok(Origin::GeneralAdmin),
-				3 => Ok(Origin::ReferendumCanceller),
-				4 => Ok(Origin::ReferendumKiller),
-				_ => Err(()),
-			}
-		}
-	}
-
-	impl Into<u16> for Origin {
-		/// Origin => TrackId
-		fn into(self) -> u16 {
-			match self {
-				Origin::WhitelistedCaller => 1,
-				Origin::GeneralAdmin => 2,
-				Origin::ReferendumCanceller => 3,
-				Origin::ReferendumKiller => 4,
-			}
-		}
-	}
-
-	#[test]
-	fn origin_track_conversion_is_consistent() {
-		macro_rules! has_consistent_conversions {
-			( $o:expr ) => {
-				let origin_as_u16 = <Origin as Into<u16>>::into($o);
-				let u16_as_origin: Origin = origin_as_u16.try_into().unwrap();
-				assert_eq!($o, u16_as_origin);
-			};
-		}
-		has_consistent_conversions!(Origin::WhitelistedCaller);
-		has_consistent_conversions!(Origin::GeneralAdmin);
-		has_consistent_conversions!(Origin::ReferendumCanceller);
-		has_consistent_conversions!(Origin::ReferendumKiller);
 	}
 
 	macro_rules! decl_unit_ensures {

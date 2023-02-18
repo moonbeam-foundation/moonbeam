@@ -16,7 +16,10 @@
 
 use {
 	crate::{
-		data::xcm::{network_id_from_bytes, network_id_to_bytes},
+		data::{
+			encode_as_function_return_value,
+			xcm::{network_id_from_bytes, network_id_to_bytes},
+		},
 		prelude::*,
 		revert::Backtrace,
 	},
@@ -683,32 +686,10 @@ fn read_vec_of_bytes() {
 //     uint64 weight
 // ) external;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, EvmData)]
 struct MultiLocation {
 	parents: u8,
 	interior: Vec<UnboundedBytes>,
-}
-
-impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-		let parents = inner_reader.read().in_field("parents")?;
-		let interior = inner_reader.read().in_field("interior")?;
-
-		Ok(MultiLocation { parents, interior })
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, (value.parents, value.interior));
-	}
-
-	fn has_static_size() -> bool {
-		<(u8, Vec<UnboundedBytes>)>::has_static_size()
-	}
-
-	fn solidity_type() -> String {
-		<(u8, Vec<UnboundedBytes>)>::solidity_type()
-	}
 }
 
 #[generate_function_selector]
@@ -1062,6 +1043,37 @@ fn write_dynamic_size_tuple() {
 	let data = hex!(
 		"0000000000000000000000000000000000000000000000000000000000000020
 		0000000000000000000000000000000000000000000000000000000000000001
+		0000000000000000000000000000000000000000000000000000000000000040
+		0000000000000000000000000000000000000000000000000000000000000001
+		0000000000000000000000000000000000000000000000000000000000000020
+		0000000000000000000000000000000000000000000000000000000000000001
+		0100000000000000000000000000000000000000000000000000000000000000"
+	);
+
+	assert_eq!(output, data);
+}
+
+#[test]
+fn write_static_size_tuple_in_return_position() {
+	let output =
+		encode_as_function_return_value((Address(H160::repeat_byte(0x11)), U256::from(1u8)));
+
+	// (address, uint256) encoded by web3
+	let data = hex!(
+		"0000000000000000000000001111111111111111111111111111111111111111
+		0000000000000000000000000000000000000000000000000000000000000001"
+	);
+
+	assert_eq!(output, data);
+}
+
+#[test]
+fn write_dynamic_size_tuple_in_return_position() {
+	let output = encode_as_function_return_value((1u8, vec![UnboundedBytes::from(vec![0x01])]));
+
+	// (uint8, bytes[]) encoded by web3
+	let data = hex!(
+		"0000000000000000000000000000000000000000000000000000000000000001
 		0000000000000000000000000000000000000000000000000000000000000040
 		0000000000000000000000000000000000000000000000000000000000000001
 		0000000000000000000000000000000000000000000000000000000000000020

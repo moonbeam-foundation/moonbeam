@@ -94,4 +94,74 @@ interface ConvictionVoting {
     /// @param trackId The trackId
     /// @param target The target address
     function unlock(uint16 trackId, address target) external;
+
+    /// @dev An account made a vote in a poll.
+    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye bool Is it a vote for or against the poll.
+    /// @param voteAmount uint256 Amount used to vote.
+    /// @param conviction uint8 Conviction of the vote.
+    event Voted(
+        uint32 indexed pollIndex,
+        address voter,
+        bool aye,
+        uint256 voteAmount,
+        uint8 conviction
+    );
+
+    /// @dev An account removed its vote from an ongoing poll.
+    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    event VoteRemoved(
+        uint32 indexed pollIndex,
+        address voter
+    );
+
+    /// @dev An account removed a vote from a poll.
+    /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param caller address Address of the origin caller.
+    /// @param target address Address of the address which's vote is being removed.
+    /// @param trackId uint16 The trackId.
+    event VoteRemovedOther(
+        uint32 indexed pollIndex,
+        address caller,
+        address target,
+        uint16 trackId
+    );
+
+    /// @dev An account delegated for the given trackId.
+    /// @custom:selector 6cc151d547592e227b1e85a264ac3699c6f1014112b08bb3832de1f23b9c66db
+    /// @param trackId uint16 The trackId.
+    /// @param from address Address of the caller.
+    /// @param to address Address of the representative.
+    /// @param delegatedAmount uint256 Amount being delegated.
+    /// @param conviction uint8 Conviction being delegated.
+    event Delegated(
+        uint16 indexed trackId,
+        address from,
+        address to,
+        uint256 delegatedAmount,
+        uint8 conviction
+    );
+
+    /// @dev An account undelegated for the given trackId.
+    /// @custom:selector 1053303328f6db14014ccced6297bcad2b3897157ce46070711ab995a05dfa14
+    /// @param trackId uint16 The trackId.
+    /// @param caller address Address of the caller.
+    event Undelegated(
+        uint16 indexed trackId,
+        address caller
+    );
+
+    /// @dev An account called to unlock tokens for the given trackId.
+    /// @custom:selector dcf72fa65ca7fb720b9ccc8ee28e0188edc3d943115124cdd4086c49f836a128
+    /// @param trackId uint16 The trackId.
+    /// @param caller address Address of the caller.
+    event Unlocked(
+        uint16 indexed trackId,
+        address caller
+    );
 }

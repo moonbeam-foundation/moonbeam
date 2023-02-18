@@ -1,0 +1,7 @@
+error: A PrecompileSet must have exactly one function tagged with `#[precompile::discriminant]`
+  --> tests/compile-fail/precompile/discriminant/missing-fn.rs:21:1
+   |
+21 | #[precompile_utils_macro::precompile]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `precompile_utils_macro::precompile` (in Nightly builds, run with -Z macro-backtrace for more info)

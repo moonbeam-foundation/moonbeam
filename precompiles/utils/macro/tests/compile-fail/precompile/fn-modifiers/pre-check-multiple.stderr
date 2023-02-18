@@ -1,0 +1,5 @@
+error: The pre_check attribute must be the only precompile attribute of a function
+  --> tests/compile-fail/precompile/fn-modifiers/pre-check-multiple.rs:23:16
+   |
+23 |     #[precompile::pre_check]
+   |                   ^^^^^^^^^

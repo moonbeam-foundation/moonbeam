@@ -2,6 +2,8 @@
 pragma solidity >=0.8.3;
 
 contract HasherChecker {
+    uint256 public lastResult;
+
     function ripemd160Check() public pure {
         require(
             ripemd160(bytes("Hello World!")) ==
@@ -122,6 +124,18 @@ contract HasherChecker {
             }
             result := mload(value)
         }
+    }
+
+    function modExpVerify(
+        uint256 _base,
+        uint256 _exponent,
+        uint256 _modulus
+    ) public {
+        lastResult = modExpWrapper(_base, _exponent, _modulus);
+    }
+
+    function getResult() public view returns (uint256) {
+        return lastResult;
     }
 
     function modExpChecker() public {

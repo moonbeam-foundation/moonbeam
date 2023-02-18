@@ -19,6 +19,10 @@
 
 extern crate alloc;
 
+// Allows to use inside this crate `EvmData` derive macro,which depends on
+// `precompile_utils` being in the list of imported crates.
+extern crate self as precompile_utils;
+
 pub mod costs;
 pub mod handle;
 pub mod logs;
@@ -34,7 +38,7 @@ pub mod testing;
 mod tests;
 
 use crate::alloc::{borrow::ToOwned, vec::Vec};
-use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
+use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileOutput};
 
 pub mod data;
 
@@ -72,18 +76,6 @@ pub fn succeed(output: impl AsRef<[u8]>) -> PrecompileOutput {
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
-/// Trait similar to `fp_evm::Precompile` but with a `&self` parameter to manage some
-/// state (this state is only kept in a single transaction and is lost afterward).
-pub trait StatefulPrecompile {
-	/// Instanciate the precompile.
-	/// Will be called once when building the PrecompileSet at the start of each
-	/// Ethereum transaction.
-	fn new() -> Self;
-
-	/// Execute the precompile with a reference to its state.
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
-}
-
 pub mod prelude {
 	pub use {
 		crate::{
@@ -94,10 +86,10 @@ pub mod prelude {
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
-			read_args, read_struct, revert,
+			revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::{RuntimeHelper, TryDispatchError},
-			succeed, EvmResult, StatefulPrecompile,
+			succeed, EvmResult,
 		},
 		pallet_evm::{PrecompileHandle, PrecompileOutput},
 		precompile_utils_macro::{generate_function_selector, keccak256, precompile},

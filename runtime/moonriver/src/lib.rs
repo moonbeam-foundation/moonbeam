@@ -96,7 +96,7 @@ use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
-	MoonriverPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MoonriverPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -191,7 +191,7 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
+pub const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
 // Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
@@ -374,13 +374,13 @@ parameter_types! {
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(4, 1_000);
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	pub MinimumMultiplier: Multiplier = Multiplier::from(1u128);
 	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
@@ -388,12 +388,27 @@ parameter_types! {
 	pub WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
 }
 
-pub struct FixedGasPrice;
-impl FeeCalculator for FixedGasPrice {
+pub struct TransactionPaymentAsGasPrice;
+impl FeeCalculator for TransactionPaymentAsGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
+		// note: transaction-payment differs from EIP-1559 in that its tip and length fees are not
+		//       scaled by the multiplier, which means its multiplier will be overstated when
+		//       applied to an ethereum transaction
+		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
+		//       updated once per block in on_finalize) and a 'WeightToFee' implementation. Our
+		//       runtime implements this as a 'ConstantModifier', so we can get away with a simple
+		//       multiplication here.
+		// It is imperative that `saturating_mul_int` be performed as late as possible in the
+		// expression since it involves fixed point multiplication with a division by a fixed
+		// divisor. This leads to truncation and subsequent precision loss if performed too early.
+		// This can lead to min_gas_price being same across blocks even if the multiplier changes.
+		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
+		// is computed in frontier, but that's currently unavoidable.
+		let min_gas_price = TransactionPayment::next_fee_multiplier()
+			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
 		(
-			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			Weight::zero(),
+			min_gas_price.into(),
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
 		)
 	}
 }
@@ -440,7 +455,7 @@ where
 moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = FixedGasPrice;
+	type FeeCalculator = TransactionPaymentAsGasPrice;
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
@@ -680,7 +695,7 @@ impl pallet_author_inherent::Config for Runtime {
 
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RandomnessSource = RandomnessCollectiveFlip;
+	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight<Runtime>;
 }
@@ -749,6 +764,106 @@ impl Default for ProxyType {
 	}
 }
 
+fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
+	matches!(
+		precompile_name,
+		PrecompileName::DemocracyPrecompile
+			| PrecompileName::CouncilInstance
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance
+			| PrecompileName::PreimagePrecompile
+			| PrecompileName::ReferendaPrecompile
+			| PrecompileName::ConvictionVotingPrecompile
+			| PrecompileName::OpenTechCommitteeInstance
+	)
+}
+
+// Be careful: Each time this filter is modified, the substrate filter must also be modified
+// consistently.
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
+	fn is_evm_proxy_call_allowed(
+		&self,
+		call: &pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -> bool {
+		use pallet_evm::PrecompileSet as _;
+		match self {
+			ProxyType::Any => {
+				match PrecompileName::from_address(call.to.0) {
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
+					// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					None => {
+						// If the address is not recognized, allow only evm transfert to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+					}
+				}
+			}
+			ProxyType::NonTransfer => {
+				call.value == U256::zero()
+					&& match PrecompileName::from_address(call.to.0) {
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+							| PrecompileName::ParachainStakingPrecompile,
+						) => true,
+						Some(ref precompile) if is_governance_precompile(precompile) => true,
+						_ => false,
+					}
+			}
+			ProxyType::Governance => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(ref precompile) if is_governance_precompile(precompile)
+					)
+			}
+			ProxyType::Staking => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
+					)
+			}
+			// The proxy precompile does not contain method cancel_proxy
+			ProxyType::CancelProxy => false,
+			ProxyType::Balances => {
+				// Allow only "simple" accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+			}
+			ProxyType::AuthorMapping => {
+				call.value == U256::zero()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(PrecompileName::AuthorMappingPrecompile)
+					)
+			}
+			// There is no identity precompile
+			ProxyType::IdentityJudgement => false,
+		}
+	}
+}
+
+// Be careful: Each time this filter is modified, the EVM filter must also be modified consistently.
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
@@ -757,6 +872,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(
 					c,
 					RuntimeCall::System(..)
+						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
