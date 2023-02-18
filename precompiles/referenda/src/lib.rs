@@ -212,7 +212,13 @@ where
 		proposal: BoundedCallOf<Runtime>,
 		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
-		log::trace!(target: "referendum-precompile", "Submitting proposal {} [len: {:?}] to track {}",proposal.hash(), proposal.len(), track_id);
+		log::trace!(
+			target: "referendum-precompile", 
+		    "Submitting proposal {} [len: {:?}] to track {}",
+			proposal.hash(), 
+			proposal.len(), 
+			track_id
+		);
 		// for read of referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
