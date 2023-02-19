@@ -1,19 +1,20 @@
 import "@moonbeam-network/api-augment";
-import Debug from "debug";
+
 import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
+import Debug from "debug";
 import { ethers } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+
 import { alith } from "../../util/accounts";
 import { jumpBlocks } from "../../util/block";
 import { GLMR } from "../../util/constants";
-
 import { getCompiled } from "../../util/contracts";
-
-import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
-
+import { expectEVMResult } from "../../util/eth-transactions";
+import { expectOk, expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
+
 const debug = Debug("test:precompile-referenda");
 
 const REFERENDA_CONTRACT = getCompiled("Referenda");
@@ -26,7 +27,7 @@ const CONVICTION_VOTING_INTERFACE = new ethers.utils.Interface(
 );
 
 describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
-  it.only("should be accessible from a smart contract", async function () {
+  it("should be accessible from a smart contract", async function () {
     this.timeout(180000);
     const setStorageCallIndex = u8aToHex(context.polkadotApi.tx.system.setStorage.callIndex);
     const trackName = "root";
@@ -90,10 +91,7 @@ describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
     const data = await context.createBlock(
       createContractExecution(context, {
         contract: contractV1.contract,
-        contractCall: contractV1.contract.methods.autoUpgrade(
-          v2CodeStorage.toU8a().slice(1),
-          v1CodeKey
-        ),
+        contractCall: contractV1.contract.methods.autoUpgrade(v2CodeStorage.toHex(), v1CodeKey),
       })
     );
     const {
@@ -169,5 +167,60 @@ describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
       (await ethersContract.version()).toBigInt(),
       "Version should haven update to 2"
     ).to.equals(2n);
+  });
+
+  it("should be work for valid tracks", async function () {
+    this.timeout(180000);
+    const validTracks = [
+      "root",
+      "whitelisted_caller",
+      "general_admin",
+      "referendum_canceller",
+      "referendum_killer",
+    ];
+    for (const trackName of validTracks) {
+      const setStorageCallIndex = u8aToHex(context.polkadotApi.tx.system.setStorage.callIndex);
+
+      let nonce = (await context.polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
+      const contract = await createContract(
+        context,
+        "ReferendaAutoUpgradeDemoV1",
+        {
+          nonce: nonce++,
+        },
+        [trackName, setStorageCallIndex]
+      );
+      const { result } = await expectOk(context.createBlock(contract.rawTx));
+      expectEVMResult(result.events, "Succeed");
+      expect(
+        (await context.polkadotApi.query.evm.accountCodes(contract.contractAddress)).toHex(),
+        "Contract should have been deployed"
+      ).to.be.length.above(2);
+    }
+  });
+
+  it("should be fail for invalid tracks", async function () {
+    this.timeout(180000);
+    const validTracks = ["toor", "", 0, "admin", -1, "0x01", "0xFFFF", "0xFFFFFFFF"];
+    for (const trackName of validTracks) {
+      const setStorageCallIndex = u8aToHex(context.polkadotApi.tx.system.setStorage.callIndex);
+
+      let nonce = (await context.polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
+      const contract = await createContract(
+        context,
+        "ReferendaAutoUpgradeDemoV1",
+        {
+          nonce: nonce++,
+          gas: 5_000_000, // To avoid the gas estimation failing
+        },
+        [trackName, setStorageCallIndex]
+      );
+      const { result } = await context.createBlock(contract.rawTx);
+      expectEVMResult(result.events, "Revert");
+      expect(
+        (await context.polkadotApi.query.evm.accountCodes(contract.contractAddress)).toHex(),
+        "Contract should not have been deployed"
+      ).to.be.length.at.most(2);
+    }
   });
 });

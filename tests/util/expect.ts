@@ -19,12 +19,12 @@ export async function expectOk<
     | Promise<SubmittableExtrinsic<ApiType>>
     | string
     | Promise<string>,
-  Calls extends Call | Call[]
->(
-  call: Promise<
-    BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
+  Calls extends Call | Call[],
+  BlockCreation extends BlockCreationResponse<
+    ApiType,
+    Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>
   >
-) {
+>(call: Promise<BlockCreation>): Promise<BlockCreation> {
   const block = await call;
   if (Array.isArray(block.result)) {
     block.result.forEach((r, idx) => {
