@@ -4,6 +4,7 @@ pragma solidity >=0.8.3;
 import "../../../precompiles/referenda/Referenda.sol";
 import "../../../precompiles/preimage/Preimage.sol";
 import "../../../precompiles/conviction-voting/ConvictionVoting.sol";
+import "./SubstrateTools.sol";
 
 /// @notice Smart contract to demonstrate how to use Referenda Precompile to self-upgrade
 abstract contract ReferendaAutoUpgradeDemo {
@@ -47,47 +48,6 @@ abstract contract ReferendaAutoUpgradeDemo {
         revert("Couldn't find track");
     }
 
-    /// @notice concatenated bytes of the string, prefixed by the length in big endian
-    function buildSubstrateString(bytes memory value)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        // Add 1 for encodings
-        uint16 length = uint16(value.length * 4) + 1;
-        // conversion to big endian
-        uint16 reversedlength = ((length >> 8) | (length << 8));
-        // string prefixed by big endian length
-        return bytes.concat(bytes2(reversedlength), value);
-    }
-
-    /// @notice build the storage key/item
-    function buildSetStorageItem(bytes memory key, bytes memory value)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            bytes.concat(
-                buildSubstrateString(key),
-                buildSubstrateString(value)
-            );
-    }
-
-    /// @notice build the set storage proposal. It includes the setStorage call + the number of
-    /// @notice storages to change and the key/value of each storage.
-    function buildSetStorageProposal(
-        bytes memory contractStorageKey,
-        bytes memory contractCode
-    ) internal view returns (bytes memory) {
-        return
-            bytes.concat(
-                setStorageCallIndex,
-                bytes1(uint8(1 * 4)), // 1 storage item to change, so 4 bytes
-                buildSetStorageItem(contractStorageKey, contractCode)
-            );
-    }
-
     /// @notice submits to upgrade contract for given storage key
     /// @param contractCode The code as deployed of the new contract
     /// @param contractStorageKey The storage key associated with the current smart contract
@@ -95,7 +55,7 @@ abstract contract ReferendaAutoUpgradeDemo {
         bytes memory contractCode,
         bytes memory contractStorageKey
     ) public {
-        bytes memory setStorageCall = buildSetStorageProposal(
+        bytes memory setStorageCall = SubstrateTools.buildSetStorageProposal(
             contractStorageKey,
             contractCode
         );
