@@ -21,8 +21,8 @@
 
 use clap::Parser;
 use moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
-use sc_cli::{Error as CliError, SubstrateCli};
 use moonbeam_service::chain_spec;
+use sc_cli::{Error as CliError, SubstrateCli};
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.

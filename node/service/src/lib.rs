@@ -24,7 +24,6 @@
 
 pub mod rpc;
 
-use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
@@ -46,6 +45,7 @@ use futures::StreamExt;
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
+use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]

@@ -24,7 +24,6 @@ use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
-use moonbeam_cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
@@ -35,6 +34,7 @@ use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpsee::RpcModule;
+use moonbeam_cli_opt::EthApi as EthApiCmd;
 use moonbeam_core_primitives::{Block, Hash};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},

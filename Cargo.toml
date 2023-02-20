@@ -199,6 +199,7 @@ sp-consensus = { git = "https://github.com/purestake/substrate", branch = "moonb
 sp-storage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 sp-trie = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
@@ -309,6 +310,8 @@ serde = { version = "1.0.101", default-features = false }
 sha3 = { version = "0.10", default-features = false }
 slices = "0.2.0"
 smallvec = "1.8.0"
+strum = { version = "0.24", default-features = false, features = [ "derive" ] }
+strum_macros = "0.24"
 
 # Other (client)
 ansi_term = "0.12.1"

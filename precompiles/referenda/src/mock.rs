@@ -118,6 +118,7 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 pub type PCall = ReferendaPrecompileCall<Runtime, GovOrigin>;
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
@@ -136,7 +137,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
@@ -328,10 +329,10 @@ impl pallet_referenda::Config for Runtime {
 }
 
 pub struct GovOrigin;
-impl TryFrom<u16> for GovOrigin {
-	type Error = ();
-	fn try_from(_i: u16) -> Result<GovOrigin, ()> {
-		Ok(GovOrigin)
+impl FromStr for GovOrigin {
+	type Err = ();
+	fn from_str(_s: &str) -> Result<Self, Self::Err> {
+		Err(())
 	}
 }
 
@@ -378,4 +379,11 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<RuntimeEvent> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }

@@ -19,6 +19,10 @@
 
 extern crate alloc;
 
+// Allows to use inside this crate `EvmData` derive macro,which depends on
+// `precompile_utils` being in the list of imported crates.
+extern crate self as precompile_utils;
+
 pub mod costs;
 pub mod handle;
 pub mod logs;
@@ -82,7 +86,7 @@ pub mod prelude {
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
-			read_args, read_struct, revert,
+			revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::{RuntimeHelper, TryDispatchError},
 			succeed, EvmResult,

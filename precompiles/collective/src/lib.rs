@@ -28,8 +28,9 @@ use frame_support::{
 	weights::Weight,
 };
 use pallet_evm::AddressMapping;
+use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;
-use sp_core::{Decode, H160, H256};
+use sp_core::{Decode, Get, H160, H256};
 use sp_std::{boxed::Box, vec::Vec};
 
 #[cfg(test)]
@@ -85,6 +86,7 @@ pub fn log_closed(address: impl Into<H160>, hash: H256) -> Log {
 }
 
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
+type DecodeLimit = ConstU32<8>;
 
 pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
 
@@ -118,9 +120,12 @@ where
 				.in_field("proposal")
 		})?;
 
-		let proposal = Runtime::RuntimeCall::decode(&mut &*proposal)
-			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
-			.into();
+		let proposal =
+			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), &mut &*proposal)
+				.map_err(|_| {
+					RevertReason::custom("Failed to decode proposal").in_field("proposal")
+				})?
+				.into();
 		let proposal = Box::new(proposal);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -172,9 +177,12 @@ where
 
 		handle.record_log_costs(&[&log])?;
 
-		let proposal = Runtime::RuntimeCall::decode(&mut &*proposal)
-			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
-			.into();
+		let proposal =
+			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), &mut &*proposal)
+				.map_err(|_| {
+					RevertReason::custom("Failed to decode proposal").in_field("proposal")
+				})?
+				.into();
 		let proposal = Box::new(proposal);
 
 		{

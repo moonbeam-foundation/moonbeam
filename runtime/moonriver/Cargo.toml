@@ -16,6 +16,8 @@ rlp = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = [ "derive" ] }
 sha3 = { workspace = true, optional = true }
 smallvec = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
@@ -258,6 +260,7 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
@@ -312,6 +315,7 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 ]
 try-runtime = [
+	"fp-self-contained/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",

@@ -1,0 +1,5 @@
+error: A precompile method can have at most one modifier (payable, view)
+  --> tests/compile-fail/precompile/fn-modifiers/multiple-modifiers.rs:25:16
+   |
+25 |     #[precompile::payable]
+   |                   ^^^^^^^

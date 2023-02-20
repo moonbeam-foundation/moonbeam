@@ -17,11 +17,12 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use moonbeam_cli_opt::{EthApi, RpcConfig};
 use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
+use moonbeam_cli_opt::{EthApi, RpcConfig};
+use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
@@ -33,7 +34,6 @@ use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	DatabaseSource,
 };
-use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
@@ -276,7 +276,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -297,7 +298,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -636,21 +638,22 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => {
-					runner.async_run(|config| {
-						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-						let task_manager =
-							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-								.map_err(|e| {
-									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-								})?;
+				spec if spec.is_moonriver() => runner.async_run(|config| {
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager =
+						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+							.map_err(|e| {
+								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
+							})?;
 
-						Ok((
-							cmd.run::<moonbeam_service::moonriver_runtime::Block, moonbeam_service::MoonriverExecutor>(config),
+					Ok((
+							cmd.run::<moonbeam_service::moonriver_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+							sp_io::SubstrateHostFunctions,
+							<service::MoonriverExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
 							task_manager,
 						))
-					})
-				}
+				}),
 				#[cfg(feature = "moonbeam-native")]
 				spec if spec.is_moonbeam() => runner.async_run(|config| {
 					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
@@ -661,9 +664,10 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-						cmd.run::<moonbeam_service::moonbeam_runtime::Block, moonbeam_service::MoonbeamExecutor>(
-							config,
-						),
+						cmd.run::<moonbeam_service::moonbeam_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+						sp_io::SubstrateHostFunctions,
+						<service::MoonbeamExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+					>>(),
 						task_manager,
 					))
 				}),
@@ -680,9 +684,10 @@ pub fn run() -> Result<()> {
 								})?;
 
 						Ok((
-							cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::MoonbaseExecutor>(
-								config,
-							),
+							cmd.run::<moonbeam_service::moonbase_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
+							sp_io::SubstrateHostFunctions,
+							<service::MoonbaseExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
 							task_manager,
 						))
 					})

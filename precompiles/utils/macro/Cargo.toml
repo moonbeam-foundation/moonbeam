@@ -12,10 +12,6 @@ proc-macro = true
 name = "tests"
 path = "tests/tests.rs"
 
-[[test]]
-name = "precompile-macro"
-path = "tests/precompile.rs"
-
 [dependencies]
 case = "1.0"
 num_enum = { version = "0.5.3", default-features = false }
