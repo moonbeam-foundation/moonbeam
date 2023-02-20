@@ -115,7 +115,7 @@ pub struct OngoingReferendumInfo {
 	in_queue: bool,
 	/// The next scheduled wake-up
 	alarm_time: U256,
-	alarm_schedule_address: Address,
+	alarm_task_address: UnboundedBytes,
 }
 
 #[derive(EvmData)]
@@ -147,11 +147,6 @@ where
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	Runtime::Votes: Into<U256>,
-	<<Runtime as pallet_referenda::Config>::Scheduler as frame_support::traits::schedule::v3::Anon<
-		<Runtime as frame_system::Config>::BlockNumber,
-		<Runtime as pallet_referenda::Config>::RuntimeCall,
-		<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin>
-	>::Address: Into<H160>,
 	GovOrigin: FromStr,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -341,9 +336,10 @@ where
 				.in_field("referendum_index"),
 		)? {
 			ReferendumInfo::Ongoing(info) => {
-				let track_id = info.track.try_into().map_err(|_| {
-					RevertReason::value_is_too_large("Track id type not u16")
-				})?;
+				let track_id = info
+					.track
+					.try_into()
+					.map_err(|_| RevertReason::value_is_too_large("Track id type not u16"))?;
 				let (enactment_type, enactment_time) = match info.enactment {
 					DispatchTime::At(x) => (true, x.into()),
 					DispatchTime::After(x) => (false, x.into()),
@@ -363,12 +359,12 @@ where
 					} else {
 						(U256::zero(), U256::zero())
 					};
-				let (alarm_time, alarm_schedule_address) = if let Some((time, address)) = info.alarm
-				{
-					(time.into(), Address(address.into()))
-				} else {
-					(U256::zero(), Address(H160::zero()))
-				};
+				let (alarm_time, alarm_task_address) =
+					if let Some((time, task_address)) = info.alarm {
+						(time.into(), task_address.encode().into())
+					} else {
+						(U256::zero(), UnboundedBytes::from(&[]))
+					};
 
 				Ok(OngoingReferendumInfo {
 					track_id,
@@ -388,7 +384,7 @@ where
 					approval: info.tally.approval(info.track).deconstruct(),
 					in_queue: info.in_queue,
 					alarm_time,
-					alarm_schedule_address,
+					alarm_task_address,
 				})
 			}
 			_ => Err(RevertReason::custom("Referendum not ongoing").into()),

@@ -67,7 +67,8 @@ interface Referenda {
         bool inQueue;
         /// The next scheduled wake-up
         uint256 alarmTime;
-        address alarmScheduleAddress;
+        /// Scheduler task address if scheduled
+        bytes taskAddress;
     }
     struct ClosedReferendumInfo {
         ReferendumStatus status;
@@ -111,7 +112,7 @@ interface Referenda {
 
     /// Return the referendumInfo for an ongoing referendum
     /// @param referendumIndex The index of the referendum
-    /// @custom:selector 14febfbf
+    /// @custom:selector f033b7cd
     function ongoingReferendumInfo(uint32 referendumIndex)
         external
         view
