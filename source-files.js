@@ -22,7 +22,7 @@ var sourcesIndex = JSON.parse('{\
 "moonbeam_rpc_trace":["",[],["lib.rs"]],\
 "moonbeam_rpc_txpool":["",[],["lib.rs"]],\
 "moonbeam_runtime":["",[],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
-"moonbeam_runtime_common":["",[],["apis.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","lib.rs","migrations.rs"]],\
+"moonbeam_runtime_common":["",[],["apis.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","impl_xcm_evm_runner.rs","lib.rs","migrations.rs"]],\
 "moonbeam_service":["",[["chain_spec",[],["fake_spec.rs","mod.rs","moonbase.rs","moonbeam.rs","moonriver.rs","test_spec.rs"]],["rpc",[],["tracing.rs"]]],["client.rs","lib.rs","rpc.rs"]],\
 "moonbeam_vrf":["",[],["lib.rs"]],\
 "moonbeam_xcm_benchmarks":["",[["weights",[],["mod.rs","moonbeam_xcm_benchmarks_fungible.rs","moonbeam_xcm_benchmarks_generic.rs"]]],["lib.rs"]],\
@@ -30,6 +30,7 @@ var sourcesIndex = JSON.parse('{\
 "moonriver_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_author_mapping":["",[],["lib.rs","migrations.rs","weights.rs"]],\
+"pallet_erc20_xcm_bridge":["",[],["erc20_matcher.rs","erc20_trap.rs","errors.rs","lib.rs","xcm_exec_filter.rs","xcm_holding_ext.rs"]],\
 "pallet_ethereum_chain_id":["",[],["lib.rs"]],\
 "pallet_ethereum_xcm":["",[],["lib.rs"]],\
 "pallet_evm_precompile_author_mapping":["",[],["lib.rs"]],\

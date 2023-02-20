@@ -194,6 +194,14 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -254,10 +262,12 @@
 <span class="kw">pub struct </span>XcmWeight&lt;Runtime, Call&gt;(core::marker::PhantomData&lt;(Runtime, Call)&gt;);
 <span class="kw">impl</span>&lt;Runtime, Call&gt; XcmWeightInfo&lt;Call&gt; <span class="kw">for </span>XcmWeight&lt;Runtime, Call&gt;
 <span class="kw">where
-	</span>Runtime: frame_system::Config,
+	</span>Runtime: frame_system::Config + pallet_erc20_xcm_bridge::Config,
 {
 	<span class="kw">fn </span>withdraw_asset(assets: <span class="kw-2">&amp;</span>MultiAssets) -&gt; XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::&lt;Runtime&gt;::withdraw_asset())
+		assets.inner().iter().fold(<span class="number">0</span>, |acc, asset| {
+			acc.saturating_add(XcmFungibleWeight::&lt;Runtime&gt;::withdraw_asset(<span class="kw-2">&amp;</span>asset).ref_time())
+		})
 	}
 	<span class="comment">// Currently there is no trusted reserve
 	</span><span class="kw">fn </span>reserve_asset_deposited(_assets: <span class="kw-2">&amp;</span>MultiAssets) -&gt; XCMWeight {
@@ -270,14 +280,20 @@
 		XcmGeneric::&lt;Runtime&gt;::query_response().ref_time()
 	}
 	<span class="kw">fn </span>transfer_asset(assets: <span class="kw-2">&amp;</span>MultiAssets, _dest: <span class="kw-2">&amp;</span>MultiLocation) -&gt; XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::&lt;Runtime&gt;::transfer_asset())
+		assets.inner().iter().fold(<span class="number">0</span>, |acc, asset| {
+			acc.saturating_add(XcmFungibleWeight::&lt;Runtime&gt;::transfer_asset(<span class="kw-2">&amp;</span>asset).ref_time())
+		})
 	}
 	<span class="kw">fn </span>transfer_reserve_asset(
 		assets: <span class="kw-2">&amp;</span>MultiAssets,
 		_dest: <span class="kw-2">&amp;</span>MultiLocation,
 		_xcm: <span class="kw-2">&amp;</span>Xcm&lt;()&gt;,
 	) -&gt; XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::&lt;Runtime&gt;::transfer_reserve_asset())
+		assets.inner().iter().fold(<span class="number">0</span>, |acc, asset| {
+			acc.saturating_add(
+				XcmFungibleWeight::&lt;Runtime&gt;::transfer_reserve_asset(<span class="kw-2">&amp;</span>asset).ref_time(),
+			)
+		})
 	}
 	<span class="kw">fn </span>transact(
 		_origin_type: <span class="kw-2">&amp;</span>OriginKind,

@@ -87,15 +87,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
+</span><span class="kw">use </span>sp_std::{borrow::Borrow, marker::PhantomData};
+<span class="kw">use </span>xcm::latest::MultiLocation;
+
+<span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto&lt;u128&gt;`) into a MultiLocation Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
-</span><span class="kw">use </span>sp_std::{borrow::Borrow, marker::PhantomData};
-<span class="kw">use </span>xcm::latest::MultiLocation;
-
-<span class="kw">pub struct </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;(
+</span><span class="kw">pub struct </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;(
 	PhantomData&lt;(AssetId, AssetType, AssetIdInfoGetter)&gt;,
 );
 <span class="kw">impl</span>&lt;AssetId, AssetType, AssetIdInfoGetter&gt; xcm_executor::traits::Convert&lt;MultiLocation, AssetId&gt;
@@ -125,7 +125,7 @@
 	}
 }
 
-<span class="comment">// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa
+<span class="doccomment">/// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa
 </span><span class="kw">pub trait </span>AssetTypeGetter&lt;AssetId, AssetType&gt; {
 	<span class="comment">// Get asset type from assetId
 	</span><span class="kw">fn </span>get_asset_type(asset_id: AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;AssetType&gt;;

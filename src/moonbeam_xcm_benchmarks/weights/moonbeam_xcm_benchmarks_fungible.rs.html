@@ -49,6 +49,19 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -71,18 +84,31 @@
 
 </span><span class="kw">use </span>frame_support::{traits::Get, weights::Weight};
 <span class="kw">use </span>sp_std::marker::PhantomData;
+<span class="kw">use </span>xcm::latest::MultiAsset;
 
 <span class="doccomment">/// Weights for `pallet_xcm_benchmarks::fungible`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
-<span class="kw">impl</span>&lt;T: frame_system::Config&gt; WeightInfo&lt;T&gt; {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>withdraw_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+<span class="kw">impl</span>&lt;T: frame_system::Config + pallet_erc20_xcm_bridge::Config&gt; WeightInfo&lt;T&gt; {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>withdraw_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
+		} <span class="kw">else </span>{
+			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		}
 	}
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
+		} <span class="kw">else </span>{
+			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		}
 	}
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_reserve_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_reserve_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
+		} <span class="kw">else </span>{
+			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		}
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>receive_teleported_asset() -&gt; Weight {
 		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)

@@ -591,6 +591,69 @@
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
 <a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -612,8 +675,8 @@
 
 </span><span class="kw">use super</span>::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
+	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -705,6 +768,17 @@
 	</span>xcm_primitives::Account20Hash&lt;AccountId&gt;,
 );
 
+<span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
+</span><span class="kw">pub struct </span>LocationToH160;
+<span class="kw">impl </span>xcm_executor::traits::Convert&lt;MultiLocation, H160&gt; <span class="kw">for </span>LocationToH160 {
+	<span class="kw">fn </span>convert(location: MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;H160, MultiLocation&gt; {
+		&lt;LocationToAccountId <span class="kw">as </span>xcm_executor::traits::Convert&lt;MultiLocation, AccountId&gt;&gt;::convert(
+			location,
+		)
+		.map(Into::into)
+	}
+}
+
 <span class="comment">// The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
 // This is intended to match FOREIGN ASSETS
@@ -782,6 +856,7 @@
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -858,6 +933,8 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
 </span><span class="macro">moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!</span>();
 
+<span class="macro">moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!</span>();
+
 <span class="kw">pub struct </span>XcmExecutorConfig;
 <span class="kw">impl </span>xcm_executor::Config <span class="kw">for </span>XcmExecutorConfig {
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
@@ -890,12 +967,15 @@
 	);
 	<span class="kw">type </span>ResponseHandler = PolkadotXcm;
 	<span class="kw">type </span>SubscriptionService = PolkadotXcm;
-	<span class="kw">type </span>AssetTrap = PolkadotXcm;
+	<span class="kw">type </span>AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper&lt;PolkadotXcm, Runtime&gt;;
 	<span class="kw">type </span>AssetClaims = PolkadotXcm;
 	<span class="kw">type </span>CallDispatcher = MoonbeamCall;
 }
 
-<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+<span class="kw">type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
+	RuntimeCall,
+	xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;,
+&gt;;
 
 <span class="comment">// Converts a Signed Local Origin into a MultiLocation
 </span><span class="kw">pub type </span>LocalOriginToLocation = SignedToAccountId20&lt;RuntimeOrigin, AccountId, RelayNetwork&gt;;
@@ -909,12 +989,16 @@
 	</span>XcmpQueue,
 );
 
+<span class="doccomment">/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
+/// erc20 assets in an unsupported way.
+</span><span class="kw">pub type </span>XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper&lt;Runtime, Everything&gt;;
+
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>SendXcmOrigin = EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
 	<span class="kw">type </span>XcmRouter = XcmRouter;
 	<span class="kw">type </span>ExecuteXcmOrigin = EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
-	<span class="kw">type </span>XcmExecuteFilter = Everything;
+	<span class="kw">type </span>XcmExecuteFilter = XcmExecuteFilter;
 	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>XcmTeleportFilter = Nothing;
 	<span class="kw">type </span>XcmReserveTransferFilter = Everything;
@@ -997,24 +1081,33 @@
 	</span>ForeignAsset(AssetId),
 	<span class="comment">// Our local assets
 	</span>LocalAssetReserve(AssetId),
+	<span class="comment">// Erc20 token
+	</span>Erc20 { contract_address: H160 },
 }
 
 <span class="kw">impl </span>AccountIdToCurrencyId&lt;AccountId, CurrencyId&gt; <span class="kw">for </span>Runtime {
 	<span class="kw">fn </span>account_to_currency_id(account: AccountId) -&gt; <span class="prelude-ty">Option</span>&lt;CurrencyId&gt; {
-		<span class="kw">match </span>account {
+		<span class="prelude-val">Some</span>(<span class="kw">match </span>account {
 			<span class="comment">// the self-reserve currency is identified by the pallet-balances address
-			</span>a <span class="kw">if </span>a == H160::from_low_u64_be(<span class="number">2050</span>).into() =&gt; <span class="prelude-val">Some</span>(CurrencyId::SelfReserve),
+			</span>a <span class="kw">if </span>a == H160::from_low_u64_be(<span class="number">2050</span>).into() =&gt; CurrencyId::SelfReserve,
 			<span class="comment">// the rest of the currencies, by their corresponding erc20 address
-			// We distinguish by prefix, and depending on it we create either
-			// Foreign or Local
-			</span><span class="kw">_ </span>=&gt; Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
-				<span class="kw">if </span>prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-					CurrencyId::ForeignAsset(asset_id)
-				} <span class="kw">else </span>{
-					CurrencyId::LocalAssetReserve(asset_id)
+			</span><span class="kw">_ </span>=&gt; <span class="kw">match </span>Runtime::account_to_asset_id(account) {
+				<span class="comment">// We distinguish by prefix, and depending on it we create either
+				// Foreign or Local
+				</span><span class="prelude-val">Some</span>((prefix, asset_id)) =&gt; {
+					<span class="kw">if </span>prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+						CurrencyId::ForeignAsset(asset_id)
+					} <span class="kw">else </span>{
+						CurrencyId::LocalAssetReserve(asset_id)
+					}
 				}
-			}),
-		}
+				<span class="comment">// If no known prefix is identified, we consider that it&#39;s a &quot;real&quot; erc20 token
+				// (i.e. managed by a real smart contract)
+				</span><span class="prelude-val">None </span>=&gt; CurrencyId::Erc20 {
+					contract_address: account.into(),
+				},
+			},
+		})
 	}
 }
 
@@ -1035,6 +1128,16 @@
 			CurrencyId::LocalAssetReserve(asset) =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				<span class="prelude-val">Some</span>(location)
+			}
+			CurrencyId::Erc20 { contract_address } =&gt; {
+				<span class="kw">let </span><span class="kw-2">mut </span>location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.<span class="number">0</span>,
+						network: NetworkId::Any,
+					})
+					.ok();
 				<span class="prelude-val">Some</span>(location)
 			}
 		}
@@ -1155,6 +1258,29 @@
 	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
 	<span class="kw">type </span>HrmpEncoder = moonbeam_relay_encoder::westend::WestendEncoder;
+}
+
+<span class="macro">parameter_types! </span>{
+	<span class="comment">// This is the relative view of erc20 assets.
+	// Identified by this prefix + AccountKey20(contractAddress)
+	// We use the RELATIVE multilocation
+	</span><span class="kw">pub </span>Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
+		parents:<span class="number">0</span>,
+		interior: Junctions::X1(
+			PalletInstance(&lt;Erc20XcmBridge <span class="kw">as </span>PalletInfoAccess&gt;::index() <span class="kw">as </span>u8)
+		)
+	};
+
+	<span class="comment">// To be able to support almost all erc20 implementations,
+	// we provide a sufficiently hight gas limit.
+	</span><span class="kw">pub </span>Erc20XcmBridgeTransferGasLimit: u64 = <span class="number">80_000</span>;
+}
+
+<span class="kw">impl </span>pallet_erc20_xcm_bridge::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AccountIdConverter = LocationToH160;
+	<span class="kw">type </span>Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
+	<span class="kw">type </span>Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
+	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]

@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"pallet_erc20_xcm_bridge":[["impl&lt;AssetTrap:&nbsp;DropAssets, T:&nbsp;<a class=\"trait\" href=\"pallet_erc20_xcm_bridge/pallet/trait.Config.html\" title=\"trait pallet_erc20_xcm_bridge::pallet::Config\">Config</a>&gt; DropAssets for <a class=\"struct\" href=\"pallet_erc20_xcm_bridge/struct.AssetTrapWrapper.html\" title=\"struct pallet_erc20_xcm_bridge::AssetTrapWrapper\">AssetTrapWrapper</a>&lt;AssetTrap, T&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

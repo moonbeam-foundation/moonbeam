@@ -116,7 +116,6 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -138,7 +137,7 @@
 //! - Substrate DB read and write costs
 
 </span><span class="kw">use </span>{
-	<span class="kw">crate</span>::revert,
+	<span class="kw">crate</span>::{handle::using_precompile_handle, revert},
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
@@ -201,8 +200,7 @@
 		// However while Substrate handle checking weight while not making the sender pay for it,
 		// the EVM doesn&#39;t. It seems this safer to always record the costs to avoid unmetered
 		// computations.
-		</span><span class="kw">let </span>post_dispatch_info = call
-			.dispatch(origin)
+		</span><span class="kw">let </span>post_dispatch_info = using_precompile_handle(handle, || call.dispatch(origin))
 			.map_err(|e| TryDispatchError::Substrate(e.error))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>used_weight = post_dispatch_info.actual_weight;
