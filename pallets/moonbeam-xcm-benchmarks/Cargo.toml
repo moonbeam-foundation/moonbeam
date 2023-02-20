@@ -10,7 +10,7 @@ serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
 pallet-erc20-xcm-bridge = { path = "../erc20-xcm-bridge/", default-features = false }
-xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
