@@ -89,6 +89,7 @@ fn submitted_at_logs_work() {
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
+							// Referendum index
 							.write::<u32>(0u32)
 							.write::<H256>(expected_hash.into())
 							.build(),
@@ -123,6 +124,7 @@ fn submitted_after_logs_work() {
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
+							// Referendum index
 							.write::<u32>(0u32)
 							.write::<H256>(expected_hash.into())
 							.build(),
@@ -172,6 +174,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 						EvmDataWriter::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
+							// Decision deposit
 							.write::<U256>(U256::from(10))
 							.build(),
 					)
@@ -223,6 +226,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 						EvmDataWriter::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
+							// Decision deposit
 							.write::<U256>(U256::from(10))
 							.build(),
 					)
@@ -235,6 +239,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 						EvmDataWriter::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
+							// Submission deposit
 							.write::<U256>(U256::from(15))
 							.build(),
 					)
