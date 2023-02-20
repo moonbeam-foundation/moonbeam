@@ -377,6 +377,16 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -398,14 +408,12 @@
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-<span class="kw">use </span>frame_support::traits::{
-	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
-};
+<span class="kw">use </span>frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_referenda::{Call <span class="kw">as </span>ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>sp_core::{Hasher, H256, U256};
+<span class="kw">use </span>sp_core::{H256, U256};
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -415,7 +423,6 @@
 
 <span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 
-<span class="kw">type </span>GetCallDataLimit = ConstU32&lt;CALL_DATA_LIMIT&gt;;
 <span class="kw">type </span>BalanceOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
 &gt;&gt;::Balance;
@@ -475,6 +482,8 @@
 	TrackIdOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
 	GovOrigin: FromStr,
+	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
+		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
 {
 	<span class="comment">// The accessors are first. They directly return their result.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;referendumCount()&quot;</span>)]
@@ -589,23 +598,26 @@
 	</span><span class="kw">fn </span>submit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
-		proposal: Vec&lt;u8&gt;,
+		proposal: BoundedCallOf&lt;Runtime&gt;,
 		enactment_moment: DispatchTime&lt;Runtime::BlockNumber&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="comment">// record cost to read referendumCount to get the referendum index
+		<span class="macro">log::trace!</span>(
+			target: <span class="string">&quot;referendum-precompile&quot;</span>,
+			<span class="string">&quot;Submitting proposal {} [len: {:?}] to track {}&quot;</span>,
+			proposal.hash(),
+			proposal.len(),
+			track_id
+		);
+		<span class="comment">// for read of referendumCount to get the referendum index
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>referendum_index = ReferendumCount::&lt;Runtime&gt;::get();
+
 		<span class="kw">let </span>proposal_origin = <span class="self">Self</span>::track_id_to_origin(
 			track_id
 				.try_into()
 				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type&quot;</span>).into())
 				.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>,
 		)<span class="question-mark">?</span>;
-		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; =
-			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|<span class="kw">_</span>| {
-				RevertReason::custom(<span class="string">&quot;Proposal input is not a runtime call&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
-			})<span class="question-mark">?</span>);
-
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::submit {
@@ -624,24 +636,28 @@
 	///
 	/// Parameters:
 	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
+	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
+	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number at which proposal is dispatched.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAt(uint16,bytes,uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAt(uint16,bytes32,uint32,uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>submit_at(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
-		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
+		proposal_hash: H256,
+		proposal_len: u32,
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="kw">let </span>proposal: sp_std::vec::Vec&lt;u8&gt; = proposal.into();
-		<span class="kw">let </span>hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Lookup {
+			hash: proposal_hash,
+			len: proposal_len,
+		};
 		<span class="kw">let </span>event = log2(
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AT,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
 			EvmDataWriter::new()
 				.write::&lt;u32&gt;(block_number)
-				.write::&lt;H256&gt;(hash.into())
+				.write::&lt;H256&gt;(proposal_hash)
 				.build(),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
@@ -662,24 +678,28 @@
 	///
 	/// Parameters:
 	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
+	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
+	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number after which proposal is dispatched.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAfter(uint16,bytes,uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAfter(uint16,bytes32,uint32,uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>submit_after(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
-		proposal: BoundedBytes&lt;GetCallDataLimit&gt;,
+		proposal_hash: H256,
+		proposal_len: u32,
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
-		<span class="kw">let </span>proposal: sp_std::vec::Vec&lt;u8&gt; = proposal.into();
-		<span class="kw">let </span>hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Lookup {
+			hash: proposal_hash,
+			len: proposal_len,
+		};
 		<span class="kw">let </span>event = log2(
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AFTER,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
 			EvmDataWriter::new()
 				.write::&lt;u32&gt;(block_number)
-				.write::&lt;H256&gt;(hash.into())
+				.write::&lt;H256&gt;(proposal_hash)
 				.build(),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
