@@ -18,13 +18,13 @@ sha3 = { version = "0.10", optional = true, default-features = false }
 smallvec = "1.8.0"
 
 # Moonbeam
-account = { path = "../../primitives/account/", default-features = false }
+account = { path = "../../primitives/account", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "../common", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
-xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Moonbeam pallets
 moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false }
