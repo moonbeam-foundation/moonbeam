@@ -72,12 +72,13 @@ fn submitted_at_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
-			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
 			// Submit referendum at index 0
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal: proposal.clone().into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
@@ -86,7 +87,8 @@ fn submitted_at_logs_work() {
 			// Submit referendum at index 1
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
@@ -101,7 +103,7 @@ fn submitted_at_logs_work() {
 						EvmDataWriter::new()
 							// Referendum index 0
 							.write::<u32>(0u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
@@ -114,7 +116,7 @@ fn submitted_at_logs_work() {
 						EvmDataWriter::new()
 							// Referendum index 1
 							.write::<u32>(1u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
@@ -132,12 +134,13 @@ fn submitted_after_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
-			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
 			// Submit referendum at index 0
 			let input = PCall::submit_after {
 				track_id: 0u16,
-				proposal: proposal.clone().into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
@@ -146,7 +149,8 @@ fn submitted_after_logs_work() {
 			// Submit referendum at index 1
 			let input = PCall::submit_after {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
@@ -161,7 +165,7 @@ fn submitted_after_logs_work() {
 						EvmDataWriter::new()
 							// Referendum index 0
 							.write::<u32>(0u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
@@ -174,7 +178,7 @@ fn submitted_after_logs_work() {
 						EvmDataWriter::new()
 							// Referendum index 1
 							.write::<u32>(1u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
@@ -192,12 +196,14 @@ fn place_and_refund_decision_deposit_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 			let referendum_index = 0u32;
 
 			// Create referendum
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();

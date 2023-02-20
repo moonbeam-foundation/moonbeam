@@ -20,18 +20,31 @@
 
 use frame_support::{traits::Get, weights::Weight};
 use sp_std::marker::PhantomData;
+use xcm::latest::MultiAsset;
 
 /// Weights for `pallet_xcm_benchmarks::fungible`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo<T> {
-	pub(crate) fn withdraw_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
+	pub(crate) fn withdraw_asset(asset: &MultiAsset) -> Weight {
+		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+		} else {
+			Weight::from_ref_time(200_000_000 as u64)
+		}
 	}
-	pub(crate) fn transfer_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+	pub(crate) fn transfer_asset(asset: &MultiAsset) -> Weight {
+		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+		} else {
+			Weight::from_ref_time(200_000_000 as u64)
+		}
 	}
-	pub(crate) fn transfer_reserve_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+	pub(crate) fn transfer_reserve_asset(asset: &MultiAsset) -> Weight {
+		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+		} else {
+			Weight::from_ref_time(200_000_000 as u64)
+		}
 	}
 	pub(crate) fn receive_teleported_asset() -> Weight {
 		Weight::from_ref_time(200_000_000 as u64)

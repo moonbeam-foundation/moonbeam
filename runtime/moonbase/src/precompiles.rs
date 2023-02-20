@@ -129,7 +129,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2052>,
 		XtokensPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting<1>,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	>,
 	PrecompileAt<
 		AddressU64<2053>,

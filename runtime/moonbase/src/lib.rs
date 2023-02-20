@@ -1305,6 +1305,7 @@ construct_runtime! {
 		OpenTechCommitteeCollective:
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
+		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 	}
 }
 

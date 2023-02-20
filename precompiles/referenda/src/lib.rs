@@ -19,9 +19,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{
-	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
-};
+use frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
 	Call as ReferendaCall, DecidingCount, Pallet as Referenda, ReferendumCount, ReferendumInfo,
@@ -29,7 +27,7 @@ use pallet_referenda::{
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{Hasher, H256, U256};
+use sp_core::{H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
@@ -39,7 +37,6 @@ mod tests;
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
-type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 type BalanceOf<Runtime> = <<Runtime as pallet_referenda::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
@@ -98,6 +95,8 @@ where
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	GovOrigin: FromStr,
+	H256: From<<Runtime as frame_system::Config>::Hash>
+		+ Into<<Runtime as frame_system::Config>::Hash>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
@@ -212,23 +211,26 @@ where
 	fn submit(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
-		proposal: Vec<u8>,
+		proposal: BoundedCallOf<Runtime>,
 		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
-		// record cost to read referendumCount to get the referendum index
+		log::trace!(
+			target: "referendum-precompile",
+			"Submitting proposal {} [len: {:?}] to track {}",
+			proposal.hash(),
+			proposal.len(),
+			track_id
+		);
+		// for read of referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
+
 		let proposal_origin = Self::track_id_to_origin(
 			track_id
 				.try_into()
 				.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
 				.in_field("trackId")?,
 		)?;
-		let proposal: BoundedCallOf<Runtime> =
-			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
-				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
-			})?);
-
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::submit {
@@ -247,17 +249,21 @@ where
 	///
 	/// Parameters:
 	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
+	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
+	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number at which proposal is dispatched.
-	#[precompile::public("submitAt(uint16,bytes,uint32)")]
+	#[precompile::public("submitAt(uint16,bytes32,uint32,uint32)")]
 	fn submit_at(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
-		proposal: BoundedBytes<GetCallDataLimit>,
+		proposal_hash: H256,
+		proposal_len: u32,
 		block_number: u32,
 	) -> EvmResult<u32> {
-		let proposal: sp_std::vec::Vec<u8> = proposal.into();
-		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		let proposal: BoundedCallOf<Runtime> = Bounded::Lookup {
+			hash: proposal_hash,
+			len: proposal_len,
+		};
 		handle.record_log_costs_manual(2, 32 * 2)?;
 
 		let referendum_index = Self::submit(
@@ -272,7 +278,7 @@ where
 			H256::from_low_u64_be(track_id as u64),
 			EvmDataWriter::new()
 				.write::<u32>(referendum_index)
-				.write::<H256>(hash.into())
+				.write::<H256>(proposal_hash)
 				.build(),
 		);
 		event.record(handle)?;
@@ -284,17 +290,21 @@ where
 	///
 	/// Parameters:
 	/// * track_id: The trackId for the origin from which the proposal is to be dispatched.
-	/// * proposal: The proposed runtime call.
+	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
+	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number after which proposal is dispatched.
-	#[precompile::public("submitAfter(uint16,bytes,uint32)")]
+	#[precompile::public("submitAfter(uint16,bytes32,uint32,uint32)")]
 	fn submit_after(
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
-		proposal: BoundedBytes<GetCallDataLimit>,
+		proposal_hash: H256,
+		proposal_len: u32,
 		block_number: u32,
 	) -> EvmResult<u32> {
-		let proposal: sp_std::vec::Vec<u8> = proposal.into();
-		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
+		let proposal: BoundedCallOf<Runtime> = Bounded::Lookup {
+			hash: proposal_hash,
+			len: proposal_len,
+		};
 		handle.record_log_costs_manual(2, 32 * 2)?;
 
 		let referendum_index = Self::submit(
@@ -309,7 +319,7 @@ where
 			H256::from_low_u64_be(track_id as u64),
 			EvmDataWriter::new()
 				.write::<u32>(referendum_index)
-				.write::<H256>(hash.into())
+				.write::<H256>(proposal_hash)
 				.build(),
 		);
 
