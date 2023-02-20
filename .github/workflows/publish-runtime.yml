@@ -234,7 +234,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish runtime docker image 
+      - name: Publish runtime docker image
         env:
           DOCKER_IMAGE: purestake/moonbeam
           DOCKER_TAG: ${{ github.event.inputs.to }}
