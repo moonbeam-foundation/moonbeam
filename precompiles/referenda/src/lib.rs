@@ -370,7 +370,9 @@ where
 		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
 			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
 		{
-			ReferendumInfo::Ongoing(x) if x.decision_deposit.is_some() => x.decision_deposit.unwrap().amount.into(),
+			ReferendumInfo::Ongoing(x) if x.decision_deposit.is_some() => {
+				x.decision_deposit.unwrap().amount.into()
+			}
 			ReferendumInfo::Approved(_, _, Some(d))
 			| ReferendumInfo::Rejected(_, _, Some(d))
 			| ReferendumInfo::TimedOut(_, _, Some(d))
@@ -410,7 +412,9 @@ where
 		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
 			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
 		{
-			ReferendumInfo::Approved(_, Some(s), _) | ReferendumInfo::Cancelled(_, Some(s), _) => s.amount.into(),
+			ReferendumInfo::Approved(_, Some(s), _) | ReferendumInfo::Cancelled(_, Some(s), _) => {
+				s.amount.into()
+			}
 			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
 			_ => U256::zero(),
 		};

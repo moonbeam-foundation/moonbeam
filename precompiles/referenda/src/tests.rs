@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-	SELECTOR_LOG_SUBMITTED_AFTER, SELECTOR_LOG_SUBMITTED_AT,
+	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+	SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMITTED_AFTER,
+	SELECTOR_LOG_SUBMITTED_AT,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
@@ -208,11 +209,13 @@ fn place_and_refund_decision_deposit_logs_work() {
 					who: Alice.into(),
 					amount: 10
 				}),
-				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::SubmissionDepositRefunded {
-					index: referendum_index,
-					who: Alice.into(),
-					amount: 15
-				}),
+				RuntimeEvent::Referenda(
+					pallet_referenda::pallet::Event::SubmissionDepositRefunded {
+						index: referendum_index,
+						who: Alice.into(),
+						amount: 15
+					}
+				),
 				EvmEvent::Log {
 					log: log1(
 						Precompile1,
