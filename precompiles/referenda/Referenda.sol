@@ -65,19 +65,21 @@ interface Referenda {
         view
         returns (ReferendumStatus);
 
-    // /// Return the referendumInfo for an approved referendum
-    // /// @param referendumIndex The index of the referendum
-    // /// @custom:selector 078e5678
-    // function approvedReferendumInfo(uint32 referendumIndex)
-    //     external
-    //     view
-    //     returns (
-    //         uint256,
-    //         address,
-    //         uint256,
-    //         address,
-    //         uint256
-    //     );
+    /// Return the referendumInfo for a closed referendum
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 078e5678
+    // todo: is this return struct too long, how long is too long, how to test and enforce this
+    function closedReferendumInfo(uint32 referendumIndex)
+        external
+        view
+        returns (
+            ReferendumStatus,
+            uint256,
+            address,
+            uint256,
+            address,
+            uint256
+        );
 
     /// Return the block the referendum was killed
     /// @param referendumIndex The index of the referendum

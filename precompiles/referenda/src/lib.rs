@@ -24,12 +24,12 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
-	Call as ReferendaCall, DecidingCount, ReferendumCount, ReferendumInfo, ReferendumInfoFor,
-	TracksInfo,
+	Call as ReferendaCall, DecidingCount, Deposit, ReferendumCount, ReferendumInfo,
+	ReferendumInfoFor, TracksInfo,
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{Hasher, H256, U256};
+use sp_core::{Hasher, H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
@@ -89,6 +89,7 @@ impl<Runtime, GovOrigin> ReferendaPrecompile<Runtime, GovOrigin>
 where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
 	OriginOf<Runtime>: From<GovOrigin>,
+	Runtime::AccountId: Into<H160>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -268,25 +269,64 @@ where
 		Ok(status)
 	}
 
-	// #[precompile::public("approvedReferendumInfo(uint32)")]
-	// #[precompile::view]
-	// fn approved_referendum_info(
-	// 	handle: &mut impl PrecompileHandle,
-	// 	referendum_index: u32,
-	// ) -> EvmResult<(U256, Address, U256, Address, U256)> {
-	// 	// Fetch data from pallet
-	// 	handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	// TODO: ongoing_referendum_info
 
-	// 	let block = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
-	// 		RevertReason::custom("Referendum does not exist for index")
-	// 			.in_field("referendum_index"),
-	// 	)? {
-	// 		ReferendumInfo::Approved(moment, d1, d2) => b,
-	// 		_ => return Err(RevertReason::custom("Referendum was not approved").into()),
-	// 	};
+	#[precompile::public("closedReferendumInfo(uint32)")]
+	#[precompile::view]
+	fn closed_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<(u8, U256, Address, U256, Address, U256)> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-	// 	Ok((moment.into(), ))
-	// }
+		let get_closed_ref_info =
+			|status,
+			 moment: Runtime::BlockNumber,
+			 submission_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>,
+			 decision_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>|
+			 -> (u8, U256, Address, U256, Address, U256) {
+				let (submission_depositor, submission_deposit_amount): (Address, U256) =
+					if let Some(Deposit { who, amount }) = submission_deposit {
+						(Address(who.into()), amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				let (decision_depositor, decision_deposit_amount) =
+					if let Some(Deposit { who, amount }) = decision_deposit {
+						(Address(who.into()), amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				(
+					status,
+					moment.into(),
+					submission_depositor,
+					submission_deposit_amount,
+					decision_depositor,
+					decision_deposit_amount,
+				)
+			};
+
+		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Approved(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(1, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::Rejected(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(2, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::Cancelled(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(3, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::TimedOut(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(4, moment, submission_deposit, decision_deposit),
+			),
+			_ => Err(RevertReason::custom("Referendum not closed").into()),
+		}
+	}
 
 	#[precompile::public("killedReferendumBlock(uint32)")]
 	#[precompile::view]
@@ -302,7 +342,7 @@ where
 				.in_field("referendum_index"),
 		)? {
 			ReferendumInfo::Killed(b) => b,
-			_ => return Err(RevertReason::custom("Referendum was not killed").into()),
+			_ => return Err(RevertReason::custom("Referendum not killed").into()),
 		};
 
 		Ok(block.into())
