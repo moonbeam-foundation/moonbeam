@@ -23,7 +23,7 @@ use frame_support::traits::{
 	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
 };
 use pallet_evm::AddressMapping;
-use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
+use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo, Pallet as Referenda};
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
 use sp_core::{Hasher, H256, U256};
@@ -59,7 +59,7 @@ pub(crate) const SELECTOR_LOG_SUBMITTED_AFTER: [u8; 32] =
 
 /// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
-	keccak256!("DecisionDepositPlaced(uint32)");
+	keccak256!("DecisionDepositPlaced(uint32,address,uint256)");
 
 /// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
@@ -322,18 +322,33 @@ where
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	#[precompile::public("placeDecisionDeposit(uint32)")]
 	fn place_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
-		let event = log1(
-			handle.context().address,
-			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new().write::<u32>(index).build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		// Account later `ensure_ongoing` read cost
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_log_costs_manual(1, 32 * 3)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
+		let referendum_status = Referenda::<Runtime>::ensure_ongoing(index)
+			.map_err(|_| RevertReason::custom("Index is not an ongoing referendum").in_field("index"))?;
+		let decision_deposit: U256 = if let Some(decision_deposit) = referendum_status.decision_deposit {
+			decision_deposit.amount.into()
+		} else {
+			U256::default()
+		};
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.write::<Address>(Address(handle.context().caller))
+				.write::<U256>(decision_deposit)
+				.build(),
+		);
 
 		event.record(handle)?;
 		Ok(())
