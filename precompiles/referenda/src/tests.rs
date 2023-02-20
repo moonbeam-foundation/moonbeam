@@ -74,6 +74,16 @@ fn submitted_at_logs_work() {
 			let proposal = vec![1, 2, 3];
 			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
+			// Submit referendum at index 0
+			let input = PCall::submit_at {
+				track_id: 0u16,
+				proposal: proposal.clone().into(),
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Submit referendum at index 1
 			let input = PCall::submit_at {
 				track_id: 0u16,
 				proposal: proposal.into(),
@@ -82,21 +92,36 @@ fn submitted_at_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			assert!(events().contains(
-				&EvmEvent::Log {
+			assert!(vec![
+				EvmEvent::Log {
 					log: log2(
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
-							// Referendum index
+							// Referendum index 0
 							.write::<u32>(0u32)
 							.write::<H256>(expected_hash.into())
 							.build(),
 					),
 				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AT,
+						H256::from_low_u64_be(0u64),
+						EvmDataWriter::new()
+							// Referendum index 1
+							.write::<u32>(1u32)
+							.write::<H256>(expected_hash.into())
+							.build(),
+					),
+				}
 				.into()
-			));
+			]
+			.iter()
+			.all(|log| events().contains(log)));
 		});
 }
 
@@ -109,6 +134,16 @@ fn submitted_after_logs_work() {
 			let proposal = vec![1, 2, 3];
 			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
+			// Submit referendum at index 0
+			let input = PCall::submit_after {
+				track_id: 0u16,
+				proposal: proposal.clone().into(),
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Submit referendum at index 1
 			let input = PCall::submit_after {
 				track_id: 0u16,
 				proposal: proposal.into(),
@@ -117,21 +152,36 @@ fn submitted_after_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			assert!(events().contains(
-				&EvmEvent::Log {
+			assert!(vec![
+				EvmEvent::Log {
 					log: log2(
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
-							// Referendum index
+							// Referendum index 0
 							.write::<u32>(0u32)
 							.write::<H256>(expected_hash.into())
 							.build(),
 					),
 				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AFTER,
+						H256::from_low_u64_be(0u64),
+						EvmDataWriter::new()
+							// Referendum index 1
+							.write::<u32>(1u32)
+							.write::<H256>(expected_hash.into())
+							.build(),
+					),
+				}
 				.into()
-			));
+			]
+			.iter()
+			.all(|log| events().contains(log)));
 		});
 }
 
