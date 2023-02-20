@@ -9,7 +9,7 @@ log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
-xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }

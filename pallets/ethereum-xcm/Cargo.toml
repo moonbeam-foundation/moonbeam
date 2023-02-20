@@ -34,7 +34,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
-xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 [dev-dependencies]
 pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
