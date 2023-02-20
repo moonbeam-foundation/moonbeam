@@ -2,10 +2,10 @@
 pragma solidity >=0.8.3;
 
 /// @dev The Preimage contract's address.
-address constant Preimage_ADDRESS = 0x0000000000000000000000000000000000000813;
+address constant PREIMAGE_ADDRESS = 0x0000000000000000000000000000000000000813;
 
 /// @dev The Preimage contract's instance.
-Preimage constant Preimage_CONTRACT = Preimage(Preimage_ADDRESS);
+Preimage constant PREIMAGE_CONTRACT = Preimage(PREIMAGE_ADDRESS);
 
 /// @author The Moonbeam Team
 /// @title Pallet Preimage Interface
@@ -28,14 +28,10 @@ interface Preimage {
     /// @dev A Preimage was registered on-chain.
     /// @custom:selector 8cb56a8ebdafbb14e25ec706da62a7dde761968dbf1fb45be207d1b15c88c187
     /// @param hash bytes32 The computed hash.
-    event PreimageNoted(
-        bytes32 hash
-    );
+    event PreimageNoted(bytes32 hash);
 
     /// @dev A Preimage was un-registered on-chain.
     /// @custom:selector be6cb9502cce812b6de50cc08f2481900ff6c7c6466df7d39c9f27a5f2b9c572
     /// @param hash bytes32 The target preimage hash.
-    event PreimageUnnoted(
-        bytes32 hash
-    );
+    event PreimageUnnoted(bytes32 hash);
 }

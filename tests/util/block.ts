@@ -374,6 +374,13 @@ export async function jumpToRound(context: DevTestContext, round: Number): Promi
   }
 }
 
+export async function jumpBlocks(context: DevTestContext, blockCount: number) {
+  while (blockCount > 0) {
+    (await context.createBlock()).block.hash.toString();
+    blockCount--;
+  }
+}
+
 export async function jumpRounds(context: DevTestContext, count: Number): Promise<string | null> {
   const round = (await context.polkadotApi.query.parachainStaking.round()).current
     .addn(count.valueOf())
