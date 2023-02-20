@@ -15,7 +15,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Build typescript API
@@ -34,7 +34,7 @@ jobs:
     needs: ["publish-typescript-api"]
     steps:
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Upgrade polkadotjs for tests
