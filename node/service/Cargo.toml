@@ -53,7 +53,7 @@ frame-system-rpc-runtime-api = { workspace = true, features = [ "std" ] }
 pallet-transaction-payment = { workspace = true, features = [ "std" ] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [ "std" ] }
-parity-scale-codec = "3.0.0"
+parity-scale-codec = { workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
