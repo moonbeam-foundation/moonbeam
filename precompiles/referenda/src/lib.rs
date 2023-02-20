@@ -27,7 +27,7 @@ use pallet_referenda::{
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{Hasher, H160, H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
@@ -76,6 +76,44 @@ pub struct TrackInfo {
 	min_enactment_period: U256,
 	min_approval: UnboundedBytes,
 	min_support: UnboundedBytes,
+}
+
+#[derive(EvmData)]
+pub struct OngoingReferendumInfo {
+	/// The track of this referendum.
+	track_id: u16,
+	/// The origin for this referendum.
+	origin: UnboundedBytes,
+	/// The hash of the proposal up for referendum.
+	proposal: UnboundedBytes,
+	/// Whether proposal is scheduled for enactment at or after `enactment_time`.
+	enactment_type: bool,
+	/// The time the proposal should be scheduled for enactment.
+	enactment_time: U256,
+	/// The time of submission. Once `UndecidingTimeout` passes, it may be closed by anyone if
+	/// `deciding` is `None`.
+	submission_time: U256,
+	submission_depositor: Address,
+	submission_deposit: U256,
+	decision_depositor: Address,
+	decision_deposit: U256,
+	/// When this referendum began being "decided". If confirming, then the
+	/// end will actually be delayed until the end of the confirmation period.
+	deciding_since: U256,
+	/// If nonzero, then the referendum has entered confirmation stage and will end at
+	/// the block number as long as it doesn't lose its approval in the meantime.
+	deciding_confirming_end: U256,
+	/// The number of aye votes, expressed in terms of post-conviction lock-vote.
+	ayes: U256,
+	/// The number of nay votes, expressed in terms of post-conviction lock-vote.
+	nays: U256,
+	/// The basic number of aye votes, expressed pre-conviction.
+	support: U256,
+	/// Whether we have been placed in the queue for being decided or not.
+	in_queue: bool,
+	/// The next scheduled wake-up
+	alarm_time: U256,
+	alarm_schedule_address: Address,
 }
 
 #[derive(EvmData)]
@@ -281,7 +319,72 @@ where
 		Ok(status)
 	}
 
-	// TODO: ongoing_referendum_info
+	#[precompile::public("ongoingReferendumInfo(uint32)")]
+	#[precompile::view]
+	fn ongoing_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<OngoingReferendumInfo> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Ongoing(info) => {
+				let (enactment_type, enactment_time) = match info.enactment {
+					DispatchTime::At(x) => (true, x.into()),
+					DispatchTime::After(x) => (false, x.into()),
+				};
+				let (decision_depositor, decision_deposit) =
+					if let Some(deposit) = info.decision_deposit {
+						(Address(deposit.who.into()), deposit.amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				let (deciding_since, deciding_confirming_end) =
+					if let Some(deciding_status) = info.deciding {
+						(
+							deciding_status.since.into(),
+							deciding_status.confirming.unwrap_or_default().into(),
+						)
+					} else {
+						(U256::zero(), U256::zero())
+					};
+				let (alarm_time, alarm_schedule_address) = if let Some((time, address)) = info.alarm
+				{
+					(time.into(), Address(address.into()))
+				} else {
+					(U256::zero(), Address(H160::zero()))
+				};
+
+				Ok(OngoingReferendumInfo {
+					track_id: info.track.try_into().map_err(|_| {
+						RevertReason::value_is_too_large("Track id type not u16").into()
+					})?,
+					origin: info.origin,
+					proposal: info.proposal,
+					enactment_type,
+					enactment_time,
+					submission_time: info.submitted.into(),
+					submission_depositor: Address(info.submission_deposit.who.into()),
+					submission_deposit: info.submission_deposit.amount.into(),
+					decision_depositor,
+					decision_deposit,
+					deciding_since,
+					deciding_confirming_end,
+					ayes: info.tally.ayes.into(),
+					nays: info.tally.nays.into(),
+					support: info.tally.support.into(),
+					in_queue: info.in_queue,
+					alarm_time,
+					alarm_schedule_address,
+				})
+			}
+			_ => Err(RevertReason::custom("Referendum not ongoing").into()),
+		}
+	}
 
 	#[precompile::public("closedReferendumInfo(uint32)")]
 	#[precompile::view]
