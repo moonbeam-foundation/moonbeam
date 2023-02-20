@@ -1,0 +1,32 @@
+[package]
+name = "pallet-erc20-xcm-bridge"
+authors = { workspace = true }
+edition = "2021"
+version = "1.0.0"
+
+[dependencies]
+environmental = { workspace = true }
+ethereum-types = { workspace = true }
+serde = { workspace = true, optional = true, features = [ "derive" ] }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+
+# Frontier
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+
+#Polkadot / XCM
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
+
+[features]
+default = [ "std" ]
+std = [ "environmental/std", "fp-evm/std", "frame-support/std", "frame-system/std", "pallet-evm/std", "parity-scale-codec/std", "scale-info/std", "serde", "sp-core/std", "sp-runtime/std", "sp-std/std", "xcm-executor/std", "xcm/std" ]
+try-runtime = [ "frame-support/try-runtime" ]

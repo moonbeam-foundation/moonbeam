@@ -9,6 +9,7 @@ log = { workspace = true }
 serde = { workspace = true, optional = true }
 
 # Moonbeam
+pallet-erc20-xcm-bridge = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -39,6 +40,7 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-erc20-xcm-bridge/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-std/std",

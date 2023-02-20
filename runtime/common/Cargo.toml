@@ -8,6 +8,7 @@ license = "GPL-3.0-only"
 version = "0.8.0-dev"
 
 [dependencies]
+hex-literal = "0.3.4"
 impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
@@ -15,10 +16,13 @@ log = "0.4"
 moonbeam-xcm-benchmarks = { workspace = true, optional = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
+pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+precompile-utils = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -32,6 +36,8 @@ sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
+fp-ethereum = { workspace = true }
+fp-evm = { workspace = true }
 pallet-base-fee = { workspace = true }
 pallet-evm = { workspace = true }
 
@@ -41,23 +47,29 @@ pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
+xcm-executor = { workspace = true }
 
 [features]
 std = [
+	"fp-ethereum/std",
+	"fp-evm/std",
 	"frame-support/std",
 	"pallet-asset-manager/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-base-fee/std",
+	"pallet-ethereum-xcm/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
 	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
+	"precompile-utils/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"xcm-executor/std",
 	"xcm/std",
 ]
 try-runtime = [

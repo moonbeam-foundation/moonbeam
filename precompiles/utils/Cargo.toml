@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 affix = { workspace = true }
 derive_more = { workspace = true, optional = true }
+environmental = { workspace = true }
 hex = { workspace = true }
 hex-literal = { workspace = true, optional = true }
 impl-trait-for-tuples = { workspace = true }
@@ -44,6 +45,7 @@ hex-literal = { workspace = true }
 [features]
 default = [ "std" ]
 std = [
+	"environmental/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",

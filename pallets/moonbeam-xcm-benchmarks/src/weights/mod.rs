@@ -58,10 +58,12 @@ impl WeighMultiAssets for MultiAssets {
 pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
-	Runtime: frame_system::Config,
+	Runtime: frame_system::Config + pallet_erc20_xcm_bridge::Config,
 {
 	fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
+		assets.inner().iter().fold(0, |acc, asset| {
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::withdraw_asset(&asset).ref_time())
+		})
 	}
 	// Currently there is no trusted reserve
 	fn reserve_asset_deposited(_assets: &MultiAssets) -> XCMWeight {
@@ -74,14 +76,20 @@ where
 		XcmGeneric::<Runtime>::query_response().ref_time()
 	}
 	fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::transfer_asset())
+		assets.inner().iter().fold(0, |acc, asset| {
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_asset(&asset).ref_time())
+		})
 	}
 	fn transfer_reserve_asset(
 		assets: &MultiAssets,
 		_dest: &MultiLocation,
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::transfer_reserve_asset())
+		assets.inner().iter().fold(0, |acc, asset| {
+			acc.saturating_add(
+				XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset).ref_time(),
+			)
+		})
 	}
 	fn transact(
 		_origin_type: &OriginKind,
