@@ -128,10 +128,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Use Node.js 18.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 16.x
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
@@ -358,10 +358,10 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 18.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 16.x
       - name: Typescript integration tests (against dev service)
         run: |
           chmod uog+x build/moonbeam
@@ -384,25 +384,26 @@ jobs:
           #### This also better display typescript issues
           npm run build
 
-          cd ..
+          # cd ..
 
           #### Retrieving docker image as base to run tests
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-
-          CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
-
-          docker run \
-            -e BINARY_PATH='../build/moonbeam' \
-            -v $(pwd):/moonbeam:z \
-            -u $UID \
-            -w /moonbeam/tests \
-            $DOCKER_TAG \
-              node node_modules/.bin/mocha \
-                --parallel -j $((CPUS / 2)) \
-                --exit \
-                'build/tests/**/test-*.js'
+          
+          npm run test
+        # CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
+          
+         # docker run \
+         #   -e BINARY_PATH='../build/moonbeam' \
+         #   -v $(pwd):/moonbeam:z \
+         #   -u $UID \
+         #   -w /moonbeam/tests \
+         #   $DOCKER_TAG \
+         #     node node_modules/.bin/mocha \
+         #       --parallel -j $((CPUS / 2)) \
+         #       --exit \
+         #       'build/tests/**/test-*.js'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -443,10 +444,10 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 18.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 16.x
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -509,10 +510,10 @@ jobs:
           docker create -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy
-      - name: Use Node.js 18.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 16.x
       - name: Typescript integration tests (against dev service)
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
