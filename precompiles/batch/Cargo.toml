@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "frontier-db-sql", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "frontier-db-sql", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
 derive_more = { version = "0.99" }

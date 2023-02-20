@@ -14,4 +14,4 @@ jsonrpsee = { version = "0.16.2", default-features = false, features = [ "macros
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "frontier-db-sql" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
