@@ -81,6 +81,16 @@ pub struct TrackInfo {
 	min_support: UnboundedBytes,
 }
 
+#[derive(EvmData)]
+pub struct ClosedReferendumInfo {
+	status: u8,
+	end: U256,
+	submission_depositor: Address,
+	submission_deposit: U256,
+	decision_depositor: Address,
+	decision_deposit: U256,
+}
+
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime, GovOrigin>(PhantomData<(Runtime, GovOrigin)>);
 
@@ -276,7 +286,7 @@ where
 	fn closed_referendum_info(
 		handle: &mut impl PrecompileHandle,
 		referendum_index: u32,
-	) -> EvmResult<(u8, U256, Address, U256, Address, U256)> {
+	) -> EvmResult<ClosedReferendumInfo> {
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
@@ -285,7 +295,7 @@ where
 			 moment: Runtime::BlockNumber,
 			 submission_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>,
 			 decision_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>|
-			 -> (u8, U256, Address, U256, Address, U256) {
+			 -> ClosedReferendumInfo {
 				let (submission_depositor, submission_deposit_amount): (Address, U256) =
 					if let Some(Deposit { who, amount }) = submission_deposit {
 						(Address(who.into()), amount.into())
@@ -298,14 +308,14 @@ where
 					} else {
 						(Address(H160::zero()), U256::zero())
 					};
-				(
+				ClosedReferendumInfo {
 					status,
-					moment.into(),
+					end: moment.into(),
 					submission_depositor,
-					submission_deposit_amount,
+					submission_deposit: submission_deposit_amount,
 					decision_depositor,
-					decision_deposit_amount,
-				)
+					decision_deposit: decision_deposit_amount,
+				}
 			};
 
 		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
