@@ -204,7 +204,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new().write::<u32>(referendum_index).build(),
+						EvmDataWriter::new()
+							.write::<u32>(referendum_index)
+							.write::<Address>(Address(Alice.into()))
+							.write::<U256>(U256::from(10))
+							.build(),
 					)
 				}
 				.into()

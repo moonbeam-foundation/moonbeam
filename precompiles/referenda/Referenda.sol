@@ -118,7 +118,13 @@ interface Referenda {
     );
 
     /// @dev Decision Deposit for a closed referendum has been refunded
-    /// @custom:selector 61f241739b215680a33261f1dee7646d0e840d5e498c1142c1a534987d9b8ed8
-    /// @param index uint32 The index of the closed referendum
-    event DecisionDepositRefunded(uint32 index);
+    /// @custom:selector 86801df04afc1aa4cd2d673df29c5951bbb0bae2c965bb9d233909894aab55be
+    /// @param index uint32 The index of the ongoing referendum that is not yet deciding.
+    /// @param caller address Address of the caller.
+    /// @param refundedAmount uint256 Amount being refunded.
+    event DecisionDepositRefunded(
+        uint32 index,
+        address caller,
+        uint256 refundedAmount,
+    );
 }
