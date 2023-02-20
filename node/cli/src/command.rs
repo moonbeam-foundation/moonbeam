@@ -647,12 +647,15 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-							cmd.run::<moonbeam_service::moonriver_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
-							sp_io::SubstrateHostFunctions,
-							<service::MoonriverExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						cmd.run::<
+							moonbeam_service::moonriver_runtime::Block,
+							sp_wasm_interface::ExtendedHostFunctions<
+								sp_io::SubstrateHostFunctions,
+								<service::MoonriverExecutor
+									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
 						>>(),
-							task_manager,
-						))
+						task_manager,
+					))
 				}),
 				#[cfg(feature = "moonbeam-native")]
 				spec if spec.is_moonbeam() => runner.async_run(|config| {
@@ -664,10 +667,13 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-						cmd.run::<moonbeam_service::moonbeam_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
-						sp_io::SubstrateHostFunctions,
-						<service::MoonbeamExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-					>>(),
+						cmd.run::<
+							moonbeam_service::moonbeam_runtime::Block,
+							sp_wasm_interface::ExtendedHostFunctions<
+								sp_io::SubstrateHostFunctions,
+								<service::MoonbeamExecutor
+									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
 						task_manager,
 					))
 				}),
@@ -684,10 +690,13 @@ pub fn run() -> Result<()> {
 								})?;
 
 						Ok((
-							cmd.run::<moonbeam_service::moonbase_runtime::Block, sp_wasm_interface::ExtendedHostFunctions<
-							sp_io::SubstrateHostFunctions,
-							<service::MoonbaseExecutor as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+							cmd.run::<
+								moonbeam_service::moonbase_runtime::Block,
+								sp_wasm_interface::ExtendedHostFunctions<
+									sp_io::SubstrateHostFunctions,
+									<service::MoonbaseExecutor
+										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
+							>>(),
 							task_manager,
 						))
 					})

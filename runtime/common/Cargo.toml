@@ -39,7 +39,7 @@ sp-std = { workspace = true }
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
 pallet-base-fee = { workspace = true }
-pallet-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
 pallet-author-inherent = { workspace = true }
