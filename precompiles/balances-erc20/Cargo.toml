@@ -6,10 +6,10 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
-paste = "1.0.6"
-slices = "0.2.0"
+log = { workspace = true }
+num_enum = { workspace = true }
+paste = { workspace = true }
+slices = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true }

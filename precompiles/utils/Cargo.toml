@@ -6,49 +6,49 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-affix = "0.1.2"
-derive_more = { version = "0.99", optional = true }
-hex = { version = "0.4.3", default-features = false }
-hex-literal = { version = "0.3.1", optional = true }
-impl-trait-for-tuples = "0.2.2"
-log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
-paste = "1.0.8"
-scale-info = { version = "2.0", default-features = false, optional = true, features = [ "derive" ] }
-serde = { version = "1.0.100", optional = true }
-sha3 = { version = "0.10", default-features = false }
-similar-asserts = { version = "1.1.0", optional = true }
+affix = { workspace = true }
+derive_more = { workspace = true, optional = true }
+hex = { workspace = true }
+hex-literal = { workspace = true, optional = true }
+impl-trait-for-tuples = { workspace = true }
+log = { workspace = true }
+num_enum = { workspace = true }
+paste = { workspace = true }
+scale-info = { workspace = true, optional = true, features = [ "derive" ] }
+serde = { workspace = true, optional = true }
+sha3 = { workspace = true }
+similar-asserts = { workspace = true, optional = true }
 
 # Moonbeam
 precompile-utils-macro = { path = "macro" }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+parity-scale-codec = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
-evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+evm = { workspace = true, features = [ "with-codec" ] }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 # Polkadot / XCM
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+xcm = { workspace = true }
 
 [dev-dependencies]
-hex-literal = "0.3.1"
+hex-literal = { workspace = true }
 
 [features]
 default = [ "std" ]
 std = [
-	"codec/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
+	"parity-scale-codec/std",
 	"sp-core/std",
 	"sp-io/std",
 	"sp-std/std",

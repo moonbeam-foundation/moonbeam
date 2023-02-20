@@ -290,6 +290,7 @@ westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moo
 xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
 
 # Other (wasm)
+affix = "0.1.2"
 async-trait = { version = "0.1.42" }
 blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99"
@@ -303,6 +304,7 @@ log = { version = "0.4", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 paste = "1.0.6"
 rlp = { version = "0.5", default-features = false }
+rustc-hex = { version = "2.0.1", default-features = false }
 serde = { version = "1.0.101", default-features = false }
 sha3 = { version = "0.10", default-features = false }
 slices = "0.2.0"

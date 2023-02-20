@@ -6,49 +6,48 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
+log = { workspace = true }
+num_enum = { workspace = true }
 
 # Moonbeam
-pallet-randomness = { path = "../../pallets/randomness", default-features = false }
-precompile-utils = { path = "../utils", default-features = false }
+pallet-randomness = { workspace = true }
+precompile-utils = { workspace = true }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+fp-evm = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+parity-scale-codec = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-base-fee = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+nimbus-primitives = { workspace = true }
 
 [dev-dependencies]
-derive_more = "0.99"
-hex-literal = "0.3.4"
+derive_more = { workspace = true }
+hex-literal = { workspace = true }
 
 # Moonbeam
-pallet-author-mapping = { path = "../../pallets/author-mapping" }
-precompile-utils = { path = "../utils", features = [ "testing" ] }
-session-keys-primitives = { path = "../../primitives/session-keys" }
+pallet-author-mapping = { workspace = true, features = [ "std" ] }
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+session-keys-primitives = { workspace = true, features = [ "std" ] }
 
 # Substrate
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-scheduler = { workspace = true, features = [ "std" ] }
+pallet-timestamp = { workspace = true, features = [ "std" ] }
+scale-info = { workspace = true, features = [ "derive", "std" ] }
+sp-runtime = { workspace = true, features = [ "std" ] }
 
 [features]
 default = [ "std" ]
 std = [
-	"codec/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
@@ -56,6 +55,7 @@ std = [
 	"pallet-base-fee/std",
 	"pallet-evm/std",
 	"pallet-randomness/std",
+	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
