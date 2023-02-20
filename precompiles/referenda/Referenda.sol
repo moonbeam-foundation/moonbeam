@@ -118,7 +118,7 @@ interface Referenda {
     event DecisionDepositPlaced(
         uint32 index,
         address caller,
-        uint256 depositedAmount,
+        uint256 depositedAmount
     );
 
     /// @dev Decision Deposit for a closed referendum has been refunded
@@ -129,7 +129,7 @@ interface Referenda {
     event DecisionDepositRefunded(
         uint32 index,
         address caller,
-        uint256 refundedAmount,
+        uint256 refundedAmount
     );
 
     /// @dev Submission Deposit for a valid referendum has been refunded
@@ -140,6 +140,6 @@ interface Referenda {
     event SubmissionDepositRefunded(
         uint32 index,
         address caller,
-        uint256 refundedAmount,
+        uint256 refundedAmount
     );
 }
