@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
 	SELECTOR_LOG_SUBMITTED_AFTER, SELECTOR_LOG_SUBMITTED_AT,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
@@ -193,12 +193,25 @@ fn place_and_refund_decision_deposit_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
+			// Refund referendum submission deposit.
+			// Eligible because we cancelled the referendum.
+			let input = PCall::refund_submission_deposit {
+				index: referendum_index,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
 			// Assert all refund events are emitted
 			assert!(vec![
 				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::DecisionDepositRefunded {
 					index: referendum_index,
 					who: Alice.into(),
 					amount: 10
+				}),
+				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::SubmissionDepositRefunded {
+					index: referendum_index,
+					who: Alice.into(),
+					amount: 15
 				}),
 				EvmEvent::Log {
 					log: log1(
@@ -208,6 +221,18 @@ fn place_and_refund_decision_deposit_logs_work() {
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
 							.write::<U256>(U256::from(10))
+							.build(),
+					)
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
+						EvmDataWriter::new()
+							.write::<u32>(referendum_index)
+							.write::<Address>(Address(Alice.into()))
+							.write::<U256>(U256::from(15))
 							.build(),
 					)
 				}
