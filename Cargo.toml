@@ -8,6 +8,7 @@ members = [
 	"node",
 	"node/cli",
 	"node/service",
+	"pallets/erc20-xcm-bridge",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/moonbeam-orbiters",

@@ -33,6 +33,7 @@ moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", defa
 pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+pallet-erc20-xcm-bridge = { path = "../../pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 pallet-ethereum-xcm = { path = "../../pallets/ethereum-xcm", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }

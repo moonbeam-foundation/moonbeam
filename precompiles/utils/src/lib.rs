@@ -83,7 +83,7 @@ pub mod prelude {
 				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
 				EvmDataWriter, SolidityConvert, UnboundedBytes, UnboundedString,
 			},
-			handle::PrecompileHandleExt,
+			handle::{with_precompile_handle, PrecompileHandleExt},
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
 			revert,
