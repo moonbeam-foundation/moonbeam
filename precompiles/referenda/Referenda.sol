@@ -12,8 +12,6 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @title The interface through which solidity contracts will interact with the Referenda pallet
 /// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
-    /// @dev Defines the referendum status.
-    /// The values start at `0` (most permissive) and are represented as `uint8`
     enum ReferendumStatus {
         Ongoing,
         Approved,
