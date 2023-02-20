@@ -19,7 +19,9 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
+use frame_support::traits::{
+	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
+};
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
 	Call as ReferendaCall, DecidingCount, Deposit, ReferendumCount, ReferendumInfo,
@@ -105,10 +107,10 @@ pub struct OngoingReferendumInfo {
 	deciding_confirming_end: U256,
 	/// The number of aye votes, expressed in terms of post-conviction lock-vote.
 	ayes: U256,
-	/// The number of nay votes, expressed in terms of post-conviction lock-vote.
-	nays: U256,
-	/// The basic number of aye votes, expressed pre-conviction.
-	support: U256,
+	/// Percent aye votes, expressed pre-conviction, over the total votes in the class.
+	support: u32,
+	/// Percent of aye votes over aye + nay votes.
+	approval: u32,
 	/// Whether we have been placed in the queue for being decided or not.
 	in_queue: bool,
 	/// The next scheduled wake-up
@@ -144,6 +146,12 @@ where
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
+	Runtime::Votes: Into<U256>,
+	<<Runtime as pallet_referenda::Config>::Scheduler as frame_support::traits::schedule::v3::Anon<
+		<Runtime as frame_system::Config>::BlockNumber,
+		<Runtime as pallet_referenda::Config>::RuntimeCall,
+		<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin>
+	>::Address: Into<H160>,
 	GovOrigin: FromStr,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -333,6 +341,9 @@ where
 				.in_field("referendum_index"),
 		)? {
 			ReferendumInfo::Ongoing(info) => {
+				let track_id = info.track.try_into().map_err(|_| {
+					RevertReason::value_is_too_large("Track id type not u16")
+				})?;
 				let (enactment_type, enactment_time) = match info.enactment {
 					DispatchTime::At(x) => (true, x.into()),
 					DispatchTime::After(x) => (false, x.into()),
@@ -360,11 +371,9 @@ where
 				};
 
 				Ok(OngoingReferendumInfo {
-					track_id: info.track.try_into().map_err(|_| {
-						RevertReason::value_is_too_large("Track id type not u16").into()
-					})?,
-					origin: info.origin,
-					proposal: info.proposal,
+					track_id,
+					origin: info.origin.encode().into(),
+					proposal: info.proposal.encode().into(),
 					enactment_type,
 					enactment_time,
 					submission_time: info.submitted.into(),
@@ -374,9 +383,9 @@ where
 					decision_deposit,
 					deciding_since,
 					deciding_confirming_end,
-					ayes: info.tally.ayes.into(),
-					nays: info.tally.nays.into(),
-					support: info.tally.support.into(),
+					ayes: info.tally.ayes(info.track).into(),
+					support: info.tally.support(info.track).deconstruct(),
+					approval: info.tally.approval(info.track).deconstruct(),
 					in_queue: info.in_queue,
 					alarm_time,
 					alarm_schedule_address,
