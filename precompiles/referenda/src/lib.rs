@@ -23,7 +23,10 @@ use frame_support::traits::{
 	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
 };
 use pallet_evm::AddressMapping;
-use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo, Pallet as Referenda, ReferendumInfo, ReferendumInfoFor};
+use pallet_referenda::{
+	Call as ReferendaCall, DecidingCount, Pallet as Referenda, ReferendumCount, ReferendumInfo,
+	ReferendumInfoFor, TracksInfo,
+};
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
 use sp_core::{Hasher, H256, U256};
@@ -333,13 +336,15 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
-		let ongoing_referendum = Referenda::<Runtime>::ensure_ongoing(index)
-			.map_err(|_| RevertReason::custom("Index is not an ongoing referendum").in_field("index"))?;
-		let decision_deposit: U256 = if let Some(decision_deposit) = ongoing_referendum.decision_deposit {
-			decision_deposit.amount.into()
-		} else {
-			U256::zero()
-		};
+		let ongoing_referendum = Referenda::<Runtime>::ensure_ongoing(index).map_err(|_| {
+			RevertReason::custom("Provided index is not an ongoing referendum").in_field("index")
+		})?;
+		let decision_deposit: U256 =
+			if let Some(decision_deposit) = ongoing_referendum.decision_deposit {
+				decision_deposit.amount.into()
+			} else {
+				U256::zero()
+			};
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
@@ -363,10 +368,19 @@ where
 		handle.record_log_costs_manual(1, 32 * 3)?;
 		// Get refunding deposit before dispatch
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index).ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))? {
+		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
+			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
+		{
 			ReferendumInfo::Ongoing(x) if x.decision_deposit.is_none() => U256::zero(),
-			ReferendumInfo::Ongoing(_) => return Err(RevertReason::custom("Cannot refund an ongoing referendum").in_field("index").into()),
-			ReferendumInfo::Approved(_, _, Some(d)) | ReferendumInfo::Rejected(_, _, Some(d)) | ReferendumInfo::TimedOut(_, _, Some(d)) | ReferendumInfo::Cancelled(_, _, Some(d)) => d.amount.into(),
+			ReferendumInfo::Ongoing(_) => {
+				return Err(RevertReason::custom("Cannot refund an ongoing referendum")
+					.in_field("index")
+					.into())
+			}
+			ReferendumInfo::Approved(_, _, Some(d))
+			| ReferendumInfo::Rejected(_, _, Some(d))
+			| ReferendumInfo::TimedOut(_, _, Some(d))
+			| ReferendumInfo::Cancelled(_, _, Some(d)) => d.amount.into(),
 			_ => U256::zero(),
 		};
 
