@@ -34,6 +34,8 @@ use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
+use pallet_evm_precompile_proxy::OnlyIsProxy;
+use pallet_evm_precompile_proxy::ProxyPrecompile;
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
@@ -162,12 +164,7 @@ type MoonriverPrecompilesAt<R> = (
 		CallPermitPrecompile<R>,
 		(SubcallWithMaxNesting<0>, CallableByContract),
 	>,
-	// (Moonbase only)
-	// PrecompileAt<
-	// 	AddressU64<2059>,
-	// 	ProxyPrecompile<R>,
-	// 	CallableByContract<OnlyIsProxy<R>>,
-	// >,
+	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>, CallableByContract<OnlyIsProxy<R>>>,
 	PrecompileAt<
 		AddressU64<2060>,
 		XcmUtilsPrecompile<R, XcmExecutorConfig>,
@@ -221,7 +218,6 @@ type MoonriverPrecompilesAt<R> = (
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
-/// as well as a special precompile for dispatching Substrate extrinsics
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific

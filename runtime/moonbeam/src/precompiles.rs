@@ -32,6 +32,9 @@ use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
+use pallet_evm_precompile_preimage::PreimagePrecompile;
+use pallet_evm_precompile_proxy::OnlyIsProxy;
+use pallet_evm_precompile_proxy::ProxyPrecompile;
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -159,12 +162,7 @@ type MoonbeamPrecompilesAt<R> = (
 		CallPermitPrecompile<R>,
 		(SubcallWithMaxNesting<0>, CallableByContract),
 	>,
-	// (Moonbase only)
-	// PrecompileAt<
-	// 	AddressU64<2059>,
-	// 	ProxyPrecompile<R>,
-	// 	CallableByContract<OnlyIsProxy<R>>,
-	// >,
+	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>, CallableByContract<OnlyIsProxy<R>>>,
 	PrecompileAt<
 		AddressU64<2060>,
 		XcmUtilsPrecompile<R, XcmExecutorConfig>,
@@ -191,6 +189,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2064>,
 		CollectivePrecompile<R, TreasuryCouncilInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2067>,
+		PreimagePrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

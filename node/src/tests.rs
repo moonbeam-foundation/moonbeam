@@ -47,6 +47,20 @@ pub fn wait_for(child: &mut Child, secs: usize) -> Option<ExitStatus> {
 
 #[test]
 #[cfg(unix)]
+fn moonbeam_binary_exists() {
+	// Ensure that the moonbeam binary, which is used by the other tests, exists
+	let path = cargo_bin("moonbeam");
+
+	if !path.exists() {
+		panic!(
+			"Command not found: {}\nHelp: compile the binary using cargo build --release",
+			path.display()
+		);
+	}
+}
+
+#[test]
+#[cfg(unix)]
 fn purge_chain_purges_relay_and_para() {
 	fn run_node_and_stop() -> tempfile::TempDir {
 		use nix::{

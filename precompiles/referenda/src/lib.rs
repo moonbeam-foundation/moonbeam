@@ -27,7 +27,7 @@ use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, Tr
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
 use sp_core::{Hasher, H256, U256};
-use sp_std::{boxed::Box, marker::PhantomData, vec::Vec};
+use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -65,6 +65,7 @@ pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
 	keccak256!("DecisionDepositRefunded(uint32)");
 
+#[derive(EvmData)]
 pub struct TrackInfo {
 	name: UnboundedBytes,
 	max_deciding: U256,
@@ -77,80 +78,8 @@ pub struct TrackInfo {
 	min_support: UnboundedBytes,
 }
 
-impl EvmData for TrackInfo {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		precompile_utils::read_struct!(reader, {
-			name: UnboundedBytes,
-			max_deciding: U256,
-			decision_deposit: U256,
-			prepare_period: U256,
-			decision_period: U256,
-			confirm_period: U256,
-			min_enactment_period: U256,
-			min_approval: UnboundedBytes,
-			min_support: UnboundedBytes
-		});
-		Ok(TrackInfo {
-			name,
-			max_deciding,
-			decision_deposit,
-			prepare_period,
-			decision_period,
-			confirm_period,
-			min_enactment_period,
-			min_approval,
-			min_support,
-		})
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(
-			writer,
-			(
-				value.name,
-				value.max_deciding,
-				value.decision_deposit,
-				value.prepare_period,
-				value.decision_period,
-				value.confirm_period,
-				value.min_enactment_period,
-				value.min_approval,
-				value.min_support,
-			),
-		);
-	}
-
-	fn has_static_size() -> bool {
-		<(
-			UnboundedBytes,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			UnboundedBytes,
-			UnboundedBytes,
-		)>::has_static_size()
-	}
-
-	fn solidity_type() -> String {
-		<(
-			UnboundedBytes,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			U256,
-			UnboundedBytes,
-			UnboundedBytes,
-		)>::solidity_type()
-	}
-}
-
 /// A precompile to wrap the functionality from pallet-referenda.
-pub struct ReferendaPrecompile<Runtime, GovOrigin: TryFrom<u16>>(PhantomData<(Runtime, GovOrigin)>);
+pub struct ReferendaPrecompile<Runtime, GovOrigin>(PhantomData<(Runtime, GovOrigin)>);
 
 #[precompile_utils::precompile]
 impl<Runtime, GovOrigin> ReferendaPrecompile<Runtime, GovOrigin>
@@ -166,7 +95,7 @@ where
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
-	GovOrigin: TryFrom<u16>,
+	GovOrigin: FromStr,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]
@@ -217,8 +146,8 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
 			.into_iter()
-			.filter_map(|x| {
-				if let Ok(track_id) = x.0.try_into() {
+			.filter_map(|(id, _)| {
+				if let Ok(track_id) = (*id).try_into() {
 					Some(track_id)
 				} else {
 					None
@@ -240,9 +169,9 @@ where
 			.in_field("trackId")?;
 		let tracks = Runtime::Tracks::tracks();
 		let index = tracks
-			.binary_search_by_key(&track_id, |x| x.0)
+			.binary_search_by_key(&track_id, |(id, _)| *id)
 			.unwrap_or_else(|x| x);
-		let track_info = &tracks[index].1;
+		let (_, track_info) = &tracks[index];
 
 		Ok(TrackInfo {
 			name: track_info.name.into(),
@@ -257,6 +186,26 @@ where
 		})
 	}
 
+	/// Use Runtime::Tracks::tracks to get the origin for input trackId
+	fn track_id_to_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
+		let tracks = Runtime::Tracks::tracks();
+		let index = tracks
+			.binary_search_by_key(&track_id, |(id, _)| *id)
+			.unwrap_or_else(|x| x);
+		let (_, track_info) = &tracks[index];
+		let origin = if track_info.name == "root" {
+			frame_system::RawOrigin::Root.into()
+		} else {
+			GovOrigin::from_str(track_info.name)
+				.map_err(|_| {
+					RevertReason::custom("Custom origin does not exist for {track_info.name}")
+						.in_field("trackId")
+				})?
+				.into()
+		};
+		Ok(Box::new(origin))
+	}
+
 	// Helper function for submitAt and submitAfter
 	fn submit(
 		handle: &mut impl PrecompileHandle,
@@ -264,13 +213,15 @@ where
 		proposal: Vec<u8>,
 		enactment_moment: DispatchTime<Runtime::BlockNumber>,
 	) -> EvmResult<u32> {
-		// for read of referendumCount to get the referendum index
+		// record cost to read referendumCount to get the referendum index
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
-		let proposal_origin: GovOrigin = track_id.try_into().map_err(|_| {
-			RevertReason::custom("Origin does not exist for TrackId").in_field("trackId")
-		})?;
-		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(proposal_origin.into());
+		let proposal_origin = Self::track_id_to_origin(
+			track_id
+				.try_into()
+				.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
+				.in_field("trackId")?,
+		)?;
 		let proposal: BoundedCallOf<Runtime> =
 			Bounded::Inline(frame_support::BoundedVec::try_from(proposal).map_err(|_| {
 				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")

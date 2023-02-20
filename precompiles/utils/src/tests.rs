@@ -686,32 +686,10 @@ fn read_vec_of_bytes() {
 //     uint64 weight
 // ) external;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, EvmData)]
 struct MultiLocation {
 	parents: u8,
 	interior: Vec<UnboundedBytes>,
-}
-
-impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-		let parents = inner_reader.read().in_field("parents")?;
-		let interior = inner_reader.read().in_field("interior")?;
-
-		Ok(MultiLocation { parents, interior })
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, (value.parents, value.interior));
-	}
-
-	fn has_static_size() -> bool {
-		<(u8, Vec<UnboundedBytes>)>::has_static_size()
-	}
-
-	fn solidity_type() -> String {
-		<(u8, Vec<UnboundedBytes>)>::solidity_type()
-	}
 }
 
 #[generate_function_selector]

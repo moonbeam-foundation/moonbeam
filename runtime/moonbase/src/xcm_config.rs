@@ -19,8 +19,8 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
+	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -112,6 +112,17 @@ pub type LocationToAccountId = (
 	xcm_primitives::Account20Hash<AccountId>,
 );
 
+/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
+pub struct LocationToH160;
+impl xcm_executor::traits::Convert<MultiLocation, H160> for LocationToH160 {
+	fn convert(location: MultiLocation) -> Result<H160, MultiLocation> {
+		<LocationToAccountId as xcm_executor::traits::Convert<MultiLocation, AccountId>>::convert(
+			location,
+		)
+		.map(Into::into)
+	}
+}
+
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
 // This is intended to match FOREIGN ASSETS
@@ -189,6 +200,7 @@ pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -265,6 +277,8 @@ moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 #[cfg(feature = "evm-tracing")]
 moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!();
 
+moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type RuntimeCall = RuntimeCall;
@@ -297,12 +311,15 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
+	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
 	type AssetClaims = PolkadotXcm;
 	type CallDispatcher = MoonbeamCall;
 }
 
-type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
+	RuntimeCall,
+	xcm_executor::XcmExecutor<XcmExecutorConfig>,
+>;
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
@@ -316,12 +333,16 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
+/// erc20 assets in an unsupported way.
+pub type XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper<Runtime, Everything>;
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Everything;
+	type XcmExecuteFilter = XcmExecuteFilter;
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
@@ -404,24 +425,33 @@ pub enum CurrencyId {
 	ForeignAsset(AssetId),
 	// Our local assets
 	LocalAssetReserve(AssetId),
+	// Erc20 token
+	Erc20 { contract_address: H160 },
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
-		match account {
+		Some(match account {
 			// the self-reserve currency is identified by the pallet-balances address
-			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
+			a if a == H160::from_low_u64_be(2050).into() => CurrencyId::SelfReserve,
 			// the rest of the currencies, by their corresponding erc20 address
-			// We distinguish by prefix, and depending on it we create either
-			// Foreign or Local
-			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
-				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-					CurrencyId::ForeignAsset(asset_id)
-				} else {
-					CurrencyId::LocalAssetReserve(asset_id)
+			_ => match Runtime::account_to_asset_id(account) {
+				// We distinguish by prefix, and depending on it we create either
+				// Foreign or Local
+				Some((prefix, asset_id)) => {
+					if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+						CurrencyId::ForeignAsset(asset_id)
+					} else {
+						CurrencyId::LocalAssetReserve(asset_id)
+					}
 				}
-			}),
-		}
+				// If no known prefix is identified, we consider that it's a "real" erc20 token
+				// (i.e. managed by a real smart contract)
+				None => CurrencyId::Erc20 {
+					contract_address: account.into(),
+				},
+			},
+		})
 	}
 }
 
@@ -442,6 +472,16 @@ where
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
+			CurrencyId::Erc20 { contract_address } => {
+				let mut location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.0,
+						network: NetworkId::Any,
+					})
+					.ok();
 				Some(location)
 			}
 		}
@@ -562,6 +602,29 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 	type HrmpEncoder = moonbeam_relay_encoder::westend::WestendEncoder;
+}
+
+parameter_types! {
+	// This is the relative view of erc20 assets.
+	// Identified by this prefix + AccountKey20(contractAddress)
+	// We use the RELATIVE multilocation
+	pub Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<Erc20XcmBridge as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	// To be able to support almost all erc20 implementations,
+	// we provide a sufficiently hight gas limit.
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 80_000;
+}
+
+impl pallet_erc20_xcm_bridge::Config for Runtime {
+	type AccountIdConverter = LocationToH160;
+	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
+	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

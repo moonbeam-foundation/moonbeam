@@ -49,6 +49,7 @@ pallet-evm-precompile-collective = { path = "../../precompiles/collective", defa
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-evm-precompile-preimage = { path = "../../precompiles/preimage", default-features = false }
 pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
 pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }

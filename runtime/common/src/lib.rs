@@ -23,6 +23,7 @@ mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;
 mod impl_self_contained_call;
+mod impl_xcm_evm_runner;
 pub mod migrations;
 
 //TODO maybe this should be upstreamed into Frontier.
