@@ -256,27 +256,26 @@ where
 	) -> EvmResult<u32> {
 		let proposal: sp_std::vec::Vec<u8> = proposal.into();
 		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AT,
-			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(block_number)
-				.write::<H256>(hash.into())
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
 
-		let submit_result = Self::submit(
+		let referendum_index = Self::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::At(block_number.into()),
 		)?;
-
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(referendum_index)
+				.write::<H256>(hash.into())
+				.build(),
+		);
 		event.record(handle)?;
 
-		Ok(submit_result)
+		Ok(referendum_index)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -294,27 +293,27 @@ where
 	) -> EvmResult<u32> {
 		let proposal: sp_std::vec::Vec<u8> = proposal.into();
 		let hash = <Runtime as frame_system::Config>::Hashing::hash(&proposal);
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AFTER,
-			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(block_number)
-				.write::<H256>(hash.into())
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
 
-		let submit_result = Self::submit(
+		let referendum_index = Self::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::After(block_number.into()),
 		)?;
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(referendum_index)
+				.write::<H256>(hash.into())
+				.build(),
+		);
 
 		event.record(handle)?;
 
-		Ok(submit_result)
+		Ok(referendum_index)
 	}
 
 	/// Post the Decision Deposit for a referendum.

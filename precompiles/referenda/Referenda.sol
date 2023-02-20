@@ -91,18 +91,18 @@ interface Referenda {
     /// @dev A referenda has been submitted at a given block
     /// @custom:selector e02a819ecfc92874b5016c6a0e26f56a5cb08771f32ab818bf548d84ca3ae94d
     /// @param trackId uint16 The trackId
-    /// @param blockNumber uint32 Block number at which it was set to be submitted
+    /// @param referendumIndex uint32 The index of the submitted referendum
     /// @param hash bytes32 The hash of the proposal preimage
-    event SubmittedAt(uint16 indexed trackId, uint32 blockNumber, bytes32 hash);
+    event SubmittedAt(uint16 indexed trackId, uint32 referendumIndex, bytes32 hash);
 
     /// @dev A referenda has been submitted after a given block
     /// @custom:selector a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf
     /// @param trackId uint16 The trackId
-    /// @param blockNumber uint32 Block number after which it was set to be submitted
+    /// @param referendumIndex uint32 The index of the submitted referendum
     /// @param hash bytes32 The hash of the proposal preimage
     event SubmittedAfter(
         uint16 indexed trackId,
-        uint32 blockNumber,
+        uint32 referendumIndex,
         bytes32 hash
     );
 
