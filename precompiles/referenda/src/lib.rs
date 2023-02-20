@@ -52,21 +52,20 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
-/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_SUBMITTED_AT: [u8; 32] =
 	keccak256!("SubmittedAt(uint16,uint32,bytes32)");
 
-/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_SUBMITTED_AFTER: [u8; 32] =
 	keccak256!("SubmittedAfter(uint16,uint32,bytes32)");
 
-/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
 	keccak256!("DecisionDepositPlaced(uint32,address,uint256)");
 
-/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
 	keccak256!("DecisionDepositRefunded(uint32,address,uint256)");
+
+pub(crate) const SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; 32] =
+	keccak256!("SubmissionDepositRefunded(uint32,address,uint256)");
 
 #[derive(EvmData)]
 pub struct TrackInfo {
@@ -371,16 +370,12 @@ where
 		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
 			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
 		{
-			ReferendumInfo::Ongoing(x) if x.decision_deposit.is_none() => U256::zero(),
-			ReferendumInfo::Ongoing(_) => {
-				return Err(RevertReason::custom("Cannot refund an ongoing referendum")
-					.in_field("index")
-					.into())
-			}
+			ReferendumInfo::Ongoing(x) if x.decision_deposit.is_some() => x.decision_deposit.unwrap().amount.into(),
 			ReferendumInfo::Approved(_, _, Some(d))
 			| ReferendumInfo::Rejected(_, _, Some(d))
 			| ReferendumInfo::TimedOut(_, _, Some(d))
 			| ReferendumInfo::Cancelled(_, _, Some(d)) => d.amount.into(),
+			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
 			_ => U256::zero(),
 		};
 
@@ -409,11 +404,35 @@ where
 	/// * index: The index of a closed referendum whose Submission Deposit has not yet been refunded.
 	#[precompile::public("refundSubmissionDeposit(uint32)")]
 	fn refund_submission_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		handle.record_log_costs_manual(1, 32 * 3)?;
+		// Get refunding deposit before dispatch
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
+			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
+		{
+			ReferendumInfo::Approved(_, Some(s), _) | ReferendumInfo::Cancelled(_, Some(s), _) => s.amount.into(),
+			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+			_ => U256::zero(),
+		};
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.write::<Address>(Address(handle.context().caller))
+				.write::<U256>(refunded_deposit)
+				.build(),
+		);
+
+		event.record(handle)?;
+
 		Ok(())
 	}
 }

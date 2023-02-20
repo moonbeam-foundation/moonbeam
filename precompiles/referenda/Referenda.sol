@@ -127,4 +127,15 @@ interface Referenda {
         address caller,
         uint256 refundedAmount,
     );
+
+    /// @dev Submission Deposit for a valid referendum has been refunded
+    /// @custom:selector 97a6d6297b296f1582fd202b983e51396e14aad8311725c1b61a4ede13242658
+    /// @param index uint32 The index of the approved or cancelled referendum.
+    /// @param caller address Address of the caller.
+    /// @param refundedAmount uint256 Amount being refunded.
+    event SubmissionDepositRefunded(
+        uint32 index,
+        address caller,
+        uint256 refundedAmount,
+    );
 }
