@@ -97,7 +97,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
 	/// Frontier Backend.
-	pub frontier_backend: fc_db::Backend<Block>,
+	pub frontier_backend: Arc<dyn fc_db::BackendReader<Block> + Send + Sync>,
 	/// Backend.
 	pub backend: Arc<BE>,
 	/// Manual seal command sink
@@ -357,7 +357,7 @@ where
 					Duration::new(6, 0),
 					params.client.clone(),
 					params.substrate_backend.clone(),
-					frontier_backend_kv.clone(),
+					Arc::new(frontier_backend_kv.clone()),
 					3,
 					0,
 					fc_mapping_sync::kv::SyncStrategy::Parachain,
@@ -372,7 +372,7 @@ where
 				fc_mapping_sync::sql::SyncWorker::run(
 					params.client.clone(),
 					params.substrate_backend.clone(),
-					frontier_backend_sql.clone(),
+					Arc::new(frontier_backend_sql.clone()),
 					params.client.import_notification_stream(),
 					1000,                              // batch size
 					std::time::Duration::from_secs(1), // interval duration

@@ -93,15 +93,15 @@ substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", b
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", features = [ "rpc-binary-search-estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", features = [ "forbid-evm-reentrancy" ] }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", features = [ "rpc-binary-search-estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", features = [ "forbid-evm-reentrancy" ] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37" }

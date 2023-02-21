@@ -469,6 +469,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
+	type OnCreate = ();
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 }

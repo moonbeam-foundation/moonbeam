@@ -36,10 +36,10 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 
 # Frontier
-fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false }
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", default-features = false }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
 pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }

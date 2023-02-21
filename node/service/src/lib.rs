@@ -262,32 +262,30 @@ where
 	BE::State: StateBackend<BlakeTwo256>,
 {
 	let frontier_backend = match rpc_config.frontier_backend_config {
-		FrontierBackendConfig::KeyValue => {
-			fc_db::Backend::KeyValue(Arc::new(fc_db::kv::Backend::new(
-				client.clone(),
-				&fc_db::kv::DatabaseSettings {
-					source: match config.database {
-						DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-							path: frontier_database_dir(config, "db"),
-							cache_size: 0,
-						},
-						DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-							path: frontier_database_dir(config, "paritydb"),
-						},
-						DatabaseSource::Auto { .. } => DatabaseSource::Auto {
-							rocksdb_path: frontier_database_dir(config, "db"),
-							paritydb_path: frontier_database_dir(config, "paritydb"),
-							cache_size: 0,
-						},
-						_ => {
-							return Err(
-								"Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string()
-							)
-						}
+		FrontierBackendConfig::KeyValue => fc_db::Backend::KeyValue(fc_db::kv::Backend::new(
+			client.clone(),
+			&fc_db::kv::DatabaseSettings {
+				source: match config.database {
+					DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+						path: frontier_database_dir(config, "db"),
+						cache_size: 0,
 					},
+					DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+						path: frontier_database_dir(config, "paritydb"),
+					},
+					DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+						rocksdb_path: frontier_database_dir(config, "db"),
+						paritydb_path: frontier_database_dir(config, "paritydb"),
+						cache_size: 0,
+					},
+					_ => {
+						return Err(
+							"Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string()
+						)
+					}
 				},
-			)?))
-		}
+			},
+		)?),
 		FrontierBackendConfig::Sql {
 			pool_size,
 			num_ops_timeout,
@@ -311,7 +309,7 @@ where
 				overrides,
 			))
 			.expect("indexer pool to be created");
-			fc_db::Backend::Sql(Arc::new(backend))
+			fc_db::Backend::Sql(backend)
 		}
 	};
 
@@ -514,8 +512,7 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 
-	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
@@ -735,7 +732,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,
@@ -1197,7 +1197,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,

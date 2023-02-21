@@ -19,7 +19,6 @@ use sp_core::H256;
 use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
 // so it's load_hash helper returns an H256 instead of wrapping it in a BlockId?
-use fc_db::Backend as FrontierBackend;
 use sp_api::BlockId;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block;
@@ -39,13 +38,13 @@ pub trait MoonbeamFinalityApi {
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
-	pub backend: FrontierBackend<B>,
+	pub backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
 	pub client: Arc<C>,
 	_phdata: PhantomData<B>,
 }
 
 impl<B: Block, C> MoonbeamFinality<B, C> {
-	pub fn new(client: Arc<C>, backend: FrontierBackend<B>) -> Self {
+	pub fn new(client: Arc<C>, backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>) -> Self {
 		Self {
 			backend,
 			client,
@@ -62,7 +61,7 @@ where
 {
 	async fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
-		is_block_finalized_inner::<B, C>(&self.backend, &client, raw_hash).await
+		is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, raw_hash).await
 	}
 
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
@@ -70,13 +69,14 @@ where
 		if let Some((ethereum_block_hash, _ethereum_index)) =
 			frontier_backend_client::load_transactions::<B, C>(
 				&client,
-				&self.backend,
+				self.backend.as_ref(),
 				tx_hash,
 				true,
 			)
 			.await?
 		{
-			is_block_finalized_inner::<B, C>(&self.backend, &client, ethereum_block_hash).await
+			is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, ethereum_block_hash)
+				.await
 		} else {
 			Ok(false)
 		}
@@ -84,7 +84,7 @@ where
 }
 
 async fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
-	backend: &FrontierBackend<B>,
+	backend: &(dyn fc_db::BackendReader<B> + Send + Sync),
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {

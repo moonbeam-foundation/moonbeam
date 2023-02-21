@@ -36,9 +36,9 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer", features = [ "rpc-binary-search-estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", features = [ "rpc-binary-search-estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
 
