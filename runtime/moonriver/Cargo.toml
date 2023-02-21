@@ -191,6 +191,7 @@ std = [
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
+	"moonbeam-xcm-benchmarks/std",
 	"nimbus-primitives/std",
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
