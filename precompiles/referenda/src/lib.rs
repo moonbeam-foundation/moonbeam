@@ -19,11 +19,13 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
+use frame_support::traits::{
+	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
+};
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
-	Call as ReferendaCall, DecidingCount, Pallet as Referenda, ReferendumCount, ReferendumInfo,
-	ReferendumInfoFor, TracksInfo,
+	Call as ReferendaCall, DecidingCount, Deposit, Pallet as Referenda, ReferendumCount,
+	ReferendumInfo, ReferendumInfoFor, TracksInfo,
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
@@ -77,6 +79,54 @@ pub struct TrackInfo {
 	min_support: UnboundedBytes,
 }
 
+#[derive(EvmData)]
+pub struct OngoingReferendumInfo {
+	/// The track of this referendum.
+	track_id: u16,
+	/// The origin for this referendum.
+	origin: UnboundedBytes,
+	/// The hash of the proposal up for referendum.
+	proposal: UnboundedBytes,
+	/// Whether proposal is scheduled for enactment at or after `enactment_time`.
+	enactment_type: bool,
+	/// The time the proposal should be scheduled for enactment.
+	enactment_time: U256,
+	/// The time of submission. Once `UndecidingTimeout` passes, it may be closed by anyone if
+	/// `deciding` is `None`.
+	submission_time: U256,
+	submission_depositor: Address,
+	submission_deposit: U256,
+	decision_depositor: Address,
+	decision_deposit: U256,
+	/// When this referendum began being "decided". If confirming, then the
+	/// end will actually be delayed until the end of the confirmation period.
+	deciding_since: U256,
+	/// If nonzero, then the referendum has entered confirmation stage and will end at
+	/// the block number as long as it doesn't lose its approval in the meantime.
+	deciding_confirming_end: U256,
+	/// The number of aye votes, expressed in terms of post-conviction lock-vote.
+	ayes: U256,
+	/// Percent aye votes, expressed pre-conviction, over the total votes in the class.
+	support: u32,
+	/// Percent of aye votes over aye + nay votes.
+	approval: u32,
+	/// Whether we have been placed in the queue for being decided or not.
+	in_queue: bool,
+	/// The next scheduled wake-up
+	alarm_time: U256,
+	alarm_task_address: UnboundedBytes,
+}
+
+#[derive(EvmData)]
+pub struct ClosedReferendumInfo {
+	status: u8,
+	end: U256,
+	submission_depositor: Address,
+	submission_deposit: U256,
+	decision_depositor: Address,
+	decision_deposit: U256,
+}
+
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime, GovOrigin>(PhantomData<(Runtime, GovOrigin)>);
 
@@ -85,6 +135,7 @@ impl<Runtime, GovOrigin> ReferendaPrecompile<Runtime, GovOrigin>
 where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
 	OriginOf<Runtime>: From<GovOrigin>,
+	Runtime::AccountId: Into<H160>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -95,6 +146,7 @@ where
 	Runtime::AccountId: Into<H160>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
+	Runtime::Votes: Into<U256>,
 	GovOrigin: FromStr,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -244,6 +296,176 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(referendum_index)
+	}
+
+	#[precompile::public("referendumStatus(uint32)")]
+	#[precompile::view]
+	fn referendum_status(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<u8> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let status = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Ongoing(..) => 0,
+			ReferendumInfo::Approved(..) => 1,
+			ReferendumInfo::Rejected(..) => 2,
+			ReferendumInfo::Cancelled(..) => 3,
+			ReferendumInfo::TimedOut(..) => 4,
+			ReferendumInfo::Killed(..) => 5,
+		};
+
+		Ok(status)
+	}
+
+	#[precompile::public("ongoingReferendumInfo(uint32)")]
+	#[precompile::view]
+	fn ongoing_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<OngoingReferendumInfo> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Ongoing(info) => {
+				let track_id = info
+					.track
+					.try_into()
+					.map_err(|_| RevertReason::value_is_too_large("Track id type not u16"))?;
+				let (enactment_type, enactment_time) = match info.enactment {
+					DispatchTime::At(x) => (true, x.into()),
+					DispatchTime::After(x) => (false, x.into()),
+				};
+				let (decision_depositor, decision_deposit) =
+					if let Some(deposit) = info.decision_deposit {
+						(Address(deposit.who.into()), deposit.amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				let (deciding_since, deciding_confirming_end) =
+					if let Some(deciding_status) = info.deciding {
+						(
+							deciding_status.since.into(),
+							deciding_status.confirming.unwrap_or_default().into(),
+						)
+					} else {
+						(U256::zero(), U256::zero())
+					};
+				let (alarm_time, alarm_task_address) =
+					if let Some((time, task_address)) = info.alarm {
+						(time.into(), task_address.encode().into())
+					} else {
+						(U256::zero(), UnboundedBytes::from(&[]))
+					};
+
+				Ok(OngoingReferendumInfo {
+					track_id,
+					origin: info.origin.encode().into(),
+					proposal: info.proposal.encode().into(),
+					enactment_type,
+					enactment_time,
+					submission_time: info.submitted.into(),
+					submission_depositor: Address(info.submission_deposit.who.into()),
+					submission_deposit: info.submission_deposit.amount.into(),
+					decision_depositor,
+					decision_deposit,
+					deciding_since,
+					deciding_confirming_end,
+					ayes: info.tally.ayes(info.track).into(),
+					support: info.tally.support(info.track).deconstruct(),
+					approval: info.tally.approval(info.track).deconstruct(),
+					in_queue: info.in_queue,
+					alarm_time,
+					alarm_task_address,
+				})
+			}
+			_ => Err(RevertReason::custom("Referendum not ongoing").into()),
+		}
+	}
+
+	#[precompile::public("closedReferendumInfo(uint32)")]
+	#[precompile::view]
+	fn closed_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<ClosedReferendumInfo> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let get_closed_ref_info =
+			|status,
+			 moment: Runtime::BlockNumber,
+			 submission_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>,
+			 decision_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>|
+			 -> ClosedReferendumInfo {
+				let (submission_depositor, submission_deposit_amount): (Address, U256) =
+					if let Some(Deposit { who, amount }) = submission_deposit {
+						(Address(who.into()), amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				let (decision_depositor, decision_deposit_amount) =
+					if let Some(Deposit { who, amount }) = decision_deposit {
+						(Address(who.into()), amount.into())
+					} else {
+						(Address(H160::zero()), U256::zero())
+					};
+				ClosedReferendumInfo {
+					status,
+					end: moment.into(),
+					submission_depositor,
+					submission_deposit: submission_deposit_amount,
+					decision_depositor,
+					decision_deposit: decision_deposit_amount,
+				}
+			};
+
+		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Approved(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(1, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::Rejected(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(2, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::Cancelled(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(3, moment, submission_deposit, decision_deposit),
+			),
+			ReferendumInfo::TimedOut(moment, submission_deposit, decision_deposit) => Ok(
+				get_closed_ref_info(4, moment, submission_deposit, decision_deposit),
+			),
+			_ => Err(RevertReason::custom("Referendum not closed").into()),
+		}
+	}
+
+	#[precompile::public("killedReferendumBlock(uint32)")]
+	#[precompile::view]
+	fn killed_referendum_block(
+		handle: &mut impl PrecompileHandle,
+		referendum_index: u32,
+	) -> EvmResult<U256> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let block = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
+			RevertReason::custom("Referendum does not exist for index")
+				.in_field("referendum_index"),
+		)? {
+			ReferendumInfo::Killed(b) => b,
+			_ => return Err(RevertReason::custom("Referendum not killed").into()),
+		};
+
+		Ok(block.into())
 	}
 
 	/// Propose a referendum on a privileged action.

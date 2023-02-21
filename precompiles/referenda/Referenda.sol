@@ -12,6 +12,14 @@ Referenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);
 /// @title The interface through which solidity contracts will interact with the Referenda pallet
 /// @custom:address 0x0000000000000000000000000000000000000811
 interface Referenda {
+    enum ReferendumStatus {
+        Ongoing,
+        Approved,
+        Rejected,
+        Cancelled,
+        TimedOut,
+        Killed
+    }
     struct TrackInfo {
         string name;
         uint256 maxDeciding;
@@ -22,6 +30,52 @@ interface Referenda {
         uint256 minEnactmentPeriod;
         bytes minApproval;
         bytes minSupport;
+    }
+    struct OngoingReferendumInfo {
+        /// The track of this referendum.
+        uint16 trackId;
+        /// The origin for this referendum.
+        bytes origin;
+        /// The hash of the proposal up for referendum.
+        bytes proposal;
+        /// Whether proposal is scheduled for enactment at or after `enactment_time`. True if
+        /// DispatchTime::At and false if DispatchTime::After
+        bool enactmentType;
+        /// The time the proposal should be scheduled for enactment.
+        uint256 enactmentTime;
+        /// The time of submission. Once `UndecidingTimeout` passes, it may be closed by anyone if
+        /// `deciding` is `None`.
+        uint256 submissionTime;
+        address submissionDepositor;
+        uint256 submissionDeposit;
+        address decisionDepositor;
+        uint256 decisionDeposit;
+        /// When this referendum began being "decided". If confirming, then the
+        /// end will actually be delayed until the end of the confirmation period.
+        uint256 decidingSince;
+        /// If nonzero, then the referendum has entered confirmation stage and will end at
+        /// the block number as long as it doesn't lose its approval in the meantime.
+        uint256 decidingConfirmingEnd;
+        /// The number of aye votes, expressed in terms of post-conviction lock-vote.
+        uint256 ayes;
+        /// Percent of aye votes, expressed pre-conviction, over total votes in the class.
+        uint32 support;
+        /// Percent of aye votes over aye + nay votes.
+        uint32 approval;
+        /// Whether we have been placed in the queue for being decided or not.
+        bool inQueue;
+        /// The next scheduled wake-up
+        uint256 alarmTime;
+        /// Scheduler task address if scheduled
+        bytes taskAddress;
+    }
+    struct ClosedReferendumInfo {
+        ReferendumStatus status;
+        uint256 end;
+        address submissionDepositor;
+        uint256 submissionDeposit;
+        address decisionDepositor;
+        uint256 decisionDeposit;
     }
 
     /// Return the total referendum count
@@ -46,6 +100,38 @@ interface Referenda {
     /// @param trackId The track identifier
     /// @custom:selector 34038146
     function trackInfo(uint16 trackId) external view returns (TrackInfo memory);
+
+    /// Return the ReferendumStatus for the input referendumIndex
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 8d407c0b
+    function referendumStatus(uint32 referendumIndex)
+        external
+        view
+        returns (ReferendumStatus);
+
+    /// Return the referendumInfo for an ongoing referendum
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector f033b7cd
+    function ongoingReferendumInfo(uint32 referendumIndex)
+        external
+        view
+        returns (OngoingReferendumInfo memory);
+
+    /// Return the referendumInfo for a closed referendum
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 14febfbf
+    function closedReferendumInfo(uint32 referendumIndex)
+        external
+        view
+        returns (ClosedReferendumInfo memory);
+
+    /// Return the block the referendum was killed
+    /// @param referendumIndex The index of the referendum
+    /// @custom:selector 6414ddc5
+    function killedReferendumBlock(uint32 referendumIndex)
+        external
+        view
+        returns (uint256);
 
     /// @dev Submit a referenda
     /// @custom:selector 131f3468
@@ -97,7 +183,11 @@ interface Referenda {
     /// @param trackId uint16 The trackId
     /// @param referendumIndex uint32 The index of the submitted referendum
     /// @param hash bytes32 The hash of the proposal preimage
-    event SubmittedAt(uint16 indexed trackId, uint32 referendumIndex, bytes32 hash);
+    event SubmittedAt(
+        uint16 indexed trackId,
+        uint32 referendumIndex,
+        bytes32 hash
+    );
 
     /// @dev A referenda has been submitted after a given block
     /// @custom:selector a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf
