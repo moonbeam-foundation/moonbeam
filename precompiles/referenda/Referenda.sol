@@ -38,7 +38,8 @@ interface Referenda {
         bytes origin;
         /// The hash of the proposal up for referendum.
         bytes proposal;
-        /// Whether proposal is scheduled for enactment at or after `enactment_time`.
+        /// Whether proposal is scheduled for enactment at or after `enactment_time`. True if
+        /// DispatchTime::At and false if DispatchTime::After
         bool enactmentType;
         /// The time the proposal should be scheduled for enactment.
         uint256 enactmentTime;
@@ -180,28 +181,55 @@ interface Referenda {
     /// @dev A referenda has been submitted at a given block
     /// @custom:selector e02a819ecfc92874b5016c6a0e26f56a5cb08771f32ab818bf548d84ca3ae94d
     /// @param trackId uint16 The trackId
-    /// @param blockNumber uint32 Block number at which it was set to be submitted
+    /// @param referendumIndex uint32 The index of the submitted referendum
     /// @param hash bytes32 The hash of the proposal preimage
-    event SubmittedAt(uint16 indexed trackId, uint32 blockNumber, bytes32 hash);
+    event SubmittedAt(
+        uint16 indexed trackId,
+        uint32 referendumIndex,
+        bytes32 hash
+    );
 
     /// @dev A referenda has been submitted after a given block
     /// @custom:selector a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf
     /// @param trackId uint16 The trackId
-    /// @param blockNumber uint32 Block number after which it was set to be submitted
+    /// @param referendumIndex uint32 The index of the submitted referendum
     /// @param hash bytes32 The hash of the proposal preimage
     event SubmittedAfter(
         uint16 indexed trackId,
-        uint32 blockNumber,
+        uint32 referendumIndex,
         bytes32 hash
     );
 
     /// @dev Decision Deposit for a referendum has been placed
-    /// @custom:selector 87e691fb2e6a679435f578d43cd67e1af825294e56064a9de0522b312b8e9a60
-    /// @param index uint32 The index of the ongoing referendum that is not yet deciding
-    event DecisionDepositPlaced(uint32 index);
+    /// @custom:selector 222ac3cb2f2e974dcbd2ac3d35e9fefb77e57f5dc4b9243afa9a926b1ff57f75
+    /// @param index uint32 The index of the ongoing referendum that is not yet deciding.
+    /// @param caller address Address of the caller.
+    /// @param depositedAmount uint256 Amount being deposited.
+    event DecisionDepositPlaced(
+        uint32 index,
+        address caller,
+        uint256 depositedAmount
+    );
 
     /// @dev Decision Deposit for a closed referendum has been refunded
-    /// @custom:selector 61f241739b215680a33261f1dee7646d0e840d5e498c1142c1a534987d9b8ed8
+    /// @custom:selector 86801df04afc1aa4cd2d673df29c5951bbb0bae2c965bb9d233909894aab55be
     /// @param index uint32 The index of the closed referendum
-    event DecisionDepositRefunded(uint32 index);
+    /// @param caller address Address of the caller.
+    /// @param refundedAmount uint256 Amount being refunded.
+    event DecisionDepositRefunded(
+        uint32 index,
+        address caller,
+        uint256 refundedAmount
+    );
+
+    /// @dev Submission Deposit for a valid referendum has been refunded
+    /// @custom:selector 97a6d6297b296f1582fd202b983e51396e14aad8311725c1b61a4ede13242658
+    /// @param index uint32 The index of the approved or cancelled referendum.
+    /// @param caller address Address of the caller.
+    /// @param refundedAmount uint256 Amount being refunded.
+    event SubmissionDepositRefunded(
+        uint32 index,
+        address caller,
+        uint256 refundedAmount
+    );
 }

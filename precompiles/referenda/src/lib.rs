@@ -24,8 +24,8 @@ use frame_support::traits::{
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
-	Call as ReferendaCall, DecidingCount, Deposit, ReferendumCount, ReferendumInfo,
-	ReferendumInfoFor, TracksInfo,
+	Call as ReferendaCall, DecidingCount, Deposit, Pallet as Referenda, ReferendumCount,
+	ReferendumInfo, ReferendumInfoFor, TracksInfo,
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
@@ -51,21 +51,20 @@ type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::Run
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
-/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_SUBMITTED_AT: [u8; 32] =
 	keccak256!("SubmittedAt(uint16,uint32,bytes32)");
 
-/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_SUBMITTED_AFTER: [u8; 32] =
 	keccak256!("SubmittedAfter(uint16,uint32,bytes32)");
 
-/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; 32] =
-	keccak256!("DecisionDepositPlaced(uint32)");
+	keccak256!("DecisionDepositPlaced(uint32,address,uint256)");
 
-/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
-	keccak256!("DecisionDepositRefunded(uint32)");
+	keccak256!("DecisionDepositRefunded(uint32,address,uint256)");
+
+pub(crate) const SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; 32] =
+	keccak256!("SubmissionDepositRefunded(uint32,address,uint256)");
 
 #[derive(EvmData)]
 pub struct TrackInfo {
@@ -144,6 +143,7 @@ where
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
+	Runtime::AccountId: Into<H160>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	Runtime::Votes: Into<U256>,
@@ -487,27 +487,26 @@ where
 			hash: proposal_hash,
 			len: proposal_len,
 		};
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AT,
-			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(block_number)
-				.write::<H256>(proposal_hash)
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
 
-		let submit_result = Self::submit(
+		let referendum_index = Self::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::At(block_number.into()),
 		)?;
-
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(referendum_index)
+				.write::<H256>(proposal_hash)
+				.build(),
+		);
 		event.record(handle)?;
 
-		Ok(submit_result)
+		Ok(referendum_index)
 	}
 
 	/// Propose a referendum on a privileged action.
@@ -529,27 +528,27 @@ where
 			hash: proposal_hash,
 			len: proposal_len,
 		};
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AFTER,
-			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(block_number)
-				.write::<H256>(proposal_hash)
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		handle.record_log_costs_manual(2, 32 * 2)?;
 
-		let submit_result = Self::submit(
+		let referendum_index = Self::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::After(block_number.into()),
 		)?;
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id as u64),
+			EvmDataWriter::new()
+				.write::<u32>(referendum_index)
+				.write::<H256>(proposal_hash)
+				.build(),
+		);
 
 		event.record(handle)?;
 
-		Ok(submit_result)
+		Ok(referendum_index)
 	}
 
 	/// Post the Decision Deposit for a referendum.
@@ -558,18 +557,35 @@ where
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	#[precompile::public("placeDecisionDeposit(uint32)")]
 	fn place_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
-		let event = log1(
-			handle.context().address,
-			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new().write::<u32>(index).build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		// Account later `ensure_ongoing` read cost
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_log_costs_manual(1, 32 * 3)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
+		let ongoing_referendum = Referenda::<Runtime>::ensure_ongoing(index).map_err(|_| {
+			RevertReason::custom("Provided index is not an ongoing referendum").in_field("index")
+		})?;
+		let decision_deposit: U256 =
+			if let Some(decision_deposit) = ongoing_referendum.decision_deposit {
+				decision_deposit.amount.into()
+			} else {
+				U256::zero()
+			};
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.write::<Address>(Address(handle.context().caller))
+				.write::<U256>(decision_deposit)
+				.build(),
+		);
 
 		event.record(handle)?;
 		Ok(())
@@ -581,18 +597,35 @@ where
 	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
 	#[precompile::public("refundDecisionDeposit(uint32)")]
 	fn refund_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
-		let event = log1(
-			handle.context().address,
-			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new().write::<u32>(index).build(),
-		);
-		handle.record_log_costs(&[&event])?;
+		handle.record_log_costs_manual(1, 32 * 3)?;
+		// Get refunding deposit before dispatch
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let (who, refunded_deposit): (H160, U256) = match ReferendumInfoFor::<Runtime>::get(index)
+			.ok_or(
+			RevertReason::custom("Referendum index does not exist").in_field("index"),
+		)? {
+			ReferendumInfo::Approved(_, _, Some(d))
+			| ReferendumInfo::Rejected(_, _, Some(d))
+			| ReferendumInfo::TimedOut(_, _, Some(d))
+			| ReferendumInfo::Cancelled(_, _, Some(d)) => (d.who.into(), d.amount.into()),
+			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+			_ => (H160::default(), U256::zero()),
+		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.write::<Address>(Address(who))
+				.write::<U256>(refunded_deposit)
+				.build(),
+		);
 
 		event.record(handle)?;
 		Ok(())
@@ -604,11 +637,37 @@ where
 	/// * index: The index of a closed referendum whose Submission Deposit has not yet been refunded.
 	#[precompile::public("refundSubmissionDeposit(uint32)")]
 	fn refund_submission_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		handle.record_log_costs_manual(1, 32 * 3)?;
+		// Get refunding deposit before dispatch
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let (who, refunded_deposit): (H160, U256) =
+			match ReferendumInfoFor::<Runtime>::get(index)
+				.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
+			{
+				ReferendumInfo::Approved(_, Some(s), _)
+				| ReferendumInfo::Cancelled(_, Some(s), _) => (s.who.into(), s.amount.into()),
+				// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+				_ => (H160::default(), U256::zero()),
+			};
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::<u32>(index)
+				.write::<Address>(Address(who))
+				.write::<U256>(refunded_deposit)
+				.build(),
+		);
+
+		event.record(handle)?;
+
 		Ok(())
 	}
 }
