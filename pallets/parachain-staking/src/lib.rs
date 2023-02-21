@@ -1708,22 +1708,48 @@ pub mod pallet {
 		}
 
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
-		/// a vec of their AccountIds (in the order of selection)
+		/// a vec of their AccountIds (sorted by AccountId)
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
-			let mut candidates = <CandidatePool<T>>::get().0;
-			// order candidates by stake (least to greatest so requires `rev()`)
-			candidates.sort_by(|a, b| a.amount.cmp(&b.amount));
 			let top_n = <TotalSelected<T>>::get() as usize;
-			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = candidates
-				.into_iter()
-				.rev()
-				.take(top_n)
-				.filter(|x| x.amount >= T::MinCollatorStk::get())
-				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>();
-			collators.sort();
-			collators
+			if top_n == 0 {
+				return vec![];
+			}
+
+			let candidates = <CandidatePool<T>>::get().0;
+
+			// If the number of candidates is greater than top_n, select the candidates with higher
+			// amount. Otherwise, return all the candidates.
+			if candidates.len() > top_n {
+				// Append candidate index to each candidate, this allows us to use
+				// select_nth_unstable in a stable way.
+				let mut candidates: Vec<_> = candidates
+					.into_iter()
+					.enumerate()
+					.map(|(i, x)| (Reverse(x.amount), Reverse(i), x.owner))
+					.collect();
+				// Partially sort candidates such that element at index `top_n - 1` is sorted, and
+				// all the elements in the range 0..top_n are the top n elements.
+				candidates.select_nth_unstable(top_n - 1);
+
+				let mut collators = candidates
+					.into_iter()
+					.take(top_n)
+					.filter(|(amount, _i, _owner)| amount.0 >= T::MinCollatorStk::get())
+					.map(|(_amount, _i, owner)| owner)
+					.collect::<Vec<T::AccountId>>();
+				// Sort collators by AccountId
+				collators.sort();
+
+				collators
+			} else {
+				// Return all candidates
+				// The candidates are already sorted by AccountId, so no need to sort again
+				candidates
+					.into_iter()
+					.filter(|x| x.amount >= T::MinCollatorStk::get())
+					.map(|x| x.owner)
+					.collect::<Vec<T::AccountId>>()
+			}
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, delegation_count, total staked]

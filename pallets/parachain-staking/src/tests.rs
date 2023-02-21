@@ -9023,3 +9023,21 @@ fn test_on_initialize_weights() {
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
+
+#[test]
+fn test_compute_top_candidates_is_stable() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30)])
+		.with_candidates(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30)])
+		.build()
+		.execute_with(|| {
+			// There are 6 candidates with equal amount, but only 5 can be selected
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 6);
+			assert_eq!(ParachainStaking::total_selected(), 5);
+			// Returns the 5 candidates with greater AccountId, because they are iterated in reverse
+			assert_eq!(
+				ParachainStaking::compute_top_candidates(),
+				vec![2, 3, 4, 5, 6]
+			);
+		});
+}
