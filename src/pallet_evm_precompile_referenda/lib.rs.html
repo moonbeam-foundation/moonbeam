@@ -387,6 +387,68 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -410,10 +472,13 @@
 <span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>pallet_referenda::{Call <span class="kw">as </span>ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
+<span class="kw">use </span>pallet_referenda::{
+	Call <span class="kw">as </span>ReferendaCall, DecidingCount, Pallet <span class="kw">as </span>Referenda, ReferendumCount, ReferendumInfo,
+	ReferendumInfoFor, TracksInfo,
+};
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>sp_core::{H256, U256};
+<span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -435,21 +500,20 @@
 <span class="kw">type </span>OriginOf&lt;Runtime&gt; =
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::PalletsOrigin;
 
-<span class="doccomment">/// Solidity selector of the SubmittedAt log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AT: [u8; <span class="number">32</span>] =
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AT: [u8; <span class="number">32</span>] =
 	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAt(uint16,uint32,bytes32)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the SubmittedAfter log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AFTER: [u8; <span class="number">32</span>] =
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AFTER: [u8; <span class="number">32</span>] =
 	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAfter(uint16,uint32,bytes32)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the DecisionDepositPlaced log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositPlaced(uint32)&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositPlaced(uint32,address,uint256)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the DecisionDepositRefunded log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositRefunded(uint32)&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositRefunded(uint32,address,uint256)&quot;</span>);
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmissionDepositRefunded(uint32,address,uint256)&quot;</span>);
 
 <span class="attr">#[derive(EvmData)]
 </span><span class="kw">pub struct </span>TrackInfo {
@@ -479,6 +543,7 @@
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ReferendaCall&lt;Runtime&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: Into&lt;H256&gt;,
 	Runtime::BlockNumber: Into&lt;U256&gt;,
+	Runtime::AccountId: Into&lt;H160&gt;,
 	TrackIdOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
 	GovOrigin: FromStr,
@@ -651,27 +716,26 @@
 			hash: proposal_hash,
 			len: proposal_len,
 		};
-		<span class="kw">let </span>event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AT,
-			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(block_number)
-				.write::&lt;H256&gt;(proposal_hash)
-				.build(),
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>submit_result = <span class="self">Self</span>::submit(
+		<span class="kw">let </span>referendum_index = <span class="self">Self</span>::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::At(block_number.into()),
 		)<span class="question-mark">?</span>;
-
+		<span class="kw">let </span>event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AT,
+			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(referendum_index)
+				.write::&lt;H256&gt;(proposal_hash)
+				.build(),
+		);
 		event.record(handle)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(submit_result)
+		<span class="prelude-val">Ok</span>(referendum_index)
 	}
 
 	<span class="doccomment">/// Propose a referendum on a privileged action.
@@ -693,27 +757,27 @@
 			hash: proposal_hash,
 			len: proposal_len,
 		};
-		<span class="kw">let </span>event = log2(
-			handle.context().address,
-			SELECTOR_LOG_SUBMITTED_AFTER,
-			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(block_number)
-				.write::&lt;H256&gt;(proposal_hash)
-				.build(),
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>submit_result = <span class="self">Self</span>::submit(
+		<span class="kw">let </span>referendum_index = <span class="self">Self</span>::submit(
 			handle,
 			track_id,
 			proposal,
 			DispatchTime::After(block_number.into()),
 		)<span class="question-mark">?</span>;
+		<span class="kw">let </span>event = log2(
+			handle.context().address,
+			SELECTOR_LOG_SUBMITTED_AFTER,
+			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(referendum_index)
+				.write::&lt;H256&gt;(proposal_hash)
+				.build(),
+		);
 
 		event.record(handle)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(submit_result)
+		<span class="prelude-val">Ok</span>(referendum_index)
 	}
 
 	<span class="doccomment">/// Post the Decision Deposit for a referendum.
@@ -722,18 +786,35 @@
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;placeDecisionDeposit(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>place_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
-		<span class="kw">let </span>event = log1(
-			handle.context().address,
-			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new().write::&lt;u32&gt;(index).build(),
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+		<span class="comment">// Account later `ensure_ongoing` read cost
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		handle.record_log_costs_manual(<span class="number">1</span>, <span class="number">32 </span>* <span class="number">3</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::place_decision_deposit { index }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="comment">// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
+		</span><span class="kw">let </span>ongoing_referendum = Referenda::&lt;Runtime&gt;::ensure_ongoing(index).map_err(|<span class="kw">_</span>| {
+			RevertReason::custom(<span class="string">&quot;Provided index is not an ongoing referendum&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>)
+		})<span class="question-mark">?</span>;
+		<span class="kw">let </span>decision_deposit: U256 =
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(decision_deposit) = ongoing_referendum.decision_deposit {
+				decision_deposit.amount.into()
+			} <span class="kw">else </span>{
+				U256::zero()
+			};
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(index)
+				.write::&lt;Address&gt;(Address(handle.context().caller))
+				.write::&lt;U256&gt;(decision_deposit)
+				.build(),
+		);
 
 		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
@@ -745,18 +826,35 @@
 	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;refundDecisionDeposit(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>refund_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
-		<span class="kw">let </span>event = log1(
-			handle.context().address,
-			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new().write::&lt;u32&gt;(index).build(),
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+		handle.record_log_costs_manual(<span class="number">1</span>, <span class="number">32 </span>* <span class="number">3</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Get refunding deposit before dispatch
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>(who, refunded_deposit): (H160, U256) = <span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(index)
+			.ok_or(
+			RevertReason::custom(<span class="string">&quot;Referendum index does not exist&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>),
+		)<span class="question-mark">? </span>{
+			ReferendumInfo::Approved(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d))
+			| ReferendumInfo::Rejected(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d))
+			| ReferendumInfo::TimedOut(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d))
+			| ReferendumInfo::Cancelled(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d)) =&gt; (d.who.into(), d.amount.into()),
+			<span class="comment">// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+			</span><span class="kw">_ </span>=&gt; (H160::default(), U256::zero()),
+		};
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::refund_decision_deposit { index }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(index)
+				.write::&lt;Address&gt;(Address(who))
+				.write::&lt;U256&gt;(refunded_deposit)
+				.build(),
+		);
 
 		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
@@ -768,11 +866,37 @@
 	/// * index: The index of a closed referendum whose Submission Deposit has not yet been refunded.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;refundSubmissionDeposit(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>refund_submission_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">1</span>, <span class="number">32 </span>* <span class="number">3</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Get refunding deposit before dispatch
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>(who, refunded_deposit): (H160, U256) =
+			<span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(index)
+				.ok_or(RevertReason::custom(<span class="string">&quot;Referendum index does not exist&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>))<span class="question-mark">?
+			</span>{
+				ReferendumInfo::Approved(<span class="kw">_</span>, <span class="prelude-val">Some</span>(s), <span class="kw">_</span>)
+				| ReferendumInfo::Cancelled(<span class="kw">_</span>, <span class="prelude-val">Some</span>(s), <span class="kw">_</span>) =&gt; (s.who.into(), s.amount.into()),
+				<span class="comment">// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+				</span><span class="kw">_ </span>=&gt; (H160::default(), U256::zero()),
+			};
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::refund_submission_deposit { index }.into();
 
 		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
+			EvmDataWriter::new()
+				.write::&lt;u32&gt;(index)
+				.write::&lt;Address&gt;(Address(who))
+				.write::&lt;U256&gt;(refunded_deposit)
+				.build(),
+		);
+
+		event.record(handle)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 }
