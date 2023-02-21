@@ -338,7 +338,7 @@
 	<span class="kw">for </span>(<span class="kw">_</span>, track) <span class="kw">in </span>TRACKS_DATA {
 		<span class="macro">assert!</span>(
 			&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::VoteLockingPeriod::get()
-				&gt; track.min_enactment_period,
+				&gt;= track.min_enactment_period,
 			<span class="string">&quot;Track {} has enactment period {} &lt; vote locking period {}&quot;</span>,
 			track.name,
 			track.min_enactment_period,
