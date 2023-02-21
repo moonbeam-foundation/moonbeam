@@ -27,7 +27,7 @@ use pallet_referenda::{
 };
 use parity_scale_codec::Encode;
 use precompile_utils::{data::String, prelude::*};
-use sp_core::{H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
@@ -92,6 +92,7 @@ where
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
+	Runtime::AccountId: Into<H160>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
 	GovOrigin: FromStr,
@@ -377,22 +378,16 @@ where
 		handle.record_log_costs_manual(1, 32 * 3)?;
 		// Get refunding deposit before dispatch
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
-			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
-		{
-			ReferendumInfo::Ongoing(x) => {
-				if let Some(d) = x.decision_deposit {
-					d.amount.into()
-				} else {
-					U256::zero()
-				}
-			}
+		let (who, refunded_deposit): (H160, U256) = match ReferendumInfoFor::<Runtime>::get(index)
+			.ok_or(
+			RevertReason::custom("Referendum index does not exist").in_field("index"),
+		)? {
 			ReferendumInfo::Approved(_, _, Some(d))
 			| ReferendumInfo::Rejected(_, _, Some(d))
 			| ReferendumInfo::TimedOut(_, _, Some(d))
-			| ReferendumInfo::Cancelled(_, _, Some(d)) => d.amount.into(),
+			| ReferendumInfo::Cancelled(_, _, Some(d)) => (d.who.into(), d.amount.into()),
 			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
-			_ => U256::zero(),
+			_ => (H160::default(), U256::zero()),
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -405,7 +400,7 @@ where
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
 			EvmDataWriter::new()
 				.write::<u32>(index)
-				.write::<Address>(Address(handle.context().caller))
+				.write::<Address>(Address(who))
 				.write::<U256>(refunded_deposit)
 				.build(),
 		);
@@ -423,15 +418,15 @@ where
 		handle.record_log_costs_manual(1, 32 * 3)?;
 		// Get refunding deposit before dispatch
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let refunded_deposit: U256 = match ReferendumInfoFor::<Runtime>::get(index)
-			.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
-		{
-			ReferendumInfo::Approved(_, Some(s), _) | ReferendumInfo::Cancelled(_, Some(s), _) => {
-				s.amount.into()
-			}
-			// We let the pallet handle the RenferendumInfo validation logic on dispatch.
-			_ => U256::zero(),
-		};
+		let (who, refunded_deposit): (H160, U256) =
+			match ReferendumInfoFor::<Runtime>::get(index)
+				.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?
+			{
+				ReferendumInfo::Approved(_, Some(s), _)
+				| ReferendumInfo::Cancelled(_, Some(s), _) => (s.who.into(), s.amount.into()),
+				// We let the pallet handle the RenferendumInfo validation logic on dispatch.
+				_ => (H160::default(), U256::zero()),
+			};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -444,7 +439,7 @@ where
 			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
 			EvmDataWriter::new()
 				.write::<u32>(index)
-				.write::<Address>(Address(handle.context().caller))
+				.write::<Address>(Address(who))
 				.write::<U256>(refunded_deposit)
 				.build(),
 		);
