@@ -221,3 +221,28 @@ jobs:
           asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}-srtool-digest.json
           asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.srtool-digest.json
           asset_content_type: application/json
+
+  tag-docker:
+    runs-on: ubuntu-latest
+    needs: ["setup-scripts", "build-srtool-runtimes"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish runtime docker image
+        env:
+          DOCKER_IMAGE: purestake/moonbeam
+          DOCKER_TAG: ${{ github.event.inputs.to }}
+          GITHUB_TAG: ${{ github.event.inputs.to }}
+        run: |
+          COMMIT=`git rev-list -n 1 '${GITHUB_TAG}'`
+          SHA=sha-${COMMIT::8}
+          echo tagging "${DOCKER_IMAGE}:sha-${SHA}"
+          docker tag "${DOCKER_IMAGE}:sha-${SHA}" "${DOCKER_IMAGE}:${DOCKER_TAG}"
+          docker push "${DOCKER_IMAGE}:${DOCKER_TAG}"
