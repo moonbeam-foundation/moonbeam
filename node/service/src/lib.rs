@@ -293,11 +293,13 @@ where
 			cache_size,
 		} => {
 			let overrides = crate::rpc::overrides_handle(client.clone());
-			let sqlite_db_path = frontier_database_dir(config, "sql/frontier.db3");
+			let sqlite_db_path = frontier_database_dir(config, "sql");
+			std::fs::create_dir_all(&sqlite_db_path).expect("failed creating sql db directory");
 			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
 				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
 					path: std::path::Path::new("sqlite:///")
 						.join(sqlite_db_path)
+						.join("frontier.db3")
 						.to_str()
 						.unwrap(),
 					create_if_missing: true,

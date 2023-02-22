@@ -320,19 +320,41 @@ pub fn run() -> Result<()> {
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				// Remove Frontier offchain db
-				let frontier_database_config = match config.database {
-					DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-						path: frontier_database_dir(&config, "db"),
-						cache_size: 0,
-					},
-					DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-						path: frontier_database_dir(&config, "paritydb"),
-					},
-					_ => {
-						return Err(format!("Cannot purge `{:?}` database", config.database).into())
+				match cli.run.frontier_backend_type {
+					crate::FrontierBackendType::KeyValue => {
+						let frontier_database_config = match config.database {
+							DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+								path: frontier_database_dir(&config, "db"),
+								cache_size: 0,
+							},
+							DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+								path: frontier_database_dir(&config, "paritydb"),
+							},
+							_ => {
+								return Err(format!(
+									"Cannot purge `{:?}` database",
+									config.database
+								)
+								.into())
+							}
+						};
+						cmd.base.run(frontier_database_config)?;
 					}
-				};
-				cmd.base.run(frontier_database_config)?;
+					crate::FrontierBackendType::Sql => {
+						let db_path = frontier_database_dir(&config, "sql");
+						match std::fs::remove_dir_all(&db_path) {
+							Ok(_) => {
+								println!("{:?} removed.", &db_path);
+								Ok(())
+							}
+							Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => {
+								eprintln!("{:?} did not exist.", &db_path);
+								Ok(())
+							}
+							Err(err) => Result::Err(err.into()),
+						}?
+					}
+				}
 
 				if dev_service {
 					// base refers to the encapsulated "regular" sc_cli::PurgeChain command
