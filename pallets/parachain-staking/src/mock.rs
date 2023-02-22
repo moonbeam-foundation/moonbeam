@@ -104,6 +104,7 @@ impl block_author::Config for Test {}
 const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
+const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const LeaveCandidatesDelay: u32 = 2;
@@ -112,7 +113,7 @@ parameter_types! {
 	pub const RevokeDelegationDelay: u32 = 2;
 	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
-	pub const MinSelectedCandidates: u32 = 5;
+	pub const MinSelectedCandidates: u32 = GENESIS_NUM_SELECTED_CANDIDATES;
 	pub const MaxTopDelegationsPerCandidate: u32 = 4;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
@@ -239,6 +240,7 @@ impl ExtBuilder {
 			collator_commission: GENESIS_COLLATOR_COMMISSION,
 			parachain_bond_reserve_percent: GENESIS_PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: GENESIS_BLOCKS_PER_ROUND,
+			num_selected_candidates: GENESIS_NUM_SELECTED_CANDIDATES,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");

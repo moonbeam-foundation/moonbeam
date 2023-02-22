@@ -246,6 +246,7 @@ impl ExtBuilder {
 			collator_commission: Perbill::from_percent(20),
 			parachain_bond_reserve_percent: Percent::from_percent(30),
 			blocks_per_round: 2 * HOURS,
+			num_selected_candidates: 8,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
