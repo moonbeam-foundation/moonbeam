@@ -85,7 +85,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
-		OriginTrait, ReservableCurrency,
+		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::{
@@ -734,8 +734,12 @@ pub mod pallet {
 				percent: self.parachain_bond_reserve_percent,
 			});
 			// Set total selected candidates to value from config
-			<Pallet<T>>::set_total_selected(T::RuntimeOrigin::root(), self.num_selected_candidates)
-				.expect("set_total_selected failed");
+			assert!(
+				self.num_selected_candidates >= T::MinSelectedCandidates::get(),
+				"{:?}",
+				Error::<T>::CannotSetBelowMin
+			);
+			<TotalSelected<T>>::put(self.num_selected_candidates);
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
