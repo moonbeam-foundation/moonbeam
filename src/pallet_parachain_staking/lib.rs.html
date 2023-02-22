@@ -2827,7 +2827,7 @@
 			<span class="kw">let </span>old = &lt;TotalSelected&lt;T&gt;&gt;::get();
 			<span class="macro">ensure!</span>(old != new, Error::&lt;T&gt;::NoWritingSameValue);
 			<span class="macro">ensure!</span>(
-				new &lt;= &lt;Round&lt;T&gt;&gt;::get().length,
+				new &lt; &lt;Round&lt;T&gt;&gt;::get().length,
 				Error::&lt;T&gt;::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			&lt;TotalSelected&lt;T&gt;&gt;::put(new);
@@ -2866,7 +2866,7 @@
 			<span class="kw">let </span>(now, first, old) = (round.current, round.first, round.length);
 			<span class="macro">ensure!</span>(old != new, Error::&lt;T&gt;::NoWritingSameValue);
 			<span class="macro">ensure!</span>(
-				new &gt;= &lt;TotalSelected&lt;T&gt;&gt;::get(),
+				new &gt; &lt;TotalSelected&lt;T&gt;&gt;::get(),
 				Error::&lt;T&gt;::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
