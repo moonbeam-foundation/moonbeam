@@ -1969,6 +1969,14 @@
 <a href="#1969" id="1969">1969</a>
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2600,6 +2608,8 @@
 		</span><span class="kw">pub </span>parachain_bond_reserve_percent: Percent,
 		<span class="doccomment">/// Default number of blocks in a round
 		</span><span class="kw">pub </span>blocks_per_round: u32,
+		<span class="doccomment">/// Number of selected candidates every round. Cannot be lower than MinSelectedCandidates
+		</span><span class="kw">pub </span>num_selected_candidates: u32,
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
@@ -2612,6 +2622,7 @@
 				collator_commission: Default::default(),
 				parachain_bond_reserve_percent: Default::default(),
 				blocks_per_round: <span class="number">1u32</span>,
+				num_selected_candidates: T::MinSelectedCandidates::get(),
 			}
 		}
 	}
@@ -2701,8 +2712,13 @@
 					.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
 				percent: <span class="self">self</span>.parachain_bond_reserve_percent,
 			});
-			<span class="comment">// Set total selected candidates to minimum config
-			</span>&lt;TotalSelected&lt;T&gt;&gt;::put(T::MinSelectedCandidates::get());
+			<span class="comment">// Set total selected candidates to value from config
+			</span><span class="macro">assert!</span>(
+				<span class="self">self</span>.num_selected_candidates &gt;= T::MinSelectedCandidates::get(),
+				<span class="string">&quot;{:?}&quot;</span>,
+				Error::&lt;T&gt;::CannotSetBelowMin
+			);
+			&lt;TotalSelected&lt;T&gt;&gt;::put(<span class="self">self</span>.num_selected_candidates);
 			<span class="comment">// Choose top TotalSelected collator candidates
 			</span><span class="kw">let </span>(<span class="kw">_</span>, v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
 			<span class="comment">// Start Round 1 at Block 0

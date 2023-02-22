@@ -372,6 +372,8 @@
 <a href="#372" id="372">372</a>
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -569,6 +571,7 @@
 <span class="kw">const </span>COLLATOR_COMMISSION: Perbill = Perbill::from_percent(<span class="number">20</span>);
 <span class="kw">const </span>PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(<span class="number">30</span>);
 <span class="kw">const </span>BLOCKS_PER_ROUND: u32 = <span class="number">2 </span>* HOURS;
+<span class="kw">const </span>NUM_SELECTED_CANDIDATES: u32 = <span class="number">8</span>;
 <span class="kw">pub fn </span>moonriver_inflation_config() -&gt; InflationInfo&lt;Balance&gt; {
 	<span class="kw">fn </span>to_round_inflation(annual: Range&lt;Perbill&gt;) -&gt; Range&lt;Perbill&gt; {
 		<span class="kw">use </span>pallet_parachain_staking::inflation::{
@@ -666,6 +669,7 @@
 			collator_commission: COLLATOR_COMMISSION,
 			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: BLOCKS_PER_ROUND,
+			num_selected_candidates: NUM_SELECTED_CANDIDATES,
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
