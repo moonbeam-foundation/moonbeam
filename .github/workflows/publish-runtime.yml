@@ -236,12 +236,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish runtime docker image
-        env:
-          DOCKER_IMAGE: purestake/moonbeam
-          DOCKER_TAG: ${{ github.event.inputs.to }}
-          GITHUB_TAG: ${{ github.event.inputs.to }}
         run: |
-          COMMIT=`git rev-list -n 1 '${GITHUB_TAG}'`
+          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_TAG="${{ github.event.inputs.to }}"
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
           SHA=sha-${COMMIT::8}
           echo tagging "${DOCKER_IMAGE}:sha-${SHA}"
           docker tag "${DOCKER_IMAGE}:sha-${SHA}" "${DOCKER_IMAGE}:${DOCKER_TAG}"
