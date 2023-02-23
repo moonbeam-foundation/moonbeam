@@ -80,6 +80,7 @@ pub(crate) mod mock;
 mod tests;
 
 pub mod migrations;
+pub mod relay_indices;
 pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
@@ -87,6 +88,7 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 #[pallet]
 pub mod pallet {
 
+	use crate::relay_indices::RelayIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
@@ -293,6 +295,11 @@ pub mod pallet {
 	#[pallet::getter(fn dest_asset_fee_per_second)]
 	pub type DestinationAssetFeePerSecond<T: Config> =
 		StorageMap<_, Twox64Concat, MultiLocation, u128>;
+
+	/// Stores the indices of relay chain pallets
+	#[pallet::storage]
+	#[pallet::getter(fn relay_pallet_indices)]
+	pub type RelayPalletIndices<T: Config> = StorageValue<_, RelayIndices>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
