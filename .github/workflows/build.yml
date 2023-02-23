@@ -47,7 +47,7 @@ jobs:
             echo ::set-output name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
             echo ::set-output name=git_ref::$GITHUB_REF
           fi
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Sha
@@ -75,7 +75,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -93,7 +93,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
@@ -106,7 +106,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup editorconfig checker
@@ -125,11 +125,11 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Check with Prettier
@@ -141,7 +141,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -157,7 +157,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -171,7 +171,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -191,7 +191,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Login to DockerHub
@@ -242,7 +242,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -260,7 +260,7 @@ jobs:
       # DEBUG: "test*"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/cache@v2
@@ -351,7 +351,7 @@ jobs:
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
@@ -359,7 +359,7 @@ jobs:
           name: moonbeam
           path: build
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Typescript integration tests (against dev service)
@@ -436,7 +436,7 @@ jobs:
     needs: ["set-tags", "build"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
@@ -444,7 +444,7 @@ jobs:
           name: moonbeam
           path: build
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Get tracing runtimes
@@ -488,7 +488,7 @@ jobs:
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           fetch-depth: 0
@@ -510,7 +510,7 @@ jobs:
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Typescript integration tests (against dev service)
@@ -575,7 +575,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.image_exists }} == false && ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
