@@ -21,6 +21,7 @@ jobs:
           path: tools
 
   create_client_ticket:
+    needs: ["setup-scripts"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
