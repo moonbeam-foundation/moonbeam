@@ -47,7 +47,7 @@ export async function createAndFinalizeBlock(
 // This is meant to precisely mimic the logic in the Moonbeam runtimes where the burn amount
 // is calculated and the treasury is treated as the remainder. This precision is important to
 // avoid off-by-one errors.
-export function calculateFeePortions(amount: bigint): { burnt: bigint; treasury: bigint } {
+export function calculateFeePortions(amount: bigint): { burnt: number; treasury: bigint } {
   const burnt = (amount * 80n) / 100n; // 20% goes to treasury
   return { burnt, treasury: amount - burnt };
 }
