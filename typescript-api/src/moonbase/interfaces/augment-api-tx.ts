@@ -48,7 +48,6 @@ import type {
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetsDestroyWitness,
   PalletConvictionVotingConviction,
   PalletConvictionVotingVoteAccountVote,
   PalletDemocracyConviction,
@@ -99,14 +98,9 @@ declare module "@polkadot/api-base/types/submittable" {
       destroyForeignAsset: AugmentedSubmittable<
         (
           assetId: u128 | AnyNumber | Uint8Array,
-          destroyAssetWitness:
-            | PalletAssetsDestroyWitness
-            | { accounts?: any; sufficients?: any; approvals?: any }
-            | string
-            | Uint8Array,
           numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u128, PalletAssetsDestroyWitness, u32]
+        [u128, u32]
       >;
       /**
        * Destroy a given local assetId We do not store anything related to local
@@ -115,15 +109,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * counter here
        */
       destroyLocalAsset: AugmentedSubmittable<
-        (
-          assetId: u128 | AnyNumber | Uint8Array,
-          destroyAssetWitness:
-            | PalletAssetsDestroyWitness
-            | { accounts?: any; sufficients?: any; approvals?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u128, PalletAssetsDestroyWitness]
+        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u128]
       >;
       /**
        * Register new asset with the asset manager
@@ -297,7 +284,8 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * This new asset class has no assets initially and its owner is the origin.
        *
-       * The origin must be Signed and the sender must have sufficient funds free.
+       * The origin must conform to the configured `CreateOrigin` and have
+       * sufficient funds free.
        *
        * Funds of sender are reserved by `AssetDeposit`.
        *
@@ -324,36 +312,59 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, u128]
       >;
       /**
-       * Destroy a class of fungible assets.
+       * Destroy all accounts associated with a given asset.
        *
-       * The origin must conform to `ForceOrigin` or must be Signed and the
-       * sender must be the owner of the asset `id`.
+       * `destroy_accounts` should only be called after `start_destroy` has been
+       * called, and the asset is in a `Destroying` state.
+       *
+       * Due to weight restrictions, this function may need to be called
+       * multiple times to fully destroy all accounts. It will destroy
+       * `RemoveItemsLimit` accounts at a time.
        *
        * - `id`: The identifier of the asset to be destroyed. This must identify
        *   an existing asset.
        *
-       * Emits `Destroyed` event when successful.
-       *
-       * NOTE: It can be helpful to first freeze an asset before destroying it
-       * so that you can provide accurate witness information and prevent users
-       * from manipulating state in a way that can make it harder to destroy.
-       *
-       * Weight: `O(c + p + a)` where:
-       *
-       * - `c = (witness.accounts - witness.sufficients)`
-       * - `s = witness.sufficients`
-       * - `a = witness.approvals`
+       * Each call emits the `Event::DestroyedAccounts` event.
        */
-      destroy: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          witness:
-            | PalletAssetsDestroyWitness
-            | { accounts?: any; sufficients?: any; approvals?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, PalletAssetsDestroyWitness]
+      destroyAccounts: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Destroy all approvals associated with a given asset up to the max
+       * (T::RemoveItemsLimit).
+       *
+       * `destroy_approvals` should only be called after `start_destroy` has
+       * been called, and the asset is in a `Destroying` state.
+       *
+       * Due to weight restrictions, this function may need to be called
+       * multiple times to fully destroy all approvals. It will destroy
+       * `RemoveItemsLimit` approvals at a time.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * Each call emits the `Event::DestroyedApprovals` event.
+       */
+      destroyApprovals: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Complete destroying asset and unreserve currency.
+       *
+       * `finish_destroy` should only be called after `start_destroy` has been
+       * called, and the asset is in a `Destroying` state. All accounts or
+       * approvals should be destroyed before hand.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * Each successful call emits the `Event::Destroyed` event.
+       */
+      finishDestroy: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
       >;
       /**
        * Alter the attributes of a given asset.
@@ -655,6 +666,24 @@ declare module "@polkadot/api-base/types/submittable" {
           freezer: AccountId20 | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>, AccountId20, AccountId20, AccountId20]
+      >;
+      /**
+       * Start the process of destroying a fungible asset class.
+       *
+       * `start_destroy` is the first in a series of extrinsics that should be
+       * called, to allow destruction of an asset class.
+       *
+       * The origin must conform to `ForceOrigin` or must be `Signed` by the
+       * asset's `owner`.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * The asset class must be frozen before calling `start_destroy`.
+       */
+      startDestroy: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
       >;
       /**
        * Allow unprivileged transfers from an account again.
@@ -1158,7 +1187,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * class of polls.
        *
        * Tokens may be unlocked following once an amount of time consistent with
-       * the lock period of the conviction with which the delegation was issued.
+       * the lock period of the conviction with which the delegation was issued
+       * has passed.
        *
        * The dispatch origin of this call must be _Signed_ and the signing
        * account must be currently delegating.
@@ -1176,8 +1206,8 @@ declare module "@polkadot/api-base/types/submittable" {
         [u16]
       >;
       /**
-       * Remove the lock caused prior voting/delegating which has expired within
-       * a particluar class.
+       * Remove the lock caused by prior voting/delegating which has expired
+       * within a particular class.
        *
        * The dispatch origin of this call must be _Signed_.
        *
@@ -1211,6 +1241,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | PalletConvictionVotingVoteAccountVote
             | { Standard: any }
             | { Split: any }
+            | { SplitAbstain: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -2672,7 +2703,8 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * This new asset class has no assets initially and its owner is the origin.
        *
-       * The origin must be Signed and the sender must have sufficient funds free.
+       * The origin must conform to the configured `CreateOrigin` and have
+       * sufficient funds free.
        *
        * Funds of sender are reserved by `AssetDeposit`.
        *
@@ -2699,36 +2731,59 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, u128]
       >;
       /**
-       * Destroy a class of fungible assets.
+       * Destroy all accounts associated with a given asset.
        *
-       * The origin must conform to `ForceOrigin` or must be Signed and the
-       * sender must be the owner of the asset `id`.
+       * `destroy_accounts` should only be called after `start_destroy` has been
+       * called, and the asset is in a `Destroying` state.
+       *
+       * Due to weight restrictions, this function may need to be called
+       * multiple times to fully destroy all accounts. It will destroy
+       * `RemoveItemsLimit` accounts at a time.
        *
        * - `id`: The identifier of the asset to be destroyed. This must identify
        *   an existing asset.
        *
-       * Emits `Destroyed` event when successful.
-       *
-       * NOTE: It can be helpful to first freeze an asset before destroying it
-       * so that you can provide accurate witness information and prevent users
-       * from manipulating state in a way that can make it harder to destroy.
-       *
-       * Weight: `O(c + p + a)` where:
-       *
-       * - `c = (witness.accounts - witness.sufficients)`
-       * - `s = witness.sufficients`
-       * - `a = witness.approvals`
+       * Each call emits the `Event::DestroyedAccounts` event.
        */
-      destroy: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          witness:
-            | PalletAssetsDestroyWitness
-            | { accounts?: any; sufficients?: any; approvals?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, PalletAssetsDestroyWitness]
+      destroyAccounts: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Destroy all approvals associated with a given asset up to the max
+       * (T::RemoveItemsLimit).
+       *
+       * `destroy_approvals` should only be called after `start_destroy` has
+       * been called, and the asset is in a `Destroying` state.
+       *
+       * Due to weight restrictions, this function may need to be called
+       * multiple times to fully destroy all approvals. It will destroy
+       * `RemoveItemsLimit` approvals at a time.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * Each call emits the `Event::DestroyedApprovals` event.
+       */
+      destroyApprovals: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Complete destroying asset and unreserve currency.
+       *
+       * `finish_destroy` should only be called after `start_destroy` has been
+       * called, and the asset is in a `Destroying` state. All accounts or
+       * approvals should be destroyed before hand.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * Each successful call emits the `Event::Destroyed` event.
+       */
+      finishDestroy: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
       >;
       /**
        * Alter the attributes of a given asset.
@@ -3030,6 +3085,24 @@ declare module "@polkadot/api-base/types/submittable" {
           freezer: AccountId20 | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>, AccountId20, AccountId20, AccountId20]
+      >;
+      /**
+       * Start the process of destroying a fungible asset class.
+       *
+       * `start_destroy` is the first in a series of extrinsics that should be
+       * called, to allow destruction of an asset class.
+       *
+       * The origin must conform to `ForceOrigin` or must be `Signed` by the
+       * asset's `owner`.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * The asset class must be frozen before calling `start_destroy`.
+       */
+      startDestroy: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
       >;
       /**
        * Allow unprivileged transfers from an account again.
@@ -4553,6 +4626,19 @@ declare module "@polkadot/api-base/types/submittable" {
         [u32]
       >;
       /**
+       * Refund the Submission Deposit for a closed referendum back to the depositor.
+       *
+       * - `origin`: must be `Signed` or `Root`.
+       * - `index`: The index of a closed referendum whose Submission Deposit has
+       *   not yet been refunded.
+       *
+       * Emits `SubmissionDepositRefunded`.
+       */
+      refundSubmissionDeposit: AugmentedSubmittable<
+        (index: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
+      /**
        * Propose a referendum on a privileged action.
        *
        * - `origin`: must be `SubmitOrigin` and the account must have
@@ -4599,6 +4685,19 @@ declare module "@polkadot/api-base/types/submittable" {
           FrameSupportPreimagesBounded,
           FrameSupportScheduleDispatchTime
         ]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    rootTesting: {
+      /**
+       * A dispatch that will fill the block weight up to the given ratio.
+       */
+      fillBlock: AugmentedSubmittable<
+        (ratio: Perbill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Perbill]
       >;
       /**
        * Generic tx
@@ -4796,13 +4895,6 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     system: {
-      /**
-       * A dispatch that will fill the block weight up to the given ratio.
-       */
-      fillBlock: AugmentedSubmittable<
-        (ratio: Perbill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Perbill]
-      >;
       /**
        * Kill all storage items with a key that starts with the given prefix.
        *
@@ -5607,13 +5699,13 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Send a batch of dispatch calls.
        *
-       * May be called from any origin.
+       * May be called from any origin except `None`.
        *
        * - `calls`: The calls to be dispatched from the same origin. The number of
        *   call must not exceed the constant: `batched_calls_limit` (available
        *   in constant metadata).
        *
-       * If origin is root then call are dispatch without checking origin
+       * If origin is root then the calls are dispatched without checking origin
        * filter. (This includes bypassing `frame_system::Config::BaseCallFilter`).
        *
        * # <weight>
@@ -5638,13 +5730,13 @@ declare module "@polkadot/api-base/types/submittable" {
        * Send a batch of dispatch calls and atomically execute them. The whole
        * transaction will rollback and fail if any of the calls failed.
        *
-       * May be called from any origin.
+       * May be called from any origin except `None`.
        *
        * - `calls`: The calls to be dispatched from the same origin. The number of
        *   call must not exceed the constant: `batched_calls_limit` (available
        *   in constant metadata).
        *
-       * If origin is root then call are dispatch without checking origin
+       * If origin is root then the calls are dispatched without checking origin
        * filter. (This includes bypassing `frame_system::Config::BaseCallFilter`).
        *
        * # <weight>
@@ -5698,13 +5790,13 @@ declare module "@polkadot/api-base/types/submittable" {
        * Send a batch of dispatch calls. Unlike `batch`, it allows errors and
        * won't interrupt.
        *
-       * May be called from any origin.
+       * May be called from any origin except `None`.
        *
        * - `calls`: The calls to be dispatched from the same origin. The number of
        *   call must not exceed the constant: `batched_calls_limit` (available
        *   in constant metadata).
        *
-       * If origin is root then call are dispatch without checking origin
+       * If origin is root then the calls are dispatch without checking origin
        * filter. (This includes bypassing `frame_system::Config::BaseCallFilter`).
        *
        * # <weight>
@@ -5720,6 +5812,21 @@ declare module "@polkadot/api-base/types/submittable" {
         [Vec<Call>]
       >;
       /**
+       * Dispatch a function call with a specified weight.
+       *
+       * This function does not check the weight of the call, and instead allows
+       * the Root origin to specify the weight of the call.
+       *
+       * The dispatch origin for this call must be _Root_.
+       */
+      withWeight: AugmentedSubmittable<
+        (
+          call: Call | IMethod | string | Uint8Array,
+          weight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Call, SpWeightsWeightV2Weight]
+      >;
+      /**
        * Generic tx
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -5728,13 +5835,14 @@ declare module "@polkadot/api-base/types/submittable" {
       dispatchWhitelistedCall: AugmentedSubmittable<
         (
           callHash: H256 | string | Uint8Array,
+          callEncodedLen: u32 | AnyNumber | Uint8Array,
           callWeightWitness:
             | SpWeightsWeightV2Weight
             | { refTime?: any; proofSize?: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, SpWeightsWeightV2Weight]
+        [H256, u32, SpWeightsWeightV2Weight]
       >;
       dispatchWhitelistedCallWithPreimage: AugmentedSubmittable<
         (call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -6096,6 +6204,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { SelfReserve: any }
             | { ForeignAsset: any }
             | { LocalAssetReserve: any }
+            | { Erc20: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
@@ -6224,6 +6333,7 @@ declare module "@polkadot/api-base/types/submittable" {
                   | { SelfReserve: any }
                   | { ForeignAsset: any }
                   | { LocalAssetReserve: any }
+                  | { Erc20: any }
                   | string
                   | Uint8Array
                 ),
@@ -6270,6 +6380,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { SelfReserve: any }
             | { ForeignAsset: any }
             | { LocalAssetReserve: any }
+            | { Erc20: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
