@@ -1,0 +1,31 @@
+name: Publish Docker runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: runtime tag (ex. runtime-2200) to publish on docker
+        required: true
+
+jobs:
+  tag-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish runtime docker image
+        run: |
+          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_TAG="${{ github.event.inputs.to }}"
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          SHA=sha-${COMMIT::8}
+          echo tagging "${DOCKER_IMAGE}:${SHA}"
+          docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${DOCKER_TAG}"
+          docker push "${DOCKER_IMAGE}:${DOCKER_TAG}"
