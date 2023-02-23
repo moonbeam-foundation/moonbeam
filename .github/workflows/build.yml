@@ -119,6 +119,22 @@ jobs:
       - name: Check files
         run: /tmp/bin/ec-linux-amd64 --exclude "typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts"
 
+  check-ts-build:
+    name: "Check with TS Build"
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - name: Check TS build
+        run: npm ci && npm run build
+
   check-prettier:
     name: "Check with Prettier"
     runs-on: ubuntu-latest
