@@ -19,6 +19,7 @@ pallet-staking = { git = "https://github.com/purestake/substrate", branch = "moo
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
 
 # Cumulus
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
@@ -30,12 +31,13 @@ xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkad
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
 pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-
+moonbeam-runtime-common = { path = "../common" }
 kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
 polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
 polkadot-runtime-parachains = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
 rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
 westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
+moonriver-runtime = {path ="../moonriver"}
 
 [features]
 default = [ "std" ]
@@ -45,8 +47,10 @@ std = [
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
-	"parity-scale-codec/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"sp-io/std",
 	"xcm-primitives/std",
+	"moonbeam-runtime-common/std",
+	"moonriver-runtime/std",
 ]

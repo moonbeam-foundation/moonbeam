@@ -1,14 +1,12 @@
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-// NEED to be implement {Stake, Hrmp, Utility}EncodeCall somewhere in runtime using these locally stored indices
-// s.t. fallback is using the hardcoded ones
-// so add to relay-encoder a common impl which uses the stored indices or the others as fallback?
+// TODO: function that takes input call and
 
 #[derive(Encode, Decode, TypeInfo)]
 pub struct RelayIndices {
 	pub pallets: PalletIndices,
-	pub extrinsics: ExtrinsicIndices,
+	pub calls: CallIndices,
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -19,7 +17,7 @@ pub struct PalletIndices {
 }
 
 #[derive(Encode, Decode, TypeInfo)]
-pub struct ExtrinsicIndices {
+pub struct CallIndices {
 	pub staking: StakingIndices,
 	pub utility: UtilityIndices,
 	pub hrmp: HrmpIndices,
