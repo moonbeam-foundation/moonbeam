@@ -629,6 +629,8 @@ pub mod pallet {
 		pub parachain_bond_reserve_percent: Percent,
 		/// Default number of blocks in a round
 		pub blocks_per_round: u32,
+		/// Number of selected candidates every round. Cannot be lower than MinSelectedCandidates
+		pub num_selected_candidates: u32,
 	}
 
 	#[cfg(feature = "std")]
@@ -641,6 +643,7 @@ pub mod pallet {
 				collator_commission: Default::default(),
 				parachain_bond_reserve_percent: Default::default(),
 				blocks_per_round: 1u32,
+				num_selected_candidates: T::MinSelectedCandidates::get(),
 			}
 		}
 	}
@@ -730,8 +733,13 @@ pub mod pallet {
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: self.parachain_bond_reserve_percent,
 			});
-			// Set total selected candidates to minimum config
-			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Set total selected candidates to value from config
+			assert!(
+				self.num_selected_candidates >= T::MinSelectedCandidates::get(),
+				"{:?}",
+				Error::<T>::CannotSetBelowMin
+			);
+			<TotalSelected<T>>::put(self.num_selected_candidates);
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
