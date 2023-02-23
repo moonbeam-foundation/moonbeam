@@ -1,7 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import type {
-  RuntimeDispatchInfoV1,
-} from "@polkadot/types/interfaces/payment";
+import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
