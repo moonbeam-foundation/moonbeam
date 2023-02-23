@@ -24,6 +24,7 @@ jobs:
           path: tools
 
   build-binary:
+    needs: ["setup-scripts"]
     runs-on: self-hosted
     strategy:
       matrix:
