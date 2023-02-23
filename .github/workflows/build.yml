@@ -136,7 +136,7 @@ jobs:
         run: |
           cd tests
           npm ci
-          npm run build
+          tsc
 
   check-prettier:
     name: "Check with Prettier"
