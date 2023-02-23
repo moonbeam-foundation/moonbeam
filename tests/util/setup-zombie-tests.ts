@@ -7,10 +7,10 @@ import { ILoader, Environment } from "nunjucks";
 
 import fs from "fs";
 
-import zombie from "@parity/zombienet";
+import zombie from "@zombienet/orchestrator";
 import { HttpProvider } from "web3-core";
 import { EnhancedWeb3, provideEthersApi, provideWeb3Api } from "./providers";
-import { Network } from "@parity/zombienet/dist/network";
+import { Network } from "@zombienet/orchestrator";
 import {
   getMoonbeamDockerBinary,
   getMoonbeamReleaseBinary,
