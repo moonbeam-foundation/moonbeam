@@ -23,7 +23,7 @@ jobs:
       - name: Publish runtime docker image
         run: |
           DOCKER_IMAGE=purestake/moonbeam
-          DOCKER_TAG="${{ github.event.inputs.to }}"
+          DOCKER_TAG="${{ github.event.inputs.tag }}"
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
           SHA=sha-${COMMIT::8}
           echo tagging "${DOCKER_IMAGE}:${SHA}"
