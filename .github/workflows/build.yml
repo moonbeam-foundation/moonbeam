@@ -133,7 +133,10 @@ jobs:
         with:
           node-version: 16.x
       - name: Check TS build
-        run: npm ci && npm run build
+        run: |
+          cd tests
+          npm ci
+          npm run build
 
   check-prettier:
     name: "Check with Prettier"
