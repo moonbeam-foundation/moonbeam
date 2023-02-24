@@ -15,13 +15,14 @@ keys = [
 
 inline_keys = [
     "package",
+    "workspace",
     "path",
     "git",
     "branch",
     "rev",
     "version",
-    "optional",
     "default-features",
+    "optional",
     "features",
 ]
 

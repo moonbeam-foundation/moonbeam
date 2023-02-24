@@ -18,9 +18,9 @@ extern crate alloc;
 
 use super::Context;
 use alloc::vec::Vec;
-use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
 pub use evm::{ExitError, ExitReason, ExitSucceed, Opcode};
+use parity_scale_codec::{Decode, Encode};
 
 #[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 pub struct Stack {

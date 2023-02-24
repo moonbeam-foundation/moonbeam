@@ -1,32 +1,32 @@
 [package]
 name = "pallet-author-mapping"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Maps AuthorIds to AccountIds Useful for associating consensus authors with in-runtime accounts"
 edition = "2021"
 version = "2.0.5"
 
 [dependencies]
-log = { version = "0.4", default-features = false }
-serde = { version = "1.0.124", optional = true }
+log = { workspace = true }
+serde = { workspace = true, optional = true }
 
 # Substrate
-frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", optional = true, default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
-scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+frame-benchmarking = { workspace = true, optional = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+nimbus-primitives = { workspace = true }
 
-session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
+session-keys-primitives = { workspace = true }
 
 [dev-dependencies]
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+pallet-balances = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
 
 [features]
 default = [ "std" ]

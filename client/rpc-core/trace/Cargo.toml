@@ -1,17 +1,17 @@
 [package]
 name = "moonbeam-rpc-core-trace"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = { workspace = true }
 version = "0.6.0"
 
 [dependencies]
-ethereum-types = "0.14"
-futures = { version = "0.3.1", features = [ "compat" ] }
-jsonrpsee = { version = "0.16.2", default-features = false, features = [ "macros", "server" ] }
-moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
-moonbeam-rpc-core-types = { path = "../types" }
-serde = { version = "1.0", features = [ "derive" ] }
-serde_json = "1.0"
+ethereum-types = { workspace = true, features = [ "std" ] }
+futures = { workspace = true, features = [ "compat" ] }
+jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
+moonbeam-client-evm-tracing = { workspace = true }
+moonbeam-rpc-core-types = { workspace = true }
+serde = { workspace = true, features = [ "derive" ] }
+serde_json = { workspace = true }

@@ -1,6 +1,6 @@
 [package]
 name = "pallet-maintenance-mode"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Puts a FRAME-based runtime into maintenance mode where restricted interactions are allowed."
 edition = "2021"
 version = "0.1.0"
@@ -8,25 +8,25 @@ version = "0.1.0"
 [dependencies]
 
 # Local
-xcm-primitives = { path = "../../primitives/xcm", optional = true, default-features = false }
+xcm-primitives = { workspace = true, optional = true }
 
 # Crates.io
-log = "0.4"
+log = { workspace = true }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-parity-scale-codec = { version = "3.0.0", default-features = false }
-scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37", optional = true, default-features = false }
+cumulus-primitives-core = { workspace = true, optional = true }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-core = { workspace = true, features = [ "std" ] }
+sp-io = { workspace = true, features = [ "std" ] }
 
 [features]
 default = [ "std", "xcm-support" ]

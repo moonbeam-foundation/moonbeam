@@ -20,9 +20,9 @@
 //! It is built using clap and inherits behavior from Substrate's sc_cli crate.
 
 use clap::Parser;
-use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
-use service::chain_spec;
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
