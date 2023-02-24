@@ -1450,7 +1450,6 @@
 
 </span><span class="kw">pub mod </span>rpc;
 
-<span class="kw">use </span>cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, RpcConfig};
 <span class="kw">use </span>cumulus_client_cli::CollatorOptions;
 <span class="kw">use </span>cumulus_client_consensus_common::ParachainConsensus;
 <span class="kw">use </span>cumulus_client_network::BlockAnnounceValidator;
@@ -1472,6 +1471,7 @@
 <span class="kw">use </span>maplit::hashmap;
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 </span><span class="kw">pub use </span>moonbase_runtime;
+<span class="kw">use </span>moonbeam_cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, RpcConfig};
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 </span><span class="kw">pub use </span>moonbeam_runtime;
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
@@ -2328,7 +2328,7 @@
 </span><span class="kw">pub fn </span>new_dev&lt;RuntimeApi, Executor&gt;(
 	<span class="kw-2">mut </span>config: Configuration,
 	_author_id: <span class="prelude-ty">Option</span>&lt;NimbusId&gt;,
-	sealing: cli_opt::Sealing,
+	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TaskManager, ServiceError&gt;
@@ -2401,7 +2401,7 @@
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		<span class="kw">let </span>commands_stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = EngineCommand&lt;H256&gt;&gt; + Send + Sync + Unpin&gt; =
 			<span class="kw">match </span>sealing {
-				cli_opt::Sealing::Instant =&gt; {
+				moonbeam_cli_opt::Sealing::Instant =&gt; {
 					Box::new(
 						<span class="comment">// This bit cribbed from the implementation of instant seal.
 						</span>transaction_pool
@@ -2416,13 +2416,13 @@
 							}),
 					)
 				}
-				cli_opt::Sealing::Manual =&gt; {
+				moonbeam_cli_opt::Sealing::Manual =&gt; {
 					<span class="kw">let </span>(sink, stream) = futures::channel::mpsc::channel(<span class="number">1000</span>);
 					<span class="comment">// Keep a reference to the other end of the channel. It goes to the RPC.
 					</span>command_sink = <span class="prelude-val">Some</span>(sink);
 					Box::new(stream)
 				}
-				cli_opt::Sealing::Interval(millis) =&gt; Box::new(StreamExt::map(
+				moonbeam_cli_opt::Sealing::Interval(millis) =&gt; Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|<span class="kw">_</span>| EngineCommand::SealNewBlock {
 						create_empty: <span class="bool-val">true</span>,

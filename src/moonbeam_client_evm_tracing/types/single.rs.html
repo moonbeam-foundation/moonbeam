@@ -124,8 +124,8 @@
 </span><span class="kw">use </span><span class="kw">super</span>::serialization::<span class="kw-2">*</span>;
 <span class="kw">use </span>serde::Serialize;
 
-<span class="kw">use </span>codec::{Decode, Encode};
 <span class="kw">use </span>ethereum_types::{H256, U256};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 <span class="attr">#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]

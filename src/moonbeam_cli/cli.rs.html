@@ -316,9 +316,9 @@
 //! It is built using clap and inherits behavior from Substrate&#39;s sc_cli crate.
 
 </span><span class="kw">use </span>clap::Parser;
-<span class="kw">use </span>cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+<span class="kw">use </span>moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+<span class="kw">use </span>moonbeam_service::chain_spec;
 <span class="kw">use </span>sc_cli::{Error <span class="kw">as </span>CliError, SubstrateCli};
-<span class="kw">use </span>service::chain_spec;
 <span class="kw">use </span>std::path::PathBuf;
 
 <span class="doccomment">/// Sub-commands supported by the collator.

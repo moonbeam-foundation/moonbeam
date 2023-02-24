@@ -265,8 +265,7 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 #![feature(assert_matches)]
 
-</span><span class="kw">use </span>codec::DecodeLimit;
-<span class="kw">use </span>fp_evm::PrecompileHandle;
+</span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::codec::Decode;
 <span class="kw">use </span>frame_support::traits::ConstU32;
 <span class="kw">use </span>frame_support::{
@@ -274,6 +273,7 @@
 	traits::OriginTrait,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>parity_scale_codec::DecodeLimit;
 <span class="kw">use </span>precompile_utils::precompile_set::SelectorFilter;
 <span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::{H160, U256};

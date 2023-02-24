@@ -357,8 +357,7 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-</span><span class="kw">use </span>codec::DecodeLimit <span class="kw">as _</span>;
-<span class="kw">use </span>core::marker::PhantomData;
+</span><span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>fp_evm::Log;
 <span class="kw">use </span>frame_support::{
 	dispatch::Dispatchable,
@@ -368,6 +367,7 @@
 	weights::Weight,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>parity_scale_codec::DecodeLimit <span class="kw">as _</span>;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{Decode, Get, H160, H256};
 <span class="kw">use </span>sp_std::{boxed::Box, vec::Vec};

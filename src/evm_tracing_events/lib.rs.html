@@ -155,8 +155,8 @@
 <span class="kw">pub use </span>gasometer::GasometerEvent;
 <span class="kw">pub use </span>runtime::RuntimeEvent;
 
-<span class="kw">use </span>codec::{Decode, Encode};
 <span class="kw">use </span>ethereum_types::{H160, U256};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_runtime_interface::pass_by::PassByCodec;
 
 <span class="macro">environmental::environmental!</span>(listener: <span class="kw">dyn </span>Listener + <span class="lifetime">&#39;static</span>);

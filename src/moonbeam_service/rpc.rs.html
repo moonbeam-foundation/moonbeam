@@ -417,7 +417,6 @@
 <span class="kw">use </span>sp_block_builder::BlockBuilder;
 
 <span class="kw">use </span><span class="kw">crate</span>::client::RuntimeApiCollection;
-<span class="kw">use </span>cli_opt::EthApi <span class="kw">as </span>EthApiCmd;
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 <span class="kw">use </span>fc_rpc::{
@@ -428,6 +427,7 @@
 <span class="kw">use </span>fp_storage::EthereumStorageSchema;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>jsonrpsee::RpcModule;
+<span class="kw">use </span>moonbeam_cli_opt::EthApi <span class="kw">as </span>EthApiCmd;
 <span class="kw">use </span>moonbeam_core_primitives::{Block, Hash};
 <span class="kw">use </span>sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},

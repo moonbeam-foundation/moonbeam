@@ -142,8 +142,8 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">pub mod </span>tracer {
-	<span class="kw">use </span>codec::Encode;
 	<span class="kw">use </span>evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
+	<span class="kw">use </span>parity_scale_codec::Encode;
 
 	<span class="kw">use </span>evm::tracing::{using <span class="kw">as </span>evm_using, EventListener <span class="kw">as </span>EvmListener};
 	<span class="kw">use </span>evm_gasometer::tracing::{using <span class="kw">as </span>gasometer_using, EventListener <span class="kw">as </span>GasometerListener};

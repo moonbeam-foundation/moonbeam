@@ -107,7 +107,7 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 </span><span class="kw">use </span>sp_runtime_interface::runtime_interface;
 
-<span class="kw">use </span>codec::Decode;
+<span class="kw">use </span>parity_scale_codec::Decode;
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="kw">use </span>evm_tracing_events::{Event, EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};

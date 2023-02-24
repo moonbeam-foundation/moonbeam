@@ -344,9 +344,9 @@
 
 <span class="kw">use </span><span class="kw">super</span>::Context;
 <span class="kw">use </span>alloc::vec::Vec;
-<span class="kw">use </span>codec::{Decode, Encode};
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">pub use </span>evm::{ExitError, ExitReason, ExitSucceed, Opcode};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
 <span class="attr">#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Stack {
