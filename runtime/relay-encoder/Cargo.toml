@@ -12,6 +12,7 @@ version = "0.1.0"
 # Moonbeam
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
@@ -46,6 +47,7 @@ std = [
 	"frame-system/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
+	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",
 	"sp-runtime/std",
 	"sp-std/std",

@@ -28,9 +28,39 @@ mod common_encoder_tests {
 		use frame_support::traits::PalletInfo;
 		use moonbeam_runtime_common::relay_encoder::CommonEncoder;
 		use pallet_evm_precompile_relay_encoder::StakeEncodeCall;
+		use pallet_xcm_transactor::relay_indices::*;
 		use parity_scale_codec::Encode;
 		sp_io::TestExternalities::default().execute_with(|| {
 			let mut expected_encoded: Vec<u8> = Vec::new();
+			pallet_xcm_transactor::RelayPalletIndices::<moonriver_runtime::Runtime>::put(
+				RelayIndices {
+					pallets: PalletIndices {
+						staking: 6u8,
+						utility: 24u8,
+						hrmp: 1u8,
+					},
+					calls: CallIndices {
+						staking: StakingIndices {
+							bond: 1u16,
+							bond_extra: 1u16,
+							unbond: 1u16,
+							withdraw_unbonded: 1u16,
+							validate: 1u16,
+							nominate: 1u16,
+							chill: 6u16,
+							set_payee: 1u16,
+							set_controller: 1u16,
+							rebond: 1u16,
+						},
+						utility: UtilityIndices { as_derivative: 1u8 },
+						hrmp: HrmpIndices {
+							init_open_channel: 1u8,
+							accept_open_channel: 1u8,
+							close_channel: 1u8,
+						},
+					},
+				},
+			);
 			// TODO: insert the encoding correctly as per existing code...
 			let index = <kusama_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 				kusama_runtime::Utility,

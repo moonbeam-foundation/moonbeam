@@ -109,16 +109,16 @@ impl<R: pallet_xcm_transactor::Config> pallet_evm_precompile_relay_encoder::Stak
 						.pallets
 						.staking,
 				);
+				let mut staking_call_index = pallet_xcm_transactor::RelayPalletIndices::<R>::get()
+					.unwrap()
+					.calls
+					.staking
+					.chill
+					.to_le_bytes()
+					.to_vec();
+				staking_call_index.pop();
 				// call index
-				encoded_call.append(
-					&mut pallet_xcm_transactor::RelayPalletIndices::<R>::get()
-						.unwrap()
-						.calls
-						.staking
-						.chill
-						.to_be_bytes()
-						.to_vec(),
-				);
+				encoded_call.append(&mut staking_call_index);
 				encoded_call
 				//RelayCall::Stake(StakeCall::Chill).encode()
 			}

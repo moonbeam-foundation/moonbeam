@@ -5479,6 +5479,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-staking",
  "pallet-utility",
+ "pallet-xcm-transactor",
  "parity-scale-codec",
  "polkadot-runtime",
  "polkadot-runtime-parachains",
