@@ -30,6 +30,7 @@ frame-system = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
@@ -63,6 +64,7 @@ std = [
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
 	"pallet-randomness/std",
+	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"precompile-utils/std",
@@ -72,6 +74,7 @@ std = [
 	"xcm-executor/std",
 	"xcm/std",
 ]
+runtime-benchmarks = [ "pallet-referenda/runtime-benchmarks" ]
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",

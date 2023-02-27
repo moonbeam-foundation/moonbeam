@@ -289,6 +289,7 @@ runtime-benchmarks = [
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
+	"moonbeam-runtime-common/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
