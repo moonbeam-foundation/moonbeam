@@ -1638,6 +1638,13 @@
 <a href="#1638" id="1638">1638</a>
 <a href="#1639" id="1639">1639</a>
 <a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2599,11 +2606,18 @@
 
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations&lt;
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	&gt;;
+	<span class="kw">type </span>MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations&lt;
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		&gt;,
+		moonbeam_runtime_common::migrations::ReferendaMigrations&lt;
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		&gt;,
+	);
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
 	<span class="kw">type </span>WeightInfo = pallet_migrations::weights::SubstrateWeight&lt;Runtime&gt;;
 }
