@@ -1030,11 +1030,18 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
