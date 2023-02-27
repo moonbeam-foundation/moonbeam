@@ -772,7 +772,7 @@ impl pallet_author_inherent::Config for Runtime {
 
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RandomnessSource = RandomnessCollectiveFlip;
+	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight<Runtime>;
 }
