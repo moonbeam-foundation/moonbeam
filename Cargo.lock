@@ -5801,6 +5801,7 @@ dependencies = [
  "pallet-parachain-staking",
  "pallet-preimage",
  "pallet-randomness",
+ "pallet-referenda",
  "pallet-scheduler",
  "pallet-xcm-transactor",
  "precompile-utils",
