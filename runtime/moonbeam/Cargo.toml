@@ -76,7 +76,6 @@ pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
-pallet-randomness-collective-flip = { workspace = true }
 pallet-root-testing = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-society = { workspace = true }
@@ -220,7 +219,6 @@ std = [
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
-	"pallet-randomness-collective-flip/std",
 	"pallet-randomness/std",
 	"pallet-root-testing/std",
 	"pallet-scheduler/std",
