@@ -307,7 +307,7 @@ where
 					cache_size,
 				}),
 				pool_size,
-				num_ops_timeout,
+				std::num::NonZeroU32::new(num_ops_timeout),
 				overrides,
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
