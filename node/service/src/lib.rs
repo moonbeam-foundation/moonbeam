@@ -310,7 +310,7 @@ where
 				num_ops_timeout,
 				overrides,
 			))
-			.expect("indexer pool to be created");
+			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
 			fc_db::Backend::Sql(backend)
 		}
 	};

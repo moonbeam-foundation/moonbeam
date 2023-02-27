@@ -366,7 +366,7 @@ where
 			);
 		}
 		fc_db::Backend::Sql(frontier_backend_sql) => {
-			params.task_manager.spawn_essential_handle().spawn(
+			params.task_manager.spawn_essential_handle().spawn_blocking(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
 				fc_mapping_sync::sql::SyncWorker::run(
