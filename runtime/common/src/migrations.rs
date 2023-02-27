@@ -54,6 +54,32 @@ where
 	}
 }
 
+pub struct PalletReferendaMigrateV0ToV1<T>(PhantomData<T>);
+impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
+where
+	T: pallet_referenda::Config<Hash = PreimageHash> + frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_PalletReferendaMigrateV0ToV1"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -66,6 +92,7 @@ where
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
 	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
+	Runtime: pallet_referenda::Config<Hash = PreimageHash>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -127,6 +154,8 @@ where
 		//	DemocracryMigrationHashToBoundedCall::<Runtime>(Default::default());
 		//let preimage_migration_hash_to_bounded_call =
 		//	PreimageMigrationHashToBoundedCall::<Runtime>(Default::default());
+		let pallet_referenda_migrate_v0_to_v1 =
+			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -171,6 +200,7 @@ where
 			//Box::new(scheduler_to_v4),
 			//Box::new(democracy_migration_hash_to_bounded_call),
 			//Box::new(preimage_migration_hash_to_bounded_call),
+			Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
