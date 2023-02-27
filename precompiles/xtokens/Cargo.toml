@@ -41,7 +41,7 @@ precompile-utils = { workspace = true, features = [ "testing" ] }
 pallet-balances = { workspace = true }
 pallet-timestamp = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-scale-info = { features = [ "derive" ], vworkspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
 sp-io = { workspace = true }
 
 # Cumulus

@@ -15872,18 +15872,3 @@ dependencies = [
  "cc",
  "libc",
 ]
-
-[[patch.unused]]
-name = "jsonrpsee"
-version = "0.15.1"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
-
-[[patch.unused]]
-name = "jsonrpsee-core"
-version = "0.15.1"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
-
-[[patch.unused]]
-name = "jsonrpsee-types"
-version = "0.15.1"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
