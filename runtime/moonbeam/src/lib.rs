@@ -1035,7 +1035,6 @@ impl pallet_migrations::Config for Runtime {
 		CouncilCollective,
 		TechCommitteeCollective,
 	>;
-
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
