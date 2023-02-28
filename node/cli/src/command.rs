@@ -651,7 +651,7 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonriver_runtime::Block,
 							sp_wasm_interface::ExtendedHostFunctions<
 								sp_io::SubstrateHostFunctions,
-								<service::MoonriverExecutor
+								<moonbeam_service::MoonriverExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
 						>>(),
 						task_manager,
@@ -671,7 +671,7 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonbeam_runtime::Block,
 							sp_wasm_interface::ExtendedHostFunctions<
 								sp_io::SubstrateHostFunctions,
-								<service::MoonbeamExecutor
+								<moonbeam_service::MoonbeamExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
 						>>(),
 						task_manager,
@@ -694,7 +694,7 @@ pub fn run() -> Result<()> {
 								moonbeam_service::moonbase_runtime::Block,
 								sp_wasm_interface::ExtendedHostFunctions<
 									sp_io::SubstrateHostFunctions,
-									<service::MoonbaseExecutor
+									<moonbeam_service::MoonbaseExecutor
 										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
 							>>(),
 							task_manager,
