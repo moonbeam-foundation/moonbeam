@@ -1660,7 +1660,7 @@
 							moonbeam_service::moonriver_runtime::Block,
 							sp_wasm_interface::ExtendedHostFunctions&lt;
 								sp_io::SubstrateHostFunctions,
-								&lt;service::MoonriverExecutor
+								&lt;moonbeam_service::MoonriverExecutor
 									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
 						&gt;&gt;(),
 						task_manager,
@@ -1680,7 +1680,7 @@
 							moonbeam_service::moonbeam_runtime::Block,
 							sp_wasm_interface::ExtendedHostFunctions&lt;
 								sp_io::SubstrateHostFunctions,
-								&lt;service::MoonbeamExecutor
+								&lt;moonbeam_service::MoonbeamExecutor
 									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
 						&gt;&gt;(),
 						task_manager,
@@ -1703,7 +1703,7 @@
 								moonbeam_service::moonbase_runtime::Block,
 								sp_wasm_interface::ExtendedHostFunctions&lt;
 									sp_io::SubstrateHostFunctions,
-									&lt;service::MoonbaseExecutor
+									&lt;moonbeam_service::MoonbaseExecutor
 										<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
 							&gt;&gt;(),
 							task_manager,
