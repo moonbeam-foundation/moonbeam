@@ -137,7 +137,7 @@ describeSmokeSuite(
         ).unwrapOrDefault();
         const ethersTransactionsFees = await Promise.all(
           ethersBlock.transactions.map(
-            async (a) => (await context.ethers.getTransactionReceipt(a)).gasUsed
+            async (hash) => (await context.ethers.getTransactionReceipt(hash)).gasUsed
           )
         );
         const weights = await apiAt.query.system.blockWeight();
@@ -172,7 +172,7 @@ describeSmokeSuite(
           .div(maxWeights.perClass.normal.maxTotal.unwrap().refTime.toBn());
 
         const change = checkMultiplier(
-          blockData.find((a) => a.blockNum == blockNum - 1),
+          blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1),
           nextFeeMultiplier
         );
 
@@ -216,7 +216,7 @@ describeSmokeSuite(
             );
 
           const change = checkMultiplier(
-            blockData.find((a) => a.blockNum == blockNum - 1),
+            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1),
             nextFeeMultiplier
           );
           const valid = isChangeDirectionValid(
@@ -314,7 +314,8 @@ describeSmokeSuite(
       };
 
       const isEthereumTxn = (blockNum: number, index: number) => {
-        const extrinsic = blockData.find((a) => a.blockNum === blockNum).extrinsics[index];
+        const extrinsic = blockData.find((blockDatum) => blockDatum.blockNum === blockNum)
+          .extrinsics[index];
         return (
           extrinsic.method.section.toString() === "ethereum" &&
           extrinsic.method.method.toString() === "transact"
@@ -323,12 +324,12 @@ describeSmokeSuite(
 
       const filteredEvents = blockData
         .map(({ blockNum, events, receipts, transactionStatuses }) => {
-          const matchedEvents = events.filter((a) =>
-            context.polkadotApi.events.system.ExtrinsicSuccess.is(a.event)
+          const matchedEvents = events.filter((emittedEvent) =>
+            context.polkadotApi.events.system.ExtrinsicSuccess.is(emittedEvent.event)
           );
 
-          const filteredTxnEvents = events.filter((a) => {
-            return context.polkadotApi.events.ethereum.Executed.is(a.event);
+          const filteredTxnEvents = events.filter((emittedEvent) => {
+            return context.polkadotApi.events.ethereum.Executed.is(emittedEvent.event);
           });
 
           return { blockNum, matchedEvents, filteredTxnEvents, receipts, transactionStatuses };
@@ -338,7 +339,9 @@ describeSmokeSuite(
       const failures = filteredEvents
         .map(({ blockNum, matchedEvents, filteredTxnEvents, transactionStatuses, receipts }) => {
           const fees = matchedEvents
-            .filter((a) => isEthereumTxn(blockNum, a.phase.asApplyExtrinsic.toNumber()))
+            .filter((emittedEvent) =>
+              isEthereumTxn(blockNum, emittedEvent.phase.asApplyExtrinsic.toNumber())
+            )
             .map(({ event }) => {
               const info = event.data[0] as DispatchInfo;
               const fee = info.weight as SpWeightsWeightV2Weight;
@@ -346,10 +349,12 @@ describeSmokeSuite(
             });
 
           const gasUsed: u256[] = filteredTxnEvents
-            .map((a) => {
-              if (isEthereumTxn(blockNum, a.phase.asApplyExtrinsic.toNumber())) {
-                const txnHash = (a.event.data as any).transactionHash;
-                const index = transactionStatuses.findIndex((a) => a.transactionHash.eq(txnHash));
+            .map((txnEvent) => {
+              if (isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())) {
+                const txnHash = (txnEvent.event.data as any).transactionHash;
+                const index = transactionStatuses.findIndex((status) =>
+                  status.transactionHash.eq(txnHash)
+                );
                 // Gas used is cumulative measure, so we have to derive individuals
                 const gasUsed =
                   index === 0
@@ -360,13 +365,15 @@ describeSmokeSuite(
                 return [];
               }
             })
-            .flatMap((a) => a);
+            .flatMap((item) => item);
 
           expect(fees.length, "More eth reciepts than expected, this test needs fixing").to.equal(
             gasUsed.length
           );
 
-          const estimatedFees = gasUsed.map((a) => a.mul(new BN(WEIGHT_PER_GAS.toString())));
+          const estimatedFees = gasUsed.map((amount) =>
+            amount.mul(new BN(WEIGHT_PER_GAS.toString()))
+          );
 
           const matchedAmounts = estimatedFees
             .map((a, index) => a.eq(fees[index].toBn()).valueOf())
@@ -374,15 +381,15 @@ describeSmokeSuite(
 
           return { blockNum, fees, gasUsed, estimatedFees, matchedAmounts };
         })
-        .filter((a) => a.matchedAmounts !== true);
+        .filter((item) => item.matchedAmounts !== true);
 
-      failures.forEach((a) => {
+      failures.forEach((blockDatum) => {
         debug(
-          `Block #${a.blockNum}:\n\tgasUsed: [${a.gasUsed.map((a) =>
-            a.toString()
-          )}]\n\tfees: [${a.fees.map((a) =>
-            a.toString()
-          )}]\n\testimatedFees: [${a.estimatedFees.map((a) => a.toString())}]`
+          `Block #${blockDatum.blockNum}:\n\tgasUsed: [${blockDatum.gasUsed.map((amt) =>
+            amt.toString()
+          )}]\n\tfees: [${blockDatum.fees.map((amt) =>
+            amt.toString()
+          )}]\n\testimatedFees: [${blockDatum.estimatedFees.map((amt) => amt.toString())}]`
         );
       });
 
