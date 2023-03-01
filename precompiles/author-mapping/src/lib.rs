@@ -154,4 +154,19 @@ where
 
 		Ok(())
 	}
+
+	#[precompile::public("nimbusIdOf(address)")]
+	#[precompile::view]
+	fn nimbus_id_of(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<H256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let account = Runtime::AddressMapping::into_account_id(address.0);
+
+		let nimbus_id = pallet_author_mapping::Pallet::<Runtime>::nimbus_id_of(&account)
+			.map(|x| {
+				let x = sp_core::sr25519::Public::from(x);
+				H256::from(x.0)
+			})
+			.unwrap_or(H256::zero());
+		Ok(nimbus_id)
+	}
 }
