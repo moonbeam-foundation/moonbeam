@@ -29,7 +29,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     // It takes time to load all the accounts.
     this.timeout(3600000); // 1 hour should be enough
 
-    const limit = 5000;
+    const limit = 1000;
     let last_key = "";
     let count = 0;
 
