@@ -195,7 +195,7 @@ where
 
 		let keys = pallet_author_mapping::Pallet::<Runtime>::keys_of(&nimbus_id)
 			.map(|x| x.encode())
-			.unwrap_or_else(|| Vec::new());
+			.unwrap_or_default();
 
 		Ok(keys.into())
 	}
