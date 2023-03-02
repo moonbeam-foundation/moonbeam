@@ -1697,8 +1697,6 @@
 <a href="#1697" id="1697">1697</a>
 <a href="#1698" id="1698">1698</a>
 <a href="#1699" id="1699">1699</a>
-<a href="#1700" id="1700">1700</a>
-<a href="#1701" id="1701">1701</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2051,8 +2049,6 @@
 }
 
 <span class="kw">impl </span>pallet_ethereum_chain_id::Config <span class="kw">for </span>Runtime {}
-
-<span class="kw">impl </span>pallet_randomness_collective_flip::Config <span class="kw">for </span>Runtime {}
 
 <span class="doccomment">/// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -2473,7 +2469,7 @@
 
 <span class="kw">impl </span>pallet_author_slot_filter::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>RandomnessSource = RandomnessCollectiveFlip;
+	<span class="kw">type </span>RandomnessSource = Randomness;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
 	<span class="kw">type </span>WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight&lt;Runtime&gt;;
 }
@@ -3016,8 +3012,8 @@
 		<span class="comment">// System support stuff.
 		</span>System: frame_system::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">0</span>,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event&lt;T&gt;} = <span class="number">1</span>,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = <span class="number">2</span>,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
+		<span class="comment">// Previously 2: pallet_randomness_collective_flip
+		</span>Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = <span class="number">4</span>,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = <span class="number">5</span>,
 

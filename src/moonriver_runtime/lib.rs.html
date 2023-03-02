@@ -1643,8 +1643,6 @@
 <a href="#1643" id="1643">1643</a>
 <a href="#1644" id="1644">1644</a>
 <a href="#1645" id="1645">1645</a>
-<a href="#1646" id="1646">1646</a>
-<a href="#1647" id="1647">1647</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2000,8 +1998,6 @@
 }
 
 <span class="kw">impl </span>pallet_ethereum_chain_id::Config <span class="kw">for </span>Runtime {}
-
-<span class="kw">impl </span>pallet_randomness_collective_flip::Config <span class="kw">for </span>Runtime {}
 
 <span class="doccomment">/// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -2903,8 +2899,8 @@
 		<span class="comment">// System support stuff.
 		</span>System: frame_system::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">0</span>,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event&lt;T&gt;} = <span class="number">1</span>,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = <span class="number">2</span>,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
+		<span class="comment">// Previously 2: pallet_randomness_collective_flip
+		</span>Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = <span class="number">4</span>,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = <span class="number">5</span>,
 

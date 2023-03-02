@@ -1648,8 +1648,6 @@
 <a href="#1648" id="1648">1648</a>
 <a href="#1649" id="1649">1649</a>
 <a href="#1650" id="1650">1650</a>
-<a href="#1651" id="1651">1651</a>
-<a href="#1652" id="1652">1652</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2019,8 +2017,6 @@
 }
 
 <span class="kw">impl </span>pallet_ethereum_chain_id::Config <span class="kw">for </span>Runtime {}
-
-<span class="kw">impl </span>pallet_randomness_collective_flip::Config <span class="kw">for </span>Runtime {}
 
 <span class="doccomment">/// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -2918,8 +2914,8 @@
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">2</span>,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">3</span>,
 		Sudo: pallet_sudo::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">4</span>,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = <span class="number">5</span>,
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event&lt;T&gt;} = <span class="number">6</span>,
+		<span class="comment">// Previously 5: pallet_randomness_collective_flip
+		</span>ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event&lt;T&gt;} = <span class="number">6</span>,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event&lt;T&gt;} = <span class="number">7</span>,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = <span class="number">8</span>,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = <span class="number">9</span>,

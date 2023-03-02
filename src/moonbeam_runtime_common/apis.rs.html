@@ -774,7 +774,6 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1175,7 +1174,6 @@
 						<span class="kw-2">&amp;</span>parent_header.hash(),
 						<span class="kw-2">&amp;</span>parent_header.digest,
 					);
-					RandomnessCollectiveFlip::on_initialize(block_number);
 
 					<span class="comment">// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
