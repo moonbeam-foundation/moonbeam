@@ -301,7 +301,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
                   info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
                 ]
               : ([] as PalletReferendaDeposit[])
-          ).filter((value) => !!value);
+          ).filter((value) => !!value && !value.isNone);
 
           return deposits.map((deposit) => {
             // Support for https://github.com/paritytech/substrate/pull/12788
