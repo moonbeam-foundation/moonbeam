@@ -308,9 +308,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
             // which make deposit optional.
             // TODO: better handle unwrapping
             return {
-              accountId: (deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(),
+              accountId: (deposit.unwrap ? deposit.unwrapOrDefault() : deposit).who.toHex(),
               reserved: {
-                referendumInfo: (deposit.unwrap ? deposit.unwrap() : deposit).amount.toBigInt(),
+                referendumInfo: (deposit.unwrap
+                  ? deposit.unwrapOrDefault()
+                  : deposit
+                ).amount.toBigInt(),
               },
             };
           });
