@@ -29,7 +29,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     // It takes time to load all the accounts.
     this.timeout(3600000); // 1 hour should be enough
 
-    const limit = 1000;
+    const limit = 5000;
     let last_key = "";
     let count = 0;
 
@@ -301,19 +301,16 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
                   info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
                 ]
               : ([] as PalletReferendaDeposit[])
-          ).filter((value) => !!value);
+          ).filter((value) => !!value || !value.isNone);
 
           return deposits.map((deposit) => {
             // Support for https://github.com/paritytech/substrate/pull/12788
             // which make deposit optional.
             // TODO: better handle unwrapping
             return {
-              accountId: (deposit.unwrap ? deposit.unwrapOrDefault() : deposit).who.toHex(),
+              accountId: (deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(),
               reserved: {
-                referendumInfo: (deposit.unwrap
-                  ? deposit.unwrapOrDefault()
-                  : deposit
-                ).amount.toBigInt(),
+                referendumInfo: (deposit.unwrap ? deposit.unwrap() : deposit).amount.toBigInt(),
               },
             };
           });
