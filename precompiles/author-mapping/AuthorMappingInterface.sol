@@ -48,7 +48,14 @@ interface AuthorMapping {
     /// @dev Get the nimbus ID of the given addresss
     ///
     /// @custom:selector 3cb194f2
-    /// @param a The address for which we want to know the nimbus id
-    /// @return id The nimbus ID
-    function nimbusIdOf(address a) external returns (bytes32);
+    /// @param who The address for which we want to know the nimbus id
+    /// @return id The nimbus ID, or zero if this address don't have a nimbus ID.
+    function nimbusIdOf(address who) external returns (bytes32);
+
+    /// @dev Get the address of the given nimbus ID
+    ///
+    /// @custom:selector bb34534c
+    /// @param nimbusId The nimbus ID for which we want to know the address
+    /// @return address The address, or zero if this nimbus ID is unknown.
+    function addressOf(bytes32 nimbusId) external returns (address);
 }
