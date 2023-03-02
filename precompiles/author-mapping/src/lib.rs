@@ -27,6 +27,7 @@ use frame_support::{
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::AddressMapping;
+use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::{H160, H256};
@@ -182,5 +183,20 @@ where
 			.unwrap_or(H160::zero());
 
 		Ok(Address(address))
+	}
+
+	#[precompile::public("keysOf(bytes32)")]
+	#[precompile::view]
+	fn keys_of(handle: &mut impl PrecompileHandle, nimbus_id: H256) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id);
+		let nimbus_id: NimbusId = nimbus_id.into();
+
+		let keys = pallet_author_mapping::Pallet::<Runtime>::keys_of(&nimbus_id)
+			.map(|x| x.encode())
+			.unwrap_or_else(|| Vec::new());
+
+		Ok(keys.into())
 	}
 }

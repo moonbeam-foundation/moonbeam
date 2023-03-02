@@ -58,4 +58,11 @@ interface AuthorMapping {
     /// @param nimbusId The nimbus ID for which we want to know the address
     /// @return address The address, or zero if this nimbus ID is unknown.
     function addressOf(bytes32 nimbusId) external returns (address);
+
+    /// @dev Get the keys of the given nimbus ID
+    ///
+    /// @custom:selector 089b7a68
+    /// @param nimbusId The nimbus ID for which we want to know the keys
+    /// @return keys Keys, or empty if this nimbus ID is unknown.
+    function keysOf(bytes32 nimbusId) external returns (bytes memory keys);
 }

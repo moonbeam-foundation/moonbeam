@@ -73,6 +73,7 @@ fn selectors() {
 	assert!(PCall::set_keys_selectors().contains(&0xf1ec919c));
 	assert!(PCall::nimbus_id_of_selectors().contains(&0x3cb194f2));
 	assert!(PCall::address_of_selectors().contains(&0xbb34534c));
+	assert!(PCall::keys_of_selectors().contains(&0x089b7a68));
 }
 
 #[test]
@@ -87,6 +88,7 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::set_keys_selectors());
 		tester.test_view_modifier(PCall::nimbus_id_of_selectors());
 		tester.test_view_modifier(PCall::address_of_selectors());
+		tester.test_view_modifier(PCall::keys_of_selectors());
 	});
 }
 
@@ -439,6 +441,42 @@ mod address_of {
 	#[test]
 	fn unknown_id() {
 		call(H256::from([42u8; 32]), Address(H160::zero()));
+	}
+}
+
+mod keys_of {
+	use super::*;
+
+	fn call(nimbus_id: H256, expected: Vec<u8>) {
+		let expected: UnboundedBytes = expected.into();
+		ExtBuilder::default()
+			.with_balances(vec![(Alice.into(), 1000)])
+			.build()
+			.execute_with(|| {
+				let first_nimbus_id: NimbusId =
+					sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+				let first_vrf_key: NimbusId =
+					sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
+
+				let call = RuntimeCall::AuthorMapping(AuthorMappingCall::set_keys {
+					keys: keys_wrapper::<Runtime>(first_nimbus_id.clone(), first_vrf_key.clone()),
+				});
+				assert_ok!(call.dispatch(RuntimeOrigin::signed(Alice.into())));
+
+				precompiles()
+					.prepare_test(Bob, AuthorMappingAccount, PCall::keys_of { nimbus_id })
+					.execute_returns_encoded(expected);
+			})
+	}
+
+	#[test]
+	fn known_id() {
+		call(H256::from([1u8; 32]), vec![3u8; 32]);
+	}
+
+	#[test]
+	fn unknown_id() {
+		call(H256::from([42u8; 32]), Vec::new());
 	}
 }
 
