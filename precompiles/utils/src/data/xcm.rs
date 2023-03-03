@@ -33,36 +33,79 @@ pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
 // We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
-// The first byte represents the enum variant to be used
+// The first byte represents the enum variant to be used.
+// 		- Indexes 0,2,3 represent XCM V2 variants
+// 		- Index 1 changes name in V3 (`ByGenesis`), but is compatible with V2 `Named`
+// 		- Indexes 4~10 represent new XCM V3 variants
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
-// In this case, only Named requires additional non-bounded data.
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
-pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
+
+pub(crate) fn network_id_to_bytes(network_id: Option<NetworkId>) -> Vec<u8> {
 	let mut encoded: Vec<u8> = Vec::new();
 	match network_id.clone() {
-		NetworkId::Any => {
+		None => {
 			encoded.push(0u8);
 			encoded
 		}
-		NetworkId::Named(name) => {
+		Some(NetworkId::ByGenesis(id)) => {
 			encoded.push(1u8);
-			encoded.append(&mut name.into_inner());
+			encoded.append(&mut id.into());
 			encoded
 		}
-		NetworkId::Polkadot => {
+		Some(NetworkId::Polkadot) => {
+			encoded.push(2u8);
 			encoded.push(2u8);
 			encoded
 		}
-		NetworkId::Kusama => {
+		Some(NetworkId::Kusama) => {
+			encoded.push(3u8);
 			encoded.push(3u8);
 			encoded
 		}
+		Some(NetworkId::ByFork { block_number, block_hash }) => {
+			encoded.push(4u8);
+			encoded.push(1u8);
+			encoded.append(&mut block_number.to_be_bytes().into());
+			encoded.append(&mut block_hash.into());
+			encoded
+		}
+		Some(NetworkId::Westend) => {
+			encoded.push(5u8);
+			encoded.push(4u8);
+			encoded
+		}
+		Some(NetworkId::Rococo) => {
+			encoded.push(6u8);
+			encoded.push(5u8);
+			encoded
+		}
+		Some(NetworkId::Wococo) => {
+			encoded.push(7u8);
+			encoded.push(6u8);
+			encoded
+		}
+		Some(NetworkId::Ethereum { chain_id }) => {
+			encoded.push(8u8);
+			encoded.push(7u8);
+			encoded.append(&mut chain_id.to_be_bytes().into());
+			encoded
+		}
+		Some(NetworkId::BitcoinCore) => {
+			encoded.push(9u8);
+			encoded.push(8u8);
+			encoded
+		}
+		Some(NetworkId::BitcoinCash) => {
+			encoded.push(10u8);
+			encoded.push(9u8);
+			encoded
+		},
 	}
 }
 
 // Function to convert bytes to networkId
-pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<NetworkId> {
+pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<NetworkId>> {
 	ensure!(
 		encoded_bytes.len() > 0,
 		RevertReason::custom("Junctions cannot be empty")
@@ -74,17 +117,40 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Network
 		.map_err(|_| RevertReason::read_out_of_bounds("network selector (1 byte)"))?;
 
 	match network_selector[0] {
-		0 => Ok(NetworkId::Any),
-		1 => Ok(NetworkId::Named(
+		0 => Ok(None),
+		1 => Ok(Some(NetworkId::ByGenesis(
 			encoded_network_id
 				.read_till_end()
-				.in_field("name")?
+				.in_field("genesis")?
 				.to_vec()
 				.try_into()
-				.map_err(|_| RevertReason::value_is_too_large("network name").in_field("name"))?,
-		)),
-		2 => Ok(NetworkId::Polkadot),
-		3 => Ok(NetworkId::Kusama),
+				.map_err(|_| RevertReason::value_is_too_large("network by genesis").in_field("genesis"))?,
+		))),
+		2 => Ok(Some(NetworkId::Polkadot)),
+		3 => Ok(Some(NetworkId::Kusama)),
+		4 => {
+			let mut block_number: [u8; 8] = Default::default();
+			block_number.copy_from_slice(&encoded_network_id.read_raw_bytes(8)?);
+
+			let mut block_hash: [u8; 32] = Default::default();
+			block_hash.copy_from_slice(&encoded_network_id.read_raw_bytes(32)?);
+			Ok(Some(NetworkId::ByFork {
+				block_number: u64::from_be_bytes(block_number),
+				block_hash,
+			}))
+		},
+		5 => Ok(Some(NetworkId::Westend)),
+		6 => Ok(Some(NetworkId::Rococo)),
+		7 => Ok(Some(NetworkId::Wococo)),
+		8 => {
+			let mut chain_id: [u8; 8] = Default::default();
+			chain_id.copy_from_slice(&encoded_network_id.read_raw_bytes(8)?);
+			Ok(Some(NetworkId::Ethereum {
+				chain_id: u64::from_be_bytes(chain_id),
+			}))
+		},
+		9 => Ok(Some(NetworkId::BitcoinCore)),
+		10 => Ok(Some(NetworkId::BitcoinCash)),
 		_ => Err(RevertReason::custom("Non-valid Network Id").into()),
 	}
 }
@@ -158,14 +224,30 @@ impl EvmData for Junction {
 				general_index.copy_from_slice(&encoded_junction.read_raw_bytes(16)?);
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
-			6 => Ok(Junction::GeneralKey(
-				encoded_junction
-					.read_till_end()?
-					.to_vec()
-					.try_into()
-					.map_err(|_| RevertReason::custom("junction general key is too long"))?,
-			)),
+			6 => {
+				let mut length: [u8; 1] = Default::default();
+				length.copy_from_slice(encoded_junction
+					.read_raw_bytes(1)
+					.map_err(|_| RevertReason::read_out_of_bounds("General Key length"))?);
+
+				let mut data: [u8; 32] = Default::default();
+				data.copy_from_slice(&encoded_junction.read_till_end()?);
+
+				Ok(Junction::GeneralKey {
+					length: u8::from_be_bytes(length),
+					data,
+				})
+			},
 			7 => Ok(Junction::OnlyChild),
+			8 => Err(RevertReason::custom("Junction::Plurality not supported yet").into()),
+			9 => {
+				let network = encoded_junction.read_till_end()?.to_vec();
+				if let Some(network_id) = network_id_from_bytes(network)? {
+					Ok(Junction::GlobalConsensus(network_id))
+				} else {
+					Err(RevertReason::custom("Unknown NetworkId").into())
+				}
+			}
 			_ => Err(RevertReason::custom("Unknown Junction variant").into()),
 		}
 	}
@@ -206,13 +288,19 @@ impl EvmData for Junction {
 				encoded.append(&mut id.to_be_bytes().to_vec());
 				encoded.as_slice().into()
 			}
-			Junction::GeneralKey(key) => {
+			Junction::GeneralKey { length, data } => {
 				encoded.push(6u8);
-				encoded.append(&mut key.into_inner());
+				encoded.push(length);
+				encoded.append(&mut data.into());
 				encoded.as_slice().into()
 			}
 			Junction::OnlyChild => {
 				encoded.push(7u8);
+				encoded.as_slice().into()
+			}
+			Junction::GlobalConsensus(network_id) => {
+				encoded.push(9u8);
+				encoded.append(&mut network_id_to_bytes(Some(network_id)));
 				encoded.as_slice().into()
 			}
 			// TODO: The only missing item here is Junciton::Plurality. This is a complex encoded
