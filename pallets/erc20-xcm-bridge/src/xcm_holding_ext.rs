@@ -21,6 +21,10 @@ use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
 
+use xcm::latest::prelude::*;
+use xcm_executor::{Config as XcmExecutorConfig, traits::{FeeManager, FeeReason, TransactAsset, WeightBounds}};
+use frame_support::pallet_prelude::Weight;
+
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -94,25 +98,55 @@ impl XcmHoldingErc20sOrigins {
 	}
 }
 
+pub struct WeighedMessage<Call>(Weight, Xcm<Call>);
+impl<C> PreparedMessage for WeighedMessage<C> {
+	fn weight_of(&self) -> Weight {
+		self.0
+	}
+}
+
 /// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
-pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>(
-	PhantomData<(RuntimeCall, InnerXcmExecutor)>,
+pub struct XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>(
+	PhantomData<(XcmConfig, InnerXcmExecutor)>,
 );
-impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
-	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>
+impl<XcmConfig, InnerXcmExecutor> ExecuteXcm<XcmConfig::RuntimeCall>
+	for XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>
 where
-	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
+	InnerXcmExecutor: ExecuteXcm<XcmConfig::RuntimeCall, Prepared = WeighedMessage<XcmConfig::RuntimeCall>>,
+	XcmConfig: XcmExecutorConfig,
 {
-	fn execute_xcm_in_credit(
-		origin: impl Into<xcm::latest::MultiLocation>,
-		message: xcm::latest::Xcm<RuntimeCall>,
-		weight_limit: xcm::latest::Weight,
-		weight_credit: xcm::latest::Weight,
-	) -> xcm::latest::Outcome {
+	type Prepared = WeighedMessage<XcmConfig::RuntimeCall>;
+
+	fn prepare(
+		mut message: Xcm<XcmConfig::RuntimeCall>,
+	) -> Result<Self::Prepared, Xcm<XcmConfig::RuntimeCall>> {
+		match XcmConfig::Weigher::weight(&mut message) {
+			Ok(weight) => Ok(WeighedMessage(weight, message)),
+			Err(_) => Err(message),
+		}
+	}
+
+	fn execute(
+		origin: impl Into<MultiLocation>,
+		pre: Self::Prepared,
+		hash: XcmHash,
+		weight_credit: Weight,
+	) -> Outcome {
 		let mut erc20s_origins = Default::default();
 		XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, || {
-			InnerXcmExecutor::execute_xcm_in_credit(origin, message, weight_limit, weight_credit)
+			InnerXcmExecutor::execute(origin, pre, hash, weight_credit)
 		})
+	}
+
+	fn charge_fees(origin: impl Into<MultiLocation>, fees: MultiAssets) -> XcmResult {
+		let origin = origin.into();
+		if !XcmConfig::FeeManager::is_waived(Some(&origin), FeeReason::ChargeFees) {
+			for asset in fees.inner() {
+				XcmConfig::AssetTransactor::withdraw_asset(&asset, &origin, None)?;
+			}
+			XcmConfig::FeeManager::handle_fee(fees);
+		}
+		Ok(())
 	}
 }
 

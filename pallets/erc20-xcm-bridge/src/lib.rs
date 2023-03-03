@@ -43,7 +43,7 @@ pub mod pallet {
 	use pallet_evm::Runner;
 	use sp_core::{H160, H256, U256};
 	use sp_std::vec::Vec;
-	use xcm::latest::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult};
+	use xcm::latest::{Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, XcmContext};
 	use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
 	use xcm_executor::Assets;
 
@@ -126,7 +126,7 @@ pub mod pallet {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
-		fn deposit_asset(what: &MultiAsset, who: &MultiLocation) -> XcmResult {
+		fn deposit_asset(what: &MultiAsset, who: &MultiLocation, _context: &XcmContext) -> XcmResult {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 
@@ -164,6 +164,7 @@ pub mod pallet {
 			asset: &MultiAsset,
 			from: &MultiLocation,
 			to: &MultiLocation,
+			_context: &XcmContext,
 		) -> Result<Assets, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
@@ -190,7 +191,7 @@ pub mod pallet {
 		// one (1 to withdraw the asset and a second one to deposit it).
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
-		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {
+		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation, _context: Option<&XcmContext>) -> Result<Assets, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 			let who = T::AccountIdConverter::convert_ref(who)

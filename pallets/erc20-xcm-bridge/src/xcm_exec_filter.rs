@@ -76,6 +76,8 @@ where
 						fun: WildNonFungible,
 						..
 					}) => {}
+					MultiAssetFilter::Wild(AllCounted(_amount)) => {}
+					MultiAssetFilter::Wild(AllOfCounted { .. }) => {}
 					MultiAssetFilter::Definite(_assets) => {
 						// If we wanted a perfect simulation, we would have to remove the assets
 						//  defined according to their amounts, but this would involve calculations
@@ -107,6 +109,8 @@ where
 						fun: WildNonFungible,
 						..
 					}) => {}
+					MultiAssetFilter::Wild(AllCounted(_amount)) => {}
+					MultiAssetFilter::Wild(AllOfCounted { .. }) => {}
 					MultiAssetFilter::Definite(assets) => {
 						for asset in assets.inner() {
 							if erc20_assets.contains(&asset.id) {
