@@ -1,8 +1,11 @@
-error[E0412]: cannot find type `R` in this scope
-  --> tests/compile-fail/precompile/test-gen/generic-arg.rs:28:63
+error: impl type parameter is used in functions arguments. Arguments should not have a type
+       depending on a type parameter, unless it is a length bound for BoundedBytes,
+       BoundedString or alike, which doesn't affect the Solidity type.
+
+       In that case, you must add a #[precompile::test_concrete_types(...)] attribute on the impl
+       block to provide concrete types that will be used to run the automatically generated tests
+       ensuring the Solidity function signatures are correct.
+  --> tests/compile-fail/precompile/test-gen/generic-arg.rs:24:63
    |
-26 | impl<R: Get<u32>> Precompile<R> {
-   |                             - help: you might be missing a type parameter: `<R>`
-27 |     #[precompile::public("foo(bytes)")]
-28 |     fn foo(handle: &mut impl PrecompileHandle, arg: BoundedBytes<R>) -> EvmResult {
-   |                                                                  ^ not found in this scope
+24 |     fn foo(handle: &mut impl PrecompileHandle, arg: BoundedBytes<R>) -> EvmResult {
+   |                                                                  ^
