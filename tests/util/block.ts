@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-
+import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
@@ -50,7 +50,7 @@ export function calculateFeePortions(amount: bigint): { burnt: bigint; treasury:
 }
 
 export interface TxWithEventAndFee extends TxWithEvent {
-  fee: RuntimeDispatchInfo;
+  fee: RuntimeDispatchInfo | RuntimeDispatchInfoV1;
 }
 
 export interface BlockDetails {
@@ -61,7 +61,7 @@ export interface BlockDetails {
 export function mapExtrinsics(
   extrinsics: Extrinsic[],
   records: FrameSystemEventRecord[],
-  fees?: RuntimeDispatchInfo[]
+  fees?: RuntimeDispatchInfo[] | RuntimeDispatchInfoV1[]
 ): TxWithEventAndFee[] {
   return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
     let dispatchError: DispatchError | undefined;
@@ -358,7 +358,7 @@ export const getBlockExtrinsic = async (
   return { block, extrinsic, events, resultEvent };
 };
 
-export async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
+export async function jumpToRound(context: DevTestContext, round: number): Promise<string | null> {
   let lastBlockHash = null;
   while (true) {
     const currentRound = (

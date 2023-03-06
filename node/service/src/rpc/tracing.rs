@@ -28,7 +28,7 @@ pub struct RpcRequesters {
 
 // Spawn the tasks that are required to run a Moonbeam tracing node.
 pub fn spawn_tracing_tasks<B, C, BE>(
-	rpc_config: &cli_opt::RpcConfig,
+	rpc_config: &moonbeam_cli_opt::RpcConfig,
 	params: SpawnTasksParams<B, C, BE>,
 ) -> RpcRequesters
 where

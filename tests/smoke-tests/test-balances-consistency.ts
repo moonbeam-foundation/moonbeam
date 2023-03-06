@@ -301,14 +301,19 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
                   info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
                 ]
               : ([] as PalletReferendaDeposit[])
-          ).filter((value) => !!value);
+          ).filter((value) => !!value && !value.isNone);
 
-          return deposits.map((deposit) => ({
-            accountId: deposit.who.toHex(),
-            reserved: {
-              referendumInfo: deposit.amount.toBigInt(),
-            },
-          }));
+          return deposits.map((deposit) => {
+            // Support for https://github.com/paritytech/substrate/pull/12788
+            // which make deposit optional.
+            // TODO: better handle unwrapping
+            return {
+              accountId: (deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(),
+              reserved: {
+                referendumInfo: (deposit.unwrap ? deposit.unwrap() : deposit).amount.toBigInt(),
+              },
+            };
+          });
         })
         .flat(),
       assets.map((asset) => ({

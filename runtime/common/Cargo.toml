@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-runtime-common"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Common code shared between runtimes"
 edition = "2021"
 homepage = "https://moonbeam.network"
@@ -13,43 +13,44 @@ impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
-pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder/", default-features = false }
-moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", optional = true, default-features = false }
-pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
-pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
-pallet-ethereum-xcm = { path = "../../pallets/ethereum-xcm", default-features = false }
-pallet-migrations = { path = "../../pallets/migrations", default-features = false }
-pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-pallet-randomness = { path = "../../pallets/randomness", default-features = false }
-pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
-precompile-utils = { path = "../../precompiles/utils", default-features = false }
-xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+pallet-evm-precompile-relay-encoder = { workspace = true }
+moonbeam-xcm-benchmarks = { workspace = true, optional = true }
+pallet-asset-manager = { workspace = true }
+pallet-author-mapping = { workspace = true }
+pallet-ethereum-xcm = { workspace = true }
+pallet-migrations = { workspace = true }
+pallet-parachain-staking = { workspace = true }
+pallet-randomness = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
+precompile-utils = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-collective = { workspace = true }
+pallet-democracy = { workspace = true }
+pallet-preimage = { workspace = true }
+pallet-referenda = { workspace = true }
+pallet-scheduler = { workspace = true }
+parity-scale-codec = { workspace = true }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-ethereum = { workspace = true }
+fp-evm = { workspace = true }
+pallet-base-fee = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+pallet-author-inherent = { workspace = true }
+pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
 
 [features]
 std = [
@@ -65,6 +66,7 @@ std = [
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
 	"pallet-randomness/std",
+	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",
@@ -76,6 +78,7 @@ std = [
 	"xcm/std",
 	"pallet-evm-precompile-relay-encoder/std",
 ]
+runtime-benchmarks = [ "pallet-referenda/runtime-benchmarks" ]
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",

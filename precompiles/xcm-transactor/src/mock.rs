@@ -17,13 +17,13 @@
 //! Test utilities
 use crate::v1::{XcmTransactorPrecompileV1, XcmTransactorPrecompileV1Call};
 use crate::v2::{XcmTransactorPrecompileV2, XcmTransactorPrecompileV2Call};
-use codec::{Decode, Encode};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,

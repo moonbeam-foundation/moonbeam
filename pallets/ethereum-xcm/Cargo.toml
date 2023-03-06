@@ -11,51 +11,49 @@ version = "1.0.0-dev"
 targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-serde = { version = "1.0.137", optional = true }
+ethereum = { workspace = true, features = [ "with-codec" ] }
+serde = { workspace = true, optional = true }
 
 # Parity
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-ethereum-types = { version = "0.14", default-features = false }
-rlp = { version = "0.5", default-features = false }
-scale-info = { version = "2.1.2", default-features = false, features = [ "derive" ] }
+ethereum-types = { workspace = true }
+parity-scale-codec = { workspace = true }
+rlp = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "4.0.0-dev", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "4.0.0-dev", default-features = false }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "4.0.0-dev", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "7.0.0", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "7.0.0", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "5.0.0", default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-timestamp = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", default-features = false, features = [ "forbid-evm-reentrancy" ] }
-xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+fp-ethereum = { workspace = true }
+fp-evm = { workspace = true }
+fp-rpc = { workspace = true }
+fp-self-contained = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+xcm-primitives = { workspace = true }
 
 [dev-dependencies]
-pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+pallet-evm-precompile-proxy = { workspace = true }
 
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.37", features = [ "forbid-evm-reentrancy" ] }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
+pallet-proxy = { workspace = true, features = [ "std" ] }
 
-hex = "0.4.3"
+hex = { workspace = true }
 # Parity
-libsecp256k1 = { version = "0.7", features = [ "hmac", "static-context" ] }
+libsecp256k1 = { workspace = true, features = [ "hmac", "static-context" ] }
 # Substrate FRAME
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "4.0.0-dev" }
+pallet-balances = { workspace = true, features = [ "std" ] }
 # Substrate
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", version = "7.0.0" }
+sp-core = { workspace = true, features = [ "std" ] }
 
 [features]
 default = [ "std" ]
 std = [
-	# Parity
-	"codec/std",
 	"ethereum-types/std",
 	"ethereum/std",
 	# Frontier
@@ -68,6 +66,8 @@ std = [
 	"frame-system/std",
 	"pallet-evm/std",
 	"pallet-timestamp/std",
+	# Parity
+	"parity-scale-codec/std",
 	"rlp/std",
 	"scale-info/std",
 	"serde",

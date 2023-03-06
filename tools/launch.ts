@@ -173,8 +173,13 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.29.0",
   },
+  "moonbase-0.30.0": {
+    relay: "rococo-9370",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.30.0",
+  },
   local: {
-    relay: "rococo-9320",
+    relay: "rococo-9370",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -245,6 +250,14 @@ const relays: { [name: string]: NetworkConfig } = {
   "westend-9040": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "westend-local",
+  },
+  "rococo-9320": {
+    docker: "purestake/moonbase-relay-testnet:sha-2bfbb4ad",
+    chain: "rococo-local",
+  },
+  "rococo-9370": {
+    docker: "purestake/moonbase-relay-testnet:sha-b4b818d8",
+    chain: "rococo-local",
   },
   local: {
     binary: "../../polkadot/target/release/polkadot",

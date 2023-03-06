@@ -111,7 +111,6 @@ fn verify_pallet_prefixes() {
 	// is pulled in substrate deps.
 	is_pallet_prefix::<moonbeam_runtime::System>("System");
 	is_pallet_prefix::<moonbeam_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonbeam_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
 	is_pallet_prefix::<moonbeam_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbeam_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonbeam_runtime::ParachainInfo>("ParachainInfo");
@@ -266,7 +265,6 @@ fn verify_pallet_indices() {
 	// System support
 	is_pallet_index::<moonbeam_runtime::System>(0);
 	is_pallet_index::<moonbeam_runtime::ParachainSystem>(1);
-	is_pallet_index::<moonbeam_runtime::RandomnessCollectiveFlip>(2);
 	is_pallet_index::<moonbeam_runtime::Timestamp>(3);
 	is_pallet_index::<moonbeam_runtime::ParachainInfo>(4);
 	// Monetary

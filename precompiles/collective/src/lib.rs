@@ -18,7 +18,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::DecodeLimit as _;
 use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{
@@ -29,6 +28,7 @@ use frame_support::{
 	weights::Weight,
 };
 use pallet_evm::AddressMapping;
+use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;
 use sp_core::{Decode, Get, H160, H256};
 use sp_std::{boxed::Box, vec::Vec};
