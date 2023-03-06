@@ -204,41 +204,81 @@ describeDevMoonbeam("Staking - Mark offline a collator not producing blocks", (c
       context.createBlock([
         context.polkadotApi.tx.sudo
           .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
-          .signAsync(alith)
+          .signAsync(alith),
+          context.polkadotApi.tx.parachainStaking
+          .joinCandidates(MIN_GLMR_STAKING, 1)
+          .signAsync(ethan),
       ])
     );
-
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1).signAsync(ethan),
-        
-      )
-    ); 
-
+ 
   });
 
   it("test collator offline", async () => {
 
-    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    await jumpRounds(context, rewardDelay.addn(1).toNumber());
-    const offlineEvents = await offline_helper(context, 100);
+    const candidateState = (
+      await context.polkadotApi.query.parachainStaking.candidateInfo(ethan.address)
+    ).unwrap(); 
+
     
+    //ethan leaves candidates pool
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking.scheduleLeaveCandidates(2).signAsync(ethan)
+      )
+    ); 
+
+    const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
+    await jumpRounds(context, leaveDelay.addn(1).toNumber());
+
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking
+        .executeLeaveCandidates(ethan.address, 0)
+        .signAsync(ethan)
+      )
+    ); 
+
+    //jump 6 rounds
+    //ethan will not have produced blocks in the skipped rounds
+    //await jumpRounds(context, 6);
+    
+    await context.createBlock();
+
+    //ethan joins candidates pool again
+    /* await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1).signAsync(ethan),
+      )
+    );  
+     */
+
+    //TODO: check what happens if a collator is only selected in one round
+    //TODO: points == 0. Is the collator not producing blocks or wasn't selected?
+
+
+    //check ethan went offline
+    const offlineEvents = await events_helper(context, 50);
 
     console.log("Offline Event: ", offlineEvents);
     
   });
 });
 
-async function offline_helper(context, num_blocks: number) {
+async function events_helper(context, num_blocks: number) {
   for(let i = 0; i<num_blocks; i++){
     const blockHash = (await context.createBlock(
       //context.polkadotApi.tx.parachainStaking.goOffline().signAsync(ethan)
     )).block.hash.toString();
+    const block = await context.web3.eth.getBlock("latest");
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const offlineEvents = allEvents.reduce((acc, event) => {
-      if (context.polkadotApi.events.parachainStaking.CandidateWentOffline.is(event.event)) {
+      if (context.polkadotApi.events.parachainStaking.NewRound.is(event.event)) {
         acc.push({
-          account: event.event.data[0].toString()
+          starting_block: event.event.data[0].toString(),
+          round: event.event.data[1].toString(),
+          selected_collators_number: event.event.data[2].toString(),
+          total_balance: event.event.data[3].toString(),
+          author: block.miner
         });
       }
       return acc;
