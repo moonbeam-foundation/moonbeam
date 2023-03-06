@@ -32,8 +32,8 @@ mod common_encoder_tests {
 		use parity_scale_codec::Encode;
 		sp_io::TestExternalities::default().execute_with(|| {
 			let mut expected_encoded: Vec<u8> = Vec::new();
-			pallet_xcm_transactor::RelayPalletIndices::<moonriver_runtime::Runtime>::put(
-				RelayIndices {
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				RelayChainIndices {
 					pallets: PalletIndices {
 						staking: 6u8,
 						utility: 24u8,
@@ -41,16 +41,16 @@ mod common_encoder_tests {
 					},
 					calls: CallIndices {
 						staking: StakingIndices {
-							bond: 1u16,
-							bond_extra: 1u16,
-							unbond: 1u16,
-							withdraw_unbonded: 1u16,
-							validate: 1u16,
-							nominate: 1u16,
-							chill: 6u16,
-							set_payee: 1u16,
-							set_controller: 1u16,
-							rebond: 1u16,
+							bond: 1u8,
+							bond_extra: 1u8,
+							unbond: 1u8,
+							withdraw_unbonded: 1u8,
+							validate: 1u8,
+							nominate: 1u8,
+							chill: 6u8,
+							set_payee: 1u8,
+							set_controller: 1u8,
+							rebond: 1u8,
 						},
 						utility: UtilityIndices { as_derivative: 1u8 },
 						hrmp: HrmpIndices {

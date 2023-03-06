@@ -88,7 +88,7 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 #[pallet]
 pub mod pallet {
 
-	use crate::relay_indices::RelayIndices;
+	use crate::relay_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
@@ -298,8 +298,8 @@ pub mod pallet {
 
 	/// Stores the indices of relay chain pallets
 	#[pallet::storage]
-	#[pallet::getter(fn relay_pallet_indices)]
-	pub type RelayPalletIndices<T: Config> = StorageValue<_, RelayIndices>;
+	#[pallet::getter(fn relay_indices)]
+	pub type RelayIndices<T: Config> = StorageValue<_, RelayChainIndices, ValueQuery>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]

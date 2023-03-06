@@ -29,15 +29,13 @@ impl<R: pallet_xcm_transactor::Config> xcm_primitives::UtilityEncodeCall for Com
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
 				encoded_call.push(
-					pallet_xcm_transactor::RelayPalletIndices::<R>::get()
-						.unwrap()
+					pallet_xcm_transactor::RelayIndices::<R>::get()
 						.pallets
 						.utility,
 				);
 				// call index
 				encoded_call.push(
-					pallet_xcm_transactor::RelayPalletIndices::<R>::get()
-						.unwrap()
+					pallet_xcm_transactor::RelayIndices::<R>::get()
 						.calls
 						.utility
 						.as_derivative,
@@ -104,23 +102,19 @@ impl<R: pallet_xcm_transactor::Config> pallet_evm_precompile_relay_encoder::Stak
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
 				encoded_call.push(
-					pallet_xcm_transactor::RelayPalletIndices::<R>::get()
-						.unwrap()
+					pallet_xcm_transactor::RelayIndices::<R>::get()
 						.pallets
 						.staking,
 				);
-				let mut staking_call_index = pallet_xcm_transactor::RelayPalletIndices::<R>::get()
-					.unwrap()
+				let mut staking_call_index = pallet_xcm_transactor::RelayIndices::<R>::get()
 					.calls
 					.staking
 					.chill
 					.to_le_bytes()
 					.to_vec();
-				staking_call_index.pop();
 				// call index
 				encoded_call.append(&mut staking_call_index);
 				encoded_call
-				//RelayCall::Stake(StakeCall::Chill).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
