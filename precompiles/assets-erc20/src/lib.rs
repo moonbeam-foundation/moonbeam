@@ -551,7 +551,7 @@ where
 		};
 
 		if value > owned_amount {
-			return Err(revert("cannot burn more than owner"));
+			return Err(revert("cannot burn more than owned"));
 		}
 
 		// Build call with origin.

@@ -2417,7 +2417,7 @@ fn mint_over_owned_amount() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"cannot burn more than owner");
+				.execute_reverts(|e| e == b"cannot burn more than owned");
 		});
 }
 
