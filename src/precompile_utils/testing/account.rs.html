@@ -297,14 +297,14 @@
 			}
 		}
 
-		<span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$name</span>&gt; <span class="kw">for </span>H160 {
-			<span class="kw">fn </span>from(value: <span class="macro-nonterminal">$name</span>) -&gt; H160 {
+		<span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$name</span>&gt; <span class="kw">for </span>sp_core::H160 {
+			<span class="kw">fn </span>from(value: <span class="macro-nonterminal">$name</span>) -&gt; sp_core::H160 {
 				MockAccount::from(value).into()
 			}
 		}
 
-		<span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$name</span>&gt; <span class="kw">for </span>H256 {
-			<span class="kw">fn </span>from(value: <span class="macro-nonterminal">$name</span>) -&gt; H256 {
+		<span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$name</span>&gt; <span class="kw">for </span>sp_core::H256 {
+			<span class="kw">fn </span>from(value: <span class="macro-nonterminal">$name</span>) -&gt; sp_core::H256 {
 				MockAccount::from(value).into()
 			}
 		}
