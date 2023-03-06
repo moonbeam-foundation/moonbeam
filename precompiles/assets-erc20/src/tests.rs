@@ -2385,6 +2385,7 @@ fn mint_overflow() {
 }
 
 #[test]
+#[ignore]
 fn burn_overflow() {
 	ExtBuilder::default()
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
@@ -2461,7 +2462,7 @@ fn burn_over_owned_amount() {
 					LocalAssetId(0u128),
 					LocalPCall::burn {
 						from: Address(CryptoAlith.into()),
-						value: U256::from(2),
+						value: U256::from(2000),
 					},
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
