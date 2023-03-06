@@ -108,7 +108,7 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 			ProxyPrecompile<R>,
 			(
 				SubcallWithMaxNesting<1>,
-				CallableByContract<crate::OnlyIsProxy<R>>,
+				CallableByContract<crate::OnlyIsProxyAndProxy<R>>,
 			),
 		>,
 	),

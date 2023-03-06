@@ -70,6 +70,38 @@ where
 	}
 }
 
+#[derive(Debug)]
+pub struct OnlyIsProxyAndProxy<Runtime>(PhantomData<Runtime>);
+
+impl<Runtime> SelectorFilter for OnlyIsProxyAndProxy<Runtime>
+where
+	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+{
+	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
+		match selector {
+			None => false,
+			Some(selector) => {
+				ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector)
+					|| ProxyPrecompileCall::<Runtime>::proxy_selectors().contains(&selector)
+					|| ProxyPrecompileCall::<Runtime>::proxy_force_type_selectors()
+						.contains(&selector)
+			}
+		}
+	}
+
+	fn description() -> String {
+		"Allowed for all callers only for selectors 'is_proxy', 'proxy', 'proxy_force_type'".into()
+	}
+}
+
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
