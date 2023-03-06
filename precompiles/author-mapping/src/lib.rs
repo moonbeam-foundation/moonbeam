@@ -24,11 +24,13 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
+use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::AddressMapping;
+use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -61,6 +63,7 @@ where
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
+	Runtime::AccountId: Into<H160>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	#[precompile::public("addAssociation(bytes32)")]
@@ -153,5 +156,47 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+
+	#[precompile::public("nimbusIdOf(address)")]
+	#[precompile::view]
+	fn nimbus_id_of(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<H256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let account = Runtime::AddressMapping::into_account_id(address.0);
+
+		let nimbus_id = pallet_author_mapping::Pallet::<Runtime>::nimbus_id_of(&account)
+			.map(|x| H256::from(sp_core::sr25519::Public::from(x).0))
+			.unwrap_or(H256::zero());
+		Ok(nimbus_id)
+	}
+
+	#[precompile::public("addressOf(bytes32)")]
+	#[precompile::view]
+	fn address_of(handle: &mut impl PrecompileHandle, nimbus_id: H256) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id);
+		let nimbus_id: NimbusId = nimbus_id.into();
+
+		let address: H160 = pallet_author_mapping::Pallet::<Runtime>::account_id_of(&nimbus_id)
+			.map(|x| x.into())
+			.unwrap_or(H160::zero());
+
+		Ok(Address(address))
+	}
+
+	#[precompile::public("keysOf(bytes32)")]
+	#[precompile::view]
+	fn keys_of(handle: &mut impl PrecompileHandle, nimbus_id: H256) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id);
+		let nimbus_id: NimbusId = nimbus_id.into();
+
+		let keys = pallet_author_mapping::Pallet::<Runtime>::keys_of(&nimbus_id)
+			.map(|x| x.encode())
+			.unwrap_or_default();
+
+		Ok(keys.into())
 	}
 }
