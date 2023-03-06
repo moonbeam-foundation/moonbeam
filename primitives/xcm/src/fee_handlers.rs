@@ -21,6 +21,7 @@
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 
 use frame_support::{
+	pallet_prelude::Weight,
 	traits::{tokens::fungibles::Mutate, Get},
 	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 };
@@ -38,7 +39,7 @@ pub struct FirstAssetTrader<
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
-	u64,
+	Weight,
 	Option<(MultiLocation, u128, u128)>, // id, amount, units_per_second
 	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
@@ -49,11 +50,11 @@ impl<
 	> WeightTrader for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn new() -> Self {
-		FirstAssetTrader(0, None, PhantomData)
+		FirstAssetTrader(Weight::zero(), None, PhantomData)
 	}
 	fn buy_weight(
 		&mut self,
-		weight: u64,
+		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
 		// can only call one time
@@ -62,7 +63,7 @@ impl<
 			return Err(XcmError::NotWithdrawable);
 		}
 
-		assert_eq!(self.0, 0);
+		assert_eq!(self.0, Weight::zero());
 		let first_asset = payment
 			.clone()
 			.fungible_assets_iter()
@@ -82,7 +83,7 @@ impl<
 				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
-					let amount = units_per_second.saturating_mul(weight as u128)
+					let amount = units_per_second.saturating_mul(weight.ref_time() as u128)
 						/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 
 					// We dont need to proceed if the amount is 0
@@ -113,11 +114,11 @@ impl<
 	}
 
 	// Refund weight. We will refund in whatever asset is stored in self.
-	fn refund_weight(&mut self, weight: u64) -> Option<MultiAsset> {
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
-			let amount = units_per_second * (weight as u128) / (WEIGHT_REF_TIME_PER_SECOND as u128);
+			let amount = units_per_second * (weight.ref_time() as u128) / (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
 				id.clone(),

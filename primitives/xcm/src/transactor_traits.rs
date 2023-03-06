@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 
-use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use sp_std::vec::Vec;
 use xcm::latest::{Error as XcmError, MultiLocation};
 
