@@ -226,10 +226,10 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as u64, payment.clone())
+			.buy_weight((amount as u64).into(), payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
-		assert_eq!(trader.0, 1000u64);
+		assert_eq!(trader.0, 1000u64.into());
 	}
 
 	#[test]
@@ -246,10 +246,10 @@ mod test {
 			fun: Fungibility::Fungible(100u128),
 		});
 		let buy_one_results = trader
-			.buy_weight(100u64, asset_one_payment.clone())
+			.buy_weight(100u64.into(), asset_one_payment.clone())
 			.expect("can buy weight once");
 		assert_eq!(buy_one_results.fungible.len(), 0); // no unused amount
-		assert_eq!(trader.0, 100u64);
+		assert_eq!(trader.0, 100u64.into());
 		assert_eq!(
 			trader.1,
 			Some((
@@ -272,12 +272,12 @@ mod test {
 			fun: Fungibility::Fungible(10_000u128),
 		});
 		assert_eq!(
-			trader.buy_weight(10_000u64, asset_two_payment.clone()),
+			trader.buy_weight(10_000u64.into(), asset_two_payment.clone()),
 			Err(XcmError::NotWithdrawable),
 		);
 
 		// state should be unchanged
-		assert_eq!(trader.0, 100u64);
+		assert_eq!(trader.0, 100u64.into());
 		assert_eq!(
 			trader.1,
 			Some((
@@ -303,13 +303,13 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as u64, payment.clone())
+			.buy_weight((amount as u64).into(), payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
-		assert_eq!(trader.0, 1000u64);
+		assert_eq!(trader.0, 1000u64.into());
 
 		assert_eq!(
-			trader.refund_weight(1000u64),
+			trader.refund_weight(1000u64.into()),
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
@@ -329,13 +329,13 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as u64, payment.clone())
+			.buy_weight((amount as u64).into(), payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
-		assert_eq!(trader.0, 1000u64);
+		assert_eq!(trader.0, 1000u64.into());
 
 		assert_eq!(
-			trader.refund_weight(100u64),
+			trader.refund_weight(100u64.into()),
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(100),
 				id: ARBITRARY_ID,
@@ -343,12 +343,12 @@ mod test {
 		);
 
 		// should reflect 100 weight and 100 currency deducted
-		assert_eq!(trader.0, 900);
+		assert_eq!(trader.0, 900u64.into());
 		assert_eq!(trader.1.clone().unwrap().1, 900);
 
 		// can call again
 		assert_eq!(
-			trader.refund_weight(200u64),
+			trader.refund_weight(200u64.into()),
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(200),
 				id: ARBITRARY_ID,
@@ -356,7 +356,7 @@ mod test {
 		);
 
 		// should reflect another 200 weight and 200 currency deducted
-		assert_eq!(trader.0, 700);
+		assert_eq!(trader.0, 700u64.into());
 		assert_eq!(trader.1.clone().unwrap().1, 700);
 	}
 
@@ -372,20 +372,20 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as u64, payment.clone())
+			.buy_weight((amount as u64).into(), payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
-		assert_eq!(trader.0, 1000u64);
+		assert_eq!(trader.0, 1000u64.into());
 
 		// can't call with more weight
 		assert_eq!(
-			trader.refund_weight(9999u64),
+			trader.refund_weight(9999u64.into()),
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
 			})
 		);
-		assert_eq!(trader.0, 0);
+		assert_eq!(trader.0, Weight::zero());
 	}
 
 	#[test]
@@ -400,23 +400,23 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as u64, payment.clone())
+			.buy_weight((amount as u64).into(), payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
-		assert_eq!(trader.0, 1000u64);
+		assert_eq!(trader.0, 1000u64.into());
 
 		// adjust weight so that it will allow a higher amount -- we want to see that the currency
 		// (self.1.1) is capped even when weight is not
-		trader.0 = trader.0 + 1000;
+		trader.0 = trader.0.saturating_add(1000u64.into());
 
 		// can't call with more weight
 		assert_eq!(
-			trader.refund_weight(1500u64),
+			trader.refund_weight(1500u64.into()),
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
 			})
 		);
-		assert_eq!(trader.0, 500); // still thinks we have unreturned weight
+		assert_eq!(trader.0, 500u64.into()); // still thinks we have unreturned weight
 	}
 }
