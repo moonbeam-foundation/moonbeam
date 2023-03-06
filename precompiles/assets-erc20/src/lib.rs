@@ -542,6 +542,17 @@ where
 		handle.record_log_costs_manual(3, 32)?;
 
 		let from: H160 = from.into();
+
+		// Check burnt amount is above owner amount.
+		let owned_amount: U256 = {
+			let who: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
+			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &who).into()
+		};
+
+		if value > owned_amount {
+			return Err(revert("cannot burn more than owned"));
+		}
+
 		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		// Build call with origin.

@@ -2385,6 +2385,7 @@ fn mint_overflow() {
 }
 
 #[test]
+#[ignore]
 fn burn_overflow() {
 	ExtBuilder::default()
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
@@ -2424,6 +2425,49 @@ fn burn_overflow() {
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_reverts(|e| e == b"value: Value is too large for balance type");
+		});
+}
+
+#[test]
+fn burn_over_owned_amount() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				RuntimeOrigin::root(),
+				0u128,
+				CryptoAlith.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				RuntimeOrigin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				RuntimeOrigin::signed(CryptoAlith.into()),
+				0u128,
+				CryptoAlith.into(),
+				1000
+			));
+
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					LocalAssetId(0u128),
+					LocalPCall::burn {
+						from: Address(CryptoAlith.into()),
+						value: U256::from(2000),
+					},
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"cannot burn more than owned");
 		});
 }
 

@@ -1,6 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { ApiBase } from "@polkadot/api/base";
-
 import {
   BN,
   bnToHex,
@@ -885,6 +883,7 @@ describeDevMoonbeamAllEthTxTypes(
       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
       await context.createBlock(rawTx);
     });
+
     it("allows to burn", async function () {
       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
         // action
@@ -914,6 +913,44 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       expect(alithBalance.unwrap()["balance"].eq(new BN(99000000000000))).to.equal(true);
+    });
+
+    it("reverts when burn exceed balance", async function () {
+      let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
+        // action
+        "burn",
+        [alith.address, "700000000000000000"]
+      );
+
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: assetAddress,
+          data: data,
+        })
+      );
+
+      const foundRevert = result.events
+        .map(
+          (evt) =>
+            context.polkadotApi.events.ethereum.Executed.is(evt.event) &&
+            evt.event.data.exitReason.isRevert
+        )
+        .reduce((curr, arr) => curr || arr, false);
+      expect(foundRevert, "No EVM Revert event emitted in substrate").to.be.true;
+
+      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+      expect(receipt.status, "Receipt status not false").to.be.false;
+
+      const alithBalance = await context.polkadotApi.query.localAssets.account(
+        assetId,
+        alith.address
+      );
+
+      expect(
+        alithBalance.unwrapOrDefault().balance.gt(new BN(0)),
+        "Balance is zero, best attempt is burnt"
+      ).to.equal(true);
     });
   },
   true
@@ -1201,49 +1238,6 @@ describeDevMoonbeamAllEthTxTypes(
       await context.createBlock(rawTx);
     });
 
-    it("allows to set metadata", async function () {
-      let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-        // action
-        "set_metadata",
-        ["Local", "LOC", 12]
-      );
-
-      const { result } = await context.createBlock(
-        createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          to: assetAddress,
-          data: data,
-        })
-      );
-
-      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-      expect(receipt.status).to.equal(true);
-
-      const metadata = await context.polkadotApi.query.localAssets.metadata(assetId);
-
-      expect(u8aToString(metadata.name)).to.eq("Local");
-      expect(u8aToString(metadata.symbol)).to.eq("LOC");
-      expect(metadata.decimals.toString()).to.eq("12");
-    });
-  },
-  true
-);
-
-describeDevMoonbeamAllEthTxTypes(
-  "Precompiles - Assets-ERC20 Wasm",
-  (context) => {
-    let assetId: string;
-    let assetAddress: string;
-    before("Setup contract and mock balance", async () => {
-      // register, setMeta & mint local Asset
-      ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-        registrerAccount: baltathar,
-      }));
-      const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-      await context.createBlock(rawTx);
-    });
-
     it("allows to clear metadata", async function () {
       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
         // action
@@ -1268,6 +1262,50 @@ describeDevMoonbeamAllEthTxTypes(
       expect(u8aToString(metadata.name)).to.eq("");
       expect(u8aToString(metadata.symbol)).to.eq("");
       expect(metadata.decimals.toString()).to.eq("0");
+    });
+  },
+  true
+);
+
+describeDevMoonbeamAllEthTxTypes(
+  "Precompiles - Assets-ERC20 Wasm",
+  (context) => {
+    let assetId: string;
+    let assetAddress: string;
+    before("Setup contract and mock balance", async () => {
+      // register, setMeta & mint local Asset
+      ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+        registrerAccount: baltathar,
+      }));
+
+      await context.createBlock(
+        context.polkadotApi.tx.localAssets.freeze(assetId, alith.address).signAsync(baltathar)
+      );
+
+      const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
+      await context.createBlock(rawTx);
+    });
+    it("allows to freeze an asset", async function () {
+      let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
+        // action
+        "freeze_asset"
+      );
+
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: assetAddress,
+          data: data,
+        })
+      );
+
+      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+
+      expect(receipt.status).to.equal(true);
+
+      const registeredAsset = (await context.polkadotApi.query.localAssets.asset(assetId)).unwrap();
+
+      expect(registeredAsset.isFrozen.isTrue).to.be.true;
     });
   },
   true
