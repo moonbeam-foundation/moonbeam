@@ -374,8 +374,10 @@ where
 					params.substrate_backend.clone(),
 					Arc::new(frontier_backend_sql.clone()),
 					params.client.import_notification_stream(),
-					1000,                              // batch size
-					std::time::Duration::from_secs(1), // interval duration
+					fc_mapping_sync::sql::SyncWorkerConfig {
+						read_notification_timeout: Duration::from_secs(10),
+						check_indexed_blocks_interval: Duration::from_secs(60),
+					},
 				),
 			);
 		}
