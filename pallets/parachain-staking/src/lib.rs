@@ -121,6 +121,9 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
+		///If a collator doesn't produce any block on this number of rounds, it is marked as offline
+		#[pallet::constant]
+		type NumberRoundsOffline: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -438,6 +441,33 @@ pub mod pallet {
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				weight = weight.saturating_add(Self::prepare_staking_payouts(round.current));
+
+				// select total candidates
+				let candidates = <CandidatePool<T>>::get().0;
+
+				// iter candidates to check which of them must be marked as offline
+				for candidate in candidates {
+					match <CandidateRoundsInfo<T>>::try_get(candidate.owner.clone()) {
+						Ok(info) => {
+							if round.current - info.last_producing_round
+								> T::NumberRoundsOffline::get()
+							{
+								// if the collator has not produced any block within
+								// NumberRoundsOffline e.g(3 rounds for Moonriver)
+								// it is marked as offline
+								<Pallet<T>>::go_offline(T::RuntimeOrigin::from(
+									Some(candidate.owner.clone()).into(),
+								))
+								.unwrap_or_default();
+
+								//remove storage info for the collator
+								<CandidateRoundsInfo<T>>::remove(candidate.owner.clone());
+							};
+						}
+						Err(_) => {}
+					}
+				}
+
 				// select top collator candidates for next round
 				let (extra_weight, collator_count, _delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -464,7 +494,16 @@ pub mod pallet {
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
 			weight
 		}
-		fn on_finalize(_n: T::BlockNumber) {
+		fn on_finalize(n: T::BlockNumber) {
+			let author = T::BlockAuthor::get();
+			let now = <Round<T>>::get().current;
+			<CandidateRoundsInfo<T>>::insert(
+				&author,
+				CandidateLastRound {
+					block_produced: n,
+					last_producing_round: now,
+				},
+			);
 			Self::award_points_to_block_author();
 		}
 	}
@@ -506,6 +545,12 @@ pub mod pallet {
 	/// Get collator candidate info associated with an account if account is candidate else None
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_rounds_info)]
+	/// Stores the last round in which a collator produced blocks
+	pub(crate) type CandidateRoundsInfo<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, CandidateLastRound<T::BlockNumber>, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]

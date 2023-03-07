@@ -728,6 +728,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
+	/// If a collator doesn't produce any block on this number of rounds, it is marked as offline
+	type NumberRoundsOffline = ConstU32<1>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<{ 4 * 7 }>;
 	/// Rounds before the candidate bond increase/decrease can be executed

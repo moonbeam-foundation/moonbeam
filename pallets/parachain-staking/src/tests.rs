@@ -24,16 +24,18 @@
 
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
+use crate::mock::System;
 use crate::mock::{
 	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
 	BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
 };
+use crate::types::*;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -857,6 +859,68 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 				));
 				count += 1u32;
 			}
+		});
+}
+
+#[test]
+fn collator_goes_offline_if_doesnt_produce_blocks() {
+	ExtBuilder::default()
+		.with_balances(vec![(0, 10)])
+		.with_candidates(vec![(0, 10)])
+		.build()
+		.execute_with(|| {
+			//roll to round 3
+			roll_to_round_begin(3);
+
+			//finalize the first block of round 3
+			ParachainStaking::on_finalize(10);
+
+			//assert correct events
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 3,
+					collator_account: 0,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 10,
+					round: 3,
+					selected_collators_number: 1,
+					total_balance: 10,
+				},
+			);
+
+			//check that storage has updated for collator 0 when it finalized the block
+			assert_eq!(
+				ParachainStaking::candidate_rounds_info(0),
+				Some(CandidateLastRound {
+					last_producing_round: 3,
+					block_produced: System::block_number()
+				})
+			);
+
+			//roll 4 rounds more
+			roll_to_round_begin(7);
+
+			//check that the collator goes offline if it doesn't produce blocks
+			//within NumberRoundsOffline rounds (in this case 3)
+			assert_events_eq!(
+				Event::CandidateWentOffline { candidate: 0 },
+				Event::CollatorChosen {
+					round: 7,
+					collator_account: 0,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 30,
+					round: 7,
+					selected_collators_number: 1,
+					total_balance: 10,
+				},
+			);
+
+			//check the storage for the collator 0 has been removed
+			assert_eq!(ParachainStaking::candidate_rounds_info(0), None);
 		});
 }
 
