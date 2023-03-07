@@ -24,7 +24,8 @@ use frame_support::{
 use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping};
 use precompile_utils::{
 	precompile_set::{
-		AddressU64, CallableByContract, PrecompileAt, PrecompileSetBuilder, SubcallWithMaxNesting,
+		AddressU64, CallableByContract, CallableByPrecompile, OnlyFrom, PrecompileAt,
+		PrecompileSetBuilder, RevertPrecompile, SubcallWithMaxNesting,
 	},
 	testing::MockAccount,
 };
@@ -109,8 +110,11 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 			(
 				SubcallWithMaxNesting<1>,
 				CallableByContract<crate::OnlyIsProxyAndProxy<R>>,
+				// Batch is the only precompile allowed to call Proxy.
+				CallableByPrecompile<OnlyFrom<AddressU64<2>>>,
 			),
 		>,
+		RevertPrecompile<AddressU64<2>>,
 	),
 >;
 
