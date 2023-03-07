@@ -270,6 +270,7 @@ where
 	/// - `force_proxy_type`: Specify the exact proxy type to be used and checked for this call.
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
+	#[precompile::public("proxyForceType(address,uint8,address,bytes)")]
 	#[precompile::public("proxy_force_type(address,uint8,address,bytes)")]
 	#[precompile::payable]
 	fn proxy_force_type(
