@@ -52,8 +52,6 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for moonbeam_xcm_benchmarks_generic.
 pub trait WeightInfo {
 	#[rustfmt::skip]
-	fn query_holding() -> Weight;
-	#[rustfmt::skip]
 	fn buy_execution() -> Weight;
 	#[rustfmt::skip]
 	fn query_response() -> Weight;
@@ -83,22 +81,53 @@ pub trait WeightInfo {
 	fn unsubscribe_version() -> Weight;
 	#[rustfmt::skip]
 	fn initiate_reserve_withdraw() -> Weight;
+	#[rustfmt::skip]
+	fn report_holding() -> Weight;
+	#[rustfmt::skip]
+	fn burn_asset() -> Weight;
+	#[rustfmt::skip]
+	fn expect_asset() -> Weight;
+	#[rustfmt::skip]
+	fn expect_origin() -> Weight;
+	#[rustfmt::skip]
+	fn expect_error() -> Weight;
+	#[rustfmt::skip]
+	fn expect_transact_status() -> Weight;
+	#[rustfmt::skip]
+	fn query_pallet() -> Weight;
+	#[rustfmt::skip]
+	fn expect_pallet() -> Weight;
+	#[rustfmt::skip]
+	fn report_transact_status() -> Weight;
+	#[rustfmt::skip]
+	fn clear_transact_status() -> Weight;
+	#[rustfmt::skip]
+	fn universal_origin() -> Weight;
+	#[rustfmt::skip]
+	fn export_message() -> Weight;
+	#[rustfmt::skip]
+	fn lock_asset() -> Weight;
+	#[rustfmt::skip]
+	fn unlock_asset() -> Weight;
+	#[rustfmt::skip]
+	fn note_unlockable() -> Weight;
+	#[rustfmt::skip]
+	fn request_unlock() -> Weight;
+	#[rustfmt::skip]
+	fn set_fees_mode() -> Weight;
+	#[rustfmt::skip]
+	fn set_topic() -> Weight;
+	#[rustfmt::skip]
+	fn clear_topic() -> Weight;
+	#[rustfmt::skip]
+	fn alias_origin() -> Weight;
+	#[rustfmt::skip]
+	fn unpaid_execution() -> Weight;
 }
 
 /// Weights for moonbeam_xcm_benchmarks_generic using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	#[rustfmt::skip]
-	fn query_holding() -> Weight {
-		Weight::from_ref_time(494_254_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(5 as u64))
-			.saturating_add(T::DbWeight::get().writes(2 as u64))
-	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:0)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:1 w:0)
 	// Storage: AssetManager AssetTypeId (r:1 w:0)
@@ -195,21 +224,95 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
+	
+	#[rustfmt::skip]
+	fn report_holding() -> Weight {
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn burn_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_error() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn query_pallet() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_pallet() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn report_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn clear_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn universal_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn export_message() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn lock_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn unlock_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn note_unlockable() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn request_unlock() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn set_fees_mode() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn set_topic() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn clear_topic() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn alias_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn unpaid_execution() -> Weight{
+		todo!();
+	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	#[rustfmt::skip]
-	fn query_holding() -> Weight {
-		Weight::from_ref_time(494_254_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:0)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:1 w:0)
 	// Storage: AssetManager AssetTypeId (r:1 w:0)
@@ -305,5 +408,90 @@ impl WeightInfo for () {
 		Weight::from_ref_time(579_258_000 as u64)
 			.saturating_add(RocksDbWeight::get().reads(5 as u64))
 			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+	}
+	
+	#[rustfmt::skip]
+	fn report_holding() -> Weight {
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn burn_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_error() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn query_pallet() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn expect_pallet() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn report_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn clear_transact_status() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn universal_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn export_message() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn lock_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn unlock_asset() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn note_unlockable() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn request_unlock() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn set_fees_mode() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn set_topic() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn clear_topic() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn alias_origin() -> Weight{
+		todo!();
+	}
+	#[rustfmt::skip]
+	fn unpaid_execution() -> Weight{
+		todo!();
 	}
 }
