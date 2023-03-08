@@ -23,7 +23,7 @@ use fp_evm::PrecompileHandle;
 use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::OriginTrait,
 };
 use pallet_evm::AddressMapping;
@@ -49,6 +49,9 @@ pub type XcmAccountIdOf<XcmConfig> =
 pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
+
+// polkadot/blob/19f6665a6162e68cd2651f5fe3615d6676821f90/xcm/src/v3/mod.rs#L1193
+const DEFAULT_PROOF_SIZE: u64 = 64 * 1024;
 
 #[cfg(test)]
 mod mock;
@@ -144,7 +147,7 @@ where
 
 		// buy_weight returns unused assets
 		let unused = trader
-			.buy_weight(weight_per_second, vec![multiasset.clone()].into())
+			.buy_weight(Weight::from_parts(weight_per_second, 0u64), vec![multiasset.clone()].into())
 			.map_err(|_| {
 				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
 			})?;
@@ -187,7 +190,7 @@ where
 				.into()),
 		};
 
-		result
+		Ok(result?.ref_time())
 	}
 
 	#[precompile::public("xcmExecute(bytes,uint64)")]
@@ -209,7 +212,7 @@ where
 
 		let call = pallet_xcm::Call::<Runtime>::execute {
 			message: Box::new(xcm),
-			max_weight: weight,
+			max_weight: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
