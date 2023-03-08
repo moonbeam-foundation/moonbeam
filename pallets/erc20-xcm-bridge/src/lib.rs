@@ -19,24 +19,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod erc20_matcher;
-mod erc20_trap;
 mod errors;
-mod xcm_exec_filter;
-mod xcm_holding_ext;
 
 use frame_support::pallet;
 
-pub use erc20_trap::AssetTrapWrapper;
 pub use pallet::*;
-pub use xcm_exec_filter::XcmExecuteFilterWrapper;
-pub use xcm_holding_ext::XcmExecutorWrapper;
 
 #[pallet]
 pub mod pallet {
 
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
-	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
@@ -123,41 +116,11 @@ pub mod pallet {
 	}
 
 	impl<T: Config> xcm_executor::traits::TransactAsset for Pallet<T> {
-		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
-		// we have just traced from which account it should have been withdrawn.
-		// So we will retrieve these information and make the transfer from the origin account.
-		fn deposit_asset(what: &MultiAsset, who: &MultiLocation) -> XcmResult {
-			let (contract_address, amount) =
-				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
-
-			let beneficiary = T::AccountIdConverter::convert_ref(who)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
-
-			// Get the global context to recover accounts origins.
-			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
-				match erc20s_origins.drain(contract_address, amount) {
-					// We perform the evm transfers in a storage transaction to ensure that if one
-					// of them fails all the changes of the previous evm calls are rolled back.
-					Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
-						tokens_to_transfer
-							.into_iter()
-							.try_for_each(|(from, subamount)| {
-								Self::erc20_transfer(contract_address, from, beneficiary, subamount)
-							})
-					})
-					.map_err(Into::into),
-					Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
-					Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
-						"not enough founds in xcm holding",
-					)),
-					Err(DrainError::SplitError) => Err(XcmError::FailedToTransactAsset(
-						"SplitError: each withdrawal of erc20 tokens must be deposited at once",
-					)),
-				}
-			})
-			.ok_or(XcmError::FailedToTransactAsset(
-				"missing erc20 executor context",
-			))?
+		// Erc20 assets can't goes in the Holding register, so they can't be deposited.
+		// We still need to match the asset to return the right error.
+		fn deposit_asset(what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
+			let _ = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+			Err(XcmError::NotWithdrawable)
 		}
 
 		fn internal_transfer_asset(
@@ -185,25 +148,10 @@ pub mod pallet {
 
 		// Since we don't control the erc20 contract that manages the asset we want to withdraw,
 		// we can't really withdraw this asset, we can only transfer it to another account.
-		// It would be possible to transfer the asset to a dedicated account that would reflect
-		// the content of the xcm holding, but this would imply to perform two evm calls instead of
-		// one (1 to withdraw the asset and a second one to deposit it).
-		// In order to perform only one evm call, we just trace the origin of the asset,
-		// and then the transfer will only really be performed in the deposit instruction.
-		fn withdraw_asset(what: &MultiAsset, who: &MultiLocation) -> Result<Assets, XcmError> {
-			let (contract_address, amount) =
-				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
-			let who = T::AccountIdConverter::convert_ref(who)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
-
-			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
-				erc20s_origins.insert(contract_address, who, amount)
-			})
-			.ok_or(XcmError::FailedToTransactAsset(
-				"missing erc20 executor context",
-			))?;
-
-			Ok(what.clone().into())
+		// We still need to match the asset to return the right error.
+		fn withdraw_asset(what: &MultiAsset, _who: &MultiLocation) -> Result<Assets, XcmError> {
+			let _ = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
+			Err(XcmError::NotWithdrawable)
 		}
 	}
 }

@@ -52,8 +52,8 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	XcmV2Weight,
+	FirstAssetTrader, IsWithdrawable, NotWithdrawableAssetsBarrier, SignedToAccountId20,
+	UtilityAvailableCalls, UtilityEncodeCall, XcmTransact, XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -238,15 +238,26 @@ pub type XcmWeigher = WeightInfoBounds<
 	MaxInstructions,
 >;
 
-// Allow paid executions
-pub type XcmBarrier = (
-	TakeWeightCredit,
-	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
-	AllowTopLevelPaidExecutionFrom<Everything>,
-	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
-);
+impl IsWithdrawable for Runtime {
+	fn is_withdrawable(asset: &xcm::latest::MultiAsset) -> bool {
+		pallet_erc20_xcm_bridge::Pallet::<Self>::is_erc20_asset(asset)
+	}
+}
+
+/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
+/// erc20 assets in an unsupported way.
+pub type XcmBarrier = NotWithdrawableAssetsBarrier<
+	Runtime,
+	(
+		// Allow paid executions
+		TakeWeightCredit,
+		xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
+		AllowTopLevelPaidExecutionFrom<Everything>,
+		AllowKnownQueryResponses<PolkadotXcm>,
+		// Subscriptions for version tracking are OK.
+		AllowSubscriptionsFrom<Everything>,
+	),
+>;
 
 parameter_types! {
 	/// Xcm fees will go to the treasury account
@@ -311,15 +322,12 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
+	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
 	type CallDispatcher = MoonbeamCall;
 }
 
-type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
-	RuntimeCall,
-	xcm_executor::XcmExecutor<XcmExecutorConfig>,
->;
+type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
@@ -333,16 +341,12 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
-/// erc20 assets in an unsupported way.
-pub type XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper<Runtime, Everything>;
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = XcmExecuteFilter;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;

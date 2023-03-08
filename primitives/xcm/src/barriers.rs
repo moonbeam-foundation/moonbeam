@@ -20,9 +20,9 @@ use frame_support::{ensure, traits::Contains};
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
 use sp_std::marker::PhantomData;
+use xcm::latest::prelude::*;
 use xcm::latest::{
-	prelude::{BuyExecution, DescendOrigin, WithdrawAsset},
-	MultiLocation,
+	MultiLocation, Weight,
 	WeightLimit::{Limited, Unlimited},
 	Xcm,
 };
@@ -75,5 +75,99 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 			}
 			_ => Err(()),
 		}
+	}
+}
+
+/// Make sure that not withdrawable assets are handle properly according to the XCM design:
+/// - forbid any ReserveAssetDeposited instruction that contains not withdrawable asset(s) as
+/// parameter.
+/// - Morph some specific messages patterns that try to Widraw then Deposit not withdrawable
+/// asset(s).
+pub struct NotWithdrawableAssetsBarrier<IsWithdrawable, InnerBarrier>(
+	core::marker::PhantomData<(IsWithdrawable, InnerBarrier)>,
+);
+
+impl<IsWithdrawable: crate::IsWithdrawable, InnerBarrier: ShouldExecute> ShouldExecute
+	for NotWithdrawableAssetsBarrier<IsWithdrawable, InnerBarrier>
+{
+	fn should_execute<Call>(
+		origin: &MultiLocation,
+		instructions: &mut Xcm<Call>,
+		max_weight: Weight,
+		weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		InnerBarrier::should_execute(origin, instructions, max_weight, weight_credit)?;
+		let maybe_morphed_message = match &instructions.0[..] {
+			&[WithdrawAsset(ref assets), ClearOrigin, BuyExecution {
+				ref fees,
+				ref weight_limit,
+			}, DepositAsset {
+				assets: ref filter,
+				ref beneficiary,
+				..
+			}] => morph_xtokens_to_reserve_message::<Call, IsWithdrawable>(
+				assets,
+				fees,
+				weight_limit,
+				filter,
+				beneficiary,
+			),
+			_ => None,
+		};
+
+		if let Some(mut morphed_message) = maybe_morphed_message {
+			for i in 0..morphed_message.len() {
+				core::mem::swap(&mut instructions.0[i], &mut morphed_message[i]);
+			}
+		}
+
+		if instructions.0.iter().any(|instruction| {
+			matches!(
+				instruction, ReserveAssetDeposited(assets) if assets.inner().iter()
+				.any(|asset| IsWithdrawable::is_withdrawable(&asset))
+			)
+		}) {
+			Err(())
+		} else {
+			Ok(())
+		}
+	}
+}
+
+fn morph_xtokens_to_reserve_message<Call, IsWithdrawable: crate::IsWithdrawable>(
+	assets: &MultiAssets,
+	fees: &MultiAsset,
+	weight_limit: &WeightLimit,
+	deposit_filter: &MultiAssetFilter,
+	beneficiary: &MultiLocation,
+) -> Option<sp_std::vec::Vec<Instruction<Call>>> {
+	let mut not_withdrawable_assets = sp_std::vec::Vec::new();
+	let mut withdrawable_assets = sp_std::vec::Vec::new();
+	for asset in assets.inner() {
+		if IsWithdrawable::is_withdrawable(&asset) {
+			not_withdrawable_assets.push(asset.clone());
+		} else {
+			withdrawable_assets.push(asset.clone());
+		}
+	}
+	if not_withdrawable_assets.is_empty() {
+		None
+	} else {
+		Some(sp_std::vec![
+			WithdrawAsset(MultiAssets::from(withdrawable_assets)),
+			BuyExecution {
+				fees: fees.clone(),
+				weight_limit: weight_limit.clone(),
+			},
+			TransferAsset {
+				assets: MultiAssets::from(not_withdrawable_assets),
+				beneficiary: beneficiary.clone(),
+			},
+			DepositAsset {
+				assets: deposit_filter.clone(),
+				beneficiary: beneficiary.clone(),
+				max_assets: 2,
+			},
+		])
 	}
 }
