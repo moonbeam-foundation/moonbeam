@@ -449,9 +449,7 @@ pub mod pallet {
 				for candidate in candidates {
 					match <CandidateRoundsInfo<T>>::try_get(candidate.owner.clone()) {
 						Ok(info) => {
-							if round.current - info.last_producing_round
-								> T::NumberRoundsOffline::get()
-							{
+							if round.current - info.0 > T::NumberRoundsOffline::get() {
 								// if the collator has not produced any block within
 								// NumberRoundsOffline e.g(3 rounds for Moonriver)
 								// it is marked as offline
@@ -494,16 +492,10 @@ pub mod pallet {
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
 			weight
 		}
-		fn on_finalize(n: T::BlockNumber) {
+		fn on_finalize(_n: T::BlockNumber) {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
-			<CandidateRoundsInfo<T>>::insert(
-				&author,
-				CandidateLastRound {
-					block_produced: n,
-					last_producing_round: now,
-				},
-			);
+			<CandidateRoundsInfo<T>>::insert(&author, CandidateLastRound(now));
 			Self::award_points_to_block_author();
 		}
 	}
@@ -550,7 +542,7 @@ pub mod pallet {
 	#[pallet::getter(fn candidate_rounds_info)]
 	/// Stores the last round in which a collator produced blocks
 	pub(crate) type CandidateRoundsInfo<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, CandidateLastRound<T::BlockNumber>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, CandidateLastRound<RoundIndex>, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]

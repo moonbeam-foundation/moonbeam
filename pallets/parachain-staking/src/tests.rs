@@ -893,10 +893,7 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			//check that storage has updated for collator 0 when it finalized the block
 			assert_eq!(
 				ParachainStaking::candidate_rounds_info(0),
-				Some(CandidateLastRound {
-					last_producing_round: 3,
-					block_produced: System::block_number()
-				})
+				Some(CandidateLastRound(3))
 			);
 
 			//roll 4 rounds more
@@ -921,6 +918,73 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 
 			//check the storage for the collator 0 has been removed
 			assert_eq!(ParachainStaking::candidate_rounds_info(0), None);
+		});
+}
+
+#[test]
+fn collator_produces_blocks_successfully() {
+	ExtBuilder::default()
+		.with_balances(vec![(0, 10)])
+		.with_candidates(vec![(0, 10)])
+		.build()
+		.execute_with(|| {
+			//roll to round 3
+			roll_to_round_begin(3);
+
+			//finalize the first block of round 3
+			ParachainStaking::on_finalize(10);
+
+			//assert correct events
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 3,
+					collator_account: 0,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 10,
+					round: 3,
+					selected_collators_number: 1,
+					total_balance: 10,
+				},
+			);
+
+			//check that storage has updated for collator 0 when it finalized the block
+			assert_eq!(
+				ParachainStaking::candidate_rounds_info(0),
+				Some(CandidateLastRound(3))
+			);
+
+			//roll 2 rounds more
+			roll_to_round_begin(5);
+
+			//finalize the first block of round 5
+			ParachainStaking::on_finalize(20);
+
+			//assert correct events
+			assert_events_eq!(
+				Event::ReservedForParachainBond {
+					account: 0,
+					value: 0,
+				},
+				Event::CollatorChosen {
+					round: 5,
+					collator_account: 0,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 20,
+					round: 5,
+					selected_collators_number: 1,
+					total_balance: 10,
+				},
+			);
+
+			//check the storage for the collator 0 has been updated
+			assert_eq!(
+				ParachainStaking::candidate_rounds_info(0),
+				Some(CandidateLastRound(5))
+			);
 		});
 }
 

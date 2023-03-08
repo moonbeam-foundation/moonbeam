@@ -1694,13 +1694,8 @@ pub struct Nominator2<AccountId, Balance> {
 // }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// The current round index and transition information
-pub struct CandidateLastRound<BlockNumber> {
-	/// Last round where the collator produced a block
-	pub last_producing_round: RoundIndex,
-	/// Block produced in that round
-	pub block_produced: BlockNumber,
-}
+/// Last round where a collator has produced blocks
+pub struct CandidateLastRound<RoundIndex>(pub RoundIndex);
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The current round index and transition information
