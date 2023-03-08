@@ -14,6 +14,7 @@ xcm-primitives = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-staking = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-io = { workspace = true }
@@ -47,6 +48,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"orml-traits/std",
+	"pallet-staking/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-io/std",

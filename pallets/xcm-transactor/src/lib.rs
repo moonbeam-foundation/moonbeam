@@ -81,6 +81,7 @@ mod tests;
 
 pub mod migrations;
 pub mod relay_indices;
+pub mod traits;
 pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
@@ -89,6 +90,7 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 pub mod pallet {
 
 	use crate::relay_indices::RelayChainIndices;
+	use crate::traits::*;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
@@ -99,6 +101,7 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
+	use sp_std::vec::Vec;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
@@ -109,7 +112,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
-	pub struct Pallet<T>(PhantomData<T>);
+	pub struct Pallet<T>(pub PhantomData<T>);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -177,6 +180,7 @@ pub mod pallet {
 		type MaxHrmpFee: FilterMaxAssetFee;
 
 		/// Means of encoding HRMP transact calls
+		/// TODO: remove if unused
 		type HrmpEncoder: HrmpEncodeCall;
 
 		type WeightInfo: WeightInfo;
@@ -765,17 +769,17 @@ pub mod pallet {
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
 					))
 				}
 				HrmpOperation::Accept { para_id } => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+					Self::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+					Self::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
@@ -828,6 +832,179 @@ pub mod pallet {
 			Self::deposit_event(Event::HrmpManagementSent { action });
 
 			Ok(())
+		}
+	}
+
+	impl<T: Config> UtilityEncodeCall for Pallet<T> {
+		fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+			match call {
+				UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.utility);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.utility.as_derivative);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call.append(&mut b.clone());
+					encoded_call
+				}
+			}
+		}
+	}
+
+	impl<T: Config> HrmpEncodeCall for Pallet<T> {
+		fn hrmp_encode_call(call: HrmpAvailableCalls) -> Result<Vec<u8>, xcm::latest::Error> {
+			match call {
+				HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.hrmp);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.hrmp.init_open_channel);
+					// encoded arguments
+					encoded_call.append(&mut a.encode());
+					encoded_call.append(&mut b.encode());
+					encoded_call.append(&mut c.encode());
+					Ok(encoded_call)
+				}
+				HrmpAvailableCalls::AcceptOpenChannel(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.hrmp);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.hrmp.accept_open_channel);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					Ok(encoded_call)
+				}
+				HrmpAvailableCalls::CloseChannel(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.hrmp);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.hrmp.close_channel);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					Ok(encoded_call)
+				}
+			}
+		}
+	}
+
+	impl<T: Config> StakeEncodeCall for Pallet<T> {
+		fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
+			match call {
+				AvailableStakeCalls::Bond(a, b, c) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond);
+					// encoded arguments
+					encoded_call.append(&mut a.encode());
+					encoded_call.append(&mut b.encode());
+					encoded_call.append(&mut c.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::BondExtra(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond_extra);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::Unbond(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.unbond);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::WithdrawUnbonded(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.withdraw_unbonded);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::Validate(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.validate);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::Chill => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.chill);
+					encoded_call
+				}
+
+				AvailableStakeCalls::SetPayee(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_payee);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::SetController(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_controller);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::Rebond(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.rebond);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+
+				AvailableStakeCalls::Nominate(a) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.staking.nominate);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call
+				}
+			}
 		}
 	}
 

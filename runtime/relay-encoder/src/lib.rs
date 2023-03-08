@@ -26,10 +26,9 @@ mod common_encoder_tests {
 	#[test]
 	fn test_common_encoder_as_derivative() {
 		use frame_support::traits::PalletInfo;
-		use moonbeam_runtime_common::relay_encoder::CommonEncoder;
-		use pallet_evm_precompile_relay_encoder::StakeEncodeCall;
-		use pallet_xcm_transactor::relay_indices::*;
+		use pallet_xcm_transactor::{relay_indices::*, traits::*};
 		use parity_scale_codec::Encode;
+		use xcm_primitives::UtilityEncodeCall;
 		sp_io::TestExternalities::default().execute_with(|| {
 			let mut expected_encoded: Vec<u8> = Vec::new();
 			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
@@ -78,18 +77,16 @@ mod common_encoder_tests {
 			.encode();
 			expected_encoded.append(&mut expected);
 
-			let common_encoder =
-				CommonEncoder(sp_std::marker::PhantomData::<moonriver_runtime::Runtime>::default());
 			let call_bytes =
-				<CommonEncoder<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
-					pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill,
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					AvailableStakeCalls::Chill,
 				);
 
 			expected_encoded.append(&mut expected);
 
 			assert_eq!(
-				xcm_primitives::UtilityEncodeCall::encode_call(
-					common_encoder,
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as UtilityEncodeCall>::encode_call(
+					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<moonriver_runtime::Runtime>::default()),
 					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 				),
 				expected_encoded

@@ -33,7 +33,6 @@ frame-support = { workspace = true, features = [ "std" ] }
 pallet-proxy = { workspace = true, features = [ "std" ] }
 pallet-utility = { workspace = true, features = [ "std" ] }
 
-moonbeam-runtime-common = { workspace = true }
 kusama-runtime = { workspace = true }
 polkadot-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
@@ -54,6 +53,5 @@ std = [
 	"sp-std/std",
 	"sp-io/std",
 	"xcm-primitives/std",
-	"moonbeam-runtime-common/std",
 	"moonriver-runtime/std",
 ]
