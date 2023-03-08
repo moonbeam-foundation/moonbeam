@@ -374,6 +374,31 @@
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -394,7 +419,7 @@
 #![feature(assert_matches)]
 
 </span><span class="kw">use </span>evm::ExitReason;
-<span class="kw">use </span>fp_evm::{Context, PrecompileFailure, PrecompileHandle, PrecompileSet, Transfer};
+<span class="kw">use </span>fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 <span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_proxy::Call <span class="kw">as </span>ProxyCall;
@@ -408,7 +433,7 @@
 <span class="kw">use </span>sp_core::U256;
 <span class="kw">use </span>sp_runtime::{
 	codec::Decode,
-	traits::{ConstU32, Get, StaticLookup, Zero},
+	traits::{ConstU32, StaticLookup, Zero},
 };
 <span class="kw">use </span>sp_std::marker::PhantomData;
 
@@ -443,6 +468,38 @@
 
 	<span class="kw">fn </span>description() -&gt; String {
 		<span class="string">&quot;Allowed for all callers only for selector &#39;is_proxy&#39;&quot;</span>.into()
+	}
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>OnlyIsProxyAndProxy&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+
+<span class="kw">impl</span>&lt;Runtime&gt; SelectorFilter <span class="kw">for </span>OnlyIsProxyAndProxy&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	&lt;&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::ProxyType: Decode + EvmProxyCallFilter,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ProxyCall&lt;Runtime&gt;&gt;,
+{
+	<span class="kw">fn </span>is_allowed(_caller: H160, selector: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; bool {
+		<span class="kw">match </span>selector {
+			<span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
+			<span class="prelude-val">Some</span>(selector) =&gt; {
+				ProxyPrecompileCall::&lt;Runtime&gt;::is_proxy_selectors().contains(<span class="kw-2">&amp;</span>selector)
+					|| ProxyPrecompileCall::&lt;Runtime&gt;::proxy_selectors().contains(<span class="kw-2">&amp;</span>selector)
+					|| ProxyPrecompileCall::&lt;Runtime&gt;::proxy_force_type_selectors()
+						.contains(<span class="kw-2">&amp;</span>selector)
+			}
+		}
+	}
+
+	<span class="kw">fn </span>description() -&gt; String {
+		<span class="string">&quot;Allowed for all callers only for selectors &#39;is_proxy&#39;, &#39;proxy&#39;, &#39;proxy_force_type&#39;&quot;</span>.into()
 	}
 }
 
@@ -614,7 +671,8 @@
 	/// - `force_proxy_type`: Specify the exact proxy type to be used and checked for this call.
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;proxy_force_type(address,uint8,address,bytes)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;proxyForceType(address,uint8,address,bytes)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;proxy_force_type(address,uint8,address,bytes)&quot;</span>)]
 	#[precompile::payable]
 	</span><span class="kw">fn </span>proxy_force_type(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -677,14 +735,6 @@
 		force_proxy_type: <span class="prelude-ty">Option</span>&lt;&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::ProxyType&gt;,
 		evm_subcall: EvmSubCall,
 	) -&gt; EvmResult {
-		<span class="comment">// Proxied call can be dispatched by users only.
-		// We should forbid precompiles here because pre_check allows precompiles.
-		</span><span class="kw">if </span>&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::PrecompilesValue::get()
-			.is_precompile(handle.context().caller)
-		{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Proxy.proxy not callable by precompiles&quot;</span>));
-		}
-
 		<span class="comment">// Read proxy
 		</span><span class="kw">let </span>real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
 		<span class="kw">let </span>who = Runtime::AddressMapping::into_account_id(handle.context().caller);

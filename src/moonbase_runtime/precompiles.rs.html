@@ -287,7 +287,7 @@
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
-<span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxy, ProxyPrecompile};
+<span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_referenda::ReferendaPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
@@ -426,7 +426,7 @@
 		AddressU64&lt;<span class="number">2059</span>&gt;,
 		ProxyPrecompile&lt;R&gt;,
 		(
-			CallableByContract&lt;OnlyIsProxy&lt;R&gt;&gt;,
+			CallableByContract&lt;OnlyIsProxyAndProxy&lt;R&gt;&gt;,
 			SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;,
 			<span class="comment">// Batch is the only precompile allowed to call Proxy.
 			</span>CallableByPrecompile&lt;OnlyFrom&lt;AddressU64&lt;<span class="number">2056</span>&gt;&gt;&gt;,
