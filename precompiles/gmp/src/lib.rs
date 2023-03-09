@@ -19,16 +19,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{ExitError, ExitReason};
-use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, Transfer};
+use fp_evm::{Context, ExitRevert, Log, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::traits::ConstU32;
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, str::FromStr, vec, vec::Vec};
+use types::*;
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+
+pub mod types;
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
@@ -43,9 +46,9 @@ where
 	Runtime: pallet_evm::Config,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
-	fn wormholeTransferERC20(
+	pub fn wormhole_transfer_erc20(
 		handle: &mut impl PrecompileHandle,
-		wormholeVaa: BoundedBytes<GetCallDataLimit>,
+		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
 		// TODO: need to pull this from storage or config somewhere
 		let wormhole = H160::from_str("FIXME")
@@ -64,9 +67,9 @@ where
 		};
 
 		// TODO: construct calldata suitable for wormhole contract
-		let calldata = wormholeVaa.into();
+		let calldata = wormhole_vaa.into();
 
-		handle.call(
+		let (reason, output) = handle.call(
 			wormhole,
 			None,
 			calldata,
@@ -75,8 +78,40 @@ where
 			&sub_context,
 		);
 
-		// TODO: we should now have funds for this account, and need to route them through XCM
-		//       this also means parsing the sent message to know what it wanted to do
+		match reason {
+			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
+			ExitReason::Revert(exit_status) => {
+				return Err(PrecompileFailure::Revert {
+					exit_status,
+					output,
+				})
+			}
+			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
+			ExitReason::Succeed(_) => (),
+		};
+
+		// TODO: we should now have funds for this account, custodied by this precompile itself.
+		//       next we need to see where the user wants to send them by inspecting the payload.
+		//
+		// TODO: Wormhole might have transfered unsupported tokens; we should handle this case
+		//       gracefully (maybe that's as simple as reverting)
+		let user_action = parse_user_action(&output).map_err(|e| PrecompileFailure::Revert {
+			exit_status: ExitRevert::Reverted,
+			output: e.into(),
+		})?;
+		let call = match user_action {
+			VersionedUserAction::v1(action) => {
+				// TODO: make XCM transfer here (use xtokens?)
+				let xcm = "fixme";
+
+				pallet_xcm::Call::<Runtime>::send {
+					dest: Box::new(action.destination),
+					message: Box::new(xcm),
+				}
+			}
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}

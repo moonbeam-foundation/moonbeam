@@ -27,6 +27,9 @@ evm = { workspace = true, features = [ "with-codec" ] }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
+# Polkadot / XCM
+xcm = { workspace = true }
+
 [dev-dependencies]
 derive_more = { workspace = true }
 hex-literal = { workspace = true }
