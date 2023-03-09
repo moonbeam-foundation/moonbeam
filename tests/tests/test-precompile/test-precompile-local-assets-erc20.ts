@@ -1294,7 +1294,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
     await context.createBlock(rawTx);
   });
 
-  it.only("succeeds to mint to 2^128 - 1", async function () {
+  it("succeeds to mint to 2^128 - 1", async function () {
     let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
       // action
       "mint",
@@ -1315,7 +1315,7 @@ describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
   });
 
   // Depends on previous test
-  it.only("fails to mint over 2^128 total supply", async function () {
+  it("fails to mint over 2^128 total supply", async function () {
     let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
       // action
       "mint",
