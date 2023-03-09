@@ -81,7 +81,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 /// Make sure that not withdrawable assets are handle properly according to the XCM design:
 /// - forbid any ReserveAssetDeposited instruction that contains not withdrawable asset(s) as
 /// parameter.
-/// - Morph some specific messages patterns that try to Widraw then Deposit not withdrawable
+/// - Morph some specific messages patterns that try to Withdraw then Deposit not withdrawable
 /// asset(s).
 pub struct NotWithdrawableAssetsBarrier<IsWithdrawable, InnerBarrier>(
 	core::marker::PhantomData<(IsWithdrawable, InnerBarrier)>,
