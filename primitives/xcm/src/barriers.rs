@@ -79,8 +79,6 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 }
 
 /// Make sure that not withdrawable assets are handle properly according to the XCM design:
-/// - forbid any ReserveAssetDeposited instruction that contains not withdrawable asset(s) as
-/// parameter.
 /// - Morph some specific messages patterns that try to Withdraw then Deposit not withdrawable
 /// asset(s).
 pub struct NotWithdrawableAssetsBarrier<IsWithdrawable, InnerBarrier>(
@@ -126,16 +124,7 @@ impl<IsWithdrawable: crate::IsWithdrawable, InnerBarrier: ShouldExecute> ShouldE
 			}
 		}
 
-		if instructions.0.iter().any(|instruction| {
-			matches!(
-				instruction, ReserveAssetDeposited(assets) if assets.inner().iter()
-				.any(|asset| IsWithdrawable::is_withdrawable(&asset))
-			)
-		}) {
-			Err(())
-		} else {
-			Ok(())
-		}
+		Ok(())
 	}
 }
 
