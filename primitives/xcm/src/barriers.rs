@@ -105,7 +105,7 @@ impl<IsWithdrawable: crate::IsWithdrawable, InnerBarrier: ShouldExecute> ShouldE
 				assets: ref filter,
 				ref beneficiary,
 				..
-			}] => morph_xtokens_to_reserve_message::<Call, IsWithdrawable>(
+			}] => morph_standard_to_reserve_message::<Call, IsWithdrawable>(
 				assets,
 				fees,
 				weight_limit,
@@ -134,7 +134,7 @@ impl<IsWithdrawable: crate::IsWithdrawable, InnerBarrier: ShouldExecute> ShouldE
 	}
 }
 
-fn morph_xtokens_to_reserve_message<Call, IsWithdrawable: crate::IsWithdrawable>(
+fn morph_standard_to_reserve_message<Call, IsWithdrawable: crate::IsWithdrawable>(
 	assets: &MultiAssets,
 	fees: &MultiAsset,
 	weight_limit: &WeightLimit,
