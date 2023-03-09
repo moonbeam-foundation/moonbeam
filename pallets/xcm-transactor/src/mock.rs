@@ -227,6 +227,8 @@ pub enum HrmpCall {
 	Accept(),
 	#[codec(index = 2u8)]
 	Close(),
+	#[codec(index = 3u8)]
+	Decline(),
 }
 
 // Transactors for the mock runtime. Only relay chain
@@ -277,6 +279,9 @@ impl HrmpEncodeCall for MockHrmpEncoder {
 				Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
 			}
 			HrmpAvailableCalls::CloseChannel(_) => Ok(RelayCall::Hrmp(HrmpCall::Close()).encode()),
+			HrmpAvailableCalls::DeclineOpenChannel(_) => {
+				Ok(RelayCall::Hrmp(HrmpCall::Decline()).encode())
+			}
 		}
 	}
 }
