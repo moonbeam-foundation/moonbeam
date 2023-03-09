@@ -98,6 +98,11 @@ impl<IsWithdrawable: crate::IsWithdrawable, InnerBarrier: ShouldExecute> ShouldE
 	) -> Result<(), ()> {
 		InnerBarrier::should_execute(origin, instructions, max_weight, weight_credit)?;
 		let maybe_morphed_message = match &instructions.0[..] {
+			// Instruction `InitiateReserveWithdraw` prefix XCM messages with
+			// [WithdrawAsset, ClearOrigin], and in general users will add instructions
+			// [BuyExecution, DepositAsset] to pay fees and trasnfers tokens to a "target account".
+			// For the moment we only manage this most standard case, we can always add other
+			// patterns in the future if needed.
 			&[WithdrawAsset(ref assets), ClearOrigin, BuyExecution {
 				ref fees,
 				ref weight_limit,
