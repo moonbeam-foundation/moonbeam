@@ -13,7 +13,6 @@ impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
-pallet-evm-precompile-relay-encoder = { workspace = true }
 moonbeam-xcm-benchmarks = { workspace = true, optional = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
@@ -33,7 +32,6 @@ pallet-democracy = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
-parity-scale-codec = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
@@ -69,14 +67,12 @@ std = [
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
-	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-executor/std",
 	"xcm/std",
-	"pallet-evm-precompile-relay-encoder/std",
 ]
 runtime-benchmarks = [ "pallet-referenda/runtime-benchmarks" ]
 try-runtime = [

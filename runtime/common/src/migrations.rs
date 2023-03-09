@@ -80,6 +80,39 @@ where
 	}
 }
 
+pub struct PopulateRelayIndices<T>(pub PhantomData<T>);
+impl<T> Migration for PopulateRelayIndices<T>
+where
+	T: pallet_xcm_transactor::Config,
+	T::Transactor: StakeEncodeCall + HrmpEncodeCall,
+{
+	use pallet_xcm_transactor::{RelayIndices, relay_indices::*};
+	fn friendly_name(&self) -> &str {
+		"MM_PopulateRelayIndices"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		// use Transactor type to get RelayChainIndices
+		// insert into RelayIndices storage
+		// 
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		// check it is default
+		assert!(pallet_xcm_transactor::RelayIndices::<T>::get().is_default());
+		Ok(Vec::new())
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+		// check that 
+		Ok(())
+	}
+}
+
 pub struct ReferendaMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for ReferendaMigrations<Runtime, Council, Tech>
