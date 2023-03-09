@@ -36,7 +36,7 @@ interface Proxy {
         uint32 delay
     ) external;
 
-    /// @dev Register a proxy account for the sender that is able to make calls on its behalf
+    /// @dev Removes a proxy account from the sender
     /// @custom:selector fef3f708
     /// @param delegate The account that the caller would like to remove as a proxy
     /// @param proxyType The permissions currently enabled for the removed proxy account
