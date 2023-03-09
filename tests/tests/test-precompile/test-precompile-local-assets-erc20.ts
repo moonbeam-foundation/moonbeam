@@ -25,7 +25,7 @@ import {
 import { registerLocalAssetWithMeta } from "../../util/assets";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
@@ -1272,3 +1272,66 @@ describeDevMoonbeamAllEthTxTypes(
   },
   true
 );
+
+describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
+  let assetAddress: string[] = [];
+  before("Setup contract and mock balance", async () => {
+    // register, setMeta & mint local Asset
+    assetAddress[0] = (
+      await registerLocalAssetWithMeta(context, alith, {
+        registrerAccount: baltathar,
+        mints: [{ account: alith, amount: 2n ** 128n - 3n }],
+      })
+    ).assetAddress;
+    assetAddress[1] = (
+      await registerLocalAssetWithMeta(context, alith, {
+        registrerAccount: baltathar,
+        mints: [{ account: alith, amount: 2n ** 128n - 3n }],
+      })
+    ).assetAddress;
+
+    const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
+    await context.createBlock(rawTx);
+  });
+
+  it.only("succeeds to mint to 2^128 - 1", async function () {
+    let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
+      // action
+      "mint",
+      [baltathar.address, 2]
+    );
+
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: assetAddress[0],
+        data: data,
+      })
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+
+    expect(receipt.status).to.equal(true);
+  });
+
+  // Depends on previous test
+  it.only("fails to mint over 2^128 total supply", async function () {
+    let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
+      // action
+      "mint",
+      [baltathar.address, 3]
+    );
+
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: assetAddress[1],
+        data: data,
+      })
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+
+    expect(receipt.status).to.equal(false);
+  });
+});
