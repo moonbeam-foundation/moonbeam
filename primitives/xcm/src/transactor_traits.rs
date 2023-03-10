@@ -31,7 +31,7 @@ pub enum HrmpAvailableCalls {
 	InitOpenChannel(ParaId, u32, u32),
 	AcceptOpenChannel(ParaId),
 	CloseChannel(HrmpChannelId),
-	DeclineOpenChannel(ParaId),
+	CancelOpenChannel(ParaId),
 }
 
 // Trait that the ensures we can encode a call with utility functions.

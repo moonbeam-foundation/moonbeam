@@ -227,7 +227,7 @@ pub mod pallet {
 		InitOpen(HrmpInitParams),
 		Accept { para_id: ParaId },
 		Close(HrmpChannelId),
-		Decline { para_id: ParaId },
+		Cancel { para_id: ParaId },
 	}
 
 	#[derive(
@@ -771,9 +771,9 @@ pub mod pallet {
 				HrmpOperation::Close(close_params) => {
 					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
-				HrmpOperation::Decline { para_id } => T::HrmpEncoder::hrmp_encode_call(
-					HrmpAvailableCalls::DeclineOpenChannel(para_id),
-				),
+				HrmpOperation::Cancel { para_id } => {
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenChannel(para_id))
+				}
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
 
