@@ -80,35 +80,37 @@ where
 	}
 }
 
-pub struct PopulateRelayIndices<T>(pub PhantomData<T>);
-impl<T> Migration for PopulateRelayIndices<T>
+use pallet_xcm_transactor::{relay_indices::*, RelayIndices};
+use sp_core::Get;
+pub struct PopulateRelayIndices<T, S>(pub S, PhantomData<T>);
+impl<T, S> Migration for PopulateRelayIndices<T, S>
 where
 	T: pallet_xcm_transactor::Config,
-	T::Transactor: StakeEncodeCall + HrmpEncodeCall,
+	S: Into<RelayChainIndices> + Clone,
 {
-	use pallet_xcm_transactor::{RelayIndices, relay_indices::*};
 	fn friendly_name(&self) -> &str {
 		"MM_PopulateRelayIndices"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		// use Transactor type to get RelayChainIndices
-		// insert into RelayIndices storage
-		// 
+		// insert input into storage
+		RelayIndices::<T>::put(self.0.clone().into());
+		T::DbWeight::get().writes(1)
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
-		// check it is default
-		assert!(pallet_xcm_transactor::RelayIndices::<T>::get().is_default());
+		// check storage is default pre migration
+		assert!(RelayIndices::<T>::get().is_default());
 		Ok(Vec::new())
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
-		// check that 
+		// check storage matches input post migration
+		assert_eq!(RelayIndices::<T>::get(), S.into());
 		Ok(())
 	}
 }
