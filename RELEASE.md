@@ -22,10 +22,10 @@ To release `vX.Y.Z`:
 1. Review the generated Draft and clean a bit the messages if needed (keep it draft)
 1. Test the new client on internal tests networks (stagenet/moonsama/moonlama)
 1. Publish the client release draft
-1. When everything is ok, publish the new docker image: start github action Publish Docker with 
-`vX.Y.Z`
+1. When everything is ok, publish the new docker image: start github action Publish Docker with
+   `vX.Y.Z`
 1. Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
-Publish Docker with `vX.Y.Z` and master
+   Publish Docker with `vX.Y.Z` and master
 1. Documentation/Website/Tutorials have been updated
 
 ## Moonbeam runtime release
@@ -48,8 +48,8 @@ To release `runtime-XXYY`:
 1. Create the tracing runtime: start the github action "Create tracing runtime" on `purestake/moonbeam-runtime-overrides`
 1. Upgrade runtime on our internal test network stagenet
 1. Ensure Type changes are reflected into PolkadotJs
-1. Test changes on stagenet 
+1. Test changes on stagenet
 1. Create new tracing image for partners: start the github action "Publish Docker"
- on `purestake/moonbeam-runtime-overrides`
+   on `purestake/moonbeam-runtime-overrides`
 1. When everything is ok, publish the draft release
 1. Upgrade runtime on alphanet
