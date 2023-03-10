@@ -31,7 +31,7 @@ pub struct XcmUserAction {
 }
 
 pub enum VersionedUserAction {
-	v1(XcmUserAction),
+	V1(XcmUserAction),
 }
 
 /// Parse a user action from some bytes
@@ -39,7 +39,7 @@ pub fn parse_user_action(input: &Vec<u8>) -> Result<VersionedUserAction, &'stati
 	// TODO: actually parse :)
 	// more importantly, define a structure (see criteria above)
 
-	Ok(VersionedUserAction::v1(XcmUserAction {
+	Ok(VersionedUserAction::V1(XcmUserAction {
 		destination: MultiLocation::parent(),
 		destination_account: MultiLocation::parent(),
 	}))

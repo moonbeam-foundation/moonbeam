@@ -28,6 +28,7 @@ fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Polkadot / XCM
+pallet-xcm = { workspace = true }
 xcm = { workspace = true }
 
 [dev-dependencies]
@@ -50,6 +51,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
+	"pallet-xcm/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",

@@ -18,12 +18,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{ExitError, ExitReason};
-use fp_evm::{Context, ExitRevert, Log, PrecompileFailure, PrecompileHandle, Transfer};
+use evm::ExitReason;
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::traits::ConstU32;
-use precompile_utils::{costs::call_cost, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
-use sp_std::{iter::repeat, marker::PhantomData, str::FromStr, vec, vec::Vec};
+use sp_std::{marker::PhantomData, str::FromStr};
 use types::*;
 
 #[cfg(test)]
@@ -43,7 +43,7 @@ pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> GmpPrecompile<Runtime>
 where
-	Runtime: pallet_evm::Config,
+	Runtime: pallet_evm::Config + pallet_xcm::Config,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -100,7 +100,7 @@ where
 			output: e.into(),
 		})?;
 		let call = match user_action {
-			VersionedUserAction::v1(action) => {
+			VersionedUserAction::V1(action) => {
 				// TODO: make XCM transfer here (use xtokens?)
 				let xcm = "fixme";
 
