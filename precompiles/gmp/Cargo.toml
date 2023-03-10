@@ -1,7 +1,7 @@
 [package]
-name = "pallet-gmp-precompile"
+name = "pallet-evm-precompile-gmp"
 authors = { workspace = true }
-description = "A Precompile to batch multiple calls."
+description = "A Precompile to improve GMP usability."
 edition = "2021"
 version = "0.1.0"
 
@@ -17,15 +17,15 @@ precompile-utils = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
-evm = { workspace = true, features = [ "with-codec" ] }
+evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Polkadot / XCM
 xcm = { workspace = true }
@@ -36,15 +36,15 @@ hex-literal = { workspace = true }
 serde = { workspace = true }
 sha3 = { workspace = true }
 
-pallet-balances = { workspace = true, features = [ "std" ] }
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len", "std" ] }
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
-scale-info = { workspace = true, features = [ "derive", "std" ] }
-sp-runtime = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
+sp-runtime = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",
