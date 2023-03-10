@@ -60,7 +60,8 @@ describeDevMoonbeam("Staking - Mark offline a collator not producing blocks", (c
     //ethan joins candidates pool again
     await expectOk(
       context.createBlock(
-        context.polkadotApi.tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1).signAsync(ethan),
+        context.polkadotApi.tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1)
+        .signAsync(ethan),
       )
     );  
      
