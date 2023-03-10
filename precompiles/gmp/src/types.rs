@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
 // TODO: design this with the following criteria in mind:

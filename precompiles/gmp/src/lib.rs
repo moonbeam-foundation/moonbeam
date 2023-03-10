@@ -112,18 +112,20 @@ where
 		let call = match user_action {
 			VersionedUserAction::V1(action) => {
 				// TODO: make XCM transfer here (use xtokens?)
+				/*
 				let xcm = "fixme";
 
 				pallet_xcm::Call::<Runtime>::send {
 					dest: Box::new(xcm::VersionedMultiLocation::V1(action.destination)),
 					message: Box::new(xcm),
 				}
+				*/
 			}
 		};
 
 		// TODO: proper origin
-		let origin = Runtime::AddressMapping::into_account_id(this_contract);
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		// let origin = Runtime::AddressMapping::into_account_id(this_contract);
+		// RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}
