@@ -20,7 +20,12 @@
 
 use evm::ExitReason;
 use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
-use frame_support::traits::ConstU32;
+use frame_support::{
+	codec::Decode,
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::ConstU32,
+};
+use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{marker::PhantomData, str::FromStr};
@@ -33,6 +38,7 @@ mod tests;
 
 pub mod types;
 
+pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
@@ -43,7 +49,11 @@ pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> GmpPrecompile<Runtime>
 where
-	Runtime: pallet_evm::Config + pallet_xcm::Config,
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -105,12 +115,14 @@ where
 				let xcm = "fixme";
 
 				pallet_xcm::Call::<Runtime>::send {
-					dest: Box::new(action.destination),
+					dest: Box::new(xcm::VersionedMultiLocation::V1(action.destination)),
 					message: Box::new(xcm),
 				}
 			}
 		};
 
+		// TODO: proper origin
+		let origin = Runtime::AddressMapping::into_account_id(this_contract);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
