@@ -25,10 +25,9 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
+	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, set_block_author,
+	Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
 };
-use crate::types::*;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
@@ -864,126 +863,138 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 #[test]
 fn collator_goes_offline_if_doesnt_produce_blocks() {
 	ExtBuilder::default()
-		.with_balances(vec![(0, 10)])
-		.with_candidates(vec![(0, 10)])
+		.with_balances(vec![(1, 10), (2, 10)])
+		.with_candidates(vec![(1, 10), (2, 10)])
 		.build()
 		.execute_with(|| {
-			//roll to round 3
-			roll_to_round_begin(3);
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				10u32
+			));
+			set_block_author(1);
 
-			//finalize the first block of round 3
-			ParachainStaking::on_finalize(10);
+			// roll to round 2
+			roll_to(10);
 
-			//assert correct events
+			// assert correct events
 			assert_events_eq!(
 				Event::CollatorChosen {
-					round: 3,
-					collator_account: 0,
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
 					starting_block: 10,
-					round: 3,
-					selected_collators_number: 1,
-					total_balance: 10,
+					round: 2,
+					selected_collators_number: 2,
+					total_balance: 20,
 				},
 			);
 
-			//check that storage has updated for collator 0 when it finalized the block
-			assert_eq!(
-				ParachainStaking::candidate_rounds_info(0),
-				Some(CandidateLastRound(3))
-			);
+			// check that storage has updated for collator 1 when the block initialized
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
-			//roll 4 rounds more
-			roll_to_round_begin(7);
+			// change block author
+			set_block_author(2);
 
-			//check that the collator goes offline if it doesn't produce blocks
-			//within NumberRoundsOffline rounds (in this case 3)
+			// roll 4 rounds more
+			roll_to(50);
+
+			// check that the collator 1 goes offline if it doesn't produce blocks
+			// within MaxRoundsOffline rounds (in this case 3)
 			assert_events_eq!(
-				Event::CandidateWentOffline { candidate: 0 },
+				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
-					round: 7,
-					collator_account: 0,
+					round: 6,
+					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 30,
-					round: 7,
+					starting_block: 50,
+					round: 6,
 					selected_collators_number: 1,
 					total_balance: 10,
 				},
 			);
 
-			//check the storage for the collator 0 has been removed
-			assert_eq!(ParachainStaking::candidate_rounds_info(0), None);
+			// check the storage for the collator 1 has been removed
+			assert_eq!(ParachainStaking::candidate_last_active(1), None);
 		});
 }
 
 #[test]
 fn collator_produces_blocks_successfully() {
 	ExtBuilder::default()
-		.with_balances(vec![(0, 10)])
-		.with_candidates(vec![(0, 10)])
+		.with_balances(vec![(1, 10), (2, 10)])
+		.with_candidates(vec![(1, 10), (2, 10)])
 		.build()
 		.execute_with(|| {
-			//roll to round 3
-			roll_to_round_begin(3);
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				10u32
+			));
+			set_block_author(1);
 
-			//finalize the first block of round 3
-			ParachainStaking::on_finalize(10);
+			// roll to round 2
+			roll_to(10);
 
-			//assert correct events
+			// assert correct events
 			assert_events_eq!(
 				Event::CollatorChosen {
-					round: 3,
-					collator_account: 0,
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
 					starting_block: 10,
-					round: 3,
-					selected_collators_number: 1,
-					total_balance: 10,
+					round: 2,
+					selected_collators_number: 2,
+					total_balance: 20,
 				},
 			);
 
-			//check that storage has updated for collator 0 when it finalized the block
-			assert_eq!(
-				ParachainStaking::candidate_rounds_info(0),
-				Some(CandidateLastRound(3))
-			);
+			// check that storage has updated for collator 1 when the block initialized
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
-			//roll 2 rounds more
-			roll_to_round_begin(5);
+			// change block author
+			set_block_author(2);
 
-			//finalize the first block of round 5
-			ParachainStaking::on_finalize(20);
+			// roll 2 rounds more
+			roll_to(30);
 
-			//assert correct events
+			// check that the collator 1 goes offline if it doesn't produce blocks
+			// within MaxRoundsOffline rounds (in this case 3)
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
-					account: 0,
-					value: 0,
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 1,
+					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 5,
-					collator_account: 0,
+					round: 4,
+					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 20,
-					round: 5,
-					selected_collators_number: 1,
-					total_balance: 10,
+					starting_block: 30,
+					round: 4,
+					selected_collators_number: 2,
+					total_balance: 20,
 				},
 			);
 
-			//check the storage for the collator 0 has been updated
-			assert_eq!(
-				ParachainStaking::candidate_rounds_info(0),
-				Some(CandidateLastRound(5))
-			);
+			// check the storage for the collator 2 has been removed
+			assert_eq!(ParachainStaking::candidate_last_active(2), Some(4));
 		});
 }
 

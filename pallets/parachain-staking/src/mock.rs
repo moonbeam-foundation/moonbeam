@@ -20,6 +20,7 @@ use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
 	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
+use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
@@ -107,7 +108,7 @@ const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const NumberRoundsOffline: u32 = 3;
+	pub const MaxRoundsOffline: u32 = 3;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
@@ -127,7 +128,7 @@ impl Config for Test {
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
-	type NumberRoundsOffline = NumberRoundsOffline;
+	type MaxRoundsOffline = MaxRoundsOffline;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
 	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
@@ -512,6 +513,11 @@ macro_rules! assert_events_not_emitted_match {
 pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+// Allows to change the block author (default is always 0)
+pub(crate) fn set_block_author(acc: u64) {
+	<BlockAuthorMap<Test>>::set(acc);
 }
 
 /// fn to query the lock amount

@@ -121,9 +121,9 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
-		///If a collator doesn't produce any block on this number of rounds, it is marked as offline
+		/// If a collator doesn't produce any block on this number of rounds, it is marked as offline
 		#[pallet::constant]
-		type NumberRoundsOffline: Get<u32>;
+		type MaxRoundsOffline: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -447,22 +447,20 @@ pub mod pallet {
 
 				// iter candidates to check which of them must be marked as offline
 				for candidate in candidates {
-					match <CandidateRoundsInfo<T>>::try_get(candidate.owner.clone()) {
-						Ok(info) => {
-							if round.current - info.0 > T::NumberRoundsOffline::get() {
+					match <CandidateLastActive<T>>::get(&candidate.owner) {
+						Some(last_round) => {
+							if round.current.saturating_sub(last_round) > T::MaxRoundsOffline::get()
+							{
 								// if the collator has not produced any block within
-								// NumberRoundsOffline e.g(3 rounds for Moonriver)
+								// MaxRoundsOffline e.g(3 rounds for Moonriver)
 								// it is marked as offline
-								<Pallet<T>>::go_offline(T::RuntimeOrigin::from(
-									Some(candidate.owner.clone()).into(),
-								))
-								.unwrap_or_default();
+								Self::do_go_offline(candidate.owner.clone()).unwrap_or_default();
 
 								//remove storage info for the collator
-								<CandidateRoundsInfo<T>>::remove(candidate.owner.clone());
+								<CandidateLastActive<T>>::remove(&candidate.owner);
 							};
 						}
-						Err(_) => {}
+						None => {}
 					}
 				}
 
@@ -486,6 +484,10 @@ pub mod pallet {
 				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
 
+			// update candidate's last producing round
+			let author = T::BlockAuthor::get();
+			<CandidateLastActive<T>>::insert(&author, round.current);
+
 			// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
 			//   write: Points, AwardedPts
@@ -493,9 +495,6 @@ pub mod pallet {
 			weight
 		}
 		fn on_finalize(_n: T::BlockNumber) {
-			let author = T::BlockAuthor::get();
-			let now = <Round<T>>::get().current;
-			<CandidateRoundsInfo<T>>::insert(&author, CandidateLastRound(now));
 			Self::award_points_to_block_author();
 		}
 	}
@@ -539,10 +538,10 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn candidate_rounds_info)]
+	#[pallet::getter(fn candidate_last_active)]
 	/// Stores the last round in which a collator produced blocks
-	pub(crate) type CandidateRoundsInfo<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, CandidateLastRound<RoundIndex>, OptionQuery>;
+	pub(crate) type CandidateLastActive<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
@@ -1112,6 +1111,7 @@ pub mod pallet {
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
+			<CandidateLastActive<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::CandidateLeft {
@@ -1160,17 +1160,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::go_offline())]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
-			state.go_offline();
-			let mut candidates = <CandidatePool<T>>::get();
-			if candidates.remove(&Bond::from_owner(collator.clone())) {
-				<CandidatePool<T>>::put(candidates);
-			}
-			<CandidateInfo<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CandidateWentOffline {
-				candidate: collator,
-			});
+			Self::do_go_offline(collator)?;
 			Ok(().into())
 		}
 
@@ -1987,6 +1977,21 @@ pub mod pallet {
 			};
 
 			weight
+		}
+
+		pub fn do_go_offline(collator: T::AccountId) -> Result<(), Error<T>> {
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
+			state.go_offline();
+			let mut candidates = <CandidatePool<T>>::get();
+			if candidates.remove(&Bond::from_owner(collator.clone())) {
+				<CandidatePool<T>>::put(candidates);
+			}
+			<CandidateInfo<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CandidateWentOffline {
+				candidate: collator,
+			});
+			Ok(())
 		}
 	}
 
