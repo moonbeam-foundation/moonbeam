@@ -16,17 +16,9 @@
 
 //! Module that provides types to extend xcm holding.
 
-use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
-
-use frame_support::pallet_prelude::Weight;
-use xcm::latest::prelude::*;
-use xcm_executor::{
-	traits::{FeeManager, FeeReason, TransactAsset, WeightBounds},
-	Config as XcmExecutorConfig, WeighedMessage,
-};
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
@@ -98,52 +90,6 @@ impl XcmHoldingErc20sOrigins {
 		F: FnOnce(&mut Self) -> R,
 	{
 		XCM_HOLDING_ERC20_ORIGINS::with(|erc20s_origins| f(erc20s_origins))
-	}
-}
-
-/// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
-pub struct XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>(
-	PhantomData<(XcmConfig, InnerXcmExecutor)>,
-);
-impl<XcmConfig, InnerXcmExecutor> ExecuteXcm<XcmConfig::RuntimeCall>
-	for XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>
-where
-	InnerXcmExecutor:
-		ExecuteXcm<XcmConfig::RuntimeCall, Prepared = WeighedMessage<XcmConfig::RuntimeCall>>,
-	XcmConfig: XcmExecutorConfig,
-{
-	type Prepared = WeighedMessage<XcmConfig::RuntimeCall>;
-
-	fn prepare(
-		mut message: Xcm<XcmConfig::RuntimeCall>,
-	) -> Result<Self::Prepared, Xcm<XcmConfig::RuntimeCall>> {
-		match XcmConfig::Weigher::weight(&mut message) {
-			Ok(weight) => Ok(WeighedMessage(weight, message)),
-			Err(_) => Err(message),
-		}
-	}
-
-	fn execute(
-		origin: impl Into<MultiLocation>,
-		pre: Self::Prepared,
-		hash: XcmHash,
-		weight_credit: Weight,
-	) -> Outcome {
-		let mut erc20s_origins = Default::default();
-		XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, || {
-			InnerXcmExecutor::execute(origin, pre, hash, weight_credit)
-		})
-	}
-
-	fn charge_fees(origin: impl Into<MultiLocation>, fees: MultiAssets) -> XcmResult {
-		let origin = origin.into();
-		if !XcmConfig::FeeManager::is_waived(Some(&origin), FeeReason::ChargeFees) {
-			for asset in fees.inner() {
-				XcmConfig::AssetTransactor::withdraw_asset(&asset, &origin, None)?;
-			}
-			XcmConfig::FeeManager::handle_fee(fees);
-		}
-		Ok(())
 	}
 }
 
