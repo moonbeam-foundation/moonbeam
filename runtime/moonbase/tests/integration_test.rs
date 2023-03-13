@@ -144,7 +144,6 @@ fn verify_pallet_prefixes() {
 	// This is now available with polkadot-v0.9.9 dependencies
 	is_pallet_prefix::<moonbase_runtime::System>("System");
 	is_pallet_prefix::<moonbase_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonbase_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
 	is_pallet_prefix::<moonbase_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbase_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonbase_runtime::ParachainInfo>("ParachainInfo");
@@ -328,7 +327,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Timestamp>(2);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
 	is_pallet_index::<moonbase_runtime::Sudo>(4);
-	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(5);
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
 	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
 	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);

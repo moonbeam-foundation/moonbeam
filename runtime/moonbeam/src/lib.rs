@@ -351,8 +351,6 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
-impl pallet_randomness_collective_flip::Config for Runtime {}
-
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
 /// Given the 500ms Weight, from which 75% only are used for transactions,
@@ -773,7 +771,7 @@ impl pallet_author_inherent::Config for Runtime {
 
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RandomnessSource = RandomnessCollectiveFlip;
+	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight<Runtime>;
 }
@@ -1316,7 +1314,7 @@ construct_runtime! {
 		// System support stuff.
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
+		// Previously 2: pallet_randomness_collective_flip
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,

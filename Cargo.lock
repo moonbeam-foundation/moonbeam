@@ -2124,7 +2124,7 @@ dependencies = [
  "convert_case 0.4.0",
  "proc-macro2",
  "quote",
- "rustc_version 0.4.0",
+ "rustc_version",
  "syn",
 ]
 
@@ -5436,7 +5436,6 @@ dependencies = [
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
- "pallet-randomness-collective-flip",
  "pallet-referenda",
  "pallet-root-testing",
  "pallet-scheduler",
@@ -5891,7 +5890,6 @@ dependencies = [
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
- "pallet-randomness-collective-flip",
  "pallet-root-testing",
  "pallet-scheduler",
  "pallet-society",
@@ -6234,7 +6232,6 @@ dependencies = [
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
- "pallet-randomness-collective-flip",
  "pallet-referenda",
  "pallet-root-testing",
  "pallet-scheduler",
@@ -8407,20 +8404,6 @@ dependencies = [
  "sp-consensus-vrf",
  "sp-core 7.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
  "sp-io 7.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
- "sp-runtime 7.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
- "sp-std 5.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
-]
-
-[[package]]
-name = "pallet-randomness-collective-flip"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38#18bb7c7c841b101c19a8d1881b893ae8e37de460"
-dependencies = [
- "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
- "frame-system",
- "parity-scale-codec",
- "safe-mix",
- "scale-info",
  "sp-runtime 7.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
  "sp-std 5.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
 ]
@@ -11190,15 +11173,6 @@ checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
 name = "rustc_version"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
-dependencies = [
- "semver 0.9.0",
-]
-
-[[package]]
-name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
@@ -11311,15 +11285,6 @@ name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
-
-[[package]]
-name = "safe-mix"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d3d055a2582e6b00ed7a31c1524040aa391092bf636328350813f3a0605215c"
-dependencies = [
- "rustc_version 0.2.3",
-]
 
 [[package]]
 name = "same-file"
@@ -12616,15 +12581,6 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
-dependencies = [
- "semver-parser",
-]
-
-[[package]]
-name = "semver"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e25dfac463d778e353db5be2449d1cce89bd6fd23c9f1ea21310ce6e5a1b29c4"
@@ -12897,7 +12853,7 @@ dependencies = [
  "curve25519-dalek 4.0.0-pre.1",
  "rand_core 0.6.4",
  "ring",
- "rustc_version 0.4.0",
+ "rustc_version",
  "sha2 0.10.6",
  "subtle",
 ]

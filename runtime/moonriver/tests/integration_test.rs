@@ -112,7 +112,6 @@ fn verify_pallet_prefixes() {
 	// This is now available with polkadot-v0.9.9 dependencies
 	is_pallet_prefix::<moonriver_runtime::System>("System");
 	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
 	is_pallet_prefix::<moonriver_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonriver_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonriver_runtime::ParachainInfo>("ParachainInfo");
@@ -276,7 +275,6 @@ fn verify_pallet_indices() {
 	// System support
 	is_pallet_index::<moonriver_runtime::System>(0);
 	is_pallet_index::<moonriver_runtime::ParachainSystem>(1);
-	is_pallet_index::<moonriver_runtime::RandomnessCollectiveFlip>(2);
 	is_pallet_index::<moonriver_runtime::Timestamp>(3);
 	is_pallet_index::<moonriver_runtime::ParachainInfo>(4);
 	// Monetary
