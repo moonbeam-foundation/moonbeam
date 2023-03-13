@@ -1723,28 +1723,29 @@ pub mod pallet {
 				return vec![];
 			}
 
-			let candidates = <CandidatePool<T>>::get().0;
+			let mut candidates = <CandidatePool<T>>::get().0;
 
 			// If the number of candidates is greater than top_n, select the candidates with higher
 			// amount. Otherwise, return all the candidates.
 			if candidates.len() > top_n {
-				// Append candidate index to each candidate, this allows us to use
-				// select_nth_unstable in a stable way.
-				let mut candidates: Vec<_> = candidates
-					.into_iter()
-					.enumerate()
-					.map(|(i, x)| (Reverse(x.amount), Reverse(i), x.owner))
-					.collect();
 				// Partially sort candidates such that element at index `top_n - 1` is sorted, and
 				// all the elements in the range 0..top_n are the top n elements.
-				candidates.select_nth_unstable(top_n - 1);
+				candidates.select_nth_unstable_by(top_n - 1, |a, b| {
+					// Order by amount, then owner. The owner is needed to ensure a stable order
+					// when two accounts have the same amount.
+					a.amount
+						.cmp(&b.amount)
+						.then_with(|| a.owner.cmp(&b.owner))
+						.reverse()
+				});
 
 				let mut collators = candidates
 					.into_iter()
 					.take(top_n)
-					.filter(|(amount, _i, _owner)| amount.0 >= T::MinCollatorStk::get())
-					.map(|(_amount, _i, owner)| owner)
+					.filter(|x| x.amount >= T::MinCollatorStk::get())
+					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>();
+
 				// Sort collators by AccountId
 				collators.sort();
 
