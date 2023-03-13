@@ -33,7 +33,7 @@ use crate::{
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -906,7 +906,7 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			roll_to(50);
 
 			// check that the collator 1 goes offline if it doesn't produce blocks
-			// within MaxRoundsOffline rounds (in this case 3)
+			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
@@ -973,7 +973,7 @@ fn collator_produces_blocks_successfully() {
 			roll_to(30);
 
 			// check that the collator 1 goes offline if it doesn't produce blocks
-			// within MaxRoundsOffline rounds (in this case 3)
+			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CollatorChosen {
 					round: 4,

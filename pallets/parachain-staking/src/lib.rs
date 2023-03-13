@@ -123,7 +123,7 @@ pub mod pallet {
 		type MinBlocksPerRound: Get<u32>;
 		/// If a collator doesn't produce any block on this number of rounds, it is marked as offline
 		#[pallet::constant]
-		type MaxRoundsOffline: Get<u32>;
+		type MaxOfflineRounds: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -449,10 +449,10 @@ pub mod pallet {
 				for candidate in candidates {
 					match <CandidateLastActive<T>>::get(&candidate.owner) {
 						Some(last_round) => {
-							if round.current.saturating_sub(last_round) > T::MaxRoundsOffline::get()
+							if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
 							{
 								// if the collator has not produced any block within
-								// MaxRoundsOffline e.g(3 rounds for Moonriver)
+								// MaxOfflineRounds e.g(3 rounds for Moonriver)
 								// it is marked as offline
 								Self::do_go_offline(candidate.owner.clone()).unwrap_or_default();
 
