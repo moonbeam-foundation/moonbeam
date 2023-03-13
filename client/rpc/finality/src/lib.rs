@@ -20,7 +20,6 @@ use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
 // so it's load_hash helper returns an H256 instead of wrapping it in a BlockId?
 use fc_db::Backend as FrontierBackend;
-use sp_api::BlockId;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block;
 

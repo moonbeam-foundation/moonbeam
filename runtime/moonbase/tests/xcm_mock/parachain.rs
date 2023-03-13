@@ -49,7 +49,7 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
@@ -218,7 +218,7 @@ pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this currency when it is a fungible asset matching any of the locations in
 	// SelfReserveRepresentations
 	(
-		ConvertedConcreteAssetId<
+		ConvertedConcreteId<
 			AssetId,
 			Balance,
 			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
@@ -256,7 +256,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	LocalAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
-		ConvertedConcreteAssetId<
+		ConvertedConcreteId<
 			AssetId,
 			Balance,
 			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
@@ -302,7 +302,7 @@ parameter_types! {
 pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
 	Assets,
 	(
-		ConvertedConcreteAssetId<
+		ConvertedConcreteId<
 			AssetId,
 			Balance,
 			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,

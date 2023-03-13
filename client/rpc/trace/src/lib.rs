@@ -42,7 +42,7 @@ use sp_blockchain::{
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, OverrideHandle};
+use fc_rpc::OverrideHandle;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
