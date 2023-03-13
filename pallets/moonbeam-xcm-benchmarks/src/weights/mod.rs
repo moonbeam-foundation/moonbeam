@@ -40,7 +40,9 @@ trait WeighMultiAssetsFilter {
 impl WeighMultiAssetsFilter for MultiAssetFilter {
 	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight {
 		match self {
-			Self::Definite(assets) => weight.saturating_mul(assets.inner().into_iter().count() as u64),
+			Self::Definite(assets) => {
+				weight.saturating_mul(assets.inner().into_iter().count() as u64)
+			}
 			Self::Wild(AllOf { .. } | AllOfCounted { .. }) => weight,
 			Self::Wild(AllCounted(count)) => weight.saturating_mul(*count as u64),
 			Self::Wild(All) => weight.saturating_mul(MAX_ASSETS as u64),
@@ -50,8 +52,7 @@ impl WeighMultiAssetsFilter for MultiAssetFilter {
 
 impl WeighMultiAssets for MultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
-		weight
-			.saturating_mul(self.inner().into_iter().count() as u64)
+		weight.saturating_mul(self.inner().into_iter().count() as u64)
 	}
 }
 
@@ -72,7 +73,12 @@ where
 	fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
 	}
-	fn query_response(_query_id: &u64, _response: &Response, _max_weight: &Weight, _querier: &Option<MultiLocation>,) -> XCMWeight {
+	fn query_response(
+		_query_id: &u64,
+		_response: &Response,
+		_max_weight: &Weight,
+		_querier: &Option<MultiLocation>,
+	) -> XCMWeight {
 		XcmGeneric::<Runtime>::query_response()
 	}
 	fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XCMWeight {
@@ -86,9 +92,7 @@ where
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(
-				XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset),
-			)
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset))
 		})
 	}
 	fn transact(
@@ -123,10 +127,7 @@ where
 	fn report_error(_query_response_info: &QueryResponseInfo) -> XCMWeight {
 		XcmGeneric::<Runtime>::report_error()
 	}
-	fn deposit_asset(
-		assets: &MultiAssetFilter,
-		_dest: &MultiLocation,
-	) -> XCMWeight {
+	fn deposit_asset(assets: &MultiAssetFilter, _dest: &MultiLocation) -> XCMWeight {
 		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_asset())
 	}
 	fn deposit_reserve_asset(
@@ -134,11 +135,13 @@ where
 		_dest: &MultiLocation,
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
-		assets.weigh_multi_assets_filter(
-			XcmFungibleWeight::<Runtime>::deposit_reserve_asset(),
-		)
+		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
 	}
-	fn exchange_asset(_give: &MultiAssetFilter, _receive: &MultiAssets, _maximal: &bool) -> XCMWeight {
+	fn exchange_asset(
+		_give: &MultiAssetFilter,
+		_receive: &MultiAssets,
+		_maximal: &bool,
+	) -> XCMWeight {
 		Weight::MAX
 	}
 	fn initiate_reserve_withdraw(

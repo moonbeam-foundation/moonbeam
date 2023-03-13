@@ -224,7 +224,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
-	
+
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
 		todo!();
@@ -409,7 +409,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(5 as u64))
 			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
-	
+
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
 		todo!();

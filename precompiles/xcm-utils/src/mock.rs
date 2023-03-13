@@ -34,8 +34,8 @@ use sp_std::borrow::Borrow;
 use xcm::latest::Error as XcmError;
 use xcm_builder::AllowUnpaidExecutionFrom;
 use xcm_builder::FixedWeightBounds;
-use xcm_builder::SovereignSignedViaLocation;
 use xcm_builder::IsConcrete;
+use xcm_builder::SovereignSignedViaLocation;
 use xcm_executor::traits::Convert;
 use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
@@ -338,7 +338,10 @@ impl SendXcm for TestSendXcm {
 		destination: &mut Option<MultiLocation>,
 		message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
-		SENT_XCM.with(|q| q.borrow_mut().push((destination.clone().unwrap(), message.clone().unwrap())));
+		SENT_XCM.with(|q| {
+			q.borrow_mut()
+				.push((destination.clone().unwrap(), message.clone().unwrap()))
+		});
 		Ok(((), MultiAssets::new()))
 	}
 
@@ -353,7 +356,11 @@ impl TransactAsset for DummyAssetTransactor {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation, _maybe_context: Option<&XcmContext>) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -365,7 +372,8 @@ impl WeightTrader for DummyWeightTrader {
 	}
 
 	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
-		let asset_to_charge: MultiAsset = (MultiLocation::parent(), weight.ref_time() as u128).into();
+		let asset_to_charge: MultiAsset =
+			(MultiLocation::parent(), weight.ref_time() as u128).into();
 		let unused = payment
 			.checked_sub(asset_to_charge)
 			.map_err(|_| XcmError::TooExpensive)?;

@@ -76,7 +76,7 @@ parameter_types! {
 	// The universal location within the global consensus system
 	pub UniversalLocation: InteriorMultiLocation =
 		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
-	
+
 
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
@@ -284,7 +284,7 @@ pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 	fn contains(_call: &RuntimeCall) -> bool {
 		// TODO review
-		// This needs to be addressed at EVM level 
+		// This needs to be addressed at EVM level
 		true
 	}
 }

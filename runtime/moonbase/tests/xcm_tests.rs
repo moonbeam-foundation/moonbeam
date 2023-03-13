@@ -1666,7 +1666,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 				interior: Here,
 			},
 			2,
-			vec![].into()
+			vec![].into(),
 		)
 		.into();
 
@@ -1821,7 +1821,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 				interior: X1(Parachain(1)),
 			},
 			2,
-			vec![].into()
+			vec![].into(),
 		)
 		.into();
 

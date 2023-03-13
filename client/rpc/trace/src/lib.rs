@@ -774,7 +774,6 @@ where
 		substrate_hash: H256,
 		overrides: Arc<OverrideHandle<B>>,
 	) -> TxsTraceRes {
-
 		// Get Subtrate block data.
 		let api = client.runtime_api();
 		let block_header = client
@@ -790,10 +789,8 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(
-			client.as_ref(),
-			substrate_hash,
-		);
+		let schema =
+			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), substrate_hash);
 
 		// Get Ethereum block data.
 		let (eth_block, eth_transactions) = match overrides.schemas.get(&schema) {

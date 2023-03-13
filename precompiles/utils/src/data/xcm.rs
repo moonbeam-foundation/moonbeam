@@ -63,7 +63,10 @@ pub(crate) fn network_id_to_bytes(network_id: Option<NetworkId>) -> Vec<u8> {
 			encoded.push(3u8);
 			encoded
 		}
-		Some(NetworkId::ByFork { block_number, block_hash }) => {
+		Some(NetworkId::ByFork {
+			block_number,
+			block_hash,
+		}) => {
 			encoded.push(4u8);
 			encoded.push(1u8);
 			encoded.append(&mut block_number.to_be_bytes().into());
@@ -100,7 +103,7 @@ pub(crate) fn network_id_to_bytes(network_id: Option<NetworkId>) -> Vec<u8> {
 			encoded.push(10u8);
 			encoded.push(9u8);
 			encoded
-		},
+		}
 	}
 }
 
@@ -124,7 +127,9 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 				.in_field("genesis")?
 				.to_vec()
 				.try_into()
-				.map_err(|_| RevertReason::value_is_too_large("network by genesis").in_field("genesis"))?,
+				.map_err(|_| {
+					RevertReason::value_is_too_large("network by genesis").in_field("genesis")
+				})?,
 		))),
 		2 => Ok(Some(NetworkId::Polkadot)),
 		3 => Ok(Some(NetworkId::Kusama)),
@@ -138,7 +143,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 				block_number: u64::from_be_bytes(block_number),
 				block_hash,
 			}))
-		},
+		}
 		5 => Ok(Some(NetworkId::Westend)),
 		6 => Ok(Some(NetworkId::Rococo)),
 		7 => Ok(Some(NetworkId::Wococo)),
@@ -148,7 +153,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 			Ok(Some(NetworkId::Ethereum {
 				chain_id: u64::from_be_bytes(chain_id),
 			}))
-		},
+		}
 		9 => Ok(Some(NetworkId::BitcoinCore)),
 		10 => Ok(Some(NetworkId::BitcoinCash)),
 		_ => Err(RevertReason::custom("Non-valid Network Id").into()),
@@ -226,9 +231,11 @@ impl EvmData for Junction {
 			}
 			6 => {
 				let mut length: [u8; 1] = Default::default();
-				length.copy_from_slice(encoded_junction
-					.read_raw_bytes(1)
-					.map_err(|_| RevertReason::read_out_of_bounds("General Key length"))?);
+				length.copy_from_slice(
+					encoded_junction
+						.read_raw_bytes(1)
+						.map_err(|_| RevertReason::read_out_of_bounds("General Key length"))?,
+				);
 
 				let mut data: [u8; 32] = Default::default();
 				data.copy_from_slice(&encoded_junction.read_till_end()?);
@@ -237,7 +244,7 @@ impl EvmData for Junction {
 					length: u8::from_be_bytes(length),
 					data,
 				})
-			},
+			}
 			7 => Ok(Junction::OnlyChild),
 			8 => Err(RevertReason::custom("Junction::Plurality not supported yet").into()),
 			9 => {

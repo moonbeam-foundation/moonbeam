@@ -331,10 +331,7 @@ where
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(
-			client.as_ref(),
-			hash,
-		);
+		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), hash);
 
 		// Using storage overrides we align with `:ethereum_schema` which will result in proper
 		// SCALE decoding in case of migration.
@@ -482,10 +479,8 @@ where
 			));
 		};
 
-		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(
-			client.as_ref(),
-			reference_hash,
-		);
+		let schema =
+			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), reference_hash);
 
 		// Get the block that contains the requested transaction. Using storage overrides we align
 		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.

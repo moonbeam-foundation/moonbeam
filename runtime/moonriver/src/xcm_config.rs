@@ -252,7 +252,7 @@ pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 	fn contains(_call: &RuntimeCall) -> bool {
 		// TODO review
-		// This needs to be addressed at EVM level 
+		// This needs to be addressed at EVM level
 		true
 	}
 }

@@ -118,7 +118,8 @@ impl<
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
-			let amount = units_per_second * (weight.ref_time() as u128) / (WEIGHT_REF_TIME_PER_SECOND as u128);
+			let amount = units_per_second * (weight.ref_time() as u128)
+				/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
 				id.clone(),

@@ -32,10 +32,7 @@ use precompile_utils::{
 use scale_info::TypeInfo;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use xcm::latest::{
-	Error as XcmError,
-	prelude::*,
-};
+use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::FixedWeightBounds;
 use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
@@ -246,7 +243,11 @@ impl TransactAsset for DummyAssetTransactor {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation, _maybe_context: Option<&XcmContext>) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -283,7 +284,7 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		));
 	pub MaxInstructions: u32 = 100;
-	
+
 	pub UniversalLocation: InteriorMultiLocation = Here;
 }
 

@@ -30,7 +30,8 @@ use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	opaque, Error as XcmError, Instruction, InteriorMultiLocation,
 	Junction::{AccountKey20, PalletInstance, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext, XcmHash,
+	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
+	SendXcm, Xcm, XcmContext, XcmHash,
 };
 use xcm_primitives::{
 	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
@@ -144,7 +145,11 @@ impl TransactAsset for DummyAssetTransactor {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation, _context: Option<&XcmContext>) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -339,7 +344,10 @@ impl SendXcm for TestSendXcm {
 		destination: &mut Option<MultiLocation>,
 		message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
-		SENT_XCM.with(|q| q.borrow_mut().push((destination.clone().unwrap(), message.clone().unwrap())));
+		SENT_XCM.with(|q| {
+			q.borrow_mut()
+				.push((destination.clone().unwrap(), message.clone().unwrap()))
+		});
 		Ok(((), MultiAssets::new()))
 	}
 

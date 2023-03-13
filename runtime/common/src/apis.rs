@@ -379,7 +379,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				) -> pallet_transaction_payment::FeeDetails<Balance> {
 					TransactionPayment::query_fee_details(uxt, len)
 				}
-				
+
 				fn query_weight_to_fee(weight: Weight) -> Balance {
 					TransactionPayment::weight_to_fee(weight)
 				}

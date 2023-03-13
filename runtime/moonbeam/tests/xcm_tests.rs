@@ -20,7 +20,7 @@ mod xcm_mock;
 use frame_support::{
 	assert_ok,
 	traits::{PalletInfo, PalletInfoAccess},
-	weights::{Weight, constants::WEIGHT_REF_TIME_PER_SECOND},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
@@ -1546,7 +1546,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 				interior: Here,
 			},
 			2,
-			vec![].into()
+			vec![].into(),
 		)
 		.into();
 

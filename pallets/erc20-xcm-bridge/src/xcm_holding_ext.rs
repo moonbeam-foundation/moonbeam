@@ -21,9 +21,12 @@ use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
 
-use xcm::latest::prelude::*;
-use xcm_executor::{Config as XcmExecutorConfig, WeighedMessage, traits::{FeeManager, FeeReason, TransactAsset, WeightBounds}};
 use frame_support::pallet_prelude::Weight;
+use xcm::latest::prelude::*;
+use xcm_executor::{
+	traits::{FeeManager, FeeReason, TransactAsset, WeightBounds},
+	Config as XcmExecutorConfig, WeighedMessage,
+};
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
@@ -105,7 +108,8 @@ pub struct XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>(
 impl<XcmConfig, InnerXcmExecutor> ExecuteXcm<XcmConfig::RuntimeCall>
 	for XcmExecutorWrapper<XcmConfig, InnerXcmExecutor>
 where
-	InnerXcmExecutor: ExecuteXcm<XcmConfig::RuntimeCall, Prepared = WeighedMessage<XcmConfig::RuntimeCall>>,
+	InnerXcmExecutor:
+		ExecuteXcm<XcmConfig::RuntimeCall, Prepared = WeighedMessage<XcmConfig::RuntimeCall>>,
 	XcmConfig: XcmExecutorConfig,
 {
 	type Prepared = WeighedMessage<XcmConfig::RuntimeCall>;

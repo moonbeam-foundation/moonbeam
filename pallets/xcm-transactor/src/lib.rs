@@ -862,7 +862,9 @@ pub mod pallet {
 			)?;
 
 			// Send to sovereign
-			let (ticket, _price) = T::XcmSender::validate(&mut Some(dest), &mut Some(transact_message)).map_err(|_| Error::<T>::ErrorValidating)?;
+			let (ticket, _price) =
+				T::XcmSender::validate(&mut Some(dest), &mut Some(transact_message))
+					.map_err(|_| Error::<T>::ErrorValidating)?;
 			T::XcmSender::deliver(ticket).map_err(|_| Error::<T>::ErrorDelivering)?;
 
 			Ok(())
@@ -907,7 +909,9 @@ pub mod pallet {
 			transact_message.0.insert(0, DescendOrigin(interior));
 
 			// Send to destination chain
-			let (ticket, _price) = T::XcmSender::validate(&mut Some(dest), &mut Some(transact_message)).map_err(|_| Error::<T>::ErrorValidating)?;
+			let (ticket, _price) =
+				T::XcmSender::validate(&mut Some(dest), &mut Some(transact_message))
+					.map_err(|_| Error::<T>::ErrorValidating)?;
 			T::XcmSender::deliver(ticket).map_err(|_| Error::<T>::ErrorDelivering)?;
 
 			Ok(())

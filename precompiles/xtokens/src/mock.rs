@@ -16,7 +16,9 @@
 
 //! Test utilities
 use super::*;
-use frame_support::traits::{ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait};
+use frame_support::traits::{
+	ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait,
+};
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
@@ -30,10 +32,7 @@ use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use xcm::latest::{
-	Error as XcmError,
-	prelude::*
-};
+use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds, IsConcrete};
 use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
@@ -199,7 +198,6 @@ impl SendXcm for DoNothingRouter {
 	}
 }
 
-
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
 pub struct DummyAssetTransactor;
@@ -208,7 +206,11 @@ impl TransactAsset for DummyAssetTransactor {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation, _maybe_context: Option<&XcmContext>) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }

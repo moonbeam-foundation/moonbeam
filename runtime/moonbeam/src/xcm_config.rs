@@ -39,9 +39,9 @@ use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,NoChecking,
+	TakeWeightCredit, UsingComponents,
 };
 
 use xcm::latest::prelude::*;
@@ -243,7 +243,7 @@ pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 	fn contains(_call: &RuntimeCall) -> bool {
 		// TODO review
-		// This needs to be addressed at EVM level 
+		// This needs to be addressed at EVM level
 		true
 	}
 }

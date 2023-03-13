@@ -147,7 +147,10 @@ where
 
 		// buy_weight returns unused assets
 		let unused = trader
-			.buy_weight(Weight::from_parts(weight_per_second, 0u64), vec![multiasset.clone()].into())
+			.buy_weight(
+				Weight::from_parts(weight_per_second, 0u64),
+				vec![multiasset.clone()].into(),
+			)
 			.map_err(|_| {
 				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
 			})?;
