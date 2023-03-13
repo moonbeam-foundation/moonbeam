@@ -16,11 +16,11 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode};
 use frame_support::traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait};
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,

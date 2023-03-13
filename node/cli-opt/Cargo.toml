@@ -1,22 +1,22 @@
 [package]
 name = "moonbeam-cli-opt"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.30.0"
+version = "0.31.0"
 
 [dependencies]
-bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
-clap = { version = "4.0.9", features = [ "derive" ] }
-libsecp256k1 = "0.7"
-primitive-types = "0.12.0"
-sha3 = "0.10"
-tiny-bip39 = "0.8"
-url = "2.2.2"
+bip32 = { workspace = true, features = [ "bip39" ] }
+clap = { workspace = true, features = [ "derive" ] }
+libsecp256k1 = { workspace = true, features = [ "std" ] }
+primitive-types = { workspace = true }
+sha3 = { workspace = true }
+tiny-bip39 = { workspace = true }
+url = { workspace = true }
 
 # Moonbeam
-account = { path = "../../primitives/account" }
+account = { workspace = true, features = [ "std" ] }
 
 # Substrate
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-runtime = { workspace = true, features = [ "std" ] }

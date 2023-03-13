@@ -18,8 +18,8 @@ use crate::mock::{
 	sent_xcm, AccountId, Balances, ExtBuilder, PCall, ParentAccount, Precompiles, PrecompilesValue,
 	Runtime, SiblingParachainAccount, System,
 };
-use codec::Encode;
 use frame_support::traits::PalletInfo;
+use parity_scale_codec::Encode;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
 use xcm::prelude::*;

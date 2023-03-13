@@ -15,9 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use bip32::ExtendedPrivateKey;
 use bip39::{Language, Mnemonic, Seed};
-use cli_opt::account_key::Secp256k1SecretKey;
 use libsecp256k1::{PublicKey, PublicKeyFormat};
 use log::debug;
+use moonbeam_cli_opt::account_key::Secp256k1SecretKey;
 pub use moonbeam_core_primitives::AccountId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};

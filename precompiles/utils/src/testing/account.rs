@@ -116,14 +116,14 @@ macro_rules! mock_account {
 			}
 		}
 
-		impl From<$name> for H160 {
-			fn from(value: $name) -> H160 {
+		impl From<$name> for sp_core::H160 {
+			fn from(value: $name) -> sp_core::H160 {
 				MockAccount::from(value).into()
 			}
 		}
 
-		impl From<$name> for H256 {
-			fn from(value: $name) -> H256 {
+		impl From<$name> for sp_core::H256 {
+			fn from(value: $name) -> sp_core::H256 {
 				MockAccount::from(value).into()
 			}
 		}

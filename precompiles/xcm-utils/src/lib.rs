@@ -19,7 +19,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use codec::DecodeLimit;
 use fp_evm::PrecompileHandle;
 use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
@@ -28,6 +27,7 @@ use frame_support::{
 	traits::OriginTrait,
 };
 use pallet_evm::AddressMapping;
+use parity_scale_codec::DecodeLimit;
 use precompile_utils::precompile_set::SelectorFilter;
 use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, U256};

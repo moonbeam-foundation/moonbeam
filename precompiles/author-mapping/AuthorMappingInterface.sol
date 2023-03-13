@@ -44,4 +44,25 @@ interface AuthorMapping {
     ///
     /// @param keys The new session keys
     function setKeys(bytes memory keys) external;
+
+    /// @dev Get the nimbus ID of the given addresss
+    ///
+    /// @custom:selector 3cb194f2
+    /// @param who The address for which we want to know the nimbus id
+    /// @return id The nimbus ID, or zero if this address don't have a nimbus ID.
+    function nimbusIdOf(address who) external returns (bytes32);
+
+    /// @dev Get the address of the given nimbus ID
+    ///
+    /// @custom:selector bb34534c
+    /// @param nimbusId The nimbus ID for which we want to know the address
+    /// @return address The address, or zero if this nimbus ID is unknown.
+    function addressOf(bytes32 nimbusId) external returns (address);
+
+    /// @dev Get the keys of the given nimbus ID
+    ///
+    /// @custom:selector 089b7a68
+    /// @param nimbusId The nimbus ID for which we want to know the keys
+    /// @return keys Keys, or empty if this nimbus ID is unknown.
+    function keysOf(bytes32 nimbusId) external returns (bytes memory keys);
 }

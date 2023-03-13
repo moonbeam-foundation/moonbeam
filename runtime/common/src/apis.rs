@@ -398,7 +398,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						&parent_header.hash(),
 						&parent_header.digest,
 					);
-					RandomnessCollectiveFlip::on_initialize(block_number);
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the

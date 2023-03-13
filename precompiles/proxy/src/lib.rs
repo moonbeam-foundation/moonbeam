@@ -18,7 +18,7 @@
 #![feature(assert_matches)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle, PrecompileSet, Transfer};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
@@ -32,7 +32,7 @@ use sp_core::H160;
 use sp_core::U256;
 use sp_runtime::{
 	codec::Decode,
-	traits::{ConstU32, Get, StaticLookup, Zero},
+	traits::{ConstU32, StaticLookup, Zero},
 };
 use sp_std::marker::PhantomData;
 
@@ -67,6 +67,38 @@ where
 
 	fn description() -> String {
 		"Allowed for all callers only for selector 'is_proxy'".into()
+	}
+}
+
+#[derive(Debug)]
+pub struct OnlyIsProxyAndProxy<Runtime>(PhantomData<Runtime>);
+
+impl<Runtime> SelectorFilter for OnlyIsProxyAndProxy<Runtime>
+where
+	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+{
+	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
+		match selector {
+			None => false,
+			Some(selector) => {
+				ProxyPrecompileCall::<Runtime>::is_proxy_selectors().contains(&selector)
+					|| ProxyPrecompileCall::<Runtime>::proxy_selectors().contains(&selector)
+					|| ProxyPrecompileCall::<Runtime>::proxy_force_type_selectors()
+						.contains(&selector)
+			}
+		}
+	}
+
+	fn description() -> String {
+		"Allowed for all callers only for selectors 'is_proxy', 'proxy', 'proxy_force_type'".into()
 	}
 }
 
@@ -238,6 +270,7 @@ where
 	/// - `force_proxy_type`: Specify the exact proxy type to be used and checked for this call.
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
+	#[precompile::public("proxyForceType(address,uint8,address,bytes)")]
 	#[precompile::public("proxy_force_type(address,uint8,address,bytes)")]
 	#[precompile::payable]
 	fn proxy_force_type(
@@ -301,14 +334,6 @@ where
 		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
-		// Proxied call can be dispatched by users only.
-		// We should forbid precompiles here because pre_check allows precompiles.
-		if <Runtime as pallet_evm::Config>::PrecompilesValue::get()
-			.is_precompile(handle.context().caller)
-		{
-			return Err(revert("Proxy.proxy not callable by precompiles"));
-		}
-
 		// Read proxy
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);

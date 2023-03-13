@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 description = "Moonbeam Collator"
 edition = "2021"
 homepage = "https://moonbeam.network"
@@ -12,23 +12,23 @@ name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
-futures = { version = "0.3.1", features = [ "compat" ] }
+futures = { workspace = true, features = [ "compat" ] }
 
-moonbeam-cli = { path = "cli", default-features = false }
-moonbeam-service = { path = "service", default-features = false }
+moonbeam-cli = { workspace = true }
+moonbeam-service = { workspace = true }
 
 [dev-dependencies]
-assert_cmd = "0.12"
-hex = "0.4.3"
-nix = "0.23"
-serde = { version = "1.0.101", features = [ "derive" ] }
-serde_json = "1.0"
-tempfile = "3.2.0"
-tracing-core = "0.1.29"
+assert_cmd = { workspace = true }
+hex = { workspace = true, features = [ "std" ] }
+nix = { workspace = true }
+serde = { workspace = true, features = [ "derive" ] }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+tracing-core = { workspace = true }
 
 # Benchmarking
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
+pallet-xcm = { workspace = true, features = [ "std" ] }
+xcm-builder = { workspace = true, features = [ "std" ] }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
