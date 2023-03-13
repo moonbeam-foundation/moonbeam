@@ -867,7 +867,6 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	});
 
 	ParaB::execute_with(|| {
-		println!("--> {:?}", parachain::para_events());
 		// free execution, full amount received because trully the xcm instruction does not cost
 		// what it is specified
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 101);
@@ -1308,12 +1307,9 @@ fn transact_through_sovereign() {
 			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
-		println!("RELAY ---> {:?}", relay_chain::relay_events());
 	});
 
 	ParaA::execute_with(|| {
-		
-		println!("PARA ---> {:?}", parachain::para_events());
 		// free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 4000003100);
 	});
