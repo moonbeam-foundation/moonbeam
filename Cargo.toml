@@ -237,6 +237,7 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polk
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38", features = [ "rpc-binary-search-estimate" ] }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38" }
+fc-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38" }
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38" }
 fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.38" }
 
