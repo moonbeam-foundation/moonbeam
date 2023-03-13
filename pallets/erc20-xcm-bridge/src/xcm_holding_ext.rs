@@ -22,7 +22,7 @@ use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
 
 use xcm::latest::prelude::*;
-use xcm_executor::{Config as XcmExecutorConfig, traits::{FeeManager, FeeReason, TransactAsset, WeightBounds}};
+use xcm_executor::{Config as XcmExecutorConfig, WeighedMessage, traits::{FeeManager, FeeReason, TransactAsset, WeightBounds}};
 use frame_support::pallet_prelude::Weight;
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
@@ -95,13 +95,6 @@ impl XcmHoldingErc20sOrigins {
 		F: FnOnce(&mut Self) -> R,
 	{
 		XCM_HOLDING_ERC20_ORIGINS::with(|erc20s_origins| f(erc20s_origins))
-	}
-}
-
-pub struct WeighedMessage<Call>(Weight, Xcm<Call>);
-impl<C> PreparedMessage for WeighedMessage<C> {
-	fn weight_of(&self) -> Weight {
-		self.0
 	}
 }
 

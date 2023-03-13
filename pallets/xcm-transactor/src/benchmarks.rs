@@ -50,7 +50,7 @@ benchmarks! {
 		let location = MultiLocation::parent();
 	}: _(
 		RawOrigin::Root,
-		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 		extra_weight,
 		max_weight,
 		None
@@ -69,12 +69,12 @@ benchmarks! {
 		let location = MultiLocation::parent();
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			max_weight,
 			None
 		).unwrap();
-	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
+	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V3(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
 	}
@@ -84,7 +84,7 @@ benchmarks! {
 		let location = MultiLocation::parent();
 	}: _(
 		RawOrigin::Root,
-		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 		fee_per_second
 	)
 	verify {
@@ -104,14 +104,14 @@ benchmarks! {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).unwrap();
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
 		).unwrap();
 		Pallet::<T>::register(
@@ -160,21 +160,21 @@ benchmarks! {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).unwrap();
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
 		).unwrap();
 	}: {
 
 		let result = Pallet::<T>::transact_through_sovereign(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			user.clone(),
 			CurrencyPayment {
 				// This might involve a db Read when translating, therefore worst case
@@ -212,19 +212,19 @@ benchmarks! {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).unwrap();
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
 		).unwrap();
 	}: _(
 		RawOrigin::Signed(user.clone()),
-		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 		CurrencyPayment {
 			// This might involve a db Read when translating, therefore worst case
 			currency: Currency::AsCurrencyId(currency),
@@ -250,14 +250,14 @@ benchmarks! {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).unwrap();
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
 		).unwrap();
 	}: _(
