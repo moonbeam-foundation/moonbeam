@@ -145,7 +145,8 @@ parameter_types! {
 		X2(GlobalConsensus(RelayNetwork::get()), Parachain(MsgQueue::parachain_id().into()));
 	pub Local: MultiLocation = Here.into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
-	pub KsmPerSecond: (xcm::latest::prelude::AssetId, u128, u128) = (Concrete(KsmLocation::get()), 1, 1);
+	pub KsmPerSecond: (xcm::latest::prelude::AssetId, u128, u128) =
+		(Concrete(KsmLocation::get()), 1, 1);
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used

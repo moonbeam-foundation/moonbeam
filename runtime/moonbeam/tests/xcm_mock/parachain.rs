@@ -306,7 +306,8 @@ pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
 parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
-	pub ParaTokensPerSecond: (XcmAssetId, u128, u128) = (Concrete(SelfReserve::get()), 1000000000000, 0);
+	pub ParaTokensPerSecond: (XcmAssetId, u128, u128) =
+		(Concrete(SelfReserve::get()), 1000000000000, 0);
 }
 
 parameter_types! {

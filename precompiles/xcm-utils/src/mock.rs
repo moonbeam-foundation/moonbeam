@@ -386,7 +386,8 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 0u64);
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation = MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
+	pub SelfLocation: MultiLocation =
+		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
 
 	pub SelfReserve: MultiLocation = MultiLocation::new(
 		1,
