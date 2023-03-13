@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use precompile_utils::prelude::*;
+//! Provides utilities for compatibility with Solidity tooling.
 
-#[derive(EvmData)]
-struct Empty1;
-
-#[derive(EvmData)]
-struct Empty2 {}
-
-#[derive(EvmData)]
-struct Empty3 ();
-
-fn main() {}
+pub mod codec;
+pub use codec::Codec;

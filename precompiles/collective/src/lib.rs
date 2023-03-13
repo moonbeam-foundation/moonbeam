@@ -65,9 +65,9 @@ pub fn log_proposed(
 		address.into(),
 		SELECTOR_LOG_PROPOSED,
 		who.into(),
-		H256::from_slice(&EvmDataWriter::new().write(index).build()),
+		H256::from_slice(&Writer::new().write(index).build()),
 		hash,
-		EvmDataWriter::new().write(threshold).build(),
+		Writer::new().write(threshold).build(),
 	)
 }
 
@@ -77,7 +77,7 @@ pub fn log_voted(address: impl Into<H160>, who: impl Into<H160>, hash: H256, vot
 		SELECTOR_LOG_VOTED,
 		who.into(),
 		hash,
-		EvmDataWriter::new().write(voted).build(),
+		Writer::new().write(voted).build(),
 	)
 }
 

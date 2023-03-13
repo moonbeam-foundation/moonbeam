@@ -273,7 +273,7 @@ fn approve() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(500)).build(),
+					Writer::new().write(U256::from(500)).build(),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -314,7 +314,7 @@ fn approve_saturating() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::MAX).build(),
+					Writer::new().write(U256::MAX).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -443,7 +443,7 @@ fn transfer() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -570,7 +570,7 @@ fn transfer_from() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Charlie,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -648,7 +648,7 @@ fn transfer_from_non_incremental_approval() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(500)).build(),
+					Writer::new().write(U256::from(500)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -671,7 +671,7 @@ fn transfer_from_non_incremental_approval() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(300)).build(),
+					Writer::new().write(U256::from(300)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -779,7 +779,7 @@ fn transfer_from_self() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -836,7 +836,7 @@ fn get_metadata() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write::<UnboundedBytes>("TestToken".into())
 						.build(),
 				);
@@ -845,11 +845,7 @@ fn get_metadata() {
 				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write::<UnboundedBytes>("Test".into())
-						.build(),
-				);
+				.execute_returns(Writer::new().write::<UnboundedBytes>("Test".into()).build());
 
 			precompiles()
 				.prepare_test(
@@ -946,7 +942,7 @@ fn mint_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Zero,
 					Bob,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1007,7 +1003,7 @@ fn burn_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Zero,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1150,7 +1146,7 @@ fn thaw_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Bob,
 					CryptoAlith,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -1271,7 +1267,7 @@ fn thaw_asset_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Bob,
 					CryptoAlith,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -1409,7 +1405,7 @@ fn set_team_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Zero,
 					Bob,
-					EvmDataWriter::new().write(U256::from(400)).build(),
+					Writer::new().write(U256::from(400)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1468,7 +1464,7 @@ fn set_metadata() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write::<UnboundedBytes>("TestToken".into())
 						.build(),
 				);
@@ -1477,11 +1473,7 @@ fn set_metadata() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write::<UnboundedBytes>("Test".into())
-						.build(),
-				);
+				.execute_returns(Writer::new().write::<UnboundedBytes>("Test".into()).build());
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
@@ -1541,21 +1533,13 @@ fn clear_metadata() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write::<UnboundedBytes>("".into())
-						.build(),
-				);
+				.execute_returns(Writer::new().write::<UnboundedBytes>("".into()).build());
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write::<UnboundedBytes>("".into())
-						.build(),
-				);
+				.execute_returns(Writer::new().write::<UnboundedBytes>("".into()).build());
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
@@ -1636,7 +1620,7 @@ fn permit_valid() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(500)).build(),
+					Writer::new().write(U256::from(500)).build(),
 				))
 				.execute_returns(vec![]);
 
@@ -1745,7 +1729,7 @@ fn permit_valid_named_asset() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(500)).build(),
+					Writer::new().write(U256::from(500)).build(),
 				))
 				.execute_returns(vec![]);
 
@@ -2223,7 +2207,7 @@ fn permit_valid_with_metamask_signed_data() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					EvmDataWriter::new().write(U256::from(1000)).build(),
+					Writer::new().write(U256::from(1000)).build(),
 				))
 				.execute_returns(vec![]);
 		});
@@ -2558,7 +2542,7 @@ fn get_freezer() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["ERC20.sol", "LocalAsset.sol", "Permit.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -2590,7 +2574,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"set_metadata(string,string,uint8)",
 		"clear_metadata()",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !LocalPCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

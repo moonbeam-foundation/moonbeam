@@ -98,7 +98,7 @@ fn test_encode_bond() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Bond(
 								[1u8; 32].into(),
@@ -127,7 +127,7 @@ fn test_encode_bond_more() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
 								.as_slice(),
@@ -148,7 +148,7 @@ fn test_encode_chill() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Chill).as_slice(),
 						))
@@ -174,7 +174,7 @@ fn test_encode_nominate() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
 								[1u8; 32].into(),
@@ -202,7 +202,7 @@ fn test_encode_rebond() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
 								.as_slice(),
@@ -229,7 +229,7 @@ fn test_encode_set_controller() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::SetController(
 								[1u8; 32].into(),
@@ -258,7 +258,7 @@ fn test_encode_set_payee() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
 								RewardDestination::Controller,
@@ -285,7 +285,7 @@ fn test_encode_unbond() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
 								.as_slice(),
@@ -313,7 +313,7 @@ fn test_encode_validate() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Validate(
 								ValidatorPrefs {
@@ -343,7 +343,7 @@ fn test_encode_withdraw_unbonded() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(UnboundedBytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(
 								100u32.into(),
@@ -358,7 +358,7 @@ fn test_encode_withdraw_unbonded() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["RelayEncoder.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -394,7 +394,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"encode_set_controller(uint256)",
 		"encode_rebond(uint256)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

@@ -651,11 +651,7 @@ fn selected_candidates_works() {
 				.prepare_test(Alice, Precompile1, PCall::selected_candidates {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(vec![Address(Alice.into())])
-						.build(),
-				);
+				.execute_returns(Writer::new().write(vec![Address(Alice.into())]).build());
 		});
 }
 
@@ -1791,7 +1787,7 @@ fn get_candidate_total_counted_getter() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["StakingInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -1846,7 +1842,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"execute_delegation_request(address,address)",
 		"cancel_delegation_request(address)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

@@ -122,7 +122,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	IsLocal: Get<bool>,
@@ -145,7 +145,7 @@ where
 		let version: H256 = keccak256!("1").into();
 		let chain_id: U256 = Runtime::ChainId::get().into();
 
-		let domain_separator_inner = EvmDataWriter::new()
+		let domain_separator_inner = Writer::new()
 			.write(H256::from(PERMIT_DOMAIN))
 			.write(name)
 			.write(version)
@@ -167,7 +167,7 @@ where
 	) -> [u8; 32] {
 		let domain_separator = Self::compute_domain_separator(address, asset_id);
 
-		let permit_content = EvmDataWriter::new()
+		let permit_content = Writer::new()
 			.write(H256::from(PERMIT_TYPEHASH))
 			.write(Address(owner))
 			.write(Address(spender))
@@ -239,7 +239,7 @@ where
 			SELECTOR_LOG_APPROVAL,
 			owner,
 			spender,
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 

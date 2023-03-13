@@ -86,7 +86,7 @@ where
 		let version: H256 = keccak256!("1").into();
 		let chain_id: U256 = Runtime::ChainId::get().into();
 
-		let domain_separator_inner = EvmDataWriter::new()
+		let domain_separator_inner = Writer::new()
 			.write(H256::from(PERMIT_DOMAIN))
 			.write(name)
 			.write(version)
@@ -109,7 +109,7 @@ where
 	) -> [u8; 32] {
 		let domain_separator = Self::compute_domain_separator(address);
 
-		let permit_content = EvmDataWriter::new()
+		let permit_content = Writer::new()
 			.write(H256::from(PERMIT_TYPEHASH))
 			.write(Address(from))
 			.write(Address(to))

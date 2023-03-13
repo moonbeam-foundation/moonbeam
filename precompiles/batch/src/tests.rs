@@ -447,7 +447,7 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
+						output: Writer::new_with_selector(RevertSelector::Generic)
 							.write::<UnboundedBytes>(b"Revert message".into())
 							.build(),
 						cost: 17,
@@ -1099,7 +1099,7 @@ fn batch_is_not_callable_by_dummy_code() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Batch.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,

@@ -116,7 +116,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_VOTED,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
+			Writer::new()
 				.write::<Address>(Address(caller))
 				.write::<bool>(aye)
 				.write::<U256>(vote_amount)
@@ -200,9 +200,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVED,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.build(),
+			Writer::new().write::<Address>(Address(caller)).build(),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -237,7 +235,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVED_OTHER,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
+			Writer::new()
 				.write::<Address>(Address(caller))
 				.write::<Address>(target)
 				.write::<u16>(track_id)
@@ -286,7 +284,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new()
+			Writer::new()
 				.write::<Address>(Address(caller))
 				.write::<Address>(representative)
 				.write::<U256>(amount)
@@ -329,9 +327,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNDELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.build(),
+			Writer::new().write::<Address>(Address(caller)).build(),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -353,7 +349,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNLOCKED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new().write::<Address>(target).build(),
+			Writer::new().write::<Address>(target).build(),
 		);
 		handle.record_log_costs(&[&event])?;
 

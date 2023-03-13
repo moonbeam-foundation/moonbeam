@@ -18,7 +18,7 @@ use crate::{
 	SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMITTED_AFTER,
 	SELECTOR_LOG_SUBMITTED_AT,
 };
-use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -43,7 +43,7 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Referenda.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -100,7 +100,7 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
+						Writer::new()
 							// Referendum index 0
 							.write::<u32>(0u32)
 							.write::<H256>(proposal_hash)
@@ -113,7 +113,7 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
+						Writer::new()
 							// Referendum index 1
 							.write::<u32>(1u32)
 							.write::<H256>(proposal_hash)
@@ -162,7 +162,7 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
+						Writer::new()
 							// Referendum index 0
 							.write::<u32>(0u32)
 							.write::<H256>(proposal_hash)
@@ -175,7 +175,7 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
+						Writer::new()
 							// Referendum index 1
 							.write::<u32>(1u32)
 							.write::<H256>(proposal_hash)
@@ -227,7 +227,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
 							// Decision deposit
@@ -279,7 +279,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
 							// Decision deposit
@@ -292,7 +292,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<u32>(referendum_index)
 							.write::<Address>(Address(Alice.into()))
 							// Submission deposit

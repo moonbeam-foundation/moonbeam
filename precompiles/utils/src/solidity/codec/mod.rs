@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,90 +14,103 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Solidity encoding following the
+//! [Contract ABI Specification](https://docs.soliditylang.org/en/v0.8.19/abi-spec.html#abi)
+
 pub mod bytes;
 pub mod native;
+// #[cfg(feature = "codec-xcm")]
 pub mod xcm;
 
-pub use affix::paste;
-pub use alloc::string::String;
-pub use bytes::*;
-pub use native::*;
+use crate::revert::{MayRevert, RevertReason};
+use core::{marker::PhantomData, ops::Range};
+use sp_core::{H256, U256};
+use sp_std::{convert::TryInto, vec, vec::Vec};
 
-use {
-	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
-	alloc::borrow::ToOwned,
-	core::{any::type_name, marker::PhantomData, ops::Range},
-	frame_support::traits::{ConstU32, Get},
-	impl_trait_for_tuples::impl_for_tuples,
-	sp_core::{H160, H256, U256},
-	sp_std::{convert::TryInto, vec, vec::Vec},
-};
+pub use alloc::string::String;
+pub use bytes::{BoundedBytes, BoundedString, UnboundedBytes, UnboundedString};
+pub use native::{Address, BoundedVec};
 
 // derive macro
-pub use precompile_utils_macro::EvmData;
+pub use precompile_utils_macro::Codec;
 
-/// Data that can be converted from and to EVM data types.
-pub trait EvmData: Sized {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self>;
-	fn write(writer: &mut EvmDataWriter, value: Self);
+/// Data that can be encoded/encoded followiong the Solidity ABI Specification.
+pub trait Codec: Sized {
+	fn read(reader: &mut Reader) -> MayRevert<Self>;
+	fn write(writer: &mut Writer, value: Self);
 	fn has_static_size() -> bool;
-	fn solidity_type() -> String;
+	fn signature() -> String;
 	fn is_explicit_tuple() -> bool {
 		false
 	}
+
+	/// Encode the value into its Solidity ABI format.
+	fn encode(self) -> Vec<u8> {
+		Writer::new().write(self).build()
+	}
+
+	/// Tries to decode value from its Solidity ABI format.
+	fn decode(input: &[u8]) -> MayRevert<Self> {
+		Reader::new(input).read()
+	}
+
+	/// Should be used instead of `encode` when the value represents the list of arguments or the
+	/// return value of a Solidity function. Tuples have special encoding rules in this position.
+	fn encode_for_function(self) -> Vec<u8> {
+		let output = self.encode();
+		if Self::is_explicit_tuple() && !Self::has_static_size() {
+			output[32..].to_vec()
+		} else {
+			output
+		}
+	}
+
+	/// Should be used instead of `decode` when the value represents the list of arguments or the
+	/// return value of a Solidity function. Tuples have special encoding rules in this position.
+	fn decode_for_function(input: &[u8]) -> MayRevert<Self> {
+		if Self::is_explicit_tuple() && !Self::has_static_size() {
+			let writer = Writer::new();
+			let mut writer = writer.write(U256::from(32));
+			writer.write_pointer(input.to_vec());
+			let input = writer.build();
+			Self::decode(&input)
+		} else {
+			Self::decode(&input)
+		}
+	}
+
+	/// Encode the value as the arguments of a function with given selector.
+	fn encode_with_selector(self, selector: u32) -> Vec<u8> {
+		Writer::new_with_selector(selector)
+			.write_raw_bytes(&self.encode_for_function())
+			.build()
+	}
 }
 
-/// Wrapper around an EVM input slice, helping to parse it.
-/// Provide functions to parse common types.
+/// Extracts the selector from the start of the input, or returns `None` if the input is too short.
+pub fn selector(input: &[u8]) -> Option<u32> {
+	input.get(0..4).map(|s| {
+		let mut buffer = [0u8; 4];
+		buffer.copy_from_slice(s);
+		u32::from_be_bytes(buffer)
+	})
+}
+
+/// Wrapper around an EVM input slice.
 #[derive(Clone, Copy, Debug)]
-pub struct EvmDataReader<'a> {
-	input: &'a [u8],
+pub struct Reader<'inner> {
+	input: &'inner [u8],
 	cursor: usize,
 }
 
-impl<'a> EvmDataReader<'a> {
-	/// Create a new input parser.
-	pub fn new(input: &'a [u8]) -> Self {
+impl<'inner> Reader<'inner> {
+	/// Create a Reader.
+	pub fn new(input: &'inner [u8]) -> Self {
 		Self { input, cursor: 0 }
 	}
 
-	/// Create a new input parser from a selector-initial input.
-	pub fn read_selector<T>(input: &'a [u8]) -> MayRevert<T>
-	where
-		T: num_enum::TryFromPrimitive<Primitive = u32>,
-	{
-		if input.len() < 4 {
-			return Err(RevertReason::read_out_of_bounds("selector").into());
-		}
-
-		let mut buffer = [0u8; 4];
-		buffer.copy_from_slice(&input[0..4]);
-		let selector = T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|_| {
-			log::trace!(
-				target: "precompile-utils",
-				"Failed to match function selector for {}",
-				type_name::<T>()
-			);
-			RevertReason::UnknownSelector
-		})?;
-
-		Ok(selector)
-	}
-
-	/// Read selector as u32
-	pub fn read_u32_selector(input: &'a [u8]) -> MayRevert<u32> {
-		if input.len() < 4 {
-			return Err(RevertReason::read_out_of_bounds("selector").into());
-		}
-
-		let mut buffer = [0u8; 4];
-		buffer.copy_from_slice(&input[0..4]);
-
-		Ok(u32::from_be_bytes(buffer))
-	}
-
-	/// Create a new input parser from a selector-initial input.
-	pub fn new_skip_selector(input: &'a [u8]) -> MayRevert<Self> {
+	/// Create a Reader while skipping an initial selector.
+	pub fn new_skip_selector(input: &'inner [u8]) -> MayRevert<Self> {
 		if input.len() < 4 {
 			return Err(RevertReason::read_out_of_bounds("selector").into());
 		}
@@ -106,7 +119,7 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
-	pub fn expect_arguments(&self, args: usize) -> MayRevert<()> {
+	pub fn expect_arguments(&self, args: usize) -> MayRevert {
 		if self.input.len() >= self.cursor + args * 32 {
 			Ok(())
 		} else {
@@ -115,7 +128,7 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read data from the input.
-	pub fn read<T: EvmData>(&mut self) -> MayRevert<T> {
+	pub fn read<T: Codec>(&mut self) -> MayRevert<T> {
 		T::read(self)
 	}
 
@@ -182,18 +195,18 @@ impl<'a> EvmDataReader<'a> {
 /// Help build an EVM input/output data.
 ///
 /// Functions takes `self` to allow chaining all calls like
-/// `EvmDataWriter::new().write(...).write(...).build()`.
+/// `Writer::new().write(...).write(...).build()`.
 /// While it could be more ergonomic to take &mut self, this would
 /// prevent to have a `build` function that don't clone the output.
 #[derive(Clone, Debug)]
-pub struct EvmDataWriter {
+pub struct Writer {
 	pub(crate) data: Vec<u8>,
-	offset_data: Vec<OffsetDatum>,
+	offset_data: Vec<OffsetChunk>,
 	selector: Option<u32>,
 }
 
 #[derive(Clone, Debug)]
-struct OffsetDatum {
+struct OffsetChunk {
 	// Offset location in the container data.
 	offset_position: usize,
 	// Data pointed by the offset that must be inserted at the end of container data.
@@ -203,7 +216,7 @@ struct OffsetDatum {
 	offset_shift: usize,
 }
 
-impl EvmDataWriter {
+impl Writer {
 	/// Creates a new empty output builder (without selector).
 	pub fn new() -> Self {
 		Self {
@@ -224,7 +237,7 @@ impl EvmDataWriter {
 		}
 	}
 
-	/// Return the built data.
+	// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
 		Self::bake_offsets(&mut self.data, self.offset_data);
 
@@ -238,9 +251,9 @@ impl EvmDataWriter {
 	}
 
 	/// Add offseted data at the end of this writer's data, updating the offsets.
-	fn bake_offsets(output: &mut Vec<u8>, offsets: Vec<OffsetDatum>) {
-		for mut offset_datum in offsets {
-			let offset_position = offset_datum.offset_position;
+	fn bake_offsets(output: &mut Vec<u8>, offsets: Vec<OffsetChunk>) {
+		for mut offset_chunk in offsets {
+			let offset_position = offset_chunk.offset_position;
 			let offset_position_end = offset_position + 32;
 
 			// The offset is the distance between the start of the data and the
@@ -248,14 +261,14 @@ impl EvmDataWriter {
 			// Offsets in inner data are relative to the start of their respective "container".
 			// However in arrays the "container" is actually the item itself instead of the whole
 			// array, which is corrected by `offset_shift`.
-			let free_space_offset = output.len() - offset_datum.offset_shift;
+			let free_space_offset = output.len() - offset_chunk.offset_shift;
 
 			// Override dummy offset to the offset it will be in the final output.
 			U256::from(free_space_offset)
 				.to_big_endian(&mut output[offset_position..offset_position_end]);
 
 			// Append this data at the end of the current output.
-			output.append(&mut offset_datum.data);
+			output.append(&mut offset_chunk.data);
 		}
 	}
 
@@ -267,7 +280,7 @@ impl EvmDataWriter {
 	}
 
 	/// Write data of requested type.
-	pub fn write<T: EvmData>(mut self, value: T) -> Self {
+	pub fn write<T: Codec>(mut self, value: T) -> Self {
 		T::write(&mut self, value);
 		self
 	}
@@ -282,7 +295,7 @@ impl EvmDataWriter {
 		let offset_position = self.data.len();
 		H256::write(self, H256::repeat_byte(0xff));
 
-		self.offset_data.push(OffsetDatum {
+		self.offset_data.push(OffsetChunk {
 			offset_position,
 			data,
 			offset_shift: 0,
@@ -290,22 +303,16 @@ impl EvmDataWriter {
 	}
 }
 
-impl Default for EvmDataWriter {
-	fn default() -> Self {
-		Self::new()
-	}
-}
-
 /// Adapter to parse data as a first type then convert it to another one.
 /// Useful for old precompiles in which Solidity arguments where set larger than
 /// the needed Rust type.
 #[derive(Clone, Copy, Debug)]
-pub struct SolidityConvert<P, C> {
+pub struct Convert<P, C> {
 	inner: C,
 	_phantom: PhantomData<P>,
 }
 
-impl<P, C> From<C> for SolidityConvert<P, C> {
+impl<P, C> From<C> for Convert<P, C> {
 	fn from(value: C) -> Self {
 		Self {
 			inner: value,
@@ -314,21 +321,21 @@ impl<P, C> From<C> for SolidityConvert<P, C> {
 	}
 }
 
-impl<P, C> SolidityConvert<P, C> {
+impl<P, C> Convert<P, C> {
 	pub fn converted(self) -> C {
 		self.inner
 	}
 }
 
-impl<P, C> EvmData for SolidityConvert<P, C>
+impl<P, C> Codec for Convert<P, C>
 where
-	P: EvmData + TryInto<C>,
-	C: EvmData + Into<P>,
+	P: Codec + TryInto<C>,
+	C: Codec + Into<P>,
 {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let c = P::read(reader)?
 			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large(C::solidity_type()))?;
+			.map_err(|_| RevertReason::value_is_too_large(C::signature()))?;
 
 		Ok(Self {
 			inner: c,
@@ -336,7 +343,7 @@ where
 		})
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		P::write(writer, value.inner.into())
 	}
 
@@ -344,18 +351,7 @@ where
 		P::has_static_size()
 	}
 
-	fn solidity_type() -> String {
-		P::solidity_type()
-	}
-}
-
-/// Wrapper around values being returned by functions.
-/// Handle special case with tuple encoding.
-pub fn encode_as_function_return_value<T: EvmData>(value: T) -> Vec<u8> {
-	let output = EvmDataWriter::new().write(value).build();
-	if T::is_explicit_tuple() && !T::has_static_size() {
-		output[32..].to_vec()
-	} else {
-		output
+	fn signature() -> String {
+		P::signature()
 	}
 }

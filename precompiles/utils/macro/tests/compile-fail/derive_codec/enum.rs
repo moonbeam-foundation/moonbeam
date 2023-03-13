@@ -16,7 +16,7 @@
 
 use precompile_utils::prelude::*;
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 enum Test {
 	One,
 	Two(u8),

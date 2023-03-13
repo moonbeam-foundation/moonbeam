@@ -70,7 +70,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_NOTED,
-			EvmDataWriter::new().write::<H256>(hash.into()).build(),
+			Writer::new().write::<H256>(hash.into()).build(),
 		);
 		handle.record_log_costs(&[&event])?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -92,7 +92,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_UNNOTED,
-			EvmDataWriter::new().write::<H256>(hash).build(),
+			Writer::new().write::<H256>(hash).build(),
 		);
 		handle.record_log_costs(&[&event])?;
 

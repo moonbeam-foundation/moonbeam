@@ -56,3 +56,4 @@ std = [
 	"sp-std/std",
 ]
 testing = [ "derive_more", "hex-literal", "scale-info", "serde", "similar-asserts", "std" ]
+codec-xcm = []

@@ -65,8 +65,8 @@ pub fn main(input: TokenStream) -> TokenStream {
 	let evm_data_trait_path = {
 		let mut segments = Punctuated::<PathSegment, _>::new();
 		segments.push(Ident::new("precompile_utils", Span::call_site()).into());
-		segments.push(Ident::new("data", Span::call_site()).into());
-		segments.push(Ident::new("EvmData", Span::call_site()).into());
+		segments.push(Ident::new("solidity", Span::call_site()).into());
+		segments.push(Ident::new("Codec", Span::call_site()).into());
 		Path {
 			leading_colon: Some(Default::default()),
 			segments,
@@ -99,10 +99,10 @@ pub fn main(input: TokenStream) -> TokenStream {
 
 	let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 	quote! {
-		impl #impl_generics ::precompile_utils::data::EvmData for #ident #ty_generics
+		impl #impl_generics ::precompile_utils::solidity::codec::Codec for #ident #ty_generics
 		#where_clause {
 			fn read(
-				reader: &mut ::precompile_utils::data::EvmDataReader
+				reader: &mut ::precompile_utils::solidity::codec::Reader
 			) -> ::precompile_utils::revert::MayRevert<Self> {
 				use ::precompile_utils::revert::BacktraceExt as _;
 				let (#(#fields_ident,)*): (#(#fields_ty,)*) = reader
@@ -113,16 +113,16 @@ pub fn main(input: TokenStream) -> TokenStream {
 				})
 			}
 
-			fn write(writer: &mut ::precompile_utils::data::EvmDataWriter, value: Self) {
-				::precompile_utils::data::EvmData::write(writer, (#(value.#fields_ident,)*));
+			fn write(writer: &mut ::precompile_utils::solidity::codec::Writer, value: Self) {
+				::precompile_utils::solidity::codec::Codec::write(writer, (#(value.#fields_ident,)*));
 			}
 
 			fn has_static_size() -> bool {
 				<(#(#fields_ty,)*)>::has_static_size()
 			}
 
-			fn solidity_type() -> String {
-				<(#(#fields_ty,)*)>::solidity_type()
+			fn signature() -> String {
+				<(#(#fields_ty,)*)>::signature()
 			}
 		}
 	}

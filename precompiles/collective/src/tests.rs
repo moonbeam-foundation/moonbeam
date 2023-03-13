@@ -19,7 +19,7 @@ use crate::{
 	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
 use frame_support::{assert_ok, dispatch::Encode};
-use precompile_utils::{data::Address, testing::*};
+use precompile_utils::{solidity::codec::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
 
@@ -30,7 +30,7 @@ fn precompiles() -> Precompiles<Runtime> {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Collective.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,

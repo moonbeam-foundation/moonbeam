@@ -23,11 +23,8 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
+use precompile_utils::precompile_set::SelectorFilter;
 use precompile_utils::prelude::*;
-use precompile_utils::{
-	data::{Address, String},
-	precompile_set::SelectorFilter,
-};
 use sp_core::H160;
 use sp_core::U256;
 use sp_runtime::{

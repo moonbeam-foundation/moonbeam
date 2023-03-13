@@ -325,7 +325,7 @@ fn set_keys_works() {
 
 			// Create input with keys inside a Solidity bytes.
 			let input = PCall::set_keys {
-				keys: EvmDataWriter::new()
+				keys: Writer::new()
 					.write(sp_core::H256::from([2u8; 32]))
 					.write(sp_core::H256::from([4u8; 32]))
 					.build()
@@ -483,7 +483,7 @@ mod keys_of {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["AuthorMappingInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -514,7 +514,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"remove_keys()",
 		"set_keys(bytes)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

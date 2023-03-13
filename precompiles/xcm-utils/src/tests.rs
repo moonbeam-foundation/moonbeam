@@ -59,11 +59,7 @@ fn test_get_account_parent() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address))
-					.build(),
-			);
+			.execute_returns(Writer::new().write(Address(expected_address)).build());
 	});
 }
 
@@ -83,11 +79,7 @@ fn test_get_account_sibling() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address))
-					.build(),
-			);
+			.execute_returns(Writer::new().write(Address(expected_address)).build());
 	});
 }
 
@@ -137,7 +129,7 @@ fn test_executor_clear_origin() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100001001)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().build());
+			.execute_returns(Writer::new().build());
 	})
 }
 
@@ -164,7 +156,7 @@ fn test_executor_send() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100002001)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().build());
+			.execute_returns(Writer::new().build());
 
 		let sent_messages = sent_xcm();
 		let (_, sent_message) = sent_messages.first().unwrap();
@@ -208,7 +200,7 @@ fn test_executor_transact() {
 				.prepare_test(CryptoAlith, Precompile1, input)
 				.expect_cost(1100001001)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().build());
+				.execute_returns(Writer::new().build());
 
 			// Transact executed
 			let baltathar_account: AccountId = CryptoBaltathar.into();
@@ -230,7 +222,7 @@ fn test_send_clear_origin() {
 			.prepare_test(CryptoAlith, Precompile1, input)
 			.expect_cost(100000000)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().build());
+			.execute_returns(Writer::new().build());
 
 		let sent_messages = sent_xcm();
 		let (_, sent_message) = sent_messages.first().unwrap();
@@ -267,7 +259,7 @@ fn execute_fails_if_called_by_smart_contract() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["XcmUtils.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,

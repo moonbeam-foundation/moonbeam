@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::*;
 use crate::*;
-use precompile_utils::{testing::*, EvmDataWriter};
+use precompile_utils::testing::*;
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -43,7 +43,7 @@ fn precompiles() -> Precompiles<Runtime> {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Preimage.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -87,7 +87,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_NOTED,
-						EvmDataWriter::new().write::<H256>(expected_hash).build(),
+						Writer::new().write::<H256>(expected_hash).build(),
 					),
 				}
 				.into(),
@@ -111,7 +111,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_UNNOTED,
-						EvmDataWriter::new().write::<H256>(expected_hash).build(),
+						Writer::new().write::<H256>(expected_hash).build(),
 					),
 				}
 				.into()

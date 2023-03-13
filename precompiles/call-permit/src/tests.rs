@@ -147,11 +147,7 @@ fn valid_permit_returns() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(b"TEST"))
-						.build(),
-				);
+				.execute_returns(Writer::new().write(UnboundedBytes::from(b"TEST")).build());
 		})
 }
 
@@ -671,18 +667,14 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(b"TEST"))
-						.build(),
-				);
+				.execute_returns(Writer::new().write(UnboundedBytes::from(b"TEST")).build());
 		})
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["CallPermit.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,

@@ -28,7 +28,7 @@ use frame_support::{
 	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
@@ -162,7 +162,7 @@ where
 	#[precompile::view]
 	fn encode_validate(
 		handle: &mut impl PrecompileHandle,
-		comission: SolidityConvert<U256, u32>,
+		comission: Convert<U256, u32>,
 		blocked: bool,
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -347,7 +347,7 @@ pub fn u256_to_relay_amount(value: U256) -> EvmResult<relay_chain::Balance> {
 		.map_err(|_| revert("amount is too large for provided balance type"))
 }
 
-// A wrapper to be able to implement here the EvmData reader
+// A wrapper to be able to implement here the solidity::Codec reader
 #[derive(Clone, Eq, PartialEq)]
 pub struct RewardDestinationWrapper(RewardDestination<AccountId32>);
 
@@ -363,8 +363,8 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 	}
 }
 
-impl EvmData for RewardDestinationWrapper {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl solidity::Codec for RewardDestinationWrapper {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
 		let reward_destination_bytes: Vec<_> = reward_destination.into();
 		ensure!(
@@ -372,7 +372,7 @@ impl EvmData for RewardDestinationWrapper {
 			RevertReason::custom("Reward destinations cannot be empty")
 		);
 		// For simplicity we use an EvmReader here
-		let mut encoded_reward_destination = EvmDataReader::new(&reward_destination_bytes);
+		let mut encoded_reward_destination = Reader::new(&reward_destination_bytes);
 
 		// We take the first byte
 		let enum_selector = encoded_reward_destination.read_raw_bytes(1)?;
@@ -392,7 +392,7 @@ impl EvmData for RewardDestinationWrapper {
 		}
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
 		let encoded_bytes: UnboundedBytes = match value.0 {
 			RewardDestination::Staked => {
@@ -418,14 +418,14 @@ impl EvmData for RewardDestinationWrapper {
 				encoded.as_slice().into()
 			}
 		};
-		EvmData::write(writer, encoded_bytes);
+		solidity::Codec::write(writer, encoded_bytes);
 	}
 
 	fn has_static_size() -> bool {
 		false
 	}
 
-	fn solidity_type() -> String {
-		UnboundedBytes::solidity_type()
+	fn signature() -> String {
+		UnboundedBytes::signature()
 	}
 }

@@ -18,7 +18,7 @@ use crate::{
 	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
 	SELECTOR_LOG_VOTE_REMOVED_OTHER,
 };
-use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 
 use frame_support::{
 	assert_ok,
@@ -49,7 +49,7 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["ConvictionVoting.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -124,7 +124,7 @@ fn vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.write::<bool>(true) // vote
 							.write::<U256>(100_000.into()) // amount
@@ -138,7 +138,7 @@ fn vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.write::<bool>(false) // vote
 							.write::<U256>(99_000.into()) // amount
@@ -176,7 +176,7 @@ fn remove_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_REMOVED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.build(),
 					),
@@ -211,7 +211,7 @@ fn remove_other_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_REMOVED_OTHER,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.write::<Address>(H160::from(Alice).into()) // target
 							.write::<u16>(0u16) // track id
@@ -246,7 +246,7 @@ fn delegate_undelegate_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_DELEGATED,
 						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // from
 							.write::<Address>(H160::from(Bob).into()) // to
 							.write::<U256>(100_000.into()) // amount
@@ -268,7 +268,7 @@ fn delegate_undelegate_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_UNDELEGATED,
 						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.build(),
 					),
@@ -309,7 +309,7 @@ fn unlock_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_UNLOCKED,
 						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
+						Writer::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
 							.build(),
 					),

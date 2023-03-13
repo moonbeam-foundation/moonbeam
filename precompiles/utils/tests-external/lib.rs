@@ -24,7 +24,9 @@ mod tests {
 	use frame_support::traits::Everything;
 	use frame_support::{construct_runtime, parameter_types, weights::Weight};
 	use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-	use precompile_utils::{precompile_set::*, revert, testing::*, EvmDataWriter, EvmResult};
+	use precompile_utils::{
+		precompile_set::*, revert, solidity::codec::Writer, testing::*, EvmResult,
+	};
 	use sp_core::H160;
 	use sp_core::{H256, U256};
 	use sp_runtime::{
@@ -113,7 +115,7 @@ mod tests {
 				handle.code_address(),
 				None,
 				// calls subcallLayer2()
-				EvmDataWriter::new_with_selector(0x0b93381bu32).build(),
+				Writer::new_with_selector(0x0b93381bu32).build(),
 				None,
 				false,
 				&Context {

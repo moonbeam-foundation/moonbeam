@@ -126,7 +126,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	IsLocal: Get<bool>,
@@ -227,7 +227,7 @@ where
 			SELECTOR_LOG_APPROVAL,
 			handle.context().caller,
 			spender,
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -312,7 +312,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			handle.context().caller,
 			to,
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -371,7 +371,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			to,
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -521,7 +521,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			H160::default(),
 			to,
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -566,7 +566,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			H160::default(),
-			EvmDataWriter::new().write(value).build(),
+			Writer::new().write(value).build(),
 		)
 		.record(handle)?;
 

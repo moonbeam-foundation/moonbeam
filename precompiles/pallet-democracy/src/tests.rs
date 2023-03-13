@@ -502,7 +502,7 @@ fn propose_works() {
 							Precompile1,
 							SELECTOR_LOG_PROPOSED,
 							H256::zero(), // proposal index,
-							EvmDataWriter::new().write::<U256>(100.into()).build(),
+							Writer::new().write::<U256>(100.into()).build(),
 						)
 					}
 					.into(),
@@ -573,7 +573,7 @@ fn second_works() {
 							Precompile1,
 							SELECTOR_LOG_SECONDED,
 							H256::zero(), // proposal index,
-							EvmDataWriter::new()
+							Writer::new()
 								.write::<Address>(H160::from(Alice).into())
 								.build(),
 						)
@@ -641,7 +641,7 @@ fn standard_vote_aye_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							EvmDataWriter::new()
+							Writer::new()
 								.write::<Address>(H160::from(Alice).into())
 								.write::<bool>(true)
 								.write::<U256>(100000.into())
@@ -736,7 +736,7 @@ fn standard_vote_nay_conviction_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							EvmDataWriter::new()
+							Writer::new()
 								.write::<Address>(H160::from(Alice).into())
 								.write::<bool>(false)
 								.write::<U256>(100000.into())
@@ -924,7 +924,7 @@ fn delegate_works() {
 							Precompile1,
 							SELECTOR_LOG_DELEGATED,
 							H160::from(Alice),
-							EvmDataWriter::new()
+							Writer::new()
 								.write::<Address>(H160::from(Bob).into())
 								.build(),
 						),
@@ -1444,7 +1444,7 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["DemocracyInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -1478,7 +1478,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"note_preimage(bytes)",
 		"note_imminent_preimage(bytes)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

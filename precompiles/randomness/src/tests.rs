@@ -18,7 +18,11 @@
 use crate::{mock::*, prepare_and_finish_fulfillment_gas_cost, subcall_overhead_gas_costs};
 use fp_evm::{ExitReason, ExitRevert, ExitSucceed, FeeCalculator};
 use pallet_randomness::{Event as RandomnessEvent, RandomnessResults, RequestType};
-use precompile_utils::{assert_event_emitted, testing::*, EvmDataWriter};
+use precompile_utils::{
+	assert_event_emitted,
+	solidity::codec::{Address, Writer},
+	testing::*,
+};
 use sp_core::{H160, H256, U256};
 
 #[test]
@@ -72,7 +76,7 @@ fn modifiers() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Randomness.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -146,7 +150,7 @@ fn get_pending_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_babe_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -179,7 +183,7 @@ fn get_ready_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 10u64,
 						salt: H256::default(),
@@ -215,7 +219,7 @@ fn get_expired_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 10u64,
 						salt: H256::default(),
@@ -251,7 +255,7 @@ fn get_request_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -272,10 +276,10 @@ fn get_request_works() {
 					},
 				)
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(U256::zero())
-						.write(precompile_utils::data::Address(H160::from(Bob)))
-						.write(precompile_utils::data::Address(H160::from(Alice)))
+						.write(Address(H160::from(Bob)))
+						.write(Address(H160::from(Alice)))
 						.write(U256::one())
 						.write(U256::from(100))
 						.write(H256::default())
@@ -304,7 +308,7 @@ fn request_babe_randomness_works() {
 					Alice,
 					Precompile1,
 					PCall::request_babe_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -340,7 +344,7 @@ fn request_local_randomness_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -381,7 +385,7 @@ fn fulfill_request_reverts_if_not_enough_gas() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: request_gas_limit,
 						salt: H256::default(),
@@ -444,7 +448,7 @@ fn fulfill_request_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: request_gas_limit,
 						salt: H256::default(),
@@ -498,7 +502,7 @@ fn fulfill_request_works() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+						&Writer::new_with_selector(0x1fe543e3_u32)
 							.write(0u64) // request id
 							.write(random_words.clone())
 							.build()
@@ -548,7 +552,7 @@ fn fulfill_request_works_with_higher_gas() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: request_gas_limit,
 						salt: H256::default(),
@@ -604,7 +608,7 @@ fn fulfill_request_works_with_higher_gas() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+						&Writer::new_with_selector(0x1fe543e3_u32)
 							.write(0u64) // request id
 							.write(random_words.clone())
 							.build()
@@ -654,7 +658,7 @@ fn fulfill_request_works_with_subcall_revert() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: request_gas_limit,
 						salt: H256::default(),
@@ -710,7 +714,7 @@ fn fulfill_request_works_with_subcall_revert() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&EvmDataWriter::new_with_selector(0x1fe543e3_u32)
+						&Writer::new_with_selector(0x1fe543e3_u32)
 							.write(0u64) // request id
 							.write(random_words.clone())
 							.build()
@@ -747,7 +751,7 @@ fn increase_request_fee_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -785,7 +789,7 @@ fn purge_expired_request_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: precompile_utils::data::Address(H160::from(Bob)),
+						refund_address: Address(H160::from(Bob)),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),

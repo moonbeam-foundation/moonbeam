@@ -203,34 +203,34 @@ where
         self,
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
-        use ::precompile_utils::data::EvmDataWriter;
+        use ::precompile_utils::solidity::codec::Writer;
         use ::fp_evm::{PrecompileOutput, ExitSucceed};
         let output = match self {
             Self::batch_all { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
+                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_all(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                output?.encode_for_function()
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
+                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                output?.encode_for_function()
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
+                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some_until_failure(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                output?.encode_for_function()
             }
             Self::fallback {} => {
-                use ::precompile_utils::EvmDataWriter;
+                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<Runtime>>::fallback(handle);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                output?.encode_for_function()
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
@@ -270,10 +270,10 @@ where
         &[]
     }
     pub fn encode(self) -> ::sp_std::vec::Vec<u8> {
-        use ::precompile_utils::EvmDataWriter;
+        use ::precompile_utils::solidity::codec::Writer;
         match self {
             Self::batch_all { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(2531431096u32)
+                Writer::new_with_selector(2531431096u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -281,7 +281,7 @@ where
                     .build()
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(2044677020u32)
+                Writer::new_with_selector(2044677020u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -289,7 +289,7 @@ where
                     .build()
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(3473183175u32)
+                Writer::new_with_selector(3473183175u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -329,7 +329,7 @@ where
 }
 #[allow(non_snake_case)]
 pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
-    use ::precompile_utils::data::EvmData;
+    use ::precompile_utils::solidity::Codec;
     match (
         &"(address[],uint256[],bytes[],uint64[])",
         &<(
@@ -337,7 +337,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -366,7 +366,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -395,7 +395,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -421,7 +421,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             }
         }
     };
-    match (&"()", &<() as EvmData>::solidity_type()) {
+    match (&"()", &<() as Codec>::signature()) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
                 let kind = ::core::panicking::AssertKind::Eq;

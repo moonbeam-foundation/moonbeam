@@ -18,7 +18,7 @@ pub mod account;
 pub mod execution;
 pub mod handle;
 pub mod modifier;
-pub mod solidity;
+pub mod sol;
 
 pub use {account::*, execution::*, handle::*, modifier::*};
 

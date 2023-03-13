@@ -1070,7 +1070,7 @@ fn reward_info_via_precompile() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(expected_total)
 						.write(expected_claimed)
 						.build(),
@@ -1288,7 +1288,7 @@ fn asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1340,7 +1340,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1361,7 +1361,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1413,7 +1413,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(1000 * UNIT)).build(),
+					Writer::new().write(U256::from(1000 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1440,7 +1440,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
-					EvmDataWriter::new().write(U256::from(500 * UNIT)).build(),
+					Writer::new().write(U256::from(500 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1743,7 +1743,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1807,7 +1807,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -1828,7 +1828,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
+					Writer::new().write(U256::from(400 * UNIT)).build(),
 				))
 				.execute_returns_encoded(true);
 
@@ -2773,7 +2773,7 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					AuthorMappingPCall::set_keys {
-						keys: EvmDataWriter::new()
+						keys: Writer::new()
 							.write(sp_core::H256::from([1u8; 32]))
 							.write(sp_core::H256::from([3u8; 32]))
 							.build()
@@ -2798,7 +2798,7 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					AuthorMappingPCall::set_keys {
-						keys: EvmDataWriter::new()
+						keys: Writer::new()
 							.write(sp_core::H256::from([2u8; 32]))
 							.write(sp_core::H256::from([4u8; 32]))
 							.build()
@@ -2839,7 +2839,7 @@ fn test_xcm_utils_ml_tp_account() {
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(
-				EvmDataWriter::new()
+				Writer::new()
 					.write(Address(expected_address_parent))
 					.build(),
 			);
@@ -2863,7 +2863,7 @@ fn test_xcm_utils_ml_tp_account() {
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(
-				EvmDataWriter::new()
+				Writer::new()
 					.write(Address(expected_address_parachain))
 					.build(),
 			);
@@ -2894,7 +2894,7 @@ fn test_xcm_utils_ml_tp_account() {
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(
-				EvmDataWriter::new()
+				Writer::new()
 					.write(Address(expected_address_alice_in_parachain_2000))
 					.build(),
 			);
@@ -2918,7 +2918,7 @@ fn test_xcm_utils_weight_message() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_weight).build());
+			.execute_returns(Writer::new().write(expected_weight).build());
 	});
 }
 
@@ -2937,7 +2937,7 @@ fn test_xcm_utils_get_units_per_second() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_units).build());
+			.execute_returns(Writer::new().write(expected_units).build());
 	});
 }
 

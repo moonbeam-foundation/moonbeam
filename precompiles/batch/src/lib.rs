@@ -49,7 +49,7 @@ pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_SUCCEEDED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		Writer::new().write(U256::from(index)).build(),
 	)
 }
 
@@ -57,7 +57,7 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_FAILED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		Writer::new().write(U256::from(index)).build(),
 	)
 }
 

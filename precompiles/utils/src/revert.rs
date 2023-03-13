@@ -17,13 +17,15 @@
 //! Utilities to work with revert messages with support for backtraces and
 //! consistent formatting.
 
-use crate::{data::UnboundedBytes, EvmDataWriter};
+use crate::solidity::codec::{bytes::UnboundedBytes, Codec};
 use alloc::string::{String, ToString};
 use fp_evm::{ExitRevert, PrecompileFailure};
 use sp_std::vec::Vec;
 
 /// Represent the result of a computation that can revert.
 pub type MayRevert<T = ()> = Result<T, Revert>;
+
+pub const ERROR_SELECTOR: u32 = 0x08c379a0;
 
 /// Generic error to build abi-encoded revert output.
 /// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
@@ -361,9 +363,7 @@ impl From<Revert> for PrecompileFailure {
 	fn from(err: Revert) -> Self {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
-			output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
-				.write::<UnboundedBytes>(err.to_string().into())
-				.build(),
+			output: UnboundedBytes::from(err.to_string()).encode_with_selector(ERROR_SELECTOR),
 		}
 	}
 }

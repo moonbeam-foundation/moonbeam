@@ -226,7 +226,7 @@ fn reward_info_works() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
-					EvmDataWriter::new()
+					Writer::new()
 						.write(U256::from(50u64))
 						.write(U256::from(10u64))
 						.build(),
@@ -300,7 +300,7 @@ fn test_bound_checks_for_address_parsing() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["CrowdloanInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
+		for solidity_fn in sol::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
@@ -329,7 +329,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"reward_info(address)",
 		"update_reward_address(address)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = sol::compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
