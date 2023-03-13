@@ -1,0 +1,75 @@
+{
+   "label": "MasterConfig 🌔",
+   "defaultTestTimeout": 30000,
+   "environments": [
+      {
+         "name": "smoke_moonriver",
+         "testFileDir": [
+            "/suites/smoke"
+         ],
+         "foundation": {
+            "type": "read_only"
+         },
+         "connections": [
+            {
+               "name": "ethers",
+               "type": "ethers",
+               "endpoints": [
+                  "wss://wss.moonriver.moonbeam.network"
+               ]
+            },
+            {
+               "name":"PolkadotJs",
+               "type":"moon",
+               "endpoints": [ "wss://wss.moonriver.moonbeam.network"]
+            }
+         ]
+      },
+      {
+         "name": "smoke_moonbeam",
+         "testFileDir": [
+            "/suites/smoke"
+         ],
+         "foundation": {
+            "type": "read_only"
+         },
+         "connections": [
+            {
+               "name": "ethers",
+               "type": "ethers",
+               "endpoints": [
+                  "wss://wss.api.moonbeam.network"
+               ]
+            },
+            {
+               "name":"PolkadotJs",
+               "type":"moon",
+               "endpoints": [ "wss://wss.api.moonbeam.network"]
+            }
+         ]
+      },
+      {
+         "name": "smoke_alphanet",
+         "testFileDir": [
+            "/suites/smoke"
+         ],
+         "foundation": {
+            "type": "read_only"
+         },
+         "connections": [
+            {
+               "name": "ethers",
+               "type": "ethers",
+               "endpoints": [
+                  "wss://wss.api.moonbase.moonbeam.network"
+               ]
+            },
+            {
+               "name":"PolkadotJs",
+               "type":"moon",
+               "endpoints": [ "wss://wss.api.moonbase.moonbeam.network"]
+            }
+         ]
+      }
+   ]
+}
