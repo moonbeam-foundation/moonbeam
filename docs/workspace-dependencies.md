@@ -17,13 +17,11 @@ should be added to any dependency that defaults to std if it is used in at least
 crate.
 
 ## How to add a dependency ?
-
 1. Add `my-dependency = { workspace = true }` in your crate.
 2. Look at the root-level `Cargo.toml` to see if the dependency is listed in it :
-
-- If it is not, add it in the proper section (Substrate/Frontier/etc) and subsection
-  (wasm/client). Don't forget to add `default-features = false` if in wasm if necessary.
-- If it is, make sure it respects the std rule. If your crate is a runtime crate and the
-  dependency was previously only used outside of the runtime, move the dependency in the "wasm"
-  section and add `default-features = false`. It may require adding `features = ["std"]` in
-  non-runtime crates `Cargo.toml`, however it is not necessary most of the time.
+  - If it is not, add it in the proper section (Substrate/Frontier/etc) and subsection
+    (wasm/client). Don't forget to add `default-features = false` if in wasm if necessary.
+  - If it is, make sure it respects the std rule. If your crate is a runtime crate and the
+    dependency was previously only used outside of the runtime, move the dependency in the "wasm"
+    section and add `default-features = false`. It may require adding `features = ["std"]` in
+    non-runtime crates `Cargo.toml`, however it is not necessary most of the time.
