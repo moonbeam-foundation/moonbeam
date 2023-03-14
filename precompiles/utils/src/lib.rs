@@ -26,7 +26,6 @@ extern crate self as precompile_utils;
 pub mod costs;
 pub mod handle;
 pub mod logs;
-pub mod modifier;
 pub mod precompile_set;
 pub mod substrate;
 
@@ -56,16 +55,18 @@ pub mod prelude {
 		crate::{
 			handle::{with_precompile_handle, PrecompileHandleExt},
 			logs::{log0, log1, log2, log3, log4, LogExt},
-			modifier::{check_function_modifier, FunctionModifier},
 			// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
 			// with parity_scale_codec,
-			solidity,
-			solidity::codec::{
-				Address, BoundedBytes, BoundedString, BoundedVec, Convert, Reader, UnboundedBytes,
-				UnboundedString, Writer,
-			},
-			solidity::revert::{
-				revert, BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason,
+			solidity::{
+				self,
+				codec::{
+					Address, BoundedBytes, BoundedString, BoundedVec, Convert, Reader,
+					UnboundedBytes, UnboundedString, Writer,
+				},
+				revert::{
+					revert, BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt,
+					RevertReason,
+				},
 			},
 			substrate::{RuntimeHelper, TryDispatchError},
 			EvmResult,

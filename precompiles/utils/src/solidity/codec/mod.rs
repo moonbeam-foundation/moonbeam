@@ -20,7 +20,7 @@
 pub mod bytes;
 pub mod native;
 
-#[cfg(feature = "codec-xcm")]
+#[cfg(any(feature = "codec-xcm", test))]
 pub mod xcm;
 
 use crate::solidity::revert::{MayRevert, RevertReason};

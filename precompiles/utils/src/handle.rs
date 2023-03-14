@@ -16,9 +16,11 @@
 
 use {
 	crate::{
-		modifier::FunctionModifier,
-		solidity::codec::Reader,
-		solidity::revert::{MayRevert, RevertReason},
+		solidity::{
+			codec::Reader,
+			modifier::FunctionModifier,
+			revert::{MayRevert, RevertReason},
+		},
 		EvmResult,
 	},
 	fp_evm::{Log, PrecompileHandle},
@@ -72,7 +74,11 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 	/// Check that a function call is compatible with the context it is
 	/// called into.
 	fn check_function_modifier(&self, modifier: FunctionModifier) -> MayRevert {
-		crate::modifier::check_function_modifier(self.context(), self.is_static(), modifier)
+		crate::solidity::modifier::check_function_modifier(
+			self.context(),
+			self.is_static(),
+			modifier,
+		)
 	}
 
 	#[must_use]

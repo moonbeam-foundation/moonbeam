@@ -17,6 +17,7 @@
 //! Provides utilities for compatibility with Solidity tooling.
 
 pub mod codec;
+pub mod modifier;
 pub mod revert;
 
 pub use codec::Codec;

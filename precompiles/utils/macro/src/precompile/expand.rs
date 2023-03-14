@@ -90,7 +90,7 @@ impl Precompile {
 			let modifier = syn::Ident::new(modifier, span);
 
 			quote!(
-				use ::precompile_utils::modifier::FunctionModifier;
+				use ::precompile_utils::solidity::modifier::FunctionModifier;
 				use ::precompile_utils::handle::PrecompileHandleExt;
 				handle.check_function_modifier(FunctionModifier::#modifier)?;
 			)
