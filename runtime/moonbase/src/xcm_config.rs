@@ -359,6 +359,11 @@ pub type XcmRouter = (
 /// erc20 assets in an unsupported way.
 pub type XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper<Runtime, Everything>;
 
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;

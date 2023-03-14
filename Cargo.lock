@@ -7382,6 +7382,7 @@ dependencies = [
  "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.38)",
  "fp-rpc",
  "fp-self-contained",
+ "frame-benchmarking",
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
  "frame-system",
  "hex",
