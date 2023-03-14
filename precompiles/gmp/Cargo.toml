@@ -30,6 +30,9 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 # Polkadot / XCM
 pallet-xcm = { workspace = true }
 xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
+xcm-primitives = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -57,4 +60,5 @@ std = [
 	"sp-core/std",
 	"sp-io/std",
 	"sp-std/std",
+	"xcm-primitives/std",
 ]

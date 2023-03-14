@@ -225,6 +225,11 @@ type MoonbasePrecompilesAt<R> = (
 		CollectivePrecompile<R, OpenTechCommitteeInstance>,
 		(CallableByContract, CallableByPrecompile),
 	>,
+	PrecompileAt<
+		AddressU64<2069>,
+		GmpPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 );
 
 /// The PrecompileSet installed in the Moonbase runtime.

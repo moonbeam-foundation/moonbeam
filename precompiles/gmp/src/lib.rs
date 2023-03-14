@@ -60,6 +60,11 @@ where
 		handle: &mut impl PrecompileHandle,
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
+		log::warn!(
+			target: "gmp-precompile",
+			"wormhole_transfer_erc20()...",
+		);
+
 		// TODO: need to pull this from storage or config somewhere
 		//
 		// Moonbase core bridge: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901

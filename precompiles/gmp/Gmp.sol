@@ -18,4 +18,9 @@ interface Gmp {
     //
     //       This design should allow users to interact with this precompile with no changes to the
     //       underlying GMP protocols by simply specifying the correct precompile as the target.
+
+    /// Receive a wormhole VAA and process it
+    ///
+    /// @custom:selector f53774ab
+    function wormholeTransferERC20(bytes memory vaa) external;
 }
