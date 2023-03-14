@@ -20,7 +20,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 		use fp_evm::{CallInfo, CallOrCreateInfo, Context, Transfer};
 		use frame_support::dispatch::CallableCallFor;
 		use pallet_evm::{Runner, RunnerError};
-		use precompile_utils::prelude::*;
+		use precompile_utils::{prelude::*, evm::handle::with_precompile_handle};
 		use sp_core::U256;
 		use sp_runtime::DispatchError;
 		use sp_std::vec::Vec;

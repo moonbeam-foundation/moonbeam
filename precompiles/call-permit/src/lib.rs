@@ -25,7 +25,7 @@ use frame_support::{
 	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
-use precompile_utils::{costs::call_cost, prelude::*};
+use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_io::hashing::keccak_256;
 use sp_std::vec::Vec;

@@ -91,7 +91,7 @@ impl Precompile {
 
 			quote!(
 				use ::precompile_utils::solidity::modifier::FunctionModifier;
-				use ::precompile_utils::handle::PrecompileHandleExt;
+				use ::precompile_utils::evm::handle::PrecompileHandleExt;
 				handle.check_function_modifier(FunctionModifier::#modifier)?;
 			)
 		});

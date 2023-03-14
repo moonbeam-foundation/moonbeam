@@ -29,7 +29,7 @@ use frame_support::{
 };
 use pallet_evm::Call as EvmCall;
 use precompile_utils::solidity::revert::revert_as_bytes;
-use precompile_utils::{costs::call_cost, prelude::*, testing::*};
+use precompile_utils::{evm::costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 use sp_runtime::{DispatchErrorWithPostInfo, ModuleError};
 

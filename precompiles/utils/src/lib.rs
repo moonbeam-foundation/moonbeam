@@ -23,8 +23,7 @@ extern crate alloc;
 // `precompile_utils` being in the list of imported crates.
 extern crate self as precompile_utils;
 
-pub mod costs;
-pub mod handle;
+pub mod evm;
 pub mod logs;
 pub mod precompile_set;
 pub mod substrate;
@@ -53,7 +52,7 @@ pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 pub mod prelude {
 	pub use {
 		crate::{
-			handle::{with_precompile_handle, PrecompileHandleExt},
+			evm::handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
 			// with parity_scale_codec,
