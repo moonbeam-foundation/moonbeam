@@ -28,7 +28,7 @@ use frame_support::{
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
-use sp_std::{marker::PhantomData, str::FromStr};
+use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
 use types::*;
 
 #[cfg(test)]
@@ -61,11 +61,15 @@ where
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
 		// TODO: need to pull this from storage or config somewhere
-		let wormhole = H160::from_str("FIXME")
+		//
+		// Moonbase core bridge: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
+		// Moonbase token bridge: 0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96
+		let wormhole = H160::from_str("0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901")
 			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
 
-		// TODO: need our own address
-		let this_contract = H160::from_str("").expect("fixme"); // TODO: need our own precompile address here
+		// TODO: need our own address (preferably without looking at storage)
+		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
+			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
 
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
@@ -76,8 +80,13 @@ where
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
-		// TODO: construct calldata suitable for wormhole contract
-		let calldata = wormhole_vaa.into();
+		let mut wormhole_vaa_bytes: Vec<u8> = wormhole_vaa.into();
+		let mut selector = keccak256!("completeTransferWithPayload(bytes)");
+
+		let mut calldata = Vec::new();
+		calldata.reserve(wormhole_vaa_bytes.len().saturating_add(selector.len()));
+		calldata.copy_from_slice(&selector);
+		calldata.append(&mut wormhole_vaa_bytes);
 
 		let (reason, output) = handle.call(
 			wormhole,
