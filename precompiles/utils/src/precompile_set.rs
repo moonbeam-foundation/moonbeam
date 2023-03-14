@@ -18,7 +18,10 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::{revert, solidity::codec::String, substrate::RuntimeHelper};
+use crate::{
+	solidity::{codec::String, revert::revert},
+	substrate::RuntimeHelper,
+};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -359,7 +362,7 @@ impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
 		if !self.allow_subcalls {
 			return (
 				evm::ExitReason::Revert(evm::ExitRevert::Reverted),
-				crate::encoded_revert("subcalls disabled for this precompile"),
+				crate::solidity::revert::revert_as_bytes("subcalls disabled for this precompile"),
 			);
 		}
 

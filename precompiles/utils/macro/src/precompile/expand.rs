@@ -108,7 +108,7 @@ impl Precompile {
 				fn #fn_parse(
 					handle: &mut impl PrecompileHandle
 				) -> ::precompile_utils::EvmResult<Self> {
-					use ::precompile_utils::revert::InjectBacktrace;
+					use ::precompile_utils::solidity::revert::InjectBacktrace;
 
 					#modifier_check
 					#variant_parsing
@@ -357,7 +357,7 @@ impl Precompile {
 			pub fn parse_call_data(
 				handle: &mut impl PrecompileHandle
 			) -> ::precompile_utils::EvmResult<Self> {
-				use ::precompile_utils::revert::RevertReason;
+				use ::precompile_utils::solidity::revert::RevertReason;
 
 				let input = handle.input();
 

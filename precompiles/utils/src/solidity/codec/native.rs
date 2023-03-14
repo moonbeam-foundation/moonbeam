@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use crate::revert::InjectBacktrace;
+use crate::solidity::revert::InjectBacktrace;
 use impl_trait_for_tuples::impl_for_tuples;
 use sp_core::{ConstU32, Get, H160};
 

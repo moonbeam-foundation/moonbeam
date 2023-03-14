@@ -23,7 +23,7 @@ pub mod native;
 #[cfg(feature = "codec-xcm")]
 pub mod xcm;
 
-use crate::revert::{MayRevert, RevertReason};
+use crate::solidity::revert::{MayRevert, RevertReason};
 use core::{marker::PhantomData, ops::Range};
 use sp_core::{H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};

@@ -25,15 +25,21 @@ use sp_std::vec::Vec;
 /// Represent the result of a computation that can revert.
 pub type MayRevert<T = ()> = Result<T, Revert>;
 
-pub const ERROR_SELECTOR: u32 = 0x08c379a0;
+/// Generate an encoded revert from a simple String.
+/// Returns a `PrecompileFailure` that fits in an `EvmResult::Err`.
+pub fn revert(msg: impl Into<String>) -> PrecompileFailure {
+	RevertReason::custom(msg).into()
+}
+
+/// Generate an encoded revert from a simple String.
+/// Returns a `Vec<u8>` in case `PrecompileFailure` is too high level.
+pub fn revert_as_bytes(msg: impl Into<String>) -> Vec<u8> {
+	Revert::new(RevertReason::custom(msg)).to_bytes()
+}
 
 /// Generic error to build abi-encoded revert output.
 /// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
-#[precompile_utils_macro::generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum RevertSelector {
-	Generic = "Error(string)",
-}
+pub const ERROR_SELECTOR: u32 = 0x08c379a0;
 
 #[derive(Clone, PartialEq, Eq)]
 enum BacktracePart {

@@ -25,7 +25,10 @@ mod tests {
 	use frame_support::{construct_runtime, parameter_types, weights::Weight};
 	use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 	use precompile_utils::{
-		precompile_set::*, revert, solidity::codec::Writer, testing::*, EvmResult,
+		precompile_set::*,
+		solidity::{codec::Writer, revert::revert},
+		testing::*,
+		EvmResult,
 	};
 	use sp_core::H160;
 	use sp_core::{H256, U256};

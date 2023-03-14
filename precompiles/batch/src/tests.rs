@@ -28,7 +28,8 @@ use frame_support::{
 	dispatch::{DispatchError, Dispatchable},
 };
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{costs::call_cost, prelude::*, revert::RevertSelector, testing::*};
+use precompile_utils::solidity::revert::revert_as_bytes;
+use precompile_utils::{costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 use sp_runtime::{DispatchErrorWithPostInfo, ModuleError};
 
@@ -447,9 +448,7 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: Writer::new_with_selector(RevertSelector::Generic)
-							.write::<UnboundedBytes>(b"Revert message".into())
-							.build(),
+						output: revert_as_bytes("Revert message"),
 						cost: 17,
 						logs: vec![],
 					}

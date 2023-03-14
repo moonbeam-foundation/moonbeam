@@ -17,8 +17,10 @@
 //! Encoding of XCM types for solidity
 
 use {
-	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
-	crate::solidity::codec::{bytes::*, Codec, Reader, Writer},
+	crate::solidity::{
+		codec::{bytes::*, Codec, Reader, Writer},
+		revert::{BacktraceExt, InjectBacktrace, MayRevert, RevertReason},
+	},
 	alloc::string::String,
 	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,
@@ -259,7 +261,6 @@ impl Codec for Junctions {
 // Cannot used derive macro since it is a foreign struct.
 impl Codec for MultiLocation {
 	fn read(reader: &mut Reader) -> MayRevert<Self> {
-		use crate::revert::BacktraceExt;
 		let (parents, interior) = reader
 			.read()
 			.map_in_tuple_to_field(&["parents", "interior"])?;

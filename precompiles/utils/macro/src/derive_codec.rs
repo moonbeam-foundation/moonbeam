@@ -103,8 +103,8 @@ pub fn main(input: TokenStream) -> TokenStream {
 		#where_clause {
 			fn read(
 				reader: &mut ::precompile_utils::solidity::codec::Reader
-			) -> ::precompile_utils::revert::MayRevert<Self> {
-				use ::precompile_utils::revert::BacktraceExt as _;
+			) -> ::precompile_utils::solidity::revert::MayRevert<Self> {
+				use ::precompile_utils::solidity::revert::BacktraceExt as _;
 				let (#(#fields_ident,)*): (#(#fields_ty,)*) = reader
 					.read()
 					.map_in_tuple_to_field(&[#(#fields_name_lit),*])?;

@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::revert::RevertReason;
-
 use {
-	crate::{modifier::FunctionModifier, revert::MayRevert, solidity::codec::Reader, EvmResult},
+	crate::{
+		modifier::FunctionModifier,
+		solidity::codec::Reader,
+		solidity::revert::{MayRevert, RevertReason},
+		EvmResult,
+	},
 	fp_evm::{Log, PrecompileHandle},
 };
 

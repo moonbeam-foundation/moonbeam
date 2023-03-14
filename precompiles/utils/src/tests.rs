@@ -17,10 +17,12 @@
 use {
 	crate::{
 		prelude::*,
-		revert::Backtrace,
-		solidity::codec::{
-			xcm::{network_id_from_bytes, network_id_to_bytes},
-			Codec,
+		solidity::{
+			codec::{
+				xcm::{network_id_from_bytes, network_id_to_bytes},
+				Codec,
+			},
+			revert::Backtrace,
 		},
 	},
 	frame_support::traits::ConstU32,
