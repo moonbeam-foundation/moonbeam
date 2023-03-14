@@ -16348,6 +16348,7 @@ dependencies = [
  "cumulus-primitives-core",
  "ethereum",
  "ethereum-types",
+ "frame-benchmarking",
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.38)",
  "frame-system",
  "hex",
