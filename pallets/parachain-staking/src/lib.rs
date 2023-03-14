@@ -484,18 +484,18 @@ pub mod pallet {
 				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
 
-			// update candidate's last producing round
-			let author = T::BlockAuthor::get();
-			<CandidateLastActive<T>>::insert(&author, round.current);
-
 			// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
-			//   write: Points, AwardedPts
-			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
+			//   write: Points, AwardedPts, CandidateLastActive
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 3));
 			weight
 		}
 		fn on_finalize(_n: T::BlockNumber) {
-			Self::award_points_to_block_author();
+			let author = T::BlockAuthor::get();
+			let now = <Round<T>>::get().current;
+			// update candidate's last producing round
+			<CandidateLastActive<T>>::insert(&author, now);
+			Self::award_points_to_block_author(author, now);
 		}
 	}
 
@@ -1998,9 +1998,7 @@ pub mod pallet {
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
 	impl<T: Config> Pallet<T> {
-		fn award_points_to_block_author() {
-			let author = T::BlockAuthor::get();
-			let now = <Round<T>>::get().current;
+		fn award_points_to_block_author(author: T::AccountId, now: RoundIndex) {
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));

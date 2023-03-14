@@ -33,7 +33,7 @@ use crate::{
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -871,6 +871,8 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 				RuntimeOrigin::root(),
 				10u32
 			));
+
+			// if we don't change block author, by default is always 0
 			set_block_author(1);
 
 			// roll to round 2
@@ -896,7 +898,10 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 				},
 			);
 
-			// check that storage has updated for collator 1 when the block initialized
+			// finalize the first block of round 2
+			ParachainStaking::on_finalize(10);
+
+			// check that storage has updated for collator 1 when the block finalized
 			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
 			// change block author
@@ -938,6 +943,8 @@ fn collator_produces_blocks_successfully() {
 				RuntimeOrigin::root(),
 				10u32
 			));
+
+			// if we don't change block author, by default is always 0
 			set_block_author(1);
 
 			// roll to round 2
@@ -963,6 +970,9 @@ fn collator_produces_blocks_successfully() {
 				},
 			);
 
+			// finalize the first block of round 2
+			ParachainStaking::on_finalize(10);
+
 			// check that storage has updated for collator 1 when the block initialized
 			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
@@ -972,9 +982,12 @@ fn collator_produces_blocks_successfully() {
 			// roll 2 rounds more
 			roll_to(30);
 
-			// check that the collator 1 goes offline if it doesn't produce blocks
-			// within MaxOfflineRounds rounds (in this case 3)
+			// assert correct events
 			assert_events_eq!(
+				Event::ReservedForParachainBond {
+					account: 0,
+					value: 0,
+				},
 				Event::CollatorChosen {
 					round: 4,
 					collator_account: 1,
@@ -993,8 +1006,14 @@ fn collator_produces_blocks_successfully() {
 				},
 			);
 
-			// check the storage for the collator 2 has been removed
+			// finalize the first block of round 4
+			ParachainStaking::on_finalize(30);
+
+			// check the storage for the collator 2 has been updated
 			assert_eq!(ParachainStaking::candidate_last_active(2), Some(4));
+
+			// check that storage for the collator 1 holds the same value
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 		});
 }
 
@@ -9122,7 +9141,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_ref_time(285_890_000), weight);
+			assert_eq!(Weight::from_ref_time(385_890_000), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
@@ -9136,7 +9155,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2_537_230_483;
+			let expected_on_init = 2_637_230_483;
 			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -9155,7 +9174,7 @@ fn test_on_initialize_weights() {
 			// Round and Staked writes, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize
-			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
+			expected_weight += RocksDbWeight::get().reads_writes(3, 3).ref_time();
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
