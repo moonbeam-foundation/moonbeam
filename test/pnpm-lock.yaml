@@ -3,8 +3,8 @@ lockfileVersion: 5.4
 specifiers:
   '@acala-network/chopsticks': ^0.5.10
   '@moonbeam-network/api-augment': ^0.2100.0
-  '@moonsong-labs/moonwall-cli': ^0.2.5
-  '@moonsong-labs/moonwall-util': ^0.2.5
+  '@moonsong-labs/moonwall-cli': ^0.2.6
+  '@moonsong-labs/moonwall-util': ^0.2.6
   '@polkadot/api': ^10.1.2
   '@polkadot/api-augment': ^10.1.2
   '@polkadot/util': ^11.0.2
@@ -22,8 +22,8 @@ specifiers:
 devDependencies:
   '@acala-network/chopsticks': 0.5.10_debug@4.3.4
   '@moonbeam-network/api-augment': 0.2100.0
-  '@moonsong-labs/moonwall-cli': 0.2.5_tnweti7lnqjxcgg3wac6srlxv4
-  '@moonsong-labs/moonwall-util': 0.2.5_tnweti7lnqjxcgg3wac6srlxv4
+  '@moonsong-labs/moonwall-cli': 0.2.6_tnweti7lnqjxcgg3wac6srlxv4
+  '@moonsong-labs/moonwall-util': 0.2.6_tnweti7lnqjxcgg3wac6srlxv4
   '@polkadot/api': 10.1.2
   '@polkadot/api-augment': 10.1.2
   '@polkadot/util': 11.0.2
@@ -791,13 +791,13 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonsong-labs/moonwall-cli/0.2.5_tnweti7lnqjxcgg3wac6srlxv4:
-    resolution: {integrity: sha512-YNWfBufQxvIYQABOt22SkmJfuhw+1j1eW2mFdYfYgBRb5WUDUVr0e+7e6HBeo3poHXO+pdBd3LIKVpOsJ+SAcg==}
+  /@moonsong-labs/moonwall-cli/0.2.6_tnweti7lnqjxcgg3wac6srlxv4:
+    resolution: {integrity: sha512-D9flO5lYyp0LtUH8r4sI8oq4a3KGfgmsjgNOIu28f2q50EPw5BG0BMclqAWHsHfDNWHJkQ4AnR9m/DB8cJSfqQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     hasBin: true
     dependencies:
       '@acala-network/chopsticks': 0.5.10_debug@4.3.4+ts-node@10.9.1
-      '@moonsong-labs/moonwall-util': 0.2.5_tnweti7lnqjxcgg3wac6srlxv4
+      '@moonsong-labs/moonwall-util': 0.2.6_tnweti7lnqjxcgg3wac6srlxv4
       '@polkadot/api': 10.1.2
       '@polkadot/api-augment': 10.1.2
       '@polkadot/api-derive': 10.1.2
@@ -866,8 +866,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@moonsong-labs/moonwall-util/0.2.5_tnweti7lnqjxcgg3wac6srlxv4:
-    resolution: {integrity: sha512-6QgROaA/2pm+qNPvsdfJqoCam68mRhHPtXkDtUYRjSGCESln7Z40qpTW9/Ftn3m8n+18cxUeeYhPmGJG5/5onA==}
+  /@moonsong-labs/moonwall-util/0.2.6_tnweti7lnqjxcgg3wac6srlxv4:
+    resolution: {integrity: sha512-a1are437rzQNDDHaGmGpm6ODmzugwOJuz6B/20CuAsbVuFIEljn2GtXcRvAvr24T+ks0G1PEqDDwUag9+IAdOw==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@acala-network/chopsticks': 0.5.10_debug@4.3.4+ts-node@10.9.1

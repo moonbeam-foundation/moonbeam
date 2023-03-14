@@ -59,7 +59,6 @@ describeSuite({
 
         const ethApi = new ethers.WebSocketProvider("wss://wss.api.moonbeam.network");
         const signer = new Wallet(ALITH_PRIVATE_KEY, ethApi);
-
         const tx = new Transaction();
 
         tx.to = DUMMY_ACCOUNT;

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/cli/config_schema.json",
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 30000,
   "environments": [
@@ -83,7 +84,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
-      "threads": 5,
+      "multiThreads": true,
       "html": false,
       "foundation": {
         "type": "dev",
@@ -91,6 +92,7 @@
           {
             "name": "moonbeam",
             "running": true,
+
             "binPath": "./tmp/moonbeam"
           }
         ]
