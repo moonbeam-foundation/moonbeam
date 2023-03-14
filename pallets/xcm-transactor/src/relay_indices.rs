@@ -1,9 +1,5 @@
-use crate::traits::{AvailableStakeCalls, StakeEncodeCall};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-use xcm_primitives::{
-	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall,
-};
 
 #[derive(Default, Encode, Decode, TypeInfo)]
 pub struct RelayChainIndices {
