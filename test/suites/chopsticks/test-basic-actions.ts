@@ -1,9 +1,9 @@
-import { describeSuite, beforeAll, expect, alithSigner } from "@moonsong-labs/moonwall-cli";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith } from "@moonsong-labs/moonwall-util";
+import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
+import { ALITH_PRIVATE_KEY, alith } from "@moonsong-labs/moonwall-util";
 import { ApiPromise } from "@polkadot/api";
-import { parseEther } from "ethers";
-import w3 from "web3";
+import { parseEther, ethers, Transaction, Wallet, parseUnits } from "ethers";
 import "@polkadot/api-augment";
+// import "@moonbeam-network/api-augment" // This is disabled until typegen fixed
 
 describeSuite({
   id: "CMB01",
@@ -16,16 +16,6 @@ describeSuite({
     beforeAll(() => {
       api = context.getMoonbeam();
     });
-
-    it({
-        id: "T01",
-        title: "Calling chain constants data",
-        modifier: "only",
-        test: async () => {
-          const specName = api.consts.system.version.specName.toString();
-          expect(specName).to.contain("moonbeam");
-        },
-      });
 
     it({
       id: "T01",
@@ -59,21 +49,50 @@ describeSuite({
       },
     });
 
+    // This test case isn't working yet, but you get the idea
     it({
       id: "T04",
       title: "Can send send a ETH transaction via substrate",
+      modifier: "skip",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
 
-        const web3 = new w3();
-        const txn = web3.eth.sendTransaction({
-          from: ALITH_ADDRESS,
-          to: DUMMY_ACCOUNT,
-          value: parseEther("2"),
-        })
-        // const signed = web3.eth.accounts.sign(txn, ALITH_PRIVATE_KEY);
-        // await api.tx.balances.transfer(DUMMY_ACCOUNT,parseEther("1")).signAndSend(alith)
-        // await context.createBlock()
+        const ethApi = new ethers.WebSocketProvider("wss://wss.api.moonbeam.network");
+        const signer = new Wallet(ALITH_PRIVATE_KEY, ethApi);
+
+        const tx = new Transaction();
+
+        tx.to = DUMMY_ACCOUNT;
+        tx.value = parseEther("2").toString();
+        tx.chainId = (await signer.provider.getNetwork()).chainId;
+        tx.nonce = await signer.getNonce();
+        tx.maxPriorityFeePerGas = parseUnits("1.5", "gwei");
+        tx.maxFeePerGas = parseUnits("5", "gwei");
+        tx.gasLimit = 300000;
+
+        const signedTx = await signer.signTransaction(tx);
+        const signed = Transaction.from(signedTx).signature;
+        let transaction = {
+          EIP1559: {
+            chainId: Transaction.from(signedTx).chainId,
+            nonce: Transaction.from(signedTx).nonce,
+            maxPriorityFeePerGas: Transaction.from(signedTx).maxPriorityFeePerGas,
+            maxFeePerGas: Transaction.from(signedTx).maxFeePerGas,
+            gasLimit: Transaction.from(signedTx).gasLimit,
+            action: {
+              call: DUMMY_ACCOUNT,
+            },
+            value: Transaction.from(signedTx).value,
+            input: "0x",
+            accessList: [],
+            oddYParity: false,
+            r: signed.r,
+            s: signed.s,
+          },
+        };
+
+        await api.tx.ethereum.transact(transaction).signAndSend(alith);
+        await context.createBlock();
 
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;

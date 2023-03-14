@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+// import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
 import Debug from "debug";
@@ -18,7 +18,6 @@ describeSuite({
       apiAt = await context
         .getSubstrateApi()
         .at(await context.getSubstrateApi().rpc.chain.getBlockHash(atBlockNumber));
-      // @ts-expect-error
       specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
     });
 

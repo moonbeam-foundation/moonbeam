@@ -5,10 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "smoketest:moonriver": "DEBUG=smoke* pnpm moonwall test smoke_moonriver",
-    "smoketest:moonbeam": "DEBUG=smoke* pnpm moonwall test smoke_moonbeam",
-    "smoketest:alphanet": "DEBUG=smoke* pnpm moonwall test smoke_alphanet",
-    "lint": "",
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "start": "pnpm moonwall"
   },
   "keywords": [],
@@ -17,10 +14,11 @@
   "devDependencies": {
     "@acala-network/chopsticks": "^0.5.10",
     "@moonbeam-network/api-augment": "^0.2100.0",
-    "@moonsong-labs/moonwall-cli": "^0.2.3",
-    "@moonsong-labs/moonwall-util": "^0.2.3",
+    "@moonsong-labs/moonwall-cli": "^0.2.5",
+    "@moonsong-labs/moonwall-util": "^0.2.5",
     "@polkadot/api": "^10.1.2",
     "@polkadot/api-augment": "^10.1.2",
+    "@polkadot/util": "^11.0.2",
     "@types/debug": "^4.1.7",
     "@types/node": "^18.15.1",
     "debug": "^4.3.4",
@@ -28,6 +26,8 @@
     "pnpm": "^7.29.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "web3": "4.0.1-alpha.5"
+    "web3": "4.0.1-alpha.5",
+    "web3-eth": "4.0.1-alpha.5",
+    "web3-providers-ws": "4.0.1-alpha.5"
   }
 }
