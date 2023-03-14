@@ -1,4 +1,4 @@
-// import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
 import Debug from "debug";

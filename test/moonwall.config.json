@@ -70,6 +70,28 @@
                "endpoints": [ "wss://wss.api.moonbase.moonbeam.network"]
             }
          ]
-      }
+      },
+      {
+         "name": "chopsticks_moonbeam",
+         "testFileDir": ["suites/chopsticks/"],
+         "foundation": {
+           "type": "chopsticks",
+           "launchSpec": [
+             {
+               "name": "mb",
+               "type": "parachain",
+               "configPath": "./configs/moonbeam.yml"
+             }
+           ]
+         },
+         "connections": [
+           {
+             "name": "MB",
+             "type": "moon",
+             "endpoints": ["ws://127.0.0.1:8000"]
+           }
+         ]
+       }
+       
    ]
 }
