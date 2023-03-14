@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
-import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
+import { mockAssetBalance, RELAY_V3_SOURCE_LOCATION } from "../../util/assets";
 import { verifyLatestBlockFees } from "../../util/block";
 import {
   PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
@@ -41,7 +41,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setTransactInfo(
-        RELAY_V1_SOURCE_LOCATION,
+        RELAY_V3_SOURCE_LOCATION,
         new BN(0),
         new BN(20000000000),
         new BN(0)
@@ -52,7 +52,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
-        RELAY_V1_SOURCE_LOCATION,
+        RELAY_V3_SOURCE_LOCATION,
         new BN(1000000000000)
       )
     )

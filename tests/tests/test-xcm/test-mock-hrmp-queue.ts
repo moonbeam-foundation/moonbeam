@@ -586,7 +586,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     ) as any;
 
     const destination = {
-      V1: {
+      V3: {
         parents: 1,
         interior: { X1: { Parachain: suspendedPara } },
       },
