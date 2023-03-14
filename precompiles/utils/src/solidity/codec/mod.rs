@@ -19,7 +19,8 @@
 
 pub mod bytes;
 pub mod native;
-// #[cfg(feature = "codec-xcm")]
+
+#[cfg(feature = "codec-xcm")]
 pub mod xcm;
 
 use crate::revert::{MayRevert, RevertReason};
