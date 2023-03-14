@@ -1227,7 +1227,7 @@ fn test_hrmp_manipulator_cancel() {
 				origin_type: OriginKind::Native,
 				require_weight_at_most: tx_weight,
 				call: vec![1u8, 3u8].into(),
-			})); 
+			}));
 		})
 }
 
