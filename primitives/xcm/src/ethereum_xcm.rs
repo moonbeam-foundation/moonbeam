@@ -24,6 +24,9 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
+// polkadot/blob/19f6665a6162e68cd2651f5fe3615d6676821f90/xcm/src/v3/mod.rs#L1193
+pub const DEFAULT_PROOF_SIZE: u64 = 64 * 1024;
+
 /// Max. allowed size of 65_536 bytes.
 pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
 

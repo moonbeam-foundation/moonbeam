@@ -37,7 +37,7 @@ use xcm::{
 	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation, WeightLimit},
 	VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation,
 };
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
 
 #[cfg(test)]
 mod mock;
@@ -99,7 +99,7 @@ where
 			currency_id,
 			amount,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -143,7 +143,7 @@ where
 			amount,
 			fee,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -171,7 +171,7 @@ where
 				fun: Fungibility::Fungible(to_balance),
 			})),
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -211,7 +211,7 @@ where
 				fun: Fungibility::Fungible(fee),
 			})),
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -265,7 +265,7 @@ where
 			currencies,
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -314,7 +314,7 @@ where
 			assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, 0u64)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

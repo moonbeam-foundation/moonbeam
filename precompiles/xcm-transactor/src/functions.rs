@@ -34,7 +34,7 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
+use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE, UtilityAvailableCalls, UtilityEncodeCall};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
@@ -155,7 +155,7 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 				overall_weight: None,
 			},
 		};
@@ -195,8 +195,8 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
-				overall_weight: Some(Weight::from_parts(overall_weight, 0u64)),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 		};
 
@@ -238,7 +238,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 				overall_weight: None,
 			},
 			inner_call,
@@ -285,8 +285,8 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
-				overall_weight: Some(Weight::from_parts(overall_weight, 0u64)),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
 		};
@@ -317,7 +317,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 				overall_weight: None,
 			},
 			call,
@@ -351,8 +351,8 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
-				overall_weight: Some(Weight::from_parts(overall_weight, 0u64)),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};
@@ -391,7 +391,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 				overall_weight: None,
 			},
 			call,
@@ -433,8 +433,8 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, 0u64),
-				overall_weight: Some(Weight::from_parts(overall_weight, 0u64)),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};

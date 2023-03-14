@@ -255,7 +255,7 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
+				proposal_weight_bound: Weight::from_parts(proposal_weight_bound, 64 * 1024),
 				length_bound,
 			},
 		)?;

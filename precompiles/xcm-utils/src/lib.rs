@@ -40,6 +40,8 @@ use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
 use xcm_executor::traits::WeightTrader;
 
+use xcm_primitives::DEFAULT_PROOF_SIZE;
+
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
 pub type XcmAccountIdOf<XcmConfig> =
@@ -49,9 +51,6 @@ pub type XcmAccountIdOf<XcmConfig> =
 pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
-
-// polkadot/blob/19f6665a6162e68cd2651f5fe3615d6676821f90/xcm/src/v3/mod.rs#L1193
-const DEFAULT_PROOF_SIZE: u64 = 64 * 1024;
 
 #[cfg(test)]
 mod mock;
@@ -148,7 +147,7 @@ where
 		// buy_weight returns unused assets
 		let unused = trader
 			.buy_weight(
-				Weight::from_parts(weight_per_second, 0u64),
+				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
 				vec![multiasset.clone()].into(),
 			)
 			.map_err(|_| {
