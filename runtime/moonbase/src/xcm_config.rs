@@ -338,11 +338,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SafeCallFilter = SafeCallFilter;
 }
 
-// type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
-// 	XcmExecutorConfig,
-// 	xcm_executor::XcmExecutor<XcmExecutorConfig>,
-// >;
-
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
