@@ -18,6 +18,7 @@ use cumulus_primitives_core::XcmpMessageFormat;
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
+use xcm::opaque::lts::Weight;
 
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
 /// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
@@ -58,11 +59,11 @@ impl ManualXcmApiServer for ManualXcm {
 		// If no message is supplied, inject a default one.
 		let msg = if msg.is_empty() {
 			xcm::VersionedXcm::<()>::V3(Xcm(vec![
-				ReserveAssetDeposited((Parent, 10000000000000u64).into()),
+				ReserveAssetDeposited((Parent, 10000000000000u128).into()),
 				ClearOrigin,
 				BuyExecution {
-					fees: (Parent, 10000000000000u64).into(),
-					weight_limit: Limited(4_000_000_000u64.into()),
+					fees: (Parent, 10000000000000u128).into(),
+					weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
 				},
 				DepositAsset {
 					assets: All.into(),
@@ -99,12 +100,12 @@ impl ManualXcmApiServer for ManualXcm {
 			mes.append(
 				&mut (xcm::VersionedXcm::<()>::V3(Xcm(vec![
 					ReserveAssetDeposited(
-						((Parent, Parachain(sender.into())), 10000000000000u64).into(),
+						((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 					),
 					ClearOrigin,
 					BuyExecution {
-						fees: ((Parent, Parachain(sender.into())), 10000000000000u64).into(),
-						weight_limit: Limited(4_000_000_000u64.into()),
+						fees: ((Parent, Parachain(sender.into())), 10000000000000u128).into(),
+						weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
 					},
 					DepositAsset {
 						assets: All.into(),
