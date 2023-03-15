@@ -16,16 +16,6 @@ use sp_runtime::{
 use sp_std::{marker::PhantomData, prelude::*};
 use xcm_primitives::ParentSovereign;
 
-/* pub struct ParentSovereign;
-
-impl Get<AccountId> for ParentSovereign {
-	fn get() -> AccountId {
-		b"Parent"
-			.using_encoded(|b| AccountId::decode(&mut TrailingZeroInput::new(b)))
-			.expect("infinite length input; no invalid inputs for type; qed")
-	}
-} */
-
 /// Check to ensure that the sender is not a sovereign account.
 #[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -55,10 +45,10 @@ impl<T: Config + Send + Sync> CheckNotSovereignSender<T> {
 impl<T: Config + Send + Sync> SignedExtension for CheckNotSovereignSender<T>
 where
 	T::RuntimeCall: Dispatchable<Info = DispatchInfo>,
-	/* Sibling: TypeId,
-	ParentSovereign: Get<AccountId>, */
+	Sibling: TypeId,
+	ParentSovereign: Get<T::AccountId>,
 {
-	type AccountId = T::AccountId //+ account::AccountId20;
+	type AccountId = T::AccountId; //+ account::AccountId20;
 	type Call = T::RuntimeCall;
 	type AdditionalSigned = ();
 	type Pre = ();
@@ -85,28 +75,25 @@ where
 		_info: &DispatchInfoOf<Self::Call>,
 		_len: usize,
 	) -> TransactionValidity {
-		//ParentSovereign::get().cmp(who);
-
-		//let sovereign: Self::AccountId = Self::AccountId::from(ParentSovereign::get());
-
-		/* if who == ParentSovereign::get() {
+		//check if 'who' is the Parent
+		if who == &ParentSovereign::get() {
 			return Err(TransactionValidityError::Invalid(
 				InvalidTransaction::BadSigner,
 			));
-		} */
+		}
 
 		// TOASK: how to encode the account properly?
-		/* let encoded_account = who.encode();
+		let encoded_account = who.encode();
 		let [_a, _b, _c, _d] = Sibling::TYPE_ID;
 
-		match encoded_account.as_slice() {
-			[_a, _b, _c, _d, _middle @ .., 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] => {
-				return Err(TransactionValidityError::Invalid(
-					InvalidTransaction::BadSigner,
-				))
-			}
-			_ => {}
-		} */
+		if let [_a, _b, _c, _d, _middle @ .., 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] =
+			encoded_account.as_slice()
+		{
+			return Err(TransactionValidityError::Invalid(
+				InvalidTransaction::BadSigner,
+			));
+		}
+
 		Ok(ValidTransaction::default())
 	}
 }
