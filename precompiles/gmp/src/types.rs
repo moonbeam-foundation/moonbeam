@@ -18,6 +18,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use precompile_utils::{prelude::*, EvmDataReader};
+use sp_core::H256;
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
@@ -44,4 +46,41 @@ pub fn parse_user_action(input: &Vec<u8>) -> Result<VersionedUserAction, &'stati
 		destination: MultiLocation::parent(),
 		destination_account: MultiLocation::parent(),
 	}))
+}
+
+// Struct representing a Wormhole VM
+// see https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/bridge/BridgeStructs.sol
+#[derive(Default)]
+pub struct WormholeVM {
+	pub version: u8,
+	pub timestamp: u32,
+	pub nonce: u32,
+	pub emitterChainId: u16,
+	pub emitterAddress: H256,
+	pub sequence: u64,
+	pub consistencyLevel: u8,
+	pub payload: Vec<u8>,
+
+	pub guardianSetIndex: u32,
+	// Signature[] signatures; // Signature: bytes32 r; bytes32 s; uint8 v; uint8 guardianIndex;
+	pub hash: H256,
+}
+
+impl WormholeVM {
+	/// Parse the output from the EVM when calling Wormhole's contracts,
+	/// e.g. the Solidity return type "returns (Structs.VM memory vm)"
+	pub fn new_from_encoded(encoded: &[u8]) -> MayRevert<Self> {
+		let mut reader = EvmDataReader::new(encoded);
+
+		let mut vm: WormholeVM = Default::default();
+		vm.version = reader.read()?;
+		vm.guardianSetIndex = reader.read()?;
+		let signersLen = reader.read()?;
+
+		// TODO: can't use EvmDataReader here, it will read U256 for all int
+		// types. The data is packed tightly using the BytesLib library:
+		// https://github.com/GNSPS/solidity-bytes-utils
+
+		Ok(vm)
+	}
 }

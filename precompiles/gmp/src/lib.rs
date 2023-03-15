@@ -78,6 +78,10 @@ where
 		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
 			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
 
+		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
+		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
+		let wormhole_vm = Self::peek_at_wormhole_vm(handle, wormhole, wormhole_vaa.clone())?;
+
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
 		// then use the returned payload to decide what to do.
@@ -142,5 +146,56 @@ where
 		// RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+
+	// Call the Wormhole
+	fn peek_at_wormhole_vm(
+		handle: &mut impl PrecompileHandle,
+		wormhole_core_contract_address: H160,
+		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
+	) -> EvmResult<WormholeVM> {
+		// TODO: DRY
+
+		let wormhole = H160::from_str("0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901")
+			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
+
+		// TODO: need our own address (preferably without looking at storage)
+		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
+			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
+
+		let sub_context = Context {
+			caller: this_contract,
+			address: wormhole,
+			apparent_value: U256::zero(),
+		};
+
+		log::warn!(target: "gmp-precompile", "calling Wormhole parseVM on {}...", wormhole);
+		let (reason, output) = handle.call(
+			wormhole_core_contract_address,
+			None,
+			EvmDataWriter::new_with_selector(PARSE_VM_SELECTOR)
+				.write(wormhole_vaa)
+				.build(),
+			handle.gas_limit(), // TODO
+			false,
+			&sub_context,
+		);
+
+		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
+		log::warn!(target: "gmp-precompile", "output: {:?}", output);
+
+		match reason {
+			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
+			ExitReason::Revert(exit_status) => {
+				return Err(PrecompileFailure::Revert {
+					exit_status,
+					output,
+				})
+			}
+			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
+			ExitReason::Succeed(_) => (),
+		};
+
+		Ok(WormholeVM::new_from_encoded(&output[..])?)
 	}
 }
