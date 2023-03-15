@@ -45,7 +45,7 @@ type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 // Wormhole fn selectors
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
 const PARSE_AND_VERIFY_VM_SELECTOR: u32 = 0xc0fd8bde_u32; // parseAndVerifyVM(bytes)
-const COMPLETE_TRANSFER_WITH_BYTES_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
+const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -65,15 +65,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
-		log::warn!(
-			target: "gmp-precompile",
-			"wormhole_transfer_erc20()...",
-		);
-
-		log::warn!(
-			target: "gmp-precompile",
-			"wormhole_vaa: {:?}", wormhole_vaa.clone(),
-		);
+		log::warn!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
 		// TODO: need to pull this from storage or config somewhere
 		//
@@ -95,10 +87,11 @@ where
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
+		log::warn!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole);
 		let (reason, output) = handle.call(
 			wormhole,
 			None,
-			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_BYTES_SELECTOR)
+			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
 				.write(wormhole_vaa)
 				.build(),
 			handle.gas_limit(), // TODO
@@ -106,15 +99,8 @@ where
 			&sub_context,
 		);
 
-		log::warn!(
-			target: "gmp-precompile",
-			"reason: {:?}", reason
-		);
-
-		log::warn!(
-			target: "gmp-precompile",
-			"output: {:?}", output
-		);
+		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
+		log::warn!(target: "gmp-precompile", "output: {:?}", output);
 
 		match reason {
 			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
