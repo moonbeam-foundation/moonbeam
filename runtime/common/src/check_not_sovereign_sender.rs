@@ -1,3 +1,4 @@
+//use account::AccountId20;
 use frame_support::dispatch::DispatchInfo;
 pub use frame_support::traits::Get;
 use frame_system::Config;
@@ -54,10 +55,10 @@ impl<T: Config + Send + Sync> CheckNotSovereignSender<T> {
 impl<T: Config + Send + Sync> SignedExtension for CheckNotSovereignSender<T>
 where
 	T::RuntimeCall: Dispatchable<Info = DispatchInfo>,
-	Sibling: TypeId,
-	ParentSovereign: Get<AccountId>,
+	/* Sibling: TypeId,
+	ParentSovereign: Get<AccountId>, */
 {
-	type AccountId = T::AccountId;
+	type AccountId = T::AccountId //+ account::AccountId20;
 	type Call = T::RuntimeCall;
 	type AdditionalSigned = ();
 	type Pre = ();
@@ -86,7 +87,7 @@ where
 	) -> TransactionValidity {
 		//ParentSovereign::get().cmp(who);
 
-		//let sovereign: Self::AccountId = ParentSovereign::get().into();
+		//let sovereign: Self::AccountId = Self::AccountId::from(ParentSovereign::get());
 
 		/* if who == ParentSovereign::get() {
 			return Err(TransactionValidityError::Invalid(
@@ -95,7 +96,7 @@ where
 		} */
 
 		// TOASK: how to encode the account properly?
-		let encoded_account = who.encode();
+		/* let encoded_account = who.encode();
 		let [_a, _b, _c, _d] = Sibling::TYPE_ID;
 
 		match encoded_account.as_slice() {
@@ -105,7 +106,7 @@ where
 				))
 			}
 			_ => {}
-		}
+		} */
 		Ok(ValidTransaction::default())
 	}
 }

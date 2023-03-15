@@ -24,6 +24,7 @@ pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
+account = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }

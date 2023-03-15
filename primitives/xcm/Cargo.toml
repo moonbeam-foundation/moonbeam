@@ -18,6 +18,7 @@ impl-trait-for-tuples = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true, optional = true, features = [ "derive" ] }
 sha3 = { workspace = true }
+moonbeam-core-primitives = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }

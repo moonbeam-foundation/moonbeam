@@ -5776,6 +5776,7 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "account",
  "fp-ethereum",
  "fp-evm",
  "frame-support",
@@ -5783,6 +5784,7 @@ dependencies = [
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-xcm-benchmarks",
  "pallet-asset-manager",
  "pallet-author-inherent",
@@ -5800,7 +5802,10 @@ dependencies = [
  "pallet-referenda",
  "pallet-scheduler",
  "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "polkadot-parachain",
  "precompile-utils",
+ "scale-info",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -15716,6 +15721,7 @@ dependencies = [
  "hex",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-core-primitives",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
