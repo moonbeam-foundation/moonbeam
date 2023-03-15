@@ -66,7 +66,7 @@ impl ManualXcmApiServer for ManualXcm {
 					weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
 				},
 				DepositAsset {
-					assets: All.into(),
+					assets: AllCounted(1).into(),
 					beneficiary: MultiLocation::new(
 						0,
 						X1(AccountKey20 {
@@ -108,7 +108,7 @@ impl ManualXcmApiServer for ManualXcm {
 						weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
 					},
 					DepositAsset {
-						assets: All.into(),
+						assets: AllCounted(1).into(),
 						beneficiary: MultiLocation::new(
 							0,
 							X1(AccountKey20 {

@@ -61,7 +61,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 			BuyExecution {
 				weight_limit: Limited(ref mut weight),
 				..
-			} if weight.ref_time() >= max_weight.ref_time() => {
+			} if weight.all_gte(max_weight) => {
 				weight.set_ref_time(max_weight.ref_time());
 				weight.set_proof_size(max_weight.proof_size());
 				Ok(())
