@@ -2315,9 +2315,9 @@
 	<span class="doccomment">/// Maximum delegations per delegator
 	</span><span class="kw">type </span>MaxDelegationsPerDelegator = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="doccomment">/// Minimum stake required to become a collator
-	</span><span class="kw">type </span>MinCollatorStk = ConstU128&lt;{ <span class="number">1000 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
+	</span><span class="kw">type </span>MinCollatorStk = ConstU128&lt;{ <span class="number">10000 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate
-	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">500 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
+	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">10000 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
 	</span><span class="kw">type </span>MinDelegation = ConstU128&lt;{ <span class="number">5 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
@@ -3214,11 +3214,11 @@
 		<span class="comment">// staking minimums
 		</span><span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(<span class="number">1 </span>* KILOMOVR)
+			Balance::from(<span class="number">10 </span>* KILOMOVR)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(<span class="number">500 </span>* MOVR)
+			Balance::from(<span class="number">10 </span>* KILOMOVR)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinDelegation, u128),
