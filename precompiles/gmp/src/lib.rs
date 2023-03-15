@@ -42,6 +42,11 @@ pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
+// Wormhole fn selectors
+const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
+const PARSE_AND_VERIFY_VM_SELECTOR: u32 = 0xc0fd8bde_u32; // parseAndVerifyVM(bytes)
+const COMPLETE_TRANSFER_WITH_BYTES_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
+
 /// Gmp precompile.
 #[derive(Debug, Clone)]
 pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
@@ -65,6 +70,11 @@ where
 			"wormhole_transfer_erc20()...",
 		);
 
+		log::warn!(
+			target: "gmp-precompile",
+			"wormhole_vaa: {:?}", wormhole_vaa.clone(),
+		);
+
 		// TODO: need to pull this from storage or config somewhere
 		//
 		// Moonbase core bridge: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
@@ -85,21 +95,25 @@ where
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
-		let mut wormhole_vaa_bytes: Vec<u8> = wormhole_vaa.into();
-		let mut selector = keccak256!("completeTransferWithPayload(bytes)");
-
-		let mut calldata = Vec::new();
-		calldata.reserve(wormhole_vaa_bytes.len().saturating_add(selector.len()));
-		calldata.copy_from_slice(&selector);
-		calldata.append(&mut wormhole_vaa_bytes);
-
 		let (reason, output) = handle.call(
 			wormhole,
 			None,
-			calldata,
+			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_BYTES_SELECTOR)
+				.write(wormhole_vaa)
+				.build(),
 			handle.gas_limit(), // TODO
 			false,
 			&sub_context,
+		);
+
+		log::warn!(
+			target: "gmp-precompile",
+			"reason: {:?}", reason
+		);
+
+		log::warn!(
+			target: "gmp-precompile",
+			"output: {:?}", output
 		);
 
 		match reason {

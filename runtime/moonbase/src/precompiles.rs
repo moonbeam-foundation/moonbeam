@@ -228,7 +228,10 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2069>,
 		GmpPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			CallableByContract,       // TODO: do we want to allow this?
+			SubcallWithMaxNesting<1>, // TODO: review -- this precompile needs to make subcall to wormhole contract
+		),
 	>,
 );
 
