@@ -19,6 +19,7 @@
 use sp_core::H160;
 
 mod apis;
+pub mod check_not_sovereign_sender;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;

@@ -23,6 +23,7 @@ pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
+moonbeam-core-primitives = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -35,6 +36,8 @@ pallet-scheduler = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = [ "derive", "max-encoded-len" ] }
 
 # Frontier
 fp-ethereum = { workspace = true }
@@ -49,6 +52,7 @@ pallet-author-slot-filter = { workspace = true }
 # Polkadot
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
+polkadot-parachain = { workspace = true }
 
 [features]
 std = [
