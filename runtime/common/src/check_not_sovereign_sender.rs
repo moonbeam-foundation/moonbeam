@@ -15,6 +15,16 @@ use sp_runtime::{
 use sp_std::{marker::PhantomData, prelude::*};
 use xcm_primitives::ParentSovereign;
 
+/* pub struct ParentSovereign;
+
+impl Get<AccountId> for ParentSovereign {
+	fn get() -> AccountId {
+		b"Parent"
+			.using_encoded(|b| AccountId::decode(&mut TrailingZeroInput::new(b)))
+			.expect("infinite length input; no invalid inputs for type; qed")
+	}
+} */
+
 /// Check to ensure that the sender is not a sovereign account.
 #[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 #[scale_info(skip_type_params(T))]
