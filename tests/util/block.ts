@@ -58,33 +58,6 @@ export interface BlockDetails {
   txWithEvents: TxWithEventAndFee[];
 }
 
-export function mapExtrinsics(
-  extrinsics: Extrinsic[],
-  records: FrameSystemEventRecord[],
-  fees?: RuntimeDispatchInfo[] | RuntimeDispatchInfoV1[]
-): TxWithEventAndFee[] {
-  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
-    let dispatchError: DispatchError | undefined;
-    let dispatchInfo: DispatchInfo | undefined;
-
-    const events = records
-      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-      .map(({ event }) => {
-        if (event.section === "system") {
-          if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as any as DispatchInfo;
-          } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as any as DispatchError;
-            dispatchInfo = event.data[1] as any as DispatchInfo;
-          }
-        }
-
-        return event as any;
-      });
-
-    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
-  });
-}
 
 const getBlockDetails = async (
   api: ApiPromise,
