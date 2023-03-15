@@ -24,7 +24,6 @@ extern crate alloc;
 extern crate self as precompile_utils;
 
 pub mod evm;
-pub mod logs;
 pub mod precompile_set;
 pub mod substrate;
 
@@ -52,11 +51,13 @@ pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 pub mod prelude {
 	pub use {
 		crate::{
-			evm::handle::PrecompileHandleExt,
-			logs::{log0, log1, log2, log3, log4, LogExt},
-			// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
-			// with parity_scale_codec,
+			evm::{
+				handle::PrecompileHandleExt,
+				logs::{log0, log1, log2, log3, log4, LogExt},
+			},
 			solidity::{
+				// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
+				// with parity_scale_codec,
 				self,
 				codec::{
 					Address, BoundedBytes, BoundedString, BoundedVec, Convert, Reader,
