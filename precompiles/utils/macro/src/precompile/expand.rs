@@ -271,7 +271,7 @@ impl Precompile {
 					.map(|_| quote!(discriminant,));
 
 				let write_output = quote_spanned!(output_span=>
-					output?.encode_for_function()
+					Codec::encode_for_function(output?)
 				);
 
 				quote!(

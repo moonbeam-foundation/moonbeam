@@ -29,7 +29,7 @@ impl ExamplePrecompileCall {
     pub fn parse_call_data(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::RevertReason;
+        use ::precompile_utils::solidity::revert::RevertReason;
         let input = handle.input();
         let selector = input
             .get(0..4)
@@ -47,9 +47,9 @@ impl ExamplePrecompileCall {
     fn _parse_example(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::example {})
     }
@@ -63,7 +63,7 @@ impl ExamplePrecompileCall {
             Self::example {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <ExamplePrecompile>::example(handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(

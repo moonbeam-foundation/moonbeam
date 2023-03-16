@@ -1,5 +1,0 @@
-error[E0599]: no method named `encode_for_function` found for struct `String` in the current scope
-  --> tests/compile-fail/precompile/evm-data/output-dont-impl-evmdata.rs:26:46
-   |
-26 |     fn foo(test: &mut impl PrecompileHandle) -> EvmResult<String> {
-   |                                                 ^^^^^^^^^^^^^^^^^ method not found in `String`

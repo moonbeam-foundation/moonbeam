@@ -457,7 +457,7 @@ where
     pub fn parse_call_data(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::RevertReason;
+        use ::precompile_utils::solidity::revert::RevertReason;
         let input = handle.input();
         let selector = input
             .get(0..4)
@@ -502,9 +502,9 @@ where
     fn _parse_allowance(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(2usize)?;
@@ -516,9 +516,9 @@ where
     fn _parse_approve(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(2usize)?;
@@ -530,9 +530,9 @@ where
     fn _parse_balance_of(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(1usize)?;
@@ -543,9 +543,9 @@ where
     fn _parse_burn(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(2usize)?;
@@ -557,36 +557,36 @@ where
     fn _parse_clear_metadata(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::clear_metadata {})
     }
     fn _parse_decimals(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::decimals {})
     }
     fn _parse_eip2612_domain_separator(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::View)?;
         Ok(Self::eip2612_domain_separator {})
     }
     fn _parse_eip2612_nonces(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::View)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(1usize)?;
@@ -597,9 +597,9 @@ where
     fn _parse_eip2612_permit(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(7usize)?;
@@ -616,9 +616,9 @@ where
     fn _parse_freeze(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(1usize)?;
@@ -629,18 +629,18 @@ where
     fn _parse_freeze_asset(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::freeze_asset {})
     }
     fn _parse_mint(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(2usize)?;
@@ -652,18 +652,18 @@ where
     fn _parse_name(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::name {})
     }
     fn _parse_set_metadata(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(3usize)?;
@@ -676,9 +676,9 @@ where
     fn _parse_set_team(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(3usize)?;
@@ -691,18 +691,18 @@ where
     fn _parse_symbol(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::symbol {})
     }
     fn _parse_thaw(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(1usize)?;
@@ -713,27 +713,27 @@ where
     fn _parse_thaw_asset(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::thaw_asset {})
     }
     fn _parse_total_supply(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::total_supply {})
     }
     fn _parse_transfer(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(2usize)?;
@@ -745,9 +745,9 @@ where
     fn _parse_transfer_from(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(3usize)?;
@@ -760,9 +760,9 @@ where
     fn _parse_transfer_ownership(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(1usize)?;
@@ -783,54 +783,54 @@ where
                 let output = <PrecompileSet<
                     Runtime,
                 >>::allowance(discriminant, handle, owner, spender);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::approve { spender, value } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::approve(discriminant, handle, spender, value);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::balance_of { who } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::balance_of(discriminant, handle, who);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::burn { from, value } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::burn(discriminant, handle, from, value);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::clear_metadata {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::clear_metadata(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::decimals {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::decimals(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::eip2612_domain_separator {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_domain_separator(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::eip2612_nonces { owner } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_nonces(discriminant, handle, owner);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::eip2612_permit { owner, spender, value, deadline, v, r, s } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
@@ -847,92 +847,92 @@ where
                     r,
                     s,
                 );
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::freeze { account } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze(discriminant, handle, account);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::freeze_asset {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze_asset(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::mint { to, value } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::mint(discriminant, handle, to, value);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::name {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::name(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::set_metadata { name, symbol, decimals } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_metadata(discriminant, handle, name, symbol, decimals);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::set_team { issuer, admin, freezer } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_team(discriminant, handle, issuer, admin, freezer);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::symbol {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::symbol(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::thaw { account } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::thaw(discriminant, handle, account);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::thaw_asset {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::thaw_asset(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::total_supply {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::total_supply(discriminant, handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::transfer { to, value } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer(discriminant, handle, to, value);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::transfer_from { from, to, value } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_from(discriminant, handle, from, to, value);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::transfer_ownership { owner } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_ownership(discriminant, handle, owner);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(

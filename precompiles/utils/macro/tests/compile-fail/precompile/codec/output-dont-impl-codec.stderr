@@ -1,0 +1,16 @@
+error[E0277]: the trait bound `String: Codec` is not satisfied
+  --> tests/compile-fail/precompile/codec/output-dont-impl-codec.rs:26:46
+   |
+26 |     fn foo(test: &mut impl PrecompileHandle) -> EvmResult<String> {
+   |                                                 ^^^^^^^^^^^^^^^^^ the trait `Codec` is not implemented for `String`
+   |
+   = help: the following other types implement trait `Codec`:
+             ()
+             (TupleElement0, TupleElement1)
+             (TupleElement0, TupleElement1, TupleElement2)
+             (TupleElement0, TupleElement1, TupleElement2, TupleElement3)
+             (TupleElement0, TupleElement1, TupleElement2, TupleElement3, TupleElement4)
+             (TupleElement0, TupleElement1, TupleElement2, TupleElement3, TupleElement4, TupleElement5)
+             (TupleElement0, TupleElement1, TupleElement2, TupleElement3, TupleElement4, TupleElement5, TupleElement6)
+             (TupleElement0, TupleElement1, TupleElement2, TupleElement3, TupleElement4, TupleElement5, TupleElement6, TupleElement7)
+           and $N others

@@ -126,7 +126,7 @@ where
     pub fn parse_call_data(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::RevertReason;
+        use ::precompile_utils::solidity::revert::RevertReason;
         let input = handle.input();
         let selector = input
             .get(0..4)
@@ -145,9 +145,9 @@ where
     fn _parse_batch_all(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -161,9 +161,9 @@ where
     fn _parse_batch_some(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -177,9 +177,9 @@ where
     fn _parse_batch_some_until_failure(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -193,9 +193,9 @@ where
     fn _parse_fallback(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::fallback {})
     }
@@ -211,26 +211,26 @@ where
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_all(handle, to, value, call_data, gas_limit);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some(handle, to, value, call_data, gas_limit);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some_until_failure(handle, to, value, call_data, gas_limit);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::fallback {} => {
                 use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<Runtime>>::fallback(handle);
-                output?.encode_for_function()
+                Codec::encode_for_function(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(

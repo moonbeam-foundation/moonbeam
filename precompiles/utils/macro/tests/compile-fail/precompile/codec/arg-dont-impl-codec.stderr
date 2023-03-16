@@ -1,5 +1,5 @@
 error[E0277]: the trait bound `String: Codec` is not satisfied
-  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:43
+  --> tests/compile-fail/precompile/codec/arg-dont-impl-codec.rs:26:43
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |                                              ^^^ the trait `Codec` is not implemented for `String`
@@ -21,7 +21,7 @@ note: required by a bound in `Reader::<'inner>::read`
    |                    ^^^^^ required by this bound in `Reader::<'inner>::read`
 
 error[E0277]: the trait bound `String: Codec` is not satisfied
-  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:43
+  --> tests/compile-fail/precompile/codec/arg-dont-impl-codec.rs:26:43
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |                                              ^^^ the trait `Codec` is not implemented for `String`
@@ -43,7 +43,7 @@ note: required by a bound in `precompile_utils::prelude::Writer::write`
    |                     ^^^^^ required by this bound in `precompile_utils::prelude::Writer::write`
 
 error[E0277]: the trait bound `String: Codec` is not satisfied
-  --> tests/compile-fail/precompile/evm-data/arg-dont-impl-evmdata.rs:26:5
+  --> tests/compile-fail/precompile/codec/arg-dont-impl-codec.rs:26:5
    |
 26 |     fn foo(test: &mut impl PrecompileHandle, arg: String) -> EvmResult {
    |        ^^^ the trait `Codec` is not implemented for `String`
