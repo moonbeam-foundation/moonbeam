@@ -83,6 +83,7 @@ impl<
 				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
+					// TODO handle proof size payment
 					let amount = units_per_second.saturating_mul(weight.ref_time() as u128)
 						/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 
