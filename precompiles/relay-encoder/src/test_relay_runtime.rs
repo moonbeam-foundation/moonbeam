@@ -68,7 +68,7 @@ pub enum HrmpCall {
 	AcceptOpenChannel(ParaId),
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
-	#[codec(index = 3u8)]
+	#[codec(index = 6u8)]
 	CancelOpenChannel(HrmpChannelId, u32),
 }
 
