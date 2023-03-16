@@ -567,7 +567,7 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
        */
       getTransactionCount: AugmentedRpc<
         (
-          hash: H256 | string | Uint8Array,
+          address: H160 | string | Uint8Array,
           number?: BlockNumber | AnyNumber | Uint8Array
         ) => Observable<U256>
       >;
@@ -752,16 +752,6 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           at?: BlockHash | string | Uint8Array
         ) => Observable<MmrLeafBatchProof>
       >;
-    };
-    moon: {
-      /**
-       * Returns whether an Ethereum block is finalized
-       */
-      isBlockFinalized: AugmentedRpc<(blockHash: Hash | string | Uint8Array) => Observable<bool>>;
-      /**
-       * Returns whether an Ethereum transaction is finalized
-       */
-      isTxFinalized: AugmentedRpc<(txHash: Hash | string | Uint8Array) => Observable<bool>>;
     };
     net: {
       /**

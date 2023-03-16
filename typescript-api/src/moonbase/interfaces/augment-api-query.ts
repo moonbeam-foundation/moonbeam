@@ -30,79 +30,6 @@ import type {
   Perbill,
   Percent,
 } from "@polkadot/types/interfaces/runtime";
-import type {
-  CumulusPalletDmpQueueConfigData,
-  CumulusPalletDmpQueuePageIndexData,
-  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
-  CumulusPalletXcmpQueueInboundChannelDetails,
-  CumulusPalletXcmpQueueOutboundChannelDetails,
-  CumulusPalletXcmpQueueQueueConfigData,
-  EthereumBlock,
-  EthereumReceiptReceiptV3,
-  EthereumTransactionTransactionV2,
-  FpRpcTransactionStatus,
-  FrameSupportDispatchPerDispatchClassWeight,
-  FrameSupportPreimagesBounded,
-  FrameSystemAccountInfo,
-  FrameSystemEventRecord,
-  FrameSystemLastRuntimeUpgradeInfo,
-  FrameSystemPhase,
-  MoonbaseRuntimeXcmConfigAssetType,
-  NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetManagerAssetInfo,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
-  PalletAuthorMappingRegistrationInfo,
-  PalletBalancesAccountData,
-  PalletBalancesBalanceLock,
-  PalletBalancesReleases,
-  PalletBalancesReserveData,
-  PalletCollectiveVotes,
-  PalletConvictionVotingVoteVoting,
-  PalletCrowdloanRewardsRewardInfo,
-  PalletDemocracyReferendumInfo,
-  PalletDemocracyVoteThreshold,
-  PalletDemocracyVoteVoting,
-  PalletIdentityRegistrarInfo,
-  PalletIdentityRegistration,
-  PalletMoonbeamOrbitersCollatorPoolInfo,
-  PalletParachainStakingAutoCompoundAutoCompoundConfig,
-  PalletParachainStakingBond,
-  PalletParachainStakingCandidateMetadata,
-  PalletParachainStakingCollatorSnapshot,
-  PalletParachainStakingDelayedPayout,
-  PalletParachainStakingDelegationRequestsScheduledRequest,
-  PalletParachainStakingDelegations,
-  PalletParachainStakingDelegator,
-  PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
-  PalletParachainStakingRoundInfo,
-  PalletParachainStakingSetOrderedSet,
-  PalletPreimageRequestStatus,
-  PalletProxyAnnouncement,
-  PalletProxyProxyDefinition,
-  PalletRandomnessRandomnessResult,
-  PalletRandomnessRequestState,
-  PalletRandomnessRequestType,
-  PalletReferendaReferendumInfo,
-  PalletSchedulerScheduled,
-  PalletTransactionPaymentReleases,
-  PalletTreasuryProposal,
-  PalletXcmQueryStatus,
-  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
-  PalletXcmVersionMigrationStage,
-  PolkadotCorePrimitivesOutboundHrmpMessage,
-  PolkadotPrimitivesV2AbridgedHostConfiguration,
-  PolkadotPrimitivesV2PersistedValidationData,
-  PolkadotPrimitivesV2UpgradeRestriction,
-  SpRuntimeDigest,
-  SpTrieStorageProof,
-  SpWeightsWeightV2Weight,
-  XcmV1MultiLocation,
-  XcmVersionedMultiLocation,
-} from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -280,7 +207,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       nimbusLookup: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<U8aFixed>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<NimbusPrimitivesNimbusCryptoPublic>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -324,6 +253,11 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
+       * The total units of outstanding deactivated balance in the system.
+       */
+      inactiveIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Any liquidity locks on some account balances. NOTE: Should only be
        * accessed when setting, changing and freeing a lock.
        */
@@ -342,13 +276,6 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
-       * Storage version of the pallet.
-       *
-       * This is set to v2.0.0 for new networks.
-       */
-      storageVersion: AugmentedQuery<ApiType, () => Observable<PalletBalancesReleases>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /**
        * The total units issued in the system.
        */
@@ -1629,6 +1556,12 @@ declare module "@polkadot/api-base/types/storage" {
        */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    rootTesting: {
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     scheduler: {
       /**
        * Items to be executed, indexed by the block number that they should be
@@ -1878,6 +1811,11 @@ declare module "@polkadot/api-base/types/storage" {
        * Proposal indices that have been approved but not yet awarded.
        */
       approvals: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The amount which has been reported as inactive to Currency.
+       */
+      deactivated: AugmentedQuery<ApiType, () => Observable<u128>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Number of proposals that have been made.

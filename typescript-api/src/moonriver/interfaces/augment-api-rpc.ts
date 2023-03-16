@@ -567,7 +567,7 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
        */
       getTransactionCount: AugmentedRpc<
         (
-          hash: H256 | string | Uint8Array,
+          address: H160 | string | Uint8Array,
           number?: BlockNumber | AnyNumber | Uint8Array
         ) => Observable<U256>
       >;
