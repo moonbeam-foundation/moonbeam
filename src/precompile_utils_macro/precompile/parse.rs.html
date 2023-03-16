@@ -544,6 +544,79 @@
 <a href="#544" id="544">544</a>
 <a href="#545" id="545">545</a>
 <a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -821,6 +894,7 @@
 				}
 			};
 			<span class="kw">let </span>ty = input.ty.as_ref().clone();
+			<span class="self">self</span>.check_type_parameter_usage(<span class="kw-2">&amp;</span>ty)<span class="question-mark">?</span>;
 
 			arguments.push(Argument { ident, ty })
 		}
@@ -1081,6 +1155,78 @@
 		}
 
 		<span class="prelude-val">Ok</span>(selector)
+	}
+
+	<span class="doccomment">/// Check that the provided type doesn&#39;t depend on one of the type parameters of the
+	/// precompile. Check is skipped if `test_concrete_types` attribute is used.
+	</span><span class="kw">fn </span>check_type_parameter_usage(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; syn::Result&lt;()&gt; {
+		<span class="kw">if </span><span class="self">self</span>.test_concrete_types.is_some() {
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(());
+		}
+
+		<span class="kw">const </span>ERR_MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str =
+			<span class="string">&quot;impl type parameter is used in functions arguments. Arguments should not have a type
+depending on a type parameter, unless it is a length bound for BoundedBytes,
+BoundedString or alike, which doesn&#39;t affect the Solidity type.
+
+In that case, you must add a #[precompile::test_concrete_types(...)] attribute on the impl
+block to provide concrete types that will be used to run the automatically generated tests
+ensuring the Solidity function signatures are correct.&quot;</span>;
+
+		<span class="kw">match </span>ty {
+			syn::Type::Array(syn::TypeArray { elem, .. })
+			| syn::Type::Group(syn::TypeGroup { elem, .. })
+			| syn::Type::Paren(syn::TypeParen { elem, .. })
+			| syn::Type::Reference(syn::TypeReference { elem, .. })
+			| syn::Type::Ptr(syn::TypePtr { elem, .. })
+			| syn::Type::Slice(syn::TypeSlice { elem, .. }) =&gt; <span class="self">self</span>.check_type_parameter_usage(<span class="kw-2">&amp;</span>elem)<span class="question-mark">?</span>,
+
+			syn::Type::Path(syn::TypePath {
+				path: syn::Path { segments, .. },
+				..
+			}) =&gt; {
+				<span class="kw">let </span>impl_params: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+					</span>.generics
+					.params
+					.iter()
+					.filter_map(|param| <span class="kw">match </span>param {
+						syn::GenericParam::Type(syn::TypeParam { ident, .. }) =&gt; <span class="prelude-val">Some</span>(ident),
+						<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+					})
+					.collect();
+
+				<span class="kw">for </span>segment <span class="kw">in </span>segments {
+					<span class="kw">if </span>impl_params.contains(&amp;&amp;segment.ident) {
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(segment.ident.span(), ERR_MESSAGE));
+					}
+
+					<span class="kw">if let </span>syn::PathArguments::AngleBracketed(args) = <span class="kw-2">&amp;</span>segment.arguments {
+						<span class="kw">let </span>types = args.args.iter().filter_map(|arg| <span class="kw">match </span>arg {
+							syn::GenericArgument::Type(ty)
+							| syn::GenericArgument::Binding(syn::Binding { ty, .. }) =&gt; <span class="prelude-val">Some</span>(ty),
+							<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+						});
+
+						<span class="kw">for </span>ty <span class="kw">in </span>types {
+							<span class="self">self</span>.check_type_parameter_usage(<span class="kw-2">&amp;</span>ty)<span class="question-mark">?</span>;
+						}
+					}
+				}
+			}
+			syn::Type::Tuple(tuple) =&gt; {
+				<span class="kw">for </span>ty <span class="kw">in </span>tuple.elems.iter() {
+					<span class="self">self</span>.check_type_parameter_usage(ty)<span class="question-mark">?</span>;
+				}
+			}
+			<span class="comment">// BareFn =&gt; very unlikely this appear as parameter
+			// ImplTrait =&gt; will cause other errors, it must be a concrete type
+			// TypeInfer =&gt; it must be explicit concrete types since it ends up in enum fields
+			// Macro =&gt; Cannot check easily
+			// Never =&gt; Function will not be callable.
+			</span>ty =&gt; <span class="macro">println!</span>(<span class="string">&quot;Skipping type parameter check for non supported kind of type: {ty:?}&quot;</span>),
+		}
+
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
