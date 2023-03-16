@@ -46,7 +46,6 @@ pub const VALID_ETH_TX: &str =
 	80c080a0932bca8e518f16759c782e5403e3fe55902ecb1b988c8499f015a6617b636e1ca05f6659d0f9\
 	943cf29b611ef1a46b1e4ccc56df524e1f4f08607132142fec0ff0";
 
-
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
 	"f8628085174876e800809412cb274aad8251c875c0bf6872b67d9983e53fdd01801ba011110796057\

@@ -54,7 +54,10 @@ fn ethereum_runtime_rpc_api_account_basic() {
 #[test]
 fn ethereum_runtime_rpc_api_gas_price() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(Runtime::gas_price(), TransactionPaymentAsGasPrice::min_gas_price().0);
+		assert_eq!(
+			Runtime::gas_price(),
+			TransactionPaymentAsGasPrice::min_gas_price().0
+		);
 	});
 }
 
