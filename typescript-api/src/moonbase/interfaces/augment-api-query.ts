@@ -30,6 +30,78 @@ import type {
   Perbill,
   Percent,
 } from "@polkadot/types/interfaces/runtime";
+import type {
+  CumulusPalletDmpQueueConfigData,
+  CumulusPalletDmpQueuePageIndexData,
+  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  CumulusPalletXcmpQueueInboundChannelDetails,
+  CumulusPalletXcmpQueueOutboundChannelDetails,
+  CumulusPalletXcmpQueueQueueConfigData,
+  EthereumBlock,
+  EthereumReceiptReceiptV3,
+  EthereumTransactionTransactionV2,
+  FpRpcTransactionStatus,
+  FrameSupportDispatchPerDispatchClassWeight,
+  FrameSupportPreimagesBounded,
+  FrameSystemAccountInfo,
+  FrameSystemEventRecord,
+  FrameSystemLastRuntimeUpgradeInfo,
+  FrameSystemPhase,
+  MoonbaseRuntimeXcmConfigAssetType,
+  NimbusPrimitivesNimbusCryptoPublic,
+  PalletAssetManagerAssetInfo,
+  PalletAssetsApproval,
+  PalletAssetsAssetAccount,
+  PalletAssetsAssetDetails,
+  PalletAssetsAssetMetadata,
+  PalletAuthorMappingRegistrationInfo,
+  PalletBalancesAccountData,
+  PalletBalancesBalanceLock,
+  PalletBalancesReserveData,
+  PalletCollectiveVotes,
+  PalletConvictionVotingVoteVoting,
+  PalletCrowdloanRewardsRewardInfo,
+  PalletDemocracyReferendumInfo,
+  PalletDemocracyVoteThreshold,
+  PalletDemocracyVoteVoting,
+  PalletIdentityRegistrarInfo,
+  PalletIdentityRegistration,
+  PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletParachainStakingAutoCompoundAutoCompoundConfig,
+  PalletParachainStakingBond,
+  PalletParachainStakingCandidateMetadata,
+  PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingDelayedPayout,
+  PalletParachainStakingDelegationRequestsScheduledRequest,
+  PalletParachainStakingDelegations,
+  PalletParachainStakingDelegator,
+  PalletParachainStakingInflationInflationInfo,
+  PalletParachainStakingParachainBondConfig,
+  PalletParachainStakingRoundInfo,
+  PalletParachainStakingSetOrderedSet,
+  PalletPreimageRequestStatus,
+  PalletProxyAnnouncement,
+  PalletProxyProxyDefinition,
+  PalletRandomnessRandomnessResult,
+  PalletRandomnessRequestState,
+  PalletRandomnessRequestType,
+  PalletReferendaReferendumInfo,
+  PalletSchedulerScheduled,
+  PalletTransactionPaymentReleases,
+  PalletTreasuryProposal,
+  PalletXcmQueryStatus,
+  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
+  PalletXcmVersionMigrationStage,
+  PolkadotCorePrimitivesOutboundHrmpMessage,
+  PolkadotPrimitivesV2AbridgedHostConfiguration,
+  PolkadotPrimitivesV2PersistedValidationData,
+  PolkadotPrimitivesV2UpgradeRestriction,
+  SpRuntimeDigest,
+  SpTrieStorageProof,
+  SpWeightsWeightV2Weight,
+  XcmV1MultiLocation,
+  XcmVersionedMultiLocation,
+} from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -1497,6 +1569,19 @@ declare module "@polkadot/api-base/types/storage" {
         [u64]
       > &
         QueryableStorageEntry<ApiType, [u64]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    randomnessCollectiveFlip: {
+      /**
+       * Series of block headers from the last 81 blocks that acts as random
+       * seed material. This is arranged as a ring buffer with `block_number %
+       * 81` being the index into the `Vec` of the oldest hash.
+       */
+      randomMaterial: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
        */

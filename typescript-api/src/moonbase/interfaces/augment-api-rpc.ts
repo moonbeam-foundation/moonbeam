@@ -753,6 +753,16 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<MmrLeafBatchProof>
       >;
     };
+    moon: {
+      /**
+       * Returns whether an Ethereum block is finalized
+       */
+      isBlockFinalized: AugmentedRpc<(blockHash: Hash | string | Uint8Array) => Observable<bool>>;
+      /**
+       * Returns whether an Ethereum transaction is finalized
+       */
+      isTxFinalized: AugmentedRpc<(txHash: Hash | string | Uint8Array) => Observable<bool>>;
+    };
     net: {
       /**
        * Returns true if client is actively listening for network connections.

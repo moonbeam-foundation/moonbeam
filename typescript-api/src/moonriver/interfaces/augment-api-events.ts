@@ -21,6 +21,38 @@ import type {
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
+import type {
+  EthereumLog,
+  EvmCoreErrorExitReason,
+  FrameSupportDispatchDispatchInfo,
+  FrameSupportDispatchPostDispatchInfo,
+  FrameSupportPreimagesBounded,
+  FrameSupportTokensMiscBalanceStatus,
+  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonriverRuntimeProxyType,
+  MoonriverRuntimeXcmConfigAssetType,
+  NimbusPrimitivesNimbusCryptoPublic,
+  PalletConvictionVotingTally,
+  PalletDemocracyVoteAccountVote,
+  PalletDemocracyVoteThreshold,
+  PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
+  PalletParachainStakingDelegatorAdded,
+  PalletXcmTransactorHrmpOperation,
+  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
+  SpRuntimeDispatchError,
+  SpRuntimeDispatchErrorWithPostInfo,
+  SpWeightsWeightV2Weight,
+  XcmV1MultiAsset,
+  XcmV1MultiLocation,
+  XcmV1MultiassetMultiAssets,
+  XcmV2Response,
+  XcmV2TraitsError,
+  XcmV2TraitsOutcome,
+  XcmV2Xcm,
+  XcmVersionedMultiAssets,
+  XcmVersionedMultiLocation,
+} from "@polkadot/types/lookup";
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
@@ -103,28 +135,12 @@ declare module "@polkadot/api-base/types/events" {
     };
     assets: {
       /**
-       * Accounts were destroyed for given asset.
-       */
-      AccountsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, accountsDestroyed: u32, accountsRemaining: u32],
-        { assetId: u128; accountsDestroyed: u32; accountsRemaining: u32 }
-      >;
-      /**
        * An approval for account `delegate` was cancelled by `owner`.
        */
       ApprovalCancelled: AugmentedEvent<
         ApiType,
         [assetId: u128, owner: AccountId20, delegate: AccountId20],
         { assetId: u128; owner: AccountId20; delegate: AccountId20 }
-      >;
-      /**
-       * Approvals were destroyed for given asset.
-       */
-      ApprovalsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, approvalsDestroyed: u32, approvalsRemaining: u32],
-        { assetId: u128; approvalsDestroyed: u32; approvalsRemaining: u32 }
       >;
       /**
        * (Additional) funds have been approved for transfer to a destination account.
@@ -166,10 +182,6 @@ declare module "@polkadot/api-base/types/events" {
        * An asset class was destroyed.
        */
       Destroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * An asset class is in the process of being destroyed.
-       */
-      DestructionStarted: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /**
        * Some asset class was force-created.
        */
@@ -822,28 +834,12 @@ declare module "@polkadot/api-base/types/events" {
     };
     localAssets: {
       /**
-       * Accounts were destroyed for given asset.
-       */
-      AccountsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, accountsDestroyed: u32, accountsRemaining: u32],
-        { assetId: u128; accountsDestroyed: u32; accountsRemaining: u32 }
-      >;
-      /**
        * An approval for account `delegate` was cancelled by `owner`.
        */
       ApprovalCancelled: AugmentedEvent<
         ApiType,
         [assetId: u128, owner: AccountId20, delegate: AccountId20],
         { assetId: u128; owner: AccountId20; delegate: AccountId20 }
-      >;
-      /**
-       * Approvals were destroyed for given asset.
-       */
-      ApprovalsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, approvalsDestroyed: u32, approvalsRemaining: u32],
-        { assetId: u128; approvalsDestroyed: u32; approvalsRemaining: u32 }
       >;
       /**
        * (Additional) funds have been approved for transfer to a destination account.
@@ -885,10 +881,6 @@ declare module "@polkadot/api-base/types/events" {
        * An asset class was destroyed.
        */
       Destroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * An asset class is in the process of being destroyed.
-       */
-      DestructionStarted: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /**
        * Some asset class was force-created.
        */
@@ -1920,15 +1912,7 @@ declare module "@polkadot/api-base/types/events" {
         { index: u32; tally: PalletConvictionVotingTally }
       >;
       /**
-       * The submission deposit has been refunded.
-       */
-      SubmissionDepositRefunded: AugmentedEvent<
-        ApiType,
-        [index: u32, who: AccountId20, amount: u128],
-        { index: u32; who: AccountId20; amount: u128 }
-      >;
-      /**
-       * A referendum has been submitted.
+       * A referendum has being submitted.
        */
       Submitted: AugmentedEvent<
         ApiType,
@@ -2162,14 +2146,6 @@ declare module "@polkadot/api-base/types/events" {
        * We have ended a spend period and will now allocate funds.
        */
       Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
-      /**
-       * The inactive funds of the pallet have been updated.
-       */
-      UpdatedInactive: AugmentedEvent<
-        ApiType,
-        [reactivated: u128, deactivated: u128],
-        { reactivated: u128; deactivated: u128 }
-      >;
       /**
        * Generic event
        */

@@ -21,6 +21,38 @@ import type {
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
+import type {
+  EthereumLog,
+  EvmCoreErrorExitReason,
+  FrameSupportDispatchDispatchInfo,
+  FrameSupportDispatchPostDispatchInfo,
+  FrameSupportPreimagesBounded,
+  FrameSupportTokensMiscBalanceStatus,
+  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonbaseRuntimeProxyType,
+  MoonbaseRuntimeXcmConfigAssetType,
+  NimbusPrimitivesNimbusCryptoPublic,
+  PalletConvictionVotingTally,
+  PalletDemocracyVoteAccountVote,
+  PalletDemocracyVoteThreshold,
+  PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
+  PalletParachainStakingDelegatorAdded,
+  PalletXcmTransactorHrmpOperation,
+  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
+  SpRuntimeDispatchError,
+  SpRuntimeDispatchErrorWithPostInfo,
+  SpWeightsWeightV2Weight,
+  XcmV1MultiAsset,
+  XcmV1MultiLocation,
+  XcmV1MultiassetMultiAssets,
+  XcmV2Response,
+  XcmV2TraitsError,
+  XcmV2TraitsOutcome,
+  XcmV2Xcm,
+  XcmVersionedMultiAssets,
+  XcmVersionedMultiLocation,
+} from "@polkadot/types/lookup";
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
