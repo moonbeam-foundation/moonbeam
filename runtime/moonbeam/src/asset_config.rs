@@ -43,6 +43,14 @@ use sp_std::{
 	prelude::*,
 };
 
+// Number of items that can be destroyed with our configured max extrinsic proof size.
+// x = (a - b) / c where:
+// 		a: maxExtrinsic proof size
+// 		b: base proof size for destroy_accounts in pallet_assets weights
+// 		c: proof size for each item
+// 		656.87 = (3_407_872 - 8232) / 5180 
+const REMOVE_ITEMS_LIMIT: u32 = 656;
+
 // Not to disrupt the previous asset instance, we assign () to Foreign
 pub type ForeignAssetInstance = ();
 pub type LocalAssetInstance = pallet_assets::Instance1;
@@ -82,7 +90,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
+	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
@@ -104,7 +112,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
+	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
