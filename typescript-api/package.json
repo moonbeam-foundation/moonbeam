@@ -87,8 +87,8 @@
     "jsdocSingleLineComment": false
   },
   "devDependencies": {
-    "@polkadot/api": "^9.11.3",
-    "@polkadot/typegen": "^9.11.3",
+    "@polkadot/api": "^10.1.3",
+    "@polkadot/typegen": "^10.1.3",
     "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",
