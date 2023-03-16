@@ -42,9 +42,10 @@ use fp_rpc::ConvertTransaction;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"f8648085174876e8008252089412cb274aad8251c875c0bf6872b67d9983e53fdd01801ba05deb036\
-	17e9c2d82e0f4e897ef8fbb01c91244abfc4bd9c3206bc87f9fc71a01a0719f146637fe2b462ccae80\
-	e462ecefa560635d933257ec117a1f7701b178c93";
+	"02f86b820504808087038d7ea4c68000825208943cd0a705a2dc65e5b1e1205896baa2be8a07c6e080\
+	80c080a0932bca8e518f16759c782e5403e3fe55902ecb1b988c8499f015a6617b636e1ca05f6659d0f9\
+	943cf29b611ef1a46b1e4ccc56df524e1f4f08607132142fec0ff0";
+
 
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
