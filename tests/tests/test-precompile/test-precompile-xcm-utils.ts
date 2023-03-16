@@ -276,7 +276,7 @@ describeDevMoonbeam(
       const { result } = await context.createBlock(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
-          gasPrice: 100_000_000_000,
+          gasPrice: 1_000_000_000_000,
           to: PRECOMPILE_XCM_UTILS_ADDRESS,
           data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
             receivedMessage.toU8a(),
