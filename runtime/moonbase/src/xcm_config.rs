@@ -350,10 +350,6 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-/// For compatibility with erc20 assets, we need to forbid XCM messages that can manipulate
-/// erc20 assets in an unsupported way.
-pub type XcmExecuteFilter = pallet_erc20_xcm_bridge::XcmExecuteFilterWrapper<Runtime, Everything>;
-
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
 	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
@@ -364,7 +360,7 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = XcmExecuteFilter;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
