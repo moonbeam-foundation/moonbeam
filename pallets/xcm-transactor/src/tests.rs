@@ -1195,11 +1195,17 @@ fn test_hrmp_manipulator_cancel() {
 			let total_weight = 10_100u64;
 			let tx_weight = 100_u64;
 			let total_fee = 100u128;
+			let channel_id = HrmpChannelId {
+				sender: 1u32.into(),
+				recipient: 1u32.into(),
+			};
+			let open_requests: u32 = 1;
 
 			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
 				HrmpOperation::Cancel {
-					para_id: 1u32.into()
+					channel_id,
+					open_requests
 				},
 				CurrencyPayment {
 					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
@@ -1226,7 +1232,7 @@ fn test_hrmp_manipulator_cancel() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_type: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 3u8].into(),
+				call: vec![1u8, 6u8].into(),
 			}));
 		})
 }
