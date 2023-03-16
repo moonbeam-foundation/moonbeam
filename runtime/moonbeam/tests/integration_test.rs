@@ -75,6 +75,8 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
 
+const BASE_FEE_GENESIS: u128 = 10000 * GIGAWEI;
+
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
 	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
@@ -434,7 +436,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 200_000 * GLMR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = (100 * GIGAWEI).into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 			// Bob transfers 100_000 GLMR to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -855,7 +857,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1101,7 +1103,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1246,7 +1248,7 @@ fn transfer_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_000 * (100 * GIGAWEI))) + (1 * WEI),
+				((1 * GLMR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1259,8 +1261,8 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1276,7 +1278,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_777 * (100 * GIGAWEI))),
+				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1289,8 +1291,8 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1298,7 +1300,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * (100 * GIGAWEI),
+				777 * BASE_FEE_GENESIS,
 			);
 		});
 }
@@ -1378,7 +1380,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
+			(1 * GLMR) + (21_000 * BASE_FEE_GENESIS),
 		)])
 		.build()
 		.execute_with(|| {
@@ -1390,8 +1392,8 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1399,7 +1401,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 100 GWEI base fee.
-			let fee = ((100 * GIGAWEI) * 21_000) as f64;
+			let fee = (BASE_FEE_GENESIS * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2879,15 +2881,6 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
-	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonbeam_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
-}
-
-#[test]
 fn evm_revert_substrate_events() {
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
@@ -2910,7 +2903,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2949,7 +2942,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
