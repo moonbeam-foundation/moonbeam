@@ -34,7 +34,7 @@ pub fn revert(msg: impl Into<String>) -> PrecompileFailure {
 /// Generate an encoded revert from a simple String.
 /// Returns a `Vec<u8>` in case `PrecompileFailure` is too high level.
 pub fn revert_as_bytes(msg: impl Into<String>) -> Vec<u8> {
-	Revert::new(RevertReason::custom(msg)).to_bytes()
+	Revert::new(RevertReason::custom(msg)).to_encoded_bytes()
 }
 
 /// Generic error to build abi-encoded revert output.
@@ -189,8 +189,9 @@ impl Revert {
 	}
 
 	/// Transforms the revert into its bytes representation (from a String).
-	pub fn to_bytes(self) -> Vec<u8> {
-		self.into()
+	pub fn to_encoded_bytes(self) -> Vec<u8> {
+		let bytes: Vec<u8> = self.into();
+		UnboundedBytes::from(bytes).encode_with_selector(ERROR_SELECTOR)
 	}
 }
 
@@ -369,7 +370,7 @@ impl From<Revert> for PrecompileFailure {
 	fn from(err: Revert) -> Self {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
-			output: UnboundedBytes::from(err.to_string()).encode_with_selector(ERROR_SELECTOR),
+			output: err.to_encoded_bytes(),
 		}
 	}
 }
