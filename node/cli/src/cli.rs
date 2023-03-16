@@ -151,8 +151,6 @@ pub struct RunCmd {
 	/// Enable EVM tracing module on a non-authority node.
 	#[clap(
 		long,
-		conflicts_with = "collator",
-		conflicts_with = "validator",
 		value_delimiter = ','
 	)]
 	pub ethapi: Vec<EthApi>,
