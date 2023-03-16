@@ -82,19 +82,15 @@ where
 
 use pallet_xcm_transactor::{relay_indices::*, RelayIndices};
 use sp_core::Get;
-pub struct PopulateRelayIndices<T, S>(pub S, PhantomData<T>);
-impl<T, S> Migration for PopulateRelayIndices<T, S>
-where
-	T: pallet_xcm_transactor::Config,
-	S: Into<RelayChainIndices> + Clone,
-{
+pub struct PopulateRelayIndices<T>(pub RelayChainIndices, pub PhantomData<T>);
+impl<T: pallet_xcm_transactor::Config> Migration for PopulateRelayIndices<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_PopulateRelayIndices"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		// insert input into storage
-		RelayIndices::<T>::put(self.0.clone().into());
+		RelayIndices::<T>::put(self.0);
 		T::DbWeight::get().writes(1)
 	}
 

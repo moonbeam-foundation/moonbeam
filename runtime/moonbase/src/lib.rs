@@ -969,6 +969,23 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use pallet_migrations::{GetMigrations, Migration};
+pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
+where
+	Runtime: pallet_xcm_transactor::Config,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let xcm_transactor_migrate_relay_indices_for_encoding =
+			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
+				moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
+				Default::default(),
+			);
+		vec![Box::new(xcm_transactor_migrate_relay_indices_for_encoding)]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
@@ -984,6 +1001,7 @@ impl pallet_migrations::Config for Runtime {
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
+		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;

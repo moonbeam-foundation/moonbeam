@@ -534,6 +534,10 @@ parameter_types! {
 	pub MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
 }
 
+// TODO:
+// replace Transactors encoding with pallet-based encoding, what needs to be replaced?
+// where is Transactor::UtilityEncoding used
+
 // For now we only allow to transact in the relay, although this might change in the future
 // Transactors just defines the chains in which we allow transactions to be issued through
 // xcm

@@ -769,17 +769,17 @@ pub mod pallet {
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => {
-					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
 					))
 				}
 				HrmpOperation::Accept { para_id } => {
-					Self::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
-					Self::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::*;
 use frame_support::traits::PalletInfo;
 use pallet_xcm_transactor::{relay_indices::*, traits::*};
 use parity_scale_codec::Encode;
@@ -25,35 +26,8 @@ use xcm_primitives::UtilityEncodeCall;
 fn test_common_encoder_as_derivative() {
 	sp_io::TestExternalities::default().execute_with(|| {
         let mut expected_encoded: Vec<u8> = Vec::new();
-        pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
-            RelayChainIndices {
-                pallets: PalletIndices {
-                    staking: 6u8,
-                    utility: 24u8,
-                    hrmp: 1u8,
-                },
-                calls: CallIndices {
-                    staking: StakingIndices {
-                        bond: 1u8,
-                        bond_extra: 1u8,
-                        unbond: 1u8,
-                        withdraw_unbonded: 1u8,
-                        validate: 1u8,
-                        nominate: 1u8,
-                        chill: 6u8,
-                        set_payee: 1u8,
-                        set_controller: 1u8,
-                        rebond: 1u8,
-                    },
-                    utility: UtilityIndices { as_derivative: 1u8 },
-                    hrmp: HrmpIndices {
-                        init_open_channel: 1u8,
-                        accept_open_channel: 1u8,
-                        close_channel: 1u8,
-                    },
-                },
-            },
-        );
+        // expected migration (TODO: put in execute_with defn by default)
+        pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(KUSAMA_RELAY_INDICES);
         // TODO: insert the encoding correctly as per existing code...
         let index = <kusama_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
             kusama_runtime::Utility,

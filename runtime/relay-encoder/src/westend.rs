@@ -166,6 +166,37 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for WestendEncoder {
 	}
 }
 
+// insert into storage and verify same encoding as above for all current tests?
+// do same for other runtimes
+// use same struct in tests as in runtimes, consider declaring as const
+// RelayChainIndices {
+// 	pallets: PalletIndices {
+// 		staking: 6u8,
+// 		utility: 16u8,
+// 		hrmp: 51u8,
+// 	},
+// 	calls: CallIndices {
+// 		staking: StakingIndices {
+// 			bond: 0u8,
+// 			bond_extra: 1u8,
+// 			unbond: 2u8,
+// 			withdraw_unbonded: 3u8,
+// 			validate: 4u8,
+// 			nominate: 5u8,
+// 			chill: 6u8,
+// 			set_payee: 7u8,
+// 			set_controller: 8u8,
+// 			rebond: 19u8,
+// 		},
+// 		utility: UtilityIndices { as_derivative: 1u8 },
+// 		hrmp: HrmpIndices {
+// 			init_open_channel: 0u8,
+// 			accept_open_channel: 1u8,
+// 			close_channel: 2u8,
+// 		},
+// 	},
+// }
+
 #[cfg(test)]
 mod tests {
 	use super::*;
