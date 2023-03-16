@@ -32,7 +32,7 @@ pub fn main(input: TokenStream) -> TokenStream {
 
 	let syn::Data::Struct (syn::DataStruct {fields: syn::Fields::Named(fields), ..}) = data else {
 		return quote_spanned! { ident.span() =>
-			compile_error!("EvmData can only be derived for structs with named fields");
+			compile_error!("Codec can only be derived for structs with named fields");
 		}
 		.into()
 	};
@@ -40,14 +40,14 @@ pub fn main(input: TokenStream) -> TokenStream {
 
 	if fields.len() == 0 {
 		return quote_spanned! { ident.span() =>
-			compile_error!("EvmData can only be derived for structs with at least one field");
+			compile_error!("Codec can only be derived for structs with at least one field");
 		}
 		.into();
 	}
 
 	if let Some(unamed_field) = fields.iter().find(|f| f.ident.is_none()) {
 		return quote_spanned! { unamed_field.ty.span() =>
-			compile_error!("EvmData can only be derived for structs with named fields");
+			compile_error!("Codec can only be derived for structs with named fields");
 		}
 		.into();
 	}
