@@ -19,6 +19,7 @@ use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 use xcm::opaque::lts::Weight;
+use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
 /// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
@@ -63,7 +64,7 @@ impl ManualXcmApiServer for ManualXcm {
 				ClearOrigin,
 				BuyExecution {
 					fees: (Parent, 10000000000000u128).into(),
-					weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
+					weight_limit: Limited(Weight::from_parts(4_000_000_000u64, DEFAULT_PROOF_SIZE)),
 				},
 				DepositAsset {
 					assets: AllCounted(1).into(),
@@ -105,7 +106,7 @@ impl ManualXcmApiServer for ManualXcm {
 					ClearOrigin,
 					BuyExecution {
 						fees: ((Parent, Parachain(sender.into())), 10000000000000u128).into(),
-						weight_limit: Limited(Weight::from_parts(4_000_000_000u64, 64 * 1024)),
+						weight_limit: Limited(Weight::from_parts(4_000_000_000u64, DEFAULT_PROOF_SIZE)),
 					},
 					DepositAsset {
 						assets: AllCounted(1).into(),

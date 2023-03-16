@@ -50,7 +50,7 @@ use xcm_executor::traits::JustTry;
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	DEFAULT_PROOF_SIZE, FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -198,7 +198,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, 64 * 1024);
+	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -455,7 +455,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, 64 * 1024);
+	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset

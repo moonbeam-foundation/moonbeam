@@ -517,7 +517,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, 64 * 1024);
+	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, xcm_primitives::DEFAULT_PROOF_SIZE);
 	pub const MaxAssetsForTransfer: usize = 2;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only

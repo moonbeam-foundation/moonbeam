@@ -5039,6 +5039,7 @@ dependencies = [
  "parity-scale-codec",
  "tokio",
  "xcm",
+ "xcm-primitives",
 ]
 
 [[package]]
@@ -7506,6 +7507,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "xcm-primitives",
 ]
 
 [[package]]

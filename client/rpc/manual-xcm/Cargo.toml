@@ -17,3 +17,4 @@ tokio = { workspace = true, features = [ "sync", "time" ] }
 xcm = { workspace = true }
 
 cumulus-primitives-core = { workspace = true, features = [ "std" ] }
+xcm-primitives = { workspace = true, features = [ "std" ] }

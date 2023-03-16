@@ -33,8 +33,8 @@ benchmarks! {
 		let fee_asset = Concrete(MultiLocation::parent());
 
 		let instruction = Instruction::<XcmCallOf<T>>::BuyExecution {
-			fees: (fee_asset, 100_000_000).into(), // should be something inside of holding
-			weight_limit: WeightLimit::Limited(Weight::from_parts(1u64,64 * 1024)),
+			fees: (fee_asset, 100_000_000u128).into(), // should be something inside of holding
+			weight_limit: WeightLimit::Limited(Weight::from_parts(1u64, xcm_primitives::DEFAULT_PROOF_SIZE)),
 		};
 
 		let xcm = Xcm(vec![instruction]);

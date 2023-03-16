@@ -33,7 +33,7 @@ use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_executor::traits::Convert;
 use xcm_mock::*;
-use xcm_primitives::UtilityEncodeCall;
+use xcm_primitives::{DEFAULT_PROOF_SIZE, UtilityEncodeCall};
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
@@ -166,7 +166,7 @@ fn send_relay_asset_to_relay() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			123,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -268,7 +268,7 @@ fn send_relay_asset_to_para_b() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -334,7 +334,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(800000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -419,7 +419,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -454,7 +454,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -513,7 +513,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -547,7 +547,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -606,7 +606,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -780,7 +780,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(10u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 	ParaA::execute_with(|| {
@@ -855,7 +855,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			100,
 			1,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(800000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 	ParaA::execute_with(|| {
@@ -1024,7 +1024,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -1175,7 +1175,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -1340,7 +1340,7 @@ fn transact_through_sovereign() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -1489,7 +1489,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(40000u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
@@ -1800,7 +1800,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V3(dest)),
-			WeightLimit::Limited(Weight::from_parts(80u64, 64 * 1024))
+			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 		// free execution, full amount received
 		assert_eq!(
@@ -2323,7 +2323,7 @@ fn send_para_a_local_asset_to_para_b() {
 				parachain::CurrencyId::LocalAssetReserve(asset_id),
 				100,
 				Box::new(VersionedMultiLocation::V3(dest)),
-				WeightLimit::Limited(Weight::from_parts(800000u64, 64 * 1024))
+				WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 			));
 		});
 
@@ -2431,7 +2431,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				],
 				0,
 				Box::new(VersionedMultiLocation::V3(dest)),
-				WeightLimit::Limited(Weight::from_parts(800000u64, 64 * 1024))
+				WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 			));
 		});
 
@@ -2477,7 +2477,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				],
 				0,
 				Box::new(VersionedMultiLocation::V3(new_dest)),
-				WeightLimit::Limited(Weight::from_parts(4u64, 64 * 1024))
+				WeightLimit::Limited(Weight::from_parts(4u64, DEFAULT_PROOF_SIZE))
 			));
 		});
 

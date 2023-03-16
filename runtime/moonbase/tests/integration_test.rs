@@ -2551,7 +2551,7 @@ fn transact_through_signed_precompile_works_v1() {
 				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
-				Weight::from_parts(200_000, (64 * 1024) + 4000),
+				Weight::from_parts(200_000, (xcm_primitives::DEFAULT_PROOF_SIZE) + 4000),
 				Some(4000.into())
 			));
 			// Root can set transact info
