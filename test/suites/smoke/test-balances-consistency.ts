@@ -1,11 +1,7 @@
+import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { extractPreimageDeposit, printTokens } from "@moonsong-labs/moonwall-util";
 import { ApiDecoration } from "@polkadot/api/types";
-import Debug from "debug";
-const debug = Debug("smoke:balances");
-// import "@moonbeam-network/api-augment";
-import "@polkadot/api-augment";
-
 import { H256 } from "@polkadot/types/interfaces/runtime";
 import { u32 } from "@polkadot/types";
 import {
@@ -16,6 +12,8 @@ import {
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
+import Debug from "debug";
+const debug = Debug("smoke:balances");
 
 describeSuite({
   id: "S300",

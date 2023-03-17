@@ -13,9 +13,9 @@
   "license": "ISC",
   "devDependencies": {
     "@acala-network/chopsticks": "^0.5.10",
-    "@moonbeam-network/api-augment": "^0.2100.0",
-    "@moonsong-labs/moonwall-cli": "^0.2.8",
-    "@moonsong-labs/moonwall-util": "^0.2.8",
+    "@moonbeam-network/api-augment": "^0.2201.0",
+    "@moonsong-labs/moonwall-cli": "^0.2.11",
+    "@moonsong-labs/moonwall-util": "^0.2.9",
     "@polkadot/api": "^10.1.3",
     "@polkadot/api-augment": "^10.1.3",
     "@polkadot/types": "^10.1.3",

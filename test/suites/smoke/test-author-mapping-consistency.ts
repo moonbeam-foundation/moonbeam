@@ -2,7 +2,7 @@ import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
 import Debug from "debug";
 const debug = Debug("smoke:author-mapping");
-// import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment";
 
 describeSuite({
   id: "S200",
@@ -76,25 +76,24 @@ describeSuite({
           const nimbusId = nimbusIdPerAccount[accountId];
           const registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
           
-          if (// @ts-expect-error
-            registrationInfo.isNone ||// @ts-expect-error
+          if (
+            registrationInfo.isNone ||
             registrationInfo.unwrap().deposit.toBigInt() <= BigInt(0)
           ) {
             failedEntries.push({ accountId, nimbusId, problem: "missing deposit" });
           }
 
           // ensure each account has reserve >= deposit
-          const account = await apiAt.query.system.account(accountId);// @ts-expect-error
+          const account = await apiAt.query.system.account(accountId);
           if (registrationInfo.unwrap().deposit.toBigInt() > account.data.reserved.toBigInt()) {
             failedEntries.push({ accountId, nimbusId, problem: "insufficient reserved amount" });
           }
 
           // ensure that keys exist and smell legitimate 
-          // @ts-expect-error
           const keys_ = registrationInfo.unwrap().keys_;
-          const zeroes = Array.from(keys_.toString()).reduce((prev, c) => {// @ts-expect-error
+          const zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
             return prev + (c == "0" ? 1 : 0);
-          }, 0);// @ts-expect-error
+          }, 0);
           if (zeroes > 32) {
             // this isn't an inconsistent state, so we will just warn.
             //

@@ -1,4 +1,4 @@
-// import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
 import Debug from "debug";
@@ -27,13 +27,11 @@ describeSuite({
       test: async function () {
         if (specVersion < 1500) {
           const eligibilityRatio = await apiAt.query.authorFilter.eligibleRatio();
-          // @ts-expect-error
           expect(eligibilityRatio.toBigInt() > 0n).to.be.true;
         }
 
         if (specVersion >= 1500) {
           const eligibilityCount = await apiAt.query.authorFilter.eligibleCount();
-          // @ts-expect-error
           expect(eligibilityCount.toNumber() > 0).to.be.true;
         }
 
