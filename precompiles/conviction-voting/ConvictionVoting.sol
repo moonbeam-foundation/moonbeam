@@ -55,6 +55,26 @@ interface ConvictionVoting {
         Conviction conviction
     ) external;
 
+    /// @dev Vote split in a poll.
+    /// @custom:selector dd6c52a4
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    function voteSplit(uint32 pollIndex, uint256 aye, uint256 nay) external;
+
+    /// @dev Vote split abstain in a poll.
+    /// @custom:selector 52004540
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    /// @param abstain Balance locked for abstain vote (support)
+    function voteSplitAbstain(
+        uint32 pollIndex,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
+    ) external;
+
     /// @dev Remove vote in poll
     /// @custom:selector 79cae220
     /// @param pollIndex Index of the poll

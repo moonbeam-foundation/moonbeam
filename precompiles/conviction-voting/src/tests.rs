@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, VoteDirection, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED,
-	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
-	SELECTOR_LOG_VOTE_REMOVED_OTHER,
+	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
+	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_OTHER,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
@@ -72,35 +71,25 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 }
 
 fn vote(
-	direction: VoteDirection,
+	direction: bool,
 	vote_amount: U256,
 	conviction: u8,
 ) -> DispatchResultWithInfo<PostDispatchInfoOf<RuntimeCall>> {
 	let input = match direction {
 		// Vote Yes
-		VoteDirection::Yes => PCall::vote_yes {
+		true => PCall::vote_yes {
 			poll_index: ONGOING_POLL_INDEX,
 			vote_amount,
 			conviction,
 		}
 		.into(),
 		// Vote No
-		VoteDirection::No => PCall::vote_no {
+		false => PCall::vote_no {
 			poll_index: ONGOING_POLL_INDEX,
 			vote_amount,
 			conviction,
 		}
 		.into(),
-		// Unsupported
-		_ => {
-			return Err(DispatchErrorWithPostInfo {
-				post_info: PostDispatchInfo {
-					actual_weight: None,
-					pays_fee: Pays::No,
-				},
-				error: DispatchError::Other("Vote direction not supported"),
-			})
-		}
 	};
 	RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root())
 }
@@ -112,10 +101,10 @@ fn vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote Yes
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(vote(true, 100_000.into(), 0.into()));
 
 			// Vote No
-			assert_ok!(vote(VoteDirection::No, 99_000.into(), 1.into()));
+			assert_ok!(vote(false, 99_000.into(), 1.into()));
 
 			// Assert vote events are emitted.
 			assert!(vec![
@@ -160,7 +149,7 @@ fn remove_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(vote(true, 100_000.into(), 0.into()));
 
 			// ..and remove
 			let input = PCall::remove_vote {
@@ -193,7 +182,7 @@ fn remove_other_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(vote(true, 100_000.into(), 0.into()));
 
 			// ..and remove other
 			let input = PCall::remove_other_vote {
@@ -285,7 +274,7 @@ fn unlock_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(vote(true, 100_000.into(), 0.into()));
 
 			// Remove
 			let input = PCall::remove_vote {

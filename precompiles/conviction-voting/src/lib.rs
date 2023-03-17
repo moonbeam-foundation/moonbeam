@@ -22,7 +22,7 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Polling};
 use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
-use pallet_evm::AddressMapping;
+use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
@@ -57,6 +57,14 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 pub(crate) const SELECTOR_LOG_VOTED: [u8; 32] =
 	keccak256!("Voted(uint32,address,bool,uint256,uint8)");
 
+/// Solidity selector of the Vote Split log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_VOTE_SPLIT: [u8; 32] =
+	keccak256!("VoteSplit(uint32,address,uint256,uint256)");
+
+/// Solidity selector of the Vote Split Abstained log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; 32] =
+	keccak256!("VoteSplit(uint32,address,uint256,uint256,uint256)");
+
 /// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
 
@@ -73,14 +81,6 @@ pub(crate) const SELECTOR_LOG_UNDELEGATED: [u8; 32] = keccak256!("Undelegated(ui
 
 /// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_UNLOCKED: [u8; 32] = keccak256!("Unlocked(uint16,address)");
-
-/// Direction of vote
-pub(crate) enum VoteDirection {
-	Yes,
-	No,
-	#[allow(unused)]
-	Abstain,
-}
 
 /// A precompile to wrap the functionality from pallet-conviction-voting.
 pub struct ConvictionVotingPrecompile<Runtime>(PhantomData<Runtime>);
@@ -102,42 +102,10 @@ where
 	fn vote(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
-		vote: VoteDirection,
-		vote_amount: U256,
-		conviction: u8,
+		vote: AccountVote<U256>,
 	) -> EvmResult {
 		let caller = handle.context().caller;
-		let aye = match vote {
-			VoteDirection::Yes => true,
-			VoteDirection::No => false,
-			_ => return Err(RevertReason::custom("Abstain not supported").into()),
-		};
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_VOTED,
-			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.write::<bool>(aye)
-				.write::<U256>(vote_amount)
-				.write::<u8>(conviction)
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
-
-		let poll_index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-		let conviction = Self::u8_to_conviction(conviction).in_field("conviction")?;
-
-		let vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
-		};
-
-		log::trace!(target: "conviction-voting-precompile",
-			"Voting {:?} on poll {:?}, with conviction {:?}",
-			aye, poll_index, conviction
-		);
+		let (poll_index, vote, event) = Self::log_vote_event(handle, caller, poll_index, vote)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
@@ -165,9 +133,13 @@ where
 		Self::vote(
 			handle,
 			poll_index,
-			VoteDirection::Yes,
-			vote_amount,
-			conviction,
+			AccountVote::Standard {
+				vote: Vote {
+					aye: true,
+					conviction: Self::u8_to_conviction(conviction)?,
+				},
+				balance: vote_amount,
+			},
 		)
 	}
 
@@ -187,9 +159,50 @@ where
 		Self::vote(
 			handle,
 			poll_index,
-			VoteDirection::No,
-			vote_amount,
-			conviction,
+			AccountVote::Standard {
+				vote: Vote {
+					aye: false,
+					conviction: Self::u8_to_conviction(conviction)?,
+				},
+				balance: vote_amount,
+			},
+		)
+	}
+
+	/// Vote split in a poll.
+	///
+	/// Parameters:
+	/// * poll_index: Index of poll
+	/// * aye: Balance locked for aye vote
+	/// * nay: Balance locked for nay vote
+	#[precompile::public("voteSplit(uint32,uint256,uint256)")]
+	fn vote_split(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		aye: U256,
+		nay: U256,
+	) -> EvmResult {
+		Self::vote(handle, poll_index, AccountVote::Split { aye, nay })
+	}
+
+	/// Vote split in a poll.
+	///
+	/// Parameters:
+	/// * poll_index: Index of poll
+	/// * aye: Balance locked for aye vote
+	/// * nay: Balance locked for nay vote
+	#[precompile::public("voteSplitAbstain(uint32,uint256,uint256,uint256)")]
+	fn vote_split_abstain(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		aye: U256,
+		nay: U256,
+		abstain: U256,
+	) -> EvmResult {
+		Self::vote(
+			handle,
+			poll_index,
+			AccountVote::SplitAbstain { aye, nay, abstain },
 		)
 	}
 
@@ -395,5 +408,76 @@ where
 		value
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
+	}
+	fn log_vote_event(
+		handle: &mut impl PrecompileHandle,
+		caller: H160,
+		poll_index: u32,
+		vote: AccountVote<U256>,
+	) -> EvmResult<(IndexOf<Runtime>, AccountVote<BalanceOf<Runtime>>, Log)> {
+		let (vote, event) = match vote {
+			AccountVote::Standard { vote, balance } => {
+				let event = log2(
+					caller,
+					SELECTOR_LOG_VOTED,
+					H256::from_low_u64_be(poll_index as u64),
+					EvmDataWriter::new()
+						.write::<Address>(Address(caller))
+						.write::<bool>(vote.aye)
+						.write::<U256>(balance)
+						.write::<u8>(vote.conviction.into())
+						.build(),
+				);
+				(
+					AccountVote::Standard {
+						vote,
+						balance: Self::u256_to_amount(balance)?,
+					},
+					event,
+				)
+			}
+			AccountVote::Split { aye, nay } => {
+				let event = log2(
+					caller,
+					SELECTOR_LOG_VOTE_SPLIT,
+					H256::from_low_u64_be(poll_index as u64),
+					EvmDataWriter::new()
+						.write::<Address>(Address(caller))
+						.write::<U256>(aye)
+						.write::<U256>(nay)
+						.build(),
+				);
+				(
+					AccountVote::Split {
+						aye: Self::u256_to_amount(aye)?,
+						nay: Self::u256_to_amount(nay)?,
+					},
+					event,
+				)
+			}
+			AccountVote::SplitAbstain { aye, nay, abstain } => {
+				let event = log2(
+					caller,
+					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
+					H256::from_low_u64_be(poll_index as u64),
+					EvmDataWriter::new()
+						.write::<Address>(Address(caller))
+						.write::<U256>(aye)
+						.write::<U256>(nay)
+						.write::<U256>(abstain)
+						.build(),
+				);
+				(
+					AccountVote::SplitAbstain {
+						aye: Self::u256_to_amount(aye)?,
+						nay: Self::u256_to_amount(nay)?,
+						abstain: Self::u256_to_amount(abstain)?,
+					},
+					event,
+				)
+			}
+		};
+		handle.record_log_costs(&[&event])?;
+		Ok((Self::u32_to_index(poll_index)?, vote, event))
 	}
 }
