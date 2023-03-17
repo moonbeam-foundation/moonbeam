@@ -8,8 +8,7 @@ import { mockAssetBalance } from "../../util/assets";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import type {
   PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsDestroyWitness,
+  PalletAssetsAssetDetails
 } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
 
