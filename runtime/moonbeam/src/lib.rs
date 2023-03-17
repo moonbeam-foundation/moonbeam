@@ -34,6 +34,7 @@ use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+use crate::currency::deposit;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
@@ -1302,6 +1303,24 @@ impl pallet_randomness::Config for Runtime {
 	type EpochExpirationDelay = ConstU64<10_000>;
 }
 
+parameter_types! {
+	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+	pub const DepositBase: Balance = deposit(1, 88);
+	// Additional storage item size of 32 bytes.
+	pub const DepositFactor: Balance = deposit(0, 32);
+	pub const MaxSignatories: u32 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>; //weights::pallet_multisig::WeightInfo<Runtime>;
+}
+
 impl pallet_root_testing::Config for Runtime {}
 
 construct_runtime! {
@@ -1377,6 +1396,8 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 121,
 	}
 }
 
