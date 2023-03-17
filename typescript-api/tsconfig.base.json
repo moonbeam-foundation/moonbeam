@@ -17,5 +17,9 @@
       "moonbase": ["moonbase/src"]
     }
   },
-  "exclude": ["node_modules", "build"]
+  "exclude": ["node_modules", "build"],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }
