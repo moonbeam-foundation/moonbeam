@@ -94,8 +94,8 @@ import type {
   PalletAssetsAssetAccount,
   PalletAssetsAssetDetails,
   PalletAssetsAssetMetadata,
+  PalletAssetsAssetStatus,
   PalletAssetsCall,
-  PalletAssetsDestroyWitness,
   PalletAssetsError,
   PalletAssetsEvent,
   PalletAssetsExistenceReason,
@@ -113,7 +113,6 @@ import type {
   PalletBalancesError,
   PalletBalancesEvent,
   PalletBalancesReasons,
-  PalletBalancesReleases,
   PalletBalancesReserveData,
   PalletCollectiveCall,
   PalletCollectiveError,
@@ -223,6 +222,7 @@ import type {
   PalletReferendaReferendumInfo,
   PalletReferendaReferendumStatus,
   PalletReferendaTrackInfo,
+  PalletRootTestingCall,
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
@@ -266,12 +266,12 @@ import type {
   PolkadotPrimitivesV2PersistedValidationData,
   PolkadotPrimitivesV2UpgradeRestriction,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
+  SpArithmeticArithmeticError,
   SpCoreEcdsaSignature,
   SpCoreEd25519Signature,
   SpCoreSr25519Public,
   SpCoreSr25519Signature,
   SpCoreVoid,
-  SpRuntimeArithmeticError,
   SpRuntimeDigest,
   SpRuntimeDigestDigestItem,
   SpRuntimeDispatchError,
@@ -412,8 +412,8 @@ declare module "@polkadot/types/types/registry" {
     PalletAssetsAssetAccount: PalletAssetsAssetAccount;
     PalletAssetsAssetDetails: PalletAssetsAssetDetails;
     PalletAssetsAssetMetadata: PalletAssetsAssetMetadata;
+    PalletAssetsAssetStatus: PalletAssetsAssetStatus;
     PalletAssetsCall: PalletAssetsCall;
-    PalletAssetsDestroyWitness: PalletAssetsDestroyWitness;
     PalletAssetsError: PalletAssetsError;
     PalletAssetsEvent: PalletAssetsEvent;
     PalletAssetsExistenceReason: PalletAssetsExistenceReason;
@@ -431,7 +431,6 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesError: PalletBalancesError;
     PalletBalancesEvent: PalletBalancesEvent;
     PalletBalancesReasons: PalletBalancesReasons;
-    PalletBalancesReleases: PalletBalancesReleases;
     PalletBalancesReserveData: PalletBalancesReserveData;
     PalletCollectiveCall: PalletCollectiveCall;
     PalletCollectiveError: PalletCollectiveError;
@@ -541,6 +540,7 @@ declare module "@polkadot/types/types/registry" {
     PalletReferendaReferendumInfo: PalletReferendaReferendumInfo;
     PalletReferendaReferendumStatus: PalletReferendaReferendumStatus;
     PalletReferendaTrackInfo: PalletReferendaTrackInfo;
+    PalletRootTestingCall: PalletRootTestingCall;
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
@@ -584,12 +584,12 @@ declare module "@polkadot/types/types/registry" {
     PolkadotPrimitivesV2PersistedValidationData: PolkadotPrimitivesV2PersistedValidationData;
     PolkadotPrimitivesV2UpgradeRestriction: PolkadotPrimitivesV2UpgradeRestriction;
     SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
+    SpArithmeticArithmeticError: SpArithmeticArithmeticError;
     SpCoreEcdsaSignature: SpCoreEcdsaSignature;
     SpCoreEd25519Signature: SpCoreEd25519Signature;
     SpCoreSr25519Public: SpCoreSr25519Public;
     SpCoreSr25519Signature: SpCoreSr25519Signature;
     SpCoreVoid: SpCoreVoid;
-    SpRuntimeArithmeticError: SpRuntimeArithmeticError;
     SpRuntimeDigest: SpRuntimeDigest;
     SpRuntimeDigestDigestItem: SpRuntimeDigestDigestItem;
     SpRuntimeDispatchError: SpRuntimeDispatchError;

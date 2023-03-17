@@ -57,7 +57,6 @@ import type {
   PalletAuthorMappingRegistrationInfo,
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
-  PalletBalancesReleases,
   PalletBalancesReserveData,
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
@@ -326,6 +325,11 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
+       * The total units of outstanding deactivated balance in the system.
+       */
+      inactiveIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Any liquidity locks on some account balances. NOTE: Should only be
        * accessed when setting, changing and freeing a lock.
        */
@@ -344,13 +348,6 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
-       * Storage version of the pallet.
-       *
-       * This is set to v2.0.0 for new networks.
-       */
-      storageVersion: AugmentedQuery<ApiType, () => Observable<PalletBalancesReleases>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /**
        * The total units issued in the system.
        */
@@ -1561,19 +1558,6 @@ declare module "@polkadot/api-base/types/storage" {
        */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    randomnessCollectiveFlip: {
-      /**
-       * Series of block headers from the last 81 blocks that acts as random
-       * seed material. This is arranged as a ring buffer with `block_number %
-       * 81` being the index into the `Vec` of the oldest hash.
-       */
-      randomMaterial: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     referenda: {
       /**
        * The number of referenda being decided currently.
@@ -1610,6 +1594,12 @@ declare module "@polkadot/api-base/types/storage" {
         [u16]
       > &
         QueryableStorageEntry<ApiType, [u16]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    rootTesting: {
       /**
        * Generic query
        */
@@ -1853,6 +1843,11 @@ declare module "@polkadot/api-base/types/storage" {
        * Proposal indices that have been approved but not yet awarded.
        */
       approvals: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The amount which has been reported as inactive to Currency.
+       */
+      deactivated: AugmentedQuery<ApiType, () => Observable<u128>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Number of proposals that have been made.

@@ -31,6 +31,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       AlreadyExists: AugmentedError<ApiType>;
       /**
+       * The asset is not live, and likely being destroyed.
+       */
+      AssetNotLive: AugmentedError<ApiType>;
+      /**
        * Invalid metadata given.
        */
       BadMetadata: AugmentedError<ApiType>;
@@ -47,9 +51,19 @@ declare module "@polkadot/api-base/types/errors" {
        */
       Frozen: AugmentedError<ApiType>;
       /**
+       * The asset status is not the expected status.
+       */
+      IncorrectStatus: AugmentedError<ApiType>;
+      /**
        * The asset ID is already taken.
        */
       InUse: AugmentedError<ApiType>;
+      /**
+       * The asset is a live asset and is actively being used. Usually emit for
+       * operations such as `start_destroy` which require the asset to be in a
+       * destroying state.
+       */
+      LiveAsset: AugmentedError<ApiType>;
       /**
        * Minimum balance should be non-zero.
        */
@@ -72,6 +86,10 @@ declare module "@polkadot/api-base/types/errors" {
        * non-self-sufficient asset, or the maximum number of consumers has been reached.
        */
       NoProvider: AugmentedError<ApiType>;
+      /**
+       * The asset should be frozen before the given operation.
+       */
+      NotFrozen: AugmentedError<ApiType>;
       /**
        * No approval exists that would allow the transfer.
        */
@@ -163,7 +181,7 @@ declare module "@polkadot/api-base/types/errors" {
        */
       ExistingVestingSchedule: AugmentedError<ApiType>;
       /**
-       * Balance too low to send value
+       * Balance too low to send value.
        */
       InsufficientBalance: AugmentedError<ApiType>;
       /**
@@ -528,6 +546,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       Reentrancy: AugmentedError<ApiType>;
       /**
+       * EIP-3607,
+       */
+      TransactionMustComeFromEOA: AugmentedError<ApiType>;
+      /**
        * Undefined error.
        */
       Undefined: AugmentedError<ApiType>;
@@ -573,6 +595,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Judgement given.
        */
       JudgementGiven: AugmentedError<ApiType>;
+      /**
+       * Error that occurs when there is an issue paying for judgement.
+       */
+      JudgementPaymentFailed: AugmentedError<ApiType>;
       /**
        * No identity found.
        */
@@ -620,6 +646,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       AlreadyExists: AugmentedError<ApiType>;
       /**
+       * The asset is not live, and likely being destroyed.
+       */
+      AssetNotLive: AugmentedError<ApiType>;
+      /**
        * Invalid metadata given.
        */
       BadMetadata: AugmentedError<ApiType>;
@@ -636,9 +666,19 @@ declare module "@polkadot/api-base/types/errors" {
        */
       Frozen: AugmentedError<ApiType>;
       /**
+       * The asset status is not the expected status.
+       */
+      IncorrectStatus: AugmentedError<ApiType>;
+      /**
        * The asset ID is already taken.
        */
       InUse: AugmentedError<ApiType>;
+      /**
+       * The asset is a live asset and is actively being used. Usually emit for
+       * operations such as `start_destroy` which require the asset to be in a
+       * destroying state.
+       */
+      LiveAsset: AugmentedError<ApiType>;
       /**
        * Minimum balance should be non-zero.
        */
@@ -661,6 +701,10 @@ declare module "@polkadot/api-base/types/errors" {
        * non-self-sufficient asset, or the maximum number of consumers has been reached.
        */
       NoProvider: AugmentedError<ApiType>;
+      /**
+       * The asset should be frozen before the given operation.
+       */
+      NotFrozen: AugmentedError<ApiType>;
       /**
        * No approval exists that would allow the transfer.
        */
@@ -1051,11 +1095,15 @@ declare module "@polkadot/api-base/types/errors" {
        */
       BadReferendum: AugmentedError<ApiType>;
       /**
+       * The referendum status is invalid for this operation.
+       */
+      BadStatus: AugmentedError<ApiType>;
+      /**
        * The track identifier given was invalid.
        */
       BadTrack: AugmentedError<ApiType>;
       /**
-       * There are already a full complement of referendums in progress for this track.
+       * There are already a full complement of referenda in progress for this track.
        */
       Full: AugmentedError<ApiType>;
       /**
