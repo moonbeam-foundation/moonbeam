@@ -81,6 +81,8 @@ pub enum HrmpCall {
 	AcceptOpenChannel(ParaId),
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
+	#[codec(index = 6u8)]
+	CancelOpenChannel(HrmpChannelId, u32),
 }
 
 pub struct WestendEncoder;
@@ -113,6 +115,9 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
 			}
 		}
 	}
@@ -543,6 +548,42 @@ mod tests {
 					sender: 1000u32.into(),
 					recipient: 1001u32.into()
 				})
+			),
+			Ok(expected_encoded)
+		);
+	}
+
+	#[test]
+	fn test_hrmp_cancel() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+
+		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			westend_runtime::Hrmp,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let channel_id = HrmpChannelId {
+			sender: 1u32.into(),
+			recipient: 1u32.into(),
+		};
+		let open_requests: u32 = 1;
+
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			westend_runtime::Runtime
+		>::hrmp_cancel_open_request {
+			channel_id: channel_id.clone(),
+			open_requests
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(
+					channel_id.clone(),
+					open_requests
+				)
 			),
 			Ok(expected_encoded)
 		);
