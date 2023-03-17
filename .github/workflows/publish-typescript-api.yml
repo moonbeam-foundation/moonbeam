@@ -27,7 +27,7 @@ jobs:
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
-          package: typescript-api/package.json
+          package: typescript-api/build/package.json
 
   update-polkadot-js-for-tests-and-tools:
     runs-on: ubuntu-latest
