@@ -61,6 +61,7 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -94,6 +95,7 @@
 	InitOpenChannel(ParaId, u32, u32),
 	AcceptOpenChannel(ParaId),
 	CloseChannel(HrmpChannelId),
+	CancelOpenChannel(HrmpChannelId, u32),
 }
 
 <span class="comment">// Trait that the ensures we can encode a call with utility functions.
