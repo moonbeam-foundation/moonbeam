@@ -32,26 +32,26 @@ const TOKEN_BRIDGE_CONTRACT_JSON = getCompiled("wormhole/bridge/token/BridgeToke
 const TOKEN_BRIDGE_INTERFACE = new ethers.utils.Interface(TOKEN_BRIDGE_CONTRACT_JSON.contract.abi);
 
 /*
- Alphanet 2023-03-17
+  Alphanet 2023-03-17
 
- Wormhole: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
- Wormhole Impl: 0x99737ec4b815d816c49a385943baf0380e75c0ac
- ChainId: 16 
- EvmChainId: 1287
- GovernanceChainId: 1
- GovernanceContract: 0x0000000000000000000000000000000000000000000000000000000000000004
+  Wormhole: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
+  Wormhole Impl: 0x99737ec4b815d816c49a385943baf0380e75c0ac
+  ChainId: 16 
+  EvmChainId: 1287
+  GovernanceChainId: 1
+  GovernanceContract: 0x0000000000000000000000000000000000000000000000000000000000000004
 
- TokenBridge: 0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96
- TokenBridge Impl: 0x430855b4d43b8aeb9d2b9869b74d58dda79c0db2
- WETH: 0xd909178cc99d318e4d46e7e66a972955859670e1
- ChainId: 16 
- EvmChainId: 1287
- Finality: 1
- Implementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
- Wormhole: 0xa5b7d85a8f27dd7907dc8fdc21fa5657d5e2f901
- TokenImplementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
+  TokenBridge: 0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96
+  TokenBridge Impl: 0x430855b4d43b8aeb9d2b9869b74d58dda79c0db2
+  WETH: 0xd909178cc99d318e4d46e7e66a972955859670e1
+  ChainId: 16 
+  EvmChainId: 1287
+  Finality: 1
+  Implementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
+  Wormhole: 0xa5b7d85a8f27dd7907dc8fdc21fa5657d5e2f901
+  TokenImplementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
 
- TokenImplementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
+  TokenImplementation: 0x7d9a2fc0d5d0d12b0f943930a4ba1a1233637fc9 
 */
 
 const deploy = async (context: DevTestContext, contractPath: string, initData?: any[]) => {
@@ -77,10 +77,10 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const signerPKs = [ALITH_PRIVATE_KEY];
     const chainId = "0x10";
     const governanceChainId = "0x1";
-    const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004"; // bytes32
+    const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004";
     const evmChainId = await context.web3.eth.getChainId(); //"1337"; // "1281";
     // Deploy wormhole (based on wormhole)
-    // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
+    // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
     const setupContract = await deploy(context, "wormhole/Setup");
     const implementationContract = await deploy(context, "wormhole/Implementation");
     const wormholeSetupData = setupContract.contract.methods
@@ -102,7 +102,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const finality = 1;
     // Deploy bridge (based on wormhole)
-    // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
+    // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
     const tokenImplContract = await deploy(context, "wormhole/bridge/token/TokenImplementation");
     const bridgeSetupContract = await deploy(context, "wormhole/bridge/BridgeSetup");
     const bridgeImplContract = await deploy(context, "wormhole/bridge/BridgeImplementation");
