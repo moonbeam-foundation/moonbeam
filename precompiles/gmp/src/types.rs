@@ -18,6 +18,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use precompile_utils::{
+	data::{BoundedBytes, String},
+	prelude::*,
+	EvmData,
+};
+use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
@@ -44,4 +50,34 @@ pub fn parse_user_action(input: &Vec<u8>) -> Result<VersionedUserAction, &'stati
 		destination: MultiLocation::parent(),
 		destination_account: MultiLocation::parent(),
 	}))
+}
+
+// Struct representing a Wormhole VM
+// The main purpose of this struct is to decode the ABI encoded struct returned from certain calls
+// in the Wormhole Ethereum contracts.
+//
+// https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Structs.sol
+#[derive(Debug, EvmData)]
+pub struct WormholeVM {
+	pub version: u8,
+	pub timestamp: u32,
+	pub nonce: u32,
+	pub emitterChainId: u16,
+	pub emitterAddress: H256,
+	pub sequence: u64,
+	pub consistencyLevel: u8,
+	pub payload: BoundedBytes<crate::GetCallDataLimit>,
+
+	pub guardianSetIndex: u32,
+	pub signatures: Vec<WormholeSignature>,
+	pub hash: H256,
+}
+
+// Struct representing a Wormhole Signature struct
+#[derive(Debug, EvmData)]
+pub struct WormholeSignature {
+	pub r: U256,
+	pub s: U256,
+	pub v: u8,
+	pub guardianIndex: u8,
 }
