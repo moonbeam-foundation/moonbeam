@@ -97,7 +97,7 @@ describeDevMoonbeam(
         await context.polkadotApi.query.parachainStaking.parachainBondInfo();
       expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
     });
-    it.only("notePreimage", async function () {
+    it("notePreimage", async function () {
       // notePreimage
       const encodedHash = await notePreimagePrecompile(
         context,
