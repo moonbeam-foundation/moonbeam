@@ -112,7 +112,7 @@ const main = async () => {
       filepath: path.join(precompilesPath, filename),
       // Solidity import removes the "../../.." when searching for imports
       importPath: /precompiles.*/.exec(path.join(precompilesPath, filename))[0],
-      compile: false,
+      compile: true,
     })),
     {
       filepath: path.join(__dirname, "../node_modules/@openzeppelin"),
