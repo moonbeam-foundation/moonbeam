@@ -63,7 +63,7 @@ pub(crate) const SELECTOR_LOG_VOTE_SPLIT: [u8; 32] =
 
 /// Solidity selector of the Vote Split Abstained log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; 32] =
-	keccak256!("VoteSplit(uint32,address,uint256,uint256,uint256)");
+	keccak256!("VoteSplitAbstained(uint32,address,uint256,uint256,uint256)");
 
 /// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
