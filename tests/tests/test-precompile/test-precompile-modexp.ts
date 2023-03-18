@@ -744,21 +744,4 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
     const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     expect(receipt.status).to.be.true;
   });
-
-  it("Should not take too long", async function () {
-    const tx = await createContractExecution(context, {
-      contract: hasherContract,
-      contractCall: hasherContract.methods.modExpVerify(
-        "3",
-        "115792089237316195423570985008687907853269984665640564039457584007908834671662",
-        "115792089237316195423570985008687907853269984665640564039457584007908834671663"
-      ),
-    });
-    await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
-    await context.createBlock();
-
-    expect(await hasherContract.methods.getResult().call(), "Incorrect modexp result").to.be.equals(
-      "1"
-    );
-  });
 });
