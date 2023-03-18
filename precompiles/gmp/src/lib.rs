@@ -81,6 +81,7 @@ where
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
 		let wormhole_vm = Self::peek_at_wormhole_vm(handle, wormhole, wormhole_vaa.clone())?;
+		log::warn!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
 
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
@@ -196,6 +197,9 @@ where
 			ExitReason::Succeed(_) => (),
 		};
 
-		Ok(WormholeVM::new_from_encoded(&output[..])?)
+		let mut reader = EvmDataReader::new(&output[..]);
+		let vm: WormholeVM = reader.read()?;
+
+		Ok(vm)
 	}
 }
