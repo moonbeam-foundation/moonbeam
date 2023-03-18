@@ -1,27 +1,26 @@
 import "@moonbeam-network/api-augment";
-import Debug from "debug";
-import { u8aToHex } from "@polkadot/util";
+
 import { expect } from "chai";
+import Debug from "debug";
 import { ethers } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+
 import { alith } from "../../util/accounts";
-import { jumpBlocks } from "../../util/block";
-import { GLMR, PRECOMPILE_REFERENDA_ADDRESS } from "../../util/constants";
-
+import { PRECOMPILE_CONVICTION_VOTING_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-
-import { expectOk, expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
-
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
-const debug = Debug("test:precompile-referenda");
+import { expectSubstrateEvent } from "../../util/expect";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContractExecution } from "../../util/transactions";
 
-const REFERENDA_CONTRACT = getCompiled("precompiles/referenda/Referenda");
-const REFERENDA_INTERFACE = new ethers.utils.Interface(REFERENDA_CONTRACT.contract.abi);
+const debug = Debug("test:precompile-conviction-voting");
+
+const CONVICTION_VOTING_CONTRACT = getCompiled("precompiles/conviction-voting/ConvictionVoting");
+const CONVICTION_VOTING_INTERFACE = new ethers.utils.Interface(
+  CONVICTION_VOTING_CONTRACT.contract.abi
+);
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
-describeDevMoonbeam("Precompiles - Referenda precompile", (context) => {
+describeDevMoonbeam("Precompiles - Conviction Voting precompile", (context) => {
   let proposalIndex: number;
   beforeEach("create a proposal", async function () {
     let nonce = (await context.polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
@@ -43,8 +42,8 @@ describeDevMoonbeam("Precompiles - Referenda precompile", (context) => {
 
   it("should allow to provide decision deposit", async function () {
     const referendaContract = new context.web3.eth.Contract(
-      REFERENDA_CONTRACT.contract.abi,
-      PRECOMPILE_REFERENDA_ADDRESS
+      CONVICTION_VOTING_CONTRACT.contract.abi,
+      PRECOMPILE_CONVICTION_VOTING_ADDRESS
     );
 
     const block = await context.createBlock(
@@ -56,7 +55,7 @@ describeDevMoonbeam("Precompiles - Referenda precompile", (context) => {
     expectEVMResult(block.result.events, "Succeed");
     expectSubstrateEvent(block, "referenda", "DecisionDepositPlaced");
     const { data } = await expectSubstrateEvent(block, "evm", "Log");
-    const evmLog = REFERENDA_INTERFACE.parseLog({
+    const evmLog = CONVICTION_VOTING_INTERFACE.parseLog({
       topics: data[0].topics.map((t) => t.toHex()),
       data: data[0].data.toHex(),
     });
@@ -65,27 +64,24 @@ describeDevMoonbeam("Precompiles - Referenda precompile", (context) => {
   });
 
   it("should fail to place deposit on the wrong proposal", async function () {
-    const invalidProposals = [999, 99, (2 ^ 32) - 1, 2 ^ 32];
-    for (const proposalIndex of invalidProposals) {
-      const referendaContract = new context.web3.eth.Contract(
-        REFERENDA_CONTRACT.contract.abi,
-        PRECOMPILE_REFERENDA_ADDRESS
-      );
+    const referendaContract = new context.web3.eth.Contract(
+      CONVICTION_VOTING_CONTRACT.contract.abi,
+      PRECOMPILE_CONVICTION_VOTING_ADDRESS
+    );
 
-      const block = await context.createBlock(
-        createContractExecution(context, {
-          contract: referendaContract,
-          contractCall: referendaContract.methods.placeDecisionDeposit(proposalIndex),
-        })
-      );
-      expectEVMResult(block.result.events, "Revert");
-    }
+    const block = await context.createBlock(
+      createContractExecution(context, {
+        contract: referendaContract,
+        contractCall: referendaContract.methods.placeDecisionDeposit(999999),
+      })
+    );
+    expectEVMResult(block.result.events, "Revert");
   });
 
   it("should fail to place deposit twice", async function () {
     const referendaContract = new context.web3.eth.Contract(
-      REFERENDA_CONTRACT.contract.abi,
-      PRECOMPILE_REFERENDA_ADDRESS
+      CONVICTION_VOTING_CONTRACT.contract.abi,
+      PRECOMPILE_CONVICTION_VOTING_ADDRESS
     );
 
     expectSubstrateEvent(
@@ -106,5 +102,34 @@ describeDevMoonbeam("Precompiles - Referenda precompile", (context) => {
       })
     );
     expectEVMResult(secondBlock.result.events, "Revert");
+  });
+
+  it("should fal to vote for the wrong proposal", async function () {
+    const invalidProposals = [999, -1, ""];
+    for (const proposalIndex of invalidProposals) {
+      const referendaContract = new context.web3.eth.Contract(
+        CONVICTION_VOTING_CONTRACT.contract.abi,
+        PRECOMPILE_CONVICTION_VOTING_ADDRESS
+      );
+
+      expectSubstrateEvent(
+        await context.createBlock(
+          createContractExecution(context, {
+            contract: referendaContract,
+            contractCall: referendaContract.methods.voteYes(proposalIndex),
+          })
+        ),
+        "referenda",
+        "DecisionDepositPlaced"
+      );
+
+      const secondBlock = await context.createBlock(
+        createContractExecution(context, {
+          contract: referendaContract,
+          contractCall: referendaContract.methods.placeDecisionDeposit(proposalIndex),
+        })
+      );
+      expectEVMResult(secondBlock.result.events, "Revert");
+    }
   });
 });

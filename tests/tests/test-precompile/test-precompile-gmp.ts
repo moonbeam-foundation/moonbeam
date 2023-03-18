@@ -5,7 +5,7 @@ import { createTransaction } from "../../util/transactions";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 
-const GMP_CONTRACT_JSON = getCompiled("GmpPrecompile");
+const GMP_CONTRACT_JSON = getCompiled("precompiles/gmp/Gmp");
 const GMP_INTERFACE = new ethers.utils.Interface(GMP_CONTRACT_JSON.contract.abi);
 
 describeDevMoonbeam(`Test exisiting Wormhole Payload Precompile VAA`, (context) => {
@@ -59,6 +59,7 @@ describeDevMoonbeam(`Test exisiting Wormhole Payload Precompile VAA`, (context) 
         data,
       })
     );
+    console.log(result.result.hash);
 
     expectEVMResult(result.result.events, "Succeed", "Stopped");
   });

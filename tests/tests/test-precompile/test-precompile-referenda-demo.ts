@@ -17,11 +17,11 @@ import { createContract, createContractExecution } from "../../util/transactions
 
 const debug = Debug("test:precompile-referenda");
 
-const REFERENDA_CONTRACT = getCompiled("Referenda");
+const REFERENDA_CONTRACT = getCompiled("precompiles/referenda/Referenda");
 const REFERENDA_INTERFACE = new ethers.utils.Interface(REFERENDA_CONTRACT.contract.abi);
-const PREIMAGE_CONTRACT = getCompiled("Preimage");
+const PREIMAGE_CONTRACT = getCompiled("precompiles/preimage/Preimage");
 const PREIMAGE_INTERFACE = new ethers.utils.Interface(PREIMAGE_CONTRACT.contract.abi);
-const CONVICTION_VOTING_CONTRACT = getCompiled("ConvictionVoting");
+const CONVICTION_VOTING_CONTRACT = getCompiled("precompiles/conviction-voting/ConvictionVoting");
 const CONVICTION_VOTING_INTERFACE = new ethers.utils.Interface(
   CONVICTION_VOTING_CONTRACT.contract.abi
 );

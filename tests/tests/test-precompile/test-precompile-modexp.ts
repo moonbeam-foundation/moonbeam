@@ -3,8 +3,12 @@ import { expectEVMResult } from "../../util/eth-transactions";
 import { Contract } from "web3-eth-contract";
 import testInputs from "../../util/artefacts/modexp.json";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution } from "../../util/transactions";
-import { ALITH_PRIVATE_KEY, alith } from "../../util/accounts";
+import {
+  createContract,
+  createContractExecution,
+  createTransaction,
+} from "../../util/transactions";
+import { ALITH_PRIVATE_KEY, alith, ALITH_ADDRESS } from "../../util/accounts";
 import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { expect } from "chai";
@@ -739,5 +743,22 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     expect(receipt.status).to.be.true;
+  });
+
+  it.only("Should not take too long", async function () {
+    const tx = await createContractExecution(context, {
+      contract: hasherContract,
+      contractCall: hasherContract.methods.modExpVerify(
+        "3",
+        "115792089237316195423570985008687907853269984665640564039457584007908834671662",
+        "115792089237316195423570985008687907853269984665640564039457584007908834671663"
+      ),
+    });
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
+    await context.createBlock();
+
+    expect(await hasherContract.methods.getResult().call(), "Incorrect modexp result").to.be.equals(
+      "1"
+    );
   });
 });

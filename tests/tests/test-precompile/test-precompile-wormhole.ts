@@ -17,7 +17,7 @@ const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
 
-const GMP_CONTRACT_JSON = getCompiled("GmpPrecompile");
+const GMP_CONTRACT_JSON = getCompiled("precompiles/gmp/Gmp");
 const GMP_INTERFACE = new ethers.utils.Interface(GMP_CONTRACT_JSON.contract.abi);
 
 const WORMHOLE_CONTRACT_JSON = getCompiled("wormhole/Wormhole");

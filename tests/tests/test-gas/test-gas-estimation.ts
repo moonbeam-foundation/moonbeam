@@ -164,7 +164,9 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
     const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
     const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
-    const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
+    const batchInterface = new ethers.utils.Interface(
+      getCompiled("precompiles/batch/Batch").contract.abi
+    );
 
     const callParameters = [
       [contractProxy.options.address, contractProxy.options.address],

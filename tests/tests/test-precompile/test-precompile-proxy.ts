@@ -20,7 +20,7 @@ import {
 import { expectEVMResult } from "../../util/eth-transactions";
 import { web3EthCall } from "../../util/providers";
 
-const PROXY_CONTRACT_JSON = getCompiled("Proxy");
+const PROXY_CONTRACT_JSON = getCompiled("precompiles/proxy/Proxy");
 const PROXY_INTERFACE = new ethers.utils.Interface(PROXY_CONTRACT_JSON.contract.abi);
 
 describeDevMoonbeam("Precompile - Proxy - add proxy fails if pre-existing proxy", (context) => {
