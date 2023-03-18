@@ -745,7 +745,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
     expect(receipt.status).to.be.true;
   });
 
-  it.only("Should not take too long", async function () {
+  it("Should not take too long", async function () {
     const tx = await createContractExecution(context, {
       contract: hasherContract,
       contractCall: hasherContract.methods.modExpVerify(
