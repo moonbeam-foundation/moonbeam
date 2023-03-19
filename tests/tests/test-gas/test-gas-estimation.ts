@@ -26,7 +26,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
   });
 
   it("should return correct gas estimation", async function () {
-    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22409);
+    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22364);
   });
 
   it("should work without gas limit", async function () {
@@ -34,15 +34,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         gas: null,
       })
-    ).to.equal(22409);
+    ).to.equal(22364);
   });
 
   it("should work with gas limit", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
-        gas: 22409,
+        gas: 22364,
       })
-    ).to.lessThanOrEqual(22409);
+    ).to.lessThanOrEqual(22364);
   });
 
   it("should ignore from balance (?)", async function () {
@@ -50,15 +50,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         from: "0x0000000000000000000000000000000000000000",
       })
-    ).to.equal(22409);
+    ).to.equal(22364);
   });
 
   it("should not work with a lower gas limit", async function () {
     await expect(
       multContract.methods.multiply(3).estimateGas({
-        gas: 21900,
+        gas: 21000,
       })
-    ).to.be.rejectedWith("gas required exceeds allowance 21900");
+    ).to.be.rejectedWith("gas required exceeds allowance 21000");
   });
 });
 
@@ -145,12 +145,12 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
       data: contract.byteCode,
       gasPrice: "0x0",
     });
-    expect(result).to.equal(167153);
+    expect(result).to.equal(116619);
     result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
     });
-    expect(result).to.equal(167153);
+    expect(result).to.equal(116619);
   });
 });
 

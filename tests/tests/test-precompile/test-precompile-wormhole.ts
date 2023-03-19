@@ -1,18 +1,11 @@
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
 import { getCompiled } from "../../util/contracts";
-import {
-  createSignedVAA,
-  genRegisterChainVAA,
-  genAssetMeta,
-  genTransferWithPayloadVAA,
-  genTransferVAA,
-} from "../../util/wormhole";
+import { genRegisterChainVAA, genAssetMeta, genTransferVAA } from "../../util/wormhole";
 import { ethers } from "ethers";
-import elliptic from "elliptic";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
-import { keccak256 } from "ethers/lib/utils";
-import { expect } from "chai";
+
+import { expectEVMResult } from "../../util/eth-transactions";
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -57,7 +50,6 @@ const TOKEN_BRIDGE_INTERFACE = new ethers.utils.Interface(TOKEN_BRIDGE_CONTRACT_
 const deploy = async (context: DevTestContext, contractPath: string, initData?: any[]) => {
   const contract = await createContract(context, contractPath, {}, initData);
   const result = await context.createBlock(contract.rawTx);
-  console.log(JSON.stringify(result));
   debug(
     `Created ${contractPath}: ${contract.contractAddress} => ${result.result.hash} (${
       result.result.error || "good"
@@ -93,8 +85,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         evmChainId
       )
       .encodeABI();
-    console.log("setup 1:");
-    console.log(wormholeSetupData);
     const wormholeContract = await deploy(context, "wormhole/Wormhole", [
       setupContract.contractAddress,
       wormholeSetupData,
@@ -196,14 +186,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         contractCall: bridgeImplContract.contract.methods.completeTransfer(`0x${transferVM}`),
       })
     );
-    console.log(result.result.hash);
 
-    // let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
-    //   result.result.hash,
-    // ]);
-    // console.log(result.result.hash);
-
-    // expectEVMResult(result.result.events, "Succeed", "Stopped");
+    expectEVMResult(result.result.events, "Succeed", "Stopped");
     // const evmEvents = expectSubstrateEvents(result, "evm", "Log");
   });
 });

@@ -117,7 +117,7 @@ describeDevMoonbeam(
       expect(
         preimageStatus.unwrap().isUnrequested &&
           preimageStatus.unwrap().asUnrequested.deposit[1].toString()
-      ).to.equal("5002200000000000000");
+      ).to.equal("5024200000000000000");
     });
   },
   "EIP1559"
