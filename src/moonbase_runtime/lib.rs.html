@@ -1648,6 +1648,7 @@
 <a href="#1648" id="1648">1648</a>
 <a href="#1649" id="1649">1649</a>
 <a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2973,6 +2974,7 @@
 
 <span class="doccomment">/// The SignedExtension to the basic transaction logic.
 </span><span class="kw">pub type </span>SignedExtra = (
+	frame_system::CheckNonZeroSender&lt;Runtime&gt;,
 	frame_system::CheckSpecVersion&lt;Runtime&gt;,
 	frame_system::CheckTxVersion&lt;Runtime&gt;,
 	frame_system::CheckGenesis&lt;Runtime&gt;,
@@ -3050,7 +3052,7 @@
 						<span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
 						<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref </span>signed_extra)) =&gt; {
 							<span class="comment">// Yuck, this depends on the index of charge transaction in Signed Extra
-							</span><span class="kw">let </span>charge_transaction = <span class="kw-2">&amp;</span>signed_extra.<span class="number">6</span>;
+							</span><span class="kw">let </span>charge_transaction = <span class="kw-2">&amp;</span>signed_extra.<span class="number">7</span>;
 							charge_transaction.tip()
 						}
 					};
