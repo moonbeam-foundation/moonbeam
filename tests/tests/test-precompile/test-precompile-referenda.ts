@@ -17,7 +17,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 import { expectEVMResult } from "../../util/eth-transactions";
 const debug = Debug("test:precompile-referenda");
 
-const REFERENDA_CONTRACT = getCompiled("Referenda");
+const REFERENDA_CONTRACT = getCompiled("precompiles/referenda/Referenda");
 const REFERENDA_INTERFACE = new ethers.utils.Interface(REFERENDA_CONTRACT.contract.abi);
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)

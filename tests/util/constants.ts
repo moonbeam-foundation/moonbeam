@@ -134,3 +134,5 @@ export const RUNTIME_CONSTANTS = {
     MAX_BASE_FEE_IN_WEI: "",
   },
 };
+
+export const DUMMY_REVERT_BYTECODE = "0x60006000fd";
