@@ -1,3 +1,3 @@
-import "./interfaces/types-lookup";
-import "./interfaces/augment-api";
-import "./interfaces/augment-types";
+import "./interfaces/types-lookup.js";
+import "./interfaces/augment-api.js";
+import "./interfaces/augment-types.js";
