@@ -18,8 +18,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
-	data::{BoundedBytes, String},
+	data::{Address, BoundedBytes, String},
 	prelude::*,
 	EvmData,
 };
@@ -32,13 +33,15 @@ use xcm::latest::MultiLocation;
 //       * future proof (bare minimum: version this)
 //       * easy to parse
 //       * flexible -- need to support "MVP" level of XCM functionality
-pub struct XcmUserAction {
-	pub destination: MultiLocation,
+pub struct XcmRoutingUserAction {
+	pub currency_address: H160,
+	pub amount: U256,
+	pub destination_chain: MultiLocation,
 	pub destination_account: MultiLocation,
 }
 
 pub enum VersionedUserAction {
-	V1(XcmUserAction),
+	V1(XcmRoutingUserAction),
 }
 
 /// Parse a user action from some bytes
@@ -46,8 +49,10 @@ pub fn parse_user_action(input: &Vec<u8>) -> Result<VersionedUserAction, &'stati
 	// TODO: actually parse :)
 	// more importantly, define a structure (see criteria above)
 
-	Ok(VersionedUserAction::V1(XcmUserAction {
-		destination: MultiLocation::parent(),
+	Ok(VersionedUserAction::V1(XcmRoutingUserAction {
+		currency_address: Default::default(),
+		amount: 1u32.into(),
+		destination_chain: MultiLocation::parent(),
 		destination_account: MultiLocation::parent(),
 	}))
 }
@@ -69,7 +74,7 @@ pub struct WormholeVM {
 	pub payload: BoundedBytes<crate::GetCallDataLimit>,
 
 	pub guardianSetIndex: u32,
-	pub signatures: Vec<WormholeSignature>,
+	pub signatures: Vec<WormholeSignature>, // TODO: review: can this allow unbounded allocations?
 	pub hash: H256,
 }
 

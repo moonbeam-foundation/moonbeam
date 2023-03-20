@@ -83,6 +83,10 @@ where
 		let wormhole_vm = Self::peek_at_wormhole_vm(handle, wormhole, wormhole_vaa.clone())?;
 		log::warn!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
 
+		// TODO: Parse the payload as a VersionedUserAction and see which tokens they are wanting to
+		//       transfer. We'll then need to check the balance of this before the transfer and
+		//       compare it to after the transfer to discern how much is transfered.
+
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
 		// then use the returned payload to decide what to do.
@@ -119,6 +123,7 @@ where
 			ExitReason::Succeed(_) => (),
 		};
 
+		// TODO: Check "after" balance here and ensure it is correct for user action
 		// TODO: we should now have funds for this account, custodied by this precompile itself.
 		//       next we need to see where the user wants to send them by inspecting the payload.
 		//
