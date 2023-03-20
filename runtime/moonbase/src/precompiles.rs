@@ -34,7 +34,7 @@ use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
-use pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
+use pallet_evm_precompile_proxy::ProxyPrecompile;
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
