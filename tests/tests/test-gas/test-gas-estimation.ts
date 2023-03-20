@@ -145,12 +145,12 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
       data: contract.byteCode,
       gasPrice: "0x0",
     });
-    expect(result).to.equal(116619);
+    expect(result).to.equal(174759);
     result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
     });
-    expect(result).to.equal(116619);
+    expect(result).to.equal(174759);
   });
 });
 

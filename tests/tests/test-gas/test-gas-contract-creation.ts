@@ -14,6 +14,6 @@ describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
         from: alith.address,
         data: contract.byteCode,
       })
-    ).to.equal(102528);
+    ).to.equal(156994);
   });
 });

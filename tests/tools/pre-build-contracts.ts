@@ -27,12 +27,13 @@ const getImports = (fileRef: string) => (dependency: string) => {
 };
 
 function compileSolidity(fileRef: string, contractContent: string): { [name: string]: Compiled } {
+  const filename = path.basename(fileRef);
   const result = JSON.parse(
     solc.compile(
       JSON.stringify({
         language: "Solidity",
         sources: {
-          "main.sol": {
+          [filename]: {
             content: contractContent,
           },
         },
@@ -43,6 +44,9 @@ function compileSolidity(fileRef: string, contractContent: string): { [name: str
               "*": ["*"],
             },
           },
+          debug: {
+            revertStrings: "debug",
+          },
         },
       }),
       { import: getImports(fileRef) }
@@ -51,10 +55,10 @@ function compileSolidity(fileRef: string, contractContent: string): { [name: str
   if (!result.contracts) {
     throw result;
   }
-  return Object.keys(result.contracts["main.sol"]).reduce((p, contractName) => {
+  return Object.keys(result.contracts[filename]).reduce((p, contractName) => {
     p[contractName] = {
-      byteCode: "0x" + result.contracts["main.sol"][contractName].evm.bytecode.object,
-      contract: result.contracts["main.sol"][contractName],
+      byteCode: "0x" + result.contracts[filename][contractName].evm.bytecode.object,
+      contract: result.contracts[filename][contractName],
       sourceCode: contractContent,
     };
     return p;

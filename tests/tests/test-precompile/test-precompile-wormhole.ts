@@ -187,7 +187,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       })
     );
 
-    expectEVMResult(result.result.events, "Succeed", "Stopped");
+    expectEVMResult(result.result.events, "Succeed", "Returned");
     // const evmEvents = expectSubstrateEvents(result, "evm", "Log");
   });
 });

@@ -124,7 +124,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     // the multiplier (and thereby base_fee) will have decreased very slightly...
     blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
     baseFeePerGas = BigInt((await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
-    expect(baseFeePerGas).to.equal(124_878_926_125_728n);
+    expect(baseFeePerGas).to.equal(124_880_903_689_844n);
 
     const tx = await createContractExecution(
       context,
@@ -147,7 +147,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     expect(withdrawEvents.length).to.equal(1);
     const withdrawEvent = withdrawEvents[0];
     let amount = (withdrawEvent.event.data as any).amount.toBigInt();
-    expect(amount).to.equal(11_986_503_724_178_002_080n);
+    expect(amount).to.equal(11_986_693_540_669_676_340n);
   });
 });
 

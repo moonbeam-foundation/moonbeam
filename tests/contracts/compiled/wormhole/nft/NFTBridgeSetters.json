@@ -1,32 +1,32 @@
 {
-  "byteCode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212200b531825f1dfe6f9f7c06e65a4c0964cb16c0bfc84a89cc2fbf4fe76f57fbe3c64736f6c63430008130033",
+  "byteCode": "0x6080604052348015605c5760405162461bcd60e51b815260206004820152602260248201527f45746865722073656e7420746f206e6f6e2d70617961626c652066756e637469604482019081526137b760f11b6064830152608482fd5b5060978061006b6000396000f3fe6080604081905262461bcd60e51b815260206084908152603560a4527f436f6e747261637420646f6573206e6f7420686176652066616c6c6261636b2060c4908152746e6f7220726563656976652066756e6374696f6e7360581b60e4529082fdfea2646970667358221220b8357084d32708b7078bccfefdbf8df75ca92354df789e125d921c2b4a26411164736f6c63430008130033",
   "contract": {
     "abi": [],
     "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
     "evm": {
-      "assembly": "    /* \"main.sol\":129:2100  contract NFTBridgeSetters is NFTBridgeState {... */\n  mstore(0x40, 0x80)\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  0x00\n  dup1\n  revert\ntag_1:\n  pop\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"main.sol\":129:2100  contract NFTBridgeSetters is NFTBridgeState {... */\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa26469706673582212200b531825f1dfe6f9f7c06e65a4c0964cb16c0bfc84a89cc2fbf4fe76f57fbe3c64736f6c63430008130033\n}\n",
+      "assembly": "    /* \"NFTBridgeSetters.sol\":129:2100  contract NFTBridgeSetters is NFTBridgeState {... */\n  mstore(0x40, 0x80)\n  callvalue\n  dup1\n  iszero\n  tag_1\n  jumpi\n  mload(0x40)\n  shl(0xe5, 0x461bcd)\n  dup2\n  mstore\n  0x20\n  0x04\n  dup3\n  add\n  mstore\n  0x22\n  0x24\n  dup3\n  add\n  mstore\n  0x45746865722073656e7420746f206e6f6e2d70617961626c652066756e637469\n  0x44\n  dup3\n  add\n  swap1\n  dup2\n  mstore\n  shl(0xf1, 0x37b7)\n  0x64\n  dup4\n  add\n  mstore\n  0x84\n  dup3\n  revert\ntag_1:\n  pop\n  dataSize(sub_0)\n  dup1\n  dataOffset(sub_0)\n  0x00\n  codecopy\n  0x00\n  return\nstop\n\nsub_0: assembly {\n        /* \"NFTBridgeSetters.sol\":129:2100  contract NFTBridgeSetters is NFTBridgeState {... */\n      0x80\n      0x40\n      dup2\n      swap1\n      mstore\n      shl(0xe5, 0x461bcd)\n      dup2\n      mstore\n      0x20\n      0x84\n      swap1\n      dup2\n      mstore\n      mstore(0xa4, 0x35)\n      0x436f6e747261637420646f6573206e6f7420686176652066616c6c6261636b20\n      0xc4\n      swap1\n      dup2\n      mstore\n      mstore(0xe4, shl(0x58, 0x6e6f7220726563656976652066756e6374696f6e73))\n      swap1\n      dup3\n      revert\n\n    auxdata: 0xa2646970667358221220b8357084d32708b7078bccfefdbf8df75ca92354df789e125d921c2b4a26411164736f6c63430008130033\n}\n",
       "bytecode": {
         "functionDebugData": {},
         "generatedSources": [],
         "linkReferences": {},
-        "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212200b531825f1dfe6f9f7c06e65a4c0964cb16c0bfc84a89cc2fbf4fe76f57fbe3c64736f6c63430008130033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 SIGNEXTEND MSTORE8 XOR 0x25 CALL 0xDF 0xE6 0xF9 0xF7 0xC0 PUSH15 0x65A4C0964CB16C0BFC84A89CC2FBF4 INVALID PUSH23 0xF57FBE3C64736F6C634300081300330000000000000000 ",
-        "sourceMap": "129:1971:2:-:0;;;;;;;;;;;;;;;;;;;"
+        "object": "6080604052348015605c5760405162461bcd60e51b815260206004820152602260248201527f45746865722073656e7420746f206e6f6e2d70617961626c652066756e637469604482019081526137b760f11b6064830152608482fd5b5060978061006b6000396000f3fe6080604081905262461bcd60e51b815260206084908152603560a4527f436f6e747261637420646f6573206e6f7420686176652066616c6c6261636b2060c4908152746e6f7220726563656976652066756e6374696f6e7360581b60e4529082fdfea2646970667358221220b8357084d32708b7078bccfefdbf8df75ca92354df789e125d921c2b4a26411164736f6c63430008130033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0x5C JUMPI PUSH1 0x40 MLOAD PUSH3 0x461BCD PUSH1 0xE5 SHL DUP2 MSTORE PUSH1 0x20 PUSH1 0x4 DUP3 ADD MSTORE PUSH1 0x22 PUSH1 0x24 DUP3 ADD MSTORE PUSH32 0x45746865722073656E7420746F206E6F6E2D70617961626C652066756E637469 PUSH1 0x44 DUP3 ADD SWAP1 DUP2 MSTORE PUSH2 0x37B7 PUSH1 0xF1 SHL PUSH1 0x64 DUP4 ADD MSTORE PUSH1 0x84 DUP3 REVERT JUMPDEST POP PUSH1 0x97 DUP1 PUSH2 0x6B PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 DUP2 SWAP1 MSTORE PUSH3 0x461BCD PUSH1 0xE5 SHL DUP2 MSTORE PUSH1 0x20 PUSH1 0x84 SWAP1 DUP2 MSTORE PUSH1 0x35 PUSH1 0xA4 MSTORE PUSH32 0x436F6E747261637420646F6573206E6F7420686176652066616C6C6261636B20 PUSH1 0xC4 SWAP1 DUP2 MSTORE PUSH21 0x6E6F7220726563656976652066756E6374696F6E73 PUSH1 0x58 SHL PUSH1 0xE4 MSTORE SWAP1 DUP3 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xB8 CALLDATALOAD PUSH17 0x84D32708B7078BCCFEFDBF8DF75CA92354 0xDF PUSH25 0x9E125D921C2B4A26411164736F6C6343000813003300000000 ",
+        "sourceMap": "129:1971:0:-:0;;;;;;;;;;-1:-1:-1;;;129:1971:0;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;129:1971:0;;;;;;;;;;;;;;;"
       },
       "deployedBytecode": {
         "functionDebugData": {},
         "generatedSources": [],
         "immutableReferences": {},
         "linkReferences": {},
-        "object": "6080604052600080fdfea26469706673582212200b531825f1dfe6f9f7c06e65a4c0964cb16c0bfc84a89cc2fbf4fe76f57fbe3c64736f6c63430008130033",
-        "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 SIGNEXTEND MSTORE8 XOR 0x25 CALL 0xDF 0xE6 0xF9 0xF7 0xC0 PUSH15 0x65A4C0964CB16C0BFC84A89CC2FBF4 INVALID PUSH23 0xF57FBE3C64736F6C634300081300330000000000000000 ",
-        "sourceMap": "129:1971:2:-:0;;;;;"
+        "object": "6080604081905262461bcd60e51b815260206084908152603560a4527f436f6e747261637420646f6573206e6f7420686176652066616c6c6261636b2060c4908152746e6f7220726563656976652066756e6374696f6e7360581b60e4529082fdfea2646970667358221220b8357084d32708b7078bccfefdbf8df75ca92354df789e125d921c2b4a26411164736f6c63430008130033",
+        "opcodes": "PUSH1 0x80 PUSH1 0x40 DUP2 SWAP1 MSTORE PUSH3 0x461BCD PUSH1 0xE5 SHL DUP2 MSTORE PUSH1 0x20 PUSH1 0x84 SWAP1 DUP2 MSTORE PUSH1 0x35 PUSH1 0xA4 MSTORE PUSH32 0x436F6E747261637420646F6573206E6F7420686176652066616C6C6261636B20 PUSH1 0xC4 SWAP1 DUP2 MSTORE PUSH21 0x6E6F7220726563656976652066756E6374696F6E73 PUSH1 0x58 SHL PUSH1 0xE4 MSTORE SWAP1 DUP3 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xB8 CALLDATALOAD PUSH17 0x84D32708B7078BCCFEFDBF8DF75CA92354 0xDF PUSH25 0x9E125D921C2B4A26411164736F6C6343000813003300000000 ",
+        "sourceMap": "129:1971:0:-:0;;;;;-1:-1:-1;;;129:1971:0;;;;;;;;;;;;;;;-1:-1:-1;;;129:1971:0;;;;"
       },
       "gasEstimates": {
         "creation": {
-          "codeDepositCost": "12600",
-          "executionCost": "66",
-          "totalCost": "12666"
+          "codeDepositCost": "30200",
+          "executionCost": "156",
+          "totalCost": "30356"
         },
         "internal": {
           "clearSplCache(uint256)": "infinite",
@@ -51,125 +51,313 @@
             "begin": 129,
             "end": 2100,
             "name": "PUSH",
-            "source": 2,
+            "source": 0,
             "value": "80"
           },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH",
-            "source": 2,
+            "source": 0,
             "value": "40"
           },
-          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 2 },
-          { "begin": 129, "end": 2100, "name": "CALLVALUE", "source": 2 },
-          { "begin": 129, "end": 2100, "name": "DUP1", "source": 2 },
-          { "begin": 129, "end": 2100, "name": "ISZERO", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "CALLVALUE", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "DUP1", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "ISZERO", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH [tag]",
-            "source": 2,
+            "source": 0,
             "value": "1"
           },
-          { "begin": 129, "end": 2100, "name": "JUMPI", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "JUMPI", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH",
-            "source": 2,
-            "value": "0"
+            "source": 0,
+            "value": "40"
           },
-          { "begin": 129, "end": 2100, "name": "DUP1", "source": 2 },
-          { "begin": 129, "end": 2100, "name": "REVERT", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "MLOAD", "source": 0 },
+          {
+            "begin": -1,
+            "end": -1,
+            "name": "PUSH",
+            "source": -1,
+            "value": "461BCD"
+          },
+          {
+            "begin": -1,
+            "end": -1,
+            "name": "PUSH",
+            "source": -1,
+            "value": "E5"
+          },
+          { "begin": -1, "end": -1, "name": "SHL", "source": -1 },
+          { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "20"
+          },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "4"
+          },
+          { "begin": 129, "end": 2100, "name": "DUP3", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "ADD", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "22"
+          },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "24"
+          },
+          { "begin": 129, "end": 2100, "name": "DUP3", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "ADD", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "45746865722073656E7420746F206E6F6E2D70617961626C652066756E637469"
+          },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "44"
+          },
+          { "begin": 129, "end": 2100, "name": "DUP3", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "ADD", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "SWAP1", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          {
+            "begin": -1,
+            "end": -1,
+            "name": "PUSH",
+            "source": -1,
+            "value": "37B7"
+          },
+          {
+            "begin": -1,
+            "end": -1,
+            "name": "PUSH",
+            "source": -1,
+            "value": "F1"
+          },
+          { "begin": -1, "end": -1, "name": "SHL", "source": -1 },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "64"
+          },
+          { "begin": 129, "end": 2100, "name": "DUP4", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "ADD", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+          {
+            "begin": 129,
+            "end": 2100,
+            "name": "PUSH",
+            "source": 0,
+            "value": "84"
+          },
+          { "begin": 129, "end": 2100, "name": "DUP3", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "REVERT", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "tag",
-            "source": 2,
+            "source": 0,
             "value": "1"
           },
-          { "begin": 129, "end": 2100, "name": "JUMPDEST", "source": 2 },
-          { "begin": 129, "end": 2100, "name": "POP", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "JUMPDEST", "source": 0 },
+          { "begin": 129, "end": 2100, "name": "POP", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH #[$]",
-            "source": 2,
+            "source": 0,
             "value": "0000000000000000000000000000000000000000000000000000000000000000"
           },
-          { "begin": 129, "end": 2100, "name": "DUP1", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "DUP1", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH [$]",
-            "source": 2,
+            "source": 0,
             "value": "0000000000000000000000000000000000000000000000000000000000000000"
           },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH",
-            "source": 2,
+            "source": 0,
             "value": "0"
           },
-          { "begin": 129, "end": 2100, "name": "CODECOPY", "source": 2 },
+          { "begin": 129, "end": 2100, "name": "CODECOPY", "source": 0 },
           {
             "begin": 129,
             "end": 2100,
             "name": "PUSH",
-            "source": 2,
+            "source": 0,
             "value": "0"
           },
-          { "begin": 129, "end": 2100, "name": "RETURN", "source": 2 }
+          { "begin": 129, "end": 2100, "name": "RETURN", "source": 0 }
         ],
         ".data": {
           "0": {
-            ".auxdata": "a26469706673582212200b531825f1dfe6f9f7c06e65a4c0964cb16c0bfc84a89cc2fbf4fe76f57fbe3c64736f6c63430008130033",
+            ".auxdata": "a2646970667358221220b8357084d32708b7078bccfefdbf8df75ca92354df789e125d921c2b4a26411164736f6c63430008130033",
             ".code": [
               {
                 "begin": 129,
                 "end": 2100,
                 "name": "PUSH",
-                "source": 2,
+                "source": 0,
                 "value": "80"
               },
               {
                 "begin": 129,
                 "end": 2100,
                 "name": "PUSH",
-                "source": 2,
+                "source": 0,
                 "value": "40"
               },
-              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 2 },
+              { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "SWAP1", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+              {
+                "begin": -1,
+                "end": -1,
+                "name": "PUSH",
+                "source": -1,
+                "value": "461BCD"
+              },
+              {
+                "begin": -1,
+                "end": -1,
+                "name": "PUSH",
+                "source": -1,
+                "value": "E5"
+              },
+              { "begin": -1, "end": -1, "name": "SHL", "source": -1 },
+              { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
               {
                 "begin": 129,
                 "end": 2100,
                 "name": "PUSH",
-                "source": 2,
-                "value": "0"
+                "source": 0,
+                "value": "20"
               },
-              { "begin": 129, "end": 2100, "name": "DUP1", "source": 2 },
-              { "begin": 129, "end": 2100, "name": "REVERT", "source": 2 }
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "84"
+              },
+              { "begin": 129, "end": 2100, "name": "SWAP1", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "35"
+              },
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "A4"
+              },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "436F6E747261637420646F6573206E6F7420686176652066616C6C6261636B20"
+              },
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "C4"
+              },
+              { "begin": 129, "end": 2100, "name": "SWAP1", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "DUP2", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+              {
+                "begin": -1,
+                "end": -1,
+                "name": "PUSH",
+                "source": -1,
+                "value": "6E6F7220726563656976652066756E6374696F6E73"
+              },
+              {
+                "begin": -1,
+                "end": -1,
+                "name": "PUSH",
+                "source": -1,
+                "value": "58"
+              },
+              { "begin": -1, "end": -1, "name": "SHL", "source": -1 },
+              {
+                "begin": 129,
+                "end": 2100,
+                "name": "PUSH",
+                "source": 0,
+                "value": "E4"
+              },
+              { "begin": 129, "end": 2100, "name": "MSTORE", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "SWAP1", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "DUP3", "source": 0 },
+              { "begin": 129, "end": 2100, "name": "REVERT", "source": 0 }
             ]
           }
         },
         "sourceList": [
+          "NFTBridgeSetters.sol",
           "NFTBridgeState.sol",
           "NFTBridgeStructs.sol",
-          "main.sol",
           "#utility.yul"
         ]
       },
       "methodIdentifiers": {}
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"NFTBridgeSetters\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"NFTBridgeState.sol\":{\"keccak256\":\"0x42200d27a01e9ab320c7e5efb14ef727b8b9bd2abb29dc8d6ff7815c837cd5bd\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://05f66185f59e41651511104e500274505763ed84c26d196e9e1c6f84497f02bb\",\"dweb:/ipfs/QmUEwQbFEE3zHwhb14xfEYHF8BNcn4ZRSjpjUJN6fHkLL9\"]},\"NFTBridgeStructs.sol\":{\"keccak256\":\"0xe540036df98387c9b206ce06917e2b726028f5921131552727e7f70a7a364d36\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://1fabca4e3aa74d7c25dafefabc09dc38989e8c5c84088fefde29b2a58c98920a\",\"dweb:/ipfs/QmQaB2z2yi6qRAWACtTL7TSujFDFEdjmmRNwaWcubCo2Dd\"]},\"main.sol\":{\"keccak256\":\"0xd5562b9d5301d8483f4096d8dd3f05f4af4bd9bc94a3afd0c1d37a9cfe7f4ad2\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://b0c52c85dd1ed780f9fff1e5e6febd82deed0f9aea5bcdcb7654fd4678cc0c7e\",\"dweb:/ipfs/QmNzntqyVnUpoeS5dxXbVKmYz2mTxDk8iaoAqMska33nVE\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"NFTBridgeSetters.sol\":\"NFTBridgeSetters\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"NFTBridgeSetters.sol\":{\"keccak256\":\"0xd5562b9d5301d8483f4096d8dd3f05f4af4bd9bc94a3afd0c1d37a9cfe7f4ad2\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://b0c52c85dd1ed780f9fff1e5e6febd82deed0f9aea5bcdcb7654fd4678cc0c7e\",\"dweb:/ipfs/QmNzntqyVnUpoeS5dxXbVKmYz2mTxDk8iaoAqMska33nVE\"]},\"NFTBridgeState.sol\":{\"keccak256\":\"0x42200d27a01e9ab320c7e5efb14ef727b8b9bd2abb29dc8d6ff7815c837cd5bd\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://05f66185f59e41651511104e500274505763ed84c26d196e9e1c6f84497f02bb\",\"dweb:/ipfs/QmUEwQbFEE3zHwhb14xfEYHF8BNcn4ZRSjpjUJN6fHkLL9\"]},\"NFTBridgeStructs.sol\":{\"keccak256\":\"0xe540036df98387c9b206ce06917e2b726028f5921131552727e7f70a7a364d36\",\"license\":\"Apache 2\",\"urls\":[\"bzz-raw://1fabca4e3aa74d7c25dafefabc09dc38989e8c5c84088fefde29b2a58c98920a\",\"dweb:/ipfs/QmQaB2z2yi6qRAWACtTL7TSujFDFEdjmmRNwaWcubCo2Dd\"]}},\"version\":1}",
     "storageLayout": {
       "storage": [
         {
           "astId": 300,
-          "contract": "main.sol:NFTBridgeSetters",
+          "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
           "label": "_state",
           "offset": 0,
           "slot": "0",
@@ -245,7 +433,7 @@
           "members": [
             {
               "astId": 238,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "chainId",
               "offset": 0,
               "slot": "0",
@@ -253,7 +441,7 @@
             },
             {
               "astId": 240,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "governanceChainId",
               "offset": 2,
               "slot": "0",
@@ -261,7 +449,7 @@
             },
             {
               "astId": 242,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "finality",
               "offset": 4,
               "slot": "0",
@@ -269,7 +457,7 @@
             },
             {
               "astId": 244,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "governanceContract",
               "offset": 0,
               "slot": "1",
@@ -284,7 +472,7 @@
           "members": [
             {
               "astId": 252,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "name",
               "offset": 0,
               "slot": "0",
@@ -292,7 +480,7 @@
             },
             {
               "astId": 254,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "symbol",
               "offset": 0,
               "slot": "1",
@@ -307,7 +495,7 @@
           "members": [
             {
               "astId": 257,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "wormhole",
               "offset": 0,
               "slot": "0",
@@ -315,7 +503,7 @@
             },
             {
               "astId": 259,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "tokenImplementation",
               "offset": 0,
               "slot": "1",
@@ -323,7 +511,7 @@
             },
             {
               "astId": 262,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "provider",
               "offset": 0,
               "slot": "2",
@@ -331,7 +519,7 @@
             },
             {
               "astId": 266,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "consumedGovernanceActions",
               "offset": 0,
               "slot": "4",
@@ -339,7 +527,7 @@
             },
             {
               "astId": 270,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "completedTransfers",
               "offset": 0,
               "slot": "5",
@@ -347,7 +535,7 @@
             },
             {
               "astId": 274,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "initializedImplementations",
               "offset": 0,
               "slot": "6",
@@ -355,7 +543,7 @@
             },
             {
               "astId": 280,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "wrappedAssets",
               "offset": 0,
               "slot": "7",
@@ -363,7 +551,7 @@
             },
             {
               "astId": 284,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "isWrappedAsset",
               "offset": 0,
               "slot": "8",
@@ -371,7 +559,7 @@
             },
             {
               "astId": 288,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "bridgeImplementations",
               "offset": 0,
               "slot": "9",
@@ -379,7 +567,7 @@
             },
             {
               "astId": 293,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "splCache",
               "offset": 0,
               "slot": "10",
@@ -387,7 +575,7 @@
             },
             {
               "astId": 295,
-              "contract": "main.sol:NFTBridgeSetters",
+              "contract": "NFTBridgeSetters.sol:NFTBridgeSetters",
               "label": "evmChainId",
               "offset": 0,
               "slot": "11",
