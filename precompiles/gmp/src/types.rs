@@ -24,7 +24,7 @@ use precompile_utils::{
 	prelude::*,
 	EvmData,
 };
-use sp_core::{H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
@@ -33,6 +33,7 @@ use xcm::latest::MultiLocation;
 //       * future proof (bare minimum: version this)
 //       * easy to parse
 //       * flexible -- need to support "MVP" level of XCM functionality
+#[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserAction {
 	pub currency_address: H160,
 	pub amount: U256,
@@ -40,6 +41,7 @@ pub struct XcmRoutingUserAction {
 	pub destination_account: MultiLocation,
 }
 
+#[derive(Encode, Decode, Debug)]
 pub enum VersionedUserAction {
 	V1(XcmRoutingUserAction),
 }
@@ -67,13 +69,13 @@ pub struct WormholeVM {
 	pub version: u8,
 	pub timestamp: u32,
 	pub nonce: u32,
-	pub emitterChainId: u16,
-	pub emitterAddress: H256,
+	pub emitter_chain_id: u16,
+	pub emitter_address: H256,
 	pub sequence: u64,
-	pub consistencyLevel: u8,
+	pub consistency_level: u8,
 	pub payload: BoundedBytes<crate::GetCallDataLimit>,
 
-	pub guardianSetIndex: u32,
+	pub guardian_set_index: u32,
 	pub signatures: Vec<WormholeSignature>, // TODO: review: can this allow unbounded allocations?
 	pub hash: H256,
 }

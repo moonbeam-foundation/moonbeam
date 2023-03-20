@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::PCall;
+use crate::{mock::PCall, types::XcmRoutingUserAction};
 use precompile_utils::testing::*;
+use xcm::latest::MultiLocation;
 
 #[test]
 fn test_sample_wormhole_vm_output() {
@@ -70,6 +71,23 @@ fn test_sample_wormhole_vm_output() {
 	let as_hex = hex::encode(&as_bytes[..]);
 	panic!("payload: {}", as_hex);
 	*/
+}
+
+#[test]
+fn test_user_action_decode() {
+	use crate::VersionedUserAction;
+
+	// TODO: remove test, just using to print value
+	let action = VersionedUserAction::V1(XcmRoutingUserAction {
+		currency_address: Default::default(),
+		amount: 1000000000000000000_u128.into(),
+		destination_chain: MultiLocation::parent(),
+		destination_account: MultiLocation::parent(),
+	});
+
+	let as_bytes: Vec<u8> = action.encode();
+	let as_hex = hex::encode(&as_bytes[..]);
+	panic!("payload: {}", as_hex);
 }
 
 #[test]
