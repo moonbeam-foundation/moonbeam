@@ -1,4 +1,5 @@
 // contracts/Setters.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -11,10 +12,15 @@ contract Setters is State {
     }
 
     function expireGuardianSet(uint32 index) internal {
-        _state.guardianSets[index].expirationTime = uint32(block.timestamp) + 86400;
+        _state.guardianSets[index].expirationTime =
+            uint32(block.timestamp) +
+            86400;
     }
 
-    function storeGuardianSet(Structs.GuardianSet memory set, uint32 index) internal {
+    function storeGuardianSet(
+        Structs.GuardianSet memory set,
+        uint32 index
+    ) internal {
         uint setLength = set.keys.length;
         for (uint i = 0; i < setLength; i++) {
             require(set.keys[i] != address(0), "Invalid key");

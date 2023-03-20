@@ -1,4 +1,5 @@
 // contracts/Getters.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -6,7 +7,9 @@ pragma solidity ^0.8.0;
 import "./State.sol";
 
 contract Getters is State {
-    function getGuardianSet(uint32 index) public view returns (Structs.GuardianSet memory) {
+    function getGuardianSet(
+        uint32 index
+    ) public view returns (Structs.GuardianSet memory) {
         return _state.guardianSets[index];
     }
 
@@ -18,7 +21,9 @@ contract Getters is State {
         return _state.guardianSetExpiry;
     }
 
-    function governanceActionIsConsumed(bytes32 hash) public view returns (bool) {
+    function governanceActionIsConsumed(
+        bytes32 hash
+    ) public view returns (bool) {
         return _state.consumedGovernanceActions[hash];
     }
 
@@ -38,11 +43,11 @@ contract Getters is State {
         return evmChainId() != block.chainid;
     }
 
-    function governanceChainId() public view returns (uint16){
+    function governanceChainId() public view returns (uint16) {
         return _state.provider.governanceChainId;
     }
 
-    function governanceContract() public view returns (bytes32){
+    function governanceContract() public view returns (bytes32) {
         return _state.provider.governanceContract;
     }
 

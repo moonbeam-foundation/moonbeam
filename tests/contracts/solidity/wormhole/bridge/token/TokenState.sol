@@ -1,4 +1,5 @@
 // contracts/State.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -9,25 +10,17 @@ contract TokenStorage {
     struct State {
         string name;
         string symbol;
-
         uint64 metaLastUpdatedSequence;
-
         uint256 totalSupply;
         uint8 decimals;
-
         mapping(address => uint256) balances;
-
         mapping(address => mapping(address => uint256)) allowances;
-
         address owner;
-
         bool initialized;
-
         uint16 chainId;
         bytes32 nativeContract;
-
         // EIP712
-        // Cache the domain separator and salt, but also store the chain id that 
+        // Cache the domain separator and salt, but also store the chain id that
         // it corresponds to, in order to invalidate the cached domain separator
         // if the chain id changes.
         bytes32 cachedDomainSeparator;
@@ -35,7 +28,6 @@ contract TokenStorage {
         address cachedThis;
         bytes32 cachedSalt;
         bytes32 cachedHashedName;
-
         // ERC20Permit draft
         mapping(address => Counters.Counter) nonces;
     }

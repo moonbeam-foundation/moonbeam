@@ -1,4 +1,5 @@
 // contracts/Structs.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -42,7 +43,7 @@ contract BridgeStructs {
 
     struct TransferResult {
         // Chain ID of the token
-        uint16  tokenChain;
+        uint16 tokenChain;
         // Address of the token. Left-zero-padded if shorter than 32 bytes
         bytes32 tokenAddress;
         // Amount being transferred (big-endian uint256)
@@ -76,7 +77,6 @@ contract BridgeStructs {
         uint8 action;
         // governance paket chain id: this or 0
         uint16 chainId;
-
         // Chain ID
         uint16 emitterChainID;
         // Emitter address. Left-zero-padded if shorter than 32 bytes
@@ -91,7 +91,6 @@ contract BridgeStructs {
         uint8 action;
         // governance paket chain id
         uint16 chainId;
-
         // Address of the new contract
         bytes32 newContract;
     }
@@ -102,7 +101,6 @@ contract BridgeStructs {
         bytes32 module;
         // governance action: 3
         uint8 action;
-
         // EIP-155 Chain ID
         uint256 evmChainId;
         // Chain ID

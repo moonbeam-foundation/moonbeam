@@ -1,4 +1,5 @@
 // contracts/GovernanceStructs.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -22,7 +23,6 @@ contract GovernanceStructs {
         bytes32 module;
         uint8 action;
         uint16 chain;
-
         address newContract;
     }
 
@@ -30,7 +30,6 @@ contract GovernanceStructs {
         bytes32 module;
         uint8 action;
         uint16 chain;
-
         Structs.GuardianSet newGuardianSet;
         uint32 newGuardianSetIndex;
     }
@@ -39,7 +38,6 @@ contract GovernanceStructs {
         bytes32 module;
         uint8 action;
         uint16 chain;
-
         uint256 messageFee;
     }
 
@@ -47,7 +45,6 @@ contract GovernanceStructs {
         bytes32 module;
         uint8 action;
         uint16 chain;
-
         uint256 amount;
         bytes32 recipient;
     }
@@ -55,13 +52,14 @@ contract GovernanceStructs {
     struct RecoverChainId {
         bytes32 module;
         uint8 action;
-
         uint256 evmChainId;
         uint16 newChainId;
     }
 
     /// @dev Parse a contract upgrade (action 1) with minimal validation
-    function parseContractUpgrade(bytes memory encodedUpgrade) public pure returns (ContractUpgrade memory cu) {
+    function parseContractUpgrade(
+        bytes memory encodedUpgrade
+    ) public pure returns (ContractUpgrade memory cu) {
         uint index = 0;
 
         cu.module = encodedUpgrade.toBytes32(index);
@@ -75,14 +73,18 @@ contract GovernanceStructs {
         cu.chain = encodedUpgrade.toUint16(index);
         index += 2;
 
-        cu.newContract = address(uint160(uint256(encodedUpgrade.toBytes32(index))));
+        cu.newContract = address(
+            uint160(uint256(encodedUpgrade.toBytes32(index)))
+        );
         index += 32;
 
         require(encodedUpgrade.length == index, "invalid ContractUpgrade");
     }
 
     /// @dev Parse a guardianSet upgrade (action 2) with minimal validation
-    function parseGuardianSetUpgrade(bytes memory encodedUpgrade) public pure returns (GuardianSetUpgrade memory gsu) {
+    function parseGuardianSetUpgrade(
+        bytes memory encodedUpgrade
+    ) public pure returns (GuardianSetUpgrade memory gsu) {
         uint index = 0;
 
         gsu.module = encodedUpgrade.toBytes32(index);
@@ -103,11 +105,11 @@ contract GovernanceStructs {
         index += 1;
 
         gsu.newGuardianSet = Structs.GuardianSet({
-            keys : new address[](guardianLength),
-            expirationTime : 0
+            keys: new address[](guardianLength),
+            expirationTime: 0
         });
 
-        for(uint i = 0; i < guardianLength; i++) {
+        for (uint i = 0; i < guardianLength; i++) {
             gsu.newGuardianSet.keys[i] = encodedUpgrade.toAddress(index);
             index += 20;
         }
@@ -116,7 +118,9 @@ contract GovernanceStructs {
     }
 
     /// @dev Parse a setMessageFee (action 3) with minimal validation
-    function parseSetMessageFee(bytes memory encodedSetMessageFee) public pure returns (SetMessageFee memory smf) {
+    function parseSetMessageFee(
+        bytes memory encodedSetMessageFee
+    ) public pure returns (SetMessageFee memory smf) {
         uint index = 0;
 
         smf.module = encodedSetMessageFee.toBytes32(index);
@@ -137,7 +141,9 @@ contract GovernanceStructs {
     }
 
     /// @dev Parse a transferFees (action 4) with minimal validation
-    function parseTransferFees(bytes memory encodedTransferFees) public pure returns (TransferFees memory tf) {
+    function parseTransferFees(
+        bytes memory encodedTransferFees
+    ) public pure returns (TransferFees memory tf) {
         uint index = 0;
 
         tf.module = encodedTransferFees.toBytes32(index);
@@ -161,7 +167,9 @@ contract GovernanceStructs {
     }
 
     /// @dev Parse a recoverChainId (action 5) with minimal validation
-    function parseRecoverChainId(bytes memory encodedRecoverChainId) public pure returns (RecoverChainId memory rci) {
+    function parseRecoverChainId(
+        bytes memory encodedRecoverChainId
+    ) public pure returns (RecoverChainId memory rci) {
         uint index = 0;
 
         rci.module = encodedRecoverChainId.toBytes32(index);
@@ -178,6 +186,9 @@ contract GovernanceStructs {
         rci.newChainId = encodedRecoverChainId.toUint16(index);
         index += 2;
 
-        require(encodedRecoverChainId.length == index, "invalid RecoverChainId");
+        require(
+            encodedRecoverChainId.length == index,
+            "invalid RecoverChainId"
+        );
     }
 }

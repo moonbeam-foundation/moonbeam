@@ -1,4 +1,5 @@
 // contracts/State.sol
+// skip-compilation
 // SPDX-License-Identifier: Apache 2
 
 pragma solidity ^0.8.0;
@@ -23,30 +24,21 @@ contract BridgeStorage {
     struct State {
         address payable wormhole;
         address tokenImplementation;
-
         Provider provider;
-
         // Mapping of consumed governance actions
         mapping(bytes32 => bool) consumedGovernanceActions;
-
         // Mapping of consumed token transfers
         mapping(bytes32 => bool) completedTransfers;
-
         // Mapping of initialized implementations
         mapping(address => bool) initializedImplementations;
-
         // Mapping of wrapped assets (chainID => nativeAddress => wrappedAddress)
         mapping(uint16 => mapping(bytes32 => address)) wrappedAssets;
-
         // Mapping to safely identify wrapped assets
         mapping(address => bool) isWrappedAsset;
-
         // Mapping of native assets to amount outstanding on other chains
         mapping(address => uint256) outstandingBridged;
-
         // Mapping of bridge contracts on other chains
         mapping(uint16 => bytes32) bridgeImplementations;
-
         // EIP-155 Chain ID
         uint256 evmChainId;
     }

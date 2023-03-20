@@ -5,17 +5,20 @@ import path from "path";
 import { Compiled } from "../util/contracts";
 
 let sourceByReference = {} as { [ref: string]: string };
+let countByReference = {} as { [ref: string]: number };
 let refByContract = {} as { [contract: string]: string };
 
 // For some reasons, solc doesn't provide the relative path to imports :(
 const getImports = (fileRef: string) => (dependency: string) => {
   if (sourceByReference[dependency]) {
+    countByReference[dependency] = (countByReference[dependency] || 0) + 1;
     return { contents: sourceByReference[dependency] };
   }
   let base = fileRef;
   while (base && base.length > 1) {
     const localRef = path.join(base, dependency);
     if (sourceByReference[localRef]) {
+      countByReference[localRef] = (countByReference[localRef] || 0) + 1;
       return { contents: sourceByReference[localRef] };
     }
     base = path.dirname(base);
@@ -68,6 +71,7 @@ function compileSolidity(fileRef: string, contractContent: string): { [name: str
 // Shouldn't be run concurrently with the same 'name'
 async function compile(fileRef: string, destPath: string): Promise<{ [name: string]: Compiled }> {
   const soliditySource = sourceByReference[fileRef];
+  countByReference[fileRef]++;
   if (!soliditySource) {
     throw new Error(`Missing solidity file: ${fileRef}`);
   }
@@ -141,7 +145,10 @@ const main = async () => {
         .replace(/^\//, "");
       sourceByReference[ref] = (await fs.readFile(filepath)).toString();
       if (contractPath.compile) {
-        sourceToCompile[ref] = sourceByReference[ref];
+        countByReference[ref] = 0;
+        if (!sourceByReference[ref].includes("// skip-compilation")) {
+          sourceToCompile[ref] = sourceByReference[ref];
+        }
       }
     }
   }
@@ -160,6 +167,11 @@ const main = async () => {
         console.log(e);
       }
       process.exit(1);
+    }
+  }
+  for (const ref of Object.keys(countByReference)) {
+    if (!countByReference[ref]) {
+      console.log(`${chalk.red("Warning")}: ${ref} never used: ${countByReference[ref]}`);
     }
   }
 
