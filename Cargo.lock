@@ -7510,6 +7510,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex",
  "hex-literal",
  "log",
  "num_enum",
