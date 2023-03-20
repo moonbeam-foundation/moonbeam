@@ -41,9 +41,7 @@ use fp_evm::PrecompileFailure;
 
 // pub use data::{EvmData, Reader, Writer};
 pub use fp_evm::Precompile;
-pub use precompile_utils_macro::{
-	generate_function_selector, keccak256, precompile, precompile_name_from_address,
-};
+pub use precompile_utils_macro::{keccak256, precompile, precompile_name_from_address};
 
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
@@ -73,6 +71,6 @@ pub mod prelude {
 		},
 		alloc::string::String,
 		pallet_evm::{PrecompileHandle, PrecompileOutput},
-		precompile_utils_macro::{generate_function_selector, keccak256, precompile},
+		precompile_utils_macro::{keccak256, precompile},
 	};
 }
