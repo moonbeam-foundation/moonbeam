@@ -1,9 +1,10 @@
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution } from "../../util/transactions";
+import { createContract, createContractExecution, createTransaction } from "../../util/transactions";
 import { getCompiled } from "../../util/contracts";
 import { genRegisterChainVAA, genAssetMeta, genTransferVAA } from "../../util/wormhole";
 import { ethers } from "ethers";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
+import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 
 import { expectEVMResult } from "../../util/eth-transactions";
 const debug = require("debug")("test:wormhole");
@@ -90,6 +91,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       wormholeSetupData,
     ]);
 
+    console.log(`wormhole core bridge deployed to ${wormholeContract.contractAddress}`);
+
     const finality = 1;
     // Deploy bridge (based on wormhole)
     // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
@@ -113,6 +116,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       bridgeSetupContract.contractAddress,
       bridgeSetupData,
     ]);
+
+    console.log(`wormhole token deployed to ${bridgeContract.contractAddress}`);
 
     const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
     const ETHChain = 3;
@@ -166,6 +171,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       })`
     );
 
+    console.log(`wrapped token deployed to ${wrappedToken}`);
+
     const transferVM = await genTransferVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
@@ -180,10 +187,22 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       10
     );
 
+    /*
     const result = await context.createBlock(
       createContractExecution(context, {
         contract: bridgeContract.contract,
         contractCall: bridgeImplContract.contract.methods.completeTransfer(`0x${transferVM}`),
+      })
+    );
+    */
+
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVM}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 500_000,
+        data,
       })
     );
 

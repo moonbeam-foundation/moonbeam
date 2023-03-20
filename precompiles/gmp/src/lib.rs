@@ -71,7 +71,8 @@ where
 		//
 		// Moonbase core bridge: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
 		// Moonbase token bridge: 0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96
-		let wormhole = H160::from_str("0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901")
+		// Deployment in "Test local Wormhole" ts test: 0x5cc307268a1393ab9a764a20dace848ab8275c46
+		let wormhole = H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46")
 			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
 
 		// TODO: need our own address (preferably without looking at storage)
@@ -109,7 +110,7 @@ where
 		);
 
 		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
-		log::warn!(target: "gmp-precompile", "output: {:?}", output);
+		// log::warn!(target: "gmp-precompile", "output: {:?}", output);
 
 		match reason {
 			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
@@ -162,7 +163,7 @@ where
 	) -> EvmResult<WormholeVM> {
 		// TODO: DRY
 
-		let wormhole = H160::from_str("0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901")
+		let wormhole = H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46")
 			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
 
 		// TODO: need our own address (preferably without looking at storage)
@@ -188,7 +189,7 @@ where
 		);
 
 		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
-		log::warn!(target: "gmp-precompile", "output: {:?}", output);
+		// log::warn!(target: "gmp-precompile", "output: {:?}", output);
 
 		match reason {
 			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
