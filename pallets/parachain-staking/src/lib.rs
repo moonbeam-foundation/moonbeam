@@ -446,21 +446,19 @@ pub mod pallet {
 				let candidates = <CandidatePool<T>>::get().0;
 
 				// iter candidates to check which of them must be marked as offline
-				for candidate in candidates {
-					match <CandidateLastActive<T>>::get(&candidate.owner) {
-						Some(last_round) => {
-							if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
-							{
-								// if the collator has not produced any block within
-								// MaxOfflineRounds e.g(3 rounds for Moonriver)
-								// it is marked as offline
-								Self::do_go_offline(candidate.owner.clone()).unwrap_or_default();
+				for candidate in candidates.clone() {
+					if let Some(last_round) = <CandidateLastActive<T>>::get(&candidate.owner) {
+						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
+							&& candidates.len() > 1
+						{
+							// if the collator has not produced any block within
+							// MaxOfflineRounds e.g(3 rounds for Moonriver)
+							// it is marked as offline
+							Self::do_go_offline(candidate.owner.clone()).unwrap_or_default();
 
-								//remove storage info for the collator
-								<CandidateLastActive<T>>::remove(&candidate.owner);
-							};
-						}
-						None => {}
+							//remove storage info for the collator
+							<CandidateLastActive<T>>::remove(&candidate.owner);
+						};
 					}
 				}
 
