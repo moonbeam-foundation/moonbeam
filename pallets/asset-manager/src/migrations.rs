@@ -21,9 +21,14 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 	Blake2_128Concat,
+	StoragePrefixedMap,
 };
-#[cfg(feature = "try-runtime")]
 use parity_scale_codec::{Decode, Encode};
+#[cfg(feature = "try-runtime")]
+use frame_support::storage::{
+	generator::StorageValue,
+	migration::storage_iter
+};
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
@@ -530,6 +535,308 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			// Check that the asset_id exists in migrated_info
 			assert!(migrated_info.contains(&asset_type));
 		}
+
+		Ok(())
+	}
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+enum OldAssetType {
+	Xcm(xcm::v2::MultiLocation),
+}
+
+impl Into<Option<xcm::v2::MultiLocation>> for OldAssetType {
+	fn into(self) -> Option<xcm::v2::MultiLocation> {
+		match self {
+			Self::Xcm(location) => Some(location),
+		}
+	}
+}
+
+#[cfg(feature = "try-runtime")]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+enum PreUpgradeState<T: Config> {
+	AssetIdType(Vec<(T::AssetId, OldAssetType)>),
+	AssetTypeId(Vec<(OldAssetType, T::AssetId)>),
+	AssetTypeUnitsPerSecond(Vec<(OldAssetType, u128)>),
+	SupportedFeePaymentAssets(Vec<OldAssetType>),
+}
+
+#[cfg(feature = "try-runtime")]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
+enum PostUpgradeState<T: Config> {
+	AssetIdType(Vec<(T::AssetId, T::ForeignAssetType)>),
+	AssetTypeId(Vec<(T::ForeignAssetType, T::AssetId)>),
+	AssetTypeUnitsPerSecond(Vec<(T::ForeignAssetType, u128)>),
+	SupportedFeePaymentAssets(Vec<T::ForeignAssetType>),
+}
+
+#[cfg(feature = "try-runtime")]
+impl<T: Config> From<PreUpgradeState<T>> for PostUpgradeState<T>
+	where
+	T::ForeignAssetType: From<MultiLocation>,
+{
+	fn from(pre: PreUpgradeState<T>) -> PostUpgradeState<T> {
+		match pre {
+			PreUpgradeState::AssetIdType(items) => {
+				let mut out: Vec<(T::AssetId, T::ForeignAssetType)> = Vec::new();
+				for (key, value) in items.into_iter() {
+					let old_multilocation: Option<xcm::v2::MultiLocation> = value.into();
+					let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+						.expect("old storage convert to XcmV2 Multilocation");
+					let new_multilocation: MultiLocation = old_multilocation.try_into()
+						.expect("Multilocation v2 to v3");
+					out.push((key, new_multilocation.into()));
+				}
+				PostUpgradeState::AssetIdType(out)
+			},
+			PreUpgradeState::AssetTypeId(items) => {
+				let mut out: Vec<(T::ForeignAssetType, T::AssetId)> = Vec::new();
+				for (key, value) in items.into_iter() {
+					let old_multilocation: Option<xcm::v2::MultiLocation> = key.into();
+					let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+						.expect("old storage convert to XcmV2 Multilocation");
+					let new_multilocation: MultiLocation = old_multilocation.try_into()
+						.expect("Multilocation v2 to v3");
+					out.push((new_multilocation.into(), value));
+				}
+				PostUpgradeState::AssetTypeId(out)
+			},
+			PreUpgradeState::AssetTypeUnitsPerSecond(items) => {
+				let mut out: Vec<(T::ForeignAssetType, u128)> = Vec::new();
+				for (key, value) in items.into_iter() {
+					let old_multilocation: Option<xcm::v2::MultiLocation> = key.into();
+					let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+						.expect("old storage convert to XcmV2 Multilocation");
+					let new_multilocation: MultiLocation = old_multilocation.try_into()
+						.expect("Multilocation v2 to v3");
+					out.push((new_multilocation.into(), value));
+				}
+				PostUpgradeState::AssetTypeUnitsPerSecond(out)
+			},
+			PreUpgradeState::SupportedFeePaymentAssets(items) => {
+				let mut out: Vec<T::ForeignAssetType> = Vec::new();
+				for value in items.into_iter() {
+					let old_multilocation: Option<xcm::v2::MultiLocation> = value.into();
+					let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+						.expect("old storage convert to XcmV2 Multilocation");
+					let new_multilocation: MultiLocation = old_multilocation.try_into()
+						.expect("Multilocation v2 to v3");
+					out.push(new_multilocation.into());
+				}
+				PostUpgradeState::SupportedFeePaymentAssets(out)
+			}
+		}
+	}
+}
+
+pub struct XcmV2ToV3<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3<T>
+	where
+		T::ForeignAssetType: From<MultiLocation>,
+{
+	fn on_runtime_upgrade() -> Weight {
+		log::trace!(
+			target: "XcmV2ToV3",
+			"Running XcmV2ToV3 migration"
+		);
+		// Migrates the pallet's storage from Xcm V2 to V3:
+		//	- AssetIdType -> migrate map's value
+		//	- AssetTypeId -> migrate map's key
+		//	- AssetTypeUnitsPerSecond -> migrate map's key
+		//	- SupportedFeePaymentAssets -> migrate value
+
+		// Shared module prefix
+		let module_prefix = AssetIdType::<T>::module_prefix();
+		// AssetTypeId
+		let asset_type_id_storage_prefix = AssetTypeId::<T>::storage_prefix();
+		// AssetTypeUnitsPerSecond
+		let units_per_second_storage_prefix = AssetTypeUnitsPerSecond::<T>::storage_prefix();
+
+		// Db (read, write) count
+		let mut db_weight_count: (u64, u64) = (0, 0);
+
+		// Migrate `AssetIdType` value
+		let _ = AssetIdType::<T>::translate::<OldAssetType, _>(|_key, value| {
+			db_weight_count.0 += 1;
+			db_weight_count.1 += 1;
+			let old_multilocation: Option<xcm::v2::MultiLocation> = value.into();
+			let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+				.expect("old storage convert to XcmV2 Multilocation");
+			let new_multilocation: MultiLocation = old_multilocation.try_into()
+				.expect("Multilocation v2 to v3");
+			Some(new_multilocation.into())
+		});
+
+		// Migrate `AssetTypeId` key
+		db_weight_count.0 += 1;
+		let old_data = storage_key_iter::<OldAssetType, T::AssetId, Blake2_128Concat>(
+			&module_prefix,
+			asset_type_id_storage_prefix,
+		)
+		.drain()
+		.collect::<Vec<(OldAssetType, T::AssetId)>>();
+		for (old_key, value) in old_data {
+			db_weight_count.1 += 1;
+			let old_key: Option<xcm::v2::MultiLocation> = old_key.into();
+			let old_key: xcm::v2::MultiLocation = old_key
+				.expect("old storage convert to XcmV2 Multilocation");
+			let v3_multilocation: MultiLocation = old_key.try_into().expect("Multilocation v2 to v3");
+			let new_key: T::ForeignAssetType = v3_multilocation.into();
+			AssetTypeId::<T>::insert(new_key, value);
+		}
+
+		// Migrate `AssetTypeUnitsPerSecond` key
+		db_weight_count.0 += 1;
+		let old_data = storage_key_iter::<OldAssetType, u128, Blake2_128Concat>(
+			&module_prefix,
+			units_per_second_storage_prefix,
+		)
+		.drain()
+		.collect::<Vec<(OldAssetType, u128)>>();
+		for (old_key, value) in old_data {
+			db_weight_count.1 += 1;
+			let old_key: Option<xcm::v2::MultiLocation> = old_key.into();
+			let old_key: xcm::v2::MultiLocation = old_key
+				.expect("old storage convert to XcmV2 Multilocation");
+			let v3_multilocation: MultiLocation = old_key.try_into().expect("Multilocation v2 to v3");
+			let new_key: T::ForeignAssetType = v3_multilocation.into();
+			AssetTypeUnitsPerSecond::<T>::insert(new_key, value);
+		}
+
+		// Migrate `SupportedFeePaymentAssets` value
+		let _ = SupportedFeePaymentAssets::<T>::translate::<Vec<OldAssetType>, _>(|value| {
+			db_weight_count.0 += 1;
+			db_weight_count.1 += 1;
+			let new_value: Vec<T::ForeignAssetType> = value
+				.unwrap_or_default()
+				.into_iter()
+				.map(|old_value| {
+					let old_multilocation: Option<xcm::v2::MultiLocation> = old_value.into();
+					let old_multilocation: xcm::v2::MultiLocation = old_multilocation
+						.expect("old storage convert to XcmV2 Multilocation");
+					let new_multilocation: MultiLocation = old_multilocation.try_into()
+						.expect("Multilocation v2 to v3");
+					new_multilocation.into()
+				})
+				.collect();
+			Some(new_value)
+		});
+
+		T::DbWeight::get().reads_writes(db_weight_count.0, db_weight_count.1)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		log::trace!(
+			target: "XcmV2ToV3",
+			"Running XcmV2ToV3 pre_upgrade hook"
+		);
+		// Shared module prefix
+		let module_prefix = AssetIdType::<T>::module_prefix();
+		// AssetIdType
+		let asset_id_type_storage_prefix = AssetIdType::<T>::storage_prefix();
+		// AssetTypeId
+		let asset_type_id_storage_prefix = AssetTypeId::<T>::storage_prefix();
+		// AssetTypeUnitsPerSecond
+		let units_per_second_storage_prefix = AssetTypeUnitsPerSecond::<T>::storage_prefix();
+		// SupportedFeePaymentAssets
+		let supported_fee_storage_prefix = SupportedFeePaymentAssets::<T>::storage_prefix();
+
+		let mut result: Vec<(u32, PreUpgradeState::<T>)> = Vec::new();
+
+		// AssetIdType pre-upgrade data
+		let asset_id_type_storage_data: Vec<_> = storage_key_iter::<T::AssetId, OldAssetType, Blake2_128Concat>(
+			module_prefix,
+			asset_id_type_storage_prefix,
+		)
+		.collect();
+		result.push((asset_id_type_storage_data.len() as u32, PreUpgradeState::<T>::AssetIdType(asset_id_type_storage_data)));
+
+		// AssetTypeId pre-upgrade data
+		let asset_type_id_storage_data: Vec<_> = storage_key_iter::<OldAssetType, T::AssetId, Blake2_128Concat>(
+			module_prefix,
+			asset_type_id_storage_prefix,
+		)
+		.collect();
+		result.push((asset_type_id_storage_data.len() as u32, PreUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data)));
+
+		// AssetTypeUnitsPerSecond pre-upgrade data
+		let units_per_second_storage_data: Vec<_> = storage_key_iter::<OldAssetType, u128, Blake2_128Concat>(
+			module_prefix,
+			units_per_second_storage_prefix,
+		)
+		.collect();
+		result.push((units_per_second_storage_data.len() as u32, PreUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data)));
+
+		// SupportedFeePaymentAssets pre-upgrade data
+		let supported_fee_storage_data: Vec<_> = storage_iter::<OldAssetType>(
+			module_prefix,
+			supported_fee_storage_prefix,
+		)
+		.map(|(_prefix, value)| value)
+		.collect();
+		result.push((supported_fee_storage_data.len() as u32, PreUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data)));
+
+		Ok(result.encode())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		log::trace!(
+			target: "XcmV2ToV3",
+			"Running XcmV2ToV3 post_upgrade hook"
+		);
+		let pre_upgrade_state: Vec<(u32, PreUpgradeState::<T>)> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
+		// Shared module prefix
+		let module_prefix = AssetIdType::<T>::module_prefix();
+		// AssetIdType
+		let asset_id_type_storage_prefix = AssetIdType::<T>::storage_prefix();
+		// AssetTypeId
+		let asset_type_id_storage_prefix = AssetTypeId::<T>::storage_prefix();
+		// AssetTypeUnitsPerSecond
+		let units_per_second_storage_prefix = AssetTypeUnitsPerSecond::<T>::storage_prefix();
+
+		// Expected post-upgrade
+		let expected_post_upgrade_state: Vec<(u32, PostUpgradeState::<T>)> = pre_upgrade_state
+			.into_iter()
+			.map(|(item_count, value)| (item_count, value.into()))
+			.collect();
+
+		let mut actual_post_upgrade_state: Vec<(u32, PostUpgradeState::<T>)> = Vec::new();
+
+		// Actual AssetIdType post-upgrade data
+		let asset_id_type_storage_data: Vec<_> = storage_key_iter::<T::AssetId, T::ForeignAssetType, Blake2_128Concat>(
+			module_prefix,
+			asset_id_type_storage_prefix,
+		)
+		.collect();
+		actual_post_upgrade_state.push((asset_id_type_storage_data.len() as u32, PostUpgradeState::<T>::AssetIdType(asset_id_type_storage_data)));
+
+		// Actual AssetTypeId post-upgrade data
+		let asset_type_id_storage_data: Vec<_> = storage_key_iter::<T::ForeignAssetType, T::AssetId, Blake2_128Concat>(
+			module_prefix,
+			asset_type_id_storage_prefix,
+		)
+		.collect();
+		actual_post_upgrade_state.push((asset_type_id_storage_data.len() as u32, PostUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data)));
+
+		// Actual AssetTypeUnitsPerSecond post-upgrade data
+		let units_per_second_storage_data: Vec<_> = storage_key_iter::<T::ForeignAssetType, u128, Blake2_128Concat>(
+			module_prefix,
+			units_per_second_storage_prefix,
+		)
+		.collect();
+		actual_post_upgrade_state.push((units_per_second_storage_data.len() as u32, PostUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data)));
+
+		// Actual SupportedFeePaymentAssets post-upgrade data
+		let supported_fee_storage_data: Vec<_> = SupportedFeePaymentAssets::<T>::get();
+		actual_post_upgrade_state.push((supported_fee_storage_data.len() as u32, PostUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data)));
+
+		// Assert
+		assert_eq!(expected_post_upgrade_state.encode(), actual_post_upgrade_state.encode());
 
 		Ok(())
 	}
