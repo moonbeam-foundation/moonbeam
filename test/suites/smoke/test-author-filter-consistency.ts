@@ -1,14 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
-import Debug from "debug";
-const debug = Debug("smoke:author");
 
 describeSuite({
   id: "S100",
   title: `Verify author filter consistency`,
   foundationMethods: "read_only",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
     let specVersion: number = 0;
@@ -35,7 +33,7 @@ describeSuite({
           expect(eligibilityCount.toNumber() > 0).to.be.true;
         }
 
-        debug(`Verified eligibility`);
+        log(`Verified eligibility`);
       },
     });
   },

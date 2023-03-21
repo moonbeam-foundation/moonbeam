@@ -1,14 +1,12 @@
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
 import { ApiDecoration } from "@polkadot/api/types";
-import Debug from "debug";
-const debug = Debug("smoke:author-mapping");
 import "@moonbeam-network/api-augment";
 
 describeSuite({
   id: "S200",
   title: `Verifying deposit for associated nimbus ids`,
   foundationMethods: "read_only",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     const nimbusIdPerAccount: { [account: string]: string } = {};
 
     let atBlockNumber: number = 0;
@@ -56,11 +54,11 @@ describeSuite({
 
         // Debug logs to make sure it keeps progressing
         if (count % (10 * limit) == 0) {
-          debug(`Retrieved ${count} nimbus ids`);
+          log(`Retrieved ${count} nimbus ids`);
         }
       }
 
-      debug(`Retrieved ${count} total nimbus ids`);
+      log(`Retrieved ${count} total nimbus ids`);
     }, 300_000);
 
     it({
@@ -68,14 +66,14 @@ describeSuite({
       title: `should have a deposit for each associated nimbus id`,
       timeout: 60_000,
       test: async function () {
-         // Instead of putting an expect in the loop. We track all failed entries instead
+        // Instead of putting an expect in the loop. We track all failed entries instead
         const failedEntries: { accountId: string; nimbusId: string; problem: string }[] = [];
 
         // Verify that there is a deposit for each nimbus id
         for (const accountId of Object.keys(nimbusIdPerAccount)) {
           const nimbusId = nimbusIdPerAccount[accountId];
           const registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
-          
+
           if (
             registrationInfo.isNone ||
             registrationInfo.unwrap().deposit.toBigInt() <= BigInt(0)
@@ -89,7 +87,7 @@ describeSuite({
             failedEntries.push({ accountId, nimbusId, problem: "insufficient reserved amount" });
           }
 
-          // ensure that keys exist and smell legitimate 
+          // ensure that keys exist and smell legitimate
           const keys_ = registrationInfo.unwrap().keys_;
           const zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
             return prev + (c == "0" ? 1 : 0);
@@ -100,9 +98,7 @@ describeSuite({
             // we could also check whether this account exists as a collator candidate, as the
             // combination of bogus keys and being an eligible author would mean the candidate could
             // never produce a block when `pallet_randomness` is enabled for the runtime
-            debug(
-              `⚠️  Warning: AuthorMapping ${accountId} exists with suspicious keys: ${keys_}`
-            );
+            log(`⚠️  Warning: AuthorMapping ${accountId} exists with suspicious keys: ${keys_}`);
           }
         }
 
@@ -114,7 +110,7 @@ describeSuite({
             })
             .join(`\n`)} `
         ).to.equal(0);
-        debug(
+        log(
           `Verified ${Object.keys(nimbusIdPerAccount).length} total accounts (at #${atBlockNumber})`
         );
       },

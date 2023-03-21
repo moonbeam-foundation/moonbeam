@@ -1,15 +1,19 @@
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
-import { ALITH_PRIVATE_KEY, alith } from "@moonsong-labs/moonwall-util";
+import {
+  ALITH_PRIVATE_KEY,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+} from "@moonsong-labs/moonwall-util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther, ethers, Transaction, Wallet, parseUnits } from "ethers";
-import "@polkadot/api-augment";
-// import "@moonbeam-network/api-augment" // This is disabled until typegen fixed
+import "@moonbeam-network/api-augment";
 
 describeSuite({
   id: "CMB01",
   title: "Chopsticks test suite",
   foundationMethods: "chopsticks",
-  testCases: ({ it, context }) => {
+  testCases: ({ it, context, log }) => {
     let api: ApiPromise;
     const DUMMY_ACCOUNT = "0x11d88f59425cbc1867883fcf93614bf70e87E854";
 
@@ -95,6 +99,41 @@ describeSuite({
 
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;
+      },
+    });
+
+    it({
+      id: "T5",
+      title: "Create block and check events",
+      test: async function () {
+        const expectEvents = [
+          api.events.system.ExtrinsicSuccess,
+          api.events.balances.Transfer,
+          api.events.system.NewAccount,
+          // api.events.authorFilter.EligibleUpdated
+        ];
+
+        await api.tx.balances.transfer(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        await context.createBlock({ expectEvents, logger: log });
+      },
+    });
+
+    it({
+      id: "T6",
+      title: "Create block, allow failures and check events",
+      test: async function () {
+        await api.tx.balances
+          .forceTransfer(BALTATHAR_ADDRESS, CHARLETH_ADDRESS, parseEther("3"))
+          .signAndSend(alith);
+        // await api.tx.balances.transfer(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        const { result } = await context.createBlock({ allowFailures: true });
+
+        const apiAt = await api.at(result);
+        const events = await apiAt.query.system.events();
+        expect(
+          events.find((evt) => api.events.system.ExtrinsicFailed.is(evt.event)),
+          "No Event found in block"
+        ).toBeTruthy();
       },
     });
   },

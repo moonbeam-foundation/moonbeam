@@ -20,9 +20,44 @@ It is written in typescript, using the [Moonwall](https://github.com/Moonsong-La
 PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
 There are [many](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
 
-Once
+Once installed, install the package dependencies with `pnpm i`
 
 ## Usage
 
+Launch the CLI:
+```
+pnpm moonwall
+```
+
+Run a network:
+```
+pnpm moonwall run <environment_name>
+```
+
+Download from GitHub:
+```
+pnpm moonwall download <artifact>
+```
+
+Test an environment:
+```
+pnpm moonwall test <environment_name>
+```
+
+If in doubt, use `--help` for available options for each command.
+
+## Examples
+
+```
+pnpm moonwall test chopsticks_moonbeam
+```
+
+```
+pnpm moonwall run dev_moonbase
+```
+
+```
+pnpm moonwall download moonriver-runtime 2201
+```
 
 

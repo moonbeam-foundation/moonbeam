@@ -4,24 +4,18 @@ import { extractPreimageDeposit, printTokens } from "@moonsong-labs/moonwall-uti
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
 import { u32 } from "@polkadot/types";
-import {
-  FrameSystemAccountInfo,
-  PalletReferendaDeposit,
-  PalletPreimageRequestStatus,
-} from "@polkadot/types/lookup";
+import { FrameSystemAccountInfo, PalletPreimageRequestStatus } from "@polkadot/types/lookup";
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
-import Debug from "debug";
-const debug = Debug("smoke:balances");
 
 describeSuite({
   id: "S300",
   title: `Verifying balances consistency`,
   foundationMethods: "read_only",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-    const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
+    const limiter = new Bottleneck({ maxConcurrent: 20, minTime: 150 });
 
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
@@ -30,7 +24,6 @@ describeSuite({
 
     beforeAll(async function () {
       // It takes time to load all the accounts.
-
       const limit = 1000;
       let last_key = "";
       let count = 0;
@@ -71,10 +64,10 @@ describeSuite({
           accounts[accountId] = user[1];
         }
         if (count % (10 * limit) == 0) {
-          debug(`Retrieved ${count} accounts`);
+          log(`Retrieved ${count} accounts`);
         }
       }
-      debug(`Retrieved ${count} total accounts`);
+      log(`Retrieved ${count} total accounts`);
     }, 3600000);
 
     it({
@@ -182,9 +175,11 @@ describeSuite({
               announcement: announcement[1][1].toBigInt(),
             },
           })),
-          mappingWithDeposit.map((mapping) => ({ // @ts-ignore-error
+          mappingWithDeposit.map((mapping) => ({
+            // @ts-ignore-error
             accountId: `0x${mapping[1].unwrap().account.toHex().slice(-40)}`,
-            reserved: { // @ts-ignore-error
+            reserved: {
+              // @ts-ignore-error
               mapping: mapping[1].unwrap().deposit.toBigInt(),
             },
           })),
@@ -196,7 +191,8 @@ describeSuite({
                 !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`])
                 ? {
                     accountId: `0x${candidate[0].toHex().slice(-40)}`,
-                    reserved: {// @ts-ignore-error
+                    reserved: {
+                      // @ts-ignore-error
                       candidate: candidate[1].unwrap().bond.toBigInt(),
                     },
                   }
@@ -212,7 +208,8 @@ describeSuite({
                 !delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`])
                 ? {
                     accountId: `0x${delegator[0].toHex().slice(-40)}`,
-                    reserved: {// @ts-ignore-error
+                    reserved: {
+                      // @ts-ignore-error
                       delegator: delegator[1].unwrap().total.toBigInt(),
                     },
                   }
@@ -308,7 +305,7 @@ describeSuite({
                       info[1].unwrap().asOngoing.submissionDeposit,
                       info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
                     ]
-                  : ([] as PalletReferendaDeposit[])
+                  : ([] as any[])
               ).filter((value) => !!value && !value.isNone);
 
               return deposits.map((deposit) => {
@@ -342,9 +339,11 @@ describeSuite({
               assetMetadata: assetMetadata[1].deposit.toBigInt(),
             },
           })),
-          localAssets.map((localAsset) => ({// @ts-ignore-error
+          localAssets.map((localAsset) => ({
+            // @ts-ignore-error
             accountId: `0x${localAsset[1].unwrap().owner.toHex().slice(-40)}`,
-            reserved: {// @ts-ignore-error
+            reserved: {
+              // @ts-ignore-error
               localAsset: localAsset[1].unwrap().deposit.toBigInt(),
             },
           })),
@@ -353,17 +352,20 @@ describeSuite({
               .find(
                 (localAsset) =>
                   localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
-              )[1]// @ts-ignore-error
+              )[1] // @ts-ignore-error
               .unwrap()
               .owner.toHex()
               .slice(-40)}`,
-            reserved: {// @ts-ignore-error
+            reserved: {
+              // @ts-ignore-error
               localAssetMetadata: localAssetMetadata[1].deposit.toBigInt(),
             },
           })),
-          localAssetDeposits.map((assetDeposit) => ({// @ts-ignore-error
+          localAssetDeposits.map((assetDeposit) => ({
+            // @ts-ignore-error
             accountId: assetDeposit[1].unwrap().creator.toHex(),
-            reserved: {// @ts-ignore-error
+            reserved: {
+              // @ts-ignore-error
               localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
             },
           })),
@@ -392,7 +394,7 @@ describeSuite({
             return p;
           }, {} as { [key: string]: { total: bigint; reserved: { [key: string]: bigint } } });
 
-        debug(`Retrieved ${Object.keys(expectedReserveByAccount).length} deposits`);
+        log(`Retrieved ${Object.keys(expectedReserveByAccount).length} deposits`);
 
         const failedReserved = [];
 
@@ -405,7 +407,9 @@ describeSuite({
               `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
                 `        (${Object.keys(expectedReserveByAccount[accountId]?.reserved || {})
                   .map(
-                    (key) =>// @ts-ignore-error
+                    (
+                      key // @ts-ignore-error
+                    ) =>
                       `${key}: ${printTokens(
                         context.getSubstrateApi(),
                         expectedReserveByAccount[accountId].reserved[key]
@@ -426,7 +430,8 @@ describeSuite({
               collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
                 ? {
                     accountId: `0x${candidate[0].toHex().slice(-40)}`,
-                    locks: {// @ts-ignore-error
+                    locks: {
+                      // @ts-ignore-error
                       ColStake: candidate[1].unwrap().bond.toBigInt(),
                     },
                   }
@@ -441,7 +446,8 @@ describeSuite({
               delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
                 ? {
                     accountId: `0x${delegator[0].toHex().slice(-40)}`,
-                    locks: {// @ts-ignore-error
+                    locks: {
+                      // @ts-ignore-error
                       DelStake: delegator[1].unwrap().total.toBigInt(),
                     },
                   }
@@ -481,7 +487,7 @@ describeSuite({
               [accountId: string]: { [id: string]: bigint };
             }
           );
-        debug(`Retrieved ${Object.keys(expectedLocksByAccount).length} accounts with locks`);
+        log(`Retrieved ${Object.keys(expectedLocksByAccount).length} accounts with locks`);
 
         const failedLocks = [];
         const locksByAccount = locks.reduce((p, lockSet) => {
@@ -508,7 +514,9 @@ describeSuite({
                 `${accountId} (lock ${key}: actual ${
                   locks[key] && printTokens(context.getSubstrateApi(), locks[key])
                 } < expected: ${
-                  (expectedLocks[key] && printTokens(context.getSubstrateApi(), expectedLocks[key])) || ""
+                  (expectedLocks[key] &&
+                    printTokens(context.getSubstrateApi(), expectedLocks[key])) ||
+                  ""
                 })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
                   .map(
                     (key) =>
@@ -526,10 +534,10 @@ describeSuite({
 
         if (failedLocks.length > 0 || failedReserved.length > 0) {
           if (failedReserved.length > 0) {
-            debug("Failed accounts reserves");
+            log("Failed accounts reserves");
           }
           if (failedLocks.length > 0) {
-            debug("Failed accounts locks");
+            log("Failed accounts locks");
           }
           expect(
             failedReserved.length,
@@ -540,7 +548,7 @@ describeSuite({
           );
         }
 
-        debug(
+        log(
           `Verified ${Object.keys(accounts).length} total reserved balance (at #${atBlockNumber})`
         );
       },
@@ -562,7 +570,7 @@ describeSuite({
             0n
           )
         ).to.equal(totalIssuance.toBigInt());
-        debug(`Verified total issuance`);
+        log(`Verified total issuance`);
       },
     });
   },
