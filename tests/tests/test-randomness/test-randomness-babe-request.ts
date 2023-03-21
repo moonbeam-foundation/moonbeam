@@ -11,7 +11,7 @@ import {
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-import { expectEVMResult } from "../../util/eth-transactions";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
@@ -153,6 +153,12 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
 
     expect(result.successful).to.be.true;
     expectEVMResult(result.events, "Revert");
+
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Error in pallet_randomness: Module(ModuleError { index: 39, error: [3, 0, 0, 0],
+    // message: Some("CannotRequestMoreWordsThanMax") })
+    expect(revertReason).to.contain("CannotRequestMoreWordsThanMax");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
