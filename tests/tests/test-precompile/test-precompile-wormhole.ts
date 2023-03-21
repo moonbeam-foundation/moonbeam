@@ -1,7 +1,7 @@
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution, createTransaction } from "../../util/transactions";
 import { getCompiled } from "../../util/contracts";
-import { genRegisterChainVAA, genAssetMeta, genTransferVAA } from "../../util/wormhole";
+import { genRegisterChainVAA, genAssetMeta, genTransferVAA, genTransferWithPayloadVAA } from "../../util/wormhole";
 import { ethers } from "ethers";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
@@ -173,6 +173,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     console.log(`wrapped token deployed to ${wrappedToken}`);
 
+    /*
     const transferVM = await genTransferVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
@@ -187,7 +188,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       10
     );
 
-    /*
     const result = await context.createBlock(
       createContractExecution(context, {
         contract: bridgeContract.contract,
@@ -195,6 +195,21 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       })
     );
     */
+
+    const transferVM = await genTransferWithPayloadVAA(
+      signerPKs,
+      GUARDIAN_SET_INDEX,
+      nonce++,
+      123, // sequence
+      999, // amount of tokens
+      wethContract.contractAddress,
+      ETHChain,
+      ETHEmitter,
+      BALTATHAR_ADDRESS,
+      chainId,
+      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
+      "0x000000000000000000000000000000000000000000000064a7b3b6e00d00000000000000000000000000000000000000000000000001000100",
+    );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVM}`]);
 
