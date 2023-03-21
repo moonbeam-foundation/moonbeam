@@ -244,7 +244,7 @@ pub fn testnet_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1 << 80))
+				.map(|k| (k, 1 << 110))
 				.collect(),
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
