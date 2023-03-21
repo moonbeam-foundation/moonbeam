@@ -509,7 +509,7 @@ fn reward_block_authors() {
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				54133333329200000000000,
+				9969521950497200000000000,
 			);
 		});
 }
@@ -564,7 +564,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				52584166664082500000000,
+				9962207316621500000000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
