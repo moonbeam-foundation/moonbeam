@@ -107,10 +107,10 @@ fn vote_logs_work() {
 			assert_ok!(vote(false, 99_000.into(), 1.into()));
 
 			// Assert vote events are emitted.
-			assert!(vec![
+			let expected_events = vec![
 				EvmEvent::Log {
 					log: log2(
-						Precompile1,
+						Precompile1, // why is this here instead of the caller address
 						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
@@ -135,10 +135,16 @@ fn vote_logs_work() {
 							.build(),
 					),
 				}
-				.into()
-			]
-			.iter()
-			.all(|log| events().contains(log)));
+				.into(),
+			];
+			for log in expected_events {
+				assert!(
+					events().contains(&log),
+					"Expected event not found: {:?}\nAll events:\n{:?}",
+					log,
+					events()
+				);
+			}
 		})
 }
 

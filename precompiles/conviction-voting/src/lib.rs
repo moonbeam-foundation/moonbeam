@@ -105,7 +105,7 @@ where
 		vote: AccountVote<U256>,
 	) -> EvmResult {
 		let caller = handle.context().caller;
-		let (poll_index, vote, event) = Self::log_vote_event(handle, caller, poll_index, vote)?;
+		let (poll_index, vote, event) = Self::log_vote_event(handle, poll_index, vote)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
@@ -411,14 +411,14 @@ where
 	}
 	fn log_vote_event(
 		handle: &mut impl PrecompileHandle,
-		caller: H160,
 		poll_index: u32,
 		vote: AccountVote<U256>,
 	) -> EvmResult<(IndexOf<Runtime>, AccountVote<BalanceOf<Runtime>>, Log)> {
+		let (contract_addr, caller) = (handle.context().address, handle.context().caller);
 		let (vote, event) = match vote {
 			AccountVote::Standard { vote, balance } => {
 				let event = log2(
-					caller,
+					contract_addr,
 					SELECTOR_LOG_VOTED,
 					H256::from_low_u64_be(poll_index as u64),
 					EvmDataWriter::new()
@@ -438,7 +438,7 @@ where
 			}
 			AccountVote::Split { aye, nay } => {
 				let event = log2(
-					caller,
+					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT,
 					H256::from_low_u64_be(poll_index as u64),
 					EvmDataWriter::new()
@@ -457,7 +457,7 @@ where
 			}
 			AccountVote::SplitAbstain { aye, nay, abstain } => {
 				let event = log2(
-					caller,
+					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 					H256::from_low_u64_be(poll_index as u64),
 					EvmDataWriter::new()
