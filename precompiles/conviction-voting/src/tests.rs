@@ -227,11 +227,6 @@ fn split_vote_logs_work() {
 		})
 }
 
-// #[test]
-// fn split_abstain_vote_logs_work() {
-
-// }
-
 #[test]
 fn remove_vote_logs_work() {
 	ExtBuilder::default()
