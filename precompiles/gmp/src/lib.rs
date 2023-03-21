@@ -67,7 +67,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
-		log::warn!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
+		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
 		// TODO: need to pull this from storage or config somewhere
 		//
@@ -80,18 +80,14 @@ where
 		let wormhole_bridge = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
 			.map_err(|_| RevertReason::custom("invalid wormhole bridge contract address"))?;
 
-		// TODO: need our own address (preferably without looking at storage)
-		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
-			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
-
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
 		let wormhole_vm = Self::parse_vm(handle, wormhole, wormhole_vaa.clone())?;
-		log::warn!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
+		log::debug!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
 
 		let transfer_with_payload =
 			Self::parse_transfer_with_payload(handle, wormhole_bridge, wormhole_vm.payload)?;
-		log::warn!(target: "gmp-precompile", "transfer_with_payload: {:?}", transfer_with_payload);
+		log::debug!(target: "gmp-precompile", "transfer_with_payload: {:?}", transfer_with_payload);
 
 		// TODO: Parse the payload as a VersionedUserAction and see which tokens they are wanting to
 		//       transfer. We'll then need to check the balance of this before the transfer and
@@ -101,18 +97,18 @@ where
 			&mut transfer_with_payload.payload.as_bytes(),
 		)
 		.map_err(|_| RevertReason::Custom(("Invalid GMP Payload".into())))?;
-		log::warn!(target: "gmp-precompile", "user action: {:?}", user_action);
+		log::debug!(target: "gmp-precompile", "user action: {:?}", user_action);
 
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
 		// then use the returned payload to decide what to do.
 		let sub_context = Context {
-			caller: this_contract,
+			caller: handle.code_address(), // TODO: can we trust this to always be "this precompile"?
 			address: wormhole,
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
-		log::warn!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole);
+		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole);
 		let (reason, output) = handle.call(
 			wormhole,
 			None,
@@ -124,20 +120,7 @@ where
 			&sub_context,
 		);
 
-		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
-		// log::warn!(target: "gmp-precompile", "output: {:?}", output);
-
-		match reason {
-			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(exit_status) => {
-				return Err(PrecompileFailure::Revert {
-					exit_status,
-					output,
-				})
-			}
-			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
-			ExitReason::Succeed(_) => (),
-		};
+		ensure_exit_reason_success(reason, &output[..])?;
 
 		// TODO: Check "after" balance here and ensure it is correct for user action
 		// TODO: we should now have funds for this account, custodied by this precompile itself.
@@ -173,19 +156,13 @@ where
 		wormhole_core_contract_address: H160,
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult<WormholeVM> {
-		// TODO: DRY
-
-		// TODO: need our own address (preferably without looking at storage)
-		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
-			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
-
 		let sub_context = Context {
-			caller: this_contract,
+			caller: handle.code_address(),
 			address: wormhole_core_contract_address,
 			apparent_value: U256::zero(),
 		};
 
-		log::warn!(
+		log::debug!(
 			target: "gmp-precompile",
 			"calling Wormhole parseVM on {}...", wormhole_core_contract_address
 		);
@@ -200,20 +177,7 @@ where
 			&sub_context,
 		);
 
-		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
-		// log::warn!(target: "gmp-precompile", "output: {:?}", output);
-
-		match reason {
-			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(exit_status) => {
-				return Err(PrecompileFailure::Revert {
-					exit_status,
-					output,
-				})
-			}
-			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
-			ExitReason::Succeed(_) => (),
-		};
+		ensure_exit_reason_success(reason, &output[..])?;
 
 		let mut reader = EvmDataReader::new(&output[..]);
 		let vm: WormholeVM = reader.read()?;
@@ -227,19 +191,13 @@ where
 		wormhole_core_contract_address: H160,
 		payload: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult<WormholeTransferWithPayloadData> {
-		// TODO: DRY
-
-		// TODO: need our own address (preferably without looking at storage)
-		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
-			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
-
 		let sub_context = Context {
-			caller: this_contract,
+			caller: handle.code_address(),
 			address: wormhole_core_contract_address,
 			apparent_value: U256::zero(),
 		};
 
-		log::warn!(
+		log::debug!(
 			target: "gmp-precompile",
 			"calling Wormhole parseTransferWithPayload on {}...", wormhole_core_contract_address
 		);
@@ -254,28 +212,26 @@ where
 			&sub_context,
 		);
 
-		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
-		log::warn!(target: "gmp-precompile", "output: {:?}", output);
-
-		match reason {
-			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(exit_status) => {
-				return Err(PrecompileFailure::Revert {
-					exit_status,
-					output,
-				})
-			}
-			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
-			ExitReason::Succeed(_) => (),
-		};
+		ensure_exit_reason_success(reason, &output[..])?;
 
 		let mut reader = EvmDataReader::new(&output[..]);
 		let data: WormholeTransferWithPayloadData = reader.read()?;
 
 		Ok(data)
 	}
+}
 
-	fn ensure_exit_reason_success(reason: u8, output: u8) -> MayRevert<()> {
-		Ok(())
+fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()> {
+	log::debug!(target: "gmp-precompile", "reason: {:?}", reason);
+	log::debug!(target: "gmp-precompile", "output: {:?}", output);
+
+	match reason {
+		ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
+		ExitReason::Revert(exit_status) => Err(PrecompileFailure::Revert {
+			exit_status,
+			output: output.into(),
+		}),
+		ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
+		ExitReason::Succeed(_) => Ok(()),
 	}
 }
