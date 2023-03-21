@@ -34,7 +34,7 @@ use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm_primitives::{HrmpAvailableCalls, HrmpEncodeCall};
+use xcm_primitives::{AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall};
 
 #[cfg(test)]
 mod mock;
@@ -42,28 +42,6 @@ mod mock;
 mod test_relay_runtime;
 #[cfg(test)]
 mod tests;
-
-pub enum AvailableStakeCalls {
-	Bond(
-		relay_chain::AccountId,
-		relay_chain::Balance,
-		pallet_staking::RewardDestination<relay_chain::AccountId>,
-	),
-	BondExtra(relay_chain::Balance),
-	Unbond(relay_chain::Balance),
-	WithdrawUnbonded(u32),
-	Validate(pallet_staking::ValidatorPrefs),
-	Nominate(Vec<relay_chain::AccountId>),
-	Chill,
-	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController(relay_chain::AccountId),
-	Rebond(relay_chain::Balance),
-}
-
-pub trait StakeEncodeCall {
-	/// Encode call from the relay.
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
-}
 
 pub const REWARD_DESTINATION_SIZE_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 512;

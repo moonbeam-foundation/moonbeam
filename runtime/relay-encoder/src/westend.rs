@@ -166,37 +166,6 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for WestendEncoder {
 	}
 }
 
-// insert into storage and verify same encoding as above for all current tests?
-// do same for other runtimes
-// use same struct in tests as in runtimes, consider declaring as const
-// RelayChainIndices {
-// 	pallets: PalletIndices {
-// 		staking: 6u8,
-// 		utility: 16u8,
-// 		hrmp: 51u8,
-// 	},
-// 	calls: CallIndices {
-// 		staking: StakingIndices {
-// 			bond: 0u8,
-// 			bond_extra: 1u8,
-// 			unbond: 2u8,
-// 			withdraw_unbonded: 3u8,
-// 			validate: 4u8,
-// 			nominate: 5u8,
-// 			chill: 6u8,
-// 			set_payee: 7u8,
-// 			set_controller: 8u8,
-// 			rebond: 19u8,
-// 		},
-// 		utility: UtilityIndices { as_derivative: 1u8 },
-// 		hrmp: HrmpIndices {
-// 			init_open_channel: 0u8,
-// 			accept_open_channel: 1u8,
-// 			close_channel: 2u8,
-// 		},
-// 	},
-// }
-
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -431,12 +400,28 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(
+				pallet_xcm_transactor::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Controller
 				)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			// use pallet_xcm_transactor type in precompile crate to fix this and consider removing it altogether
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(
+						pallet_staking::RewardDestination::Controller
+					)
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -462,8 +447,23 @@ mod tests {
 					relay_account.clone().into()
 				)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(
+						relay_account.clone().into()
+					)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_rebond() {
@@ -485,8 +485,21 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall>::encode_call(
 				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(100u32.into())
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(100u32.into())
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -517,8 +530,25 @@ mod tests {
 					100u32.into()
 				)
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
+						1000u32.into(),
+						100u32.into(),
+						100u32.into()
+					)
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 
 	#[test]
@@ -543,8 +573,21 @@ mod tests {
 			<WestendEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 
 	#[test]
@@ -575,7 +618,23 @@ mod tests {
 					recipient: 1001u32.into()
 				})
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
+				crate::WESTEND_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+						sender: 1000u32.into(),
+						recipient: 1001u32.into()
+					})
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 }

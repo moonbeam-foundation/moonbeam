@@ -13,7 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 
-use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use cumulus_primitives_core::{
+	relay_chain::{self, v2::HrmpChannelId},
+	ParaId,
+};
 use sp_std::vec::Vec;
 use xcm::latest::{Error as XcmError, MultiLocation};
 
@@ -60,4 +63,26 @@ impl HrmpEncodeCall for () {
 pub trait XcmTransact: UtilityEncodeCall {
 	/// Encode call from the relay.
 	fn destination(self) -> MultiLocation;
+}
+
+pub enum AvailableStakeCalls {
+	Bond(
+		relay_chain::AccountId,
+		relay_chain::Balance,
+		pallet_staking::RewardDestination<relay_chain::AccountId>,
+	),
+	BondExtra(relay_chain::Balance),
+	Unbond(relay_chain::Balance),
+	WithdrawUnbonded(u32),
+	Validate(pallet_staking::ValidatorPrefs),
+	Nominate(Vec<relay_chain::AccountId>),
+	Chill,
+	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
+	SetController(relay_chain::AccountId),
+	Rebond(relay_chain::Balance),
+}
+
+pub trait StakeEncodeCall {
+	/// Encode call from the relay.
+	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
 }

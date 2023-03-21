@@ -3282,8 +3282,8 @@ fn hrmp_close_works() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Insert correct storage indices over default (done by migration in practice)
-		pallet_xcm_transactor::RelayIndices::<xcm_mock::parachain::Runtime>::put(
+		// insert relay encoder indices because migration may not have run
+		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(
 			moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
 		);
 		// Root can send hrmp close
@@ -3306,6 +3306,10 @@ fn hrmp_close_works() {
 		));
 	});
 	Relay::execute_with(|| {
+		// insert relay encoder indices because migration may not have run
+		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(
+			moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
+		);
 		let expected_event: relay_chain::RuntimeEvent =
 			polkadot_runtime_parachains::hrmp::Event::ChannelClosed(
 				1u32.into(),

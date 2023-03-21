@@ -15,25 +15,60 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::*;
+use cumulus_primitives_core::relay_chain::v2::HrmpChannelId;
 use frame_support::traits::PalletInfo;
-use pallet_xcm_transactor::{relay_indices::*, traits::*};
+use pallet_xcm_transactor::traits::*;
 use parity_scale_codec::Encode;
 use xcm_primitives::UtilityEncodeCall;
 
 #[test]
-// TODO: test against all runtimes
-// TODO: test for all calls
-fn test_common_encoder_as_derivative() {
+fn test_westend_hrmp_close_eq() {
+	sp_io::TestExternalities::default().execute_with(|| {
+        // insert storage item as per migration
+        pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(WESTEND_RELAY_INDICES);
+        let mut expected_encoded: Vec<u8> = Vec::new();
+
+		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			westend_runtime::Hrmp,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			westend_runtime::Runtime
+		>::hrmp_close_channel {
+			channel_id: HrmpChannelId {
+				sender: 1000u32.into(),
+				recipient: 1001u32.into()
+			}
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+        assert_eq!(
+            <pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+                xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+					sender: 1000u32.into(),
+					recipient: 1001u32.into()
+				})
+            ),
+            Ok(expected_encoded)
+        );
+    });
+}
+
+#[test]
+fn test_kusama_as_derivative_eq() {
 	sp_io::TestExternalities::default().execute_with(|| {
         let mut expected_encoded: Vec<u8> = Vec::new();
-        // expected migration (TODO: put in execute_with defn by default)
-        pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(KUSAMA_RELAY_INDICES);
-        // TODO: insert the encoding correctly as per existing code...
         let index = <kusama_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
             kusama_runtime::Utility,
         >()
         .unwrap() as u8;
         expected_encoded.push(index);
+        // insert storage item as per migration
+        // TODO: replace with migration running
+        pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(KUSAMA_RELAY_INDICES);
 
         let mut expected = pallet_utility::Call::<kusama_runtime::Runtime>::as_derivative {
             index: 1,
@@ -43,7 +78,6 @@ fn test_common_encoder_as_derivative() {
             .into(),
         }
         .encode();
-        expected_encoded.append(&mut expected);
 
         let call_bytes =
             <pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(

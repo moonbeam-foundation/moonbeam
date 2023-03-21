@@ -81,7 +81,6 @@ mod tests;
 
 pub mod migrations;
 pub mod relay_indices;
-pub mod traits;
 pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
@@ -90,7 +89,6 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 pub mod pallet {
 
 	use crate::relay_indices::RelayChainIndices;
-	use crate::traits::*;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
@@ -106,8 +104,8 @@ pub mod pallet {
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
 	use xcm_primitives::{
-		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
-		UtilityEncodeCall, XcmTransact,
+		AvailableStakeCalls, FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall,
+		StakeEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 	};
 
 	#[pallet::pallet]
@@ -769,17 +767,17 @@ pub mod pallet {
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
 					))
 				}
 				HrmpOperation::Accept { para_id } => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+					Self::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+					Self::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
