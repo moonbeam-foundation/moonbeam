@@ -38,8 +38,10 @@ where
 {
 	#[precompile::public("isPrecompile(address)")]
 	#[precompile::view]
-	fn is_precompile(_handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<bool> {
-		// TODO: what cost?
+	fn is_precompile(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<bool> {
+		// We consider the precompile set is optimized to do at most one storage read.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		let active = <Runtime::PrecompilesValue>::get().is_precompile(address.0);
 		Ok(active)
 	}
@@ -47,16 +49,22 @@ where
 	#[precompile::public("isActivePrecompile(address)")]
 	#[precompile::view]
 	fn is_active_precompile(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		address: Address,
 	) -> EvmResult<bool> {
-		// TODO: what cost?
+		// We consider the precompile set is optimized to do at most one storage read.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		let active = <Runtime::PrecompilesValue>::get().is_active_precompile(address.0);
 		Ok(active)
 	}
 
 	#[precompile::public("updateAccountCode(address)")]
 	fn update_account_code(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<()> {
+		// We consider the precompile set is optimized to do at most one storage read.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// We will write into the account code.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 
 		// Prevent touching addresses that are not precompiles.
