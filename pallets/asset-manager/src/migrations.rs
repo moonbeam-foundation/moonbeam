@@ -541,7 +541,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode)]
-enum OldAssetType {
+pub(crate) enum OldAssetType {
 	Xcm(xcm::v2::MultiLocation),
 }
 
