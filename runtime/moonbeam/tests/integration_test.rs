@@ -569,7 +569,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				4751500000000000000000,
+				310300000000000000000000,
 			);
 		});
 }
