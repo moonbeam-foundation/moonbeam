@@ -164,7 +164,16 @@ type MoonriverPrecompilesAt<R> = (
 		CallPermitPrecompile<R>,
 		(SubcallWithMaxNesting<0>, CallableByContract),
 	>,
-	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>, CallableByContract<OnlyIsProxy<R>>>,
+	PrecompileAt<
+		AddressU64<2059>,
+		ProxyPrecompile<R>,
+		(
+			CallableByContract<OnlyIsProxyAndProxy<R>>,
+			SubcallWithMaxNesting<0>,
+			// Batch is the only precompile allowed to call Proxy.
+			CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
+		),
+	>,
 	PrecompileAt<
 		AddressU64<2060>,
 		XcmUtilsPrecompile<R, XcmExecutorConfig>,
