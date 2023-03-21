@@ -13,8 +13,6 @@ function encode(type: string, val: any) {
     return abiCoder.encodeParameter("address", "0x" + val.slice(-40)).slice(2 + (64 - 64));
   if (type == "uint256" || type == "bytes32")
     return abiCoder.encodeParameter(type, val).slice(2 + (64 - 64));
-  if (type == "bytes")
-    return abiCoder.encodeParameter("bytes", "0x"+ val);
 }
 
 // Create a signed VAA to be sent to Wormhole bridge
@@ -200,7 +198,7 @@ export function genTransferWithPayloadVAA(
     encode("address32", toAddress),
     encode("uint16", toChain),
     encode("address32", fromAddress),
-    encode("bytes", payload.slice(2)),
+    payload.slice(2),
   ];
 
   let seconds = Math.floor(new Date().getTime() / 1000.0);

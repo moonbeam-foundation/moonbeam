@@ -26,6 +26,7 @@ use frame_support::{
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
+use parity_scale_codec::DecodeLimit;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
@@ -45,6 +46,7 @@ type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 // Wormhole fn selectors
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
 const PARSE_AND_VERIFY_VM_SELECTOR: u32 = 0xc0fd8bde_u32; // parseAndVerifyVM(bytes)
+const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d; // parseTransferWithPayload(bytes)
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
 
 /// Gmp precompile.
@@ -75,18 +77,31 @@ where
 		let wormhole = H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46")
 			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
 
+		let wormhole_bridge = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
+			.map_err(|_| RevertReason::custom("invalid wormhole bridge contract address"))?;
+
 		// TODO: need our own address (preferably without looking at storage)
 		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
 			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
-		let wormhole_vm = Self::peek_at_wormhole_vm(handle, wormhole, wormhole_vaa.clone())?;
+		let wormhole_vm = Self::parse_vm(handle, wormhole, wormhole_vaa.clone())?;
 		log::warn!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
+
+		let transfer_with_payload =
+			Self::parse_transfer_with_payload(handle, wormhole_bridge, wormhole_vm.payload)?;
+		log::warn!(target: "gmp-precompile", "transfer_with_payload: {:?}", transfer_with_payload);
 
 		// TODO: Parse the payload as a VersionedUserAction and see which tokens they are wanting to
 		//       transfer. We'll then need to check the balance of this before the transfer and
 		//       compare it to after the transfer to discern how much is transfered.
+		let user_action = VersionedUserAction::decode_with_depth_limit(
+			32,
+			&mut transfer_with_payload.payload.as_bytes(),
+		)
+		.map_err(|_| RevertReason::Custom(("Invalid GMP Payload".into())))?;
+		log::warn!(target: "gmp-precompile", "user action: {:?}", user_action);
 
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
@@ -130,10 +145,7 @@ where
 		//
 		// TODO: Wormhole might have transfered unsupported tokens; we should handle this case
 		//       gracefully (maybe that's as simple as reverting)
-		let user_action = parse_user_action(&output).map_err(|e| PrecompileFailure::Revert {
-			exit_status: ExitRevert::Reverted,
-			output: e.into(),
-		})?;
+
 		let call = match user_action {
 			VersionedUserAction::V1(action) => {
 				// TODO: make XCM transfer here (use xtokens?)
@@ -155,16 +167,13 @@ where
 		Ok(())
 	}
 
-	// Call the Wormhole
-	fn peek_at_wormhole_vm(
+	// Call wormhole's parseVm() function and decode its return value into a WormholeVM
+	fn parse_vm(
 		handle: &mut impl PrecompileHandle,
 		wormhole_core_contract_address: H160,
 		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult<WormholeVM> {
 		// TODO: DRY
-
-		let wormhole = H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46")
-			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
 
 		// TODO: need our own address (preferably without looking at storage)
 		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
@@ -172,11 +181,14 @@ where
 
 		let sub_context = Context {
 			caller: this_contract,
-			address: wormhole,
+			address: wormhole_core_contract_address,
 			apparent_value: U256::zero(),
 		};
 
-		log::warn!(target: "gmp-precompile", "calling Wormhole parseVM on {}...", wormhole);
+		log::warn!(
+			target: "gmp-precompile",
+			"calling Wormhole parseVM on {}...", wormhole_core_contract_address
+		);
 		let (reason, output) = handle.call(
 			wormhole_core_contract_address,
 			None,
@@ -207,5 +219,63 @@ where
 		let vm: WormholeVM = reader.read()?;
 
 		Ok(vm)
+	}
+
+	// Call wormhole's parseTransferWithPayload() function and decode its return value into a WormholeVM
+	fn parse_transfer_with_payload(
+		handle: &mut impl PrecompileHandle,
+		wormhole_core_contract_address: H160,
+		payload: BoundedBytes<GetCallDataLimit>,
+	) -> EvmResult<WormholeTransferWithPayloadData> {
+		// TODO: DRY
+
+		// TODO: need our own address (preferably without looking at storage)
+		let this_contract = H160::from_str("0x0000000000000000000000000000000000000815")
+			.map_err(|_| RevertReason::custom("invalid precompile address"))?;
+
+		let sub_context = Context {
+			caller: this_contract,
+			address: wormhole_core_contract_address,
+			apparent_value: U256::zero(),
+		};
+
+		log::warn!(
+			target: "gmp-precompile",
+			"calling Wormhole parseTransferWithPayload on {}...", wormhole_core_contract_address
+		);
+		let (reason, output) = handle.call(
+			wormhole_core_contract_address,
+			None,
+			EvmDataWriter::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
+				.write(payload)
+				.build(),
+			handle.gas_limit(), // TODO
+			false,
+			&sub_context,
+		);
+
+		log::warn!(target: "gmp-precompile", "reason: {:?}", reason);
+		log::warn!(target: "gmp-precompile", "output: {:?}", output);
+
+		match reason {
+			ExitReason::Fatal(exit_status) => return Err(PrecompileFailure::Fatal { exit_status }),
+			ExitReason::Revert(exit_status) => {
+				return Err(PrecompileFailure::Revert {
+					exit_status,
+					output,
+				})
+			}
+			ExitReason::Error(exit_status) => return Err(PrecompileFailure::Error { exit_status }),
+			ExitReason::Succeed(_) => (),
+		};
+
+		let mut reader = EvmDataReader::new(&output[..]);
+		let data: WormholeTransferWithPayloadData = reader.read()?;
+
+		Ok(data)
+	}
+
+	fn ensure_exit_reason_success(reason: u8, output: u8) -> MayRevert<()> {
+		Ok(())
 	}
 }

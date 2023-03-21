@@ -88,3 +88,18 @@ pub struct WormholeSignature {
 	pub v: u8,
 	pub guardianIndex: u8,
 }
+
+// Struct representing a wormhole "BridgeStructs.TransferWithPayload" struct
+// As with WormholeVM, the main purpose of this struct is to decode the ABI encoded struct when it
+// returned from calls to Wormhole Ethereum contracts.
+#[derive(Debug, EvmData)]
+pub struct WormholeTransferWithPayloadData {
+	pub payload_id: u8,
+	pub amount: U256,
+	pub token_address: H256,
+	pub token_chain: u16,
+	pub to: H256,
+	pub to_chain: u16,
+	pub from_address: H256,
+	pub payload: BoundedBytes<crate::GetCallDataLimit>,
+}
