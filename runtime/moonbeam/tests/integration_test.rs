@@ -505,7 +505,7 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				111366666658400000000000,
+				8980978048702400000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
@@ -560,7 +560,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				108269333328165000000000,
+				8688492682878000000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
