@@ -963,7 +963,7 @@ pub enum HrmpCall {
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
 	#[codec(index = 6u8)]
-	CancelOpenChannel(HrmpChannelId, u32),
+	CancelOpenRequest(HrmpChannelId, u32),
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -1010,8 +1010,8 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
-			xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(a, b) => {
-				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
 			}
 		}
 	}

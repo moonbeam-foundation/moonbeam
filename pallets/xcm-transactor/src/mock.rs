@@ -279,7 +279,7 @@ impl HrmpEncodeCall for MockHrmpEncoder {
 				Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
 			}
 			HrmpAvailableCalls::CloseChannel(_) => Ok(RelayCall::Hrmp(HrmpCall::Close()).encode()),
-			HrmpAvailableCalls::CancelOpenChannel(_, _) => {
+			HrmpAvailableCalls::CancelOpenRequest(_, _) => {
 				Ok(RelayCall::Hrmp(HrmpCall::Cancel()).encode())
 			}
 		}
