@@ -779,7 +779,7 @@ pub mod pallet {
 				HrmpOperation::Cancel {
 					channel_id,
 					open_requests,
-				} => T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenChannel(
+				} => T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 					channel_id,
 					open_requests,
 				)),

@@ -130,7 +130,7 @@ impl xcm_primitives::HrmpEncodeCall for TestEncoder {
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
-			xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(a, b) => {
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
 			}
 		}
