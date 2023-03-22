@@ -71,7 +71,7 @@ export async function calculateShufflingAndExecution(
     [indices[i], indices[j]] = [indices[j], indices[i]];
 
     // mimics the decay algorithm
-    if ((totalXcmpWeight - weightUsed > thresholdWeight) && max_message_processed_per_queue > 0) {
+    if (totalXcmpWeight - weightUsed > thresholdWeight && max_message_processed_per_queue > 0) {
       if (weightAvailable != totalXcmpWeight) {
         weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
         if (weightAvailable + thresholdWeight > totalXcmpWeight) {
@@ -112,7 +112,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         )
       )
     );
-    
+
     const numParaMsgs = 20;
     // let's target half of then being executed
 

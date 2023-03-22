@@ -26,7 +26,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       context.polkadotApi.consts.system.blockWeights.maxBlock.refTime.toBigInt() / BigInt(4);
 
     // we want half of numParaMsgs to be executed. That give us how much each message weights
-    const weightPerMessage = ((totalDmpWeight * BigInt(2)) / BigInt(numMsgs));
+    const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + buyExecution + unlimited buyExecution*n)

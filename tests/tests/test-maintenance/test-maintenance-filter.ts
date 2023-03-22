@@ -130,7 +130,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
                 },
               } as any,
               {
-                Limited: {refTime: 4000000000, proofSize: 64 * 1024}
+                Limited: { refTime: 4000000000, proofSize: 64 * 1024 },
               }
             )
             .signAsync(baltathar)

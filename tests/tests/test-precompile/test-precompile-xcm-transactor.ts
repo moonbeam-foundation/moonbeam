@@ -42,9 +42,9 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setTransactInfo(
         RELAY_V3_SOURCE_LOCATION,
-        {refTime: 1, proofSize: 64 * 1024} as any,
-        {refTime: 20000000000, proofSize: 256 * 1024} as any,
-        {refTime: 1, proofSize: 64 * 1024} as any,
+        { refTime: 1, proofSize: 64 * 1024 } as any,
+        { refTime: 20000000000, proofSize: 256 * 1024 } as any,
+        { refTime: 1, proofSize: 64 * 1024 } as any
       )
     )
   );
