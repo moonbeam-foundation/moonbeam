@@ -18,13 +18,9 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro2::Literal;
 use quote::{quote, quote_spanned};
 use sha3::{Digest, Keccak256};
-use syn::{
-	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, ItemType, Lit,
-	LitStr,
-};
+use syn::{parse_macro_input, spanned::Spanned, Expr, Ident, ItemType, Lit, LitStr};
 
 mod derive_codec;
 mod precompile;
