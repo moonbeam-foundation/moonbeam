@@ -162,7 +162,7 @@ where
 			AccountVote::Standard {
 				vote: Vote {
 					aye: false,
-					conviction: Self::u8_to_conviction(conviction)?,
+					conviction: Self::u8_to_conviction(conviction).in_field("conviction")?,
 				},
 				balance: vote_amount,
 			},
@@ -431,7 +431,7 @@ where
 				(
 					AccountVote::Standard {
 						vote,
-						balance: Self::u256_to_amount(balance)?,
+						balance: Self::u256_to_amount(balance).in_field("voteAmount")?,
 					},
 					event,
 				)
@@ -449,8 +449,8 @@ where
 				);
 				(
 					AccountVote::Split {
-						aye: Self::u256_to_amount(aye)?,
-						nay: Self::u256_to_amount(nay)?,
+						aye: Self::u256_to_amount(aye).in_field("aye")?,
+						nay: Self::u256_to_amount(nay).in_field("nay")?,
 					},
 					event,
 				)
@@ -469,9 +469,9 @@ where
 				);
 				(
 					AccountVote::SplitAbstain {
-						aye: Self::u256_to_amount(aye)?,
-						nay: Self::u256_to_amount(nay)?,
-						abstain: Self::u256_to_amount(abstain)?,
+						aye: Self::u256_to_amount(aye).in_field("aye")?,
+						nay: Self::u256_to_amount(nay).in_field("nay")?,
+						abstain: Self::u256_to_amount(abstain).in_field("abstain")?,
 					},
 					event,
 				)

@@ -130,6 +130,34 @@ interface ConvictionVoting {
         uint8 conviction
     );
 
+    /// @dev An account made a split vote in a poll.
+    /// @custom:selector 022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    event VoteSplit(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay
+    );
+
+    /// @dev An account made a split abstain vote in a poll.
+    /// @custom:selector 476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    /// @param abstain uint256 Amount for abstained.
+    event VoteSplitAbstained(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
+    );
+
     /// @dev An account removed its vote from an ongoing poll.
     /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
     /// @param pollIndex uint32 Index of the poll.
