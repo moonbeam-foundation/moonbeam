@@ -1,4 +1,5 @@
 import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
+import chalk from "chalk";
 import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
 
@@ -96,9 +97,13 @@ describeSuite({
             // this isn't an inconsistent state, so we will just warn.
             //
             // we could also check whether this account exists as a collator candidate, as the
-            // combination of bogus keys and being an eligible author would mean the candidate 
+            // combination of bogus keys and being an eligible author would mean the candidate
             // could never produce a block when `pallet_randomness` is enabled for the runtime
-            log(`⚠️  Warning: AuthorMapping ${accountId} exists with suspicious keys: ${keys_}`);
+            log(
+              `${chalk.bgWhiteBright.blackBright(
+                "Warning"
+              )}: AuthorMapping ${accountId} exists with suspicious keys: ${keys_}`
+            );
           }
         }
 

@@ -13,6 +13,7 @@ specifiers:
   '@types/debug': ^4.1.7
   '@types/node': ^18.15.5
   bottleneck: ^2.19.5
+  chalk: ^5.2.0
   debug: ^4.3.4
   ethers: ^6.2.0
   pnpm: ^7.30.0
@@ -21,6 +22,9 @@ specifiers:
   web3: 4.0.1-alpha.5
   web3-eth: 4.0.1-alpha.5
   web3-providers-ws: 4.0.1-alpha.5
+
+dependencies:
+  chalk: 5.2.0
 
 devDependencies:
   '@acala-network/chopsticks': 0.5.10_debug@4.3.4
@@ -2176,7 +2180,6 @@ packages:
   /chalk/5.2.0:
     resolution: {integrity: sha512-ree3Gqw/nazQAPuJJEy+avdl7QfZMcUvmHIKgEZkGL+xOBzRvup5Hxo6LHuMceSxOabuJLJm5Yp/92R9eMmMvA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
-    dev: true
 
   /chardet/0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
@@ -3581,6 +3584,7 @@ packages:
       chalk: 2.4.2
       diff-match-patch: 1.0.5
     dev: true
+    bundledDependencies: []
 
   /keccak/3.0.3:
     resolution: {integrity: sha512-JZrLIAJWuZxKbCilMpNz5Vj7Vtb4scDG3dMXLOsbzBmQGyjwE61BbW7bJkfKKCShXiQZt3T6sBgALRtmd+nZaQ==}
