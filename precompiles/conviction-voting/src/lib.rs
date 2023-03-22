@@ -136,7 +136,7 @@ where
 			AccountVote::Standard {
 				vote: Vote {
 					aye: true,
-					conviction: Self::u8_to_conviction(conviction)?,
+					conviction: Self::u8_to_conviction(conviction).in_field("conviction")?,
 				},
 				balance: vote_amount,
 			},
