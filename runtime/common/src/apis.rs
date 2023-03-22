@@ -586,7 +586,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn worst_case_asset_exchange() -> Result<(MultiAssets, MultiAssets), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
-					
+
 						fn universal_alias() -> Result<Junction, BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}

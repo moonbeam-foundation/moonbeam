@@ -255,7 +255,10 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound: Weight::from_parts(proposal_weight_bound, xcm_primitives::DEFAULT_PROOF_SIZE),
+				proposal_weight_bound: Weight::from_parts(
+					proposal_weight_bound,
+					xcm_primitives::DEFAULT_PROOF_SIZE,
+				),
 				length_bound,
 			},
 		)?;

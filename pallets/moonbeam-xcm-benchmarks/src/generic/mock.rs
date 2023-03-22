@@ -149,7 +149,10 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 	}
 
 	fn transact_origin_and_runtime_call() -> Result<(MultiLocation, RuntimeCall), BenchmarkError> {
-		Ok((Default::default(), frame_system::Call::remark_with_event { remark: vec![] }.into()))
+		Ok((
+			Default::default(),
+			frame_system::Call::remark_with_event { remark: vec![] }.into(),
+		))
 	}
 
 	fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {

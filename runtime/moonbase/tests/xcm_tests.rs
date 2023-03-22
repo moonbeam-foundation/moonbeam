@@ -33,7 +33,7 @@ use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_executor::traits::Convert;
 use xcm_mock::*;
-use xcm_primitives::{DEFAULT_PROOF_SIZE, UtilityEncodeCall};
+use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;

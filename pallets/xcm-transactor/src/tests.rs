@@ -1234,72 +1234,80 @@ fn test_hrmp_manipulator_close() {
 
 #[test]
 fn xcm_v2_to_v3_transact_info_with_weight_limit_works() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			use frame_support::{Blake2_128Concat, migration::put_storage_value, StorageHasher};
-			let pallet_prefix: &[u8] = b"XcmTransactor";
-			let storage_item_prefix: &[u8] = b"TransactInfoWithWeightLimit";
-			use frame_support::traits::OnRuntimeUpgrade;
-			use parity_scale_codec::Encode;
+	ExtBuilder::default().build().execute_with(|| {
+		use frame_support::{migration::put_storage_value, Blake2_128Concat, StorageHasher};
+		let pallet_prefix: &[u8] = b"XcmTransactor";
+		let storage_item_prefix: &[u8] = b"TransactInfoWithWeightLimit";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use parity_scale_codec::Encode;
 
-			let para_id = mock::ParachainId::get();
+		let para_id = mock::ParachainId::get();
 
-			let old_multilocation = xcm::v2::MultiLocation {
-				parents: 1,
-				interior: xcm::v2::Junctions::X2(xcm::v2::Junction::Parachain(para_id.into()), xcm::v2::Junction::GeneralIndex(1)),
-			};
+		let old_multilocation = xcm::v2::MultiLocation {
+			parents: 1,
+			interior: xcm::v2::Junctions::X2(
+				xcm::v2::Junction::Parachain(para_id.into()),
+				xcm::v2::Junction::GeneralIndex(1),
+			),
+		};
 
-			let expected_value = crate::RemoteTransactInfoWithMaxWeight {
-				transact_extra_weight: Weight::from_parts(111, 111),
-				max_weight: Weight::from_parts(222, 222),
-				transact_extra_weight_signed: None,
-			};
+		let expected_value = crate::RemoteTransactInfoWithMaxWeight {
+			transact_extra_weight: Weight::from_parts(111, 111),
+			max_weight: Weight::from_parts(222, 222),
+			transact_extra_weight_signed: None,
+		};
 
-			put_storage_value(
-				pallet_prefix,
-				storage_item_prefix,
-				&Blake2_128Concat::hash(&old_multilocation.encode()),
-				expected_value.clone(),
-			);
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&old_multilocation.encode()),
+			expected_value.clone(),
+		);
 
-			crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
-			
-			let new_expected_multilocation: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
-			let new_value: crate::RemoteTransactInfoWithMaxWeight = XcmTransactor::transact_info(new_expected_multilocation).expect("migrated to xcm v3");
-			assert!(new_value == expected_value);
-		});
+		crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
+
+		let new_expected_multilocation: MultiLocation = old_multilocation
+			.try_into()
+			.expect("convert xcm v2 into v3");
+		let new_value: crate::RemoteTransactInfoWithMaxWeight =
+			XcmTransactor::transact_info(new_expected_multilocation).expect("migrated to xcm v3");
+		assert!(new_value == expected_value);
+	});
 }
 
 #[test]
 fn xcm_v2_to_v3_destination_asset_fee_per_second_works() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			use frame_support::{Twox64Concat, migration::put_storage_value, StorageHasher};
-			let pallet_prefix: &[u8] = b"XcmTransactor";
-			let storage_item_prefix: &[u8] = b"DestinationAssetFeePerSecond";
-			use frame_support::traits::OnRuntimeUpgrade;
-			use parity_scale_codec::Encode;
+	ExtBuilder::default().build().execute_with(|| {
+		use frame_support::{migration::put_storage_value, StorageHasher, Twox64Concat};
+		let pallet_prefix: &[u8] = b"XcmTransactor";
+		let storage_item_prefix: &[u8] = b"DestinationAssetFeePerSecond";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use parity_scale_codec::Encode;
 
-			let para_id = mock::ParachainId::get();
+		let para_id = mock::ParachainId::get();
 
-			let old_multilocation = xcm::v2::MultiLocation {
-				parents: 1,
-				interior: xcm::v2::Junctions::X2(xcm::v2::Junction::Parachain(para_id.into()), xcm::v2::Junction::GeneralIndex(1)),
-			};
+		let old_multilocation = xcm::v2::MultiLocation {
+			parents: 1,
+			interior: xcm::v2::Junctions::X2(
+				xcm::v2::Junction::Parachain(para_id.into()),
+				xcm::v2::Junction::GeneralIndex(1),
+			),
+		};
 
-			put_storage_value(
-				pallet_prefix,
-				storage_item_prefix,
-				&Twox64Concat::hash(&old_multilocation.encode()),
-				7u128,
-			);
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Twox64Concat::hash(&old_multilocation.encode()),
+			7u128,
+		);
 
-			crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
-			
-			let new_expected_multilocation: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
-			let new_value: u128 = XcmTransactor::dest_asset_fee_per_second(new_expected_multilocation).expect("migrated to xcm v3");
-			assert!(new_value == 7u128);
-		});
+		crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
+
+		let new_expected_multilocation: MultiLocation = old_multilocation
+			.try_into()
+			.expect("convert xcm v2 into v3");
+		let new_value: u128 = XcmTransactor::dest_asset_fee_per_second(new_expected_multilocation)
+			.expect("migrated to xcm v3");
+		assert!(new_value == 7u128);
+	});
 }

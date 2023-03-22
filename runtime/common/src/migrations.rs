@@ -141,7 +141,7 @@ where
 	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
 	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
 	Runtime: pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>
+	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -203,7 +203,8 @@ where
 		//	DemocracryMigrationHashToBoundedCall::<Runtime>(Default::default());
 		//let preimage_migration_hash_to_bounded_call =
 		//	PreimageMigrationHashToBoundedCall::<Runtime>(Default::default());
-		let asset_manager_to_xcm_v3 = PalletAssetManagerMigrateXcmV2ToV3::<Runtime>(Default::default());
+		let asset_manager_to_xcm_v3 =
+			PalletAssetManagerMigrateXcmV2ToV3::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),

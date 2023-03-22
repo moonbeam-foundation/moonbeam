@@ -36,7 +36,7 @@ use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
-use xcm_primitives::{DEFAULT_PROOF_SIZE, UtilityEncodeCall};
+use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 
 // Send a relay asset (like DOT) to a parachain A
 #[test]

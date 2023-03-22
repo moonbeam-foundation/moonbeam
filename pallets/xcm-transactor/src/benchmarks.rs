@@ -18,11 +18,11 @@
 
 use crate::{Call, Config, Currency, CurrencyPayment, HrmpOperation, Pallet, TransactWeights};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_support::dispatch::Weight;
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use sp_std::vec;
 use xcm::latest::prelude::*;
-use frame_support::dispatch::Weight;
 
 benchmarks! {
 	where_clause { where T::Transactor: Default, T::CurrencyId: From<MultiLocation>}

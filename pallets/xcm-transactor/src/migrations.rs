@@ -13,19 +13,20 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use xcm::latest::prelude::*;
+use crate::{
+	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight,
+	TransactInfoWithWeightLimit,
+};
 use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::storage_key_iter,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
-	Blake2_128Concat,
-	StoragePrefixedMap,
-    Twox64Concat,
+	Blake2_128Concat, StoragePrefixedMap, Twox64Concat,
 };
 use parity_scale_codec::{Decode, Encode};
+use xcm::latest::prelude::*;
 use xcm::v2::MultiLocation as OldMultiLocation;
-use crate::{Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit};
 
 #[cfg(feature = "try-runtime")]
 #[derive(Clone, Eq, Debug, PartialEq, Encode, Decode)]
@@ -45,26 +46,26 @@ enum PostUpgradeState {
 impl From<PreUpgradeState> for PostUpgradeState {
 	fn from(pre: PreUpgradeState) -> PostUpgradeState {
 		match pre {
-            PreUpgradeState::TransactInfoWithWeightLimit(items) => {
-                let mut out: Vec<(MultiLocation, RemoteTransactInfoWithMaxWeight)> = Vec::new();
+			PreUpgradeState::TransactInfoWithWeightLimit(items) => {
+				let mut out: Vec<(MultiLocation, RemoteTransactInfoWithMaxWeight)> = Vec::new();
 				for (old_key, value) in items.into_iter() {
-					let new_key: MultiLocation = old_key.try_into()
-						.expect("Multilocation v2 to v3");
+					let new_key: MultiLocation =
+						old_key.try_into().expect("Multilocation v2 to v3");
 					out.push((new_key, value));
 				}
 				PostUpgradeState::TransactInfoWithWeightLimit(out)
-            },
-            PreUpgradeState::DestinationAssetFeePerSecond(items) => {
-                let mut out: Vec<(MultiLocation, u128)> = Vec::new();
+			}
+			PreUpgradeState::DestinationAssetFeePerSecond(items) => {
+				let mut out: Vec<(MultiLocation, u128)> = Vec::new();
 				for (old_key, value) in items.into_iter() {
-					let new_key: MultiLocation = old_key.try_into()
-						.expect("Multilocation v2 to v3");
+					let new_key: MultiLocation =
+						old_key.try_into().expect("Multilocation v2 to v3");
 					out.push((new_key, value));
 				}
 				PostUpgradeState::DestinationAssetFeePerSecond(out)
-            }
-        }
-    }
+			}
+		}
+	}
 }
 
 pub struct XcmV2ToV3XcmTransactor<T>(PhantomData<T>);
@@ -90,10 +91,11 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 
 		// Migrate `TransactInfoWithWeightLimit` key
 		db_weight_count.0 += 1;
-		let old_data = storage_key_iter::<OldMultiLocation, RemoteTransactInfoWithMaxWeight, Blake2_128Concat>(
-			&module_prefix,
-			transact_info_with_weight_limit,
-		)
+		let old_data = storage_key_iter::<
+			OldMultiLocation,
+			RemoteTransactInfoWithMaxWeight,
+			Blake2_128Concat,
+		>(&module_prefix, transact_info_with_weight_limit)
 		.drain()
 		.collect::<Vec<(OldMultiLocation, RemoteTransactInfoWithMaxWeight)>>();
 		for (old_key, value) in old_data {
@@ -135,20 +137,35 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 		let mut result: Vec<(u32, PreUpgradeState)> = Vec::new();
 
 		// TransactInfoWithWeightLimit pre-upgrade data
-		let transact_info_with_weight_limit_storage_data: Vec<_> = storage_key_iter::<OldMultiLocation, RemoteTransactInfoWithMaxWeight, Blake2_128Concat>(
+		let transact_info_with_weight_limit_storage_data: Vec<_> = storage_key_iter::<
+			OldMultiLocation,
+			RemoteTransactInfoWithMaxWeight,
+			Blake2_128Concat,
+		>(
 			module_prefix,
 			transact_info_with_weight_limit,
 		)
 		.collect();
-		result.push((transact_info_with_weight_limit_storage_data.len() as u32, PreUpgradeState::TransactInfoWithWeightLimit(transact_info_with_weight_limit_storage_data)));
+		result.push((
+			transact_info_with_weight_limit_storage_data.len() as u32,
+			PreUpgradeState::TransactInfoWithWeightLimit(
+				transact_info_with_weight_limit_storage_data,
+			),
+		));
 
 		// DestinationAssetFeePerSecond pre-upgrade data
-		let destination_asset_fee_per_second_storage_data: Vec<_> = storage_key_iter::<OldMultiLocation, u128, Twox64Concat>(
-			module_prefix,
-			destination_asset_fee_per_second,
-		)
-		.collect();
-		result.push((destination_asset_fee_per_second_storage_data.len() as u32, PreUpgradeState::DestinationAssetFeePerSecond(destination_asset_fee_per_second_storage_data)));
+		let destination_asset_fee_per_second_storage_data: Vec<_> =
+			storage_key_iter::<OldMultiLocation, u128, Twox64Concat>(
+				module_prefix,
+				destination_asset_fee_per_second,
+			)
+			.collect();
+		result.push((
+			destination_asset_fee_per_second_storage_data.len() as u32,
+			PreUpgradeState::DestinationAssetFeePerSecond(
+				destination_asset_fee_per_second_storage_data,
+			),
+		));
 
 		Ok(result.encode())
 	}
@@ -178,24 +195,38 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 		let mut actual_post_upgrade_state: Vec<(u32, PostUpgradeState)> = Vec::new();
 
 		// Actual TransactInfoWithWeightLimit post-upgrade data
-		let transact_info_with_weight_limit_storage_data: Vec<_> = storage_key_iter::<MultiLocation, RemoteTransactInfoWithMaxWeight, Blake2_128Concat>(
-			module_prefix,
-			transact_info_with_weight_limit,
-		)
-		.collect();
-		actual_post_upgrade_state.push((transact_info_with_weight_limit_storage_data.len() as u32, PostUpgradeState::TransactInfoWithWeightLimit(transact_info_with_weight_limit_storage_data)));
-
+		let transact_info_with_weight_limit_storage_data: Vec<_> =
+			storage_key_iter::<MultiLocation, RemoteTransactInfoWithMaxWeight, Blake2_128Concat>(
+				module_prefix,
+				transact_info_with_weight_limit,
+			)
+			.collect();
+		actual_post_upgrade_state.push((
+			transact_info_with_weight_limit_storage_data.len() as u32,
+			PostUpgradeState::TransactInfoWithWeightLimit(
+				transact_info_with_weight_limit_storage_data,
+			),
+		));
 
 		// Actual DestinationAssetFeePerSecond post-upgrade data
-		let destination_asset_fee_per_second_storage_data: Vec<_> = storage_key_iter::<MultiLocation, u128, Twox64Concat>(
-			module_prefix,
-			destination_asset_fee_per_second,
-		)
-		.collect();
-		actual_post_upgrade_state.push((destination_asset_fee_per_second_storage_data.len() as u32, PostUpgradeState::DestinationAssetFeePerSecond(destination_asset_fee_per_second_storage_data)));
+		let destination_asset_fee_per_second_storage_data: Vec<_> =
+			storage_key_iter::<MultiLocation, u128, Twox64Concat>(
+				module_prefix,
+				destination_asset_fee_per_second,
+			)
+			.collect();
+		actual_post_upgrade_state.push((
+			destination_asset_fee_per_second_storage_data.len() as u32,
+			PostUpgradeState::DestinationAssetFeePerSecond(
+				destination_asset_fee_per_second_storage_data,
+			),
+		));
 
 		// Assert
-		assert_eq!(expected_post_upgrade_state.encode(), actual_post_upgrade_state.encode());
+		assert_eq!(
+			expected_post_upgrade_state.encode(),
+			actual_post_upgrade_state.encode()
+		);
 
 		Ok(())
 	}

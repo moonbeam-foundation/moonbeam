@@ -34,7 +34,7 @@ use pallet_xcm_transactor::{
 };
 use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
-use xcm_primitives::{DEFAULT_PROOF_SIZE, UtilityEncodeCall};
+use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 use xcm_simulator::TestExt;
 
 // Send a relay asset (like DOT) to a parachain A

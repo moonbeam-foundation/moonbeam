@@ -34,7 +34,9 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE, UtilityAvailableCalls, UtilityEncodeCall};
+use xcm_primitives::{
+	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
+};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
