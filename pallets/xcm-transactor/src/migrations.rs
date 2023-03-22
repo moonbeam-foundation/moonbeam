@@ -24,7 +24,6 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat, StoragePrefixedMap, Twox64Concat,
 };
-use parity_scale_codec::{Decode, Encode};
 use xcm::latest::prelude::*;
 use xcm::v2::MultiLocation as OldMultiLocation;
 
