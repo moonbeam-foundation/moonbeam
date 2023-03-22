@@ -33,8 +33,7 @@ use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
-use pallet_evm_precompile_proxy::OnlyIsProxy;
-use pallet_evm_precompile_proxy::ProxyPrecompile;
+use pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -162,7 +161,16 @@ type MoonbeamPrecompilesAt<R> = (
 		CallPermitPrecompile<R>,
 		(SubcallWithMaxNesting<0>, CallableByContract),
 	>,
-	PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>, CallableByContract<OnlyIsProxy<R>>>,
+	PrecompileAt<
+		AddressU64<2059>,
+		ProxyPrecompile<R>,
+		(
+			CallableByContract<OnlyIsProxyAndProxy<R>>,
+			SubcallWithMaxNesting<0>,
+			// Batch is the only precompile allowed to call Proxy.
+			CallableByPrecompile<OnlyFrom<AddressU64<2056>>>,
+		),
+	>,
 	PrecompileAt<
 		AddressU64<2060>,
 		XcmUtilsPrecompile<R, XcmExecutorConfig>,
