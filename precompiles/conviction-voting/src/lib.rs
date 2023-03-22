@@ -476,6 +476,8 @@ where
 					event,
 				)
 			}
+			#[allow(unreachable_patterns)] // in case a new vote variant is added then still works
+			_ => return Err(RevertReason::custom("Vote variant unsupported").into()),
 		};
 		handle.record_log_costs(&[&event])?;
 		Ok((Self::u32_to_index(poll_index)?, vote, event))
