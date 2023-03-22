@@ -181,7 +181,7 @@ pub mod pallet {
 
 	/// Stores the information to be able to issue a transact operation in another chain use an
 	/// asset as fee payer.
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, Eq, PartialEq, scale_info::TypeInfo)]
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
 		/// Extra weight involved when transacting without DescendOrigin

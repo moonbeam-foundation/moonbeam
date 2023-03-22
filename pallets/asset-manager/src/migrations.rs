@@ -630,15 +630,15 @@ impl<T: Config> From<PreUpgradeState<T>> for PostUpgradeState<T>
 	}
 }
 
-pub struct XcmV2ToV3<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3<T>
+pub struct XcmV2ToV3AssetManager<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3AssetManager<T>
 	where
 		T::ForeignAssetType: From<MultiLocation>,
 {
 	fn on_runtime_upgrade() -> Weight {
 		log::trace!(
-			target: "XcmV2ToV3",
-			"Running XcmV2ToV3 migration"
+			target: "XcmV2ToV3AssetManager",
+			"Running XcmV2ToV3AssetManager migration"
 		);
 		// Migrates the pallet's storage from Xcm V2 to V3:
 		//	- AssetIdType -> migrate map's value
@@ -729,8 +729,8 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3<T>
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		log::trace!(
-			target: "XcmV2ToV3",
-			"Running XcmV2ToV3 pre_upgrade hook"
+			target: "XcmV2ToV3AssetManager",
+			"Running XcmV2ToV3AssetManager pre_upgrade hook"
 		);
 		// Shared module prefix
 		let module_prefix = AssetIdType::<T>::module_prefix();
@@ -784,8 +784,8 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3<T>
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
 		log::trace!(
-			target: "XcmV2ToV3",
-			"Running XcmV2ToV3 post_upgrade hook"
+			target: "XcmV2ToV3AssetManager",
+			"Running XcmV2ToV3AssetManager post_upgrade hook"
 		);
 		let pre_upgrade_state: Vec<(u32, PreUpgradeState::<T>)> =
 			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");

@@ -112,19 +112,19 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_asset_manager::migrations::XcmV2ToV3::<T>::on_runtime_upgrade()
+		pallet_asset_manager::migrations::XcmV2ToV3AssetManager::<T>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
-		pallet_asset_manager::migrations::XcmV2ToV3::<T>::pre_upgrade()
+		pallet_asset_manager::migrations::XcmV2ToV3AssetManager::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
-		pallet_asset_manager::migrations::XcmV2ToV3::<T>::post_upgrade(state)
+		pallet_asset_manager::migrations::XcmV2ToV3AssetManager::<T>::post_upgrade(state)
 	}
 }
 

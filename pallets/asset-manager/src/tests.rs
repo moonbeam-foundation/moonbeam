@@ -870,7 +870,7 @@ fn xcm_v2_to_v3_asset_id_type_storage_migration_works() {
 				old_asset_type,
 			);
 
-			crate::migrations::XcmV2ToV3::<Test>::on_runtime_upgrade();
+			crate::migrations::XcmV2ToV3AssetManager::<Test>::on_runtime_upgrade();
 			
 			let new_expected_multilocation: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
 			let new_actual_multilocation: MockAssetType = AssetManager::asset_id_type(1).expect("migrated to xcm v3");
@@ -904,7 +904,7 @@ fn xcm_v2_to_v3_asset_type_id_storage_migration_works() {
 				1u32,
 			);
 
-			crate::migrations::XcmV2ToV3::<Test>::on_runtime_upgrade();
+			crate::migrations::XcmV2ToV3AssetManager::<Test>::on_runtime_upgrade();
 			
 			let new_expected_multilocation: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
 			let new_value: u32 = AssetManager::asset_type_id(MockAssetType::Xcm(new_expected_multilocation)).expect("migrated to xcm v3");
@@ -938,7 +938,7 @@ fn xcm_v2_to_v3_units_per_second_storage_migration_works() {
 				1u128,
 			);
 
-			crate::migrations::XcmV2ToV3::<Test>::on_runtime_upgrade();
+			crate::migrations::XcmV2ToV3AssetManager::<Test>::on_runtime_upgrade();
 			
 			let new_expected_multilocation: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
 			let new_value: u128 = AssetManager::asset_type_units_per_second(MockAssetType::Xcm(new_expected_multilocation)).expect("migrated to xcm v3");
@@ -970,7 +970,7 @@ fn xcm_v2_to_v3_supported_assets_storage_migration_works() {
 				&[],
 				old_asset_types
 			);
-			crate::migrations::XcmV2ToV3::<Test>::on_runtime_upgrade();
+			crate::migrations::XcmV2ToV3AssetManager::<Test>::on_runtime_upgrade();
 			
 			let new_expected_value: MultiLocation = old_multilocation.try_into().expect("convert xcm v2 into v3");
 			let new_value = AssetManager::supported_fee_payment_assets();
