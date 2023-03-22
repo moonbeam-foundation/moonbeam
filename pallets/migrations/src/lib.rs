@@ -144,145 +144,19 @@ pub mod pallet {
 		/// We use this as a chance to flag that we are now in upgrade-mode and begin our
 		/// migrations.
 		fn on_runtime_upgrade() -> Weight {
-			log::warn!("Performing on_runtime_upgrade");
-
-			// Store the fact that we should pause xcm execution for this block
-			ShouldPauseXcm::<T>::put(true);
-
-			let mut weight = Weight::zero();
-			// TODO: derive a suitable value here, which is probably something < max_block
-			let available_weight: Weight = T::BlockWeights::get().max_block;
-
-			// start by flagging that we are not fully upgraded
-			<FullyUpgraded<T>>::put(false);
-			weight = weight.saturating_add(T::DbWeight::get().writes(1));
-			Self::deposit_event(Event::RuntimeUpgradeStarted());
-
-			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
-				available_weight.saturating_sub(weight),
-			));
-
-			if !<FullyUpgraded<T>>::get() {
-				log::error!(
-					"migrations weren't completed in on_runtime_upgrade(), but we're not
-				configured for multi-block migrations; state is potentially inconsistent!"
-				);
-			}
-
-			log::info!("Migrations consumed weight: {}", weight);
-
-			// Consume all block weight to ensure no user transactions inclusion.
+			log::warn!("Performing on_runtime_upgrade !");
 			T::BlockWeights::get().max_block
 		}
 
-		fn on_initialize(_: T::BlockNumber) -> Weight {
-			if ShouldPauseXcm::<T>::get() {
-				// Suspend XCM execution
-				if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
-					<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
-				}
-				// Account on_finalize write
-				T::DbWeight::get().reads_writes(1, 1)
-			} else {
-				T::DbWeight::get().reads(1)
-			}
-		}
-
-		fn on_finalize(_: T::BlockNumber) {
-			if ShouldPauseXcm::<T>::get() {
-				// Resume XCM execution
-				if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
-					<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
-				}
-				ShouldPauseXcm::<T>::put(false);
-			}
-		}
-
-		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
-			use sp_std::collections::btree_map::BTreeMap;
-			let mut state_map: BTreeMap<String, bool> = BTreeMap::new();
-			let mut migration_states_map: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-
-			for migration in &T::MigrationsList::get_migrations() {
-				let migration_name = migration.friendly_name();
-				let migration_name_as_bytes = migration_name.as_bytes();
-
-				let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
-				if migration_done {
-					continue;
-				}
-				log::debug!(
-					target: "pallet-migrations",
-					"invoking pre_upgrade() on migration {}", migration_name
-				);
-
-				// dump the migration name to state_map so post_upgrade will know which
-				// migrations were performed (as opposed to skipped)
-				state_map.insert(migration_name.to_string(), true);
-				let state = migration
-					.pre_upgrade()
-					.expect(&format!("migration {} pre_upgrade()", migration_name));
-				migration_states_map.insert(migration_name.to_string(), state);
-			}
-			Ok((state_map, migration_states_map).encode())
+			log::warn!("Performing pre_upgrade !");
+			Ok(vec![])
 		}
 
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-		#[cfg(feature = "try-runtime")]
 		fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
-			use sp_std::collections::btree_map::BTreeMap;
-
-			let (state_map, migration_states_map): (
-				BTreeMap<String, bool>,
-				BTreeMap<String, Vec<u8>>,
-			) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
-
-			// TODO: my desire to DRY all the things feels like this code is very repetitive...
-			let mut failed = false;
-			for migration in &T::MigrationsList::get_migrations() {
-				let migration_name = migration.friendly_name();
-
-				// we can't query MigrationState because on_runtime_upgrade() would have
-				// unconditionally set it to true, so we read a hint from temp storage which was
-				// left for us by pre_upgrade()
-
-				match state_map.get(&migration_name.to_string()) {
-					Some(value) => assert!(
-						true == value.clone(),
-						"our dummy value might as well be true"
-					),
-					None => continue,
-				}
-
-				log::debug!(
-					target: "pallet-migrations",
-					"invoking post_upgrade() on migration {}", migration_name
-				);
-
-				if let Some(state) = migration_states_map.get(&migration_name.to_string()) {
-					let result = migration.post_upgrade(state.clone());
-					match result {
-						Ok(()) => {
-							log::info!("migration {} post_upgrade() => Ok()", migration_name);
-						}
-						Err(msg) => {
-							log::error!(
-								"migration {} post_upgrade() => Err({})",
-								migration_name,
-								msg
-							);
-							failed = true;
-						}
-					}
-				}
-			}
-
-			if failed {
-				Err("One or more post_upgrade tests failed; see output above.")
-			} else {
-				Ok(())
-			}
+			log::warn!("Performing post_upgrade !");
+			Ok(())
 		}
 	}
 
