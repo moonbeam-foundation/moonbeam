@@ -13,7 +13,6 @@ import { registerForeignAsset } from "../../util/xcm";
 import { verifyLatestBlockFees } from "../../util/block";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { PalletAssetsDestroyWitness } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";

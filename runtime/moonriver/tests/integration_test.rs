@@ -356,14 +356,14 @@ fn verify_proxy_type_indices() {
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 2_000 * MOVR),
-			(AccountId::from(CHARLIE), 1_100 * MOVR),
-			(AccountId::from(DAVE), 1_000 * MOVR),
+			(AccountId::from(ALICE), 20_000 * MOVR),
+			(AccountId::from(BOB), 20_000 * MOVR),
+			(AccountId::from(CHARLIE), 10_100 * MOVR),
+			(AccountId::from(DAVE), 10_000 * MOVR),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
+			(AccountId::from(ALICE), 10_000 * MOVR),
+			(AccountId::from(BOB), 10_000 * MOVR),
 		])
 		.with_delegations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MOVR),
@@ -374,7 +374,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
-					1_000 * MOVR,
+					10_000 * MOVR,
 					2u32
 				),
 				pallet_parachain_staking::Error::<Runtime>::CandidateExists
@@ -382,7 +382,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * MOVR,
+					10_000 * MOVR,
 					2u32
 				),
 				pallet_parachain_staking::Error::<Runtime>::DelegatorExists
@@ -390,7 +390,7 @@ fn join_collator_candidates() {
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				1_000 * MOVR,
+				10_000 * MOVR,
 				2u32
 			));
 			assert_eq!(
@@ -398,32 +398,32 @@ fn join_collator_candidates() {
 				RuntimeEvent::ParachainStaking(
 					pallet_parachain_staking::Event::JoinedCollatorCandidates {
 						account: AccountId::from(DAVE),
-						amount_locked: 1_000 * MOVR,
-						new_total_amt_locked: 3_100 * MOVR
+						amount_locked: 10_000 * MOVR,
+						new_total_amt_locked: 30_100 * MOVR
 					}
 				)
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
-			assert_eq!(candidates.0[0].amount, 1_050 * MOVR);
+			assert_eq!(candidates.0[0].amount, 10_050 * MOVR);
 			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
-			assert_eq!(candidates.0[1].amount, 1_050 * MOVR);
+			assert_eq!(candidates.0[1].amount, 10_050 * MOVR);
 			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
-			assert_eq!(candidates.0[2].amount, 1_000 * MOVR);
+			assert_eq!(candidates.0[2].amount, 10_000 * MOVR);
 		});
 }
 
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * MOVR)])
+		.with_balances(vec![(AccountId::from(ALICE), 20_000 * MOVR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * MOVR,
+					10_000 * MOVR,
 					2u32
 				),
 				DispatchError::Module(ModuleError {
@@ -432,22 +432,22 @@ fn transfer_through_evm_to_stake() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			// Alice transfer from free balance 2000 MOVR to Bob
+			// Alice transfer from free balance 20000 MOVR to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				2_000 * MOVR,
+				20_000 * MOVR,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MOVR);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 20_000 * MOVR);
 
 			let gas_limit = 100000u64;
 			let gas_price: U256 = BASE_FEE_GENESIS.into();
-			// Bob transfers 1000 MOVR to Charlie via EVM
+			// Bob transfers 10000 MOVR to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
 				target: H160::from(CHARLIE),
 				input: vec![],
-				value: (1_000 * MOVR).into(),
+				value: (10_000 * MOVR).into(),
 				gas_limit,
 				max_fee_per_gas: gas_price,
 				max_priority_fee_per_gas: None,
@@ -457,18 +457,18 @@ fn transfer_through_evm_to_stake() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				1_000 * MOVR,
+				10_000 * MOVR,
 			);
 
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				1_000 * MOVR,
+				10_000 * MOVR,
 				2u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
-			assert_eq!(candidates.0[0].amount, 1_000 * MOVR);
+			assert_eq!(candidates.0[0].amount, 10_000 * MOVR);
 		});
 }
 
@@ -477,10 +477,10 @@ fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
+			(AccountId::from(ALICE), 20_100 * MOVR),
+			(AccountId::from(BOB), 10_000 * MOVR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_collators(vec![(AccountId::from(ALICE), 10_000 * MOVR)])
 		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -499,18 +499,18 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * MOVR,
+				10_000 * MOVR,
 			);
-			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
+			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 9500 * MOVR,);
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				11447666666208000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				541333333292000000000,
+				9557333332588000000000,
 			);
 		});
 }
@@ -520,11 +520,11 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
+			(AccountId::from(ALICE), 20_100 * MOVR),
+			(AccountId::from(BOB), 10_000 * MOVR),
 			(AccountId::from(CHARLIE), MOVR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_collators(vec![(AccountId::from(ALICE), 10_000 * MOVR)])
 		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -547,24 +547,24 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * MOVR,
+				10_000 * MOVR,
 			);
-			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
+			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 9500 * MOVR,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), MOVR,);
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				11017700475903800000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				525841666640825000000,
+				9535834523343675000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				452515000000000000000,
 			);
 		});
 }
