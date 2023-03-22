@@ -54,8 +54,4 @@ std = [
 	"xcm-builder/std",
 	"xcm/std",
 ]
-runtime-benchmarks = [
-	"frame-benchmarking",
-	"frame-benchmarking/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks"
-]
+runtime-benchmarks = [ "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "xcm-builder/runtime-benchmarks" ]

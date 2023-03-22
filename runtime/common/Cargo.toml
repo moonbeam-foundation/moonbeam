@@ -74,10 +74,7 @@ std = [
 	"xcm-executor/std",
 	"xcm/std",
 ]
-runtime-benchmarks = [ 
-	"pallet-referenda/runtime-benchmarks",
-	"pallet-ethereum-xcm/runtime-benchmarks"
-]
+runtime-benchmarks = [ "pallet-ethereum-xcm/runtime-benchmarks", "pallet-referenda/runtime-benchmarks" ]
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
