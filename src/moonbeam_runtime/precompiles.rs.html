@@ -224,6 +224,14 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -259,8 +267,7 @@
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
-<span class="kw">use </span>pallet_evm_precompile_proxy::OnlyIsProxy;
-<span class="kw">use </span>pallet_evm_precompile_proxy::ProxyPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -388,7 +395,16 @@
 		CallPermitPrecompile&lt;R&gt;,
 		(SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;, CallableByContract),
 	&gt;,
-	PrecompileAt&lt;AddressU64&lt;<span class="number">2059</span>&gt;, ProxyPrecompile&lt;R&gt;, CallableByContract&lt;OnlyIsProxy&lt;R&gt;&gt;&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2059</span>&gt;,
+		ProxyPrecompile&lt;R&gt;,
+		(
+			CallableByContract&lt;OnlyIsProxyAndProxy&lt;R&gt;&gt;,
+			SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;,
+			<span class="comment">// Batch is the only precompile allowed to call Proxy.
+			</span>CallableByPrecompile&lt;OnlyFrom&lt;AddressU64&lt;<span class="number">2056</span>&gt;&gt;&gt;,
+		),
+	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2060</span>&gt;,
 		XcmUtilsPrecompile&lt;R, XcmExecutorConfig&gt;,
