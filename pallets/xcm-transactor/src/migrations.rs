@@ -24,6 +24,7 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat, StoragePrefixedMap, Twox64Concat,
 };
+use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 use xcm::v2::MultiLocation as OldMultiLocation;
 
