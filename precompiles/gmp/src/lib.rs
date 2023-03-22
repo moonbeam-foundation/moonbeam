@@ -29,8 +29,12 @@ use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
+use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
 use types::*;
+use xcm::opaque::latest::WeightLimit;
+use xcm::VersionedMultiLocation;
+use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
 mod mock;
@@ -40,6 +44,8 @@ mod tests;
 pub mod types;
 
 pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
+pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
+pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
@@ -56,11 +62,13 @@ pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> GmpPrecompile<Runtime>
 where
-	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config + orml_xtokens::Config,
 	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
+	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -89,15 +97,33 @@ where
 			Self::parse_transfer_with_payload(handle, wormhole_bridge, wormhole_vm.payload)?;
 		log::debug!(target: "gmp-precompile", "transfer_with_payload: {:?}", transfer_with_payload);
 
-		// TODO: Parse the payload as a VersionedUserAction and see which tokens they are wanting to
-		//       transfer. We'll then need to check the balance of this before the transfer and
-		//       compare it to after the transfer to discern how much is transfered.
+		// our inner-most payload should be a VersionedUserAction
 		let user_action = VersionedUserAction::decode_with_depth_limit(
 			32,
 			&mut transfer_with_payload.payload.as_bytes(),
 		)
-		.map_err(|_| RevertReason::Custom(("Invalid GMP Payload".into())))?;
+		.map_err(|_| RevertReason::Custom("Invalid GMP Payload".into()))?;
 		log::debug!(target: "gmp-precompile", "user action: {:?}", user_action);
+
+		// inspect the token the user wants to use: make sure it is XCM-capable
+		let asset_address: H160 = transfer_with_payload
+			.token_address
+			.try_into()
+			.map_err(|_| revert("Asset address is not a H160"))?;
+		let currency_account_id = Runtime::AddressMapping::into_account_id(asset_address);
+
+		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+			Runtime::account_to_currency_id(currency_account_id)
+				.ok_or(revert("Unsupported asset, not a valid currency id"))?;
+
+		let amount = transfer_with_payload
+			.amount
+			.try_into()
+			.map_err(|_| revert("Amount overflows balance"))?;
+
+		log::debug!(target: "gmp-precompile", "attempt to transfer {:?} of {:?}", amount, currency_id);
+
+		// TODO: now check before balance
 
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
@@ -129,23 +155,23 @@ where
 		// TODO: Wormhole might have transfered unsupported tokens; we should handle this case
 		//       gracefully (maybe that's as simple as reverting)
 
-		let call = match user_action {
-			VersionedUserAction::V1(action) => {
-				// TODO: make XCM transfer here (use xtokens?)
-				/*
-				let xcm = "fixme";
+		// TODO:
+		let weight_limit: u64 = 1_000_000_000_000u64;
 
-				pallet_xcm::Call::<Runtime>::send {
-					dest: Box::new(xcm::VersionedMultiLocation::V1(action.destination)),
-					message: Box::new(xcm),
-				}
-				*/
-			}
+		let call: orml_xtokens::Call<Runtime> = match user_action {
+			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
+				currency_id,
+				amount,
+				dest: Box::new(VersionedMultiLocation::V1(action.destination_chain)),
+				dest_weight_limit: WeightLimit::Limited(weight_limit),
+			},
 		};
 
+		log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
+
 		// TODO: proper origin
-		// let origin = Runtime::AddressMapping::into_account_id(this_contract);
-		// RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}

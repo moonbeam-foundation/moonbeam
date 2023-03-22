@@ -35,8 +35,6 @@ use xcm::latest::MultiLocation;
 //       * flexible -- need to support "MVP" level of XCM functionality
 #[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserAction {
-	pub currency_address: H160,
-	pub amount: U256,
 	pub destination_chain: MultiLocation,
 	pub destination_account: MultiLocation,
 }
@@ -44,19 +42,6 @@ pub struct XcmRoutingUserAction {
 #[derive(Encode, Decode, Debug)]
 pub enum VersionedUserAction {
 	V1(XcmRoutingUserAction),
-}
-
-/// Parse a user action from some bytes
-pub fn parse_user_action(input: &Vec<u8>) -> Result<VersionedUserAction, &'static str> {
-	// TODO: actually parse :)
-	// more importantly, define a structure (see criteria above)
-
-	Ok(VersionedUserAction::V1(XcmRoutingUserAction {
-		currency_address: Default::default(),
-		amount: 1u32.into(),
-		destination_chain: MultiLocation::parent(),
-		destination_account: MultiLocation::parent(),
-	}))
 }
 
 // Struct representing a Wormhole VM
