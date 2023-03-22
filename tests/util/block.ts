@@ -58,7 +58,6 @@ export interface BlockDetails {
   txWithEvents: TxWithEventAndFee[];
 }
 
-
 const getBlockDetails = async (
   api: ApiPromise,
   blockHash: BlockHash | string | any

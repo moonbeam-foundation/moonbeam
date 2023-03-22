@@ -470,7 +470,8 @@ describeSuite({
                         }, 0n),
                       },
                     }
-                  : null // Not sure if in isDelegation should the balance be counted to the delegator ?
+                  : null // Not sure if in isDelegation should the
+              // balance be counted to the delegator?
             )
             .filter((d) => !!d),
         ]
