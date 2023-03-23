@@ -397,6 +397,90 @@
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -421,7 +505,7 @@
 <span class="kw">use </span>frame_support::traits::{Currency, Polling};
 <span class="kw">use </span>pallet_conviction_voting::Call <span class="kw">as </span>ConvictionVotingCall;
 <span class="kw">use </span>pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
-<span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>pallet_evm::{AddressMapping, Log};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_runtime::traits::StaticLookup;
@@ -456,6 +540,14 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTED: [u8; <span class="number">32</span>] =
 	<span class="macro">keccak256!</span>(<span class="string">&quot;Voted(uint32,address,bool,uint256,uint8)&quot;</span>);
 
+<span class="doccomment">/// Solidity selector of the Vote Split log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_SPLIT: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteSplit(uint32,address,uint256,uint256)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Vote Split Abstained log, which is the Keccak of the Log signature.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteSplitAbstained(uint32,address,uint256,uint256,uint256)&quot;</span>);
+
 <span class="doccomment">/// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_REMOVED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;VoteRemoved(uint32,address)&quot;</span>);
 
@@ -472,14 +564,6 @@
 
 <span class="doccomment">/// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_UNLOCKED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Unlocked(uint16,address)&quot;</span>);
-
-<span class="doccomment">/// Direction of vote
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>VoteDirection {
-	Yes,
-	No,
-	<span class="attr">#[allow(unused)]
-	</span>Abstain,
-}
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-conviction-voting.
 </span><span class="kw">pub struct </span>ConvictionVotingPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
@@ -501,42 +585,10 @@
 	</span><span class="kw">fn </span>vote(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
-		vote: VoteDirection,
-		vote_amount: U256,
-		conviction: u8,
+		vote: AccountVote&lt;U256&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
-		<span class="kw">let </span>aye = <span class="kw">match </span>vote {
-			VoteDirection::Yes =&gt; <span class="bool-val">true</span>,
-			VoteDirection::No =&gt; <span class="bool-val">false</span>,
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Abstain not supported&quot;</span>).into()),
-		};
-		<span class="kw">let </span>event = log2(
-			handle.context().address,
-			SELECTOR_LOG_VOTED,
-			H256::from_low_u64_be(poll_index <span class="kw">as </span>u64), <span class="comment">// poll index,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(Address(caller))
-				.write::&lt;bool&gt;(aye)
-				.write::&lt;U256&gt;(vote_amount)
-				.write::&lt;u8&gt;(conviction)
-				.build(),
-		);
-		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>poll_index = <span class="self">Self</span>::u32_to_index(poll_index).in_field(<span class="string">&quot;pollIndex&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let </span>vote_amount = <span class="self">Self</span>::u256_to_amount(vote_amount).in_field(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let </span>conviction = <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
-		};
-
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-			<span class="string">&quot;Voting {:?} on poll {:?}, with conviction {:?}&quot;</span>,
-			aye, poll_index, conviction
-		);
+		<span class="kw">let </span>(poll_index, vote, event) = <span class="self">Self</span>::log_vote_event(handle, poll_index, vote)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(caller);
 		<span class="kw">let </span>call = ConvictionVotingCall::&lt;Runtime&gt;::vote { poll_index, vote }.into();
@@ -564,9 +616,13 @@
 		<span class="self">Self</span>::vote(
 			handle,
 			poll_index,
-			VoteDirection::Yes,
-			vote_amount,
-			conviction,
+			AccountVote::Standard {
+				vote: Vote {
+					aye: <span class="bool-val">true</span>,
+					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>,
+				},
+				balance: vote_amount,
+			},
 		)
 	}
 
@@ -586,9 +642,50 @@
 		<span class="self">Self</span>::vote(
 			handle,
 			poll_index,
-			VoteDirection::No,
-			vote_amount,
-			conviction,
+			AccountVote::Standard {
+				vote: Vote {
+					aye: <span class="bool-val">false</span>,
+					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>,
+				},
+				balance: vote_amount,
+			},
+		)
+	}
+
+	<span class="doccomment">/// Vote split in a poll.
+	///
+	/// Parameters:
+	/// * poll_index: Index of poll
+	/// * aye: Balance locked for aye vote
+	/// * nay: Balance locked for nay vote
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteSplit(uint32,uint256,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>vote_split(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		poll_index: u32,
+		aye: U256,
+		nay: U256,
+	) -&gt; EvmResult {
+		<span class="self">Self</span>::vote(handle, poll_index, AccountVote::Split { aye, nay })
+	}
+
+	<span class="doccomment">/// Vote split in a poll.
+	///
+	/// Parameters:
+	/// * poll_index: Index of poll
+	/// * aye: Balance locked for aye vote
+	/// * nay: Balance locked for nay vote
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteSplitAbstain(uint32,uint256,uint256,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>vote_split_abstain(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		poll_index: u32,
+		aye: U256,
+		nay: U256,
+		abstain: U256,
+	) -&gt; EvmResult {
+		<span class="self">Self</span>::vote(
+			handle,
+			poll_index,
+			AccountVote::SplitAbstain { aye, nay, abstain },
 		)
 	}
 
@@ -794,6 +891,77 @@
 		value
 			.try_into()
 			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).into())
+	}
+	<span class="kw">fn </span>log_vote_event(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		poll_index: u32,
+		vote: AccountVote&lt;U256&gt;,
+	) -&gt; EvmResult&lt;(IndexOf&lt;Runtime&gt;, AccountVote&lt;BalanceOf&lt;Runtime&gt;&gt;, Log)&gt; {
+		<span class="kw">let </span>(contract_addr, caller) = (handle.context().address, handle.context().caller);
+		<span class="kw">let </span>(vote, event) = <span class="kw">match </span>vote {
+			AccountVote::Standard { vote, balance } =&gt; {
+				<span class="kw">let </span>event = log2(
+					contract_addr,
+					SELECTOR_LOG_VOTED,
+					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
+					EvmDataWriter::new()
+						.write::&lt;Address&gt;(Address(caller))
+						.write::&lt;bool&gt;(vote.aye)
+						.write::&lt;U256&gt;(balance)
+						.write::&lt;u8&gt;(vote.conviction.into())
+						.build(),
+				);
+				(
+					AccountVote::Standard {
+						vote,
+						balance: <span class="self">Self</span>::u256_to_amount(balance).in_field(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>,
+					},
+					event,
+				)
+			}
+			AccountVote::Split { aye, nay } =&gt; {
+				<span class="kw">let </span>event = log2(
+					contract_addr,
+					SELECTOR_LOG_VOTE_SPLIT,
+					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
+					EvmDataWriter::new()
+						.write::&lt;Address&gt;(Address(caller))
+						.write::&lt;U256&gt;(aye)
+						.write::&lt;U256&gt;(nay)
+						.build(),
+				);
+				(
+					AccountVote::Split {
+						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">&quot;aye&quot;</span>)<span class="question-mark">?</span>,
+						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">&quot;nay&quot;</span>)<span class="question-mark">?</span>,
+					},
+					event,
+				)
+			}
+			AccountVote::SplitAbstain { aye, nay, abstain } =&gt; {
+				<span class="kw">let </span>event = log2(
+					contract_addr,
+					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
+					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
+					EvmDataWriter::new()
+						.write::&lt;Address&gt;(Address(caller))
+						.write::&lt;U256&gt;(aye)
+						.write::&lt;U256&gt;(nay)
+						.write::&lt;U256&gt;(abstain)
+						.build(),
+				);
+				(
+					AccountVote::SplitAbstain {
+						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">&quot;aye&quot;</span>)<span class="question-mark">?</span>,
+						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">&quot;nay&quot;</span>)<span class="question-mark">?</span>,
+						abstain: <span class="self">Self</span>::u256_to_amount(abstain).in_field(<span class="string">&quot;abstain&quot;</span>)<span class="question-mark">?</span>,
+					},
+					event,
+				)
+			}
+		};
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>((<span class="self">Self</span>::u32_to_index(poll_index)<span class="question-mark">?</span>, vote, event))
 	}
 }
 </code></pre></div>
