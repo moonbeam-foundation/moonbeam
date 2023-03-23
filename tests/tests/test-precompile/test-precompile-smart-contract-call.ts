@@ -171,7 +171,7 @@ describeDevMoonbeam("Smart Contract Precompile Call - Proxy - Any Proxy Type", (
   });
 });
 
-describeDevMoonbeam("Smart Contract Precompile Call - Proxy - Incorrect Type", (context) => {
+describeDevMoonbeam("Smart Contract Precompile Call - Proxy - Incorrect Proxy Type", (context) => {
   let contract: Contract;
   before("setup contract and governance proxy", async function () {
     contract = await setupTestContract(context);
@@ -249,7 +249,8 @@ describeDevMoonbeam("Smart Contract Precompile Call - Proxy - Real Account", (co
     );
   });
 
-  it("should revert when caller is a smart contract and real address is smart contract", async function () {
+  it("should revert when caller is a smart contract and real address is \
+smart contract", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
