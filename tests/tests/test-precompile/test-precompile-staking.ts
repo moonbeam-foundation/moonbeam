@@ -261,3 +261,27 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - AwardedPoints", (conte
     expect(Number(result)).to.equal(0);
   });
 });
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", (context) => {
+  before("should successfully produce a block by ALITH", async function () {
+    await context.createBlock();
+  });
+
+  it("should get last round in which ALITH produced a block", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", [alith.address]),
+    });
+
+    expect(Number(result)).to.equal(1);
+  });
+
+  it("should get 0 for ETHAN as he hasn't produced blocks", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", [ethan.address]),
+    });
+
+    expect(Number(result)).to.equal(0);
+  });
+});

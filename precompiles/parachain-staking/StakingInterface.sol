@@ -325,4 +325,13 @@ interface ParachainStaking {
         external
         view
         returns (uint256);
+    
+    /// @dev Fetch the last round in which a collator produced blocks.
+    /// @custom:selector e56b4f6a
+    /// @param candidate Address of the candidate.
+    /// @return Round The last round in which it produced blocks.
+    function getCandidateLastActive(address candidate)
+        external
+        view
+        returns (uint256);
 }
