@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
-import { getBlockArray } from "../util/block";
+import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
@@ -81,6 +81,19 @@ describeSmokeSuite(
           }
 
           const blockNumArray = await getBlockArray(api, timePeriod, limiter);
+
+          // Determine if the block range intersects with an upgrade event
+          const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
+            api,
+            blockNumArray,
+            api.consts.system.version.specVersion
+          );
+          if (result) {
+            debug(
+              `Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping chain.`
+            );
+            return { networkName: name, blockEvents: [] };
+          }
 
           const getEvents = async (blockNum: number) => {
             const blockHash = await limiter.schedule(() => api.rpc.chain.getBlockHash(blockNum));

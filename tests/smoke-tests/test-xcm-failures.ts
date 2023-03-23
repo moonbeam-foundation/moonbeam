@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
-import { getBlockArray } from "../util/block";
+import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
@@ -29,6 +29,17 @@ describeSmokeSuite(
       this.timeout(timeout);
 
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
+
+      // Determine if the block range intersects with an upgrade event
+      const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
+        context.polkadotApi,
+        blockNumArray,
+        context.polkadotApi.consts.system.version.specVersion
+      );
+      if (result) {
+        debug(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
+        this.skip();
+      }
 
       const getEvents = async (blockNum: number) => {
         const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
@@ -272,7 +283,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    testIt("C1200", `shouldhave recent responses for opened HMRP channels`, async function () {
+    testIt("C1200", `should have recent responses for opened HMRP channels`, async function () {
       this.timeout(FIVE_MINS);
       if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
         debug(`RELAY_WSS_URL env var not supplied, skipping test.`);
