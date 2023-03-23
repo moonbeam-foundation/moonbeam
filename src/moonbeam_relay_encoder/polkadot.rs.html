@@ -676,7 +676,7 @@
 	<span class="attr">#[codec(index = <span class="number">2u8</span>)]
 	</span>CloseChannel(HrmpChannelId),
 	<span class="attr">#[codec(index = <span class="number">6u8</span>)]
-	</span>CancelOpenChannel(HrmpChannelId, u32),
+	</span>CancelOpenRequest(HrmpChannelId, u32),
 }
 
 <span class="kw">pub struct </span>PolkadotEncoder;
@@ -710,8 +710,8 @@
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) =&gt; {
 				<span class="prelude-val">Ok</span>(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
-			xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(a, b) =&gt; {
-				<span class="prelude-val">Ok</span>(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) =&gt; {
+				<span class="prelude-val">Ok</span>(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
 			}
 		}
 	}
@@ -1175,7 +1175,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			&lt;PolkadotEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(
+				xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
 					channel_id.clone(),
 					open_requests
 				)

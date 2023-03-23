@@ -1960,7 +1960,7 @@
 				HrmpOperation::Cancel {
 					channel_id,
 					open_requests,
-				} =&gt; T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenChannel(
+				} =&gt; T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 					channel_id,
 					open_requests,
 				)),
