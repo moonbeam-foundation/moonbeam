@@ -133,4 +133,14 @@ interface RelayEncoder {
         external
         pure
         returns (bytes memory result);
+    
+    /// @dev Encode 'hrmp.cancel_open_request' relay call
+    /// @custom:selector 8fd5ce49
+    /// @param sender: The paraId of the sender
+    /// @param recipient: The paraId of the recipient
+    /// @param openRequests: The number of open requests
+    function encodeHrmpCancelOpenRequest(uint32 sender, uint32 recipient, uint32 openRequests) 
+        external 
+        pure 
+        returns (bytes memory result);
 }
