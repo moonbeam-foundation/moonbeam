@@ -270,7 +270,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
   it("should get last round in which ALITH produced a block", async function () {
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", [alith.address]),
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", 
+      [alith.address]),
     });
 
     expect(Number(result)).to.equal(1);
@@ -279,7 +280,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
   it("should get 0 for ETHAN as he hasn't produced blocks", async function () {
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", [ethan.address]),
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("getCandidateLastActive", 
+      [ethan.address]),
     });
 
     expect(Number(result)).to.equal(0);
