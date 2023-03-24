@@ -861,7 +861,6 @@ where
 
 impl<S, E, P> IsActivePrecompile for PrecompilesInRangeInclusive<(S, E), P>
 where
-	Self: PrecompileSetFragment,
 	P: IsActivePrecompile,
 {
 	fn is_active_precompile(&self, address: H160) -> bool {

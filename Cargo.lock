@@ -5262,6 +5262,7 @@ dependencies = [
  "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-referenda",
+ "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
