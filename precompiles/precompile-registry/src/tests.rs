@@ -61,7 +61,7 @@ mod is_precompile {
 			.execute_with(|| {
 				precompiles()
 					.prepare_test(
-						Alice, // can be anyone,*$
+						Alice, // can be anyone
 						Registry,
 						PCall::is_precompile {
 							address: Address(target_address.into()),
@@ -104,7 +104,7 @@ mod is_active_precompile {
 			.execute_with(|| {
 				precompiles()
 					.prepare_test(
-						Alice, // can be anyone,*$
+						Alice, // can be anyone
 						Registry,
 						PCall::is_active_precompile {
 							address: Address(target_address.into()),
@@ -148,7 +148,7 @@ mod update_account_code {
 
 				let precompiles = precompiles();
 				let tester = precompiles.prepare_test(
-					Alice, // can be anyone,*$
+					Alice, // can be anyone
 					Registry,
 					PCall::update_account_code {
 						address: Address(target_address),
