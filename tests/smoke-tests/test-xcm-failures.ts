@@ -30,7 +30,7 @@ describeSmokeSuite(
 
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
 
-      // Determine if the block range intersects with an upgrade event
+      // Determine if this block range intersects with an upgrade event
       const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
         context.polkadotApi,
         blockNumArray,
