@@ -65,7 +65,7 @@
 			<span class="prelude-val">None
 		</span>} <span class="kw">else </span>{
 			<span class="prelude-val">Some</span>(TransactionTrace::Raw {
-				step_logs: listener.step_logs,
+				struct_logs: listener.struct_logs,
 				gas: listener.final_gas.into(),
 				return_value: listener.return_value,
 			})

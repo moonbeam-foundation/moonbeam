@@ -371,7 +371,7 @@
 	new_context: bool,
 	context_stack: Vec&lt;Context&gt;,
 
-	<span class="kw">pub </span>step_logs: Vec&lt;RawStepLog&gt;,
+	<span class="kw">pub </span>struct_logs: Vec&lt;RawStepLog&gt;,
 	<span class="kw">pub </span>return_value: Vec&lt;u8&gt;,
 	<span class="kw">pub </span>final_gas: u64,
 	<span class="kw">pub </span>remaining_memory_usage: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -416,7 +416,7 @@
 			disable_stack,
 			remaining_memory_usage: <span class="prelude-val">Some</span>(raw_max_memory_usage),
 
-			step_logs: <span class="macro">vec!</span>[],
+			struct_logs: <span class="macro">vec!</span>[],
 			return_value: <span class="macro">vec!</span>[],
 			final_gas: <span class="number">0</span>,
 
@@ -568,7 +568,7 @@
 							<span class="prelude-val">Some</span>(context.storage_cache.clone())
 						};
 
-						<span class="self">self</span>.step_logs.push(RawStepLog {
+						<span class="self">self</span>.struct_logs.push(RawStepLog {
 							depth: depth.into(),
 							gas: gas.into(),
 							gas_cost: gas_cost.into(),
