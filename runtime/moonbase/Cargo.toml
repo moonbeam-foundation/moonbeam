@@ -81,6 +81,7 @@ pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
@@ -94,7 +95,6 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
-pallet-multisig = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive", "max-encoded-len" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-api = { workspace = true }
@@ -231,6 +231,7 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
+	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
@@ -247,7 +248,6 @@ std = [
 	"pallet-treasury/std",
 	"pallet-utility/std",
 	"pallet-whitelist/std",
-	"pallet-multisig/std",
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
