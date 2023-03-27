@@ -7505,6 +7505,7 @@ dependencies = [
 name = "pallet-evm-precompile-gmp"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "derive_more",
  "evm",
  "fp-evm",
@@ -7514,6 +7515,7 @@ dependencies = [
  "hex-literal",
  "log",
  "num_enum",
+ "orml-traits",
  "orml-xtokens",
  "pallet-balances",
  "pallet-evm",

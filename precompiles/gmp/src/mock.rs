@@ -18,14 +18,10 @@
 use super::*;
 use frame_support::traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait};
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
-// use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use parity_scale_codec::{Decode, Encode};
-use precompile_utils::{
-	mock_account,
-	precompile_set::*,
-	testing::{AddressInPrefixedSet, MockAccount},
-};
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_io;
@@ -63,9 +59,16 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Xtokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Config, Event<T>, Origin},
 	}
 );
+
+mock_account!(SelfReserveAccount, |_| MockAccount::from_u64(2));
+
+parameter_types! {
+	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+}
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -125,11 +128,6 @@ impl InvertLocation for InvertNothing {
 	fn ancestry() -> MultiLocation {
 		MultiLocation::here()
 	}
-}
-
-parameter_types! {
-	pub const BaseXcmWeight: XcmV2Weight = 1000;
-	pub MaxInstructions: u32 = 100;
 }
 
 impl pallet_xcm::Config for Runtime {
@@ -259,6 +257,104 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 	fn successful_origin() -> Origin {
 		Origin::root()
 	}
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum CurrencyId {
+	SelfReserve,
+	OtherReserve(AssetId),
+}
+
+// Implement the trait, where we convert AccountId to AssetID
+impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
+	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
+		match account {
+			a if a.has_prefix_u32(0xffffffff) => Some(CurrencyId::OtherReserve(a.without_prefix())),
+			a if a == AccountId::from(SelfReserveAccount) => Some(CurrencyId::SelfReserve),
+			_ => None,
+		}
+	}
+}
+
+pub struct AccountIdToMultiLocation;
+impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
+	fn convert(account: AccountId) -> MultiLocation {
+		let as_h160: H160 = account.into();
+		MultiLocation::new(
+			1,
+			Junctions::X1(AccountKey20 {
+				network: NetworkId::Any,
+				key: as_h160.as_fixed_bytes().clone(),
+			}),
+		)
+	}
+}
+
+parameter_types! {
+	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
+
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
+	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub const MaxAssetsForTransfer: usize = 2;
+
+	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+
+	pub SelfReserve: MultiLocation = (
+		1,
+		Junctions::X2(
+			Parachain(ParachainId::get().into()),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)).into();
+	pub MaxInstructions: u32 = 100;
+}
+
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
+	};
+}
+
+pub struct CurrencyIdToMultiLocation;
+
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::SelfReserve => {
+				let multi: MultiLocation = SelfReserve::get();
+				Some(multi)
+			}
+			// To distinguish between relay and others, specially for reserve asset
+			CurrencyId::OtherReserve(asset) => {
+				if asset == 0 {
+					Some(MultiLocation::parent())
+				} else {
+					Some(MultiLocation::new(
+						1,
+						Junctions::X2(Parachain(2), GeneralIndex(asset)),
+					))
+				}
+			}
+		}
+	}
+}
+
+impl orml_xtokens::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type CurrencyIdConvert = CurrencyIdToMultiLocation;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type SelfLocation = SelfLocation;
+	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
+	type BaseXcmWeight = BaseXcmWeight;
+	type LocationInverter = InvertNothing;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MinXcmFee = ParachainMinFee;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
 pub(crate) struct ExtBuilder {

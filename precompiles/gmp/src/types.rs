@@ -20,11 +20,10 @@
 
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
-	data::{Address, BoundedBytes, String},
-	prelude::*,
+	data::{BoundedBytes, String},
 	EvmData,
 };
-use sp_core::{H160, H256, U256};
+use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
@@ -71,7 +70,7 @@ pub struct WormholeSignature {
 	pub r: U256,
 	pub s: U256,
 	pub v: u8,
-	pub guardianIndex: u8,
+	pub guardian_index: u8,
 }
 
 // Struct representing a wormhole "BridgeStructs.TransferWithPayload" struct

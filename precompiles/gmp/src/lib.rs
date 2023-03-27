@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -30,7 +30,7 @@ use parity_scale_codec::DecodeLimit;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
-use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
+use sp_std::{marker::PhantomData, str::FromStr};
 use types::*;
 use xcm::opaque::latest::WeightLimit;
 use xcm::VersionedMultiLocation;
@@ -51,7 +51,6 @@ type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
 // Wormhole fn selectors
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
-const PARSE_AND_VERIFY_VM_SELECTOR: u32 = 0xc0fd8bde_u32; // parseAndVerifyVM(bytes)
 const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d; // parseTransferWithPayload(bytes)
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
 
@@ -158,6 +157,7 @@ where
 		// TODO:
 		let weight_limit: u64 = 1_000_000_000_000u64;
 
+		log::debug!(target: "gmp-precompile", "sending XCM via xtokens::transfer...");
 		let call: orml_xtokens::Call<Runtime> = match user_action {
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
@@ -171,7 +171,10 @@ where
 
 		// TODO: proper origin
 		let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(|e| {
+			log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
+			e
+		})?;
 
 		Ok(())
 	}
