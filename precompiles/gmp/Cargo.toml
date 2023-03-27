@@ -33,6 +33,7 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 xcm-primitives = { workspace = true }
+orml-xtokens = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }

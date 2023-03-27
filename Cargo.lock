@@ -7514,6 +7514,7 @@ dependencies = [
  "hex-literal",
  "log",
  "num_enum",
+ "orml-xtokens",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
