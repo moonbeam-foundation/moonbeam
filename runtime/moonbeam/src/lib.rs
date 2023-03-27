@@ -1306,10 +1306,10 @@ impl pallet_randomness::Config for Runtime {
 impl pallet_root_testing::Config for Runtime {}
 
 parameter_types! {
-	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
-	pub const DepositBase: Balance = deposit(1, 88);
+	// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
+	pub const DepositBase: Balance = deposit(1, 76);
 	// Additional storage item size of 32 bytes.
-	pub const DepositFactor: Balance = deposit(0, 32);
+	pub const DepositFactor: Balance = deposit(0, 20);
 	pub const MaxSignatories: u32 = 100;
 }
 
@@ -1320,7 +1320,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>; //weights::pallet_multisig::WeightInfo<Runtime>;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime! {
