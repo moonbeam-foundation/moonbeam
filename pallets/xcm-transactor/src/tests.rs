@@ -1251,17 +1251,19 @@ fn xcm_v2_to_v3_transact_info_with_weight_limit_works() {
 			),
 		};
 
-		let expected_value = crate::RemoteTransactInfoWithMaxWeight {
-			transact_extra_weight: Weight::from_parts(111, 111),
-			max_weight: Weight::from_parts(222, 222),
-			transact_extra_weight_signed: None,
+		let old_value = crate::migrations::OldRemoteTransactInfoWithMaxWeight {
+			transact_extra_weight: 10u64,
+			max_weight: 10u64,
+			transact_extra_weight_signed: Some(10u64),
 		};
+
+		let expected_value: crate::RemoteTransactInfoWithMaxWeight = old_value.clone().into();
 
 		put_storage_value(
 			pallet_prefix,
 			storage_item_prefix,
 			&Blake2_128Concat::hash(&old_multilocation.encode()),
-			expected_value.clone(),
+			old_value,
 		);
 
 		crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();

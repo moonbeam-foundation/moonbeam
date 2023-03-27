@@ -24,14 +24,16 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat, StoragePrefixedMap, Twox64Concat,
 };
+use parity_scale_codec::{Decode, Encode};
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 use xcm::v2::MultiLocation as OldMultiLocation;
+use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 #[cfg(feature = "try-runtime")]
 #[derive(Clone, Eq, Debug, PartialEq, Encode, Decode)]
 enum PreUpgradeState {
-	TransactInfoWithWeightLimit(Vec<(OldMultiLocation, RemoteTransactInfoWithMaxWeight)>),
+	TransactInfoWithWeightLimit(Vec<(OldMultiLocation, OldRemoteTransactInfoWithMaxWeight)>),
 	DestinationAssetFeePerSecond(Vec<(OldMultiLocation, u128)>),
 }
 
@@ -48,10 +50,11 @@ impl From<PreUpgradeState> for PostUpgradeState {
 		match pre {
 			PreUpgradeState::TransactInfoWithWeightLimit(items) => {
 				let mut out: Vec<(MultiLocation, RemoteTransactInfoWithMaxWeight)> = Vec::new();
-				for (old_key, value) in items.into_iter() {
+				for (old_key, old_value) in items.into_iter() {
 					let new_key: MultiLocation =
 						old_key.try_into().expect("Multilocation v2 to v3");
-					out.push((new_key, value));
+					let new_value: RemoteTransactInfoWithMaxWeight = old_value.into();
+					out.push((new_key, new_value));
 				}
 				PostUpgradeState::TransactInfoWithWeightLimit(out)
 			}
@@ -64,6 +67,32 @@ impl From<PreUpgradeState> for PostUpgradeState {
 				}
 				PostUpgradeState::DestinationAssetFeePerSecond(out)
 			}
+		}
+	}
+}
+
+#[derive(Default, Debug, Clone, Encode, Decode, Eq, PartialEq)]
+pub struct OldRemoteTransactInfoWithMaxWeight {
+	pub transact_extra_weight: u64,
+	pub max_weight: u64,
+	pub transact_extra_weight_signed: Option<u64>,
+}
+
+impl From<OldRemoteTransactInfoWithMaxWeight> for RemoteTransactInfoWithMaxWeight {
+	fn from(old: OldRemoteTransactInfoWithMaxWeight) -> RemoteTransactInfoWithMaxWeight {
+		let transact_extra_weight: Weight =
+			Weight::from_parts(old.transact_extra_weight, DEFAULT_PROOF_SIZE);
+		let max_weight: Weight = Weight::from_parts(old.max_weight, DEFAULT_PROOF_SIZE);
+		let transact_extra_weight_signed: Option<Weight> =
+			if let Some(w) = old.transact_extra_weight_signed {
+				Some(Weight::from_parts(w, DEFAULT_PROOF_SIZE))
+			} else {
+				None
+			};
+		RemoteTransactInfoWithMaxWeight {
+			transact_extra_weight,
+			max_weight,
+			transact_extra_weight_signed,
 		}
 	}
 }
@@ -89,19 +118,20 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 		// Db (read, write) count
 		let mut db_weight_count: (u64, u64) = (0, 0);
 
-		// Migrate `TransactInfoWithWeightLimit` key
+		// Migrate both `TransactInfoWithWeightLimit` key and value
 		db_weight_count.0 += 1;
 		let old_data = storage_key_iter::<
 			OldMultiLocation,
-			RemoteTransactInfoWithMaxWeight,
+			OldRemoteTransactInfoWithMaxWeight,
 			Blake2_128Concat,
 		>(&module_prefix, transact_info_with_weight_limit)
 		.drain()
-		.collect::<Vec<(OldMultiLocation, RemoteTransactInfoWithMaxWeight)>>();
-		for (old_key, value) in old_data {
+		.collect::<Vec<(OldMultiLocation, OldRemoteTransactInfoWithMaxWeight)>>();
+		for (old_key, old_value) in old_data {
 			db_weight_count.1 += 1;
 			let new_key: MultiLocation = old_key.try_into().expect("Multilocation v2 to v3");
-			TransactInfoWithWeightLimit::<T>::insert(new_key, value);
+			let new_value: RemoteTransactInfoWithMaxWeight = old_value.into();
+			TransactInfoWithWeightLimit::<T>::insert(new_key, new_value);
 		}
 
 		// Migrate `DestinationAssetFeePerSecond` key
@@ -137,15 +167,13 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 		let mut result: Vec<(u32, PreUpgradeState)> = Vec::new();
 
 		// TransactInfoWithWeightLimit pre-upgrade data
-		let transact_info_with_weight_limit_storage_data: Vec<_> = storage_key_iter::<
-			OldMultiLocation,
-			RemoteTransactInfoWithMaxWeight,
-			Blake2_128Concat,
-		>(
-			module_prefix,
-			transact_info_with_weight_limit,
-		)
-		.collect();
+		let transact_info_with_weight_limit_storage_data: Vec<_> =
+			storage_key_iter::<
+				OldMultiLocation,
+				OldRemoteTransactInfoWithMaxWeight,
+				Blake2_128Concat,
+			>(module_prefix, transact_info_with_weight_limit)
+			.collect();
 		result.push((
 			transact_info_with_weight_limit_storage_data.len() as u32,
 			PreUpgradeState::TransactInfoWithWeightLimit(
