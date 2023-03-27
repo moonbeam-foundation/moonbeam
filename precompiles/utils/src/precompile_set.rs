@@ -274,7 +274,8 @@ impl<T: SelectorFilter> PrecompileChecks for CallableByPrecompile<T> {
 }
 
 /// The type of EVM address.
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
+#[cfg_attr(test, derive(Debug))]
 pub enum AddressType {
 	/// The code stored at the address is less than 5 bytes, but not well known.
 	Unknown,
