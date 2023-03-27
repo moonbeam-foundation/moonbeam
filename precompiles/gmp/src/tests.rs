@@ -16,7 +16,9 @@
 
 use crate::{mock::PCall, types::XcmRoutingUserAction};
 use precompile_utils::testing::*;
+use sp_runtime::AccountId32;
 use xcm::latest::MultiLocation;
+use xcm::opaque::latest::{Junction, Junctions, NetworkId};
 
 #[test]
 fn test_sample_wormhole_vm_output() {
@@ -61,10 +63,20 @@ fn test_sample_wormhole_vm_output() {
 fn test_user_action_decode() {
 	use crate::VersionedUserAction;
 	use parity_scale_codec::Encode;
+	use std::str::FromStr;
 
 	// TODO: remove test, just using to print value
 	let action = VersionedUserAction::V1(XcmRoutingUserAction {
-		destination_chain: MultiLocation::parent(),
+		destination_chain: MultiLocation::new(
+			1,
+			Junctions::X2(
+				Junction::Parachain(123),
+				Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [0u8; 32],
+				},
+			),
+		),
 		destination_account: MultiLocation::parent(),
 	});
 
