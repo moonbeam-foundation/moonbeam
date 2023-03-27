@@ -701,7 +701,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> Option<PrecompileResult> {
 		if A::get() == handle.code_address() {
-			Some(Err(revert("revert")))
+			Some(Err(revert("Removed precompile")))
 		} else {
 			None
 		}
