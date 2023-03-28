@@ -29,10 +29,6 @@ use sp_std::{
 	vec::Vec,
 };
 
-mod sealed {
-	pub trait Sealed {}
-}
-
 /// Trait representing checks that can be made on a precompile call.
 /// Types implementing this trait are made to be chained in a tuple.
 ///
@@ -405,6 +401,16 @@ impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
 	}
 }
 
+/// Allows to know if a precompile is active or not.
+/// This allows to detect deactivated precompile, that are still considered precompiles by
+/// the EVM but that will always revert when called.
+pub trait IsActivePrecompile {
+	/// Is the provided address an active precompile, a precompile that has
+	/// not be deactivated. Note that a deactivated precompile is still considered a precompile
+	/// for the EVM, but it will always revert when called.
+	fn is_active_precompile(&self, address: H160) -> bool;
+}
+
 // INDIVIDUAL PRECOMPILE(SET)
 
 /// A fragment of a PrecompileSet. Should be implemented as is it
@@ -538,6 +544,16 @@ where
 	}
 }
 
+impl<A, P, C> IsActivePrecompile for PrecompileAt<A, P, C>
+where
+	A: Get<H160>,
+{
+	#[inline(always)]
+	fn is_active_precompile(&self, address: H160) -> bool {
+		address == A::get()
+	}
+}
+
 /// Wraps an inner PrecompileSet with all its addresses starting with
 /// a common prefix.
 /// Type parameters allow to define:
@@ -655,6 +671,16 @@ where
 	}
 }
 
+impl<A, P, C> IsActivePrecompile for PrecompileSetStartingWith<A, P, C>
+where
+	Self: PrecompileSetFragment,
+{
+	#[inline(always)]
+	fn is_active_precompile(&self, address: H160) -> bool {
+		self.is_precompile(address)
+	}
+}
+
 /// Make a precompile that always revert.
 /// Can be useful when writing tests.
 pub struct RevertPrecompile<A>(PhantomData<A>);
@@ -699,6 +725,66 @@ where
 			callable_by_smart_contract: "Reverts in all cases".into(),
 			callable_by_precompile: "Reverts in all cases".into(),
 		}]
+	}
+}
+
+impl<A> IsActivePrecompile for RevertPrecompile<A> {
+	#[inline(always)]
+	fn is_active_precompile(&self, _address: H160) -> bool {
+		true
+	}
+}
+
+/// A precompile that was removed from a precompile set.
+/// Still considered a precompile but is inactive and always revert.
+pub struct RemovedPrecompileAt<A>(PhantomData<A>);
+impl<A> PrecompileSetFragment for RemovedPrecompileAt<A>
+where
+	A: Get<H160>,
+{
+	#[inline(always)]
+	fn new() -> Self {
+		Self(PhantomData)
+	}
+
+	#[inline(always)]
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
+		if A::get() == handle.code_address() {
+			Some(Err(revert("Removed precompile")))
+		} else {
+			None
+		}
+	}
+
+	#[inline(always)]
+	fn is_precompile(&self, address: H160) -> bool {
+		address == A::get()
+	}
+
+	#[inline(always)]
+	fn used_addresses(&self) -> Vec<H160> {
+		vec![A::get()]
+	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		vec![PrecompileCheckSummary {
+			name: None,
+			precompile_kind: PrecompileKind::Single(A::get()),
+			recursion_limit: Some(0),
+			accept_delegate_call: true,
+			callable_by_smart_contract: "Reverts in all cases".into(),
+			callable_by_precompile: "Reverts in all cases".into(),
+		}]
+	}
+}
+
+impl<A> IsActivePrecompile for RemovedPrecompileAt<A> {
+	#[inline(always)]
+	fn is_active_precompile(&self, _address: H160) -> bool {
+		false
 	}
 }
 
@@ -761,6 +847,20 @@ impl PrecompileSetFragment for Tuple {
 	}
 }
 
+#[impl_for_tuples(1, 100)]
+impl IsActivePrecompile for Tuple {
+	#[inline(always)]
+	fn is_active_precompile(&self, address: H160) -> bool {
+		for_tuples!(#(
+			if self.Tuple.is_active_precompile(address) {
+				return true;
+			}
+		)*);
+
+		false
+	}
+}
+
 /// Wraps a precompileset fragment into a range, and will skip processing it if the address
 /// is out of the range.
 pub struct PrecompilesInRangeInclusive<R, P> {
@@ -811,6 +911,19 @@ where
 	}
 }
 
+impl<S, E, P> IsActivePrecompile for PrecompilesInRangeInclusive<(S, E), P>
+where
+	P: IsActivePrecompile,
+{
+	fn is_active_precompile(&self, address: H160) -> bool {
+		if self.range.contains(&address) {
+			self.inner.is_active_precompile(address)
+		} else {
+			false
+		}
+	}
+}
+
 /// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.
 pub struct PrecompileSetBuilder<R, P> {
 	inner: P,
@@ -824,6 +937,12 @@ impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSet for Precompi
 
 	fn is_precompile(&self, address: H160) -> bool {
 		self.inner.is_precompile(address)
+	}
+}
+
+impl<R, P: IsActivePrecompile> IsActivePrecompile for PrecompileSetBuilder<R, P> {
+	fn is_active_precompile(&self, address: H160) -> bool {
+		self.inner.is_active_precompile(address)
 	}
 }
 
