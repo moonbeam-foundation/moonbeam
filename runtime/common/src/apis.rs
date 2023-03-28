@@ -379,6 +379,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				) -> pallet_transaction_payment::FeeDetails<Balance> {
 					TransactionPayment::query_fee_details(uxt, len)
 				}
+
+				fn query_weight_to_fee(weight: Weight) -> Balance {
+					TransactionPayment::weight_to_fee(weight)
+				}
+
+				fn query_length_to_fee(length: u32) -> Balance {
+					TransactionPayment::length_to_fee(length)
+				}
 			}
 
 			impl nimbus_primitives::NimbusApi<Block> for Runtime {
@@ -514,14 +522,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
-
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
 						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
 							Ok(MultiLocation::parent())
 						}
-						fn worst_case_holding() -> MultiAssets {
+						fn worst_case_holding(_depositable_count: u32) -> MultiAssets {
 						// 100 fungibles
 							const HOLDING_FUNGIBLES: u32 = 100;
 							let fungibles_amount: u128 = 100;
@@ -576,19 +583,38 @@ macro_rules! impl_runtime_apis_plus_common {
 							(0u64, Response::Version(Default::default()))
 						}
 
-						fn transact_origin() -> Result<MultiLocation, BenchmarkError> {
-							Ok(MultiLocation::parent())
+						fn worst_case_asset_exchange()
+							-> Result<(MultiAssets, MultiAssets), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn universal_alias() -> Result<Junction, BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn transact_origin_and_runtime_call()
+							-> Result<(MultiLocation, RuntimeCall), BenchmarkError> {
+							Ok((MultiLocation::parent(), frame_system::Call::remark_with_event {
+								remark: vec![]
+							}.into()))
 						}
 
 						fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {
 							Ok(MultiLocation::parent())
 						}
 
-						fn claimable_asset() -> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
+						fn claimable_asset()
+							-> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
 							let origin = MultiLocation::parent();
-							let assets: MultiAssets = (Concrete(MultiLocation::parent()), 1_000u128).into();
+							let assets: MultiAssets = (Concrete(MultiLocation::parent()), 1_000u128)
+								.into();
 							let ticket = MultiLocation { parents: 0, interior: Here };
 							Ok((origin, ticket, assets))
+						}
+
+						fn unlockable_asset()
+							-> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
+							Err(BenchmarkError::Skip)
 						}
 					}
 

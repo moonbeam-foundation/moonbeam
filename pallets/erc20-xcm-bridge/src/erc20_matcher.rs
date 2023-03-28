@@ -101,7 +101,7 @@ mod tests {
 				PalletInstance(42u8),
 				AccountKey20 {
 					key: [0; 20],
-					network: NetworkId::Any,
+					network: None,
 				},
 			),
 		};
