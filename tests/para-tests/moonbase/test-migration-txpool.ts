@@ -118,12 +118,12 @@ describeParachain(
             }, {});
           switch (i) {
             case upgradeBlockNumber:
-              // This is unknown but observed behavior where runtime applied has block limit high
-              // enough to prevent other extrinsic to be included
+              // The upgrade block number should contain event ValidationFunctionApplied
               expect(records.find((r) => r.event.method == "ValidationFunctionApplied")).to.not.be
                 .null;
-              expect(block.extrinsics.length).to.be.equal(4);
-              expect(extrinsicCountByMethod["transact"]).to.be.undefined;
+              // The upgrade block number should contain transactions
+              expect(block.extrinsics.length).to.be.above(4);
+              expect(extrinsicCountByMethod["transact"]).to.be.above(0);
               break;
             case migrationBlockNumber:
               // Introduced in PR2006 to prevent XCM/User Tx during migration
