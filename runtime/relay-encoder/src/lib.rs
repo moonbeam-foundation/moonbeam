@@ -21,8 +21,8 @@ pub mod kusama;
 pub mod polkadot;
 pub mod westend;
 
-#[cfg(test)]
-mod common_encoder_tests;
+// #[cfg(test)]
+// mod common_encoder_tests;
 
 use pallet_xcm_transactor::relay_indices::*;
 

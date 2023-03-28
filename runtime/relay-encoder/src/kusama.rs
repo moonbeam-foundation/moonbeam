@@ -117,46 +117,46 @@ impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
 	}
 }
 
-impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for KusamaEncoder {
-	fn encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -> Vec<u8> {
+impl xcm_primitives::StakeEncodeCall for KusamaEncoder {
+	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
 		match call {
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(a, b, c) => {
+			xcm_primitives::AvailableStakeCalls::Bond(a, b, c) => {
 				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(a) => {
+			xcm_primitives::AvailableStakeCalls::BondExtra(a) => {
 				RelayCall::Stake(StakeCall::BondExtra(a)).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(a) => {
+			xcm_primitives::AvailableStakeCalls::Unbond(a) => {
 				RelayCall::Stake(StakeCall::Unbond(a)).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(a) => {
+			xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(a) => {
 				RelayCall::Stake(StakeCall::WithdrawUnbonded(a)).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(a) => {
+			xcm_primitives::AvailableStakeCalls::Validate(a) => {
 				RelayCall::Stake(StakeCall::Validate(a)).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill => {
+			xcm_primitives::AvailableStakeCalls::Chill => {
 				RelayCall::Stake(StakeCall::Chill).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
+			xcm_primitives::AvailableStakeCalls::SetPayee(a) => {
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(a) => {
+			xcm_primitives::AvailableStakeCalls::SetController(a) => {
 				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
+			xcm_primitives::AvailableStakeCalls::Rebond(a) => {
 				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(a) => {
+			xcm_primitives::AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
 					a.iter().map(|add| (*add).clone().into()).collect();
 
@@ -171,8 +171,8 @@ mod tests {
 	use super::*;
 	use crate::kusama::KusamaEncoder;
 	use frame_support::traits::PalletInfo;
-	use pallet_evm_precompile_relay_encoder::StakeEncodeCall;
 	use sp_runtime::Perbill;
+	use xcm_primitives::StakeEncodeCall;
 
 	#[test]
 	fn test_as_derivative() {
@@ -194,7 +194,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		let call_bytes = <KusamaEncoder as StakeEncodeCall>::encode_call(
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill,
+			xcm_primitives::AvailableStakeCalls::Chill,
 		);
 
 		expected_encoded.append(&mut expected);
@@ -229,7 +229,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(
+				xcm_primitives::AvailableStakeCalls::Bond(
 					relay_account.into(),
 					100u32.into(),
 					pallet_staking::RewardDestination::Controller
@@ -256,7 +256,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(100u32.into(),)
+				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 			),
 			expected_encoded
 		);
@@ -279,7 +279,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(100u32.into(),)
+				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 			),
 			expected_encoded
 		);
@@ -302,7 +302,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 			),
 			expected_encoded
 		);
@@ -330,7 +330,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(validator_prefs)
+				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 			),
 			expected_encoded
 		);
@@ -354,9 +354,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(vec![
-					relay_account.into()
-				])
+				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.into()])
 			),
 			expected_encoded
 		);
@@ -376,7 +374,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill
+				xcm_primitives::AvailableStakeCalls::Chill
 			),
 			expected_encoded
 		);
@@ -400,7 +398,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(
+				xcm_primitives::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Controller
 				)
 			),
@@ -427,9 +425,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(
-					relay_account.clone().into()
-				)
+				xcm_primitives::AvailableStakeCalls::SetController(relay_account.clone().into())
 			),
 			expected_encoded
 		);
@@ -452,7 +448,7 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(100u32.into())
+				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 			),
 			expected_encoded
 		);

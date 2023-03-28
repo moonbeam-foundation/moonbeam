@@ -900,8 +900,16 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond);
 					// encoded arguments
-					encoded_call.append(&mut a.encode());
-					encoded_call.append(&mut b.encode());
+					let mut aa = vec![0u8];
+					aa.append(&mut a.encode());
+					encoded_call.append(&mut aa);
+					#[derive(Debug, PartialEq, Encode, Decode)]
+					struct CompactWrapper<T: parity_scale_codec::HasCompact> {
+						#[codec(compact)]
+						inner: T,
+					}
+					let mut compact_encoded_b = CompactWrapper { inner: b }.encode();
+					encoded_call.append(&mut compact_encoded_b);
 					encoded_call.append(&mut c.encode());
 					encoded_call
 				}
@@ -913,7 +921,13 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond_extra);
 					// encoded argument
-					encoded_call.append(&mut a.encode());
+					#[derive(Debug, PartialEq, Encode, Decode)]
+					struct CompactWrapper<T: parity_scale_codec::HasCompact> {
+						#[codec(compact)]
+						inner: T,
+					}
+					let mut compact_encoded_a = CompactWrapper { inner: a }.encode();
+					encoded_call.append(&mut compact_encoded_a);
 					encoded_call
 				}
 
@@ -923,8 +937,14 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.unbond);
-					// encoded argument
-					encoded_call.append(&mut a.encode());
+					// compact encoded argument, TODO extract so DRY
+					#[derive(Debug, PartialEq, Encode, Decode)]
+					struct CompactWrapper<T: parity_scale_codec::HasCompact> {
+						#[codec(compact)]
+						inner: T,
+					}
+					let mut compact_encoded_arg = CompactWrapper { inner: a }.encode();
+					encoded_call.append(&mut compact_encoded_arg);
 					encoded_call
 				}
 
@@ -976,8 +996,10 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_controller);
-					// encoded argument
-					encoded_call.append(&mut a.encode());
+					// encoded argument must have 0 before it, not sure why
+					let mut b = vec![0u8];
+					b.append(&mut a.encode());
+					encoded_call.append(&mut b);
 					encoded_call
 				}
 
@@ -987,8 +1009,14 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.rebond);
-					// encoded argument
-					encoded_call.append(&mut a.encode());
+					// compact encoded argument, TODO extract so DRY
+					#[derive(Debug, PartialEq, Encode, Decode)]
+					struct CompactWrapper<T: parity_scale_codec::HasCompact> {
+						#[codec(compact)]
+						inner: T,
+					}
+					let mut compact_encoded_arg = CompactWrapper { inner: a }.encode();
+					encoded_call.append(&mut compact_encoded_arg);
 					encoded_call
 				}
 
@@ -998,8 +1026,9 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.nominate);
-					// encoded argument
-					encoded_call.append(&mut a.encode());
+					let mut b = a.encode();
+					b.insert(1, 0u8);
+					encoded_call.append(&mut b);
 					encoded_call
 				}
 			}
