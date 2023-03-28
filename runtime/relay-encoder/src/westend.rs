@@ -442,7 +442,7 @@ mod tests {
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
-					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
+					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 				),
 				expected_encoded
 			);
@@ -595,7 +595,7 @@ mod tests {
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
 					xcm_primitives::AvailableStakeCalls::SetController(
-						relay_account.clone().into()
+						relay_account.into()
 					)
 				),
 				expected_encoded

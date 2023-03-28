@@ -29,26 +29,26 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	pallets: PalletIndices {
 		staking: 6u8,
 		utility: 24u8,
-		hrmp: 1u8,
+		hrmp: 60u8,
 	},
 	calls: CallIndices {
 		staking: StakingIndices {
 			bond: 0u8,
 			bond_extra: 1u8,
-			unbond: 1u8,
-			withdraw_unbonded: 1u8,
-			validate: 1u8,
-			nominate: 1u8,
+			unbond: 2u8,
+			withdraw_unbonded: 3u8,
+			validate: 4u8,
+			nominate: 5u8,
 			chill: 6u8,
-			set_payee: 1u8,
-			set_controller: 1u8,
-			rebond: 1u8,
+			set_payee: 7u8,
+			set_controller: 8u8,
+			rebond: 19u8,
 		},
 		utility: UtilityIndices { as_derivative: 1u8 },
 		hrmp: HrmpIndices {
-			init_open_channel: 1u8,
+			init_open_channel: 0u8,
 			accept_open_channel: 1u8,
-			close_channel: 1u8,
+			close_channel: 2u8,
 		},
 	},
 };
@@ -320,8 +320,21 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_unbond() {
@@ -343,8 +356,21 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_withdraw_unbonded() {
@@ -366,8 +392,21 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_validate() {
@@ -392,10 +431,23 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
+				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
 			),
 			expected_encoded
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_nominate() {
@@ -416,10 +468,25 @@ mod tests {
 
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
-				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.into()])
+				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Nominate(vec![
+						relay_account.into()
+					])
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_chill() {
@@ -438,8 +505,21 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Chill
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Chill
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -464,8 +544,24 @@ mod tests {
 					pallet_staking::RewardDestination::Controller
 				)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			// use pallet_xcm_transactor type in precompile crate to fix this and consider removing it altogether
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::SetPayee(
+						pallet_staking::RewardDestination::Controller
+					)
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -489,8 +585,23 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::SetController(relay_account.clone().into())
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::SetController(
+						relay_account.into()
+					)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_rebond() {
@@ -512,8 +623,21 @@ mod tests {
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -544,8 +668,25 @@ mod tests {
 					100u32.into()
 				)
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
+						1000u32.into(),
+						100u32.into(),
+						100u32.into()
+					)
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 
 	#[test]
@@ -570,8 +711,21 @@ mod tests {
 			<KusamaEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 
 	#[test]
@@ -602,7 +756,23 @@ mod tests {
 					recipient: 1001u32.into()
 				})
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+						sender: 1000u32.into(),
+						recipient: 1001u32.into()
+					})
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 }

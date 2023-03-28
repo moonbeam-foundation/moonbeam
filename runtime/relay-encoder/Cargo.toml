@@ -40,6 +40,7 @@ rococo-runtime = { workspace = true }
 westend-runtime = { workspace = true }
 moonriver-runtime = { workspace = true }
 moonbase-runtime = { workspace = true }
+moonbeam-runtime = { workspace = true }
 
 [features]
 default = [ "std" ]
@@ -55,5 +56,6 @@ std = [
 	"sp-io/std",
 	"xcm-primitives/std",
 	"moonriver-runtime/std",
+	"moonbeam-runtime/std",
 	"moonbase-runtime/std",
 ]
