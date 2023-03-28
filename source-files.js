@@ -46,6 +46,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_evm_precompile_proxy":["",[],["lib.rs"]],\
 "pallet_evm_precompile_randomness":["",[],["lib.rs","solidity_types.rs"]],\
 "pallet_evm_precompile_referenda":["",[],["lib.rs"]],\
+"pallet_evm_precompile_registry":["",[],["lib.rs"]],\
 "pallet_evm_precompile_relay_encoder":["",[],["lib.rs"]],\
 "pallet_evm_precompile_xcm_transactor":["",[["v1",[],["mod.rs"]],["v2",[],["mod.rs"]]],["functions.rs","lib.rs"]],\
 "pallet_evm_precompile_xcm_utils":["",[],["lib.rs"]],\
