@@ -157,7 +157,11 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				// TODO overall weight None means we will retrieve the allowed proof size from storage.
+				// In the v2 to v3 migration we set this value to DEFAULT_PROOF_SIZE, so setting
+				// require_weight_at_most to DEFAULT_PROOF_SIZE/2 makes sense. Although we might
+				// want to revisit this to use whatever storage value there is and divide it by 2.
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: None,
 			},
 		};
@@ -197,7 +201,7 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 		};
@@ -240,7 +244,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: None,
 			},
 			inner_call,
@@ -287,7 +291,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
@@ -319,7 +323,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: None,
 			},
 			call,
@@ -353,7 +357,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
@@ -393,7 +397,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: None,
 			},
 			call,
@@ -435,7 +439,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
+				transact_required_weight_at_most: Weight::from_parts(weight, DEFAULT_PROOF_SIZE.saturating_div(2)),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
