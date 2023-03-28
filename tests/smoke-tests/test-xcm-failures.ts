@@ -3,12 +3,13 @@ import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { FrameSystemEventRecord, XcmV1MultiLocation } from "@polkadot/types/lookup";
 import { FIVE_MINS } from "../util/constants";
 import { isMuted } from "../util/foreign-chains";
 const debug = require("debug")("smoke:xcm-failures");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
+const atBlock = process.env.AT_BLOCK ? Number(process.env.AT_BLOCK) : -1;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 
@@ -24,11 +25,28 @@ describeSmokeSuite(
 
   (context, testIt) => {
     let blockEvents: BlockEventsRecord[];
+    let chainName: string;
+
+    const isMutedChain = (events: FrameSystemEventRecord[], index: number) => {
+      let muted = false;
+      if (
+        context.polkadotApi.events.polkadotXcm.AssetsTrapped.is(
+          events[Math.max(0, index - 1)].event
+        )
+      ) {
+        const { interior } = events[index - 1].event.data[1] as XcmV1MultiLocation;
+        if (interior.isX1) {
+          muted = isMuted(chainName, interior.asX1.asParachain.toNumber());
+        }
+      }
+      return muted;
+    };
 
     before("Retrieve events for previous blocks", async function () {
       this.timeout(timeout);
 
-      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
+      const blockNumArray =
+        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotApi, timePeriod, limiter);
 
       // Determine if this block range intersects with an upgrade event
       const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
@@ -40,6 +58,8 @@ describeSmokeSuite(
         debug(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
         this.skip();
       }
+
+      chainName = (await context.polkadotApi.rpc.system.chain()).toString();
 
       const getEvents = async (blockNum: number) => {
         const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
@@ -56,9 +76,9 @@ describeSmokeSuite(
     testIt("C100", `should not have UnsupportedVersion errors on DMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const dmpQueueEvents = events.filter(
-          ({ event }) =>
-            event.section.toString() === "dmpQueue" &&
-            event.method.toString() === "UnsupportedVersion"
+          ({ event }, idx) =>
+            context.polkadotApi.events.dmpQueue.UnsupportedVersion.is(event) &&
+            !isMutedChain(events, idx)
         );
         return { blockNum, dmpQueueEvents };
       });
@@ -76,8 +96,8 @@ describeSmokeSuite(
     testIt("C200", `should not have BadVersion errors on XCMP queue`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events.filter(
-          ({ event }) =>
-            event.section.toString() === "xcmpQueue" && event.method.toString() === "BadVersion"
+          ({ event }, idx) =>
+            context.polkadotApi.events.xcmpQueue.BadVersion.is(event) && !isMutedChain(events, idx)
         );
         return { blockNum, xcmpQueueEvents };
       });
@@ -94,8 +114,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "Barrier");
         return { blockNum, xcmpQueueEvents };
@@ -113,8 +133,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "Overflow");
         return { blockNum, xcmpQueueEvents };
@@ -132,8 +152,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "MultiLocationFull");
         return { blockNum, xcmpQueueEvents };
@@ -153,8 +173,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "AssetNotFound");
         return { blockNum, xcmpQueueEvents };
@@ -177,8 +197,8 @@ describeSmokeSuite(
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
             .filter(
-              ({ event }) =>
-                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+              ({ event }, idx) =>
+                context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
             )
             .filter(
               ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
@@ -201,8 +221,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "Transport");
         return { blockNum, xcmpQueueEvents };
@@ -220,8 +240,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(({ event: { data } }) => (data as any).error.toString() === "FailedToDecode");
         return { blockNum, xcmpQueueEvents };
@@ -241,8 +261,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(
             ({ event: { data } }) => (data as any).error.toString() === "UnhandledXcmVersion"
@@ -264,8 +284,8 @@ describeSmokeSuite(
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            ({ event }, idx) =>
+              context.polkadotApi.events.xcmpQueue.Fail.is(event) && !isMutedChain(events, idx)
           )
           .filter(
             ({ event: { data } }) => (data as any).error.toString() === "WeightNotComputable"
@@ -290,7 +310,6 @@ describeSmokeSuite(
         this.skip();
       }
 
-      const chainName = (await context.polkadotApi.rpc.system.chain()).toString();
       if (chainName !== "Moonbeam" && chainName !== "Moonriver") {
         debug(`Non-prod chains have unreliable channels, skipping test for ${chainName}.`);
         this.skip();

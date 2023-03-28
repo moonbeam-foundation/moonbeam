@@ -52,12 +52,14 @@ describeSmokeSuite(
         return { ...chain, endpoints };
       });
 
-      const promises = chainsWithRpcs.map(async ({ name, endpoints, muted }) => {
+      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil }) => {
         let blockEvents: BlockEventsRecord[];
-        if (muted === true) {
+
+        if (mutedUntil >= new Date().getTime()) {
           debug(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }
+
         try {
           const api: ApiPromise = await new Promise((resolve, reject) => {
             const provider = new WsProvider(endpoints);
@@ -92,6 +94,7 @@ describeSmokeSuite(
             debug(
               `Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping chain.`
             );
+            api.disconnect();
             return { networkName: name, blockEvents: [] };
           }
 
@@ -103,8 +106,8 @@ describeSmokeSuite(
           };
 
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
-          api.disconnect();
           debug(`Finished loading blocks for ${name}.`);
+          api.disconnect();
         } catch (e) {
           blockEvents = [];
         } finally {
