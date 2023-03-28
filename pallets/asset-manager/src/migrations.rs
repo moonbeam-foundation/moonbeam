@@ -16,7 +16,7 @@
 
 use crate::{AssetIdType, AssetTypeId, AssetTypeUnitsPerSecond, Config, SupportedFeePaymentAssets};
 #[cfg(feature = "try-runtime")]
-use frame_support::storage::{generator::StorageValue, migration::storage_iter};
+use frame_support::storage::{generator::StorageValue, migration::get_storage_value};
 use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::storage_key_iter,
@@ -596,7 +596,8 @@ where
 					let new_multilocation: MultiLocation = old_multilocation
 						.try_into()
 						.expect("Multilocation v2 to v3");
-					out.push((new_multilocation.into(), value));
+					let new_key: T::ForeignAssetType = new_multilocation.into();
+					out.push((new_key, value));
 				}
 				PostUpgradeState::AssetTypeId(out)
 			}
@@ -747,7 +748,7 @@ where
 		// SupportedFeePaymentAssets
 		let supported_fee_storage_prefix = SupportedFeePaymentAssets::<T>::storage_prefix();
 
-		let mut result: Vec<(u32, PreUpgradeState<T>)> = Vec::new();
+		let mut result: Vec<PreUpgradeState<T>> = Vec::new();
 
 		// AssetIdType pre-upgrade data
 		let asset_id_type_storage_data: Vec<_> = storage_key_iter::<
@@ -756,10 +757,7 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_id_type_storage_prefix)
 		.collect();
-		result.push((
-			asset_id_type_storage_data.len() as u32,
-			PreUpgradeState::<T>::AssetIdType(asset_id_type_storage_data),
-		));
+		result.push(PreUpgradeState::<T>::AssetIdType(asset_id_type_storage_data));
 
 		// AssetTypeId pre-upgrade data
 		let asset_type_id_storage_data: Vec<_> = storage_key_iter::<
@@ -768,10 +766,7 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_type_id_storage_prefix)
 		.collect();
-		result.push((
-			asset_type_id_storage_data.len() as u32,
-			PreUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data),
-		));
+		result.push(PreUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data));
 
 		// AssetTypeUnitsPerSecond pre-upgrade data
 		let units_per_second_storage_data: Vec<_> =
@@ -780,20 +775,13 @@ where
 				units_per_second_storage_prefix,
 			)
 			.collect();
-		result.push((
-			units_per_second_storage_data.len() as u32,
-			PreUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data),
-		));
+		result.push(PreUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data));
 
 		// SupportedFeePaymentAssets pre-upgrade data
 		let supported_fee_storage_data: Vec<_> =
-			storage_iter::<OldAssetType>(module_prefix, supported_fee_storage_prefix)
-				.map(|(_prefix, value)| value)
-				.collect();
-		result.push((
-			supported_fee_storage_data.len() as u32,
-			PreUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data),
-		));
+			get_storage_value::<Vec<OldAssetType>>(module_prefix, supported_fee_storage_prefix, &[])
+				.expect("SupportedFeePaymentAssets value");
+		result.push(PreUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data));
 
 		Ok(result.encode())
 	}
@@ -804,7 +792,7 @@ where
 			target: "XcmV2ToV3AssetManager",
 			"Running XcmV2ToV3AssetManager post_upgrade hook"
 		);
-		let pre_upgrade_state: Vec<(u32, PreUpgradeState<T>)> =
+		let pre_upgrade_state: Vec<PreUpgradeState<T>> =
 			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		// Shared module prefix
@@ -816,13 +804,40 @@ where
 		// AssetTypeUnitsPerSecond
 		let units_per_second_storage_prefix = AssetTypeUnitsPerSecond::<T>::storage_prefix();
 
-		// Expected post-upgrade
-		let expected_post_upgrade_state: Vec<(u32, PostUpgradeState<T>)> = pre_upgrade_state
+		// First we convert pre-state to post-state. This is equivalent to what the migration
+		// should do. If this conversion and the result of the migration match, we consider it a
+		// success.
+		let to_post_upgrade: Vec<PostUpgradeState<T>> = pre_upgrade_state
 			.into_iter()
-			.map(|(item_count, value)| (item_count, value.into()))
+			.map(|value| value.into())
 			.collect();
+		
+		// Because the order of the storage and the pre-upgrade vector is likely different,
+		// we encode everything, which is easier to sort and compare.
+		let mut expected_post_upgrade_state: Vec<Vec<u8>> = Vec::new();
+		for item in to_post_upgrade.iter() {
+			match item {
+				// Vec<(T::AssetId, T::ForeignAssetType)>
+				PostUpgradeState::AssetIdType(items) => for inner in items.into_iter() {
+					expected_post_upgrade_state.push(inner.encode())
+				},
+				// Vec<(T::ForeignAssetType, T::AssetId)>
+				PostUpgradeState::AssetTypeId(items) => for inner in items.into_iter() {
+					expected_post_upgrade_state.push(inner.encode())
+				},
+				// Vec<(T::ForeignAssetType, u128)>
+				PostUpgradeState::AssetTypeUnitsPerSecond(items) => for inner in items.into_iter() {
+					expected_post_upgrade_state.push(inner.encode())
+				},
+				// Vec<T::ForeignAssetType>
+				PostUpgradeState::SupportedFeePaymentAssets(items) => for inner in items.into_iter() {
+					expected_post_upgrade_state.push(inner.encode())
+				},
+			}
+		}
 
-		let mut actual_post_upgrade_state: Vec<(u32, PostUpgradeState<T>)> = Vec::new();
+		// Then we retrieve the actual state after migration.
+		let mut actual_post_upgrade_state: Vec<Vec<u8>> = Vec::new();
 
 		// Actual AssetIdType post-upgrade data
 		let asset_id_type_storage_data: Vec<_> = storage_key_iter::<
@@ -831,10 +846,9 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_id_type_storage_prefix)
 		.collect();
-		actual_post_upgrade_state.push((
-			asset_id_type_storage_data.len() as u32,
-			PostUpgradeState::<T>::AssetIdType(asset_id_type_storage_data),
-		));
+		for item in asset_id_type_storage_data.iter() {
+			actual_post_upgrade_state.push(item.encode())
+		}
 
 		// Actual AssetTypeId post-upgrade data
 		let asset_type_id_storage_data: Vec<_> = storage_key_iter::<
@@ -843,10 +857,9 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_type_id_storage_prefix)
 		.collect();
-		actual_post_upgrade_state.push((
-			asset_type_id_storage_data.len() as u32,
-			PostUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data),
-		));
+		for item in asset_type_id_storage_data.iter() {
+			actual_post_upgrade_state.push(item.encode())
+		}
 
 		// Actual AssetTypeUnitsPerSecond post-upgrade data
 		let units_per_second_storage_data: Vec<_> =
@@ -855,22 +868,24 @@ where
 				units_per_second_storage_prefix,
 			)
 			.collect();
-		actual_post_upgrade_state.push((
-			units_per_second_storage_data.len() as u32,
-			PostUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data),
-		));
-
+		for item in units_per_second_storage_data.iter() {
+			actual_post_upgrade_state.push(item.encode())
+		}
+		
 		// Actual SupportedFeePaymentAssets post-upgrade data
 		let supported_fee_storage_data: Vec<_> = SupportedFeePaymentAssets::<T>::get();
-		actual_post_upgrade_state.push((
-			supported_fee_storage_data.len() as u32,
-			PostUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data),
-		));
+		for item in supported_fee_storage_data.iter() {
+			actual_post_upgrade_state.push(item.encode())
+		}
 
-		// Assert
+		// Both state blobs are sorted.
+		expected_post_upgrade_state.sort();
+		actual_post_upgrade_state.sort();
+
+		// Assert equality
 		assert_eq!(
-			expected_post_upgrade_state.encode(),
-			actual_post_upgrade_state.encode()
+			expected_post_upgrade_state,
+			actual_post_upgrade_state
 		);
 
 		Ok(())
