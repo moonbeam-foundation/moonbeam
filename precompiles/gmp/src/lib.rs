@@ -162,7 +162,7 @@ where
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
 				amount,
-				dest: Box::new(VersionedMultiLocation::V1(action.destination_chain)),
+				dest: Box::new(VersionedMultiLocation::V1(action.destination)),
 				dest_weight_limit: WeightLimit::Limited(weight_limit),
 			},
 		};

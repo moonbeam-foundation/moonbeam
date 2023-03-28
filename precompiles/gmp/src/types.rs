@@ -27,17 +27,16 @@ use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
-// TODO: design this with the following criteria in mind:
-//       * friendly for other chains (performance, ease, security)
-//       * future proof (bare minimum: version this)
-//       * easy to parse
-//       * flexible -- need to support "MVP" level of XCM functionality
+// A user action which will attempt to route the transferred assets to the account/chain specified
+// by the given MultiLocation. Recall that a MultiLocation can contain both a chain and an account
+// on that chain, as this one should.
 #[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserAction {
-	pub destination_chain: MultiLocation,
-	pub destination_account: MultiLocation,
+	pub destination: MultiLocation,
 }
 
+// A simple versioning wrapper around the initial XcmRoutingUserAction use-case. This should make
+// future breaking changes easy to add in a backwards-compatible way.
 #[derive(Encode, Decode, Debug)]
 pub enum VersionedUserAction {
 	V1(XcmRoutingUserAction),

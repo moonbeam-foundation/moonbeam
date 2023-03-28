@@ -67,7 +67,7 @@ fn test_user_action_decode() {
 
 	// TODO: remove test, just using to print value
 	let action = VersionedUserAction::V1(XcmRoutingUserAction {
-		destination_chain: MultiLocation::new(
+		destination: MultiLocation::new(
 			1,
 			Junctions::X2(
 				Junction::Parachain(123),
@@ -77,7 +77,6 @@ fn test_user_action_decode() {
 				},
 			),
 		),
-		destination_account: MultiLocation::parent(),
 	});
 
 	let as_bytes: Vec<u8> = action.encode();
