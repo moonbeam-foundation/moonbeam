@@ -18,10 +18,40 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use pallet_xcm_transactor::relay_indices::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
+
+/// Westend pallet and extrinsic indices
+pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
+	pallets: PalletIndices {
+		staking: 6u8,
+		utility: 16u8,
+		hrmp: 51u8,
+	},
+	calls: CallIndices {
+		staking: StakingIndices {
+			bond: 0u8,
+			bond_extra: 1u8,
+			unbond: 2u8,
+			withdraw_unbonded: 3u8,
+			validate: 4u8,
+			nominate: 5u8,
+			chill: 6u8,
+			set_payee: 7u8,
+			set_controller: 8u8,
+			rebond: 19u8,
+		},
+		utility: UtilityIndices { as_derivative: 1u8 },
+		hrmp: HrmpIndices {
+			init_open_channel: 0u8,
+			accept_open_channel: 1u8,
+			close_channel: 2u8,
+		},
+	},
+};
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -210,11 +240,11 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as UtilityEncodeCall>::encode_call(
-					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<moonriver_runtime::Runtime>::default()),
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as UtilityEncodeCall>::encode_call(
+					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<moonbase_runtime::Runtime>::default()),
 					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 				),
 				expected_encoded
@@ -255,7 +285,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -295,7 +325,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -331,7 +361,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -367,7 +397,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -408,7 +438,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -445,7 +475,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -480,7 +510,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -519,7 +549,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			// use pallet_xcm_transactor type in precompile crate to fix this and consider removing it altogether
 			assert_eq!(
@@ -560,7 +590,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -598,7 +628,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall>::encode_call(
@@ -643,7 +673,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
@@ -686,7 +716,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
@@ -731,7 +761,7 @@ mod tests {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
 			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				crate::WESTEND_RELAY_INDICES,
+				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(

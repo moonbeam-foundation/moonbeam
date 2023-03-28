@@ -18,10 +18,40 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use pallet_xcm_transactor::relay_indices::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
+
+/// Kusama pallet and extrinsic indices
+pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
+	pallets: PalletIndices {
+		staking: 6u8,
+		utility: 24u8,
+		hrmp: 1u8,
+	},
+	calls: CallIndices {
+		staking: StakingIndices {
+			bond: 0u8,
+			bond_extra: 1u8,
+			unbond: 1u8,
+			withdraw_unbonded: 1u8,
+			validate: 1u8,
+			nominate: 1u8,
+			chill: 6u8,
+			set_payee: 1u8,
+			set_controller: 1u8,
+			rebond: 1u8,
+		},
+		utility: UtilityIndices { as_derivative: 1u8 },
+		hrmp: HrmpIndices {
+			init_open_channel: 1u8,
+			accept_open_channel: 1u8,
+			close_channel: 1u8,
+		},
+	},
+};
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -172,7 +202,7 @@ mod tests {
 	use crate::kusama::KusamaEncoder;
 	use frame_support::traits::PalletInfo;
 	use sp_runtime::Perbill;
-	use xcm_primitives::StakeEncodeCall;
+	use xcm_primitives::{StakeEncodeCall, UtilityEncodeCall};
 
 	#[test]
 	fn test_as_derivative() {
@@ -202,10 +232,25 @@ mod tests {
 		assert_eq!(
 			xcm_primitives::UtilityEncodeCall::encode_call(
 				KusamaEncoder,
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes.clone())
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as UtilityEncodeCall>::encode_call(
+					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<moonriver_runtime::Runtime>::default()),
+					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
+				),
+				expected_encoded
+			);
+		});
 	}
 
 	#[test]
@@ -230,13 +275,30 @@ mod tests {
 		assert_eq!(
 			<KusamaEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Bond(
-					relay_account.into(),
+					relay_account.clone().into(),
 					100u32.into(),
 					pallet_staking::RewardDestination::Controller
 				)
 			),
-			expected_encoded
+			expected_encoded.clone()
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as StakeEncodeCall>::encode_call(
+					xcm_primitives::AvailableStakeCalls::Bond(
+						relay_account.into(),
+						100u32.into(),
+						pallet_staking::RewardDestination::Controller
+					)
+				),
+				expected_encoded
+			);
+		});
 	}
 	#[test]
 	fn test_stake_bond_extra() {
