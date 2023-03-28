@@ -97,7 +97,6 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use crate::currency::deposit;
 use nimbus_primitives::CanAuthor;
 
 mod precompiles;
@@ -1256,9 +1255,9 @@ impl pallet_root_testing::Config for Runtime {}
 
 parameter_types! {
 	// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
-	pub const DepositBase: Balance = deposit(1, 76);
+	pub const DepositBase: Balance = currency::deposit(1, 76);
 	// Additional storage item size of 32 bytes.
-	pub const DepositFactor: Balance = deposit(0, 20);
+	pub const DepositFactor: Balance = currency::deposit(0, 20);
 	pub const MaxSignatories: u32 = 100;
 }
 
