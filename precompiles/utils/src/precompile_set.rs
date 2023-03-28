@@ -684,9 +684,61 @@ where
 /// Make a precompile that always revert.
 /// Can be useful when writing tests.
 pub struct RevertPrecompile<A>(PhantomData<A>);
-pub type RemovedPrecompileAt<A> = RevertPrecompile<A>;
 
 impl<A> PrecompileSetFragment for RevertPrecompile<A>
+where
+	A: Get<H160>,
+{
+	#[inline(always)]
+	fn new() -> Self {
+		Self(PhantomData)
+	}
+
+	#[inline(always)]
+	fn execute<R: pallet_evm::Config>(
+		&self,
+		handle: &mut impl PrecompileHandle,
+	) -> Option<PrecompileResult> {
+		if A::get() == handle.code_address() {
+			Some(Err(revert("revert")))
+		} else {
+			None
+		}
+	}
+
+	#[inline(always)]
+	fn is_precompile(&self, address: H160) -> bool {
+		address == A::get()
+	}
+
+	#[inline(always)]
+	fn used_addresses(&self) -> Vec<H160> {
+		vec![A::get()]
+	}
+
+	fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {
+		vec![PrecompileCheckSummary {
+			name: None,
+			precompile_kind: PrecompileKind::Single(A::get()),
+			recursion_limit: Some(0),
+			accept_delegate_call: true,
+			callable_by_smart_contract: "Reverts in all cases".into(),
+			callable_by_precompile: "Reverts in all cases".into(),
+		}]
+	}
+}
+
+impl<A> IsActivePrecompile for RevertPrecompile<A> {
+	#[inline(always)]
+	fn is_active_precompile(&self, _address: H160) -> bool {
+		true
+	}
+}
+
+/// A precompile that was removed from a precompile set.
+/// Still considered a precompile but is inactive and always revert.
+pub struct RemovedPrecompileAt<A>(PhantomData<A>);
+impl<A> PrecompileSetFragment for RemovedPrecompileAt<A>
 where
 	A: Get<H160>,
 {
@@ -729,7 +781,7 @@ where
 	}
 }
 
-impl<A> IsActivePrecompile for RevertPrecompile<A> {
+impl<A> IsActivePrecompile for RemovedPrecompileAt<A> {
 	#[inline(always)]
 	fn is_active_precompile(&self, _address: H160) -> bool {
 		false
