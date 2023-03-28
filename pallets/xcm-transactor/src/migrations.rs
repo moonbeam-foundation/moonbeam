@@ -215,18 +215,22 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 			.into_iter()
 			.map(|value| value.into())
 			.collect();
-		
+
 		// Because the order of the storage and the pre-upgrade vector is likely different,
 		// we encode everything, which is easier to sort and compare.
 		let mut expected_post_upgrade_state: Vec<Vec<u8>> = Vec::new();
 		for item in to_post_upgrade.iter() {
 			match item {
-				PostUpgradeState::TransactInfoWithWeightLimit(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
-				PostUpgradeState::DestinationAssetFeePerSecond(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
+				PostUpgradeState::TransactInfoWithWeightLimit(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
+				PostUpgradeState::DestinationAssetFeePerSecond(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
 			}
 		}
 
@@ -259,10 +263,7 @@ impl<T: Config> OnRuntimeUpgrade for XcmV2ToV3XcmTransactor<T> {
 		actual_post_upgrade_state.sort();
 
 		// Assert
-		assert_eq!(
-			expected_post_upgrade_state,
-			actual_post_upgrade_state
-		);
+		assert_eq!(expected_post_upgrade_state, actual_post_upgrade_state);
 
 		Ok(())
 	}

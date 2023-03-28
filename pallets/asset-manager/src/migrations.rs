@@ -757,7 +757,9 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_id_type_storage_prefix)
 		.collect();
-		result.push(PreUpgradeState::<T>::AssetIdType(asset_id_type_storage_data));
+		result.push(PreUpgradeState::<T>::AssetIdType(
+			asset_id_type_storage_data,
+		));
 
 		// AssetTypeId pre-upgrade data
 		let asset_type_id_storage_data: Vec<_> = storage_key_iter::<
@@ -766,7 +768,9 @@ where
 			Blake2_128Concat,
 		>(module_prefix, asset_type_id_storage_prefix)
 		.collect();
-		result.push(PreUpgradeState::<T>::AssetTypeId(asset_type_id_storage_data));
+		result.push(PreUpgradeState::<T>::AssetTypeId(
+			asset_type_id_storage_data,
+		));
 
 		// AssetTypeUnitsPerSecond pre-upgrade data
 		let units_per_second_storage_data: Vec<_> =
@@ -775,13 +779,20 @@ where
 				units_per_second_storage_prefix,
 			)
 			.collect();
-		result.push(PreUpgradeState::<T>::AssetTypeUnitsPerSecond(units_per_second_storage_data));
+		result.push(PreUpgradeState::<T>::AssetTypeUnitsPerSecond(
+			units_per_second_storage_data,
+		));
 
 		// SupportedFeePaymentAssets pre-upgrade data
-		let supported_fee_storage_data: Vec<_> =
-			get_storage_value::<Vec<OldAssetType>>(module_prefix, supported_fee_storage_prefix, &[])
-				.expect("SupportedFeePaymentAssets value");
-		result.push(PreUpgradeState::<T>::SupportedFeePaymentAssets(supported_fee_storage_data));
+		let supported_fee_storage_data: Vec<_> = get_storage_value::<Vec<OldAssetType>>(
+			module_prefix,
+			supported_fee_storage_prefix,
+			&[],
+		)
+		.expect("SupportedFeePaymentAssets value");
+		result.push(PreUpgradeState::<T>::SupportedFeePaymentAssets(
+			supported_fee_storage_data,
+		));
 
 		Ok(result.encode())
 	}
@@ -811,28 +822,36 @@ where
 			.into_iter()
 			.map(|value| value.into())
 			.collect();
-		
+
 		// Because the order of the storage and the pre-upgrade vector is likely different,
 		// we encode everything, which is easier to sort and compare.
 		let mut expected_post_upgrade_state: Vec<Vec<u8>> = Vec::new();
 		for item in to_post_upgrade.iter() {
 			match item {
 				// Vec<(T::AssetId, T::ForeignAssetType)>
-				PostUpgradeState::AssetIdType(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
+				PostUpgradeState::AssetIdType(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
 				// Vec<(T::ForeignAssetType, T::AssetId)>
-				PostUpgradeState::AssetTypeId(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
+				PostUpgradeState::AssetTypeId(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
 				// Vec<(T::ForeignAssetType, u128)>
-				PostUpgradeState::AssetTypeUnitsPerSecond(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
+				PostUpgradeState::AssetTypeUnitsPerSecond(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
 				// Vec<T::ForeignAssetType>
-				PostUpgradeState::SupportedFeePaymentAssets(items) => for inner in items.into_iter() {
-					expected_post_upgrade_state.push(inner.encode())
-				},
+				PostUpgradeState::SupportedFeePaymentAssets(items) => {
+					for inner in items.into_iter() {
+						expected_post_upgrade_state.push(inner.encode())
+					}
+				}
 			}
 		}
 
@@ -871,7 +890,7 @@ where
 		for item in units_per_second_storage_data.iter() {
 			actual_post_upgrade_state.push(item.encode())
 		}
-		
+
 		// Actual SupportedFeePaymentAssets post-upgrade data
 		let supported_fee_storage_data: Vec<_> = SupportedFeePaymentAssets::<T>::get();
 		for item in supported_fee_storage_data.iter() {
@@ -883,10 +902,7 @@ where
 		actual_post_upgrade_state.sort();
 
 		// Assert equality
-		assert_eq!(
-			expected_post_upgrade_state,
-			actual_post_upgrade_state
-		);
+		assert_eq!(expected_post_upgrade_state, actual_post_upgrade_state);
 
 		Ok(())
 	}
