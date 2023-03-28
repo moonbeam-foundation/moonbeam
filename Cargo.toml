@@ -21,6 +21,7 @@ members = [
 	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
+	"precompiles/pallet-multisig",
 	"precompiles/parachain-staking",
 	"precompiles/preimage",
 	"precompiles/proxy",
