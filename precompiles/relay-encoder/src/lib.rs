@@ -339,6 +339,33 @@ where
 		.into();
 		Ok(encoded)
 	}
+
+	#[precompile::public("encodeHrmpCancelOpenRequest(uint32,uint32,uint32)")]
+	#[precompile::public("encode_hrmp_cancel_open_request(uint32,uint32,uint32)")]
+	#[precompile::view]
+	fn encode_hrmp_cancel_open_request(
+		handle: &mut impl PrecompileHandle,
+		sender: u32,
+		recipient: u32,
+		open_requests: u32,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
+			relay_chain::v2::HrmpChannelId {
+				sender: sender.into(),
+				recipient: recipient.into(),
+			},
+			open_requests,
+		))
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
+		Ok(encoded)
+	}
 }
 
 pub fn u256_to_relay_amount(value: U256) -> EvmResult<relay_chain::Balance> {

@@ -216,7 +216,8 @@ describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
         [trackName, setStorageCallIndex]
       );
       const { result } = await context.createBlock(contract.rawTx);
-      expectEVMResult(result.events, "Revert");
+      expectEVMResult(result.events, "Revert"); // No Revert reason to validate
+
       expect(
         (await context.polkadotApi.query.evm.accountCodes(contract.contractAddress)).toHex(),
         "Contract should not have been deployed"

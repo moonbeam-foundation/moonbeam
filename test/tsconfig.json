@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "target": "ES2020",
+    "outDir": "build",
+    "baseUrl": "./",
+    "moduleResolution": "nodenext",
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "removeComments": true,
+    "noEmit": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["*suites/**/*.ts"],
+  "exclude": ["node_modules/"]
+}

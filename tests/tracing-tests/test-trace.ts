@@ -169,7 +169,7 @@ describeDevMoonbeam(
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
       let logs = [];
-      for (let log of traceTx.result.stepLogs) {
+      for (let log of traceTx.result.structLogs) {
         if (logs.length == 1) {
           logs.push(log);
         }
@@ -190,7 +190,7 @@ describeDevMoonbeam(
         { disableMemory: true, disableStack: true, disableStorage: true },
       ]);
       let logs = [];
-      for (let log of traceTx.result.stepLogs) {
+      for (let log of traceTx.result.structLogs) {
         if (
           log.hasOwnProperty("storage") ||
           log.hasOwnProperty("memory") ||

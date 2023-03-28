@@ -23,6 +23,7 @@ members = [
 	"precompiles/gmp",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
+	"precompiles/precompile-registry",
 	"precompiles/preimage",
 	"precompiles/proxy",
 	"precompiles/randomness",
@@ -83,6 +84,7 @@ pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-featur
 pallet-evm-precompile-proxy = { path = "precompiles/proxy", default-features = false }
 pallet-evm-precompile-randomness = { path = "precompiles/randomness", default-features = false }
 pallet-evm-precompile-referenda = { path = "precompiles/referenda", default-features = false }
+pallet-evm-precompile-registry = { path = "precompiles/precompile-registry", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }
@@ -318,7 +320,7 @@ strum_macros = "0.24"
 
 # Other (client)
 ansi_term = "0.12.1"
-assert_cmd = "0.12"
+assert_cmd = "2.0.10"
 async-io = "1.3"
 bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
 clap = { version = "4.0.9", features = [ "derive" ] }

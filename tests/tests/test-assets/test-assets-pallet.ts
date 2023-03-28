@@ -6,11 +6,7 @@ import { expect } from "chai";
 import { alith, baltathar } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import type {
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsDestroyWitness,
-} from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;

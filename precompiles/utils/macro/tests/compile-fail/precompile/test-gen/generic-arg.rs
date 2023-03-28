@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use {
-	core::marker::PhantomData,
-	frame_support::pallet_prelude::Get,
-	precompile_utils::prelude::*,
-};
+use core::marker::PhantomData;
 
 pub struct Precompile<R>(PhantomData<R>);
 
@@ -30,4 +26,4 @@ impl<R: Get<u32>> Precompile<R> {
 	}
 }
 
-fn main() { }
+fn main() {}

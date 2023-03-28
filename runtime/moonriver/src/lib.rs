@@ -670,9 +670,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 1000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCollatorStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 500 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -1335,6 +1335,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
+	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
@@ -1410,7 +1411,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
 							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.6;
+							let charge_transaction = &signed_extra.7;
 							charge_transaction.tip()
 						}
 					};
@@ -1569,11 +1570,11 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(1 * KILOMOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(500 * MOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

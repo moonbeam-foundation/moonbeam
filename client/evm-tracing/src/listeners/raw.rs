@@ -32,7 +32,7 @@ pub struct Listener {
 	new_context: bool,
 	context_stack: Vec<Context>,
 
-	pub step_logs: Vec<RawStepLog>,
+	pub struct_logs: Vec<RawStepLog>,
 	pub return_value: Vec<u8>,
 	pub final_gas: u64,
 	pub remaining_memory_usage: Option<usize>,
@@ -77,7 +77,7 @@ impl Listener {
 			disable_stack,
 			remaining_memory_usage: Some(raw_max_memory_usage),
 
-			step_logs: vec![],
+			struct_logs: vec![],
 			return_value: vec![],
 			final_gas: 0,
 
@@ -229,7 +229,7 @@ impl Listener {
 							Some(context.storage_cache.clone())
 						};
 
-						self.step_logs.push(RawStepLog {
+						self.struct_logs.push(RawStepLog {
 							depth: depth.into(),
 							gas: gas.into(),
 							gas_cost: gas_cost.into(),
