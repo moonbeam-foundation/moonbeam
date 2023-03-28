@@ -83,7 +83,7 @@ pub enum HrmpCall {
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
 	#[codec(index = 6u8)]
-	CancelOpenChannel(HrmpChannelId, u32),
+	CancelOpenRequest(HrmpChannelId, u32),
 }
 
 pub struct PolkadotEncoder;
@@ -117,8 +117,8 @@ impl xcm_primitives::HrmpEncodeCall for PolkadotEncoder {
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
-			xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(a, b) => {
-				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
 			}
 		}
 	}
@@ -582,7 +582,7 @@ mod tests {
 
 		assert_eq!(
 			<PolkadotEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::CancelOpenChannel(
+				xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
 					channel_id.clone(),
 					open_requests
 				)

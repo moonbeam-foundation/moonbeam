@@ -55,6 +55,26 @@ interface ConvictionVoting {
         Conviction conviction
     ) external;
 
+    /// @dev Vote split in a poll.
+    /// @custom:selector dd6c52a4
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    function voteSplit(uint32 pollIndex, uint256 aye, uint256 nay) external;
+
+    /// @dev Vote split abstain in a poll.
+    /// @custom:selector 52004540
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    /// @param abstain Balance locked for abstain vote (support)
+    function voteSplitAbstain(
+        uint32 pollIndex,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
+    ) external;
+
     /// @dev Remove vote in poll
     /// @custom:selector 79cae220
     /// @param pollIndex Index of the poll
@@ -108,6 +128,34 @@ interface ConvictionVoting {
         bool aye,
         uint256 voteAmount,
         uint8 conviction
+    );
+
+    /// @dev An account made a split vote in a poll.
+    /// @custom:selector 022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    event VoteSplit(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay
+    );
+
+    /// @dev An account made a split abstain vote in a poll.
+    /// @custom:selector 476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    /// @param abstain uint256 Amount for abstained.
+    event VoteSplitAbstained(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
     );
 
     /// @dev An account removed its vote from an ongoing poll.
