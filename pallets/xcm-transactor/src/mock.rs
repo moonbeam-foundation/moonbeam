@@ -33,9 +33,7 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
-use xcm_primitives::{
-	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{

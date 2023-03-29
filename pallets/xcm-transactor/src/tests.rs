@@ -1137,8 +1137,6 @@ fn test_hrmp_max_fee_errors() {
 		})
 }
 
-use crate::relay_indices::*;
-
 #[test]
 fn test_hrmp_manipulator_accept() {
 	ExtBuilder::default()
@@ -1150,36 +1148,6 @@ fn test_hrmp_manipulator_accept() {
 			let total_weight: Weight = 10_100u64.into();
 			let tx_weight: Weight = 100_u64.into();
 			let total_fee = 100u128;
-
-			// expected migration to match expected encoding
-			crate::RelayIndices::<Test>::put(RelayChainIndices {
-				pallets: PalletIndices {
-					staking: 6u8,
-					utility: 16u8,
-					hrmp: 1u8,
-				},
-				calls: CallIndices {
-					staking: StakingIndices {
-						bond: 0u8,
-						bond_extra: 1u8,
-						unbond: 2u8,
-						withdraw_unbonded: 3u8,
-						validate: 4u8,
-						nominate: 5u8,
-						chill: 6u8,
-						set_payee: 7u8,
-						set_controller: 8u8,
-						rebond: 19u8,
-					},
-					utility: UtilityIndices { as_derivative: 1u8 },
-					hrmp: HrmpIndices {
-						init_open_channel: 0u8,
-						accept_open_channel: 1u8,
-						close_channel: 2u8,
-						cancel_open_request: 6u8,
-					},
-				},
-			});
 
 			assert_ok!(XcmTransactor::hrmp_manage(
 				RuntimeOrigin::root(),
@@ -1211,7 +1179,7 @@ fn test_hrmp_manipulator_accept() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1, 1, 1, 0, 0, 0].into(),
+				call: vec![0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }
@@ -1264,7 +1232,7 @@ fn test_hrmp_manipulator_cancel() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 6u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }
@@ -1309,6 +1277,7 @@ fn test_hrmp_manipulator_close() {
 				fees: (MultiLocation::here(), total_fee).into(),
 				weight_limit: Limited(total_weight),
 			}));
+			println!("{:?}", sent_message);
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
