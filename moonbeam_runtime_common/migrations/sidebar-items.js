@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CommonMigrations",""],["PalletReferendaMigrateV0ToV1",""],["PreimageMigrationHashToBoundedCall",""],["ReferendaMigrations",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["CommonMigrations",""],["PalletAssetManagerMigrateXcmV2ToV3",""],["PalletReferendaMigrateV0ToV1",""],["PalletXcmTransactorMigrateXcmV2ToV3",""],["PreimageMigrationHashToBoundedCall",""],["ReferendaMigrations",""]]};

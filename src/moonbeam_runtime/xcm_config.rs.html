@@ -559,6 +559,43 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -588,18 +625,19 @@
 <span class="kw">use </span>sp_runtime::traits::Hash <span class="kw">as </span>THash;
 
 <span class="kw">use </span>frame_support::{
+	dispatch::Weight,
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
 };
 
 <span class="kw">use </span>frame_system::EnsureRoot;
-<span class="kw">use </span>sp_core::{H160, H256};
+<span class="kw">use </span>sp_core::{ConstU32, H160, H256};
 
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
 	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, UsingComponents,
 };
@@ -611,7 +649,7 @@
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	XcmV2Weight,
+	DEFAULT_PROOF_SIZE,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -629,8 +667,8 @@
 	</span><span class="kw">pub const </span>RelayNetwork: NetworkId = NetworkId::Polkadot;
 	<span class="comment">// The relay chain Origin type
 	</span><span class="kw">pub </span>RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	<span class="comment">// The ancestry, defines the multilocation describing this consensus system
-	</span><span class="kw">pub </span>Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	<span class="kw">pub </span>UniversalLocation: InteriorMultiLocation =
+		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
 	<span class="comment">// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
@@ -672,7 +710,7 @@
 	</span>Assets,
 	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:
 	</span>(
-		ConvertedConcreteAssetId&lt;
+		ConvertedConcreteId&lt;
 			AssetId,
 			Balance,
 			AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
@@ -684,7 +722,7 @@
 	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):
 	</span>AccountId,
 	<span class="comment">// We dont allow teleports.
-	</span>Nothing,
+	</span>NoChecking,
 	<span class="comment">// We dont track any teleports
 	</span>(),
 &gt;;
@@ -710,7 +748,7 @@
 	</span>LocalAssets,
 	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:
 	</span>(
-		ConvertedConcreteAssetId&lt;
+		ConvertedConcreteId&lt;
 			AssetId,
 			Balance,
 			<span class="comment">// This just tells to convert an assetId into a GeneralIndex junction prepended
@@ -724,7 +762,7 @@
 	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):
 	</span>AccountId,
 	<span class="comment">// We dont want to allow teleporting assets
-	</span>Nothing,
+	</span>NoChecking,
 	<span class="comment">// The account to use for tracking teleports.
 	</span>(),
 &gt;;
@@ -759,7 +797,7 @@
 
 <span class="macro">parameter_types! </span>{
 	<span class="doccomment">/// The amount of weight an XCM operation takes. This is safe overestimate.
-	</span><span class="kw">pub </span>UnitWeightCost: XcmV2Weight = <span class="number">200_000_000</span>;
+	</span><span class="kw">pub </span>UnitWeightCost: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, DEFAULT_PROOF_SIZE);
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	</span><span class="kw">pub </span>MaxInstructions: u32 = <span class="number">100</span>;
@@ -789,7 +827,7 @@
 </span><span class="kw">pub type </span>XcmFeesToAccount = xcm_primitives::XcmFeesToAccount&lt;
 	Assets,
 	(
-		ConvertedConcreteAssetId&lt;
+		ConvertedConcreteId&lt;
 			AssetId,
 			Balance,
 			AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
@@ -799,6 +837,19 @@
 	AccountId,
 	XcmFeesAccount,
 &gt;;
+
+<span class="kw">pub struct </span>SafeCallFilter;
+<span class="kw">impl </span>frame_support::traits::Contains&lt;RuntimeCall&gt; <span class="kw">for </span>SafeCallFilter {
+	<span class="kw">fn </span>contains(_call: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
+		<span class="comment">// TODO review
+		// This needs to be addressed at EVM level
+		</span><span class="bool-val">true
+	</span>}
+}
+
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>MaxAssetsIntoHolding: u32 = <span class="number">64</span>;
+}
 
 <span class="kw">pub struct </span>XcmExecutorConfig;
 <span class="kw">impl </span>xcm_executor::Config <span class="kw">for </span>XcmExecutorConfig {
@@ -812,7 +863,7 @@
 	// of our chain, we always return the relative reserve
 	</span><span class="kw">type </span>IsReserve = MultiNativeAsset&lt;AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;&gt;;
 	<span class="kw">type </span>IsTeleporter = (); <span class="comment">// No teleport
-	</span><span class="kw">type </span>LocationInverter = LocationInverter&lt;Ancestry&gt;;
+	</span><span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>Barrier = XcmBarrier;
 	<span class="kw">type </span>Weigher = XcmWeigher;
 	<span class="comment">// We use two traders
@@ -835,6 +886,14 @@
 	<span class="kw">type </span>AssetTrap = PolkadotXcm;
 	<span class="kw">type </span>AssetClaims = PolkadotXcm;
 	<span class="kw">type </span>CallDispatcher = RuntimeCall;
+	<span class="kw">type </span>PalletInstancesInfo = <span class="kw">crate</span>::AllPalletsWithSystem;
+	<span class="kw">type </span>MaxAssetsIntoHolding = MaxAssetsIntoHolding;
+	<span class="kw">type </span>AssetLocker = ();
+	<span class="kw">type </span>AssetExchanger = ();
+	<span class="kw">type </span>FeeManager = ();
+	<span class="kw">type </span>MessageExporter = ();
+	<span class="kw">type </span>UniversalAliases = Nothing;
+	<span class="kw">type </span>SafeCallFilter = SafeCallFilter;
 }
 
 <span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
@@ -846,10 +905,15 @@
 /// queues.
 </span><span class="kw">pub type </span>XcmRouter = (
 	<span class="comment">// Two routers - use UMP to communicate with the relay chain:
-	</span>cumulus_primitives_utility::ParentAsUmp&lt;ParachainSystem, PolkadotXcm&gt;,
+	</span>cumulus_primitives_utility::ParentAsUmp&lt;ParachainSystem, PolkadotXcm, ()&gt;,
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.
 	</span>XcmpQueue,
 );
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parent.into());
+}
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
@@ -861,11 +925,20 @@
 	<span class="kw">type </span>XcmTeleportFilter = Nothing;
 	<span class="kw">type </span>XcmReserveTransferFilter = Everything;
 	<span class="kw">type </span>Weigher = XcmWeigher;
-	<span class="kw">type </span>LocationInverter = LocationInverter&lt;Ancestry&gt;;
+	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">const </span>VERSION_DISCOVERY_QUEUE_SIZE: u32 = <span class="number">100</span>;
 	<span class="kw">type </span>AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>CurrencyMatcher = ();
+	<span class="kw">type </span>TrustedLockers = ();
+	<span class="kw">type </span>SovereignAccountOf = LocationToAccountId;
+	<span class="kw">type </span>MaxLockers = ConstU32&lt;<span class="number">8</span>&gt;;
+	<span class="comment">// TODO pallet-xcm weights
+	</span><span class="kw">type </span>WeightInfo = pallet_xcm::TestWeightInfo;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>ReachableDest = ReachableDest;
 }
 
 <span class="kw">impl </span>cumulus_pallet_xcm::Config <span class="kw">for </span>Runtime {
@@ -882,6 +955,7 @@
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	<span class="kw">type </span>WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>PriceForSiblingDelivery = ();
 }
 
 <span class="kw">impl </span>cumulus_pallet_dmp_queue::Config <span class="kw">for </span>Runtime {
@@ -980,7 +1054,7 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>BaseXcmWeight: XcmV2Weight = <span class="number">200_000_000</span>;
+	<span class="kw">pub const </span>BaseXcmWeight: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, DEFAULT_PROOF_SIZE);
 	<span class="kw">pub const </span>MaxAssetsForTransfer: usize = <span class="number">2</span>;
 
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset
@@ -1013,7 +1087,7 @@
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
-	<span class="kw">type </span>LocationInverter = LocationInverter&lt;Ancestry&gt;;
+	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>MaxAssetsForTransfer = MaxAssetsForTransfer;
 	<span class="kw">type </span>MinXcmFee = ParachainMinFee;
 	<span class="kw">type </span>MultiLocationsFilter = Everything;
@@ -1083,7 +1157,7 @@
 	<span class="kw">type </span>XcmSender = XcmRouter;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
-	<span class="kw">type </span>LocationInverter = LocationInverter&lt;Ancestry&gt;;
+	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;

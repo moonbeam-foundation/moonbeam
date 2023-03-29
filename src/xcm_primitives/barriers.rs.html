@@ -93,17 +93,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>frame_support::{ensure, traits::Contains};
+</span><span class="kw">use </span>frame_support::{ensure, pallet_prelude::Weight, traits::Contains};
 <span class="doccomment">/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
 /// payments into account and if it starts with DescendOrigin.
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
 </span><span class="kw">use </span>sp_std::marker::PhantomData;
 <span class="kw">use </span>xcm::latest::{
-	prelude::{BuyExecution, DescendOrigin, WithdrawAsset},
+	prelude::{BuyExecution, DescendOrigin, Instruction, WithdrawAsset},
 	MultiLocation,
 	WeightLimit::{Limited, Unlimited},
-	Xcm,
 };
 <span class="kw">use </span>xcm_executor::traits::ShouldExecute;
 
@@ -113,9 +112,9 @@
 <span class="kw">impl</span>&lt;T: Contains&lt;MultiLocation&gt;&gt; ShouldExecute <span class="kw">for </span>AllowTopLevelPaidExecutionDescendOriginFirst&lt;T&gt; {
 	<span class="kw">fn </span>should_execute&lt;Call&gt;(
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
-		message: <span class="kw-2">&amp;mut </span>Xcm&lt;Call&gt;,
-		max_weight: u64,
-		_weight_credit: <span class="kw-2">&amp;mut </span>u64,
+		message: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
+		max_weight: Weight,
+		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
@@ -124,7 +123,7 @@
 			origin, message, max_weight, _weight_credit,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ());
-		<span class="kw">let </span><span class="kw-2">mut </span>iter = message.<span class="number">0</span>.iter_mut();
+		<span class="kw">let </span><span class="kw-2">mut </span>iter = message.iter_mut();
 		<span class="comment">// Make sure the first instruction is DescendOrigin
 		</span>iter.next()
 			.filter(|instruction| <span class="macro">matches!</span>(instruction, DescendOrigin(<span class="kw">_</span>)))
@@ -141,8 +140,9 @@
 			BuyExecution {
 				weight_limit: Limited(<span class="kw-2">ref mut </span>weight),
 				..
-			} <span class="kw">if </span><span class="kw-2">*</span>weight &gt;= max_weight =&gt; {
-				<span class="kw-2">*</span>weight = max_weight;
+			} <span class="kw">if </span>weight.all_gte(max_weight) =&gt; {
+				weight.set_ref_time(max_weight.ref_time());
+				weight.set_proof_size(max_weight.proof_size());
 				<span class="prelude-val">Ok</span>(())
 			}
 			BuyExecution {

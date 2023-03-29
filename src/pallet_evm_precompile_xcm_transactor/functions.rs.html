@@ -465,6 +465,36 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -485,7 +515,7 @@
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::ConstU32,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
@@ -501,7 +531,9 @@
 	vec::Vec,
 };
 <span class="kw">use </span>xcm::latest::MultiLocation;
-<span class="kw">use </span>xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
+<span class="kw">use </span>xcm_primitives::{
+	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
+};
 
 <span class="doccomment">/// A precompile to wrap the functionality from xcm transactor
 </span><span class="kw">pub struct </span>XcmTransactorWrapper&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
@@ -553,9 +585,9 @@
 				.ok_or(revert(<span class="string">&quot;Fee Per Second not set&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>((
-			remote_transact_info.transact_extra_weight,
+			remote_transact_info.transact_extra_weight.ref_time(),
 			fee_per_second.into(),
-			remote_transact_info.max_weight,
+			remote_transact_info.max_weight.ref_time(),
 		))
 	}
 
@@ -572,12 +604,12 @@
 
 		<span class="kw">let </span>transact_extra_weight_signed = remote_transact_info
 			.transact_extra_weight_signed
-			.unwrap_or(<span class="number">0</span>);
+			.unwrap_or(Weight::zero());
 
 		<span class="prelude-val">Ok</span>((
-			remote_transact_info.transact_extra_weight,
-			transact_extra_weight_signed,
-			remote_transact_info.max_weight,
+			remote_transact_info.transact_extra_weight.ref_time(),
+			transact_extra_weight_signed.ref_time(),
+			remote_transact_info.max_weight.ref_time(),
 		))
 	}
 
@@ -615,14 +647,21 @@
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">None</span>,
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				<span class="comment">// TODO overall weight None means we will retrieve the allowed proof size from storage.
+				// In the v2 to v3 migration we set this value to DEFAULT_PROOF_SIZE, so setting
+				// require_weight_at_most to DEFAULT_PROOF_SIZE/2 makes sense. Although we might
+				// want to revisit this to use whatever storage value there is and divide it by 2.
+				</span>transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
 				overall_weight: <span class="prelude-val">None</span>,
 			},
 		};
@@ -655,15 +694,18 @@
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
+				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 		};
 
@@ -705,7 +747,10 @@
 				fee_amount: <span class="prelude-val">None</span>,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
 				overall_weight: <span class="prelude-val">None</span>,
 			},
 			inner_call,
@@ -752,8 +797,11 @@
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
+				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
 		};
@@ -776,15 +824,18 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">None</span>,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
 				overall_weight: <span class="prelude-val">None</span>,
 			},
 			call,
@@ -810,16 +861,19 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
+				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};
@@ -852,13 +906,16 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: <span class="prelude-val">None</span>,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
 				overall_weight: <span class="prelude-val">None</span>,
 			},
 			call,
@@ -894,14 +951,17 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
+				),
+				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};

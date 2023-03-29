@@ -148,6 +148,9 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -168,6 +171,8 @@
 <span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm::opaque::lts::Weight;
+<span class="kw">use </span>xcm_primitives::DEFAULT_PROOF_SIZE;
 
 <span class="doccomment">/// This RPC interface is used to manually submit XCM messages that will be injected into a
 /// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
@@ -207,20 +212,19 @@
 		<span class="kw">let </span>downward_message_channel = <span class="self">self</span>.downward_message_channel.clone();
 		<span class="comment">// If no message is supplied, inject a default one.
 		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
-			xcm::VersionedXcm::&lt;()&gt;::V2(Xcm(<span class="macro">vec!</span>[
-				ReserveAssetDeposited((Parent, <span class="number">10000000000000</span>).into()),
+			xcm::VersionedXcm::&lt;()&gt;::V3(Xcm(<span class="macro">vec!</span>[
+				ReserveAssetDeposited((Parent, <span class="number">10000000000000u128</span>).into()),
 				ClearOrigin,
 				BuyExecution {
-					fees: (Parent, <span class="number">10000000000000</span>).into(),
-					weight_limit: Limited(<span class="number">4_000_000_000</span>),
+					fees: (Parent, <span class="number">10000000000000u128</span>).into(),
+					weight_limit: Limited(Weight::from_parts(<span class="number">4_000_000_000u64</span>, DEFAULT_PROOF_SIZE)),
 				},
 				DepositAsset {
-					assets: All.into(),
-					max_assets: <span class="number">1</span>,
+					assets: AllCounted(<span class="number">1</span>).into(),
 					beneficiary: MultiLocation::new(
 						<span class="number">0</span>,
 						X1(AccountKey20 {
-							network: Any,
+							network: <span class="prelude-val">None</span>,
 							key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
 						}),
 					),
@@ -248,22 +252,24 @@
 		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
 			<span class="kw">let </span><span class="kw-2">mut </span>mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 			mes.append(
-				<span class="kw-2">&amp;mut </span>(xcm::VersionedXcm::&lt;()&gt;::V2(Xcm(<span class="macro">vec!</span>[
+				<span class="kw-2">&amp;mut </span>(xcm::VersionedXcm::&lt;()&gt;::V3(Xcm(<span class="macro">vec!</span>[
 					ReserveAssetDeposited(
-						((Parent, Parachain(sender.into())), <span class="number">10000000000000</span>).into(),
+						((Parent, Parachain(sender.into())), <span class="number">10000000000000u128</span>).into(),
 					),
 					ClearOrigin,
 					BuyExecution {
-						fees: ((Parent, Parachain(sender.into())), <span class="number">10000000000000</span>).into(),
-						weight_limit: Limited(<span class="number">4_000_000_000</span>),
+						fees: ((Parent, Parachain(sender.into())), <span class="number">10000000000000u128</span>).into(),
+						weight_limit: Limited(Weight::from_parts(
+							<span class="number">4_000_000_000u64</span>,
+							DEFAULT_PROOF_SIZE,
+						)),
 					},
 					DepositAsset {
-						assets: All.into(),
-						max_assets: <span class="number">1</span>,
+						assets: AllCounted(<span class="number">1</span>).into(),
 						beneficiary: MultiLocation::new(
 							<span class="number">0</span>,
 							X1(AccountKey20 {
-								network: Any,
+								network: <span class="prelude-val">None</span>,
 								key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
 							}),
 						),

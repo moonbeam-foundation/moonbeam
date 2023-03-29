@@ -280,6 +280,101 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -315,36 +410,82 @@
 // We don&#39;t implement EVMData here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
-// The first byte represents the enum variant to be used
+// The first byte represents the enum variant to be used.
+// 		- Indexes 0,2,3 represent XCM V2 variants
+// 		- Index 1 changes name in V3 (`ByGenesis`), but is compatible with V2 `Named`
+// 		- Indexes 4~10 represent new XCM V3 variants
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
-// In this case, only Named requires additional non-bounded data.
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>network_id_to_bytes(network_id: NetworkId) -&gt; Vec&lt;u8&gt; {
+
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>network_id_to_bytes(network_id: <span class="prelude-ty">Option</span>&lt;NetworkId&gt;) -&gt; Vec&lt;u8&gt; {
 	<span class="kw">let </span><span class="kw-2">mut </span>encoded: Vec&lt;u8&gt; = Vec::new();
 	<span class="kw">match </span>network_id.clone() {
-		NetworkId::Any =&gt; {
+		<span class="prelude-val">None </span>=&gt; {
 			encoded.push(<span class="number">0u8</span>);
 			encoded
 		}
-		NetworkId::Named(name) =&gt; {
+		<span class="prelude-val">Some</span>(NetworkId::ByGenesis(id)) =&gt; {
 			encoded.push(<span class="number">1u8</span>);
-			encoded.append(<span class="kw-2">&amp;mut </span>name.into_inner());
+			encoded.append(<span class="kw-2">&amp;mut </span>id.into());
 			encoded
 		}
-		NetworkId::Polkadot =&gt; {
+		<span class="prelude-val">Some</span>(NetworkId::Polkadot) =&gt; {
+			encoded.push(<span class="number">2u8</span>);
 			encoded.push(<span class="number">2u8</span>);
 			encoded
 		}
-		NetworkId::Kusama =&gt; {
+		<span class="prelude-val">Some</span>(NetworkId::Kusama) =&gt; {
 			encoded.push(<span class="number">3u8</span>);
+			encoded.push(<span class="number">3u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::ByFork {
+			block_number,
+			block_hash,
+		}) =&gt; {
+			encoded.push(<span class="number">4u8</span>);
+			encoded.push(<span class="number">1u8</span>);
+			encoded.append(<span class="kw-2">&amp;mut </span>block_number.to_be_bytes().into());
+			encoded.append(<span class="kw-2">&amp;mut </span>block_hash.into());
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::Westend) =&gt; {
+			encoded.push(<span class="number">5u8</span>);
+			encoded.push(<span class="number">4u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::Rococo) =&gt; {
+			encoded.push(<span class="number">6u8</span>);
+			encoded.push(<span class="number">5u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::Wococo) =&gt; {
+			encoded.push(<span class="number">7u8</span>);
+			encoded.push(<span class="number">6u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::Ethereum { chain_id }) =&gt; {
+			encoded.push(<span class="number">8u8</span>);
+			encoded.push(<span class="number">7u8</span>);
+			encoded.append(<span class="kw-2">&amp;mut </span>chain_id.to_be_bytes().into());
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::BitcoinCore) =&gt; {
+			encoded.push(<span class="number">9u8</span>);
+			encoded.push(<span class="number">8u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::BitcoinCash) =&gt; {
+			encoded.push(<span class="number">10u8</span>);
+			encoded.push(<span class="number">9u8</span>);
 			encoded
 		}
 	}
 }
 
 <span class="comment">// Function to convert bytes to networkId
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>network_id_from_bytes(encoded_bytes: Vec&lt;u8&gt;) -&gt; MayRevert&lt;NetworkId&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>network_id_from_bytes(encoded_bytes: Vec&lt;u8&gt;) -&gt; MayRevert&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt; {
 	<span class="macro">ensure!</span>(
 		encoded_bytes.len() &gt; <span class="number">0</span>,
 		RevertReason::custom(<span class="string">&quot;Junctions cannot be empty&quot;</span>)
@@ -356,17 +497,42 @@
 		.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;network selector (1 byte)&quot;</span>))<span class="question-mark">?</span>;
 
 	<span class="kw">match </span>network_selector[<span class="number">0</span>] {
-		<span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(NetworkId::Any),
-		<span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(NetworkId::Named(
+		<span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+		<span class="number">1 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::ByGenesis(
 			encoded_network_id
 				.read_till_end()
-				.in_field(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?
+				.in_field(<span class="string">&quot;genesis&quot;</span>)<span class="question-mark">?
 				</span>.to_vec()
 				.try_into()
-				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;network name&quot;</span>).in_field(<span class="string">&quot;name&quot;</span>))<span class="question-mark">?</span>,
-		)),
-		<span class="number">2 </span>=&gt; <span class="prelude-val">Ok</span>(NetworkId::Polkadot),
-		<span class="number">3 </span>=&gt; <span class="prelude-val">Ok</span>(NetworkId::Kusama),
+				.map_err(|<span class="kw">_</span>| {
+					RevertReason::value_is_too_large(<span class="string">&quot;network by genesis&quot;</span>).in_field(<span class="string">&quot;genesis&quot;</span>)
+				})<span class="question-mark">?</span>,
+		))),
+		<span class="number">2 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Polkadot)),
+		<span class="number">3 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Kusama)),
+		<span class="number">4 </span>=&gt; {
+			<span class="kw">let </span><span class="kw-2">mut </span>block_number: [u8; <span class="number">8</span>] = Default::default();
+			block_number.copy_from_slice(<span class="kw-2">&amp;</span>encoded_network_id.read_raw_bytes(<span class="number">8</span>)<span class="question-mark">?</span>);
+
+			<span class="kw">let </span><span class="kw-2">mut </span>block_hash: [u8; <span class="number">32</span>] = Default::default();
+			block_hash.copy_from_slice(<span class="kw-2">&amp;</span>encoded_network_id.read_raw_bytes(<span class="number">32</span>)<span class="question-mark">?</span>);
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::ByFork {
+				block_number: u64::from_be_bytes(block_number),
+				block_hash,
+			}))
+		}
+		<span class="number">5 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Westend)),
+		<span class="number">6 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Rococo)),
+		<span class="number">7 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Wococo)),
+		<span class="number">8 </span>=&gt; {
+			<span class="kw">let </span><span class="kw-2">mut </span>chain_id: [u8; <span class="number">8</span>] = Default::default();
+			chain_id.copy_from_slice(<span class="kw-2">&amp;</span>encoded_network_id.read_raw_bytes(<span class="number">8</span>)<span class="question-mark">?</span>);
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::Ethereum {
+				chain_id: u64::from_be_bytes(chain_id),
+			}))
+		}
+		<span class="number">9 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::BitcoinCore)),
+		<span class="number">10 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(NetworkId::BitcoinCash)),
 		<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Non-valid Network Id&quot;</span>).into()),
 	}
 }
@@ -440,14 +606,32 @@
 				general_index.copy_from_slice(<span class="kw-2">&amp;</span>encoded_junction.read_raw_bytes(<span class="number">16</span>)<span class="question-mark">?</span>);
 				<span class="prelude-val">Ok</span>(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
-			<span class="number">6 </span>=&gt; <span class="prelude-val">Ok</span>(Junction::GeneralKey(
-				encoded_junction
-					.read_till_end()<span class="question-mark">?
-					</span>.to_vec()
-					.try_into()
-					.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;junction general key is too long&quot;</span>))<span class="question-mark">?</span>,
-			)),
+			<span class="number">6 </span>=&gt; {
+				<span class="kw">let </span><span class="kw-2">mut </span>length: [u8; <span class="number">1</span>] = Default::default();
+				length.copy_from_slice(
+					encoded_junction
+						.read_raw_bytes(<span class="number">1</span>)
+						.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;General Key length&quot;</span>))<span class="question-mark">?</span>,
+				);
+
+				<span class="kw">let </span><span class="kw-2">mut </span>data: [u8; <span class="number">32</span>] = Default::default();
+				data.copy_from_slice(<span class="kw-2">&amp;</span>encoded_junction.read_till_end()<span class="question-mark">?</span>);
+
+				<span class="prelude-val">Ok</span>(Junction::GeneralKey {
+					length: u8::from_be_bytes(length),
+					data,
+				})
+			}
 			<span class="number">7 </span>=&gt; <span class="prelude-val">Ok</span>(Junction::OnlyChild),
+			<span class="number">8 </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Junction::Plurality not supported yet&quot;</span>).into()),
+			<span class="number">9 </span>=&gt; {
+				<span class="kw">let </span>network = encoded_junction.read_till_end()<span class="question-mark">?</span>.to_vec();
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(network_id) = network_id_from_bytes(network)<span class="question-mark">? </span>{
+					<span class="prelude-val">Ok</span>(Junction::GlobalConsensus(network_id))
+				} <span class="kw">else </span>{
+					<span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Unknown NetworkId&quot;</span>).into())
+				}
+			}
 			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Unknown Junction variant&quot;</span>).into()),
 		}
 	}
@@ -488,13 +672,19 @@
 				encoded.append(<span class="kw-2">&amp;mut </span>id.to_be_bytes().to_vec());
 				encoded.as_slice().into()
 			}
-			Junction::GeneralKey(key) =&gt; {
+			Junction::GeneralKey { length, data } =&gt; {
 				encoded.push(<span class="number">6u8</span>);
-				encoded.append(<span class="kw-2">&amp;mut </span>key.into_inner());
+				encoded.push(length);
+				encoded.append(<span class="kw-2">&amp;mut </span>data.into());
 				encoded.as_slice().into()
 			}
 			Junction::OnlyChild =&gt; {
 				encoded.push(<span class="number">7u8</span>);
+				encoded.as_slice().into()
+			}
+			Junction::GlobalConsensus(network_id) =&gt; {
+				encoded.push(<span class="number">9u8</span>);
+				encoded.append(<span class="kw-2">&amp;mut </span>network_id_to_bytes(<span class="prelude-val">Some</span>(network_id)));
 				encoded.as_slice().into()
 			}
 			<span class="comment">// TODO: The only missing item here is Junciton::Plurality. This is a complex encoded

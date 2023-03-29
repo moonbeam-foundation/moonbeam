@@ -784,7 +784,7 @@
 		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
-			relay_chain::v2::HrmpChannelId {
+			relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
 			},
@@ -810,7 +810,7 @@
 		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::v2::HrmpChannelId {
+			relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
 			},

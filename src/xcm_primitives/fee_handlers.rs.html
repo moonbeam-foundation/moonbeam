@@ -419,6 +419,9 @@
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -442,6 +445,7 @@
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 
 </span><span class="kw">use </span>frame_support::{
+	pallet_prelude::Weight,
 	traits::{tokens::fungibles::Mutate, Get},
 	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 };
@@ -459,7 +463,7 @@
 	AssetIdInfoGetter: UnitsToWeightRatio&lt;AssetType&gt;,
 	R: TakeRevenue,
 &gt;(
-	u64,
+	Weight,
 	<span class="prelude-ty">Option</span>&lt;(MultiLocation, u128, u128)&gt;, <span class="comment">// id, amount, units_per_second
 	</span>PhantomData&lt;(AssetType, AssetIdInfoGetter, R)&gt;,
 );
@@ -470,11 +474,11 @@
 	&gt; WeightTrader <span class="kw">for </span>FirstAssetTrader&lt;AssetType, AssetIdInfoGetter, R&gt;
 {
 	<span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-		FirstAssetTrader(<span class="number">0</span>, <span class="prelude-val">None</span>, PhantomData)
+		FirstAssetTrader(Weight::zero(), <span class="prelude-val">None</span>, PhantomData)
 	}
 	<span class="kw">fn </span>buy_weight(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		weight: u64,
+		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="comment">// can only call one time
@@ -483,7 +487,7 @@
 			</span><span class="kw">return </span><span class="prelude-val">Err</span>(XcmError::NotWithdrawable);
 		}
 
-		<span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="number">0</span>);
+		<span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="number">0</span>, Weight::zero());
 		<span class="kw">let </span>first_asset = payment
 			.clone()
 			.fungible_assets_iter()
@@ -503,7 +507,8 @@
 				}
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
-					<span class="kw">let </span>amount = units_per_second.saturating_mul(weight <span class="kw">as </span>u128)
+					<span class="comment">// TODO handle proof size payment
+					</span><span class="kw">let </span>amount = units_per_second.saturating_mul(weight.ref_time() <span class="kw">as </span>u128)
 						/ (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 
 					<span class="comment">// We dont need to proceed if the amount is 0
@@ -534,11 +539,12 @@
 	}
 
 	<span class="comment">// Refund weight. We will refund in whatever asset is stored in self.
-	</span><span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: u64) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
+	</span><span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>((id, prev_amount, units_per_second)) = <span class="self">self</span>.<span class="number">1</span>.clone() {
 			<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
 			<span class="self">self</span>.<span class="number">0 </span>-= weight;
-			<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
+			<span class="kw">let </span>amount = units_per_second * (weight.ref_time() <span class="kw">as </span>u128)
+				/ (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 			<span class="kw">let </span>amount = amount.min(prev_amount);
 			<span class="self">self</span>.<span class="number">1 </span>= <span class="prelude-val">Some</span>((
 				id.clone(),
@@ -646,10 +652,10 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 	}
 
 	<span class="attr">#[test]
@@ -666,10 +672,10 @@
 			fun: Fungibility::Fungible(<span class="number">100u128</span>),
 		});
 		<span class="kw">let </span>buy_one_results = trader
-			.buy_weight(<span class="number">100u64</span>, asset_one_payment.clone())
+			.buy_weight(<span class="number">100u64</span>.into(), asset_one_payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert_eq!</span>(buy_one_results.fungible.len(), <span class="number">0</span>); <span class="comment">// no unused amount
-		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>);
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>.into());
 		<span class="macro">assert_eq!</span>(
 			trader.<span class="number">1</span>,
 			<span class="prelude-val">Some</span>((
@@ -692,12 +698,12 @@
 			fun: Fungibility::Fungible(<span class="number">10_000u128</span>),
 		});
 		<span class="macro">assert_eq!</span>(
-			trader.buy_weight(<span class="number">10_000u64</span>, asset_two_payment.clone()),
+			trader.buy_weight(<span class="number">10_000u64</span>.into(), asset_two_payment.clone()),
 			<span class="prelude-val">Err</span>(XcmError::NotWithdrawable),
 		);
 
 		<span class="comment">// state should be unchanged
-		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>);
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>.into());
 		<span class="macro">assert_eq!</span>(
 			trader.<span class="number">1</span>,
 			<span class="prelude-val">Some</span>((
@@ -723,13 +729,13 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">1000u64</span>),
+			trader.refund_weight(<span class="number">1000u64</span>.into()),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,
@@ -749,13 +755,13 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">100u64</span>),
+			trader.refund_weight(<span class="number">100u64</span>.into()),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">100</span>),
 				id: ARBITRARY_ID,
@@ -763,12 +769,12 @@
 		);
 
 		<span class="comment">// should reflect 100 weight and 100 currency deducted
-		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">900</span>);
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">900u64</span>.into());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">1</span>.clone().unwrap().<span class="number">1</span>, <span class="number">900</span>);
 
 		<span class="comment">// can call again
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">200u64</span>),
+			trader.refund_weight(<span class="number">200u64</span>.into()),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">200</span>),
 				id: ARBITRARY_ID,
@@ -776,7 +782,7 @@
 		);
 
 		<span class="comment">// should reflect another 200 weight and 200 currency deducted
-		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">700</span>);
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">700u64</span>.into());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">1</span>.clone().unwrap().<span class="number">1</span>, <span class="number">700</span>);
 	}
 
@@ -792,20 +798,20 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="comment">// can&#39;t call with more weight
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">9999u64</span>),
+			trader.refund_weight(<span class="number">9999u64</span>.into()),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,
 			})
 		);
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">0</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, Weight::zero());
 	}
 
 	<span class="attr">#[test]
@@ -820,24 +826,24 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="comment">// adjust weight so that it will allow a higher amount -- we want to see that the currency
 		// (self.1.1) is capped even when weight is not
-		</span>trader.<span class="number">0 </span>= trader.<span class="number">0 </span>+ <span class="number">1000</span>;
+		</span>trader.<span class="number">0 </span>= trader.<span class="number">0</span>.saturating_add(<span class="number">1000u64</span>.into());
 
 		<span class="comment">// can&#39;t call with more weight
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">1500u64</span>),
+			trader.refund_weight(<span class="number">1500u64</span>.into()),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,
 			})
 		);
-		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">500</span>); <span class="comment">// still thinks we have unreturned weight
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">500u64</span>.into()); <span class="comment">// still thinks we have unreturned weight
 	</span>}
 }
 </code></pre></div>

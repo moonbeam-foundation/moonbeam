@@ -367,6 +367,15 @@
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -392,6 +401,15 @@
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_std::vec::Vec;
+
+<span class="comment">// polkadot/blob/19f6665a6162e68cd2651f5fe3615d6676821f90/xcm/src/v3/mod.rs#L1193
+// Defensively we increase this value to allow UMP fragments through xcm-transactor to prepare our
+// runtime for a relay upgrade where the xcm instruction weights are not ZERO hardcoded. If that
+// happens stuff will break in our side.
+// Rationale behind the value: e.g. staking unbond will go above 32kb and thus
+// required_weight_at_most must be below overall weight but still above whatever value we decide to
+// set. For this reason we set here a value that makes sense for the overall weight.
+</span><span class="kw">pub const </span>DEFAULT_PROOF_SIZE: u64 = <span class="number">128 </span>* <span class="number">1024</span>;
 
 <span class="doccomment">/// Max. allowed size of 65_536 bytes.
 </span><span class="kw">pub const </span>MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);

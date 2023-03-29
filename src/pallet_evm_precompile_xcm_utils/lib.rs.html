@@ -244,6 +244,11 @@
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -269,7 +274,7 @@
 <span class="kw">use </span>frame_support::codec::Decode;
 <span class="kw">use </span>frame_support::traits::ConstU32;
 <span class="kw">use </span>frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::OriginTrait,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
@@ -285,6 +290,8 @@
 <span class="kw">use </span>xcm_executor::traits::ConvertOrigin;
 <span class="kw">use </span>xcm_executor::traits::WeightBounds;
 <span class="kw">use </span>xcm_executor::traits::WeightTrader;
+
+<span class="kw">use </span>xcm_primitives::DEFAULT_PROOF_SIZE;
 
 <span class="kw">pub type </span>XcmOriginOf&lt;XcmConfig&gt; =
 	&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin;
@@ -390,7 +397,10 @@
 
 		<span class="comment">// buy_weight returns unused assets
 		</span><span class="kw">let </span>unused = trader
-			.buy_weight(weight_per_second, <span class="macro">vec!</span>[multiasset.clone()].into())
+			.buy_weight(
+				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
+				<span class="macro">vec!</span>[multiasset.clone()].into(),
+			)
 			.map_err(|<span class="kw">_</span>| {
 				RevertReason::custom(<span class="string">&quot;Asset not supported as fee payment&quot;</span>).in_field(<span class="string">&quot;multilocation&quot;</span>)
 			})<span class="question-mark">?</span>;
@@ -433,7 +443,7 @@
 				.into()),
 		};
 
-		result
+		<span class="prelude-val">Ok</span>(result<span class="question-mark">?</span>.ref_time())
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;xcmExecute(bytes,uint64)&quot;</span>)]
@@ -455,7 +465,7 @@
 
 		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::execute {
 			message: Box::new(xcm),
-			max_weight: weight,
+			max_weight: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;

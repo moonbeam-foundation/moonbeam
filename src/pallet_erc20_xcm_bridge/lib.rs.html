@@ -207,6 +207,14 @@
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -230,15 +238,12 @@
 </span><span class="kw">mod </span>erc20_matcher;
 <span class="kw">mod </span>erc20_trap;
 <span class="kw">mod </span>errors;
-<span class="kw">mod </span>xcm_exec_filter;
 <span class="kw">mod </span>xcm_holding_ext;
 
 <span class="kw">use </span>frame_support::pallet;
 
 <span class="kw">pub use </span>erc20_trap::AssetTrapWrapper;
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
-<span class="kw">pub use </span>xcm_exec_filter::XcmExecuteFilterWrapper;
-<span class="kw">pub use </span>xcm_holding_ext::XcmExecutorWrapper;
 
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
@@ -252,7 +257,9 @@
 	<span class="kw">use </span>pallet_evm::Runner;
 	<span class="kw">use </span>sp_core::{H160, H256, U256};
 	<span class="kw">use </span>sp_std::vec::Vec;
-	<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiAsset, MultiLocation, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult};
+	<span class="kw">use </span>xcm::latest::{
+		Error <span class="kw">as </span>XcmError, MultiAsset, MultiLocation, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, XcmContext,
+	};
 	<span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesFungibles};
 	<span class="kw">use </span>xcm_executor::Assets;
 
@@ -335,7 +342,11 @@
 		<span class="comment">// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
-		</span><span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; XcmResult {
+		</span><span class="kw">fn </span>deposit_asset(
+			what: <span class="kw-2">&amp;</span>MultiAsset,
+			who: <span class="kw-2">&amp;</span>MultiLocation,
+			_context: <span class="kw-2">&amp;</span>XcmContext,
+		) -&gt; XcmResult {
 			<span class="kw">let </span>(contract_address, amount) =
 				Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::matches_fungibles(what)<span class="question-mark">?</span>;
 
@@ -373,6 +384,7 @@
 			asset: <span class="kw-2">&amp;</span>MultiAsset,
 			from: <span class="kw-2">&amp;</span>MultiLocation,
 			to: <span class="kw-2">&amp;</span>MultiLocation,
+			_context: <span class="kw-2">&amp;</span>XcmContext,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
 			<span class="kw">let </span>(contract_address, amount) =
 				Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::matches_fungibles(asset)<span class="question-mark">?</span>;
@@ -399,7 +411,11 @@
 		// one (1 to withdraw the asset and a second one to deposit it).
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
-		</span><span class="kw">fn </span>withdraw_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
+		</span><span class="kw">fn </span>withdraw_asset(
+			what: <span class="kw-2">&amp;</span>MultiAsset,
+			who: <span class="kw-2">&amp;</span>MultiLocation,
+			_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
 			<span class="kw">let </span>(contract_address, amount) =
 				Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::matches_fungibles(what)<span class="question-mark">?</span>;
 			<span class="kw">let </span>who = T::AccountIdConverter::convert_ref(who)

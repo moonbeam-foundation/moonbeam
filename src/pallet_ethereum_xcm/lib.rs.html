@@ -288,6 +288,8 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -366,8 +368,10 @@
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-	</span><span class="kw">fn </span>successful_origin() -&gt; O {
-		O::from(RawOrigin::XcmEthereumTransaction(Default::default()))
+	</span><span class="kw">fn </span>try_successful_origin() -&gt; <span class="prelude-ty">Result</span>&lt;O, ()&gt; {
+		<span class="prelude-val">Ok</span>(O::from(RawOrigin::XcmEthereumTransaction(
+			Default::default(),
+		)))
 	}
 }
 

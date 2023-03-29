@@ -45,6 +45,7 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 <a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -73,6 +74,7 @@
 	<span class="kw">fn </span>drop_assets(
 		origin: <span class="kw-2">&amp;</span>xcm::latest::MultiLocation,
 		<span class="kw-2">mut </span>assets: xcm_executor::Assets,
+		context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; xcm::latest::Weight {
 		<span class="comment">// Remove all erc20 assets
 		</span><span class="kw">let </span>assets_to_remove: Vec&lt;<span class="kw">_</span>&gt; = assets
@@ -89,7 +91,7 @@
 				},
 			));
 		}
-		AssetTrap::drop_assets(origin, assets)
+		AssetTrap::drop_assets(origin, assets, context)
 	}
 }
 </code></pre></div>

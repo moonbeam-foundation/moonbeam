@@ -883,10 +883,6 @@
 <a href="#883" id="883">883</a>
 <a href="#884" id="884">884</a>
 <a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -931,7 +927,7 @@
 <span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT};
 
 <span class="kw">use </span>ethereum_types::H256;
-<span class="kw">use </span>fc_rpc::{frontier_backend_client, OverrideHandle};
+<span class="kw">use </span>fc_rpc::OverrideHandle;
 <span class="kw">use </span>fp_rpc::EthereumRuntimeRPCApi;
 
 <span class="kw">use </span>moonbeam_client_evm_tracing::{
@@ -1663,8 +1659,6 @@
 		substrate_hash: H256,
 		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
 	) -&gt; TxsTraceRes {
-		<span class="kw">let </span>substrate_block_id = BlockId::Hash(substrate_hash);
-
 		<span class="comment">// Get Subtrate block data.
 		</span><span class="kw">let </span>api = client.runtime_api();
 		<span class="kw">let </span>block_header = client
@@ -1675,31 +1669,29 @@
 					substrate_hash, e
 				)
 			})<span class="question-mark">?
-			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, substrate_block_id))<span class="question-mark">?</span>;
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, substrate_hash))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>height = <span class="kw-2">*</span>block_header.number();
 		<span class="kw">let </span>substrate_parent_id = BlockId::&lt;B&gt;::Hash(<span class="kw-2">*</span>block_header.parent_hash());
 
-		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
-			client.as_ref(),
-			substrate_block_id,
-		);
+		<span class="kw">let </span>schema =
+			fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), substrate_hash);
 
 		<span class="comment">// Get Ethereum block data.
 		</span><span class="kw">let </span>(eth_block, eth_transactions) = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
 			<span class="prelude-val">Some</span>(schema) =&gt; <span class="kw">match </span>(
-				schema.current_block(<span class="kw-2">&amp;</span>substrate_block_id),
-				schema.current_transaction_statuses(<span class="kw-2">&amp;</span>substrate_block_id),
+				schema.current_block(substrate_hash),
+				schema.current_transaction_statuses(substrate_hash),
 			) {
 				(<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; (a, b),
 				<span class="kw">_ </span>=&gt; {
 					<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
 						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
-						substrate_block_id
+						substrate_hash
 					))
 				}
 			},
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No storage override at {:?}&quot;</span>, substrate_block_id)),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No storage override at {:?}&quot;</span>, substrate_hash)),
 		};
 
 		<span class="kw">let </span>eth_block_hash = eth_block.header.hash();

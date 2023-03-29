@@ -114,7 +114,7 @@
 		MultiLocation {
 			parents: <span class="number">0</span>,
 			interior: X1(AccountKey20 {
-				network: NetworkId::Any,
+				network: <span class="prelude-val">None</span>,
 				key: account.into(),
 			}),
 		}
@@ -136,7 +136,7 @@
 		o.try_with_caller(|caller| <span class="kw">match </span>caller.try_into() {
 			<span class="prelude-val">Ok</span>(frame_system::RawOrigin::Signed(who)) =&gt; <span class="prelude-val">Ok</span>(AccountKey20 {
 				key: who.into(),
-				network: Network::get(),
+				network: <span class="prelude-val">Some</span>(Network::get()),
 			}
 			.into()),
 			<span class="prelude-val">Ok</span>(other) =&gt; <span class="prelude-val">Err</span>(other.into()),

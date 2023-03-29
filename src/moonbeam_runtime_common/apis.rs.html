@@ -774,6 +774,32 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1155,6 +1181,14 @@
 				) -&gt; pallet_transaction_payment::FeeDetails&lt;Balance&gt; {
 					TransactionPayment::query_fee_details(uxt, len)
 				}
+
+				<span class="kw">fn </span>query_weight_to_fee(weight: Weight) -&gt; Balance {
+					TransactionPayment::weight_to_fee(weight)
+				}
+
+				<span class="kw">fn </span>query_length_to_fee(length: u32) -&gt; Balance {
+					TransactionPayment::length_to_fee(length)
+				}
 			}
 
 			<span class="kw">impl </span>nimbus_primitives::NimbusApi&lt;Block&gt; <span class="kw">for </span>Runtime {
@@ -1290,14 +1324,13 @@
 					<span class="kw">impl </span>moonbeam_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {}
 
 					<span class="kw">use </span>pallet_asset_manager::Config <span class="kw">as </span>PalletAssetManagerConfig;
-
 					<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 						<span class="kw">type </span>XcmConfig = xcm_config::XcmExecutorConfig;
 						<span class="kw">type </span>AccountIdConverter = xcm_config::LocationToAccountId;
 						<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
 							<span class="prelude-val">Ok</span>(MultiLocation::parent())
 						}
-						<span class="kw">fn </span>worst_case_holding() -&gt; MultiAssets {
+						<span class="kw">fn </span>worst_case_holding(_depositable_count: u32) -&gt; MultiAssets {
 						<span class="comment">// 100 fungibles
 							</span><span class="kw">const </span>HOLDING_FUNGIBLES: u32 = <span class="number">100</span>;
 							<span class="kw">let </span>fungibles_amount: u128 = <span class="number">100</span>;
@@ -1352,19 +1385,38 @@
 							(<span class="number">0u64</span>, Response::Version(Default::default()))
 						}
 
-						<span class="kw">fn </span>transact_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
-							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						<span class="kw">fn </span>worst_case_asset_exchange()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiAssets, MultiAssets), BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
+						}
+
+						<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;Junction, BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
+						}
+
+						<span class="kw">fn </span>transact_origin_and_runtime_call()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, RuntimeCall), BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>((MultiLocation::parent(), frame_system::Call::remark_with_event {
+								remark: <span class="macro">vec!</span>[]
+							}.into()))
 						}
 
 						<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
 							<span class="prelude-val">Ok</span>(MultiLocation::parent())
 						}
 
-						<span class="kw">fn </span>claimable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
+						<span class="kw">fn </span>claimable_asset()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
 							<span class="kw">let </span>origin = MultiLocation::parent();
-							<span class="kw">let </span>assets: MultiAssets = (Concrete(MultiLocation::parent()), <span class="number">1_000u128</span>).into();
+							<span class="kw">let </span>assets: MultiAssets = (Concrete(MultiLocation::parent()), <span class="number">1_000u128</span>)
+								.into();
 							<span class="kw">let </span>ticket = MultiLocation { parents: <span class="number">0</span>, interior: Here };
 							<span class="prelude-val">Ok</span>((origin, ticket, assets))
+						}
+
+						<span class="kw">fn </span>unlockable_asset()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 					}
 

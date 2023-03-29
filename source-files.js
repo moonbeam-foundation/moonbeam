@@ -30,7 +30,7 @@ var sourcesIndex = JSON.parse('{\
 "moonriver_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_author_mapping":["",[],["lib.rs","migrations.rs","weights.rs"]],\
-"pallet_erc20_xcm_bridge":["",[],["erc20_matcher.rs","erc20_trap.rs","errors.rs","lib.rs","xcm_exec_filter.rs","xcm_holding_ext.rs"]],\
+"pallet_erc20_xcm_bridge":["",[],["erc20_matcher.rs","erc20_trap.rs","errors.rs","lib.rs","xcm_holding_ext.rs"]],\
 "pallet_ethereum_chain_id":["",[],["lib.rs"]],\
 "pallet_ethereum_xcm":["",[],["lib.rs"]],\
 "pallet_evm_precompile_author_mapping":["",[],["lib.rs"]],\

@@ -596,11 +596,6 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -911,7 +906,7 @@
 					frontier_backend.as_ref(),
 					eth_hash,
 				) {
-					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(id)) =&gt; <span class="prelude-val">Ok</span>(id),
+					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; <span class="prelude-val">Ok</span>(BlockId::Hash(hash)),
 					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
 					<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
 				}
@@ -934,16 +929,13 @@
 		<span class="comment">// Get parent blockid.
 		</span><span class="kw">let </span>parent_block_id = BlockId::Hash(<span class="kw-2">*</span>header.parent_hash());
 
-		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
-			client.as_ref(),
-			reference_id,
-		);
+		<span class="kw">let </span>schema = fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), hash);
 
 		<span class="comment">// Using storage overrides we align with `:ethereum_schema` which will result in proper
 		// SCALE decoding in case of migration.
 		</span><span class="kw">let </span>statuses = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
 			<span class="prelude-val">Some</span>(schema) =&gt; schema
-				.current_transaction_statuses(<span class="kw-2">&amp;</span>reference_id)
+				.current_transaction_statuses(hash)
 				.unwrap_or_default(),
 			<span class="kw">_ </span>=&gt; {
 				<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
@@ -1049,7 +1041,7 @@
 			frontier_backend.as_ref(),
 			hash,
 		) {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; hash,
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; BlockId::Hash(hash),
 			<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
 			<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 		};
@@ -1085,19 +1077,17 @@
 			));
 		};
 
-		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
-			client.as_ref(),
-			reference_id,
-		);
+		<span class="kw">let </span>schema =
+			fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), reference_hash);
 
 		<span class="comment">// Get the block that contains the requested transaction. Using storage overrides we align
 		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
 		</span><span class="kw">let </span>reference_block = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
-			<span class="prelude-val">Some</span>(schema) =&gt; schema.current_block(<span class="kw-2">&amp;</span>reference_id),
+			<span class="prelude-val">Some</span>(schema) =&gt; schema.current_block(reference_hash),
 			<span class="kw">_ </span>=&gt; {
 				<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;No storage override at {:?}&quot;</span>,
-					reference_id
+					reference_hash
 				)))
 			}
 		};

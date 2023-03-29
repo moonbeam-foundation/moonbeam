@@ -109,8 +109,6 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -133,7 +131,6 @@
 <span class="comment">//TODO ideally we wouldn&#39;t depend on BlockId here. Can we change frontier
 // so it&#39;s load_hash helper returns an H256 instead of wrapping it in a BlockId?
 </span><span class="kw">use </span>fc_db::Backend <span class="kw">as </span>FrontierBackend;
-<span class="kw">use </span>sp_api::BlockId;
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_runtime::traits::Block;
 
@@ -203,8 +200,7 @@
 	<span class="kw">let </span>substrate_hash =
 		<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B, C&gt;(client, backend, raw_hash)<span class="question-mark">? </span>{
 			<span class="comment">// If we find this hash in the frontier data base, we know it is an eth hash
-			</span><span class="prelude-val">Some</span>(BlockId::Hash(hash)) =&gt; hash,
-			<span class="prelude-val">Some</span>(BlockId::Number(<span class="kw">_</span>)) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;is_canon test only works with hashes.&quot;</span>),
+			</span><span class="prelude-val">Some</span>(hash) =&gt; hash,
 			<span class="comment">// Otherwise, we assume this is a Substrate hash.
 			</span><span class="prelude-val">None </span>=&gt; raw_hash,
 		};

@@ -711,7 +711,7 @@
 		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 	) -&gt; sp_blockchain::Result&lt;
-		KeyIterator&lt;<span class="lifetime">&#39;a</span>, &lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
+		KeyIterator&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
 	&gt; {
 		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys_iter(hash, prefix, start_key))
 	}
@@ -741,7 +741,7 @@
 		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 	) -&gt; sp_blockchain::Result&lt;
-		KeyIterator&lt;<span class="lifetime">&#39;a</span>, &lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
+		KeyIterator&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
 	&gt; {
 		<span class="macro">match_client!</span>(
 			<span class="self">self</span>,
