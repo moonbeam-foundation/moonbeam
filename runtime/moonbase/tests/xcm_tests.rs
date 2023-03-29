@@ -25,7 +25,7 @@ use frame_support::{
 };
 use pallet_asset_manager::LocalAssetIdCreator;
 use pallet_xcm_transactor::{
-	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
+	relay_indices::*, Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
@@ -3193,6 +3193,35 @@ fn hrmp_init_accept_through_root() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
+		// insert relay encoder indices because migration may not have run
+		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(RelayChainIndices {
+			pallets: PalletIndices {
+				staking: 0u8,
+				utility: 0u8,
+				// match relay runtime construct_runtime order in xcm_mock::relay_chain
+				hrmp: 6u8,
+			},
+			calls: CallIndices {
+				staking: StakingIndices {
+					bond: 0u8,
+					bond_extra: 0u8,
+					unbond: 0u8,
+					withdraw_unbonded: 0u8,
+					validate: 0u8,
+					nominate: 0u8,
+					chill: 0u8,
+					set_payee: 0u8,
+					set_controller: 0u8,
+					rebond: 0u8,
+				},
+				utility: UtilityIndices { as_derivative: 0u8 },
+				hrmp: HrmpIndices {
+					init_open_channel: 0u8,
+					accept_open_channel: 1u8,
+					close_channel: 2u8,
+				},
+			},
+		});
 		// Root can send hrmp init channel
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
@@ -3228,7 +3257,36 @@ fn hrmp_init_accept_through_root() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Root can send hrmp init channel
+		// insert relay encoder indices because migration may not have run
+		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(RelayChainIndices {
+			pallets: PalletIndices {
+				staking: 0u8,
+				utility: 0u8,
+				// match relay runtime construct_runtime order in xcm_mock::relay_chain
+				hrmp: 6u8,
+			},
+			calls: CallIndices {
+				staking: StakingIndices {
+					bond: 0u8,
+					bond_extra: 0u8,
+					unbond: 0u8,
+					withdraw_unbonded: 0u8,
+					validate: 0u8,
+					nominate: 0u8,
+					chill: 0u8,
+					set_payee: 0u8,
+					set_controller: 0u8,
+					rebond: 0u8,
+				},
+				utility: UtilityIndices { as_derivative: 0u8 },
+				hrmp: HrmpIndices {
+					init_open_channel: 0u8,
+					accept_open_channel: 1u8,
+					close_channel: 2u8,
+				},
+			},
+		});
+		// Root can send hrmp accept channel
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Accept {
@@ -3283,10 +3341,34 @@ fn hrmp_close_works() {
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
 		// insert relay encoder indices because migration may not have run
-		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(
-			moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
-		);
-		// Root can send hrmp close
+		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(RelayChainIndices {
+			pallets: PalletIndices {
+				staking: 0u8,
+				utility: 0u8,
+				// match relay runtime construct_runtime order in xcm_mock::relay_chain
+				hrmp: 6u8,
+			},
+			calls: CallIndices {
+				staking: StakingIndices {
+					bond: 0u8,
+					bond_extra: 0u8,
+					unbond: 0u8,
+					withdraw_unbonded: 0u8,
+					validate: 0u8,
+					nominate: 0u8,
+					chill: 0u8,
+					set_payee: 0u8,
+					set_controller: 0u8,
+					rebond: 0u8,
+				},
+				utility: UtilityIndices { as_derivative: 0u8 },
+				hrmp: HrmpIndices {
+					init_open_channel: 0u8,
+					accept_open_channel: 0u8,
+					close_channel: 2u8,
+				},
+			},
+		});
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Close(HrmpChannelId {
@@ -3304,12 +3386,10 @@ fn hrmp_close_works() {
 				overall_weight: Some(total_weight)
 			}
 		));
+		println!("{:?}", parachain::para_events());
 	});
 	Relay::execute_with(|| {
-		// insert relay encoder indices because migration may not have run
-		pallet_xcm_transactor::RelayIndices::<parachain::Runtime>::put(
-			moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
-		);
+		println!("{:?}", relay_chain::relay_events());
 		let expected_event: relay_chain::RuntimeEvent =
 			polkadot_runtime_parachains::hrmp::Event::ChannelClosed(
 				1u32.into(),
