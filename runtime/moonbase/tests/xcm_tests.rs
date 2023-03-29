@@ -3386,10 +3386,8 @@ fn hrmp_close_works() {
 				overall_weight: Some(total_weight)
 			}
 		));
-		println!("{:?}", parachain::para_events());
 	});
 	Relay::execute_with(|| {
-		println!("{:?}", relay_chain::relay_events());
 		let expected_event: relay_chain::RuntimeEvent =
 			polkadot_runtime_parachains::hrmp::Event::ChannelClosed(
 				1u32.into(),
