@@ -49,6 +49,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 			init_open_channel: 0u8,
 			accept_open_channel: 1u8,
 			close_channel: 2u8,
+			cancel_open_request: 6u8,
 		},
 	},
 };
@@ -813,7 +814,23 @@ mod tests {
 					open_requests
 				)
 			),
-			Ok(expected_encoded)
+			Ok(expected_encoded.clone())
 		);
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor default encoder returns same result
+			// insert storage item as per migration to set the storage item
+			pallet_xcm_transactor::RelayIndices::<moonriver_runtime::Runtime>::put(
+				KUSAMA_RELAY_INDICES,
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonriver_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+					xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
+						channel_id.clone(),
+						open_requests
+					)
+				),
+				Ok(expected_encoded)
+			);
+		});
 	}
 }

@@ -1176,6 +1176,7 @@ fn test_hrmp_manipulator_accept() {
 						init_open_channel: 0u8,
 						accept_open_channel: 1u8,
 						close_channel: 2u8,
+						cancel_open_request: 6u8,
 					},
 				},
 			});

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 
 use cumulus_primitives_core::{
-	relay_chain::{self, v2::HrmpChannelId},
+	relay_chain::{self, HrmpChannelId},
 	ParaId,
 };
 use sp_std::vec::Vec;

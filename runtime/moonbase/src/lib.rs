@@ -978,12 +978,12 @@ where
 	Runtime: pallet_xcm_transactor::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let xcm_transactor_migrate_relay_indices_for_encoding =
+		vec![Box::new(
 			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
 				moonbeam_relay_encoder::WESTEND_RELAY_INDICES,
 				Default::default(),
-			);
-		vec![Box::new(xcm_transactor_migrate_relay_indices_for_encoding)]
+			),
+		)]
 	}
 }
 

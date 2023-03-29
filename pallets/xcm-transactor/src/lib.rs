@@ -899,6 +899,17 @@ pub mod pallet {
 					encoded_call.append(&mut a.encode());
 					Ok(encoded_call)
 				}
+				HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+					let mut encoded_call: Vec<u8> = Vec::new();
+					// pallet index
+					encoded_call.push(RelayIndices::<T>::get().pallets.hrmp);
+					// call index
+					encoded_call.push(RelayIndices::<T>::get().calls.hrmp.cancel_open_request);
+					// encoded argument
+					encoded_call.append(&mut a.encode());
+					encoded_call.append(&mut b.encode());
+					Ok(encoded_call)
+				}
 			}
 		}
 	}

@@ -2366,6 +2366,7 @@ fn hrmp_init_accept_through_root() {
 					init_open_channel: 0u8,
 					accept_open_channel: 1u8,
 					close_channel: 2u8,
+					cancel_open_request: 6u8,
 				},
 			},
 		});
@@ -2430,6 +2431,7 @@ fn hrmp_init_accept_through_root() {
 					init_open_channel: 0u8,
 					accept_open_channel: 1u8,
 					close_channel: 2u8,
+					cancel_open_request: 6u8,
 				},
 			},
 		});
@@ -2513,6 +2515,7 @@ fn hrmp_close_works() {
 					init_open_channel: 0u8,
 					accept_open_channel: 1u8,
 					close_channel: 2u8,
+					cancel_open_request: 6u8,
 				},
 			},
 		});
