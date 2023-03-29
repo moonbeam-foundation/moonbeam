@@ -17,6 +17,10 @@ interface Multisig {
     /// @return New multisig created combining msg.sender address and otherSignatories addresses
     function multiAccountId(address[] memory otherSignatories, uint16 threshold) external returns (address);
 
+    /// Dispatch a multi-signature call using a single approval from the caller
+    /// @custom:selector f9bcdd45
+    function asMultiThreshold1(address[] memory otherSignatories, bytes memory call) external;
+
 
 
 }

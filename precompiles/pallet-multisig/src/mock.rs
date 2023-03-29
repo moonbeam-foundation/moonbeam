@@ -104,7 +104,7 @@ parameter_types! {
 pub type Precompiles<R> =
 	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, MultisigPrecompile<R>>,)>;
 
-pub type PCall = MultisigPrecompileCall<Runtime>; 
+pub type PCall = MultisigPrecompileCall<Runtime>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -264,4 +264,3 @@ pub(crate) fn events() -> Vec<RuntimeEvent> {
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
 }
-
