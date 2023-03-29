@@ -23,8 +23,9 @@ use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::ensure;
 use frame_support::traits::{ConstU32};
+use frame_support::weights::Weight;
 use pallet_evm::AddressMapping;
-use pallet_multisig::Call as MultisigCall;
+use pallet_multisig::{Call as MultisigCall, Timepoint};
 use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;
 use sp_core::{Get, H160,};
@@ -124,6 +125,69 @@ where
 		Ok(())
 	}
 
+	#[precompile::public("asMulti(address[],uint16,uint32,uint32,bytes,uint64,uint64)")]
+	#[precompile::public("as_multi(address[],uint16,uint32,uint32,bytes,uint64,uint64)")]
+	fn as_multi(
+		handle: &mut impl PrecompileHandle,
+		other_signatories: Vec<Address>,
+		threshold: u16,
+		height: u32,
+		index: u32,
+		call: BoundedBytes<GetEncodedCallLimit>,
+		ref_time: u64,
+		proof_size: u64
+	) -> EvmResult {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// Decode the incoming call
+		let call: Vec<_> = call.into();
+		let pallet_multisig_call: <Runtime as pallet_multisig::Config>::RuntimeCall =
+			<Runtime as pallet_multisig::Config>::RuntimeCall::decode_with_depth_limit(
+				DecodeLimit::get(),
+				&mut &*call,
+			)
+			.map_err(|_| RevertReason::custom("Failed to decode call").in_field("call"))?
+			.into();
+
+		// Convert call to the expected type by pallet-multisig
+		let call_to_dispatch = Box::new(pallet_multisig_call);
+
+		// Convert other_signatories addresses into valid AccountIds
+		let other_signatories: Vec<_> = other_signatories
+			.into_iter()
+			.map(|x| Runtime::AddressMapping::into_account_id(x.0))
+			.collect();
+
+		// Take sender's AccountId
+		let caller = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = <Runtime as frame_system::Config>::RuntimeOrigin::from(Some(caller).into());
+
+		// TODO: remove?
+		//let maybe_timepoint = Timepoint::default();
+
+		let max_weight = Weight::default();
+		max_weight.set_ref_time(ref_time);
+		max_weight.set_proof_size(proof_size);
+
+		// Dispatch the call
+		ensure!(
+			MultisigOf::<Runtime>::as_multi(
+				origin,
+				threshold,
+				other_signatories,
+				None,
+				call_to_dispatch,
+				max_weight
+			)
+			.is_ok(),
+			revert("error dispatching as_multi")
+		);
+
+		log::trace!(target: "multisig-precompile", "as_multi");
+
+		Ok(())
+	}
+
 	// Helper function
 	fn ensure_sorted_and_insert(
 		other_signatories: Vec<Address>,
@@ -132,7 +196,7 @@ where
 		//convert sender address into a valid AccountId
 		let sender = Runtime::AddressMapping::into_account_id(sender);
 
-		//convert the other sigantories addresses into valid AccountIds
+		//convert the other signatories addresses into valid AccountIds
 		let mut signers_accounts: Vec<_> = other_signatories
 			.into_iter()
 			.map(|x| Runtime::AddressMapping::into_account_id(x.0))

@@ -21,6 +21,19 @@ interface Multisig {
     /// @custom:selector f9bcdd45
     function asMultiThreshold1(address[] memory otherSignatories, bytes memory call) external;
 
+    /// Register approval for a dispatch to be made from a deterministic composite account if
+	/// approved by a total of `threshold - 1` of `other_signatories`.
+    /// @custom:selector afd1426e
+    function asMulti(
+        address[] memory otherSignatories, 
+        uint16 threshold, 
+        uint32 height, 
+        uint32 index, 
+        bytes memory call, 
+        uint64 refTime, 
+        uint64 proofSize
+    ) external;
+
 
 
 }
