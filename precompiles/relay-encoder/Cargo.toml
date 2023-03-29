@@ -13,6 +13,7 @@ rustc-hex = { workspace = true }
 # Moonbeam
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -60,6 +61,7 @@ std = [
 	"frame-system/std",
 	"pallet-evm/std",
 	"pallet-staking/std",
+	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-runtime/std",

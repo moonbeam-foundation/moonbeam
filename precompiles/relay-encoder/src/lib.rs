@@ -49,13 +49,12 @@ type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
 /// A precompile to provide relay stake calls encoding through evm
-pub struct RelayEncoderPrecompile<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
+pub struct RelayEncoderPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime, RelayRuntime> RelayEncoderPrecompile<Runtime, RelayRuntime>
+impl<Runtime> RelayEncoderPrecompile<Runtime>
 where
-	RelayRuntime: StakeEncodeCall + HrmpEncodeCall,
-	Runtime: pallet_evm::Config,
+	Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
 	#[precompile::public("encodeBond(uint256,uint256,bytes)")]
@@ -73,11 +72,9 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-			address.into(),
-			relay_amount,
-			reward_destination,
-		))
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Bond(address.into(), relay_amount, reward_destination),
+		)
 		.as_slice()
 		.into();
 
@@ -94,9 +91,11 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::BondExtra(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -112,9 +111,11 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Unbond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -128,9 +129,11 @@ where
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::WithdrawUnbonded(slashes),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -146,12 +149,12 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let fraction = Perbill::from_parts(comission.converted());
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
-			pallet_staking::ValidatorPrefs {
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
-			},
-		))
+			}),
+		)
 		.as_slice()
 		.into();
 
@@ -175,9 +178,11 @@ where
 				as_bytes.into()
 			})
 			.collect();
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Nominate(nominated),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -188,9 +193,10 @@ where
 	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
-			.as_slice()
-			.into();
+		let encoded =
+			pallet_xcm_transactor::Pallet::<Runtime>::encode_call(AvailableStakeCalls::Chill)
+				.as_slice()
+				.into();
 
 		Ok(encoded)
 	}
@@ -206,9 +212,11 @@ where
 
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::SetPayee(reward_destination),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -224,10 +232,11 @@ where
 
 		let controller: [u8; 32] = controller.into();
 
-		let encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
-				.as_slice()
-				.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::SetController(controller.into()),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -242,9 +251,11 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Rebond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -259,11 +270,9 @@ where
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
-			recipient.into(),
-			max_capacity,
-			max_message_size,
-		))
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::InitOpenChannel(recipient.into(), max_capacity, max_message_size),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")
@@ -282,14 +291,15 @@ where
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded =
-			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
-				.map_err(|_| {
-					RevertReason::custom("Non-implemented hrmp encoding for transactor")
-						.in_field("transactor")
-				})?
-				.as_slice()
-				.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::AcceptOpenChannel(sender.into()),
+		)
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
 		Ok(encoded)
 	}
 
@@ -303,12 +313,12 @@ where
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
-			relay_chain::HrmpChannelId {
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::CloseChannel(relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
-			},
-		))
+			}),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")
@@ -329,13 +339,15 @@ where
 	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::HrmpChannelId {
-				sender: sender.into(),
-				recipient: recipient.into(),
-			},
-			open_requests,
-		))
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::CancelOpenRequest(
+				relay_chain::HrmpChannelId {
+					sender: sender.into(),
+					recipient: recipient.into(),
+				},
+				open_requests,
+			),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")

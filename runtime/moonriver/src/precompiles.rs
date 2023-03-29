@@ -20,7 +20,6 @@ use crate::{
 	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
-use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -131,7 +130,7 @@ type MoonriverPrecompilesAt<R> = (
 	>,
 	PrecompileAt<
 		AddressU64<2053>,
-		RelayEncoderPrecompile<R, KusamaEncoder>,
+		RelayEncoderPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<

@@ -110,12 +110,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub type Precompiles<R> = PrecompileSetBuilder<
-	R,
-	(PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R, test_relay_runtime::TestEncoder>>,),
->;
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>)>;
 
-pub type PCall = RelayEncoderPrecompileCall<Runtime, test_relay_runtime::TestEncoder>;
+pub type PCall = RelayEncoderPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
