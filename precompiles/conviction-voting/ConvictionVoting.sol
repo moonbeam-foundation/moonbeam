@@ -2,11 +2,11 @@
 pragma solidity >=0.8.3;
 
 /// @dev The Conviction Voting contract's address.
-address constant Conviction_Voting_ADDRESS = 0x0000000000000000000000000000000000000812;
+address constant CONVICTION_VOTING_ADDRESS = 0x0000000000000000000000000000000000000812;
 
 /// @dev The Conviction Voting contract's instance.
-ConvictionVoting constant Conviction_Voting_CONTRACT = ConvictionVoting(
-    Conviction_Voting_ADDRESS
+ConvictionVoting constant CONVICTION_VOTING_CONTRACT = ConvictionVoting(
+    CONVICTION_VOTING_ADDRESS
 );
 
 /// @author The Moonbeam Team
@@ -53,6 +53,26 @@ interface ConvictionVoting {
         uint32 pollIndex,
         uint256 voteAmount,
         Conviction conviction
+    ) external;
+
+    /// @dev Vote split in a poll.
+    /// @custom:selector dd6c52a4
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    function voteSplit(uint32 pollIndex, uint256 aye, uint256 nay) external;
+
+    /// @dev Vote split abstain in a poll.
+    /// @custom:selector 52004540
+    /// @param pollIndex Index of poll
+    /// @param aye Balance locked for aye vote
+    /// @param nay Balance locked for nay vote
+    /// @param abstain Balance locked for abstain vote (support)
+    function voteSplitAbstain(
+        uint32 pollIndex,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
     ) external;
 
     /// @dev Remove vote in poll
@@ -110,14 +130,39 @@ interface ConvictionVoting {
         uint8 conviction
     );
 
+    /// @dev An account made a split vote in a poll.
+    /// @custom:selector 022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    event VoteSplit(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay
+    );
+
+    /// @dev An account made a split abstain vote in a poll.
+    /// @custom:selector 476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param voter address Address of the voter.
+    /// @param aye uint256 Amount for aye vote.
+    /// @param nay uint256 Amount for nay vote.
+    /// @param abstain uint256 Amount for abstained.
+    event VoteSplitAbstained(
+        uint32 indexed pollIndex,
+        address voter,
+        uint256 aye,
+        uint256 nay,
+        uint256 abstain
+    );
+
     /// @dev An account removed its vote from an ongoing poll.
     /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
     /// @param pollIndex uint32 Index of the poll.
     /// @param voter address Address of the voter.
-    event VoteRemoved(
-        uint32 indexed pollIndex,
-        address voter
-    );
+    event VoteRemoved(uint32 indexed pollIndex, address voter);
 
     /// @dev An account removed a vote from a poll.
     /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b
@@ -151,17 +196,11 @@ interface ConvictionVoting {
     /// @custom:selector 1053303328f6db14014ccced6297bcad2b3897157ce46070711ab995a05dfa14
     /// @param trackId uint16 The trackId.
     /// @param caller address Address of the caller.
-    event Undelegated(
-        uint16 indexed trackId,
-        address caller
-    );
+    event Undelegated(uint16 indexed trackId, address caller);
 
     /// @dev An account called to unlock tokens for the given trackId.
     /// @custom:selector dcf72fa65ca7fb720b9ccc8ee28e0188edc3d943115124cdd4086c49f836a128
     /// @param trackId uint16 The trackId.
     /// @param caller address Address of the caller.
-    event Unlocked(
-        uint16 indexed trackId,
-        address caller
-    );
+    event Unlocked(uint16 indexed trackId, address caller);
 }

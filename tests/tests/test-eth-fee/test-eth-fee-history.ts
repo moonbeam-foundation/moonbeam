@@ -3,7 +3,7 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import { BlockHeader } from "web3-eth";
-
+import { hexToNumber } from "@polkadot/util";
 import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request, web3Subscribe } from "../../util/providers";
@@ -131,16 +131,10 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
             //
             // In other words, for this tip oracle there would be no need to provide a priority fee
             // when the block fullness is considered ideal in an EIP-1559 chain.
-            if (
-              context.web3.utils.hexToNumber(max_fee_per_gas) -
-                context.web3.utils.hexToNumber(result.baseFeePerGas[i]) >
-              0
-            ) {
+            if (hexToNumber(max_fee_per_gas) - hexToNumber(result.baseFeePerGas[i]) > 0) {
               expect(result.reward[i].length).to.be.eq(local_rewards.length);
               for (let j = 0; j < local_rewards.length; j++) {
-                expect(context.web3.utils.hexToNumber(result.reward[i][j])).to.be.eq(
-                  local_rewards[j]
-                );
+                expect(hexToNumber(result.reward[i][j])).to.be.eq(local_rewards[j]);
               }
             }
           }

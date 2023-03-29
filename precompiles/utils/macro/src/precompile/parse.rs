@@ -275,6 +275,7 @@ impl Precompile {
 				}
 			};
 			let ty = input.ty.as_ref().clone();
+			self.check_type_parameter_usage(&ty)?;
 
 			arguments.push(Argument { ident, ty })
 		}
@@ -535,6 +536,78 @@ impl Precompile {
 		}
 
 		Ok(selector)
+	}
+
+	/// Check that the provided type doesn't depend on one of the type parameters of the
+	/// precompile. Check is skipped if `test_concrete_types` attribute is used.
+	fn check_type_parameter_usage(&self, ty: &syn::Type) -> syn::Result<()> {
+		if self.test_concrete_types.is_some() {
+			return Ok(());
+		}
+
+		const ERR_MESSAGE: &'static str =
+			"impl type parameter is used in functions arguments. Arguments should not have a type
+depending on a type parameter, unless it is a length bound for BoundedBytes,
+BoundedString or alike, which doesn't affect the Solidity type.
+
+In that case, you must add a #[precompile::test_concrete_types(...)] attribute on the impl
+block to provide concrete types that will be used to run the automatically generated tests
+ensuring the Solidity function signatures are correct.";
+
+		match ty {
+			syn::Type::Array(syn::TypeArray { elem, .. })
+			| syn::Type::Group(syn::TypeGroup { elem, .. })
+			| syn::Type::Paren(syn::TypeParen { elem, .. })
+			| syn::Type::Reference(syn::TypeReference { elem, .. })
+			| syn::Type::Ptr(syn::TypePtr { elem, .. })
+			| syn::Type::Slice(syn::TypeSlice { elem, .. }) => self.check_type_parameter_usage(&elem)?,
+
+			syn::Type::Path(syn::TypePath {
+				path: syn::Path { segments, .. },
+				..
+			}) => {
+				let impl_params: Vec<_> = self
+					.generics
+					.params
+					.iter()
+					.filter_map(|param| match param {
+						syn::GenericParam::Type(syn::TypeParam { ident, .. }) => Some(ident),
+						_ => None,
+					})
+					.collect();
+
+				for segment in segments {
+					if impl_params.contains(&&segment.ident) {
+						return Err(syn::Error::new(segment.ident.span(), ERR_MESSAGE));
+					}
+
+					if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+						let types = args.args.iter().filter_map(|arg| match arg {
+							syn::GenericArgument::Type(ty)
+							| syn::GenericArgument::Binding(syn::Binding { ty, .. }) => Some(ty),
+							_ => None,
+						});
+
+						for ty in types {
+							self.check_type_parameter_usage(&ty)?;
+						}
+					}
+				}
+			}
+			syn::Type::Tuple(tuple) => {
+				for ty in tuple.elems.iter() {
+					self.check_type_parameter_usage(ty)?;
+				}
+			}
+			// BareFn => very unlikely this appear as parameter
+			// ImplTrait => will cause other errors, it must be a concrete type
+			// TypeInfer => it must be explicit concrete types since it ends up in enum fields
+			// Macro => Cannot check easily
+			// Never => Function will not be callable.
+			ty => println!("Skipping type parameter check for non supported kind of type: {ty:?}"),
+		}
+
+		Ok(())
 	}
 }
 

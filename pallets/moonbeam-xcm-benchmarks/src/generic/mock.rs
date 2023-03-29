@@ -140,8 +140,19 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 		(0, Response::Assets(assets))
 	}
 
-	fn transact_origin() -> Result<MultiLocation, BenchmarkError> {
-		Ok(Default::default())
+	fn worst_case_asset_exchange() -> Result<(MultiAssets, MultiAssets), BenchmarkError> {
+		Err(BenchmarkError::Skip)
+	}
+
+	fn universal_alias() -> Result<Junction, BenchmarkError> {
+		Err(BenchmarkError::Skip)
+	}
+
+	fn transact_origin_and_runtime_call() -> Result<(MultiLocation, RuntimeCall), BenchmarkError> {
+		Ok((
+			Default::default(),
+			frame_system::Call::remark_with_event { remark: vec![] }.into(),
+		))
 	}
 
 	fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {
@@ -155,6 +166,10 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 			interior: X1(GeneralIndex(0)),
 		};
 		Ok((Default::default(), ticket, assets))
+	}
+
+	fn unlockable_asset() -> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
+		Err(BenchmarkError::Skip)
 	}
 }
 

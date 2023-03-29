@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
 	mock::*, SELECTOR_LOG_DECISION_DEPOSIT_PLACED, SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-	SELECTOR_LOG_SUBMITTED_AFTER, SELECTOR_LOG_SUBMITTED_AT,
+	SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMITTED_AFTER,
+	SELECTOR_LOG_SUBMITTED_AT,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
@@ -71,30 +72,58 @@ fn submitted_at_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
-			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
+			// Submit referendum at index 0
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			assert!(events().contains(
-				&EvmEvent::Log {
+			// Submit referendum at index 1
+			let input = PCall::submit_at {
+				track_id: 0u16,
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			assert!(vec![
+				EvmEvent::Log {
 					log: log2(
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
+							// Referendum index 0
 							.write::<u32>(0u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
+							.build(),
+					),
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AT,
+						H256::from_low_u64_be(0u64),
+						EvmDataWriter::new()
+							// Referendum index 1
+							.write::<u32>(1u32)
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
 				.into()
-			));
+			]
+			.iter()
+			.all(|log| events().contains(log)));
 		});
 }
 
@@ -105,30 +134,58 @@ fn submitted_after_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
-			let expected_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 
+			// Submit referendum at index 0
 			let input = PCall::submit_after {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			assert!(events().contains(
-				&EvmEvent::Log {
+			// Submit referendum at index 1
+			let input = PCall::submit_after {
+				track_id: 0u16,
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			assert!(vec![
+				EvmEvent::Log {
 					log: log2(
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
 						EvmDataWriter::new()
+							// Referendum index 0
 							.write::<u32>(0u32)
-							.write::<H256>(expected_hash.into())
+							.write::<H256>(proposal_hash)
+							.build(),
+					),
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AFTER,
+						H256::from_low_u64_be(0u64),
+						EvmDataWriter::new()
+							// Referendum index 1
+							.write::<u32>(1u32)
+							.write::<H256>(proposal_hash)
 							.build(),
 					),
 				}
 				.into()
-			));
+			]
+			.iter()
+			.all(|log| events().contains(log)));
 		});
 }
 
@@ -139,12 +196,14 @@ fn place_and_refund_decision_deposit_logs_work() {
 		.build()
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 			let referendum_index = 0u32;
 
 			// Create referendum
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal: proposal.into(),
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
 			.into();
@@ -168,7 +227,12 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-						EvmDataWriter::new().write::<u32>(referendum_index).build(),
+						EvmDataWriter::new()
+							.write::<u32>(referendum_index)
+							.write::<Address>(Address(Alice.into()))
+							// Decision deposit
+							.write::<U256>(U256::from(10))
+							.build(),
 					)
 				}
 				.into()
@@ -189,6 +253,14 @@ fn place_and_refund_decision_deposit_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
+			// Refund referendum submission deposit.
+			// Eligible because we cancelled the referendum.
+			let input = PCall::refund_submission_deposit {
+				index: referendum_index,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
 			// Assert all refund events are emitted
 			assert!(vec![
 				RuntimeEvent::Referenda(pallet_referenda::pallet::Event::DecisionDepositRefunded {
@@ -196,11 +268,36 @@ fn place_and_refund_decision_deposit_logs_work() {
 					who: Alice.into(),
 					amount: 10
 				}),
+				RuntimeEvent::Referenda(
+					pallet_referenda::pallet::Event::SubmissionDepositRefunded {
+						index: referendum_index,
+						who: Alice.into(),
+						amount: 15
+					}
+				),
 				EvmEvent::Log {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new().write::<u32>(referendum_index).build(),
+						EvmDataWriter::new()
+							.write::<u32>(referendum_index)
+							.write::<Address>(Address(Alice.into()))
+							// Decision deposit
+							.write::<U256>(U256::from(10))
+							.build(),
+					)
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
+						EvmDataWriter::new()
+							.write::<u32>(referendum_index)
+							.write::<Address>(Address(Alice.into()))
+							// Submission deposit
+							.write::<U256>(U256::from(15))
+							.build(),
 					)
 				}
 				.into()

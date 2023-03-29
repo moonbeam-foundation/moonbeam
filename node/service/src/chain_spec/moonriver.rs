@@ -73,7 +73,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![(
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 					get_from_seed::<NimbusId>("Alice"),
-					1_000 * MOVR,
+					100_000 * MOVR,
 				)],
 				// Delegations
 				vec![],
@@ -146,13 +146,13 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					(
 						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 						get_from_seed::<NimbusId>("Alice"),
-						1_000 * MOVR,
+						100_000 * MOVR,
 					),
 					// Bob -> Baltathar
 					(
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
-						1_000 * MOVR,
+						100_000 * MOVR,
 					),
 				],
 				// Delegations
@@ -195,6 +195,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
+const NUM_SELECTED_CANDIDATES: u32 = 8;
 pub fn moonriver_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::{
@@ -292,6 +293,7 @@ pub fn testnet_genesis(
 			collator_commission: COLLATOR_COMMISSION,
 			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: BLOCKS_PER_ROUND,
+			num_selected_candidates: NUM_SELECTED_CANDIDATES,
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),

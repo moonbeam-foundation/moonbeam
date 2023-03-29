@@ -140,6 +140,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -306,7 +307,7 @@ impl<Class> VoteTally<u32, Class> for Tally {
 	fn setup(_: Class, _: Perbill) {}
 }
 parameter_types! {
-	pub const SubmissionDeposit: u128 = 10;
+	pub const SubmissionDeposit: u128 = 15;
 }
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = ();

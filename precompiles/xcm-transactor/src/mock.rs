@@ -17,13 +17,13 @@
 //! Test utilities
 use crate::v1::{XcmTransactorPrecompileV1, XcmTransactorPrecompileV1Call};
 use crate::v2::{XcmTransactorPrecompileV2, XcmTransactorPrecompileV2Call};
-use codec::{Decode, Encode};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
@@ -32,17 +32,13 @@ use precompile_utils::{
 use scale_info::TypeInfo;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use xcm::latest::{
-	Error as XcmError,
-	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
-};
+use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::FixedWeightBounds;
 use xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader},
+	traits::{TransactAsset, WeightTrader},
 	Assets,
 };
-use xcm_primitives::{AccountIdToCurrencyId, XcmV2Weight};
+use xcm_primitives::AccountIdToCurrencyId;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -73,7 +69,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 		MultiLocation::new(
 			0,
 			Junctions::X1(AccountKey20 {
-				network: NetworkId::Any,
+				network: None,
 				key: as_h160.as_fixed_bytes().clone(),
 			}),
 		)
@@ -199,6 +195,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -226,18 +223,31 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
-	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
-		Ok(())
+	type Ticket = ();
+
+	fn validate(
+		_destination: &mut Option<MultiLocation>,
+		_message: &mut Option<Xcm<()>>,
+	) -> SendResult<Self::Ticket> {
+		Ok(((), MultiAssets::new()))
+	}
+
+	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
+		Ok(XcmHash::default())
 	}
 }
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
+	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation, _context: &XcmContext) -> XcmResult {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -248,19 +258,8 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
-	}
-}
-
-pub struct InvertNothing;
-impl InvertLocation for InvertNothing {
-	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
-		Ok(MultiLocation::here())
-	}
-
-	fn ancestry() -> MultiLocation {
-		MultiLocation::here()
 	}
 }
 
@@ -273,18 +272,23 @@ pub enum CurrencyId {
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: XcmV2Weight = 1000;
+	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 1000u64);
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+	pub SelfLocation: MultiLocation =
+		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
 
-	pub SelfReserve: MultiLocation = (
+	pub SelfReserve: MultiLocation = MultiLocation::new(
 		1,
 		Junctions::X2(
 			Parachain(ParachainId::get().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-		)).into();
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
+		));
 	pub MaxInstructions: u32 = 100;
+
+	pub UniversalLocation: InteriorMultiLocation = Here;
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
@@ -298,7 +302,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
-	type LocationInverter = InvertNothing;
+	type UniversalLocation = UniversalLocation;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;

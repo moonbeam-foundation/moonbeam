@@ -24,6 +24,7 @@ jobs:
           path: tools
 
   build-binary:
+    needs: ["setup-scripts"]
     runs-on: self-hosted
     strategy:
       matrix:
@@ -32,7 +33,7 @@ jobs:
       RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Setup Rust toolchain
@@ -65,7 +66,7 @@ jobs:
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
@@ -74,7 +75,7 @@ jobs:
           name: moonbeam
           path: build
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Download Original Tools

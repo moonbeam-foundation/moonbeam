@@ -118,4 +118,12 @@ contract RelayEncoderInstance is RelayEncoder {
         return "0x00";
     }
 
+    function encodeHrmpCancelOpenRequest(uint32 sender, uint32 recipient, uint32 openRequests) 
+        external 
+        pure 
+        returns (bytes memory result) 
+    {
+        return "0x00";
+    }
+
 }

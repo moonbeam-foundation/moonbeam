@@ -1,38 +1,36 @@
 [package]
 name = "moonbeam-rpc-primitives-debug"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
-environmental = { version = "1.1.2", default-features = false }
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.14", default-features = false }
-hex = { version = "0.4", optional = true, features = [ "serde" ] }
-serde = { version = "1.0", optional = true, features = [ "derive" ] }
-serde_json = { version = "1.0", optional = true }
+environmental = { workspace = true }
+ethereum = { workspace = true }
+ethereum-types = { workspace = true }
+hex = { workspace = true, optional = true, features = [ "serde" ] }
+serde = { workspace = true, optional = true, features = [ "derive" ] }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+parity-scale-codec = { workspace = true }
+sp-api = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 [features]
 default = [ "std" ]
 std = [
-	"codec/std",
 	"environmental/std",
 	"ethereum-types/std",
 	"ethereum/std",
 	"hex",
+	"parity-scale-codec/std",
 	"serde",
-	"serde_json",
 	"sp-api/std",
 	"sp-core/std",
 	"sp-io/std",

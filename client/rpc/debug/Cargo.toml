@@ -1,39 +1,39 @@
 [package]
 name = "moonbeam-rpc-debug"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
-futures = { version = "0.3.26", features = [ "compat" ] }
-hex-literal = "0.3.4"
-jsonrpsee = { version = "0.16.2", default-features = false, features = [ "macros", "server" ] }
-tokio = { version = "1.10", features = [ "sync", "time" ] }
+futures = { workspace = true, features = [ "compat" ] }
+hex-literal = { workspace = true }
+jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
+tokio = { workspace = true, features = [ "sync", "time" ] }
 
 # Moonbeam
-moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
-moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
-moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
-moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
+moonbeam-client-evm-tracing = { workspace = true }
+moonbeam-rpc-core-debug = { workspace = true }
+moonbeam-rpc-core-types = { workspace = true }
+moonbeam-rpc-primitives-debug = { workspace = true, features = [ "std" ] }
 
 # Substrate
-sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sc-client-api = { workspace = true }
+sc-utils = { workspace = true }
+sp-api = { workspace = true, features = [ "std" ] }
+sp-block-builder = { workspace = true, features = [ "std" ] }
+sp-blockchain = { workspace = true }
+sp-core = { workspace = true, features = [ "std" ] }
+sp-io = { workspace = true, features = [ "std" ] }
+sp-runtime = { workspace = true, features = [ "std" ] }
 
 # Frontier
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-ethereum-types = "0.14"
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37", features = [ "rpc-binary-search-estimate" ] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "tgm-fc-log-indexer-v0.9.37" }
+ethereum = { workspace = true, features = [ "std", "with-codec" ] }
+ethereum-types = { workspace = true, features = [ "std" ] }
+fc-consensus = { workspace = true }
+fc-db = { workspace = true }
+fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
+fc-storage = { workspace = true }
+fp-rpc = { workspace = true, features = [ "std" ] }

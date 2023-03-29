@@ -1,41 +1,44 @@
 [package]
 name = "xcm-primitives"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = { workspace = true }
 version = "0.1.0"
 
 [package.metadata.docs.rs]
 targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.14", default-features = false }
-hex = { version = "0.4", default-features = false }
-impl-trait-for-tuples = "0.2.0"
-log = "0.4"
-serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
-sha3 = { version = "0.10", default-features = false }
+ethereum = { workspace = true, features = [ "with-codec" ] }
+ethereum-types = { workspace = true }
+hex = { workspace = true }
+impl-trait-for-tuples = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true, optional = true, features = [ "derive" ] }
+sha3 = { workspace = true }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
-scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+cumulus-primitives-core = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
-xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37", default-features = false }
+orml-traits = { workspace = true }
+xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
+
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
 
 [features]
 default = [ "std" ]
@@ -51,4 +54,4 @@ std = [
 	"xcm-builder/std",
 	"xcm/std",
 ]
-runtime-benchmarks = []
+runtime-benchmarks = [ "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "xcm-builder/runtime-benchmarks" ]

@@ -67,7 +67,7 @@ fn set_total_selected_event_emits_correctly() {
 		// before we can bump total_selected we must bump the blocks per round
 		assert_ok!(ParachainStaking::set_blocks_per_round(
 			RuntimeOrigin::root(),
-			6u32
+			7u32
 		));
 		roll_blocks(1);
 		assert_ok!(ParachainStaking::set_total_selected(
@@ -93,16 +93,16 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 }
 
 #[test]
-fn set_total_selected_passes_if_equal_to_blocks_per_round() {
+fn set_total_selected_fails_if_equal_to_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
 			RuntimeOrigin::root(),
 			10u32
 		));
-		assert_ok!(ParachainStaking::set_total_selected(
-			RuntimeOrigin::root(),
-			10u32
-		));
+		assert_noop!(
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 10u32),
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+		);
 	});
 }
 
@@ -139,7 +139,7 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 }
 
 #[test]
-fn set_blocks_per_round_passes_if_equal_to_total_selected() {
+fn set_blocks_per_round_fails_if_equal_to_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
 			RuntimeOrigin::root(),
@@ -149,10 +149,10 @@ fn set_blocks_per_round_passes_if_equal_to_total_selected() {
 			RuntimeOrigin::root(),
 			9u32
 		));
-		assert_ok!(ParachainStaking::set_blocks_per_round(
-			RuntimeOrigin::root(),
-			9u32
-		));
+		assert_noop!(
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 9u32),
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
+		);
 	});
 }
 
@@ -330,7 +330,7 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 			roll_to(17);
 			assert_ok!(ParachainStaking::set_blocks_per_round(
 				RuntimeOrigin::root(),
-				5u32
+				6u32
 			));
 			roll_to(18);
 			assert_events_emitted!(Event::NewRound {
@@ -9021,5 +9021,23 @@ fn test_on_initialize_weights() {
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
+		});
+}
+
+#[test]
+fn test_compute_top_candidates_is_stable() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30)])
+		.with_candidates(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30)])
+		.build()
+		.execute_with(|| {
+			// There are 6 candidates with equal amount, but only 5 can be selected
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 6);
+			assert_eq!(ParachainStaking::total_selected(), 5);
+			// Returns the 5 candidates with greater AccountId, because they are iterated in reverse
+			assert_eq!(
+				ParachainStaking::compute_top_candidates(),
+				vec![2, 3, 4, 5, 6]
+			);
 		});
 }

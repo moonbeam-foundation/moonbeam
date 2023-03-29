@@ -3,7 +3,7 @@
   "id": "moonbase_alpha",
   "chainType": "Live",
   "bootNodes": [
-    "/dns4/frag-moonbase-alpha-boot-0.g.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWNtwcFhwfsTb14BiUX4jTHvDVY424nyDySYWMNZjmFA2R",
+    "/dns4/frag3-moonbase-alpha-boot-0.g.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWR8LYVd9gJYwTRhvKVxm8u7yAxV7pne7nuGd3QwsMAEzj",
     "/dns4/mtla-moonbase-alpha-boot-0.a.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWLkGLsJMmQDCXDitJn6y6ZTPXqmcQ7bkMDKpsx6YWiZDD"
   ],
   "telemetryEndpoints": [

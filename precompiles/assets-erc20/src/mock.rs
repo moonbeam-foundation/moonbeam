@@ -31,7 +31,7 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{AddressInPrefixedSet, MockAccount},
 };
-use sp_core::{H160, H256};
+use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, ConstU32, IdentityLookup};
 
 pub type AccountId = MockAccount;
@@ -198,6 +198,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 type ForeignAssetInstance = pallet_assets::Instance1;
@@ -229,7 +230,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<1000>;
+	type RemoveItemsLimit = ConstU32<656>;
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
@@ -250,7 +251,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Extra = ();
 	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<1000>;
+	type RemoveItemsLimit = ConstU32<656>;
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();

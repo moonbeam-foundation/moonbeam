@@ -19,7 +19,7 @@ use sp_core::H256;
 use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
 // so it's load_hash helper returns an H256 instead of wrapping it in a BlockId?
-use sp_api::BlockId;
+use fc_db::Backend as FrontierBackend;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block;
 
@@ -91,8 +91,7 @@ async fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + '
 	let substrate_hash =
 		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash).await? {
 			// If we find this hash in the frontier data base, we know it is an eth hash
-			Some(BlockId::Hash(hash)) => hash,
-			Some(BlockId::Number(_)) => panic!("is_canon test only works with hashes."),
+			Some(hash) => hash,
 			// Otherwise, we assume this is a Substrate hash.
 			None => raw_hash,
 		};

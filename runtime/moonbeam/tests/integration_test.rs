@@ -111,7 +111,6 @@ fn verify_pallet_prefixes() {
 	// is pulled in substrate deps.
 	is_pallet_prefix::<moonbeam_runtime::System>("System");
 	is_pallet_prefix::<moonbeam_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonbeam_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
 	is_pallet_prefix::<moonbeam_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbeam_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonbeam_runtime::ParachainInfo>("ParachainInfo");
@@ -266,7 +265,6 @@ fn verify_pallet_indices() {
 	// System support
 	is_pallet_index::<moonbeam_runtime::System>(0);
 	is_pallet_index::<moonbeam_runtime::ParachainSystem>(1);
-	is_pallet_index::<moonbeam_runtime::RandomnessCollectiveFlip>(2);
 	is_pallet_index::<moonbeam_runtime::Timestamp>(3);
 	is_pallet_index::<moonbeam_runtime::ParachainInfo>(4);
 	// Monetary
@@ -1435,7 +1433,7 @@ fn root_can_change_default_xcm_vers() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -1447,8 +1445,8 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-					WeightLimit::Limited(4000000000)
+					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1464,8 +1462,8 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
-				Box::new(xcm::VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(4000000000.into())
 			));
 		})
 }
@@ -1587,7 +1585,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1639,7 +1637,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1660,7 +1658,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1712,7 +1710,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13249)
+				.expect_cost(12787)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1739,7 +1737,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13575)
+				.expect_cost(13016)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1784,7 +1782,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7094)
+				.expect_cost(6699)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1803,7 +1801,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7074)
+				.expect_cost(6713)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1838,7 +1836,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5944)
+				.expect_cost(5548)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1855,7 +1853,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5964)
+				.expect_cost(5550)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1892,7 +1890,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6973)
+				.expect_cost(6614)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1934,7 +1932,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						issuer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5940)
+				.expect_cost(5577)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -2057,7 +2055,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2122,7 +2120,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2143,7 +2141,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2205,7 +2203,7 @@ fn xtokens_precompile_transfer() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2255,7 +2253,7 @@ fn xtokens_precompile_transfer_multiasset() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2298,18 +2296,18 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
 			assert_ok!(XTokens::transfer_multiasset(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedMultiAsset::V1(MultiAsset {
+				Box::new(VersionedMultiAsset::V3(MultiAsset {
 					id: Concrete(moonbeam_runtime::xcm_config::SelfReserve::get()),
 					fun: Fungible(1000)
 				})),
-				Box::new(VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(40000)
+				Box::new(VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(40000.into())
 			));
 		});
 }
@@ -2332,7 +2330,7 @@ fn make_sure_glmr_can_be_transferred() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2340,8 +2338,8 @@ fn make_sure_glmr_can_be_transferred() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::SelfReserve,
 				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(40000)
+				Box::new(VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(40000.into())
 			));
 		});
 }
@@ -2363,7 +2361,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2375,9 +2373,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedMultiLocation::V1(dest.clone())),
-					beneficiary: Box::new(VersionedMultiLocation::V1(dest)),
-					assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+					dest: Box::new(VersionedMultiLocation::V3(dest.clone())),
+					beneficiary: Box::new(VersionedMultiLocation::V3(dest)),
+					assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2410,16 +2408,16 @@ fn transact_through_signed_precompile_not_enabled() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				Some(4000)
+				3000.into(),
+				20000.into(),
+				Some(4000.into())
 			));
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1,
 			));
 
@@ -2466,34 +2464,34 @@ fn transact_through_signed_mult_not_enabled() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
+				3000.into(),
+				20000.into(),
 				// lets say 1000 per instruction
-				Some(4000)
+				Some(4000.into())
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
 			assert_noop!(
 				RuntimeCall::XcmTransactor(
 					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+						dest: Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 						fee: CurrencyPayment {
 							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+								xcm::VersionedMultiLocation::V3(MultiLocation::parent())
 							)),
 							fee_amount: None
 						},
 						call: vec![],
 						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
+							transact_required_weight_at_most: 11000.into(),
 							overall_weight: None
 						}
 					}
@@ -2529,34 +2527,34 @@ fn transact_through_signed_not_enabled() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
+				3000.into(),
+				20000.into(),
 				// lets say 1000 per instruction
-				Some(4000)
+				Some(4000.into())
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
 			assert_noop!(
 				RuntimeCall::XcmTransactor(
 					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+						dest: Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 						fee: CurrencyPayment {
 							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+								xcm::VersionedMultiLocation::V3(MultiLocation::parent())
 							)),
 							fee_amount: None
 						},
 						call: vec![],
 						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
+							transact_required_weight_at_most: 11000.into(),
 							overall_weight: None
 						}
 					}
@@ -2600,17 +2598,17 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
+				3000.into(),
+				20000.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1,
 			));
 
@@ -2621,14 +2619,14 @@ fn transactor_cannot_use_more_than_max_weight() {
 					0,
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
-							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
 						)),
 						fee_amount: None
 					},
 					vec![],
 					// 2000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2646,7 +2644,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2680,7 +2678,7 @@ fn call_xtokens_with_fee() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2694,8 +2692,8 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+				WeightLimit::Limited(4000000000.into())
 			));
 
 			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
@@ -2758,7 +2756,7 @@ fn test_xcm_utils_ml_to_account() {
 			X2(
 				Parachain(2000),
 				AccountKey20 {
-					network: Any,
+					network: None,
 					key: ALICE,
 				},
 			),
@@ -2783,9 +2781,9 @@ fn test_xcm_utils_ml_to_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
+		let expected_weight = UnitWeightCost::get().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),

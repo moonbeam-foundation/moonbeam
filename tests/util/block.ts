@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-
+import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
@@ -50,40 +50,12 @@ export function calculateFeePortions(amount: bigint): { burnt: bigint; treasury:
 }
 
 export interface TxWithEventAndFee extends TxWithEvent {
-  fee: RuntimeDispatchInfo;
+  fee: RuntimeDispatchInfo | RuntimeDispatchInfoV1;
 }
 
 export interface BlockDetails {
   block: Block;
   txWithEvents: TxWithEventAndFee[];
-}
-
-export function mapExtrinsics(
-  extrinsics: Extrinsic[],
-  records: FrameSystemEventRecord[],
-  fees?: RuntimeDispatchInfo[]
-): TxWithEventAndFee[] {
-  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
-    let dispatchError: DispatchError | undefined;
-    let dispatchInfo: DispatchInfo | undefined;
-
-    const events = records
-      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-      .map(({ event }) => {
-        if (event.section === "system") {
-          if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as any as DispatchInfo;
-          } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as any as DispatchError;
-            dispatchInfo = event.data[1] as any as DispatchInfo;
-          }
-        }
-
-        return event as any;
-      });
-
-    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
-  });
 }
 
 const getBlockDetails = async (
@@ -358,7 +330,7 @@ export const getBlockExtrinsic = async (
   return { block, extrinsic, events, resultEvent };
 };
 
-export async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
+export async function jumpToRound(context: DevTestContext, round: number): Promise<string | null> {
   let lastBlockHash = null;
   while (true) {
     const currentRound = (
@@ -371,6 +343,13 @@ export async function jumpToRound(context: DevTestContext, round: Number): Promi
     }
 
     lastBlockHash = (await context.createBlock()).block.hash.toString();
+  }
+}
+
+export async function jumpBlocks(context: DevTestContext, blockCount: number) {
+  while (blockCount > 0) {
+    (await context.createBlock()).block.hash.toString();
+    blockCount--;
   }
 }
 
@@ -393,6 +372,17 @@ export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
     finalized: (await api.rpc.moon.isBlockFinalized(await api.rpc.chain.getBlockHash(number)))
       .isTrue,
   };
+};
+
+// Determine if the block range intersects with an upgrade event
+export const checkTimeSliceForUpgrades = async (
+  api: ApiPromise,
+  blockNumbers: number[],
+  currentVersion: u32
+) => {
+  const apiAt = await api.at(await api.rpc.chain.getBlockHash(blockNumbers[0]));
+  const onChainRt = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion;
+  return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
 };
 
 const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
@@ -491,4 +481,32 @@ export function extractPreimageDeposit(
     accountId: deposit[0].toHex(),
     amount: deposit[1],
   };
+}
+
+export function mapExtrinsics(
+  extrinsics: Extrinsic[],
+  records: FrameSystemEventRecord[],
+  fees?: RuntimeDispatchInfo[] | RuntimeDispatchInfoV1[]
+): TxWithEventAndFee[] {
+  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
+    let dispatchError: DispatchError | undefined;
+    let dispatchInfo: DispatchInfo | undefined;
+
+    const events = records
+      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+      .map(({ event }) => {
+        if (event.section === "system") {
+          if (event.method === "ExtrinsicSuccess") {
+            dispatchInfo = event.data[0] as any as DispatchInfo;
+          } else if (event.method === "ExtrinsicFailed") {
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
+          }
+        }
+
+        return event as any;
+      });
+
+    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
+  });
 }

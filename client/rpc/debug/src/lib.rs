@@ -308,8 +308,8 @@ where
 					client.as_ref(),
 					frontier_backend,
 					eth_hash,
-				)) {
-					Ok(Some(id)) => Ok(id),
+				) {
+					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
 					Ok(_) => Err(internal_err("Block hash not found".to_string())),
 					Err(e) => Err(e),
 				}
@@ -332,16 +332,13 @@ where
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
-			client.as_ref(),
-			reference_id,
-		);
+		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), hash);
 
 		// Using storage overrides we align with `:ethereum_schema` which will result in proper
 		// SCALE decoding in case of migration.
 		let statuses = match overrides.schemas.get(&schema) {
 			Some(schema) => schema
-				.current_transaction_statuses(&reference_id)
+				.current_transaction_statuses(hash)
 				.unwrap_or_default(),
 			_ => {
 				return Err(internal_err(format!(
@@ -443,16 +440,15 @@ where
 				Err(e) => return Err(e),
 			};
 
-		let reference_id =
-			match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
-				client.as_ref(),
-				frontier_backend,
-				hash,
-			)) {
-				Ok(Some(hash)) => hash,
-				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-				Err(e) => return Err(e),
-			};
+		let reference_id = match frontier_backend_client::load_hash::<B, C>(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			hash,
+		) {
+			Ok(Some(hash)) => BlockId::Hash(hash),
+			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+			Err(e) => return Err(e),
+		};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend
@@ -485,19 +481,17 @@ where
 			));
 		};
 
-		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
-			client.as_ref(),
-			reference_id,
-		);
+		let schema =
+			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), reference_hash);
 
 		// Get the block that contains the requested transaction. Using storage overrides we align
 		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
 		let reference_block = match overrides.schemas.get(&schema) {
-			Some(schema) => schema.current_block(&reference_id),
+			Some(schema) => schema.current_block(reference_hash),
 			_ => {
 				return Err(internal_err(format!(
 					"No storage override at {:?}",
-					reference_id
+					reference_hash
 				)))
 			}
 		};

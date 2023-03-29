@@ -27,7 +27,7 @@ use frame_system::EnsureRootWithSuccess;
 use sp_runtime::traits::Replace;
 
 parameter_types! {
-	pub const VoteLockingPeriod: BlockNumber = 7 * DAYS;
+	pub const VoteLockingPeriod: BlockNumber = 1 * DAYS;
 }
 
 impl pallet_conviction_voting::Config for Runtime {
@@ -44,8 +44,8 @@ impl pallet_conviction_voting::Config for Runtime {
 
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
-	pub const SubmissionDeposit: Balance = 100 * MOVR * SUPPLY_FACTOR;
-	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
+	pub const SubmissionDeposit: Balance = 10 * MOVR * SUPPLY_FACTOR;
+	pub const UndecidingTimeout: BlockNumber = 14 * DAYS;
 }
 
 // Origin for general admin or root
@@ -84,8 +84,8 @@ impl pallet_referenda::Config for Runtime {
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
-	type CancelOrigin = ReferendumCanceller;
-	type KillOrigin = ReferendumKiller;
+	type CancelOrigin = EitherOf<EnsureRoot<Self::AccountId>, ReferendumCanceller>;
+	type KillOrigin = EitherOf<EnsureRoot<Self::AccountId>, ReferendumKiller>;
 	type Slash = Treasury;
 	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime>;

@@ -22,8 +22,8 @@
 use super::serialization::*;
 use serde::Serialize;
 
-use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
+use parity_scale_codec::{Decode, Encode};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
@@ -57,7 +57,7 @@ pub enum TransactionTrace {
 		gas: U256,
 		#[serde(with = "hex")]
 		return_value: Vec<u8>,
-		step_logs: Vec<RawStepLog>,
+		struct_logs: Vec<RawStepLog>,
 	},
 	/// Matches the formatter used by Blockscout.
 	/// Is also used to built output of OpenEthereum's `trace_filter`.

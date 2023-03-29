@@ -23,7 +23,7 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
-use precompile_utils::{precompile_set::*, testing::MockAccount};
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
@@ -101,6 +101,8 @@ pub type Precompiles<R> =
 
 pub type PCall = AuthorMappingPrecompileCall<Runtime>;
 
+mock_account!(AuthorMappingAccount, |_| MockAccount::from_u64(1));
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
@@ -124,6 +126,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 parameter_types! {

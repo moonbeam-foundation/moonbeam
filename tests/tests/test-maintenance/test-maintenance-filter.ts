@@ -119,18 +119,18 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
               "SelfReserve", //enum
               100n * GLMR,
               {
-                V1: {
+                V3: {
                   parents: 1n,
                   interior: {
                     X2: [
                       { Parachain: 2000n },
-                      { AccountKey20: { network: "Any", key: hexToU8a(baltathar.address) } },
+                      { AccountKey20: { network: null, key: hexToU8a(baltathar.address) } },
                     ],
                   },
                 },
-              },
+              } as any,
               {
-                Limited: 4000000000,
+                Limited: { refTime: 4000000000, proofSize: 64 * 1024 },
               }
             )
             .signAsync(baltathar)

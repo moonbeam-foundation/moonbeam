@@ -140,7 +140,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -174,7 +174,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2200,
+	spec_version: 2300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -354,8 +354,6 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
-impl pallet_randomness_collective_flip::Config for Runtime {}
-
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
 /// Given the 500ms Weight, from which 75% only are used for transactions,
@@ -472,6 +470,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -673,9 +672,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 1000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCollatorStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 500 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -960,11 +959,18 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
@@ -1250,7 +1256,7 @@ construct_runtime! {
 		// System support stuff.
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
+		// Previously 2: pallet_randomness_collective_flip
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,
@@ -1331,6 +1337,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
+	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
@@ -1406,7 +1413,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
 							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.6;
+							let charge_transaction = &signed_extra.7;
 							charge_transaction.tip()
 						}
 					};
@@ -1565,11 +1572,11 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(1 * KILOMOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(500 * MOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

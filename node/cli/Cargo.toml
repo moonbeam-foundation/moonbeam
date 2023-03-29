@@ -1,60 +1,61 @@
 [package]
 name = "moonbeam-cli"
-authors = [ "PureStake" ]
+authors = { workspace = true }
 edition = "2021"
-version = "0.29.0"
+version = "0.31.0"
+
 [dependencies]
-clap = { version = "4.0.9", features = [ "derive" ] }
-log = "0.4.8"
-parity-scale-codec = "3.0.0"
+clap = { workspace = true, features = [ "derive" ] }
+log = { workspace = true }
+parity-scale-codec = { workspace = true }
 
 # Moonbeam
-cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
-service = { package = "moonbeam-service", path = "../service", default-features = false }
+moonbeam-cli-opt = { workspace = true }
+moonbeam-service = { workspace = true }
 
 # Substrate
-frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-finality-grandpa = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
-try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37", optional = true }
+frame-benchmarking-cli = { workspace = true }
+sc-cli = { workspace = true }
+sc-finality-grandpa = { workspace = true }
+sc-service = { workspace = true }
+sc-sysinfo = { workspace = true }
+sc-telemetry = { workspace = true }
+sc-tracing = { workspace = true }
+sp-core = { workspace = true, features = [ "std" ] }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true, features = [ "std" ] }
+sp-wasm-interface = { workspace = true }
+substrate-prometheus-endpoint = { workspace = true }
+try-runtime-cli = { workspace = true, optional = true }
 
 # Cumulus / Nimbus
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.37" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.37" }
+cumulus-client-cli = { workspace = true }
+cumulus-client-service = { workspace = true }
+cumulus-primitives-core = { workspace = true, features = [ "std" ] }
+nimbus-primitives = { workspace = true, features = [ "std" ] }
 
 # Polkadot
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.37" }
+polkadot-cli = { workspace = true }
+polkadot-parachain = { workspace = true, features = [ "std" ] }
+polkadot-primitives = { workspace = true }
+polkadot-service = { workspace = true }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native", "westend-native" ]
 
 westend-native = [ "polkadot-service/westend-native" ]
 
-moonbase-native = [ "service/moonbase-native", "westend-native" ]
-moonbeam-native = [ "service/moonbeam-native" ]
-moonriver-native = [ "service/moonriver-native" ]
+moonbase-native = [ "moonbeam-service/moonbase-native", "westend-native" ]
+moonbeam-native = [ "moonbeam-service/moonbeam-native" ]
+moonriver-native = [ "moonbeam-service/moonriver-native" ]
 
-runtime-benchmarks = [ "polkadot-service/runtime-benchmarks", "service/runtime-benchmarks" ]
+runtime-benchmarks = [ "moonbeam-service/runtime-benchmarks", "polkadot-service/runtime-benchmarks" ]
 try-runtime = [
-	"service/try-runtime",
+	"moonbeam-service/try-runtime",
 	"try-runtime-cli/try-runtime",
 ]
 
-moonbase-runtime-benchmarks = [ "service/moonbase-runtime-benchmarks" ]
+moonbase-runtime-benchmarks = [ "moonbeam-service/moonbase-runtime-benchmarks" ]

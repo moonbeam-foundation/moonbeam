@@ -24,14 +24,13 @@
 
 pub mod rpc;
 
-use cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use cumulus_primitives_core::relay_chain::v2::CollatorPair;
+use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
@@ -45,6 +44,7 @@ use futures::StreamExt;
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
+use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
@@ -955,7 +955,7 @@ where
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
-	sealing: cli_opt::Sealing,
+	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
@@ -1028,7 +1028,7 @@ where
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
-				cli_opt::Sealing::Instant => {
+				moonbeam_cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
 						transaction_pool
@@ -1043,13 +1043,13 @@ where
 							}),
 					)
 				}
-				cli_opt::Sealing::Manual => {
+				moonbeam_cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
 				}
-				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
+				moonbeam_cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,

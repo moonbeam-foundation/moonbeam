@@ -21,7 +21,7 @@ use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
-use sp_core::{H160, H256};
+use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
@@ -140,6 +140,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 parameter_types! {

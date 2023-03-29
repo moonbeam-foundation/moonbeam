@@ -145,7 +145,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -179,7 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 2200,
+	spec_version: 2300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -368,8 +368,6 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
-impl pallet_randomness_collective_flip::Config for Runtime {}
-
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
 /// Given the 500ms Weight, from which 75% only are used for transactions,
@@ -482,6 +480,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -976,11 +975,18 @@ impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
-	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
@@ -1260,7 +1266,7 @@ construct_runtime! {
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
+		// Previously 5: pallet_randomness_collective_flip
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
@@ -1319,6 +1325,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
+	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
@@ -1396,7 +1403,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
 							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.6;
+							let charge_transaction = &signed_extra.7;
 							charge_transaction.tip()
 						}
 					};

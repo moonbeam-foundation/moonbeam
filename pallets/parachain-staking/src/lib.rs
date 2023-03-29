@@ -629,6 +629,8 @@ pub mod pallet {
 		pub parachain_bond_reserve_percent: Percent,
 		/// Default number of blocks in a round
 		pub blocks_per_round: u32,
+		/// Number of selected candidates every round. Cannot be lower than MinSelectedCandidates
+		pub num_selected_candidates: u32,
 	}
 
 	#[cfg(feature = "std")]
@@ -641,6 +643,7 @@ pub mod pallet {
 				collator_commission: Default::default(),
 				parachain_bond_reserve_percent: Default::default(),
 				blocks_per_round: 1u32,
+				num_selected_candidates: T::MinSelectedCandidates::get(),
 			}
 		}
 	}
@@ -730,8 +733,13 @@ pub mod pallet {
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: self.parachain_bond_reserve_percent,
 			});
-			// Set total selected candidates to minimum config
-			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Set total selected candidates to value from config
+			assert!(
+				self.num_selected_candidates >= T::MinSelectedCandidates::get(),
+				"{:?}",
+				Error::<T>::CannotSetBelowMin
+			);
+			<TotalSelected<T>>::put(self.num_selected_candidates);
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
@@ -856,7 +864,7 @@ pub mod pallet {
 			let old = <TotalSelected<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
-				new <= <Round<T>>::get().length,
+				new < <Round<T>>::get().length,
 				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			<TotalSelected<T>>::put(new);
@@ -895,7 +903,7 @@ pub mod pallet {
 			let (now, first, old) = (round.current, round.first, round.length);
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
-				new >= <TotalSelected<T>>::get(),
+				new > <TotalSelected<T>>::get(),
 				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
@@ -1708,22 +1716,49 @@ pub mod pallet {
 		}
 
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
-		/// a vec of their AccountIds (in the order of selection)
+		/// a vec of their AccountIds (sorted by AccountId)
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
-			let mut candidates = <CandidatePool<T>>::get().0;
-			// order candidates by stake (least to greatest so requires `rev()`)
-			candidates.sort_by(|a, b| a.amount.cmp(&b.amount));
 			let top_n = <TotalSelected<T>>::get() as usize;
-			// choose the top TotalSelected qualified candidates, ordered by stake
-			let mut collators = candidates
-				.into_iter()
-				.rev()
-				.take(top_n)
-				.filter(|x| x.amount >= T::MinCollatorStk::get())
-				.map(|x| x.owner)
-				.collect::<Vec<T::AccountId>>();
-			collators.sort();
-			collators
+			if top_n == 0 {
+				return vec![];
+			}
+
+			let mut candidates = <CandidatePool<T>>::get().0;
+
+			// If the number of candidates is greater than top_n, select the candidates with higher
+			// amount. Otherwise, return all the candidates.
+			if candidates.len() > top_n {
+				// Partially sort candidates such that element at index `top_n - 1` is sorted, and
+				// all the elements in the range 0..top_n are the top n elements.
+				candidates.select_nth_unstable_by(top_n - 1, |a, b| {
+					// Order by amount, then owner. The owner is needed to ensure a stable order
+					// when two accounts have the same amount.
+					a.amount
+						.cmp(&b.amount)
+						.then_with(|| a.owner.cmp(&b.owner))
+						.reverse()
+				});
+
+				let mut collators = candidates
+					.into_iter()
+					.take(top_n)
+					.filter(|x| x.amount >= T::MinCollatorStk::get())
+					.map(|x| x.owner)
+					.collect::<Vec<T::AccountId>>();
+
+				// Sort collators by AccountId
+				collators.sort();
+
+				collators
+			} else {
+				// Return all candidates
+				// The candidates are already sorted by AccountId, so no need to sort again
+				candidates
+					.into_iter()
+					.filter(|x| x.amount >= T::MinCollatorStk::get())
+					.map(|x| x.owner)
+					.collect::<Vec<T::AccountId>>()
+			}
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, delegation_count, total staked]

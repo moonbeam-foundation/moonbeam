@@ -36,7 +36,7 @@ interface Proxy {
         uint32 delay
     ) external;
 
-    /// @dev Register a proxy account for the sender that is able to make calls on its behalf
+    /// @dev Removes a proxy account from the sender
     /// @custom:selector fef3f708
     /// @param delegate The account that the caller would like to remove as a proxy
     /// @param proxyType The permissions currently enabled for the removed proxy account
@@ -51,8 +51,8 @@ interface Proxy {
     /// @custom:selector 14a5b5fa
     function removeProxies() external;
 
-    /// @dev Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender
-    /// is authorised for through `add_proxy`
+    /// @dev Dispatch the given subcall (`callTo`, `callData`) from an account that the sender
+    /// is authorised for through `addProxy`
     /// @custom:selector 0d3cff86
     /// @param real The account that the proxy will make a call on behalf of
     /// @param callTo Recipient of the call to be made by the `real` account
@@ -63,14 +63,14 @@ interface Proxy {
         bytes memory callData
     ) external payable;
 
-    /// @dev Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender
-    /// is authorised for through `add_proxy`
-    /// @custom:selector 4a36b2cd
+    /// @dev Dispatch the given subcall (`callTo`, `callData`) from an account that the sender
+    /// is authorised for through `addProxy`
+    /// @custom:selector 685b9d2f
     /// @param real The account that the proxy will make a call on behalf of
     /// @param forceProxyType Specify the exact proxy type to be used and checked for this call
     /// @param callTo Recipient of the call to be made by the `real` account
     /// @param callData Data of the call to be made by the `real` account
-    function proxy_force_type(
+    function proxyForceType(
         address real,
         ProxyType forceProxyType,
         address callTo,

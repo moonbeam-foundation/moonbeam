@@ -159,7 +159,7 @@ fn vote_locking_always_longer_than_enactment_period() {
 	for (_, track) in TRACKS_DATA {
 		assert!(
 			<Runtime as pallet_conviction_voting::Config>::VoteLockingPeriod::get()
-				> track.min_enactment_period,
+				>= track.min_enactment_period,
 			"Track {} has enactment period {} < vote locking period {}",
 			track.name,
 			track.min_enactment_period,
