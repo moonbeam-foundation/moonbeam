@@ -352,7 +352,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::v2::HrmpChannelId {
+			relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
 			},

@@ -1192,8 +1192,8 @@ fn test_hrmp_manipulator_cancel() {
 		.execute_with(|| {
 			// We are gonna use a total weight of 10_100, a tx weight of 100,
 			// and a total fee of 100
-			let total_weight = 10_100u64;
-			let tx_weight = 100_u64;
+			let total_weight: Weight = 10_100u64.into();
+			let tx_weight: Weight = 100_u64.into();
 			let total_fee = 100u128;
 			let channel_id = HrmpChannelId {
 				sender: 1u32.into(),
@@ -1208,7 +1208,7 @@ fn test_hrmp_manipulator_cancel() {
 					open_requests
 				},
 				CurrencyPayment {
-					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 						MultiLocation::parent()
 					))),
 					fee_amount: Some(total_fee)
@@ -1230,7 +1230,7 @@ fn test_hrmp_manipulator_cancel() {
 				weight_limit: Limited(total_weight),
 			}));
 			assert!(sent_message.0.contains(&Transact {
-				origin_type: OriginKind::Native,
+				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
 				call: vec![1u8, 6u8].into(),
 			}));
