@@ -94,7 +94,9 @@ describeSmokeSuite(
         debug(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
         this.skip();
       }
-      const callHex = context.relayApi.tx.hrmp.hrmpCloseChannel([2000, 2001]).method.toHex();
+      const callHex = context.relayApi.tx.hrmp
+        .hrmpCloseChannel({ sender: 2000, recipient: 2001 })
+        .method.toHex();
       const resp = await relayEncoder.encodeHrmpCloseChannel(2000, 2001);
       expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
     });
