@@ -178,6 +178,7 @@ mod tests {
 		type BlockGasLimit = BlockGasLimit;
 		type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 		type FindAuthor = ();
+		type OnCreate = ();
 	}
 
 	parameter_types! {

@@ -140,6 +140,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type OnCreate = ();
 }
 
 parameter_types! {

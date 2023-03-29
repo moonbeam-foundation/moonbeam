@@ -18,11 +18,11 @@ use crate::mock::{
 	RuntimeOrigin, TransactorV1, TransactorV2, XcmTransactor,
 };
 
-use frame_support::assert_ok;
+use frame_support::{assert_ok, dispatch::Weight};
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;
-use xcm::v1::MultiLocation;
+use xcm::latest::MultiLocation;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -142,16 +142,16 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000u64,
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000u64.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -187,16 +187,16 @@ fn take_transact_info_with_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000u64,
-				Some(1)
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000u64.into(),
+				Some(1.into())
 			));
 
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -233,7 +233,7 @@ fn take_fee_per_second() {
 			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 			precompiles()
@@ -300,16 +300,16 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000000,
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000000.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -353,16 +353,16 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000000,
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000000.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -434,16 +434,16 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000000,
-				Some(1)
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000000.into(),
+				Some(1.into())
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -512,16 +512,16 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				0,
-				10000000,
-				Some(1)
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Weight::zero(),
+				10000000.into(),
+				Some(1.into())
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 

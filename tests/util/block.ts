@@ -374,6 +374,17 @@ export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
   };
 };
 
+// Determine if the block range intersects with an upgrade event
+export const checkTimeSliceForUpgrades = async (
+  api: ApiPromise,
+  blockNumbers: number[],
+  currentVersion: u32
+) => {
+  const apiAt = await api.at(await api.rpc.chain.getBlockHash(blockNumbers[0]));
+  const onChainRt = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion;
+  return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
+};
+
 const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
   const hash = await api.rpc.chain.getBlockHash(blockNum);
   const block = await api.rpc.chain.getBlock(hash);

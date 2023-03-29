@@ -13,6 +13,7 @@ slices = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }

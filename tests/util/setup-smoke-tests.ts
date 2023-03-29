@@ -1,3 +1,5 @@
+import "@moonbeam-network/api-augment/moonbase";
+import "@polkadot/api-augment/kusama";
 import { ApiPromise } from "@polkadot/api";
 import { providers } from "ethers";
 import { setTimeout } from "timers/promises";

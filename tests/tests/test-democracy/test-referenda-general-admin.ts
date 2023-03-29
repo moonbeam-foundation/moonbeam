@@ -13,14 +13,14 @@ describeDevMoonbeam("Referenda - GeneralAdmin", (context) => {
     // Just build the arguments. They dont matter that much though, since
     // we will not make sure it executes in the relay
     const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
-      transactRequiredWeightAtMost: 10000,
-      overallWeight: 10000,
+      transactRequiredWeightAtMost: { refTime: 10000, proofSize: 10000 },
+      overallWeight: { refTime: 10000, proofSize: 10000 },
     });
 
     let fee = context.polkadotApi.createType("PalletXcmTransactorCurrencyPayment", {
       currency: {
         AsMultiLocation: {
-          V1: {
+          V3: {
             parents: 1,
             interior: {
               Here: null,
