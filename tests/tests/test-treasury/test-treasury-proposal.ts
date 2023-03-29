@@ -198,7 +198,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
         context.polkadotApi.tx.councilCollective
           .close(proposalHash, 0,  {
             refTime: 800_000_000,
-            proofSize: 0
+            proofSize: 64 * 1024
           } as any, 1_000)
           .signAsync(dorothy, { nonce: 1 }),
       ]);
@@ -253,7 +253,7 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
         context.polkadotApi.tx.councilCollective
           .close(councilProposalHash, 0, {
             refTime: 800_000_000,
-            proofSize: 0
+            proofSize: 64 * 1024
           } as any, 1_000)
           .signAsync(dorothy)
       );
@@ -309,7 +309,7 @@ describeDevMoonbeam("Treasury proposal #9", (context) => {
         context.polkadotApi.tx.treasuryCouncilCollective
           .close(proposalHash, 0, {
             refTime: 800_000_000,
-            proofSize: 0
+            proofSize: 64 * 1024
           } as any, 1_000)
           .signAsync(dorothy, { nonce: 1 }),
       ]);
@@ -364,7 +364,7 @@ describeDevMoonbeam("Treasury proposal #10", (context) => {
           0,
           {
             refTime: 800_000_000,
-            proofSize: 0,
+            proofSize: 64 * 1024,
           } as any,
           1_000
         )

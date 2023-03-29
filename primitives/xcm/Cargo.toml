@@ -38,6 +38,9 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
+
 [features]
 default = [ "std" ]
 std = [
@@ -53,4 +56,4 @@ std = [
 	"xcm-builder/std",
 	"xcm/std",
 ]
-runtime-benchmarks = []
+runtime-benchmarks = [ "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "xcm-builder/runtime-benchmarks" ]

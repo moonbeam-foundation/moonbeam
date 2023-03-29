@@ -134,7 +134,6 @@ frame-benchmarking = { workspace = true, features = [ "std" ] }
 frame-benchmarking-cli = { workspace = true }
 
 [dev-dependencies]
-assert_cmd = { workspace = true }
 nix = { workspace = true }
 prometheus = { workspace = true }
 rand = { workspace = true }

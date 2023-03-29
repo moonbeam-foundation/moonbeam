@@ -7,6 +7,7 @@ import {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitFatal,
 } from "@polkadot/types/lookup";
+import { ethers } from "ethers";
 
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
@@ -14,6 +15,20 @@ export type Errors = {
   Revert: EvmCoreErrorExitRevert["type"];
   Fatal: EvmCoreErrorExitFatal["type"];
 };
+
+export async function extractRevertReason(
+  responseHash: string,
+  ethers: ethers.providers.JsonRpcProvider
+) {
+  const tx = await ethers.getTransaction(responseHash);
+  try {
+    await ethers.call(tx, tx.blockNumber);
+    return null;
+  } catch (e) {
+    const jsonError = JSON.parse(e.error.body);
+    return jsonError.error.message.split("VM Exception while processing transaction: revert ")[1];
+  }
+}
 
 export function expectEVMResult<T extends Errors, Type extends keyof T>(
   events: EventRecord[],

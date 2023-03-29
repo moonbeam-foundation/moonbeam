@@ -18,7 +18,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
@@ -34,7 +34,9 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::latest::MultiLocation;
-use xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall};
+use xcm_primitives::{
+	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
+};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
@@ -86,9 +88,9 @@ where
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok((
-			remote_transact_info.transact_extra_weight,
+			remote_transact_info.transact_extra_weight.ref_time(),
 			fee_per_second.into(),
-			remote_transact_info.max_weight,
+			remote_transact_info.max_weight.ref_time(),
 		))
 	}
 
@@ -105,12 +107,12 @@ where
 
 		let transact_extra_weight_signed = remote_transact_info
 			.transact_extra_weight_signed
-			.unwrap_or(0);
+			.unwrap_or(Weight::zero());
 
 		Ok((
-			remote_transact_info.transact_extra_weight,
-			transact_extra_weight_signed,
-			remote_transact_info.max_weight,
+			remote_transact_info.transact_extra_weight.ref_time(),
+			transact_extra_weight_signed.ref_time(),
+			remote_transact_info.max_weight.ref_time(),
 		))
 	}
 
@@ -148,14 +150,21 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: None,
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				// TODO overall weight None means we will retrieve the allowed proof size from storage.
+				// In the v2 to v3 migration we set this value to DEFAULT_PROOF_SIZE, so setting
+				// require_weight_at_most to DEFAULT_PROOF_SIZE/2 makes sense. Although we might
+				// want to revisit this to use whatever storage value there is and divide it by 2.
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
 				overall_weight: None,
 			},
 		};
@@ -188,15 +197,18 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 		};
 
@@ -238,7 +250,10 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
 				overall_weight: None,
 			},
 			inner_call,
@@ -285,8 +300,11 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
 		};
@@ -309,15 +327,18 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
 				overall_weight: None,
 			},
 			call,
@@ -343,16 +364,19 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};
@@ -385,13 +409,16 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
 				overall_weight: None,
 			},
 			call,
@@ -427,14 +454,17 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				transact_required_weight_at_most: Weight::from_parts(
+					weight,
+					DEFAULT_PROOF_SIZE.saturating_div(2),
+				),
+				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
 		};

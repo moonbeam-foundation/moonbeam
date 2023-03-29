@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, VoteDirection, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED,
-	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
-	SELECTOR_LOG_VOTE_REMOVED_OTHER,
+	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
+	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_OTHER,
+	SELECTOR_LOG_VOTE_SPLIT, SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
-use frame_support::{
-	assert_ok,
-	dispatch::{Dispatchable, Pays, PostDispatchInfo},
-};
+use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use sp_core::{H160, H256, U256};
-use sp_runtime::{
-	traits::PostDispatchInfoOf, DispatchError, DispatchErrorWithPostInfo, DispatchResultWithInfo,
-};
+use sp_runtime::{traits::PostDispatchInfoOf, DispatchResultWithInfo};
 
 const ONGOING_POLL_INDEX: u32 = 3;
 
@@ -71,54 +66,70 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 	}
 }
 
-fn vote(
-	direction: VoteDirection,
+fn standard_vote(
+	direction: bool,
 	vote_amount: U256,
 	conviction: u8,
 ) -> DispatchResultWithInfo<PostDispatchInfoOf<RuntimeCall>> {
 	let input = match direction {
 		// Vote Yes
-		VoteDirection::Yes => PCall::vote_yes {
+		true => PCall::vote_yes {
 			poll_index: ONGOING_POLL_INDEX,
 			vote_amount,
 			conviction,
 		}
 		.into(),
 		// Vote No
-		VoteDirection::No => PCall::vote_no {
+		false => PCall::vote_no {
 			poll_index: ONGOING_POLL_INDEX,
 			vote_amount,
 			conviction,
 		}
 		.into(),
-		// Unsupported
-		_ => {
-			return Err(DispatchErrorWithPostInfo {
-				post_info: PostDispatchInfo {
-					actual_weight: None,
-					pays_fee: Pays::No,
-				},
-				error: DispatchError::Other("Vote direction not supported"),
-			})
+	};
+	RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root())
+}
+
+fn split_vote(
+	aye: U256,
+	nay: U256,
+	maybe_abstain: Option<U256>,
+) -> DispatchResultWithInfo<PostDispatchInfoOf<RuntimeCall>> {
+	let input = if let Some(abstain) = maybe_abstain {
+		// Vote SplitAbstain
+		PCall::vote_split_abstain {
+			poll_index: ONGOING_POLL_INDEX,
+			aye,
+			nay,
+			abstain,
 		}
+		.into()
+	} else {
+		// Vote Split
+		PCall::vote_split {
+			poll_index: ONGOING_POLL_INDEX,
+			aye,
+			nay,
+		}
+		.into()
 	};
 	RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root())
 }
 
 #[test]
-fn vote_logs_work() {
+fn standard_vote_logs_work() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
 		.execute_with(|| {
 			// Vote Yes
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
 
 			// Vote No
-			assert_ok!(vote(VoteDirection::No, 99_000.into(), 1.into()));
+			assert_ok!(standard_vote(false, 99_000.into(), 1.into()));
 
 			// Assert vote events are emitted.
-			assert!(vec![
+			let expected_events = vec![
 				EvmEvent::Log {
 					log: log2(
 						Precompile1,
@@ -146,10 +157,73 @@ fn vote_logs_work() {
 							.build(),
 					),
 				}
-				.into()
-			]
-			.iter()
-			.all(|log| events().contains(log)));
+				.into(),
+			];
+			for log in expected_events {
+				assert!(
+					events().contains(&log),
+					"Expected event not found: {:?}\nAll events:\n{:?}",
+					log,
+					events()
+				);
+			}
+		})
+}
+
+#[test]
+fn split_vote_logs_work() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote split
+			assert_ok!(split_vote(20_000.into(), 30_000.into(), None));
+
+			// Vote split abstain
+			assert_ok!(split_vote(
+				20_000.into(),
+				20_000.into(),
+				Some(10_000.into())
+			));
+
+			// Assert vote events are emitted.
+			let expected_events = vec![
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_VOTE_SPLIT,
+						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
+						EvmDataWriter::new()
+							.write::<Address>(H160::from(Alice).into()) // caller
+							.write::<U256>(20_000.into()) // aye vote
+							.write::<U256>(30_000.into()) // nay vote
+							.build(),
+					),
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
+						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
+						EvmDataWriter::new()
+							.write::<Address>(H160::from(Alice).into()) // caller
+							.write::<U256>(20_000.into()) // aye vote
+							.write::<U256>(20_000.into()) // nay vote
+							.write::<U256>(10_000.into()) // abstain vote
+							.build(),
+					),
+				}
+				.into(),
+			];
+			for log in expected_events {
+				assert!(
+					events().contains(&log),
+					"Expected event not found: {:?}\nAll events:\n{:?}",
+					log,
+					events()
+				);
+			}
 		})
 }
 
@@ -160,7 +234,7 @@ fn remove_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
 
 			// ..and remove
 			let input = PCall::remove_vote {
@@ -193,7 +267,7 @@ fn remove_other_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
 
 			// ..and remove other
 			let input = PCall::remove_other_vote {
@@ -285,7 +359,7 @@ fn unlock_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote
-			assert_ok!(vote(VoteDirection::Yes, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
 
 			// Remove
 			let input = PCall::remove_vote {

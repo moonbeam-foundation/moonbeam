@@ -21,7 +21,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::Get,
 };
 use pallet_evm::AddressMapping;
@@ -37,7 +37,7 @@ use xcm::{
 	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation, WeightLimit},
 	VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation,
 };
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
 
 #[cfg(test)]
 mod mock;
@@ -98,8 +98,8 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -142,8 +142,8 @@ where
 			currency_id,
 			amount,
 			fee,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -166,12 +166,12 @@ where
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(to_balance),
 			})),
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -202,16 +202,16 @@ where
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
-			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset.clone()),
 				fun: Fungibility::Fungible(amount),
 			})),
-			fee: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			fee: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(fee),
 			})),
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -264,8 +264,8 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
 			currencies,
 			fee_item,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -311,10 +311,10 @@ where
 			})?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
-			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+			assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 			fee_item,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight_limit: WeightLimit::Limited(weight),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
+			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

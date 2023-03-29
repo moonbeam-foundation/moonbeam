@@ -4,7 +4,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@polkadot/api": "^6.6.1",
-    "bip39": "^3.0.3",
+    "bip39": "^3.1.0",
     "eth-block-tracker": "^4.4.3",
     "ethereumjs-wallet": "^1.0.0",
     "ethjs-provider-http": "^0.1.6",
@@ -14,15 +14,14 @@
     "polkadot-launch": "^2.3.0",
     "rlp": "^2.2.6",
     "solc": "^0.8.0",
-    "truffle-privatekey-provider": "^1.5.0",
     "ts-node": "^8.10.1",
     "typescript": "^4.4.3",
     "web3": "^1.8.0",
-    "web3x": "^4.0.6",
     "yargs": "^17.0.1"
   },
   "devDependencies": {
-    "@types/yargs": "^15.0.12"
+    "@types/yargs": "^15.0.12",
+    "node-fetch": "^3.3.1"
   },
   "scripts": {
     "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
