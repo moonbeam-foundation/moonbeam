@@ -106,7 +106,7 @@ impl<T: pallet_xcm_transactor::Config> Migration for PopulateRelayIndices<T> {
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
 		// check storage matches input post migration
-		assert_eq!(RelayIndices::<T>::get(), S.into());
+		assert_eq!(RelayIndices::<T>::get(), self.0);
 		Ok(())
 	}
 }
