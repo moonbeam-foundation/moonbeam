@@ -176,10 +176,6 @@ pub mod pallet {
 		/// The way to filter the max fee to use for HRMP management operations
 		type MaxHrmpFee: FilterMaxAssetFee;
 
-		/// Means of encoding HRMP transact calls
-		/// TODO: remove if unused
-		type HrmpEncoder: HrmpEncodeCall;
-
 		type WeightInfo: WeightInfo;
 	}
 

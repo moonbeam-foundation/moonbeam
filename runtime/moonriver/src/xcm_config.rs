@@ -584,7 +584,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = moonbeam_relay_encoder::kusama::KusamaEncoder;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

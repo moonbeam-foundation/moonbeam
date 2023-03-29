@@ -277,25 +277,6 @@ impl UtilityEncodeCall for Transactors {
 	}
 }
 
-pub struct MockHrmpEncoder;
-
-impl HrmpEncodeCall for MockHrmpEncoder {
-	fn hrmp_encode_call(call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
-		match call {
-			HrmpAvailableCalls::InitOpenChannel(_, _, _) => {
-				Ok(RelayCall::Hrmp(HrmpCall::Init()).encode())
-			}
-			HrmpAvailableCalls::AcceptOpenChannel(_) => {
-				Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
-			}
-			HrmpAvailableCalls::CloseChannel(_) => Ok(RelayCall::Hrmp(HrmpCall::Close()).encode()),
-			HrmpAvailableCalls::CancelOpenRequest(_, _) => {
-				Ok(RelayCall::Hrmp(HrmpCall::Cancel()).encode())
-			}
-		}
-	}
-}
-
 pub type AssetId = u128;
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
@@ -388,7 +369,6 @@ impl Config for Test {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
-	type HrmpEncoder = MockHrmpEncoder;
 }
 
 pub(crate) struct ExtBuilder {
