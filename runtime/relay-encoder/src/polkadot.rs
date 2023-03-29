@@ -251,8 +251,12 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as UtilityEncodeCall>::encode_call(
-					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<moonbeam_runtime::Runtime>::default()),
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as UtilityEncodeCall
+				>::encode_call(
+					pallet_xcm_transactor::Pallet(
+						sp_std::marker::PhantomData::<moonbeam_runtime::Runtime>::default()
+					),
 					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 				),
 				expected_encoded
@@ -296,7 +300,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Bond(
 						relay_account.into(),
 						100u32.into(),
@@ -336,7 +342,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 				),
 				expected_encoded
@@ -372,7 +380,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 				),
 				expected_encoded
@@ -408,7 +418,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 				),
 				expected_encoded
@@ -449,7 +461,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 				),
 				expected_encoded
@@ -486,7 +500,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Nominate(vec![
 						relay_account.into()
 					])
@@ -521,7 +537,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Chill
 				),
 				expected_encoded
@@ -559,9 +577,10 @@ mod tests {
 			pallet_xcm_transactor::RelayIndices::<moonbeam_runtime::Runtime>::put(
 				POLKADOT_RELAY_INDICES,
 			);
-			// use pallet_xcm_transactor type in precompile crate to fix this and consider removing it altogether
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::SetPayee(
 						pallet_staking::RewardDestination::Controller
 					)
@@ -601,7 +620,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::SetController(
 						relay_account.into()
 					)
@@ -639,7 +660,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as StakeEncodeCall>::encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as StakeEncodeCall
+				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 				),
 				expected_encoded
@@ -684,7 +707,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall
+				>::hrmp_encode_call(
 					xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
 						1000u32.into(),
 						100u32.into(),
@@ -727,7 +752,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall
+				>::hrmp_encode_call(
 					xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
 				),
 				Ok(expected_encoded)
@@ -772,7 +799,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall
+				>::hrmp_encode_call(
 					xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
 						sender: 1000u32.into(),
 						recipient: 1001u32.into()
@@ -824,7 +853,9 @@ mod tests {
 				POLKADOT_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				<pallet_xcm_transactor::Pallet::<
+					moonbeam_runtime::Runtime> as xcm_primitives::HrmpEncodeCall
+				>::hrmp_encode_call(
 					xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
 						channel_id.clone(),
 						open_requests
