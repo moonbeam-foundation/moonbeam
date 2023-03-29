@@ -23,4 +23,7 @@ interface Gmp {
     ///
     /// @custom:selector f53774ab
     function wormholeTransferERC20(bytes memory vaa) external;
+
+    /// TODO: document
+    function deposit() external payable;
 }

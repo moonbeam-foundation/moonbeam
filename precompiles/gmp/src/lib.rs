@@ -52,7 +52,7 @@ type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 // Wormhole fn selectors
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
 const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d; // parseTransferWithPayload(bytes)
-const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc0fd8bde_u32; // completeTransferWithPayload(bytes)
+const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1u32; // completeTransferWithPayload(bytes)
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -86,6 +86,9 @@ where
 
 		let wormhole_bridge = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
 			.map_err(|_| RevertReason::custom("invalid wormhole bridge contract address"))?;
+
+		let wormhole_bridge_impl = H160::from_str("0xeab4eeba1ff8504c124d031f6844ad98d07c318f")
+			.map_err(|_| RevertReason::custom("invalid wormhole bridge impl contract address"))?;
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
@@ -133,9 +136,9 @@ where
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
-		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole);
+		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole_bridge_impl);
 		let (reason, output) = handle.call(
-			wormhole,
+			wormhole_bridge_impl,
 			None,
 			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
 				.write(wormhole_vaa)
@@ -176,6 +179,14 @@ where
 			e
 		})?;
 
+		Ok(())
+	}
+
+	#[precompile::public("deposit()")]
+	#[precompile::fallback]
+	#[precompile::payable]
+	fn deposit(handle: &mut impl PrecompileHandle) -> EvmResult {
+		// TODO: impl?
 		Ok(())
 	}
 
@@ -251,8 +262,8 @@ where
 }
 
 fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()> {
-	log::debug!(target: "gmp-precompile", "reason: {:?}", reason);
-	log::debug!(target: "gmp-precompile", "output: {:?}", output);
+	log::trace!(target: "gmp-precompile", "reason: {:?}", reason);
+	log::trace!(target: "gmp-precompile", "output: {:x?}", &output[..]);
 
 	match reason {
 		ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),

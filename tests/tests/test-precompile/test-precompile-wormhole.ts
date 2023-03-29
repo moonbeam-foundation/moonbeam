@@ -64,6 +64,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     this.timeout(3600 * 1000);
 
     const wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
+    console.log(`weth contract deployed to ${wethContract.contractAddress}`);
     const myTokenContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
 
     const initialSigners = [ALITH_ADDRESS];
@@ -97,6 +98,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     // Deploy bridge (based on wormhole)
     // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
     const tokenImplContract = await deploy(context, "wormhole/bridge/token/TokenImplementation");
+    console.log(`wormhole token impl deployed to ${tokenImplContract.contractAddress}`);
     const bridgeSetupContract = await deploy(context, "wormhole/bridge/BridgeSetup");
     const bridgeImplContract = await deploy(context, "wormhole/bridge/BridgeImplementation");
     const bridgeSetupData = bridgeSetupContract.contract.methods
@@ -117,6 +119,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       bridgeSetupData,
     ]);
 
+    console.log(`bridge impl contract deployed to ${bridgeImplContract.contractAddress}`);
     console.log(`wormhole token deployed to ${bridgeContract.contractAddress}`);
 
     const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
@@ -203,10 +206,10 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       123, // sequence
       999, // amount of tokens
       wethContract.contractAddress,
-      ETHChain,
-      ETHEmitter,
-      BALTATHAR_ADDRESS,
-      chainId,
+      evmChainId,
+      ETHEmitter, // TODO: review
+      PRECOMPILE_GMP_ADDRESS,
+      "0x"+ evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
       "0x00010200ed0101000000000000000000000000000000000000000000000000000000000000000000",
     );
