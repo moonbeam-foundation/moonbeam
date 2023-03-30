@@ -25,6 +25,12 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
+use xcm::latest::{prelude::*, Error as XcmError};
+use xcm_builder::FixedWeightBounds;
+use xcm_executor::{
+	traits::{TransactAsset, WeightTrader},
+	Assets,
+};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -268,7 +274,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 }
 
 pub type Precompiles<R> =
-	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>)>;
+	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>>;
 
 pub type PCall = RelayEncoderPrecompileCall<Runtime>;
 

@@ -51,6 +51,8 @@ cumulus-pallet-parachain-system = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
 
 # ORML
 orml-traits = { workspace = true }
