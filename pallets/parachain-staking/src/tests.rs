@@ -863,8 +863,8 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 #[test]
 fn collator_goes_offline_if_doesnt_produce_blocks() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 10), (2, 10), (3,10), (4,10), (5,10)])
-		.with_candidates(vec![(1, 10), (2, 10), (3,10), (4,10), (5,10)])
+		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
+		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -965,8 +965,8 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 #[test]
 fn collator_produces_blocks_successfully() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 10), (2, 10), (3,10), (4,10), (5,10)])
-		.with_candidates(vec![(1, 10), (2, 10), (3,10), (4,10), (5,10)])
+		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
+		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -1079,7 +1079,7 @@ fn collator_produces_blocks_successfully() {
 
 #[test]
 fn collator_doesnt_go_offline_low_candidates_pool_length() {
-	// collator remains online as candidate pool's length 
+	// collator remains online as candidate pool's length
 	// is below 66% of max_collators
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10), (2, 10)])
