@@ -189,7 +189,7 @@ fn ethereum_runtime_rpc_api_create() {
 #[test]
 fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
@@ -217,7 +217,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			rpc_run_to_block(2);
 			let statuses =
 				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
-			// assert_eq!(statuses.len(), 1);
+			assert_eq!(statuses.len(), 1);
 		});
 }
 
@@ -250,7 +250,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 #[test]
 fn ethereum_runtime_rpc_api_current_receipts() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
@@ -277,7 +277,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 
 			rpc_run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
-			// assert_eq!(receipts.len(), 1);
+			assert_eq!(receipts.len(), 1);
 		});
 }
 
