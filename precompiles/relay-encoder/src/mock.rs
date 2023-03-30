@@ -19,14 +19,14 @@ use super::*;
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, PalletInfo},
+	traits::{Everything, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
