@@ -37,6 +37,7 @@ use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_referenda::ReferendaPrecompile;
+use pallet_evm_precompile_registry::PrecompileRegistry;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -103,7 +104,7 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
-	// PrecompileAt<AddressU64<1025>, Dispatch<R>>,
+	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
 	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
 	// Moonbeam specific precompiles:
 	PrecompileAt<
@@ -222,6 +223,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2068>,
 		CollectivePrecompile<R, OpenTechCommitteeInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2069>,
+		PrecompileRegistry<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

@@ -16,7 +16,7 @@
 
 use crate::AvailableStakeCalls;
 use crate::StakeEncodeCall;
-use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
@@ -68,6 +68,8 @@ pub enum HrmpCall {
 	AcceptOpenChannel(ParaId),
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
+	#[codec(index = 6u8)]
+	CancelOpenChannel(HrmpChannelId, u32),
 }
 
 pub struct TestEncoder;
@@ -127,6 +129,9 @@ impl xcm_primitives::HrmpEncodeCall for TestEncoder {
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
 			}
 		}
 	}

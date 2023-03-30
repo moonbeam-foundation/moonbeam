@@ -110,11 +110,13 @@ import type {
 import type {
   BeefyAuthoritySet,
   BeefyCommitment,
+  BeefyEquivocationProof,
   BeefyId,
   BeefyNextAuthoritySet,
   BeefyPayload,
   BeefyPayloadId,
   BeefySignedCommitment,
+  BeefyVoteMessage,
   MmrRootHash,
   ValidatorSet,
   ValidatorSetId,
@@ -586,7 +588,8 @@ import type {
   MmrNodeIndex,
   MmrProof,
 } from "@polkadot/types/interfaces/mmr";
-import type { NpApiError } from "@polkadot/types/interfaces/nompools";
+import type { NftCollectionId, NftItemId } from "@polkadot/types/interfaces/nfts";
+import type { NpApiError, NpPoolId } from "@polkadot/types/interfaces/nompools";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
 import type {
   DeferredOffenceOf,
@@ -813,7 +816,9 @@ import type {
   PhantomData,
   PreRuntime,
   Releases,
+  RuntimeCall,
   RuntimeDbWeight,
+  RuntimeEvent,
   Seal,
   SealV0,
   SignedBlock,
@@ -834,6 +839,7 @@ import type {
   ValidatorIdOf,
   Weight,
   WeightMultiplier,
+  WeightV0,
   WeightV1,
   WeightV2,
 } from "@polkadot/types/interfaces/runtime";
@@ -1279,12 +1285,14 @@ declare module "@polkadot/types/types/registry" {
     BalanceStatus: BalanceStatus;
     BeefyAuthoritySet: BeefyAuthoritySet;
     BeefyCommitment: BeefyCommitment;
+    BeefyEquivocationProof: BeefyEquivocationProof;
     BeefyId: BeefyId;
     BeefyKey: BeefyKey;
     BeefyNextAuthoritySet: BeefyNextAuthoritySet;
     BeefyPayload: BeefyPayload;
     BeefyPayloadId: BeefyPayloadId;
     BeefySignedCommitment: BeefySignedCommitment;
+    BeefyVoteMessage: BeefyVoteMessage;
     BenchmarkBatch: BenchmarkBatch;
     BenchmarkConfig: BenchmarkConfig;
     BenchmarkList: BenchmarkList;
@@ -1821,12 +1829,15 @@ declare module "@polkadot/types/types/registry" {
     NextAuthority: NextAuthority;
     NextConfigDescriptor: NextConfigDescriptor;
     NextConfigDescriptorV1: NextConfigDescriptorV1;
+    NftCollectionId: NftCollectionId;
+    NftItemId: NftItemId;
     NodeRole: NodeRole;
     Nominations: Nominations;
     NominatorIndex: NominatorIndex;
     NominatorIndexCompact: NominatorIndexCompact;
     NotConnectedPeer: NotConnectedPeer;
     NpApiError: NpApiError;
+    NpPoolId: NpPoolId;
     Null: Null;
     OccupiedCore: OccupiedCore;
     OccupiedCoreAssumption: OccupiedCoreAssumption;
@@ -2004,10 +2015,12 @@ declare module "@polkadot/types/types/registry" {
     RoundSnapshot: RoundSnapshot;
     RoundState: RoundState;
     RpcMethods: RpcMethods;
+    RuntimeCall: RuntimeCall;
     RuntimeDbWeight: RuntimeDbWeight;
     RuntimeDispatchInfo: RuntimeDispatchInfo;
     RuntimeDispatchInfoV1: RuntimeDispatchInfoV1;
     RuntimeDispatchInfoV2: RuntimeDispatchInfoV2;
+    RuntimeEvent: RuntimeEvent;
     RuntimeVersion: RuntimeVersion;
     RuntimeVersionApi: RuntimeVersionApi;
     RuntimeVersionPartial: RuntimeVersionPartial;
@@ -2282,6 +2295,7 @@ declare module "@polkadot/types/types/registry" {
     WeightMultiplier: WeightMultiplier;
     WeightPerClass: WeightPerClass;
     WeightToFeeCoefficient: WeightToFeeCoefficient;
+    WeightV0: WeightV0;
     WeightV1: WeightV1;
     WeightV2: WeightV2;
     WildFungibility: WildFungibility;
