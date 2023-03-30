@@ -603,6 +603,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
+					let rpc_config = cli.run.new_rpc_config();
 					match chain_spec {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => {
@@ -610,7 +611,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -624,7 +625,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -638,7 +639,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
