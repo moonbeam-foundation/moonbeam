@@ -301,7 +301,7 @@ where
 						.join(sqlite_db_path)
 						.join("frontier.db3")
 						.to_str()
-						.unwrap(),
+						.expect("failed building sqlite path"),
 					create_if_missing: true,
 					thread_count,
 					cache_size,
