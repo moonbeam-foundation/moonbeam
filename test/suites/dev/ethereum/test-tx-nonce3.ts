@@ -1,17 +1,11 @@
-import Web3 from "web3";
-
-import { describeSuite, expect, beforeAll } from "@moonsong-labs/moonwall-cli";
+import { Web3, describeSuite, expect, beforeAll } from "@moonsong-labs/moonwall-cli";
 import {
-  alith,
-  baltathar,
-  BALTATHAR_PRIVATE_KEY,
   EthTester,
   GERALD_ADDRESS,
   GERALD_PRIVATE_KEY,
   ALITH_PRIVATE_KEY,
+  ALITH_ADDRESS,
 } from "@moonsong-labs/moonwall-util";
-import { WebSocketProvider, parseUnits } from "ethers";
-import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "D04",
@@ -20,30 +14,27 @@ describeSuite({
   testCases: ({ it, context, log }) => {
     let web3: Web3;
     let ethTester: EthTester;
-    let api: WebSocketProvider;
 
     beforeAll(async () => {
-      api = context.getEthers();
-      web3 = context.getWeb3();
+      web3 = context.web3();
       ethTester = new EthTester(web3, ALITH_PRIVATE_KEY, log);
 
       const initialBalance = await web3.eth.getBalance(GERALD_ADDRESS);
 
       // Transfer all the balance to another account
-      // TODO: This fails because the tx is not sent it seems, not sure why.
-      await context.createBlock(
-        ethTester.genSignedTransfer(
-          alith.address,
-          initialBalance - 21000n * parseUnits("10", "gwei"),
-          {
-            gas: parseUnits("10", "gwei"),
-            privateKey: GERALD_PRIVATE_KEY,
-          }
-        )
+      const signedTransfer = await ethTester.genSignedTransfer(
+        ALITH_ADDRESS,
+        initialBalance - 21000n * BigInt(web3.utils.toWei("10", "gwei")),
+        {
+          gas: web3.utils.toHex(21000),
+          privateKey: GERALD_PRIVATE_KEY,
+        }
       );
 
+      await context.createBlock(signedTransfer);
+
       // Verify the account balance is empty
-      expect(await web3.eth.getBalance(GERALD_ADDRESS)).to.eq("0");
+      expect(await web3.eth.getBalance(GERALD_ADDRESS)).to.eq(0n);
     });
 
     it({
@@ -51,6 +42,7 @@ describeSuite({
       title: "should keep its nonce to 1",
       modifier: "only",
       test: async function () {
+        web3;
         expect(await web3.eth.getTransactionCount(GERALD_ADDRESS)).to.eq(1n);
       },
     });

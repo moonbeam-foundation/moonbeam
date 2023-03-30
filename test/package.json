@@ -14,8 +14,8 @@
   "devDependencies": {
     "@acala-network/chopsticks": "^0.5.10",
     "@moonbeam-network/api-augment": "^0.2201.0",
-    "@moonsong-labs/moonwall-cli": "^0.3.0",
-    "@moonsong-labs/moonwall-util": "^0.3.0",
+    "@moonsong-labs/moonwall-cli": "link:../../moonwall/packages/cli",
+    "@moonsong-labs/moonwall-util": "link:../../moonwall/packages/util",
     "@polkadot/api": "^10.2.1",
     "@polkadot/api-augment": "^10.2.1",
     "@polkadot/types": "^10.2.1",
@@ -35,5 +35,10 @@
   },
   "dependencies": {
     "chalk": "^5.2.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@polkadot/util": "$@polkadot/util"
+    }
   }
 }

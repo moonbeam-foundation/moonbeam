@@ -84,7 +84,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
-      "multiThreads": true,
+      "multiThreads": false,
       "html": false,
       "foundation": {
         "type": "dev",

@@ -1,6 +1,4 @@
-import Web3 from "web3";
-
-import { describeSuite, expect, beforeAll } from "@moonsong-labs/moonwall-cli";
+import { Web3,describeSuite, expect, beforeAll, Signer } from "@moonsong-labs/moonwall-cli";
 import {
   alith,
   baltathar,
@@ -10,8 +8,7 @@ import {
   GERALD_PRIVATE_KEY,
   ALITH_PRIVATE_KEY,
 } from "@moonsong-labs/moonwall-util";
-import { WebSocketProvider, parseUnits } from "ethers";
-import { ApiPromise } from "@polkadot/api";
+
 
 describeSuite({
   id: "D03",
@@ -20,13 +17,13 @@ describeSuite({
   testCases: ({ it, context, log }) => {
     let web3: Web3;
     let ethTester: EthTester;
-    let api: WebSocketProvider;
+    let api: Signer;
 
     // Create the block with Baltathar transaction
     beforeAll(async () => {
-      api = context.getEthers();
-      web3 = context.getWeb3();
-      ethTester = new EthTester(web3, ALITH_PRIVATE_KEY, log);
+      api = context.ethersSigner();
+      web3 = context.web3();
+      ethTester = new EthTester(web3, ALITH_PRIVATE_KEY, log, "EIP1559");
 
       // Create a block to increase the nonce of baltathar
       await context.createBlock(

@@ -67,7 +67,7 @@ describeSuite({
 
         tx.to = DUMMY_ACCOUNT;
         tx.value = parseEther("2").toString();
-        tx.chainId = (await signer.provider.getNetwork()).chainId;
+        // tx.chainId = (await signer.provider.getNetwork()).chainId;
         tx.nonce = await signer.getNonce();
         tx.maxPriorityFeePerGas = parseUnits("1.5", "gwei");
         tx.maxFeePerGas = parseUnits("5", "gwei");
@@ -77,7 +77,7 @@ describeSuite({
         const signed = Transaction.from(signedTx).signature;
         let transaction = {
           EIP1559: {
-            chainId: Transaction.from(signedTx).chainId,
+            // chainId: Transaction.from(signedTx).chainId,
             nonce: Transaction.from(signedTx).nonce,
             maxPriorityFeePerGas: Transaction.from(signedTx).maxPriorityFeePerGas,
             maxFeePerGas: Transaction.from(signedTx).maxFeePerGas,
