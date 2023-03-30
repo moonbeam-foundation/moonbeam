@@ -335,10 +335,10 @@ where
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
 		// Check that we only perform proxy calls on behalf of externally owned accounts
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(real.into()) else {
 			return Err(revert("real address must be EOA"));
 		};
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read proxy
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.into());
