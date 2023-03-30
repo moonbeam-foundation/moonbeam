@@ -253,8 +253,8 @@ pub struct RunCmd {
 }
 
 impl RunCmd {
-	pub fn new_rpc_config(&self) -> cli_opt::RpcConfig {
-		cli_opt::RpcConfig {
+	pub fn new_rpc_config(&self) -> moonbeam_cli_opt::RpcConfig {
+		moonbeam_cli_opt::RpcConfig {
 			ethapi: self.ethapi.clone(),
 			ethapi_max_permits: self.ethapi_max_permits,
 			ethapi_trace_max_count: self.ethapi_trace_max_count,
@@ -266,8 +266,8 @@ impl RunCmd {
 			relay_chain_rpc_urls: self.base.relay_chain_rpc_urls.clone(),
 			tracing_raw_max_memory_usage: self.tracing_raw_max_memory_usage,
 			frontier_backend_config: match self.frontier_backend_type {
-				FrontierBackendType::KeyValue => cli_opt::FrontierBackendConfig::KeyValue,
-				FrontierBackendType::Sql => cli_opt::FrontierBackendConfig::Sql {
+				FrontierBackendType::KeyValue => moonbeam_cli_opt::FrontierBackendConfig::KeyValue,
+				FrontierBackendType::Sql => moonbeam_cli_opt::FrontierBackendConfig::Sql {
 					pool_size: self.frontier_sql_backend_pool_size,
 					num_ops_timeout: self.frontier_sql_backend_num_ops_timeout,
 					thread_count: self.frontier_sql_backend_thread_count,

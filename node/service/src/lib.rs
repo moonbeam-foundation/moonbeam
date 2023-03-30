@@ -44,7 +44,7 @@ use futures::StreamExt;
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
+use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]

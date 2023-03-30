@@ -21,7 +21,7 @@ use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
-use moonbeam_cli_opt::{EthApi, RpcConfig};
+use moonbeam_cli_opt::EthApi;
 use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
@@ -276,30 +276,36 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
+				let rpc_config = cli.run.new_rpc_config();
 				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config)?;
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let rpc_config = cli.run.new_rpc_config();
+				let (client, _, _, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let rpc_config = cli.run.new_rpc_config();
+				let (client, _, _, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
+				let rpc_config = cli.run.new_rpc_config();
 				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config)?;
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -382,7 +388,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -394,7 +400,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -406,7 +412,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -558,7 +564,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})
@@ -569,7 +575,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})
@@ -580,7 +586,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})

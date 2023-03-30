@@ -44,7 +44,6 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use ethereum_types::H256;
 use fc_rpc::OverrideHandle;
 use fp_rpc::EthereumRuntimeRPCApi;
-use fp_storage::OverrideHandle;
 
 use moonbeam_client_evm_tracing::{
 	formatters::ResponseFormatter,

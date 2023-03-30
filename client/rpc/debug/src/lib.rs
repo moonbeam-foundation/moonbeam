@@ -24,8 +24,8 @@ use tokio::{
 
 use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
+use fc_storage::OverrideHandle;
 use fp_rpc::EthereumRuntimeRPCApi;
-use fp_storage::OverrideHandle;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
@@ -308,7 +308,7 @@ where
 					client.as_ref(),
 					frontier_backend,
 					eth_hash,
-				) {
+				)) {
 					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
 					Ok(_) => Err(internal_err("Block hash not found".to_string())),
 					Err(e) => Err(e),
@@ -440,15 +440,16 @@ where
 				Err(e) => return Err(e),
 			};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
-			client.as_ref(),
-			frontier_backend.as_ref(),
-			hash,
-		) {
-			Ok(Some(hash)) => BlockId::Hash(hash),
-			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let reference_id =
+			match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+				client.as_ref(),
+				frontier_backend,
+				hash,
+			)) {
+				Ok(Some(hash)) => BlockId::Hash(hash),
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend

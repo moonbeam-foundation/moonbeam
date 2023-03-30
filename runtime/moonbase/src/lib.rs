@@ -480,7 +480,6 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
-	type OnCreate = ();
 }
 
 parameter_types! {
