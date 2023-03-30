@@ -17,9 +17,15 @@
 //! Test utilities
 use super::*;
 
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, PalletInfo},
+	weights::Weight,
+};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
+use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -27,10 +33,7 @@ use sp_runtime::{
 };
 use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::FixedWeightBounds;
-use xcm_executor::{
-	traits::{TransactAsset, WeightTrader},
-	Assets,
-};
+use xcm_executor::{traits::TransactAsset, Assets};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -117,7 +120,7 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -219,21 +222,6 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			MockTransactors::Relay => MultiLocation::parent(),
-		}
-	}
-}
-
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
 		}
 	}
 }
