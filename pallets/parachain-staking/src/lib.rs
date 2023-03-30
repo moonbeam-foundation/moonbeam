@@ -77,7 +77,8 @@ pub use RoundIndex;
 
 #[pallet]
 pub mod pallet {
-	use crate::delegation_requests::{
+
+use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
@@ -445,11 +446,15 @@ pub mod pallet {
 				// select total candidates
 				let candidates = <CandidatePool<T>>::get().0;
 
+				// if candidates length is below or eq to 66% of max_collators, 
+				// we don't mark any other collator as offline
+				let max_collators= <TotalSelected<T>>::get() as f32;
+
 				// iter candidates to check which of them must be marked as offline
 				for candidate in candidates.clone() {
 					if let Some(last_round) = <CandidateLastActive<T>>::get(&candidate.owner) {
 						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
-							&& candidates.len() > 1
+							&& candidates.len() > (max_collators * 0.66) as usize
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
