@@ -448,7 +448,7 @@ use crate::delegation_requests::{
 
 				// if candidates length is below or eq to 66% of max_collators, 
 				// we don't mark any other collator as offline
-				let max_collators= <TotalSelected<T>>::get() as f32;
+				let max_collators = <TotalSelected<T>>::get() as f32;
 
 				// iter candidates to check which of them must be marked as offline
 				for candidate in candidates.clone() {
