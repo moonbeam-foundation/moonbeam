@@ -102,7 +102,6 @@ pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	},
 };
 
-// TODO: insert indices into storage that matches these indices above
 pub struct TestEncoder;
 
 impl StakeEncodeCall for TestEncoder {

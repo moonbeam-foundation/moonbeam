@@ -1029,10 +1029,10 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.nominate);
-					// encoded argument
-					let mut encoded_a = a.encode();
-					encoded_a.insert(1, 0u8);
-					encoded_call.append(&mut encoded_a);
+					encoded_call.append(&mut vec![4, 0]);
+					for nominee in a {
+						encoded_call.append(&mut nominee.encode());
+					}
 					encoded_call
 				}
 			}

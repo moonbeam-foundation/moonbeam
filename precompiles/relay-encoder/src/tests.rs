@@ -176,10 +176,9 @@ fn test_encode_nominate() {
 				.execute_returns(
 					EvmDataWriter::new()
 						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
-								[1u8; 32].into(),
-								[2u8; 32].into(),
-							]))
+							TestEncoder::encode_call(AvailableStakeCalls::Nominate(
+								vec![U256::from([1u8; 32]), U256::from([2u8; 32])].into(),
+							))
 							.as_slice(),
 						))
 						.build(),
