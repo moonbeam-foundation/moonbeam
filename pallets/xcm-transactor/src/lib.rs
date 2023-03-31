@@ -95,7 +95,9 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
-	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
+	use sp_runtime::traits::{
+		AccountIdLookup, AtLeast32BitUnsigned, Bounded, Convert, StaticLookup,
+	};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
@@ -929,7 +931,8 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond);
 					// encoded arguments
-					encoded_call.append(&mut vec![0u8]);
+					let a: <AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source =
+						a.into();
 					encoded_call.append(&mut a.encode());
 					encoded_call.append(&mut encode_compact_arg(b));
 					encoded_call.append(&mut c.encode());
@@ -1007,8 +1010,10 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_controller);
 					// encoded argument
-					encoded_call.append(&mut vec![0u8]);
-					encoded_call.append(&mut a.encode());
+					let controller: <
+						AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup
+					>::Source = a.into();
+					encoded_call.append(&mut controller.encode());
 					encoded_call
 				}
 
@@ -1029,10 +1034,10 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.nominate);
-					encoded_call.append(&mut vec![4, 0]);
-					for nominee in a {
-						encoded_call.append(&mut nominee.encode());
-					}
+					let nominated: Vec<
+						<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
+					> = a.iter().map(|add| (*add).clone().into()).collect();
+					encoded_call.append(&mut nominated.encode());
 					encoded_call
 				}
 			}
