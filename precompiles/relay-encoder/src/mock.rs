@@ -371,6 +371,11 @@ impl ExtBuilder {
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			pallet_xcm_transactor::RelayIndices::<Runtime>::put(
+				crate::test_relay_runtime::TestRelayIndices,
+			);
+		});
 		ext
 	}
 }
