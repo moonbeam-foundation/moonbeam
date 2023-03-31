@@ -1,10 +1,5 @@
-import { describeSuite, expect, beforeAll, Web3, Signer } from "@moonsong-labs/moonwall-cli";
-import {
-  CHARLETH_ADDRESS,
-  BALTATHAR_ADDRESS,
-  alith,
-  setupLogger,
-} from "@moonsong-labs/moonwall-util";
+import { describeSuite, expect, beforeAll, Web3, Signer } from "@moonwall/cli";
+import { CHARLETH_ADDRESS, BALTATHAR_ADDRESS, alith, setupLogger } from "@moonwall/util";
 import { WebSocketProvider, parseEther, formatEther } from "ethers";
 import { BN } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";

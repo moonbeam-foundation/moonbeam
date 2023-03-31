@@ -1,4 +1,4 @@
-import { Web3,describeSuite, expect, beforeAll, Signer } from "@moonsong-labs/moonwall-cli";
+import { Web3, describeSuite, expect, beforeAll,  } from "@moonwall/cli";
 import {
   alith,
   baltathar,
@@ -7,8 +7,7 @@ import {
   GERALD_ADDRESS,
   GERALD_PRIVATE_KEY,
   ALITH_PRIVATE_KEY,
-} from "@moonsong-labs/moonwall-util";
-
+} from "@moonwall/util";
 
 describeSuite({
   id: "D03",
@@ -17,11 +16,9 @@ describeSuite({
   testCases: ({ it, context, log }) => {
     let web3: Web3;
     let ethTester: EthTester;
-    let api: Signer;
 
     // Create the block with Baltathar transaction
     beforeAll(async () => {
-      api = context.ethersSigner();
       web3 = context.web3();
       ethTester = new EthTester(web3, ALITH_PRIVATE_KEY, log, "EIP1559");
 

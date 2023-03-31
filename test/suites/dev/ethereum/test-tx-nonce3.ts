@@ -1,11 +1,11 @@
-import { Web3, describeSuite, expect, beforeAll } from "@moonsong-labs/moonwall-cli";
+import { Web3, describeSuite, expect, beforeAll } from "@moonwall/cli";
 import {
   EthTester,
   GERALD_ADDRESS,
   GERALD_PRIVATE_KEY,
   ALITH_PRIVATE_KEY,
   ALITH_ADDRESS,
-} from "@moonsong-labs/moonwall-util";
+} from "@moonwall/util";
 
 describeSuite({
   id: "D04",

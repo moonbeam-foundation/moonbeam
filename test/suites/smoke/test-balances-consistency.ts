@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
-import { extractPreimageDeposit, printTokens } from "@moonsong-labs/moonwall-util";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { extractPreimageDeposit, printTokens } from "@moonwall/util";
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
 import { u32 } from "@polkadot/types";
