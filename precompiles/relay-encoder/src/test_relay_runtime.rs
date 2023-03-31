@@ -73,7 +73,7 @@ pub enum HrmpCall {
 }
 
 use pallet_xcm_transactor::relay_indices::*;
-pub const TestRelayIndices: RelayChainIndices = RelayChainIndices {
+pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	pallets: PalletIndices {
 		staking: 1u8,
 		utility: 0u8,
