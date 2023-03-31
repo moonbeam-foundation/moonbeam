@@ -237,6 +237,47 @@ where
 		Ok(())
 	}
 
+	#[precompile::public("removeSomeVote(uint32,uint16)")]
+	fn remove_some_vote(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		track_id: u16,
+	) -> EvmResult {
+		let caller = handle.context().caller;
+		let event = log2(
+			handle.context().address,
+			SELECTOR_LOG_VOTE_REMOVED,
+			H256::from_low_u64_be(poll_index as u64), // poll index,
+			EvmDataWriter::new()
+				.write::<Address>(Address(caller))
+				.write::<u16>(track_id)
+				.build(),
+		);
+		handle.record_log_costs(&[&event])?;
+
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
+		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
+
+		log::trace!(
+			target: "conviction-voting-precompile",
+			"Removing vote from poll {:?}, track {:?}",
+			index,
+			class,
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(caller);
+		let call = ConvictionVotingCall::<Runtime>::remove_vote {
+			class: Some(class),
+			index,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
+
+		Ok(())
+	}
+
 	#[precompile::public("removeOtherVote(address,uint16,uint32)")]
 	fn remove_other_vote(
 		handle: &mut impl PrecompileHandle,

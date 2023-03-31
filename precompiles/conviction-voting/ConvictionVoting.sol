@@ -80,6 +80,12 @@ interface ConvictionVoting {
     /// @param pollIndex Index of the poll
     function removeVote(uint32 pollIndex) external;
 
+    /// @dev Remove vote in poll with track
+    /// @custom:selector dd0988a6
+    /// @param pollIndex Index of the poll
+    /// @param trackId Id of the track
+    function removeSomeVote(uint32 pollIndex, uint16 trackId) external;
+
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
     //// @param target The voter to have vote removed. The removed vote must already be expired.
