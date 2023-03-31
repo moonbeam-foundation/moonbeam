@@ -11,7 +11,6 @@ version = "0.1.0"
 
 # Moonbeam
 pallet-evm-precompile-relay-encoder = { workspace = true }
-pallet-xcm-transactor = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -32,6 +31,7 @@ xcm = { workspace = true }
 frame-support = { workspace = true, features = [ "std" ] }
 pallet-proxy = { workspace = true, features = [ "std" ] }
 pallet-utility = { workspace = true, features = [ "std" ] }
+pallet-xcm-transactor = { workspace = true }
 
 kusama-runtime = { workspace = true }
 moonbase-runtime = { workspace = true }

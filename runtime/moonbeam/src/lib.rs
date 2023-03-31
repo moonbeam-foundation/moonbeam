@@ -106,6 +106,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod relay_indices;
 pub mod xcm_config;
 
 /// GLMR, the native token, uses 18 decimals of precision.
@@ -1037,7 +1038,7 @@ where
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		vec![Box::new(
 			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
-				moonbeam_relay_encoder::POLKADOT_RELAY_INDICES,
+				crate::relay_indices::POLKADOT_RELAY_INDICES,
 				Default::default(),
 			),
 		)]

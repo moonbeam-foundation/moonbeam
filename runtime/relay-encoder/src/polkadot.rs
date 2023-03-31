@@ -18,41 +18,10 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
-use pallet_xcm_transactor::relay_indices::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
-
-/// Polkadot pallet and extrinsic indices
-pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
-	pallets: PalletIndices {
-		staking: 7u8,
-		utility: 26u8,
-		hrmp: 60u8,
-	},
-	calls: CallIndices {
-		staking: StakingIndices {
-			bond: 0u8,
-			bond_extra: 1u8,
-			unbond: 2u8,
-			withdraw_unbonded: 3u8,
-			validate: 4u8,
-			nominate: 5u8,
-			chill: 6u8,
-			set_payee: 7u8,
-			set_controller: 8u8,
-			rebond: 19u8,
-		},
-		utility: UtilityIndices { as_derivative: 1u8 },
-		hrmp: HrmpIndices {
-			init_open_channel: 0u8,
-			accept_open_channel: 1u8,
-			close_channel: 2u8,
-			cancel_open_request: 6u8,
-		},
-	},
-};
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -209,6 +178,7 @@ mod tests {
 	use super::*;
 	use crate::polkadot::PolkadotEncoder;
 	use frame_support::traits::PalletInfo;
+	use moonbeam_runtime::relay_indices::POLKADOT_RELAY_INDICES;
 	use sp_runtime::Perbill;
 	use xcm_primitives::{StakeEncodeCall, UtilityEncodeCall};
 

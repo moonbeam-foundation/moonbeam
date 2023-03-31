@@ -20,7 +20,6 @@ smallvec = { workspace = true }
 # Moonbeam
 account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
@@ -179,7 +178,6 @@ std = [
 	"frame-system/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
-	"moonbeam-relay-encoder/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",

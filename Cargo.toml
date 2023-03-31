@@ -36,6 +36,7 @@ members = [
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
+	"runtime/relay-encoder",
 	"runtime/summarize-precompile-checks",
 ]
 
