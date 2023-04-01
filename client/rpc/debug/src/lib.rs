@@ -329,7 +329,7 @@ where
 		};
 
 		// Get parent blockid.
-		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		let parent_block_hash = *header.parent_hash();
 
 		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), hash);
 
@@ -363,11 +363,11 @@ where
 
 		// Trace the block.
 		let f = || -> RpcResult<_> {
-			api.initialize_block(&parent_block_id, &header)
+			api.initialize_block(parent_block_hash, &header)
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
-				.trace_block(&parent_block_id, exts, eth_tx_hashes)
+				.trace_block(parent_block_hash, exts, eth_tx_hashes)
 				.map_err(|e| {
 					internal_err(format!(
 						"Blockchain error when replaying block {} : {:?}",
@@ -460,7 +460,7 @@ where
 			_ => return Err(internal_err("Block header not found")),
 		};
 		// Get parent blockid.
-		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		let parent_block_hash = *header.parent_hash();
 
 		// Get block extrinsics.
 		let exts = blockchain
@@ -470,7 +470,7 @@ where
 
 		// Get DebugRuntimeApi version
 		let trace_api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
+			api.api_version::<dyn DebugRuntimeApi<B>>(parent_block_hash)
 		{
 			api_version
 		} else {
@@ -499,12 +499,12 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					api.initialize_block(&parent_block_id, &header)
+					api.initialize_block(parent_block_hash, &header)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 					if trace_api_version >= 4 {
 						let _result = api
-							.trace_transaction(&parent_block_id, exts, &transaction)
+							.trace_transaction(parent_block_hash, exts, &transaction)
 							.map_err(|e| {
 								internal_err(format!(
 									"Runtime api access error (version {:?}): {:?}",
@@ -518,7 +518,7 @@ where
 							ethereum::TransactionV2::Legacy(tx) =>
 							{
 								#[allow(deprecated)]
-								api.trace_transaction_before_version_4(&parent_block_id, exts, &tx)
+								api.trace_transaction_before_version_4(parent_block_hash, exts, &tx)
 									.map_err(|e| {
 										internal_err(format!(
 											"Runtime api access error (legacy): {:?}",

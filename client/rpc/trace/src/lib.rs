@@ -787,7 +787,7 @@ where
 			.ok_or_else(|| format!("Subtrate block {} don't exist", substrate_hash))?;
 
 		let height = *block_header.number();
-		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
+		let substrate_parent_hash = *block_header.parent_hash();
 
 		let schema =
 			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), substrate_hash);
@@ -829,11 +829,11 @@ where
 
 		// Trace the block.
 		let f = || -> Result<_, String> {
-			api.initialize_block(&substrate_parent_id, &block_header)
+			api.initialize_block(substrate_parent_hash, &block_header)
 				.map_err(|e| format!("Runtime api access error: {:?}", e))?;
 
 			let _result = api
-				.trace_block(&substrate_parent_id, extrinsics, eth_tx_hashes)
+				.trace_block(substrate_parent_hash, extrinsics, eth_tx_hashes)
 				.map_err(|e| format!("Blockchain error when replaying block {} : {:?}", height, e))?
 				.map_err(|e| {
 					tracing::warn!(
