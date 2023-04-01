@@ -69,8 +69,8 @@ pub(crate) const SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; 32] =
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
 
 /// Solidity selector of the SomeVoteRemove log, which is the Keccak of the Log signature.
-pub(crate) const SELECTOR_LOG_SOME_VOTE_REMOVED: [u8; 32] =
-	keccak256!("SomeVoteRemoved(uint32,uint16,address)");
+pub(crate) const SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK: [u8; 32] =
+	keccak256!("VoteRemovedForTrack(uint32,uint16,address)");
 
 /// Solidity selector of the VoteRemoveOther log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED_OTHER: [u8; 32] =
@@ -215,8 +215,8 @@ where
 		Self::rm_vote(handle, poll_index, None)
 	}
 
-	#[precompile::public("removeSomeVote(uint32,uint16)")]
-	fn remove_some_vote(
+	#[precompile::public("removeVoteForTrack(uint32,uint16)")]
+	fn remove_vote_for_track(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
 		track_id: u16,
@@ -235,18 +235,18 @@ where
 		let (event, class) = if let Some(track_id) = maybe_track_id {
 			log::trace!(
 				target: "conviction-voting-precompile",
-				"Removing vote from poll {:?}, track {:?}",
+				"Removing vote from poll {:?} for track {:?}",
 				index,
 				track_id,
 			);
 			(
 				log2(
 					handle.context().address,
-					SELECTOR_LOG_SOME_VOTE_REMOVED,
+					SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 					H256::from_low_u64_be(poll_index as u64),
 					EvmDataWriter::new()
-						.write::<Address>(Address(caller))
 						.write::<u16>(track_id)
+						.write::<Address>(Address(caller))
 						.build(),
 				),
 				Some(Self::u16_to_track_id(track_id).in_field("trackId")?),

@@ -80,11 +80,11 @@ interface ConvictionVoting {
     /// @param pollIndex Index of the poll
     function removeVote(uint32 pollIndex) external;
 
-    /// @dev Remove vote in poll with track
-    /// @custom:selector dd0988a6
+    /// @dev Remove vote in poll for track
+    /// @custom:selector cc3aee1a
     /// @param pollIndex Index of the poll
     /// @param trackId Id of the track
-    function removeSomeVote(uint32 pollIndex, uint16 trackId) external;
+    function removeVoteForTrack(uint32 pollIndex, uint16 trackId) external;
 
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
@@ -175,7 +175,7 @@ interface ConvictionVoting {
     /// @param pollIndex uint32 Index of the poll.
     /// @param trackId uint32 TrackId of the poll.
     /// @param voter address Address of the voter.
-    event SomeVoteRemoved(
+    event VoteRemovedForTrack(
         uint32 indexed pollIndex,
         uint16 trackId,
         address voter

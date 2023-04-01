@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_SOME_VOTE_REMOVED, SELECTOR_LOG_UNDELEGATED,
-	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
+	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
+	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 	SELECTOR_LOG_VOTE_REMOVED_OTHER, SELECTOR_LOG_VOTE_SPLIT, SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
@@ -261,7 +261,7 @@ fn remove_vote_logs_work() {
 }
 
 #[test]
-fn remove_some_vote_logs_work() {
+fn remove_vote_for_track_logs_work() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
@@ -270,7 +270,7 @@ fn remove_some_vote_logs_work() {
 			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
 
 			// ..and remove
-			let input = PCall::remove_some_vote {
+			let input = PCall::remove_vote_for_track {
 				poll_index: ONGOING_POLL_INDEX,
 				track_id: 0u16,
 			}
@@ -282,11 +282,11 @@ fn remove_some_vote_logs_work() {
 				&EvmEvent::Log {
 					log: log2(
 						Precompile1,
-						SELECTOR_LOG_SOME_VOTE_REMOVED,
+						SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
 							.write::<u16>(0u16)
+							.write::<Address>(H160::from(Alice).into()) // caller
 							.build(),
 					),
 				}
