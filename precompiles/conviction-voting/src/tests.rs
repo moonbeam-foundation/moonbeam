@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_UNDELEGATED, SELECTOR_LOG_UNLOCKED,
-	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_OTHER,
-	SELECTOR_LOG_VOTE_SPLIT, SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
+	mock::*, SELECTOR_LOG_DELEGATED, SELECTOR_LOG_SOME_VOTE_REMOVED, SELECTOR_LOG_UNDELEGATED,
+	SELECTOR_LOG_UNLOCKED, SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED,
+	SELECTOR_LOG_VOTE_REMOVED_OTHER, SELECTOR_LOG_VOTE_SPLIT, SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 };
 use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
 
@@ -252,6 +252,41 @@ fn remove_vote_logs_work() {
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
 						EvmDataWriter::new()
 							.write::<Address>(H160::from(Alice).into()) // caller
+							.build(),
+					),
+				}
+				.into()
+			));
+		})
+}
+
+#[test]
+fn remove_some_vote_logs_work() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote..
+			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+
+			// ..and remove
+			let input = PCall::remove_some_vote {
+				poll_index: ONGOING_POLL_INDEX,
+				track_id: 0u16,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Assert remove vote event is emitted.
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SOME_VOTE_REMOVED,
+						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
+						EvmDataWriter::new()
+							.write::<Address>(H160::from(Alice).into()) // caller
+							.write::<u16>(0u16)
 							.build(),
 					),
 				}

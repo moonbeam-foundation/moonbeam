@@ -170,6 +170,17 @@ interface ConvictionVoting {
     /// @param voter address Address of the voter.
     event VoteRemoved(uint32 indexed pollIndex, address voter);
 
+    /// @dev An account removed its vote from an ongoing poll.
+    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param trackId uint32 TrackId of the poll.
+    /// @param voter address Address of the voter.
+    event SomeVoteRemoved(
+        uint32 indexed pollIndex,
+        uint16 trackId,
+        address voter
+    );
+
     /// @dev An account removed a vote from a poll.
     /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b
     /// @param pollIndex uint32 Index of the poll.

@@ -68,6 +68,10 @@ pub(crate) const SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; 32] =
 /// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED: [u8; 32] = keccak256!("VoteRemoved(uint32,address)");
 
+/// Solidity selector of the SomeVoteRemove log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_SOME_VOTE_REMOVED: [u8; 32] =
+	keccak256!("SomeVoteRemoved(uint32,uint16,address)");
+
 /// Solidity selector of the VoteRemoveOther log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTE_REMOVED_OTHER: [u8; 32] =
 	keccak256!("VoteRemovedOther(uint32,address,address,uint16)");
@@ -208,33 +212,7 @@ where
 
 	#[precompile::public("removeVote(uint32)")]
 	fn remove_vote(handle: &mut impl PrecompileHandle, poll_index: u32) -> EvmResult {
-		let caller = handle.context().caller;
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_VOTE_REMOVED,
-			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
-
-		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-
-		log::trace!(
-			target: "conviction-voting-precompile",
-			"Removing vote from poll {:?}",
-			index
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(caller);
-		let call = ConvictionVotingCall::<Runtime>::remove_vote { class: None, index };
-
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		event.record(handle)?;
-
-		Ok(())
+		Self::rm_vote(handle, poll_index, None)
 	}
 
 	#[precompile::public("removeSomeVote(uint32,uint16)")]
@@ -243,33 +221,57 @@ where
 		poll_index: u32,
 		track_id: u16,
 	) -> EvmResult {
+		Self::rm_vote(handle, poll_index, Some(track_id))
+	}
+
+	/// Helper function for common code between remove_vote and remove_some_vote
+	fn rm_vote(
+		handle: &mut impl PrecompileHandle,
+		poll_index: u32,
+		maybe_track_id: Option<u16>,
+	) -> EvmResult {
 		let caller = handle.context().caller;
-		let event = log2(
-			handle.context().address,
-			SELECTOR_LOG_VOTE_REMOVED,
-			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.write::<u16>(track_id)
-				.build(),
-		);
-		handle.record_log_costs(&[&event])?;
-
-		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
 		let index = Self::u32_to_index(poll_index).in_field("pollIndex")?;
-
-		log::trace!(
-			target: "conviction-voting-precompile",
-			"Removing vote from poll {:?}, track {:?}",
-			index,
-			class,
-		);
+		let (event, class) = if let Some(track_id) = maybe_track_id {
+			log::trace!(
+				target: "conviction-voting-precompile",
+				"Removing vote from poll {:?}, track {:?}",
+				index,
+				track_id,
+			);
+			(
+				log2(
+					handle.context().address,
+					SELECTOR_LOG_SOME_VOTE_REMOVED,
+					H256::from_low_u64_be(poll_index as u64),
+					EvmDataWriter::new()
+						.write::<Address>(Address(caller))
+						.write::<u16>(track_id)
+						.build(),
+				),
+				Some(Self::u16_to_track_id(track_id).in_field("trackId")?),
+			)
+		} else {
+			log::trace!(
+				target: "conviction-voting-precompile",
+				"Removing vote from poll {:?}",
+				index,
+			);
+			(
+				log2(
+					handle.context().address,
+					SELECTOR_LOG_VOTE_REMOVED,
+					H256::from_low_u64_be(poll_index as u64),
+					EvmDataWriter::new()
+						.write::<Address>(Address(caller))
+						.build(),
+				),
+				None,
+			)
+		};
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
-		let call = ConvictionVotingCall::<Runtime>::remove_vote {
-			class: Some(class),
-			index,
-		};
+		let call = ConvictionVotingCall::<Runtime>::remove_vote { class, index };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
