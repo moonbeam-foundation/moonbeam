@@ -25,21 +25,25 @@ Once installed, install the package dependencies with `pnpm i`
 ## Usage
 
 Launch the CLI:
+
 ```
 pnpm moonwall
 ```
 
 Run a network:
+
 ```
 pnpm moonwall run <environment_name>
 ```
 
 Download from GitHub:
+
 ```
 pnpm moonwall download <artifact>
 ```
 
 Test an environment:
+
 ```
 pnpm moonwall test <environment_name>
 ```
@@ -59,5 +63,3 @@ pnpm moonwall run dev_moonbase
 ```
 pnpm moonwall download moonriver-runtime 2201
 ```
-
-

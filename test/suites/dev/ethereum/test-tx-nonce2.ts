@@ -1,11 +1,9 @@
-import { Web3, describeSuite, expect, beforeAll,  } from "@moonwall/cli";
+import { Web3, describeSuite, expect, beforeAll } from "@moonwall/cli";
 import {
   alith,
   baltathar,
   BALTATHAR_PRIVATE_KEY,
   EthTester,
-  GERALD_ADDRESS,
-  GERALD_PRIVATE_KEY,
   ALITH_PRIVATE_KEY,
 } from "@moonwall/util";
 
