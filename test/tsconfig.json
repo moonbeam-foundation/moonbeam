@@ -16,6 +16,6 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["*suites/**/*.ts"],
+  "include": ["*functions/**/*.ts", "*suites/**/*.ts"],
   "exclude": ["node_modules/"]
 }

@@ -1,0 +1,47 @@
+{
+  "settings": {
+    "timeout": 1000,
+    "provider": "native"
+  },
+  "relaychain": {
+    "chain": "rococo-local",
+    "default_command": "tmp/polkadot",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "validator": true
+      },
+      {
+        "name": "bob",
+        "validator": true
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "chain": "moonbase-local",
+      "id": 2000,
+      "collator": {
+        "args": [
+          "--no-hardware-benchmarks",
+          "-lparachain=debug",
+          "--database=paritydb"
+        ],
+        "command": "tmp/moonbeam",
+        "name": "alith"
+      }
+    }
+  ],
+  "types": {
+    "Header": {
+      "number": "u64",
+      "parent_hash": "Hash",
+      "post_state": "Hash"
+    }
+  }
+}

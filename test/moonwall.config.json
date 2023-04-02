@@ -140,6 +140,37 @@
           "endpoints": ["ws://127.0.0.1:9944"]
         }
       ]
+    },
+    {
+      "name": "zombie_test",
+      "testFileDir": ["suites/zombienet/"],
+      "multiThreads": false,
+      "foundation": {
+        "type": "zombie",
+        "launchSpec": [
+          {
+            "name": "zombienet",
+            "configPath": "./configs/zombienet.json"
+          }
+        ]
+      },
+      "connections": [
+        {
+          "name": "w3",
+          "type": "web3",
+          "endpoints": ["ws://127.0.0.1:9944"]
+        },
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:9944"]
+        },
+        {
+          "name": "PolkadotJs",
+          "type": "moon",
+          "endpoints": ["ws://127.0.0.1:9944"]
+        }
+      ]
     }
   ]
 }
