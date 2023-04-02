@@ -270,7 +270,7 @@ export const execTechnicalCommitteeProposal = async <
         Number(proposalCount) - 1,
         {
           refTime: 1_000_000_000,
-          proofSize: 0,
+          proofSize: 64 * 1024,
         } as any,
         lengthBound
       )

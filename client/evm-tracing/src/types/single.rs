@@ -57,7 +57,7 @@ pub enum TransactionTrace {
 		gas: U256,
 		#[serde(with = "hex")]
 		return_value: Vec<u8>,
-		step_logs: Vec<RawStepLog>,
+		struct_logs: Vec<RawStepLog>,
 	},
 	/// Matches the formatter used by Blockscout.
 	/// Is also used to built output of OpenEthereum's `trace_filter`.
