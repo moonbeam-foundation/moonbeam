@@ -507,10 +507,9 @@ contract Bridge is BridgeGovernance, ReentrancyGuard {
     }
 
     function bridgedIn(address token, uint normalizedAmount) internal {
-        setOutstandingBridged(
-            token,
-            outstandingBridged(token) - normalizedAmount
-        );
+        uint outstanding = outstandingBridged(token);
+        require(outstanding > normalizedAmount, "bridgedIn: underflow");
+        setOutstandingBridged(token, outstanding - normalizedAmount);
     }
 
     function verifyBridgeVM(
