@@ -67,7 +67,7 @@ impl ShouldExecute for DenyTeleportAndWithdrawFromNonLocalOrigin {
 				}
 				// Allow InitiateReserveWithdraw only from a local account
 				InitiateReserveWithdraw { .. }
-					if matches!(
+					if !matches!(
 						origin,
 						MultiLocation {
 							parents: 0,
