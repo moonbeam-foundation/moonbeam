@@ -38,14 +38,15 @@ use moonbeam_runtime::{
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
 	AccountId, Balances, CrowdloanRewards, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment, XTokens,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
@@ -1217,6 +1218,46 @@ fn ethereum_invalid_transaction() {
 				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
 					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
 				)
+			)
+		);
+	});
+}
+
+#[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
+fn min_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+	use frame_support::traits::Hooks;
+
+	ExtBuilder::default().build().execute_with(|| {
+		pallet_transaction_payment::NextFeeMultiplier::<Runtime>::put(Multiplier::from(0));
+		TransactionPayment::on_finalize(System::block_number()); // should trigger min to kick in
+
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
 			)
 		);
 	});
