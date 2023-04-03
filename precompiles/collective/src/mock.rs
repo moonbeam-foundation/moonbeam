@@ -201,6 +201,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 

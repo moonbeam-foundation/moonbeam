@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use futures::{SinkExt, StreamExt};
+use futures::StreamExt;
 use jsonrpsee::core::{async_trait, RpcResult};
 pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams};
 
@@ -71,13 +71,12 @@ impl DebugServer for Debug {
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		let mut requester = self.requester.clone();
+		let requester = self.requester.clone();
 
 		let (tx, rx) = oneshot::channel();
 		// Send a message from the rpc handler to the service level task.
 		requester
-			.send(((RequesterInput::Transaction(transaction_hash), params), tx))
-			.await
+			.unbounded_send(((RequesterInput::Transaction(transaction_hash), params), tx))
 			.map_err(|err| {
 				internal_err(format!(
 					"failed to send request to debug service : {:?}",
@@ -99,13 +98,12 @@ impl DebugServer for Debug {
 		id: RequestBlockId,
 		params: Option<TraceParams>,
 	) -> RpcResult<Vec<single::TransactionTrace>> {
-		let mut requester = self.requester.clone();
+		let requester = self.requester.clone();
 
 		let (tx, rx) = oneshot::channel();
 		// Send a message from the rpc handler to the service level task.
 		requester
-			.send(((RequesterInput::Block(id), params), tx))
-			.await
+			.unbounded_send(((RequesterInput::Block(id), params), tx))
 			.map_err(|err| {
 				internal_err(format!(
 					"failed to send request to debug service : {:?}",

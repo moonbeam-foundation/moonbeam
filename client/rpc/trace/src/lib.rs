@@ -24,7 +24,7 @@
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
 
-use futures::{select, stream::FuturesUnordered, FutureExt, SinkExt, StreamExt};
+use futures::{select, stream::FuturesUnordered, FutureExt, StreamExt};
 use std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
 use tokio::{
 	sync::{mpsc, oneshot, Semaphore},
@@ -34,7 +34,7 @@ use tracing::{instrument, Instrument};
 
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -282,14 +282,13 @@ impl CacheRequester {
 	#[instrument(skip(self))]
 	pub async fn start_batch(&self, blocks: Vec<H256>) -> Result<CacheBatchId, String> {
 		let (response_tx, response_rx) = oneshot::channel();
-		let mut sender = self.0.clone();
+		let sender = self.0.clone();
 
 		sender
-			.send(CacheRequest::StartBatch {
+			.unbounded_send(CacheRequest::StartBatch {
 				sender: response_tx,
 				blocks,
 			})
-			.await
 			.map_err(|e| {
 				format!(
 					"Failed to send request to the trace cache task. Error : {:?}",
@@ -312,14 +311,13 @@ impl CacheRequester {
 	#[instrument(skip(self))]
 	pub async fn get_traces(&self, block: H256) -> TxsTraceRes {
 		let (response_tx, response_rx) = oneshot::channel();
-		let mut sender = self.0.clone();
+		let sender = self.0.clone();
 
 		sender
-			.send(CacheRequest::GetTraces {
+			.unbounded_send(CacheRequest::GetTraces {
 				sender: response_tx,
 				block,
 			})
-			.await
 			.map_err(|e| {
 				format!(
 					"Failed to send request to the trace cache task. Error : {:?}",
@@ -342,13 +340,12 @@ impl CacheRequester {
 	/// this batch and still in the waiting pool will be discarded.
 	#[instrument(skip(self))]
 	pub async fn stop_batch(&self, batch_id: CacheBatchId) {
-		let mut sender = self.0.clone();
+		let sender = self.0.clone();
 
 		// Here we don't care if the request has been accepted or refused, the caller can't
 		// do anything with it.
 		let _ = sender
-			.send(CacheRequest::StopBatch { batch_id })
-			.await
+			.unbounded_send(CacheRequest::StopBatch { batch_id })
 			.map_err(|e| {
 				format!(
 					"Failed to send request to the trace cache task. Error : {:?}",
