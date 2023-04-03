@@ -31,10 +31,11 @@ use moonbase_runtime::{
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig,
 	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	HOURS, WASM_BINARY,
+	XcmTransactorConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::relay_indices::*;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
@@ -339,6 +340,36 @@ pub fn testnet_genesis(
 		polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(8u128),
+		},
+		xcm_transactor: XcmTransactorConfig {
+			relay_indices: RelayChainIndices {
+				pallets: PalletIndices {
+					staking: 6u8,
+					utility: 26u8,
+					hrmp: 60u8,
+				},
+				calls: CallIndices {
+					staking: StakingIndices {
+						bond: 0u8,
+						bond_extra: 1u8,
+						unbond: 2u8,
+						withdraw_unbonded: 3u8,
+						validate: 4u8,
+						nominate: 5u8,
+						chill: 6u8,
+						set_payee: 7u8,
+						set_controller: 8u8,
+						rebond: 19u8,
+					},
+					utility: UtilityIndices { as_derivative: 1u8 },
+					hrmp: HrmpIndices {
+						init_open_channel: 0u8,
+						accept_open_channel: 1u8,
+						close_channel: 2u8,
+						cancel_open_request: 6u8,
+					},
+				},
+			},
 		},
 	}
 }

@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { Account } from "web3-core";
 import { alith, baltathar } from "../../util/accounts";
 import { GLMR, MIN_GAS_PRICE } from "../../util/constants";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { , describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {

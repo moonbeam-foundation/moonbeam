@@ -41,6 +41,7 @@ moonbeam-rpc-trace = { workspace = true }
 moonbeam-rpc-txpool = { workspace = true }
 moonbeam-vrf = { workspace = true }
 pallet-parachain-staking = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes
