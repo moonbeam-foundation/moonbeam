@@ -12,10 +12,10 @@ describeSuite({
     let specVersion: number = 0;
 
     beforeAll(async function () {
-      atBlockNumber = (await context.getSubstrateApi().rpc.chain.getHeader()).number.toNumber();
+      atBlockNumber = (await context.substrateApi().rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .getSubstrateApi()
-        .at(await context.getSubstrateApi().rpc.chain.getBlockHash(atBlockNumber));
+        .substrateApi()
+        .at(await context.substrateApi().rpc.chain.getBlockHash(atBlockNumber));
       specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
     });
 

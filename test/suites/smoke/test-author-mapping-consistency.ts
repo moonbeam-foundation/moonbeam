@@ -28,10 +28,10 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.getSubstrateApi().rpc.chain.getHeader()).number.toNumber();
+        : (await context.substrateApi().rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .getSubstrateApi()
-        .at(await context.getSubstrateApi().rpc.chain.getBlockHash(atBlockNumber));
+        .substrateApi()
+        .at(await context.substrateApi().rpc.chain.getBlockHash(atBlockNumber));
 
       // Query nimbus ids
       while (true) {

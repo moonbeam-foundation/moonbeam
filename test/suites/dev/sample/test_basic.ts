@@ -17,7 +17,7 @@ describeSuite({
     beforeAll(() => {
       api = context.ethersSigner();
       w3 = context.web3();
-      polkadotJs = context.getSubstrateApi();
+      polkadotJs = context.substrateApi();
     });
 
     it({

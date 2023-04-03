@@ -147,12 +147,10 @@
       "multiThreads": false,
       "foundation": {
         "type": "zombie",
-        "launchSpec": [
-          {
-            "name": "zombienet",
-            "configPath": "./configs/zombienet.json"
-          }
-        ]
+        "zombieSpec": {
+          "name": "zombienet",
+          "configPath": "./configs/zombienet.json"
+        }
       },
       "connections": [
         {

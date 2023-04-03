@@ -48,10 +48,10 @@ const deployHeavyContracts = async (polkadotApi: ApiPromise, first = 6000, last 
     .filter((batch) => batch.length > 0);
 
   // Set the storage of the contracts
-  let nonce = await polkadotApi.rpc.system.accountNextIndex(alith.address);
+  // let nonce = await polkadotApi.rpc.system.accountNextIndex(alith.address);
   const promises = batchs.map((batch) =>
     polkadotApi.tx.sudo.sudo(polkadotApi.tx.system.setStorage(batch)).signAndSend(alith, {
-      nonce: nonce++,
+      nonce: -1,
     })
   );
   await promises;
@@ -74,11 +74,11 @@ describeSuite({
     it({
       id: "T01",
       title: "Should revert the transaction if the PoV is too big",
+      timeout:600000,
       test: async function () {
-        this.timeout(300000);
         log("Starting:");
 
-        const contract = getCompiled("CallForwardesr");
+        const contract = getCompiled("CallForwarder");
         log("Sending:");
         const response = await ethTester.sendSignedTransaction(
           ethTester.genSignedContractDeployment({
