@@ -205,6 +205,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       123, // sequence
       999, // amount of tokens
       wethContract.contractAddress,
+      evmChainId,
       ETHChain,
       ETHEmitter, // TODO: review
       PRECOMPILE_GMP_ADDRESS,
