@@ -87,7 +87,7 @@ where
 		let wormhole_bridge = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
 			.map_err(|_| RevertReason::custom("invalid wormhole bridge contract address"))?;
 
-		let wormhole_bridge_impl = H160::from_str("0xeab4eeba1ff8504c124d031f6844ad98d07c318f")
+		let wormhole_bridge_impl = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
 			.map_err(|_| RevertReason::custom("invalid wormhole bridge impl contract address"))?;
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
@@ -132,7 +132,7 @@ where
 		// then use the returned payload to decide what to do.
 		let sub_context = Context {
 			caller: handle.code_address(), // TODO: can we trust this to always be "this precompile"?
-			address: wormhole,
+			address: wormhole_bridge_impl,
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 

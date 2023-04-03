@@ -81,7 +81,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .setup(
         implementationContract.contractAddress,
         initialSigners,
-        chainId,
+        evmChainId,
         governanceChainId,
         governanceContract,
         evmChainId
@@ -104,7 +104,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const bridgeSetupData = bridgeSetupContract.contract.methods
       .setup(
         bridgeImplContract.contractAddress,
-        chainId,
+        evmChainId,
         wormholeContract.contractAddress,
         governanceChainId,
         governanceContract,
@@ -119,8 +119,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       bridgeSetupData,
     ]);
 
-    console.log(`bridge impl contract deployed to ${bridgeImplContract.contractAddress}`);
-    console.log(`wormhole token deployed to ${bridgeContract.contractAddress}`);
+    console.log(`bridge contract deployed to ${bridgeContract.contractAddress}`);
 
     const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
     const ETHChain = 3;
@@ -206,7 +205,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       123, // sequence
       999, // amount of tokens
       wethContract.contractAddress,
-      evmChainId,
+      ETHChain,
       ETHEmitter, // TODO: review
       PRECOMPILE_GMP_ADDRESS,
       "0x"+ evmChainId.toString(16),
