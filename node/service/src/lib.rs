@@ -1226,6 +1226,7 @@ mod tests {
 		config::{BasePath, DatabaseSource, KeystoreConfig},
 		Configuration, Role,
 	};
+	use sp_core::H256;
 	use std::path::Path;
 	use std::str::FromStr;
 
@@ -1302,7 +1303,6 @@ mod tests {
 		use sc_block_builder::BlockBuilderProvider;
 		use sp_api::ProvideRuntimeApi;
 		use sp_consensus::BlockOrigin;
-		use sp_runtime::generic::BlockId;
 		use substrate_test_runtime::TestAPI;
 		use substrate_test_runtime_client::runtime::Block;
 		use substrate_test_runtime_client::{
@@ -1335,7 +1335,7 @@ mod tests {
 		>::new(1));
 
 		let a1 = client
-			.new_block_at(&BlockId::Number(0), Default::default(), false)
+			.new_block_at(H256::default(), Default::default(), false)
 			.unwrap()
 			.build()
 			.unwrap()
@@ -1346,7 +1346,7 @@ mod tests {
 		// shouldnt panic on importing invalid sig
 		assert!(!client
 			.runtime_api()
-			.verify_ed25519(&BlockId::Number(0), invalid_sig(), zero_ed_pub(), vec![])
+			.verify_ed25519(H256::default(), invalid_sig(), zero_ed_pub(), vec![])
 			.unwrap());
 	}
 

@@ -136,7 +136,6 @@ pub mod mock_pallet_maintenance_hooks {
 	}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::call]

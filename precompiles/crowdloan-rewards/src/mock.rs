@@ -187,8 +187,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type SignatureNetworkIdentifier = TestSignatureNetworkIdentifier;
 
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
