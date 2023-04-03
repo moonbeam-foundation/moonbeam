@@ -50,7 +50,7 @@ where
 	}
 }
 
-/// Deny initiation of any teleport or withdrawal from non local account
+/// Deny initiation of any teleport and withdrawal from non local account
 pub struct DenyTeleportAndWithdrawFromNonLocalOrigin;
 impl ShouldExecute for DenyTeleportAndWithdrawFromNonLocalOrigin {
 	fn should_execute<RuntimeCall>(
