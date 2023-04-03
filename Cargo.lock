@@ -5959,6 +5959,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-xcm-transactor",
  "parity-scale-codec",
  "parking_lot 0.12.1",
  "polkadot-cli",
