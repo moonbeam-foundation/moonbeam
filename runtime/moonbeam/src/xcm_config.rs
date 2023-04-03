@@ -50,8 +50,8 @@ use xcm_executor::traits::JustTry;
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	DEFAULT_PROOF_SIZE,
+	DenyTeleportAndWithdrawFromNonLocalOrigin, DenyThenTry, FirstAssetTrader, SignedToAccountId20,
+	UtilityAvailableCalls, UtilityEncodeCall, XcmTransact, DEFAULT_PROOF_SIZE,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -208,15 +208,19 @@ parameter_types! {
 /// Xcm Weigher shared between multiple Xcm-related configs.
 pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 
-// Allow paid executions
-pub type XcmBarrier = (
-	TakeWeightCredit,
-	AllowTopLevelPaidExecutionFrom<Everything>,
-	// Expected responses are OK.
-	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
-);
+pub type XcmBarrier = DenyThenTry<
+	DenyTeleportAndWithdrawFromNonLocalOrigin,
+	(
+		// Allow local execution
+		TakeWeightCredit,
+		// Allow paid executions
+		AllowTopLevelPaidExecutionFrom<Everything>,
+		// Expected responses are OK.
+		AllowKnownQueryResponses<PolkadotXcm>,
+		// Subscriptions for version tracking are OK.
+		AllowSubscriptionsFrom<Everything>,
+	),
+>;
 
 parameter_types! {
 	/// Xcm fees will go to the treasury account

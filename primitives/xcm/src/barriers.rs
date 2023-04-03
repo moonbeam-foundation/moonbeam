@@ -21,11 +21,68 @@ use frame_support::{ensure, pallet_prelude::Weight, traits::Contains};
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
 use sp_std::marker::PhantomData;
 use xcm::latest::{
-	prelude::{BuyExecution, DescendOrigin, Instruction, WithdrawAsset},
+	prelude::*,
 	MultiLocation,
 	WeightLimit::{Limited, Unlimited},
 };
 use xcm_executor::traits::ShouldExecute;
+
+/// Deny executing the xcm message if it matches any of the Deny filter regardless of anything else.
+/// If it passes the Deny, and matches one of the Allow cases then it is let through.
+pub struct DenyThenTry<Deny, Allow>(PhantomData<Deny>, PhantomData<Allow>)
+where
+	Deny: ShouldExecute,
+	Allow: ShouldExecute;
+
+impl<Deny, Allow> ShouldExecute for DenyThenTry<Deny, Allow>
+where
+	Deny: ShouldExecute,
+	Allow: ShouldExecute,
+{
+	fn should_execute<RuntimeCall>(
+		origin: &MultiLocation,
+		message: &mut [Instruction<RuntimeCall>],
+		max_weight: Weight,
+		weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		Deny::should_execute(origin, message, max_weight, weight_credit)?;
+		Allow::should_execute(origin, message, max_weight, weight_credit)
+	}
+}
+
+/// Deny initiation of any teleport or withdrawal from non local account
+pub struct DenyTeleportAndWithdrawFromNonLocalOrigin;
+impl ShouldExecute for DenyTeleportAndWithdrawFromNonLocalOrigin {
+	fn should_execute<RuntimeCall>(
+		origin: &MultiLocation,
+		message: &mut [Instruction<RuntimeCall>],
+		_max_weight: Weight,
+		_weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		for instr in message {
+			match instr {
+				// Deny teleport
+				InitiateTeleport { .. } => {
+					return Err(()); // Deny
+				}
+				// Allow InitiateReserveWithdraw only from a local account
+				InitiateReserveWithdraw { .. }
+					if matches!(
+						origin,
+						MultiLocation {
+							parents: 0,
+							interior: X1(AccountKey20 { network: None, .. })
+						}
+					) =>
+				{
+					return Err(()); // Deny
+				}
+				_ => continue,
+			}
+		}
+		Ok(())
+	}
+}
 
 /// Barrier allowing a top level paid message with DescendOrigin instruction
 /// first
