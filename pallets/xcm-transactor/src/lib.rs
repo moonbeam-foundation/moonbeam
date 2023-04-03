@@ -395,6 +395,27 @@ pub mod pallet {
 		},
 	}
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig {
+		pub relay_indices: RelayChainIndices,
+	}
+
+	#[cfg(feature = "std")]
+	impl Default for GenesisConfig {
+		fn default() -> Self {
+			Self {
+				relay_indices: RelayChainIndices::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			<RelayIndices<T>>::put(self.relay_indices);
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register a derivative index for an account id. Dispatchable by

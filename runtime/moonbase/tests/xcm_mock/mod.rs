@@ -18,6 +18,7 @@ pub mod parachain;
 pub mod relay_chain;
 pub mod statemint_like;
 use cumulus_primitives_core::ParaId;
+use pallet_xcm_transactor::relay_indices::*;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
@@ -143,6 +144,29 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		balances: vec![(PARAALICE.into(), INITIAL_BALANCE)],
 	}
 	.assimilate_storage(&mut t)
+	.unwrap();
+
+	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
+		&pallet_xcm_transactor::GenesisConfig {
+			// match relay runtime construct_runtime order in xcm_mock::relay_chain
+			relay_indices: RelayChainIndices {
+				pallets: PalletIndices {
+					hrmp: 6u8,
+					..Default::default()
+				},
+				calls: CallIndices {
+					hrmp: HrmpIndices {
+						init_open_channel: 0u8,
+						accept_open_channel: 1u8,
+						close_channel: 2u8,
+						cancel_open_request: 6u8,
+					},
+					..Default::default()
+				},
+			},
+		},
+		&mut t,
+	)
 	.unwrap();
 
 	// EVM accounts are self-sufficient.

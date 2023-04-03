@@ -19,10 +19,7 @@ pub mod relay_chain;
 pub mod statemine_like;
 
 use cumulus_primitives_core::ParaId;
-use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::AccountId32;
-use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
-
+use pallet_xcm_transactor::relay_indices::*;
 use polkadot_runtime_parachains::configuration::{
 	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
 };
@@ -30,7 +27,10 @@ use polkadot_runtime_parachains::paras::{
 	GenesisConfig as ParasGenesisConfig, ParaGenesisArgs, ParaKind,
 };
 use sp_core::{H160, U256};
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::AccountId32;
 use std::{collections::BTreeMap, str::FromStr};
+use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
@@ -139,6 +139,29 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		balances: vec![(PARAALICE.into(), INITIAL_BALANCE)],
 	}
 	.assimilate_storage(&mut t)
+	.unwrap();
+
+	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
+		&pallet_xcm_transactor::GenesisConfig {
+			// match relay runtime construct_runtime order in xcm_mock::relay_chain
+			relay_indices: RelayChainIndices {
+				pallets: PalletIndices {
+					hrmp: 6u8,
+					..Default::default()
+				},
+				calls: CallIndices {
+					hrmp: HrmpIndices {
+						init_open_channel: 0u8,
+						accept_open_channel: 1u8,
+						close_channel: 2u8,
+						cancel_open_request: 6u8,
+					},
+					..Default::default()
+				},
+			},
+		},
+		&mut t,
+	)
 	.unwrap();
 
 	// EVM accounts are self-sufficient.
