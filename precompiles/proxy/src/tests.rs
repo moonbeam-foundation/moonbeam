@@ -788,3 +788,72 @@ fn proxy_proxy_should_succeed_if_called_by_smart_contract() {
 			assert!(inside.get(), "subcall not called");
 		})
 }
+
+#[test]
+fn proxy_proxy_should_fail_if_called_by_smart_contract_for_a_non_eoa_account() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AddressU64::<1>::get().into(), 1000),
+			(Bob.into(), 1000),
+		])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice & Bob addresses as if they are smart contracts.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Bob), vec![10u8]);
+
+			// Bob allows Alice to make calls on his behalf
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Alice.into(),
+				proxy_type: ProxyType::Any,
+				delay: 0,
+			})
+			.dispatch(RuntimeOrigin::signed(Bob.into())));
+
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
+			// The smart contract calls proxy.proxy to call address Charlie as if it was Bob
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Bob.into()),
+						call_to: Address(Charlie.into()),
+						call_data: BoundedBytes::from([1]),
+					},
+				)
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, Bob.into());
+					assert_eq!(address, Charlie.into());
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(context.address, Charlie.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input, &[1]);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"TEST".to_vec(),
+						cost: 13,
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+					}
+				})
+				.execute_reverts(|output| output == b"real address must be EOA");
+		})
+}
