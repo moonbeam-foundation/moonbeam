@@ -841,6 +841,7 @@ where
 				telemetry.clone(),
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+			proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
