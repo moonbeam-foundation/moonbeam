@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle};
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -49,11 +49,12 @@ pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
-// Wormhole fn selectors
+// fn selectors
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
-const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d; // parseTransferWithPayload(bytes)
-const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1u32; // completeTransferWithPayload(bytes)
-const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286u32; // wrappedAsset(uint16,bytes32)
+const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32; // parseTransferWithPayload(bytes)
+const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32; // completeTransferWithPayload(bytes)
+const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32; // wrappedAsset(uint16,bytes32)
+const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32; // balanceOf(address)
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -93,7 +94,7 @@ where
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
-		let output = Self::call_wormhole(
+		let output = Self::call(
 			handle,
 			wormhole,
 			EvmDataWriter::new_with_selector(PARSE_VM_SELECTOR)
@@ -104,7 +105,7 @@ where
 		let wormhole_vm: WormholeVM = reader.read()?;
 
 		// get the bridge transfer data from the wormhole VM payload
-		let output = Self::call_wormhole(
+		let output = Self::call(
 			handle,
 			wormhole_bridge,
 			EvmDataWriter::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
@@ -116,7 +117,7 @@ where
 
 		// get the wrapper for this asset by calling wrappedAsset()
 		// TODO: this should only be done if needed (when token chain == our chain)
-		let output = Self::call_wormhole(
+		let output = Self::call(
 			handle,
 			wormhole_bridge,
 			EvmDataWriter::new_with_selector(WRAPPED_ASSET_SELECTOR)
@@ -126,8 +127,19 @@ where
 		)?;
 		let mut reader = EvmDataReader::new(&output[..]);
 		let wrapped_address: Address = reader.read()?;
-
 		log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_address);
+
+		// query our "before" balance (our being this precompile)
+		let output = Self::call(
+			handle,
+			wrapped_address.into(),
+			EvmDataWriter::new_with_selector(BALANCE_OF_SELECTOR)
+				.write(Address::from(handle.code_address()))
+				.build(),
+		)?;
+		let mut reader = EvmDataReader::new(&output[..]);
+		let before_amount: U256 = reader.read()?;
+		log::debug!(target: "gmp-precompile", "before balance: {}", before_amount);
 
 		// our inner-most payload should be a VersionedUserAction
 		let user_action = VersionedUserAction::decode_with_depth_limit(
@@ -142,7 +154,7 @@ where
 			.token_address
 			.try_into()
 			.map_err(|_| revert("Asset address is not a H160"))?;
-		let currency_account_id = Runtime::AddressMapping::into_account_id(asset_address);
+		let currency_account_id = Runtime::AddressMapping::into_account_id(wrapped_address.into());
 
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(currency_account_id)
@@ -180,10 +192,29 @@ where
 
 		ensure_exit_reason_success(reason, &output[..])?;
 
-		// TODO: Check "after" balance here and ensure it is correct for user action
-		// TODO: we should now have funds for this account, custodied by this precompile itself.
-		//       next we need to see where the user wants to send them by inspecting the payload.
-		//
+		// query our "after" balance (our being this precompile)
+		let output = Self::call(
+			handle,
+			wrapped_address.into(),
+			EvmDataWriter::new_with_selector(BALANCE_OF_SELECTOR)
+				.write(Address::from(handle.code_address()))
+				.build(),
+		)?;
+		let mut reader = EvmDataReader::new(&output[..]);
+		let after_amount: U256 = reader.read()?;
+		log::debug!(target: "gmp-precompile", "after balance: {}", after_amount);
+
+		let amount_transfered = after_amount.saturating_sub(before_amount);
+
+		// TODO: review
+		if amount_transfered < transfer_with_payload.amount {
+			log::debug!(target: "gmp-precompile", "insufficient funds bridged ({} < {})", amount_transfered, transfer_with_payload.amount);
+			return Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output: "insufficient funds bridged".into(),
+			});
+		}
+
 		// TODO: Wormhole might have transfered unsupported tokens; we should handle this case
 		//       gracefully (maybe that's as simple as reverting)
 
@@ -212,8 +243,9 @@ where
 		Ok(())
 	}
 
-	/// call the given contract / function selector and return its output
-	fn call_wormhole(
+	/// call the given contract / function selector and return its output. Returns Err if the EVM
+	/// exit reason is not Succeed.
+	fn call(
 		handle: &mut impl PrecompileHandle,
 		contract_address: H160,
 		call_data: Vec<u8>,
@@ -226,7 +258,7 @@ where
 
 		log::debug!(
 			target: "gmp-precompile",
-			"call_wormhole calling {} ...", contract_address,
+			"calling {} ...", contract_address,
 		);
 
 		let (reason, output) = handle.call(
