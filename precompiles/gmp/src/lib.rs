@@ -30,7 +30,7 @@ use parity_scale_codec::DecodeLimit;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
-use sp_std::{marker::PhantomData, str::FromStr};
+use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
 use types::*;
 use xcm::opaque::latest::WeightLimit;
 use xcm::VersionedMultiLocation;
@@ -92,12 +92,19 @@ where
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
-		let wormhole_vm = Self::parse_vm(handle, wormhole, wormhole_vaa.clone())?;
-		log::debug!(target: "gmp-precompile", "vm: {:?}", wormhole_vm);
+		let output =
+			Self::call_wormhole(handle, wormhole, PARSE_VM_SELECTOR, wormhole_vaa.clone())?;
+		let mut reader = EvmDataReader::new(&output[..]);
+		let wormhole_vm: WormholeVM = reader.read()?;
 
-		let transfer_with_payload =
-			Self::parse_transfer_with_payload(handle, wormhole_bridge, wormhole_vm.payload)?;
-		log::debug!(target: "gmp-precompile", "transfer_with_payload: {:?}", transfer_with_payload);
+		let output = Self::call_wormhole(
+			handle,
+			wormhole_bridge,
+			PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR,
+			wormhole_vm.payload,
+		)?;
+		let mut reader = EvmDataReader::new(&output[..]);
+		let transfer_with_payload: WormholeTransferWithPayloadData = reader.read()?;
 
 		// our inner-most payload should be a VersionedUserAction
 		let user_action = VersionedUserAction::decode_with_depth_limit(
@@ -182,35 +189,29 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("deposit()")]
-	#[precompile::fallback]
-	#[precompile::payable]
-	fn deposit(handle: &mut impl PrecompileHandle) -> EvmResult {
-		// TODO: impl?
-		Ok(())
-	}
-
-	// Call wormhole's parseVm() function and decode its return value into a WormholeVM
-	fn parse_vm(
+	/// call the given contract / function selector and return its output
+	fn call_wormhole(
 		handle: &mut impl PrecompileHandle,
-		wormhole_core_contract_address: H160,
-		wormhole_vaa: BoundedBytes<GetCallDataLimit>,
-	) -> EvmResult<WormholeVM> {
+		contract_address: H160,
+		selector: u32,
+		data: BoundedBytes<GetCallDataLimit>,
+	) -> EvmResult<Vec<u8>> {
 		let sub_context = Context {
 			caller: handle.code_address(),
-			address: wormhole_core_contract_address,
+			address: contract_address,
 			apparent_value: U256::zero(),
 		};
 
 		log::debug!(
 			target: "gmp-precompile",
-			"calling Wormhole parseVM on {}...", wormhole_core_contract_address
+			"call_wormhole calling {} on {} ...", selector, contract_address,
 		);
+
 		let (reason, output) = handle.call(
-			wormhole_core_contract_address,
+			contract_address,
 			None,
-			EvmDataWriter::new_with_selector(PARSE_VM_SELECTOR)
-				.write(wormhole_vaa)
+			EvmDataWriter::new_with_selector(selector)
+				.write(data)
 				.build(),
 			handle.gas_limit(), // TODO
 			false,
@@ -219,45 +220,7 @@ where
 
 		ensure_exit_reason_success(reason, &output[..])?;
 
-		let mut reader = EvmDataReader::new(&output[..]);
-		let vm: WormholeVM = reader.read()?;
-
-		Ok(vm)
-	}
-
-	// Call wormhole's parseTransferWithPayload() function and decode its return value into a WormholeVM
-	fn parse_transfer_with_payload(
-		handle: &mut impl PrecompileHandle,
-		wormhole_core_contract_address: H160,
-		payload: BoundedBytes<GetCallDataLimit>,
-	) -> EvmResult<WormholeTransferWithPayloadData> {
-		let sub_context = Context {
-			caller: handle.code_address(),
-			address: wormhole_core_contract_address,
-			apparent_value: U256::zero(),
-		};
-
-		log::debug!(
-			target: "gmp-precompile",
-			"calling Wormhole parseTransferWithPayload on {}...", wormhole_core_contract_address
-		);
-		let (reason, output) = handle.call(
-			wormhole_core_contract_address,
-			None,
-			EvmDataWriter::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
-				.write(payload)
-				.build(),
-			handle.gas_limit(), // TODO
-			false,
-			&sub_context,
-		);
-
-		ensure_exit_reason_success(reason, &output[..])?;
-
-		let mut reader = EvmDataReader::new(&output[..]);
-		let data: WormholeTransferWithPayloadData = reader.read()?;
-
-		Ok(data)
+		Ok(output)
 	}
 }
 
