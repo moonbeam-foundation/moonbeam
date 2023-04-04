@@ -205,13 +205,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       123, // sequence
       999, // amount of tokens
       wethContract.contractAddress,
-      evmChainId,
+      ETHChain,
       ETHChain,
       ETHEmitter, // TODO: review
       PRECOMPILE_GMP_ADDRESS,
       "0x"+ evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "0x00010200ed0101000000000000000000000000000000000000000000000000000000000000000000",
+      "0x00010101000000000000000000000000000000000000000000000000000000000000000000" // some account on relay chain
     );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVM}`]);
