@@ -13,7 +13,7 @@ describeSuite({
     const DUMMY_ACCOUNT = "0x11d88f59425cbc1867883fcf93614bf70e87E854";
 
     beforeAll(() => {
-      api = context.substrateApi();
+      api = context.polkadotJs();
     });
 
     it({

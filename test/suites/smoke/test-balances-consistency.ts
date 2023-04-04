@@ -30,10 +30,10 @@ describeSuite({
 
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.substrateApi().rpc.chain.getHeader()).number.toNumber();
+        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .substrateApi()
-        .at(await context.substrateApi().rpc.chain.getBlockHash(atBlockNumber));
+        .polkadotJs()
+        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
       runtimeName = apiAt.runtimeVersion.specName.toString();
 
@@ -411,7 +411,7 @@ describeSuite({
                       key // @ts-ignore-error
                     ) =>
                       `${key}: ${printTokens(
-                        context.substrateApi(),
+                        context.polkadotJs(),
                         expectedReserveByAccount[accountId].reserved[key]
                       )}`
                   )
@@ -513,9 +513,9 @@ describeSuite({
             if (expectedLocks[key] > locks[key]) {
               failedLocks.push(
                 `${accountId} (lock ${key}: actual ${
-                  locks[key] && printTokens(context.substrateApi(), locks[key])
+                  locks[key] && printTokens(context.polkadotJs(), locks[key])
                 } < expected: ${
-                  (expectedLocks[key] && printTokens(context.substrateApi(), expectedLocks[key])) ||
+                  (expectedLocks[key] && printTokens(context.polkadotJs(), expectedLocks[key])) ||
                   ""
                 })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
                   .map(

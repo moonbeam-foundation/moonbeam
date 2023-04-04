@@ -68,7 +68,7 @@ describeSuite({
 
     beforeAll(() => {
       web3 = context.web3();
-      polkadotApi = context.substrateApi({ type: "moon" });
+      polkadotApi = context.polkadotJs({ type: "moon" });
       ethTester = new EthTester(context.web3(), ALITH_PRIVATE_KEY, log);
     });
 

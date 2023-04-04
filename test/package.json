@@ -14,7 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "@acala-network/chopsticks": "^0.5.10",
-    "@moonwall/cli": "^0.4.2",
+    "@moonwall/cli": "^0.4.3",
     "@moonwall/util": "^0.4.2",
     "@polkadot/api": "^10.2.2",
     "@polkadot/api-augment": "^10.2.2",
@@ -27,7 +27,7 @@
     "chalk": "^5.2.0",
     "debug": "^4.3.4",
     "ethers": "^6.2.3",
-    "pnpm": "^7.30.5",
+    "pnpm": "^7.31.0",
     "prettier": "^2.8.7",
     "typescript": "^4.9.5",
     "web3": "4.0.1-alpha.5",
