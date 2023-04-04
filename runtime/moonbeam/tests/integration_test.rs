@@ -2529,7 +2529,6 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 		});
 }
 
-
 #[test]
 fn transact_through_signed_mult_not_enabled() {
 	ExtBuilder::default()
