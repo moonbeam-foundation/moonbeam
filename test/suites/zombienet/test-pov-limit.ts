@@ -26,7 +26,6 @@ const deployHeavyContracts = async (polkadotApi: ApiPromise, first = 6000, last 
   for (const contract of contracts) {
     contract.deployed =
       (await polkadotApi.rpc.state.getStorage(contract.key)).toString().length > 10;
-    console.log(contract.deployed, contract.key);
   }
 
   // Create the contract code (24kb of zeros)
@@ -48,13 +47,13 @@ const deployHeavyContracts = async (polkadotApi: ApiPromise, first = 6000, last 
     .filter((batch) => batch.length > 0);
 
   // Set the storage of the contracts
-  // let nonce = await polkadotApi.rpc.system.accountNextIndex(alith.address);
-  const promises = batchs.map((batch) =>
+  let nonce = (await polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
+  const promises = batchs.map((batch, i) => {
     polkadotApi.tx.sudo.sudo(polkadotApi.tx.system.setStorage(batch)).signAndSend(alith, {
-      nonce: -1,
-    })
-  );
-  await promises;
+      nonce: nonce++,
+    });
+  });
+  await Promise.all(promises);
   return contracts;
 };
 
@@ -64,33 +63,62 @@ describeSuite({
   foundationMethods: "zombie",
   testCases: function ({ it, context, log }) {
     let web3: Web3;
+    let polkadotApi: ApiPromise;
     let ethTester: EthTester;
 
     beforeAll(() => {
       web3 = context.web3();
+      polkadotApi = context.substrateApi({ type: "moon" });
       ethTester = new EthTester(context.web3(), ALITH_PRIVATE_KEY, log);
     });
 
     it({
       id: "T01",
       title: "Should revert the transaction if the PoV is too big",
-      timeout:600000,
+      timeout: 120000,
       test: async function () {
-        log("Starting:");
-
         const contract = getCompiled("CallForwarder");
-        log("Sending:");
+        const contracts = await deployHeavyContracts(polkadotApi, 6000, 6500);
+
+        // Deploy the CallForwarder contract
         const response = await ethTester.sendSignedTransaction(
           ethTester.genSignedContractDeployment({
             abi: contract.contract.abi,
             byteCode: contract.byteCode,
           })
         );
+        let receipt;
+        while (true) {
+          receipt = await web3.eth.getTransactionReceipt(response.result).catch((e) => null);
+          if (receipt) break;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        expect(receipt.status).to.equal(1n);
+        const contractAddress = receipt.contractAddress;
+        log("Deployed contract:", contractAddress);
 
-        const receipt = await web3.eth.getTransactionReceipt(response.transactionHash);
-        log("Received:", JSON.stringify(receipt, null, 2));
+        const callForward = new web3.eth.Contract(contract.contract.abi, contractAddress);
 
-        expect(receipt.status).to.equal(false);
+        const { result } = await ethTester.sendSignedTransaction(
+          ethTester.genSignedTransaction({
+            to: contractAddress,
+            data: callForward.methods
+              .callRange(contracts[0].account, contracts[contracts.length - 1].account)
+              .encodeABI(),
+          })
+        );
+        expect(result).to.not.be.empty;
+
+        // The PoV (expected of 11Mb should be to big
+        // and the transaction should never be included in a block
+        let finalReceipt;
+        while (true) {
+          finalReceipt = await web3.eth.getTransactionReceipt(response.result).catch((e) => null);
+          if (finalReceipt) break;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        console.log(finalReceipt);
+        expect(finalReceipt.status).to.equal(0n);
 
         // TODO: add rest of test
       },
