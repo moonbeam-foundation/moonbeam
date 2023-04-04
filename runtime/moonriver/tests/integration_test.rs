@@ -2699,7 +2699,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("CallFiltered")
+						&& from_utf8(&output).unwrap().contains("ErrorValidating")
 				});
 		});
 }

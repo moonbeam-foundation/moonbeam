@@ -1097,11 +1097,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
-			// We filter for now transact through signed
-			RuntimeCall::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
-				_ => true,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
