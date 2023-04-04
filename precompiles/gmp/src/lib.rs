@@ -53,6 +53,7 @@ type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
 const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d; // parseTransferWithPayload(bytes)
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1u32; // completeTransferWithPayload(bytes)
+const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286u32; // wrappedAsset(uint16,bytes32)
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -92,19 +93,41 @@ where
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
-		let output =
-			Self::call_wormhole(handle, wormhole, PARSE_VM_SELECTOR, wormhole_vaa.clone())?;
+		let output = Self::call_wormhole(
+			handle,
+			wormhole,
+			EvmDataWriter::new_with_selector(PARSE_VM_SELECTOR)
+				.write(wormhole_vaa.clone())
+				.build(),
+		)?;
 		let mut reader = EvmDataReader::new(&output[..]);
 		let wormhole_vm: WormholeVM = reader.read()?;
 
+		// get the bridge transfer data from the wormhole VM payload
 		let output = Self::call_wormhole(
 			handle,
 			wormhole_bridge,
-			PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR,
-			wormhole_vm.payload,
+			EvmDataWriter::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
+				.write(wormhole_vm.payload)
+				.build(),
 		)?;
 		let mut reader = EvmDataReader::new(&output[..]);
 		let transfer_with_payload: WormholeTransferWithPayloadData = reader.read()?;
+
+		// get the wrapper for this asset by calling wrappedAsset()
+		// TODO: this should only be done if needed (when token chain == our chain)
+		let output = Self::call_wormhole(
+			handle,
+			wormhole_bridge,
+			EvmDataWriter::new_with_selector(WRAPPED_ASSET_SELECTOR)
+				.write(transfer_with_payload.token_chain)
+				.write(transfer_with_payload.token_address)
+				.build(),
+		)?;
+		let mut reader = EvmDataReader::new(&output[..]);
+		let wrapped_address: Address = reader.read()?;
+
+		log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_address);
 
 		// our inner-most payload should be a VersionedUserAction
 		let user_action = VersionedUserAction::decode_with_depth_limit(
@@ -193,8 +216,7 @@ where
 	fn call_wormhole(
 		handle: &mut impl PrecompileHandle,
 		contract_address: H160,
-		selector: u32,
-		data: BoundedBytes<GetCallDataLimit>,
+		call_data: Vec<u8>,
 	) -> EvmResult<Vec<u8>> {
 		let sub_context = Context {
 			caller: handle.code_address(),
@@ -204,15 +226,13 @@ where
 
 		log::debug!(
 			target: "gmp-precompile",
-			"call_wormhole calling {} on {} ...", selector, contract_address,
+			"call_wormhole calling {} ...", contract_address,
 		);
 
 		let (reason, output) = handle.call(
 			contract_address,
 			None,
-			EvmDataWriter::new_with_selector(selector)
-				.write(data)
-				.build(),
+			call_data,
 			handle.gas_limit(), // TODO
 			false,
 			&sub_context,
