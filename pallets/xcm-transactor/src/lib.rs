@@ -942,6 +942,22 @@ pub mod pallet {
 		CompactWrapper { input }.encode()
 	}
 
+	fn encode_account_id_lookups<T>(input: Vec<T>) -> Vec<u8>
+	where
+		T: Clone + Into<<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source>,
+	{
+		if input.len() == 1usize {
+			let lookup: <AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source =
+				input[0].clone().into();
+			lookup.encode()
+		} else {
+			let lookups: Vec<
+				<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
+			> = input.iter().map(|a| (*a).clone().into()).collect();
+			lookups.encode()
+		}
+	}
+
 	impl<T: Config> StakeEncodeCall for Pallet<T> {
 		fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
 			match call {
@@ -952,9 +968,7 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond);
 					// encoded arguments
-					let a: <AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source =
-						a.into();
-					encoded_call.append(&mut a.encode());
+					encoded_call.append(&mut encode_account_id_lookups(vec![a]));
 					encoded_call.append(&mut encode_compact_arg(b));
 					encoded_call.append(&mut c.encode());
 					encoded_call
@@ -1031,10 +1045,7 @@ pub mod pallet {
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_controller);
 					// encoded argument
-					let controller: <
-						AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup
-					>::Source = a.into();
-					encoded_call.append(&mut controller.encode());
+					encoded_call.append(&mut encode_account_id_lookups(vec![a]));
 					encoded_call
 				}
 
@@ -1055,10 +1066,8 @@ pub mod pallet {
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.nominate);
-					let nominated: Vec<
-						<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
-					> = a.iter().map(|add| (*add).clone().into()).collect();
-					encoded_call.append(&mut nominated.encode());
+					// encoded argument
+					encoded_call.append(&mut encode_account_id_lookups(a));
 					encoded_call
 				}
 			}
