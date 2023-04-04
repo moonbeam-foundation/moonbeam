@@ -1699,6 +1699,9 @@
 <a href="#1699" id="1699">1699</a>
 <a href="#1700" id="1700">1700</a>
 <a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2189,6 +2192,7 @@
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>SetMembersOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TechCommitteeInstance&gt; <span class="kw">for </span>Runtime {
@@ -2204,6 +2208,7 @@
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>SetMembersOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TreasuryCouncilInstance&gt; <span class="kw">for </span>Runtime {
@@ -2219,6 +2224,7 @@
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">9</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>SetMembersOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
 <span class="comment">// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
