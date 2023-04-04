@@ -453,7 +453,7 @@ pub mod pallet {
 				let mut len_counter = collators.len();
 
 				// iter collators to check which of them must be marked as offline
-				/* for collator in collators.clone() {
+				for collator in collators.clone() {
 					if let Some(last_round) = <CandidateLastActive<T>>::get(&collator) {
 						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
 							&& len_counter > (max_collators * 0.66) as usize
@@ -467,31 +467,16 @@ pub mod pallet {
 							<CandidateLastActive<T>>::remove(&collator);
 
 							len_counter -= 1;
-						};
-					}
-				} */
-
-				for collator in collators.clone() {
-					if let Some(last_round) = <CandidateLastRound<T>>::get(&collator){
-						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get() 
-							&& len_counter > (max_collators * 0.66) as usize
-						{
-							// if the collator has not produced any block within
-							// MaxOfflineRounds e.g(3 rounds for Moonriver)
-							// it is marked as offline
-							Self::do_go_offline(collator.clone()).unwrap_or_default();
-
-							//remove storage info for the collator
-							<CandidateLastRound<T>>::remove(&collator);
-
-							len_counter -= 1;
 						}
+					} else {
+						<CandidateLastActive<T>>::insert(&collator, round.current);
 					}
 				}
 
 				// select top collator candidates for next round
 				let (extra_weight, collator_count, _delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
+
 				weight = weight.saturating_add(extra_weight);
 				// start next round
 				<Round<T>>::put(round);
@@ -519,12 +504,7 @@ pub mod pallet {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			// update candidate's last producing round
-			/* let candidate_last_selected = CandidateLastSelected {
-				last_round_selected: now,
-				has_produced_blocks: true
-			}; */
-			<CandidateLastRound<T>>::insert(&author, now);
-			//<CandidateLastActive<T>>::insert(&author, now);
+			<CandidateLastActive<T>>::insert(&author, now);
 			Self::award_points_to_block_author(author, now);
 		}
 	}
@@ -568,9 +548,9 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn candidate_last_round)]
+	#[pallet::getter(fn candidate_last_active)]
 	/// Stores the last round in which a collator produced blocks
-	pub(crate) type CandidateLastRound<T: Config> =
+	pub(crate) type CandidateLastActive<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
@@ -1141,7 +1121,7 @@ pub mod pallet {
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
-			<CandidateLastRound<T>>::remove(&candidate);
+			<CandidateLastActive<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::CandidateLeft {
@@ -1828,11 +1808,6 @@ pub mod pallet {
 
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
-				/* let candidate_selected = <CandidateLastRound<T>>::get(&account);
-				if candidate_selected.is_none() {
-					<CandidateLastRound<T>>::insert(&account, 0);
-				} */
-			
 				let state = <CandidateInfo<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
 
