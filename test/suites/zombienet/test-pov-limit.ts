@@ -48,11 +48,22 @@ const deployHeavyContracts = async (polkadotApi: ApiPromise, first = 6000, last 
 
   // Set the storage of the contracts
   let nonce = (await polkadotApi.rpc.system.accountNextIndex(alith.address)).toNumber();
-  const promises = batchs.map((batch, i) => {
-    polkadotApi.tx.sudo.sudo(polkadotApi.tx.system.setStorage(batch)).signAndSend(alith, {
-      nonce: nonce++,
-    });
-  });
+  const promises = batchs.map(
+    (batch, i) =>
+      new Promise((resolve) =>
+        polkadotApi.tx.sudo.sudo(polkadotApi.tx.system.setStorage(batch)).signAndSend(
+          alith,
+          {
+            nonce: nonce++,
+          },
+          (result) => {
+            if (result.status.isInBlock) {
+              resolve(true);
+            }
+          }
+        )
+      )
+  );
   await Promise.all(promises);
   return contracts;
 };
@@ -75,18 +86,20 @@ describeSuite({
     it({
       id: "T01",
       title: "Should revert the transaction if the PoV is too big",
-      timeout: 120000,
+      timeout: 300000,
       test: async function () {
         const contract = getCompiled("CallForwarder");
-        const contracts = await deployHeavyContracts(polkadotApi, 6000, 6500);
-
+        const contracts = await deployHeavyContracts(polkadotApi, 6000, 6300);
+        await new Promise((resolve) => setTimeout(resolve, 12000));
         // Deploy the CallForwarder contract
+        log("Deploying contract");
         const response = await ethTester.sendSignedTransaction(
           ethTester.genSignedContractDeployment({
             abi: contract.contract.abi,
             byteCode: contract.byteCode,
           })
         );
+        log("Sent contract");
         let receipt;
         while (true) {
           receipt = await web3.eth.getTransactionReceipt(response.result).catch((e) => null);
@@ -119,8 +132,6 @@ describeSuite({
         }
         console.log(finalReceipt);
         expect(finalReceipt.status).to.equal(0n);
-
-        // TODO: add rest of test
       },
     });
   },

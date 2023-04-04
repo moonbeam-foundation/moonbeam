@@ -32,7 +32,8 @@
           "-lparachain=debug",
           "--database=paritydb"
         ],
-        "command": "tmp/moonbeam",
+        "ws_port": 9944,
+        "command": "../target/release/moonbeam",
         "name": "alith"
       }
     }
