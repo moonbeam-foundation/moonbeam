@@ -1693,6 +1693,15 @@ pub struct Nominator2<AccountId, Balance> {
 // 	}
 // }
 
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo, Default)]
+/// Info about a round in which a candidate was selected as a collator
+pub struct CandidateLastSelected<RoundIndex> {
+	/// Last round in which a candidate was selected as a collator
+	pub last_round_selected: RoundIndex,
+	/// Indicates if the collator has produced blocks 
+	pub has_produced_blocks: bool,
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The current round index and transition information
 pub struct RoundInfo<BlockNumber> {

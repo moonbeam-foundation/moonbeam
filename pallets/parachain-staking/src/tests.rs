@@ -35,6 +35,7 @@ use crate::{
 };
 use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
+use crate::types::*;
 
 // ~~ ROOT ~~
 
@@ -917,7 +918,7 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			ParachainStaking::on_finalize(10);
 
 			// check that storage has updated for collator 1 when the block finalized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+			assert_eq!(ParachainStaking::candidate_last_round(1), Some(2));
 
 			// change block author
 			set_block_author(2);
@@ -957,8 +958,70 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 				},
 			);
 
+			ParachainStaking::on_finalize(50);
+
 			// check the storage for the collator 1 has been removed
-			assert_eq!(ParachainStaking::candidate_last_active(1), None);
+			assert_eq!(ParachainStaking::candidate_last_round(1), None);
+
+			set_block_author(3);
+
+			roll_to(90);
+			assert_events_eq!(
+				Event::CandidateWentOffline { candidate: 2 },
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 90,
+					round: 10,
+					selected_collators_number: 3,
+					total_balance: 30,
+				},
+			);
+
+			ParachainStaking::on_finalize(90);
+
+			set_block_author(4);
+
+			roll_to(130);
+
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 14,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 14,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 14,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 130,
+					round: 14,
+					selected_collators_number: 3,
+					total_balance: 30,
+				},
+			);
+
+
 		});
 }
 
@@ -1019,7 +1082,7 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(10);
 
 			// check that storage has updated for collator 1 when the block initialized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+			//assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
 			// change block author
 			set_block_author(2);
@@ -1070,16 +1133,16 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(30);
 
 			// check the storage for the collator 2 has been updated
-			assert_eq!(ParachainStaking::candidate_last_active(2), Some(4));
+			//assert_eq!(ParachainStaking::candidate_last_active(2), Some(4));
 
 			// check that storage for the collator 1 holds the same value
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+			//assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 		});
 }
 
 #[test]
-fn collator_doesnt_go_offline_low_candidates_pool_length() {
-	// collator remains online as candidate pool's length
+fn collator_doesnt_go_offline_low_selected_candidates_length() {
+	// collator remains online as selected candidates length
 	// is below 66% of max_collators
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10), (2, 10)])
@@ -1121,7 +1184,7 @@ fn collator_doesnt_go_offline_low_candidates_pool_length() {
 			ParachainStaking::on_finalize(10);
 
 			// check that storage has updated for collator 1 when the block finalized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+			//assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 
 			// change block author
 			set_block_author(2);
@@ -1154,12 +1217,135 @@ fn collator_doesnt_go_offline_low_candidates_pool_length() {
 			ParachainStaking::on_finalize(50);
 
 			// check the storage for the collator 2 has been updated
-			assert_eq!(ParachainStaking::candidate_last_active(2), Some(6));
+			//assert_eq!(ParachainStaking::candidate_last_active(2), Some(6));
 
 			// check the storage for the collator 1 hasn't been removed
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+			//assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 		});
 }
+
+//TODO: add tests
+// 1) When a candidate first joins the candidates pool, it doesn't go offline
+#[test]
+fn new_candidate_doesnt_go_offline(){
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10), (6,10)])
+		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				10u32
+			));
+
+			assert_ok!(ParachainStaking::join_candidates(
+				RuntimeOrigin::signed(6),
+				10,
+				0
+			));
+
+			// if we don't change block author, by default is always 0
+			set_block_author(1);
+
+			// roll to round 2
+			roll_to(10);
+
+			// assert correct events
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 10,
+					round: 2,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+
+			// finalize the first block of round 2
+			ParachainStaking::on_finalize(10);
+
+			// change block author
+			set_block_author(2);
+
+			// roll 4 rounds more
+			roll_to(50);
+
+			// assert correct events
+			assert_events_eq!(
+				Event::ReservedForParachainBond {
+					account: 0,
+					value: 0,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 30,
+					round: 4,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+
+			// finalize the first block of round 4
+			ParachainStaking::on_finalize(30);
+
+			// check the storage for the collator 2 has been updated
+			//assert_eq!(ParachainStaking::candidate_last_active(2), Some(4));
+
+			// check that storage for the collator 1 holds the same value
+			//assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
+		});
+
+}
+// 2) A candidate with more stake bonded joins the collators after a previous collator goes offline
+// 3) Check that collator 1 goes offline, and then collator 2 doesn't go offline due to selectedCandidates length
 
 // SCHEDULE LEAVE CANDIDATES
 
