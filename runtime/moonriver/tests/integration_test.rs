@@ -73,6 +73,8 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 >;
 type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+type XcmTransactorV2PCall =
+	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
 const BASE_FEE_GENESIS: u128 = 100 * GIGAWEI;
 
@@ -2617,6 +2619,89 @@ fn transact_through_signed_not_enabled() {
 				frame_system::Error::<Runtime>::CallFiltered
 			);
 		})
+}
+
+#[test]
+fn transact_through_signed_precompile_works_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(19078)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error:")
+						&& from_utf8(&output).unwrap().contains("CallFiltered")
+				});
+		});
 }
 
 #[test]

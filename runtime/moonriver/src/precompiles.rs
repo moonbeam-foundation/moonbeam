@@ -40,7 +40,9 @@ use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1;
+use pallet_evm_precompile_xcm_transactor::{
+	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
+};
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
@@ -180,12 +182,11 @@ type MoonriverPrecompilesAt<R> = (
 			pallet_evm_precompile_xcm_utils::AllExceptXcmExecute<R, XcmExecutorConfig>,
 		>,
 	>,
-	// (Moonbase only)
-	// PrecompileAt<
-	// 	AddressU64<2061>,
-	// 	XcmTransactorPrecompileV2<R>,
-	// 	(CallableByContract, CallableByPrecompile),
-	// >,
+	PrecompileAt<
+		AddressU64<2061>,
+		XcmTransactorPrecompileV2<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	PrecompileAt<
 		AddressU64<2062>,
 		CollectivePrecompile<R, CouncilInstance>,
