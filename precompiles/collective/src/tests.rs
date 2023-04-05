@@ -18,7 +18,7 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
-use frame_support::{assert_ok, dispatch::Encode};
+use frame_support::{assert_ok, dispatch::Encode, instances::Instance1};
 use precompile_utils::{data::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
@@ -631,5 +631,76 @@ fn view_is_member() {
 			)
 			.expect_no_logs()
 			.execute_returns_encoded(false);
+	});
+}
+
+#[test]
+fn propose_call_bound() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Some random call.
+		let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
+			new_members: Vec::new(),
+			prime: None,
+			old_count: 0,
+		};
+
+		// Nest it 9 times.
+		for _ in 0..9 {
+			proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
+				threshold: 10,
+				proposal: Box::new(proposal.into()),
+				length_bound: 1,
+			};
+		}
+
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
+		let proposal = proposal.encode();
+
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile1,
+				PCall::propose {
+					threshold: 1,
+					proposal: proposal.into(),
+				},
+			)
+			.expect_no_logs()
+			.execute_reverts(|output| output == b"proposal: Failed to decode proposal");
+	});
+}
+
+#[test]
+fn execute_call_bound() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Some random call.
+		let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
+			new_members: Vec::new(),
+			prime: None,
+			old_count: 0,
+		};
+
+		// Nest it 9 times.
+		for _ in 0..9 {
+			proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
+				threshold: 10,
+				proposal: Box::new(proposal.into()),
+				length_bound: 1,
+			};
+		}
+
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
+		let proposal = proposal.encode();
+
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile1,
+				PCall::execute {
+					proposal: proposal.into(),
+				},
+			)
+			.expect_no_logs()
+			.execute_reverts(|output| output == b"proposal: Failed to decode proposal");
 	});
 }
