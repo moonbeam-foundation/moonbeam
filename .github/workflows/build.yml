@@ -299,10 +299,7 @@ jobs:
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
-        # TODO: remove the `--force` flag when cargo-expand has been
-        # correctly rebuild on all our CI servers
         run: |
-          cargo install --force cargo-expand
           cargo test --release --all
 
       # We determine whether there are unmodified Cargo.lock files by:
