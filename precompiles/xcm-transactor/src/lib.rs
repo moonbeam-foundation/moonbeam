@@ -17,7 +17,6 @@
 //! Precompile to xcm transactor runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 #[cfg(test)]
 mod mock;
