@@ -16,7 +16,6 @@
 
 //! Module that provides types to extend xcm holding.
 
-use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
@@ -91,28 +90,6 @@ impl XcmHoldingErc20sOrigins {
 		F: FnOnce(&mut Self) -> R,
 	{
 		XCM_HOLDING_ERC20_ORIGINS::with(|erc20s_origins| f(erc20s_origins))
-	}
-}
-
-/// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
-pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>(
-	PhantomData<(RuntimeCall, InnerXcmExecutor)>,
-);
-impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
-	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>
-where
-	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
-{
-	fn execute_xcm_in_credit(
-		origin: impl Into<xcm::latest::MultiLocation>,
-		message: xcm::latest::Xcm<RuntimeCall>,
-		weight_limit: xcm::latest::Weight,
-		weight_credit: xcm::latest::Weight,
-	) -> xcm::latest::Outcome {
-		let mut erc20s_origins = Default::default();
-		XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, || {
-			InnerXcmExecutor::execute_xcm_in_credit(origin, message, weight_limit, weight_credit)
-		})
 	}
 }
 

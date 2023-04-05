@@ -17,7 +17,6 @@
 //! Precompile to encode relay staking calls via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
 
@@ -326,7 +325,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
-			relay_chain::v2::HrmpChannelId {
+			relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
 			},
@@ -352,7 +351,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::v2::HrmpChannelId {
+			relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
 			},

@@ -347,6 +347,7 @@ try-runtime = [
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
+	"pallet-xcm-transactor/try-runtime",
 ]
 
 moonbase-runtime-benchmarks = []
