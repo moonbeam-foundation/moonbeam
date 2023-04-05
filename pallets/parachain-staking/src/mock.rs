@@ -17,7 +17,7 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
+	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range, CandidateLastActive,
 	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use block_author::BlockAuthor as BlockAuthorMap;
@@ -518,6 +518,10 @@ pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 // Allows to change the block author (default is always 0)
 pub(crate) fn set_block_author(acc: u64) {
 	<BlockAuthorMap<Test>>::set(acc);
+}
+
+pub(crate) fn set_candidate_last_active(acc: u64, round: BlockNumber) {
+	<CandidateLastActive<Test>>::insert(acc, round);
 }
 
 /// fn to query the lock amount

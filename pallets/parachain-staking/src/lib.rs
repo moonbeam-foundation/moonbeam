@@ -448,7 +448,7 @@ pub mod pallet {
 
 				// if collators length is below or eq to 66% of max_collators,
 				// we don't mark any other collator as offline
-				let max_collators = <TotalSelected<T>>::get() as f32;
+				let max_collators = <TotalSelected<T>>::get();
 
 				let mut len_counter = collators.len();
 
@@ -456,7 +456,7 @@ pub mod pallet {
 				for collator in collators.clone() {
 					if let Some(last_round) = <CandidateLastActive<T>>::get(&collator) {
 						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
-							&& len_counter > (max_collators * 0.66) as usize
+							&& len_counter * 3 > (max_collators * 2) as usize
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
@@ -466,7 +466,7 @@ pub mod pallet {
 							//remove storage info for the collator
 							<CandidateLastActive<T>>::remove(&collator);
 
-							len_counter -= 1;
+							len_counter = len_counter.saturating_sub(1);
 						}
 					} else {
 						<CandidateLastActive<T>>::insert(&collator, round.current);

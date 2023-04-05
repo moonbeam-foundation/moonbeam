@@ -26,7 +26,8 @@ use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, set_block_author,
-	Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
+	set_candidate_last_active, Balances, BlockNumber, ExtBuilder, ParachainStaking, 
+	RuntimeOrigin, Test,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
@@ -1286,6 +1287,7 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 
 } */
 // 2) TODO: A candidate with more stake bonded joins the collators after a previous collator goes offline
+// 3) A test where a candidate joins again after going offline
 
 // SCHEDULE LEAVE CANDIDATES
 #[test]
@@ -5456,6 +5458,16 @@ fn collator_selection_chooses_top_candidates() {
 					new_total_amt_locked: 469u128,
 				},
 			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 4);
+			set_candidate_last_active(2, 4);
+			set_candidate_last_active(3, 4);
+			set_candidate_last_active(4, 4);
+			set_candidate_last_active(5, 4);
+			set_candidate_last_active(6, 4);
+
 			roll_to_round_begin(6);
 			// should choose top TotalSelectedCandidates (5), in order
 			assert_events_eq!(
@@ -5539,6 +5551,7 @@ fn payout_distribution_to_solo_collators() {
 					total_balance: 340,
 				},
 			);
+
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
 			roll_to_round_begin(4);
@@ -5570,6 +5583,16 @@ fn payout_distribution_to_solo_collators() {
 					total_balance: 340,
 				},
 			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline
+			set_candidate_last_active(1, 4);
+			set_candidate_last_active(2, 4);
+			set_candidate_last_active(3, 4);
+			set_candidate_last_active(4, 4);
+			set_candidate_last_active(5, 4);
+			set_candidate_last_active(6, 4);
+
 			// pay total issuance to 1 at 2nd block
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
@@ -5620,6 +5643,16 @@ fn payout_distribution_to_solo_collators() {
 				account: 2,
 				rewards: 86,
 			},);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 6);
+			set_candidate_last_active(2, 6);
+			set_candidate_last_active(3, 6);
+			set_candidate_last_active(4, 6);
+			set_candidate_last_active(5, 6);
+			set_candidate_last_active(6, 6);
+
 			// ~ each collator produces 1 block this round
 			set_author(6, 1, 20);
 			set_author(6, 2, 20);
@@ -5791,6 +5824,16 @@ fn multiple_delegations() {
 					auto_compound: Percent::zero(),
 				},
 			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 5);
+			set_candidate_last_active(2, 5);
+			set_candidate_last_active(3, 5);
+			set_candidate_last_active(4, 5);
+			set_candidate_last_active(5, 5);
+			set_candidate_last_active(6, 5);
+
 			roll_to_round_begin(6);
 			roll_blocks(1);
 			assert_ok!(ParachainStaking::delegate(
@@ -6146,6 +6189,16 @@ fn payouts_follow_delegation_changes() {
 					rewards: 8,
 				},
 			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 5);
+			set_candidate_last_active(2, 5);
+			set_candidate_last_active(3, 5);
+			set_candidate_last_active(4, 5);
+			set_candidate_last_active(5, 5);
+			set_candidate_last_active(6, 5);
+
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
@@ -6302,6 +6355,16 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			set_author(8, 1, 100);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 8);
+			set_candidate_last_active(2, 8);
+			set_candidate_last_active(3, 8);
+			set_candidate_last_active(4, 8);
+			set_candidate_last_active(5, 8);
+			set_candidate_last_active(6, 8);
+
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
@@ -6455,6 +6518,16 @@ fn payouts_follow_delegation_changes() {
 					rewards: 12,
 				},
 			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(1, 11);
+			set_candidate_last_active(2, 11);
+			set_candidate_last_active(3, 11);
+			set_candidate_last_active(4, 11);
+			set_candidate_last_active(5, 11);
+			set_candidate_last_active(6, 11);
+
 			roll_to_round_begin(12);
 			// new delegation is rewarded for first time
 			// 2 rounds after joining (`RewardPaymentDelay` = 2)
