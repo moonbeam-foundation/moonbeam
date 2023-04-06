@@ -140,6 +140,72 @@
           "endpoints": ["ws://127.0.0.1:9944"]
         }
       ]
+    },
+    {
+      "name": "update_moonbeam",
+      "testFileDir": ["suites/rt-upgrade/"],
+      "foundation": {
+        "type": "chopsticks",
+        "rtUpgradePath": "../build/moonbeam-runtime.compact.compressed.wasm",
+        "launchSpec": [
+          {
+            "name": "mb",
+            "type": "parachain",
+            "configPath": "./configs/moonbeam.yml"
+          }
+        ]
+      },
+      "connections": [
+        {
+          "name": "MB",
+          "type": "moon",
+          "endpoints": ["ws://127.0.0.1:8000"]
+        }
+      ]
+    },
+    {
+      "name": "update_moonriver",
+      "testFileDir": ["suites/rt-upgrade/"],
+      "foundation": {
+        "type": "chopsticks",
+        "rtUpgradePath": "../build/moonriver-runtime.compact.compressed.wasm",
+        "launchSpec": [
+          {
+            "name": "mb",
+            "type": "parachain",
+            "configPath": "./configs/moonriver.yml"
+          }
+        ]
+      },
+      "connections": [
+        {
+          "name": "MB",
+          "type": "moon",
+          "endpoints": ["ws://127.0.0.1:8000"]
+        }
+      ]
+    },
+    {
+      "name": "update_moonbase",
+      "testFileDir": ["suites/rt-upgrade/"],
+      "foundation": {
+        "type": "chopsticks",
+        "rtUpgradePath": "../build/moonbase-runtime.compact.compressed.wasm",
+        "launchSpec": [
+          {
+            "name": "mb",
+            "type": "parachain",
+            "configPath": "./configs/alphanet.yml"
+          }
+        ]
+      },
+      "connections": [
+        {
+          "name": "MB",
+          "type": "moon",
+          "endpoints": ["ws://127.0.0.1:8000"]
+        }
+      ]
     }
   ]
 }
