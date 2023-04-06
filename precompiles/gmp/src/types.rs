@@ -38,6 +38,7 @@ pub struct XcmRoutingUserAction {
 // A simple versioning wrapper around the initial XcmRoutingUserAction use-case. This should make
 // future breaking changes easy to add in a backwards-compatible way.
 #[derive(Encode, Decode, Debug)]
+#[non_exhaustive]
 pub enum VersionedUserAction {
 	V1(XcmRoutingUserAction),
 }
