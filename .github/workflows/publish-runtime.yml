@@ -110,6 +110,7 @@ jobs:
         with:
           node-version: 18.x
           cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
       - name: "Download runtime"
         uses: actions/download-artifact@v2
         with:
