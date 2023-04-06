@@ -99,6 +99,8 @@ jobs:
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -117,7 +119,7 @@ jobs:
         run: |
           cd test
           pnpm i
-          pnpm moonwall test update-${{matrix.chain}}
+          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
 
   ####### Prepare the release draft #######
 

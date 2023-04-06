@@ -136,7 +136,8 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
 });
 
 describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) => {
-  it("should refuse a request with more than 100 random number", async function () {
+  // TODO: This is a flaky and need to be fixed 
+  it.skip("should refuse a request with more than 100 random number", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,

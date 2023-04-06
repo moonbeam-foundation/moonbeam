@@ -4,41 +4,38 @@ import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import "@moonbeam-network/api-augment";
 
+const env = process.env.GH_WORKFLOW_MATRIX_CHAIN
+  ? process.env.GH_WORKFLOW_MATRIX_CHAIN
+  : "moonbeam";
+
 describeSuite({
-  id: "CHU",
+  id: "CIRT",
   title: "Chopsticks Upgrade",
   foundationMethods: "chopsticks",
   testCases: ({ it, context }) => {
     let api: ApiPromise;
     const DUMMY_ACCOUNT = "0x11d88f59425cbc1867883fcf93614bf70e87E854";
 
-    beforeAll(() => {
+    beforeAll(async () => {
       api = context.polkadotJs();
+
+      const rtBefore = api.consts.system.version.specVersion.toNumber();
+      await context.upgradeRuntime(context);
+      const rtafter = api.consts.system.version.specVersion.toNumber();
+      expect(rtBefore, "RT upgrade has not increased specVersion").toBeLessThan(rtafter);
     });
 
     it({
       id: "T1",
-      title: "Calling chain constants data",
+      title: "Sanity check we are connected to the correct chain",
       test: async () => {
-        const specVersion = api.consts.system.version.specVersion.toNumber();
-        expect(specVersion).to.be.greaterThan(0);
+        const specName = api.consts.system.version.specName.toString();
+        expect(specName).to.contain(env);
       },
     });
 
     it({
       id: "T2",
-      title: "Do an upgrade test",
-      timeout: 30000,
-      test: async function () {
-        const rtBefore = api.consts.system.version.specVersion.toNumber();
-        await context.upgradeRuntime(context);
-        const rtafter = api.consts.system.version.specVersion.toNumber();
-        expect(rtBefore).toBeLessThan(rtafter);
-      },
-    });
-
-    it({
-      id: "T3",
       title: "Can create new blocks",
       test: async () => {
         const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
@@ -49,7 +46,7 @@ describeSuite({
     });
 
     it({
-      id: "T4",
+      id: "T3",
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
