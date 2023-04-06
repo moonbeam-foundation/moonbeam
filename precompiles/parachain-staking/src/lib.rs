@@ -915,16 +915,16 @@ where
 	fn get_candidate_last_active(
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
-	) -> EvmResult<U256> {
+	) -> EvmResult<(U256, bool)> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		let last_round =
+		let collator_activity =
 			<pallet_parachain_staking::Pallet<Runtime>>::candidate_last_active(&candidate)
 				.unwrap_or_default();
 
-		Ok(last_round.into())
+		Ok((collator_activity.last_round.into(), collator_activity.is_active.into()))
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {

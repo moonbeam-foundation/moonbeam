@@ -1694,6 +1694,21 @@ pub struct Nominator2<AccountId, Balance> {
 // }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+/// Information about collators activity in previous rounds
+pub struct CollatorActivity<RoundIndex>{
+	/// Last round in which the collator produced blocks or was selected as a collator
+	pub last_round: RoundIndex,
+	/// Indicates if the collator produced blocks or not in last_round
+	pub is_active: bool
+}
+
+impl <T: Default> Default for CollatorActivity<T> {
+	fn default() -> CollatorActivity<T>{
+		CollatorActivity { last_round: T::default(), is_active: false }
+	}
+} 
+
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The current round index and transition information
 pub struct RoundInfo<BlockNumber> {
 	/// Current round index

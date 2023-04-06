@@ -32,6 +32,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
+use crate::types::*;
 
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -521,7 +522,10 @@ pub(crate) fn set_block_author(acc: u64) {
 }
 
 pub(crate) fn set_candidate_last_active(acc: u64, round: BlockNumber) {
-	<CandidateLastActive<Test>>::insert(acc, round);
+	<CandidateLastActive<Test>>::insert(acc, CollatorActivity{
+		last_round: round,
+		is_active: true
+	});
 }
 
 /// fn to query the lock amount

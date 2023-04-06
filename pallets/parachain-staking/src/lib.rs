@@ -454,8 +454,8 @@ pub mod pallet {
 
 				// iter collators to check which of them must be marked as offline
 				for collator in collators.clone() {
-					if let Some(last_round) = <CandidateLastActive<T>>::get(&collator) {
-						if round.current.saturating_sub(last_round) > T::MaxOfflineRounds::get()
+					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
+						if round.current.saturating_sub(info.last_round) > T::MaxOfflineRounds::get()
 							&& len_counter * 3 > (max_collators * 2) as usize
 						{
 							// if the collator has not produced any block within
@@ -469,7 +469,10 @@ pub mod pallet {
 							len_counter = len_counter.saturating_sub(1);
 						}
 					} else {
-						<CandidateLastActive<T>>::insert(&collator, round.current);
+						<CandidateLastActive<T>>::insert(&collator, CollatorActivity{
+							last_round: round.current,
+							is_active: false
+						});
 					}
 				}
 
@@ -504,7 +507,10 @@ pub mod pallet {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			// update candidate's last producing round
-			<CandidateLastActive<T>>::insert(&author, now);
+			<CandidateLastActive<T>>::insert(&author, CollatorActivity{
+				last_round: now,
+				is_active: true
+			});
 			Self::award_points_to_block_author(author, now);
 		}
 	}
@@ -551,7 +557,7 @@ pub mod pallet {
 	#[pallet::getter(fn candidate_last_active)]
 	/// Stores the last round in which a collator produced blocks
 	pub(crate) type CandidateLastActive<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, CollatorActivity<RoundIndex>, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
