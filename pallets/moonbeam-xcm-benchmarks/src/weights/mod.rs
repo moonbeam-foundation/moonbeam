@@ -18,6 +18,7 @@ mod moonbeam_xcm_benchmarks_fungible;
 mod moonbeam_xcm_benchmarks_generic;
 
 use crate::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
+use core::cmp::min;
 use frame_support::weights::Weight;
 use moonbeam_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
 use moonbeam_xcm_benchmarks_generic::SubstrateWeight as XcmGeneric;
@@ -27,7 +28,7 @@ use xcm::{
 	DoubleEncoded,
 };
 
-const MAX_ASSETS: u32 = 100;
+const MAX_ASSETS: u64 = 100;
 
 trait WeighMultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
@@ -43,9 +44,10 @@ impl WeighMultiAssetsFilter for MultiAssetFilter {
 			Self::Definite(assets) => {
 				weight.saturating_mul(assets.inner().into_iter().count() as u64)
 			}
-			Self::Wild(AllOf { .. } | AllOfCounted { .. }) => weight,
-			Self::Wild(AllCounted(count)) => weight.saturating_mul(*count as u64),
-			Self::Wild(All) => weight.saturating_mul(MAX_ASSETS as u64),
+			Self::Wild(AllCounted(count) | AllOfCounted { count, .. }) => {
+				weight.saturating_mul(min(MAX_ASSETS, *count as u64))
+			}
+			Self::Wild(All | AllOf { .. }) => weight.saturating_mul(MAX_ASSETS),
 		}
 	}
 }
