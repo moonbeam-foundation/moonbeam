@@ -28,7 +28,7 @@ use xcm::{
 	DoubleEncoded,
 };
 
-const MAX_ASSETS: u64 = 100;
+const MAX_ASSETS: u64 = 10;
 
 trait WeighMultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
