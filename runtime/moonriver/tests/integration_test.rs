@@ -49,7 +49,7 @@ use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -2944,8 +2944,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055, 2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2999,6 +2999,39 @@ fn precompile_existence() {
 			}
 		}
 	});
+}
+
+#[test]
+fn removed_precompiles() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let removed_precompiles = [1025];
+
+		for i in 1..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if !precompiles.is_precompile(address) {
+				continue;
+			}
+
+			if !removed_precompiles.contains(&i) {
+				assert!(
+					precompiles.is_active_precompile(address),
+					"{i} should be an active precompile"
+				);
+				continue;
+			}
+
+			assert!(
+				!precompiles.is_active_precompile(address),
+				"{i} shouldn't be an active precompile"
+			);
+
+			precompiles
+				.prepare_test(Alice, address, [])
+				.execute_reverts(|out| out == b"Removed precompile");
+		}
+	})
 }
 
 #[test]
