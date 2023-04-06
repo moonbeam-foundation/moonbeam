@@ -232,6 +232,18 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -269,6 +281,7 @@
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
 <span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_registry::PrecompileRegistry;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -333,7 +346,7 @@
 	PrecompileAt&lt;AddressU64&lt;<span class="number">9</span>&gt;, Blake2F, EthereumPrecompilesChecks&gt;,
 	<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1024</span>&gt;, Sha3FIPS256, (CallableByContract, CallableByPrecompile)&gt;,
-	<span class="comment">// PrecompileAt&lt;AddressU64&lt;1025&gt;, Dispatch&lt;R&gt;&gt;,
+	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">1025</span>&gt;&gt;, <span class="comment">// Dispatch&lt;R&gt;
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1026</span>&gt;, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)&gt;,
 	<span class="comment">// Moonbeam specific precompiles:
 	</span>PrecompileAt&lt;
@@ -436,6 +449,17 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2067</span>&gt;,
 		PreimagePrecompile&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	<span class="comment">// (Not in Moonbeam)
+	// PrecompileAt&lt;
+	// 	AddressU64&lt;2068&gt;,
+	// 	CollectivePrecompile&lt;R, OpenTechCommitteeInstance&gt;,
+	// 	(CallableByContract, CallableByPrecompile),
+	// &gt;,
+	</span>PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2069</span>&gt;,
+		PrecompileRegistry&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 );
