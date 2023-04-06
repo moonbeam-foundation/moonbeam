@@ -23,7 +23,7 @@ use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	traits::ConstU32,
+	traits::{ConstU32, StorageInstance},
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
@@ -78,19 +78,19 @@ where
 	) -> EvmResult {
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
-		// TODO: need to pull this from storage or config somewhere
-		//
-		// Moonbase core bridge: 0xa5B7D85a8f27dd7907dc8FdC21FA5657D5E2F901
-		// Moonbase token bridge: 0xbc976D4b9D57E57c3cA52e1Fd136C45FF7955A96
-		// Deployment in "Test local Wormhole" ts test: 0x5cc307268a1393ab9a764a20dace848ab8275c46
-		let wormhole = H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46")
-			.map_err(|_| RevertReason::custom("invalid wormhole contract address"))?;
+		// TODO: these need a way to be configured, even if it's just a set_storage call
+		storage::CoreAddress::put(
+			H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46").expect("fixme"),
+		);
+		storage::BridgeAddress::put(
+			H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963").expect("fixme"),
+		);
 
-		let wormhole_bridge = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
-			.map_err(|_| RevertReason::custom("invalid wormhole bridge contract address"))?;
+		let wormhole = storage::CoreAddress::get()
+			.ok_or(RevertReason::custom("invalid wormhole core address"))?;
 
-		let wormhole_bridge_impl = H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963")
-			.map_err(|_| RevertReason::custom("invalid wormhole bridge impl contract address"))?;
+		let wormhole_bridge = storage::BridgeAddress::get()
+			.ok_or(RevertReason::custom("invalid wormhole bridge address"))?;
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
@@ -174,13 +174,13 @@ where
 		// then use the returned payload to decide what to do.
 		let sub_context = Context {
 			caller: handle.code_address(), // TODO: can we trust this to always be "this precompile"?
-			address: wormhole_bridge_impl,
+			address: wormhole_bridge,
 			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
 		};
 
-		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole_bridge_impl);
+		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole_bridge);
 		let (reason, output) = handle.call(
-			wormhole_bridge_impl,
+			wormhole_bridge,
 			None,
 			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
 				.write(wormhole_vaa)
@@ -289,4 +289,31 @@ fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()
 		ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 		ExitReason::Succeed(_) => Ok(()),
 	}
+}
+
+/// We use pallet storage in our precompile by implementing a StorageInstance for each item we need
+/// to store.
+mod storage {
+	use super::*;
+	use frame_support::{storage::types::StorageValue, traits::StorageInstance};
+
+	// storage for the core contract
+	pub struct CoreAddressStorageInstance;
+	impl StorageInstance for CoreAddressStorageInstance {
+		const STORAGE_PREFIX: &'static str = "CoreAddress";
+		fn pallet_prefix() -> &'static str {
+			"gmp"
+		}
+	}
+	pub type CoreAddress = StorageValue<CoreAddressStorageInstance, H160>;
+
+	// storage for the bridge contract
+	pub struct BridgeAddressStorageInstance;
+	impl StorageInstance for BridgeAddressStorageInstance {
+		const STORAGE_PREFIX: &'static str = "BridgeAddress";
+		fn pallet_prefix() -> &'static str {
+			"gmp"
+		}
+	}
+	pub type BridgeAddress = StorageValue<BridgeAddressStorageInstance, H160>;
 }
