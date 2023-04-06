@@ -27,7 +27,6 @@
 //! currently selected orbiter.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(step_trait)]
 
 pub mod types;
 pub mod weights;
@@ -108,8 +107,7 @@ pub mod pallet {
 			+ Default
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
-			+ Copy
-			+ core::iter::Step;
+			+ Copy;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -490,14 +488,18 @@ pub mod pallet {
 							Some(collator.clone()),
 						);
 						writes += 1;
-						for i in Zero::zero()..T::RotatePeriod::get() {
+
+						let mut i = Zero::zero();
+						while i < T::RotatePeriod::get() {
 							OrbiterPerRound::<T>::insert(
 								round_index.saturating_add(i),
 								collator.clone(),
 								next_orbiter.clone(),
 							);
+							i += One::one();
 							writes += 1;
 						}
+
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),

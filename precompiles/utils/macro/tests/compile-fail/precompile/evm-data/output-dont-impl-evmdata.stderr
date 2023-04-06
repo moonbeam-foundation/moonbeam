@@ -2,7 +2,7 @@ error[E0277]: the trait bound `String: EvmData` is not satisfied
   --> tests/compile-fail/precompile/evm-data/output-dont-impl-evmdata.rs:26:46
    |
 26 |     fn foo(test: &mut impl PrecompileHandle) -> EvmResult<String> {
-   |                                                 ^^^^^^^^^^^^^^^^^ the trait `EvmData` is not implemented for `String`
+   |                                                 ^^^^^^^^^ the trait `EvmData` is not implemented for `String`
    |
    = help: the following other types implement trait `EvmData`:
              ()

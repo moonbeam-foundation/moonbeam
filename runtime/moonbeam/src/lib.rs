@@ -488,6 +488,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
@@ -503,6 +504,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
@@ -518,6 +520,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 // The purpose of this offset is to ensure that a democratic proposal will not apply in the same
