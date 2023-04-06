@@ -634,73 +634,71 @@ fn view_is_member() {
 	});
 }
 
-#[test]
-fn propose_call_bound() {
-	ExtBuilder::default().build().execute_with(|| {
-		// Some random call.
-		let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
-			new_members: Vec::new(),
-			prime: None,
-			old_count: 0,
-		};
+mod bounded_proposal_decode {
+	use super::*;
+	use crate::GetProposalLimit;
+	use precompile_utils::prelude::BoundedBytes;
 
-		// Nest it 9 times.
-		for _ in 0..9 {
-			proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
-				threshold: 10,
-				proposal: Box::new(proposal.into()),
-				length_bound: 1,
+	fn scenario<F>(nesting: usize, call: F)
+	where
+		F: FnOnce(BoundedBytes<GetProposalLimit>) -> PCall,
+	{
+		ExtBuilder::default().build().execute_with(|| {
+			// Some random call.
+			let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
+				new_members: Vec::new(),
+				prime: None,
+				old_count: 0,
 			};
-		}
 
-		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
-		let proposal = proposal.encode();
+			// Nest it.
+			for _ in 0..nesting {
+				proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
+					threshold: 10,
+					proposal: Box::new(proposal.into()),
+					length_bound: 1,
+				};
+			}
 
-		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile1,
-				PCall::propose {
-					threshold: 1,
-					proposal: proposal.into(),
-				},
-			)
-			.expect_no_logs()
-			.execute_reverts(|output| output == b"proposal: Failed to decode proposal");
-	});
-}
+			let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
+			let proposal = proposal.encode();
 
-#[test]
-fn execute_call_bound() {
-	ExtBuilder::default().build().execute_with(|| {
-		// Some random call.
-		let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
-			new_members: Vec::new(),
-			prime: None,
-			old_count: 0,
-		};
+			precompiles()
+				.prepare_test(Alice, Precompile1, call(proposal.into()))
+				.expect_no_logs()
+				.execute_reverts(|output| {
+					if nesting < 8 {
+						output.ends_with(b"NotMember\") })")
+					} else {
+						output == b"proposal: Failed to decode proposal"
+					}
+				});
+		});
+	}
 
-		// Nest it 9 times.
-		for _ in 0..9 {
-			proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
-				threshold: 10,
-				proposal: Box::new(proposal.into()),
-				length_bound: 1,
-			};
-		}
+	#[test]
+	fn proposal_above_bound() {
+		scenario(8, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
 
-		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
-		let proposal = proposal.encode();
+	#[test]
+	fn proposal_below_bound() {
+		scenario(7, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
 
-		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile1,
-				PCall::execute {
-					proposal: proposal.into(),
-				},
-			)
-			.expect_no_logs()
-			.execute_reverts(|output| output == b"proposal: Failed to decode proposal");
-	});
+	#[test]
+	fn execute_above_bound() {
+		scenario(8, |proposal| PCall::execute { proposal });
+	}
+
+	#[test]
+	fn execute_below_bound() {
+		scenario(7, |proposal| PCall::execute { proposal });
+	}
 }
