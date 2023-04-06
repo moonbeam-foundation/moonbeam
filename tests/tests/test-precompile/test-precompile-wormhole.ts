@@ -5,6 +5,7 @@ import { genRegisterChainVAA, genAssetMeta, genTransferVAA, genTransferWithPaylo
 import { ethers } from "ethers";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
+import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
 import { expectEVMResult } from "../../util/eth-transactions";
 const debug = require("debug")("test:wormhole");
@@ -198,7 +199,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
     */
 
-    const transferVM = await genTransferWithPayloadVAA(
+    const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
       nonce++,
@@ -214,7 +215,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       "0x00010101000000000000000000000000000000000000000000000000000000000000000000" // some account on relay chain
     );
 
-    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVM}`]);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
     const result = await context.createBlock(
       createTransaction(context, {
@@ -225,6 +226,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     expectEVMResult(result.result.events, "Succeed", "Returned");
-    // const evmEvents = expectSubstrateEvents(result, "evm", "Log");
+    expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
   });
 });
