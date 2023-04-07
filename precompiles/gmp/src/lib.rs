@@ -78,6 +78,13 @@ where
 	) -> EvmResult {
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
+		// tally up gas cost:
+		// 2 reads for contract addresses
+		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
+		let initial_gas = 2500 + 2 * RuntimeHelper::<Runtime>::db_read_gas_cost();
+		log::warn!("initial_gas: {:?}", initial_gas);
+		handle.record_cost(initial_gas)?;
+
 		let wormhole = storage::CoreAddress::get()
 			.ok_or(RevertReason::custom("invalid wormhole core address"))?;
 
