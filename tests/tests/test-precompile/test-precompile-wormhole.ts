@@ -3,7 +3,7 @@ import { createContract, createContractExecution, createTransaction } from "../.
 import { getCompiled } from "../../util/contracts";
 import { genRegisterChainVAA, genAssetMeta, genTransferVAA, genTransferWithPayloadVAA } from "../../util/wormhole";
 import { ethers } from "ethers";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
+import { alith, ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
@@ -175,29 +175,29 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     console.log(`wrapped token deployed to ${wrappedToken}`);
+    
+    // before interacting with the precompile, we need to set some contract addresses from our
+    // our deployments above
+    const CORE_CONTRACT_STORAGE_ADDRESS = "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c";
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [CORE_CONTRACT_STORAGE_ADDRESS, wormholeContract.contractAddress],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
 
-    /*
-    const transferVM = await genTransferVAA(
-      signerPKs,
-      GUARDIAN_SET_INDEX,
-      nonce++,
-      123, // sequence
-      999, // amount of tokens
-      wethContract.contractAddress,
-      ETHChain,
-      ETHEmitter,
-      BALTATHAR_ADDRESS,
-      chainId,
-      10
-    );
-
-    const result = await context.createBlock(
-      createContractExecution(context, {
-        contract: bridgeContract.contract,
-        contractCall: bridgeImplContract.contract.methods.completeTransfer(`0x${transferVM}`),
-      })
-    );
-    */
+    const BRIDGE_CONTRACT_STORAGE_ADDRESS = "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45";
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeContract.contractAddress],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+    
 
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,

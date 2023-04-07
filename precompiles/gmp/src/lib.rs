@@ -78,19 +78,14 @@ where
 	) -> EvmResult {
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
-		// TODO: these need a way to be configured, even if it's just a set_storage call
-		storage::CoreAddress::put(
-			H160::from_str("0x5cc307268a1393ab9a764a20dace848ab8275c46").expect("fixme"),
-		);
-		storage::BridgeAddress::put(
-			H160::from_str("0x7d4567b7257cf869b01a47e8cf0edb3814bdb963").expect("fixme"),
-		);
-
 		let wormhole = storage::CoreAddress::get()
 			.ok_or(RevertReason::custom("invalid wormhole core address"))?;
 
 		let wormhole_bridge = storage::BridgeAddress::get()
 			.ok_or(RevertReason::custom("invalid wormhole bridge address"))?;
+
+		log::trace!(target: "gmp-precompile", "core contract: {:?}", wormhole);
+		log::trace!(target: "gmp-precompile", "bridge contract: {:?}", wormhole_bridge);
 
 		// get the wormhole VM from the provided VAA. Unfortunately, this forces us to parse
 		// the VAA twice -- this seems to be a restriction imposed from the Wormhole contract design
@@ -293,6 +288,9 @@ fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()
 
 /// We use pallet storage in our precompile by implementing a StorageInstance for each item we need
 /// to store.
+/// twox_128("gmp") => 0xb7f047395bba5df0367b45771c00de50
+/// twox_128("CoreAddress") => 0x59ff23ff65cc809711800d9d04e4b14c
+/// twox_128("BridgeAddress") => 0xc1586bde54b249fb7f521faf831ade45
 mod storage {
 	use super::*;
 	use frame_support::{storage::types::StorageValue, traits::StorageInstance};
