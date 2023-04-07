@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{mock::PCall, types::XcmRoutingUserAction};
+use crate::mock::PCall;
 use precompile_utils::testing::*;
-use sp_runtime::AccountId32;
-use xcm::latest::MultiLocation;
-use xcm::opaque::latest::{Junction, Junctions, NetworkId};
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
