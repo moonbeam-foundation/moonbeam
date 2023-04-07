@@ -51,11 +51,11 @@ pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
 // fn selectors
-const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32; // parseVM(bytes)
-const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32; // parseTransferWithPayload(bytes)
-const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32; // completeTransferWithPayload(bytes)
-const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32; // wrappedAsset(uint16,bytes32)
-const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32; // balanceOf(address)
+const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32;
+const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32;
+const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32;
+const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32;
+const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32;
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -192,7 +192,10 @@ where
 
 		// TODO: review
 		if amount_transfered < transfer_with_payload.amount {
-			log::debug!(target: "gmp-precompile", "insufficient funds bridged ({} < {})", amount_transfered, transfer_with_payload.amount);
+			log::debug!(
+				target: "gmp-precompile",
+				"insufficient funds bridged ({} < {})",
+				amount_transfered, transfer_with_payload.amount);
 			return Err(PrecompileFailure::Revert {
 				exit_status: ExitRevert::Reverted,
 				output: "insufficient funds bridged".into(),
