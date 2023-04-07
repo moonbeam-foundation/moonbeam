@@ -1,7 +1,16 @@
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution, createTransaction } from "../../util/transactions";
+import {
+  createContract,
+  createContractExecution,
+  createTransaction,
+} from "../../util/transactions";
 import { getCompiled } from "../../util/contracts";
-import { genRegisterChainVAA, genAssetMeta, genTransferVAA, genTransferWithPayloadVAA } from "../../util/wormhole";
+import {
+  genRegisterChainVAA,
+  genAssetMeta,
+  genTransferVAA,
+  genTransferWithPayloadVAA,
+} from "../../util/wormhole";
 import { ethers } from "ethers";
 import { alith, ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
@@ -175,10 +184,11 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     console.log(`wrapped token deployed to ${wrappedToken}`);
-    
+
     // before interacting with the precompile, we need to set some contract addresses from our
     // our deployments above
-    const CORE_CONTRACT_STORAGE_ADDRESS = "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c";
+    const CORE_CONTRACT_STORAGE_ADDRESS =
+      "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c";
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
@@ -188,7 +198,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-    const BRIDGE_CONTRACT_STORAGE_ADDRESS = "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45";
+    const BRIDGE_CONTRACT_STORAGE_ADDRESS =
+      "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45";
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
@@ -197,7 +208,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       )
       .signAndSend(alith);
     await context.createBlock();
-    
 
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
@@ -210,7 +220,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       ETHChain,
       ETHEmitter, // TODO: review
       PRECOMPILE_GMP_ADDRESS,
-      "0x"+ evmChainId.toString(16),
+      "0x" + evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
       "0x00010101000000000000000000000000000000000000000000000000000000000000000000" // some account on relay chain
     );
