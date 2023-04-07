@@ -23,7 +23,7 @@ use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	traits::{ConstU32, StorageInstance},
+	traits::ConstU32,
 	weights::Weight,
 };
 use pallet_evm::AddressMapping;
@@ -31,7 +31,7 @@ use parity_scale_codec::DecodeLimit;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
-use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
+use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;
 use xcm::opaque::latest::WeightLimit;
 use xcm::VersionedMultiLocation;
@@ -152,11 +152,6 @@ where
 		.map_err(|_| RevertReason::Custom("Invalid GMP Payload".into()))?;
 		log::debug!(target: "gmp-precompile", "user action: {:?}", user_action);
 
-		// inspect the token the user wants to use: make sure it is XCM-capable
-		let asset_address: H160 = transfer_with_payload
-			.token_address
-			.try_into()
-			.map_err(|_| revert("Asset address is not a H160"))?;
 		let currency_account_id = Runtime::AddressMapping::into_account_id(wrapped_address.into());
 
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
