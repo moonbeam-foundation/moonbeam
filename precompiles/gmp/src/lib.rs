@@ -268,7 +268,7 @@ where
 
 fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()> {
 	log::trace!(target: "gmp-precompile", "reason: {:?}", reason);
-	log::trace!(target: "gmp-precompile", "output: {:x?}", &output[..]);
+	log::trace!(target: "gmp-precompile", "output: {:x?}", output);
 
 	match reason {
 		ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
