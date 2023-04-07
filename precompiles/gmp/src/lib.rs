@@ -24,6 +24,7 @@ use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::{ConstU32, StorageInstance},
+	weights::Weight,
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
@@ -34,7 +35,7 @@ use sp_std::{marker::PhantomData, str::FromStr, vec::Vec};
 use types::*;
 use xcm::opaque::latest::WeightLimit;
 use xcm::VersionedMultiLocation;
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
 
 #[cfg(test)]
 mod mock;
@@ -228,8 +229,11 @@ where
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
 				amount,
-				dest: Box::new(VersionedMultiLocation::V1(action.destination)),
-				dest_weight_limit: WeightLimit::Limited(weight_limit),
+				dest: Box::new(VersionedMultiLocation::V3(action.destination)),
+				dest_weight_limit: WeightLimit::Limited(Weight::from_parts(
+					weight_limit,
+					DEFAULT_PROOF_SIZE,
+				)),
 			},
 		};
 
