@@ -165,30 +165,16 @@ where
 
 		log::debug!(target: "gmp-precompile", "attempt to transfer {:?} of {:?}", amount, currency_id);
 
-		// TODO: now check before balance
-
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
-		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA,
-		// then use the returned payload to decide what to do.
-		let sub_context = Context {
-			caller: handle.code_address(), // TODO: can we trust this to always be "this precompile"?
-			address: wormhole_bridge,
-			apparent_value: U256::zero(), // TODO: any reason to pass value on, or reject txns with value?
-		};
-
-		log::debug!(target: "gmp-precompile", "calling Wormhole completeTransferWithPayload on {}...", wormhole_bridge);
-		let (reason, output) = handle.call(
+		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA.
+		// Upon success, it should have transferred tokens to this precompile's address.
+		Self::call(
+			handle,
 			wormhole_bridge,
-			None,
 			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
 				.write(wormhole_vaa)
 				.build(),
-			handle.gas_limit(), // TODO
-			false,
-			&sub_context,
-		);
-
-		ensure_exit_reason_success(reason, &output[..])?;
+		)?;
 
 		// query our "after" balance (our being this precompile)
 		let output = Self::call(
