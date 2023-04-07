@@ -26,7 +26,6 @@ use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
 use sp_core::H256;
-use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
@@ -385,48 +384,4 @@ impl orml_xtokens::Config for Runtime {
 	type MultiLocationsFilter = Everything;
 	type ReserveProvider = AbsoluteReserveProvider;
 	type UniversalLocation = UniversalLocation;
-}
-
-pub(crate) struct ExtBuilder {
-	// endowed accounts with balances
-	balances: Vec<(AccountId, Balance)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
-	}
-}
-
-impl ExtBuilder {
-	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
-
-	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
-			.expect("Frame system builds valid default genesis config");
-
-		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
-		}
-		.assimilate_storage(&mut t)
-		.expect("Pallet balances storage can be assimilated");
-
-		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| {
-			System::set_block_number(1);
-			pallet_evm::Pallet::<Runtime>::create_account(
-				Revert.into(),
-				hex_literal::hex!("1460006000fd").to_vec(),
-			);
-		});
-		ext
-	}
-}
-
-pub fn balance(account: impl Into<AccountId>) -> Balance {
-	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
 }
