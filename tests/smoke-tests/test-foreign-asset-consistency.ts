@@ -14,6 +14,8 @@ describeSmokeSuite(
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];
+    let liveForeignAssets: { [key: string]: boolean };
+    let specVersion: number;
 
     before("Setup api & retrieve data", async function () {
       // Configure the api at a specific block
@@ -25,6 +27,8 @@ describeSmokeSuite(
       apiAt = await context.polkadotApi.at(
         await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
       );
+      specVersion = apiAt.consts.system.version.specVersion.toNumber();
+
       let query = await apiAt.query.assetManager.assetIdType.entries();
       query.forEach(([key, exposure]) => {
         let assetId = key.args.toString();
@@ -41,6 +45,16 @@ describeSmokeSuite(
         let assetType = key.args.toString();
         foreignXcmAcceptedAssets.push(assetType);
       });
+
+      if (specVersion >= 2200) {
+        liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce(
+          (acc, [key, value]) => {
+            acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
+            return acc;
+          },
+          {}
+        );
+      }
     });
 
     testIt(
@@ -111,5 +125,51 @@ describeSmokeSuite(
         );
       }
     );
+
+    testIt("C400", `should make sure managed assets have live status`, async function () {
+      if (specVersion < 2200) {
+        debug(`ChainSpec ${specVersion} unsupported, skipping.`);
+        this.skip();
+      }
+
+      const notLiveAssets: string[] = [];
+      const assetManagerAssets = Object.keys(foreignAssetIdType);
+      for (const assetId of assetManagerAssets) {
+        if (!(assetId in liveForeignAssets)) {
+          notLiveAssets.push(assetId);
+        }
+      }
+
+      expect(
+        notLiveAssets.length,
+        `Failed not live assets - ${notLiveAssets
+          .map((assetId) => `expected: ${assetId} to have be a "live" asset`)
+          .join(`\n`)}`
+      ).to.equal(0);
+      debug(`Verified ${assetManagerAssets.length} foreign assets (at #${atBlockNumber})`);
+    });
+
+    testIt("C500", `should make sure all live assets are managed`, async function () {
+      if (specVersion < 2200) {
+        debug(`ChainSpec ${specVersion} unsupported, skipping.`);
+        this.skip();
+      }
+
+      const notLiveAssets: string[] = [];
+      const liveAssets = Object.keys(liveForeignAssets);
+      for (const assetId of liveAssets) {
+        if (!(assetId in foreignAssetIdType)) {
+          notLiveAssets.push(assetId);
+        }
+      }
+
+      expect(
+        notLiveAssets.length,
+        `Failed not managed live assets - ${notLiveAssets
+          .map((assetId) => `expected: ${assetId} to be managed`)
+          .join(`\n`)}`
+      ).to.equal(0);
+      debug(`Verified ${liveAssets.length} live assets (at #${atBlockNumber})`);
+    });
   }
 );

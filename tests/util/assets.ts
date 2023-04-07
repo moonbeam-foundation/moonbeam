@@ -12,7 +12,7 @@ import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import type { KeyringPair } from "@substrate/txwrapper-core";
 import { DUMMY_REVERT_BYTECODE } from "./constants";
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
-export const RELAY_V1_SOURCE_LOCATION = { V1: { parents: 1, interior: "Here" } };
+export const RELAY_V3_SOURCE_LOCATION = { V3: { parents: 1, interior: "Here" } } as any;
 export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
 };

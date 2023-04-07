@@ -136,7 +136,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -451,6 +451,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -487,6 +488,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
@@ -502,6 +504,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
@@ -517,6 +520,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 // The purpose of this offset is to ensure that a democratic proposal will not apply in the same
@@ -747,9 +751,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MinCollatorStk = ConstU128<{ 20_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 20_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -1095,11 +1099,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			RuntimeCall::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
-			},
-			// We filter for now transact through signed
-			RuntimeCall::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
-				_ => true,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
@@ -1624,11 +1623,11 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(100 * KILOGLMR)
+			Balance::from(2_000_000 * GLMR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(100 * KILOGLMR)
+			Balance::from(2_000_000 * GLMR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

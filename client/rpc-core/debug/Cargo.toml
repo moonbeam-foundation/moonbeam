@@ -16,4 +16,4 @@ moonbeam-rpc-core-types = { workspace = true }
 serde = { workspace = true, features = [ "derive" ] }
 serde_json = { workspace = true }
 
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.37" }
+sp-core = { workspace = true, features = [ "std" ] }

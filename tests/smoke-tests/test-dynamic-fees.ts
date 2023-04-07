@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
-import { getBlockArray } from "../util/block";
+import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import Bottleneck from "bottleneck";
@@ -156,6 +156,17 @@ describeSmokeSuite(
           events,
         };
       };
+
+      // Determine if the block range intersects with an upgrade event
+      const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
+        context.polkadotApi,
+        blockNumArray,
+        specVersion
+      );
+      if (result) {
+        debug(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
+        this.skip();
+      }
 
       blockData = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getBlockData(num)))

@@ -35,7 +35,8 @@ use frame_support::{
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AssetId, LocalAssets, PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
+	AssetId, CouncilCollective, LocalAssets, OpenTechCommitteeCollective, PolkadotXcm, Precompiles,
+	RuntimeBlockWeights, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
 	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -48,7 +49,7 @@ use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -71,8 +72,8 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 	IsLocal,
 	LocalAssetInstance,
 >;
-type XcmTransactorV1PCall =
-	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+type XcmTransactorV2PCall =
+	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
 const BASE_FEE_GENESIS: u128 = 100 * GIGAWEI;
 
@@ -262,6 +263,162 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
 	}
+}
+
+#[test]
+fn collective_set_members_root_origin_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert_ok!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TechCommitteeCollective
+		assert_ok!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TreasuryCouncilCollective
+		assert_ok!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// OpenTechCommitteeCollective
+		assert_ok!(OpenTechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+	});
+}
+
+#[test]
+fn collective_set_members_general_admin_origin_works() {
+	use moonriver_runtime::{
+		governance::custom_origins::Origin as CustomOrigin, OriginCaller, Utility,
+	};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let root_caller = <Runtime as frame_system::Config>::RuntimeOrigin::root();
+		let alice = AccountId::from(ALICE);
+
+		// CouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance1>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance2>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TreasuryCouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// OpenTechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller,
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+
+		assert_eq!(
+			System::events()
+				.into_iter()
+				.filter_map(|r| {
+					match r.event {
+						RuntimeEvent::Utility(pallet_utility::Event::DispatchedAs { result })
+							if result.is_ok() =>
+						{
+							Some(true)
+						}
+						_ => None,
+					}
+				})
+				.collect::<Vec<_>>()
+				.len(),
+			4
+		)
+	});
+}
+
+#[test]
+fn collective_set_members_signed_origin_does_not_work() {
+	let alice = AccountId::from(ALICE);
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![alice, AccountId::from(BOB)],
+			Some(alice),
+			2
+		)
+		.is_err());
+		// TechCommitteeCollective
+		assert!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// TreasuryCouncilCollective
+		assert!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// OpenTechCommitteeCollective
+		assert!(OpenTechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+	});
 }
 
 #[test]
@@ -1464,7 +1621,7 @@ fn root_can_change_default_xcm_vers() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -1476,8 +1633,8 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-					WeightLimit::Limited(4000000000)
+					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1493,8 +1650,8 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
-				Box::new(xcm::VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(4000000000.into())
 			));
 		})
 }
@@ -1619,7 +1776,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1671,7 +1828,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1692,7 +1849,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1744,7 +1901,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * MOVR }.into(),
 					},
 				)
-				.expect_cost(13249)
+				.expect_cost(12787)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1771,7 +1928,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * MOVR }.into(),
 					},
 				)
-				.expect_cost(13575)
+				.expect_cost(13016)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1816,7 +1973,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7094)
+				.expect_cost(6699)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1835,7 +1992,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7074)
+				.expect_cost(6713)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1870,7 +2027,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5944)
+				.expect_cost(5548)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1887,7 +2044,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5964)
+				.expect_cost(5550)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1924,7 +2081,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6973)
+				.expect_cost(6614)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -1966,7 +2123,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5940)
+				.expect_cost(5577)
 				.expect_no_logs()
 				.execute_returns_encoded(true);
 
@@ -2087,7 +2244,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2151,7 +2308,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2172,7 +2329,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2234,7 +2391,7 @@ fn xtokens_precompiles_transfer() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2284,7 +2441,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2326,7 +2483,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2338,9 +2495,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedMultiLocation::V1(dest.clone())),
-					beneficiary: Box::new(VersionedMultiLocation::V1(dest)),
-					assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+					dest: Box::new(VersionedMultiLocation::V3(dest.clone())),
+					beneficiary: Box::new(VersionedMultiLocation::V3(dest)),
+					assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2382,17 +2539,17 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
+				3000.into(),
+				20000.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1
 			));
 
@@ -2403,14 +2560,14 @@ fn transactor_cannot_use_more_than_max_weight() {
 					0,
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
-							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
 						)),
 						fee_amount: None
 					},
 					vec![],
 					// 2000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2428,7 +2585,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2438,7 +2595,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 }
 
 #[test]
-fn transact_through_signed_precompile_not_enabled() {
+fn transact_through_signed_precompile_works_v2() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -2454,169 +2611,70 @@ fn transact_through_signed_precompile_not_enabled() {
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
-			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+			let total_weight = 1_000_000_000u64;
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				Some(4000)
-			));
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1,
-			));
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
 
 			Precompiles::new()
 				.prepare_test(
 					ALICE,
-					xcm_transactor_v1_precompile_address,
-					XcmTransactorV1PCall::transact_through_signed_multilocation {
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
 						dest,
 						fee_asset: fee_payer_asset,
-						weight: 15_000,
+						weight: 4_000_000,
 						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(19078)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
 					},
 				)
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("CallFiltered")
+						&& from_utf8(&output).unwrap().contains("ErrorValidating")
 				});
 		});
-}
-
-#[test]
-fn transact_through_signed_mult_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
-}
-
-#[test]
-fn transact_through_signed_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			let source_location = AssetType::Xcm(MultiLocation::parent());
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
 }
 
 #[test]
@@ -2644,7 +2702,7 @@ fn call_xtokens_with_fee() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2658,8 +2716,8 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+				WeightLimit::Limited(4000000000.into())
 			),);
 
 			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
@@ -2722,7 +2780,7 @@ fn test_xcm_utils_ml_to_account() {
 			X2(
 				Parachain(2000),
 				AccountKey20 {
-					network: Any,
+					network: None,
 					key: ALICE,
 				},
 			),
@@ -2747,9 +2805,9 @@ fn test_xcm_utils_ml_to_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
+		let expected_weight = UnitWeightCost::get().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2787,8 +2845,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+			2069,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2842,6 +2901,39 @@ fn precompile_existence() {
 			}
 		}
 	});
+}
+
+#[test]
+fn removed_precompiles() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let removed_precompiles = [1025];
+
+		for i in 1..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if !precompiles.is_precompile(address) {
+				continue;
+			}
+
+			if !removed_precompiles.contains(&i) {
+				assert!(
+					precompiles.is_active_precompile(address),
+					"{i} should be an active precompile"
+				);
+				continue;
+			}
+
+			assert!(
+				!precompiles.is_active_precompile(address),
+				"{i} shouldn't be an active precompile"
+			);
+
+			precompiles
+				.prepare_test(Alice, address, [])
+				.execute_reverts(|out| out == b"Removed precompile");
+		}
+	})
 }
 
 #[test]

@@ -314,24 +314,6 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
           },
         },
       })
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncoded,
-          },
-        },
-      })
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncoded,
-          },
-        },
-      })
       .as_v2();
 
     await injectHrmpMessageAndSeal(context, 1, {
@@ -422,15 +404,6 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
           requireWeightAtMost: new BN(1000000000),
           call: {
             encoded: transferCallEncodedV1,
-          },
-        },
-      })
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncodedV2,
           },
         },
       })
