@@ -300,7 +300,6 @@ jobs:
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
         run: |
-          cargo install cargo-expand
           cargo test --release --all
 
       # We determine whether there are unmodified Cargo.lock files by:

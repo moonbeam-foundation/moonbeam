@@ -30,6 +30,7 @@ use {
 	pallet_evm::GasWeightMapping,
 };
 
+#[derive(Debug)]
 pub enum TryDispatchError {
 	Evm(ExitError),
 	Substrate(DispatchError),

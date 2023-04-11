@@ -17,7 +17,6 @@
 //! Precompile to xtokens runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::{

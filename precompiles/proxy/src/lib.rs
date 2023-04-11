@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
@@ -26,7 +25,7 @@ use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::prelude::*;
 use precompile_utils::{
 	data::{Address, String},
-	precompile_set::SelectorFilter,
+	precompile_set::{self, AddressType, SelectorFilter},
 };
 use sp_core::H160;
 use sp_core::U256;
@@ -334,8 +333,14 @@ where
 		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
+		// Check that we only perform proxy calls on behalf of externally owned accounts
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(real.into()) else {
+			return Err(revert("real address must be EOA"));
+		};
+
 		// Read proxy
-		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
+		let real_account_id = Runtime::AddressMapping::into_account_id(real.into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let def =
