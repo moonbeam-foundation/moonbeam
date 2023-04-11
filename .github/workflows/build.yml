@@ -298,6 +298,15 @@ jobs:
           MB_VERSION=`./target/release/moonbeam --version`
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
+      - name: Save runtime wasm
+        run: |
+            mkdir -p runtimes
+            cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v2
+        with:
+          name: runtimes
+          path: runtimes
       - name: Unit tests
         run: |
           cargo test --release --all
@@ -335,15 +344,6 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Save runtime wasm
-        run: |
-          mkdir -p runtimes
-          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
-      - name: Upload runtimes
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: runtimes
-          path: runtimes
 
   typescript-tests:
     runs-on: self-hosted
