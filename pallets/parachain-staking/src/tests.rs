@@ -29,6 +29,7 @@ use crate::mock::{
 	set_candidate_last_active, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin,
 	Test,
 };
+use crate::types::*;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
@@ -36,7 +37,6 @@ use crate::{
 };
 use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-use crate::types::*;
 
 // ~~ ROOT ~~
 
@@ -919,10 +919,13 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 
 			// Change block author
 			set_block_author(2);
@@ -1033,10 +1036,13 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalizes
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 
 			// Change block author
 			set_block_author(2);
@@ -1087,16 +1093,22 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(30);
 
 			// Check the storage for the collator 2 has been updated
-			assert_eq!(ParachainStaking::candidate_last_active(2), Some(CollatorActivity{
-				last_round: 4,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(2),
+				Some(CollatorActivity {
+					last_round: 4,
+					is_active: true
+				})
+			);
 
 			// Check that storage for the collator 1 holds the same value
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 		});
 }
 
@@ -1144,10 +1156,13 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 
 			// Change block author
 			set_block_author(2);
@@ -1180,16 +1195,22 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 			ParachainStaking::on_finalize(50);
 
 			// Check the storage for the collator 2 has been updated
-			assert_eq!(ParachainStaking::candidate_last_active(2), Some(CollatorActivity{
-				last_round: 6,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(2),
+				Some(CollatorActivity {
+					last_round: 6,
+					is_active: true
+				})
+			);
 
 			// Check the storage for the collator 1 hasn't been removed
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 		});
 }
 
@@ -1335,10 +1356,13 @@ fn candidate_joins_again_after_going_offline() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(ParachainStaking::candidate_last_active(1), Some(CollatorActivity{
-				last_round: 2,
-				is_active: true
-			}));
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					is_active: true
+				})
+			);
 
 			// Change block author
 			set_block_author(2);

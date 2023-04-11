@@ -455,8 +455,9 @@ pub mod pallet {
 				// iter collators to check which of them must be marked as offline
 				for collator in collators.clone() {
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
-						if round.current.saturating_sub(info.last_round) > T::MaxOfflineRounds::get()
-							&& len_counter * 3 > (max_collators * 2) as usize
+						if round.current.saturating_sub(info.last_round)
+							> T::MaxOfflineRounds::get() && len_counter * 3
+							> (max_collators * 2) as usize
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
@@ -469,10 +470,13 @@ pub mod pallet {
 							len_counter = len_counter.saturating_sub(1);
 						}
 					} else {
-						<CandidateLastActive<T>>::insert(&collator, CollatorActivity{
-							last_round: round.current,
-							is_active: false
-						});
+						<CandidateLastActive<T>>::insert(
+							&collator,
+							CollatorActivity {
+								last_round: round.current,
+								is_active: false,
+							},
+						);
 					}
 				}
 
@@ -507,10 +511,13 @@ pub mod pallet {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			// update candidate's last producing round
-			<CandidateLastActive<T>>::insert(&author, CollatorActivity{
-				last_round: now,
-				is_active: true
-			});
+			<CandidateLastActive<T>>::insert(
+				&author,
+				CollatorActivity {
+					last_round: now,
+					is_active: true,
+				},
+			);
 			Self::award_points_to_block_author(author, now);
 		}
 	}
