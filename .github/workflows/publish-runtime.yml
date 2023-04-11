@@ -143,17 +143,17 @@ jobs:
         id: get-runtime-ver
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
+          echo "runtime_moonbase_ver=$runtime_moonbase_ver" >> $GITHUB_OUTPUT
           mv build/moonbase-runtime.compact.compressed.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
           mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
 
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          echo "runtime_moonriver_ver=$runtime_moonriver_ver" >> $GITHUB_OUTPUT
           mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
           mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
 
-          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"`
+          echo "runtime_moonbeam_ver=$runtime_moonbeam_ver" >> $GITHUB_OUTPUT
           mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
           mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
 

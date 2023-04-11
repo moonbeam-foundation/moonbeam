@@ -62,8 +62,8 @@ jobs:
           DOCKER_IMAGE=purestake/moonbeam
           SHA8="$(git log -1 --format="%H" | cut -c1-8)"
           TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx

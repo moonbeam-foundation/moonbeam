@@ -21,7 +21,7 @@ describeSuite({
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
       const specName = api.consts.system.version.specName.toString();
-      log(`Currently connected to chain: ${specName}`)
+      log(`Currently connected to chain: ${specName}`);
     });
 
     it({
