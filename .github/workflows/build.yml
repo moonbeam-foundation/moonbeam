@@ -38,14 +38,14 @@ jobs:
         # else (push)
         run: |
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
-            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
-            echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
+            echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
-            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
-            echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
-          else 
-            echo ::set-output name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
-            echo ::set-output name=git_ref::$GITHUB_REF
+            echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
+          else
+            echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+            echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
       - uses: actions/checkout@v3
         with:
@@ -53,16 +53,16 @@ jobs:
       - name: Get Sha
         id: get-sha
         run: |
-          echo ::set-output name=sha::$(git log -1 --format="%H")
-          echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
-          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)
-          echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
-            head -1 | sed 's/.*#//' |  cut -c1-8)
+          echo "sha=$(git log -1 --format="%H")" >> $GITHUB_OUTPUT
+          echo "sha8=$(git log -1 --format="%H" | cut -c1-8)" >> $GITHUB_OUTPUT
+          echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
+          echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
+          head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")
+          echo "image_exists=$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
