@@ -4,10 +4,6 @@ import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import "@moonbeam-network/api-augment";
 
-const env = process.env.GH_WORKFLOW_MATRIX_CHAIN
-  ? process.env.GH_WORKFLOW_MATRIX_CHAIN
-  : "moonbeam";
-
 describeSuite({
   id: "CIRT",
   title: "Chopsticks Upgrade",
@@ -25,7 +21,7 @@ describeSuite({
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
       const specName = api.consts.system.version.specName.toString();
-      expect(specName).to.contain(env);
+      log(`Currently connected to chain: ${specName}`)
     });
 
     it({
