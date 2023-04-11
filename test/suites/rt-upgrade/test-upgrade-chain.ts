@@ -1,4 +1,4 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect, MoonwallContext } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
@@ -16,7 +16,8 @@ describeSuite({
       api = context.polkadotJs();
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
-      log(`About to upgrade to runtime...}`);
+      log(`About to upgrade to runtime at:`);
+      log(MoonwallContext.getContext().rtUpgradePath);
       await context.upgradeRuntime(context);
       const rtafter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
