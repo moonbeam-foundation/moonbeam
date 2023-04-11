@@ -260,7 +260,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
-	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
 pub struct XcmExecutorConfig;

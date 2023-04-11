@@ -27,8 +27,7 @@ use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
 	DoubleEncoded,
 };
-
-const MAX_ASSETS: u64 = 10;
+use xcm_primitives::MAX_ASSETS;
 
 trait WeighMultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
@@ -45,9 +44,9 @@ impl WeighMultiAssetsFilter for MultiAssetFilter {
 				weight.saturating_mul(assets.inner().into_iter().count() as u64)
 			}
 			Self::Wild(AllCounted(count) | AllOfCounted { count, .. }) => {
-				weight.saturating_mul(min(MAX_ASSETS, *count as u64))
+				weight.saturating_mul(min(MAX_ASSETS, *count) as u64)
 			}
-			Self::Wild(All | AllOf { .. }) => weight.saturating_mul(MAX_ASSETS),
+			Self::Wild(All | AllOf { .. }) => weight.saturating_mul(MAX_ASSETS as u64),
 		}
 	}
 }
