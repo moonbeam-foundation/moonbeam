@@ -8,12 +8,12 @@ import { PRECOMPILE_CONVICTION_VOTING_ADDRESS } from "../../util/constants";
 
 import { getCompiled } from "../../util/contracts";
 
-import { expectSubstrateEvent } from "../../util/expect";
+import { expectOk, expectSubstrateEvent } from "../../util/expect";
 
 import { DevTestContext, describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContractExecution } from "../../util/transactions";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
-import { ApiPromise } from "@polkadot/api";
+import { jumpBlocks } from "../../util/block";
 const debug = Debug("test:precompile-conviction-voting");
 
 const CONVICTION_VOTING_CONTRACT = getCompiled("ConvictionVoting");
@@ -320,5 +320,58 @@ describeDevMoonbeam("Precompiles - Conviction on General Admin Track", (context)
     expectEVMResult(block.result.events, "Revert");
     const referendum = await context.polkadotApi.query.referenda.referendumInfoFor(proposalIndex);
     expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(1n * 10n ** 18n);
+  });
+});
+
+describeDevMoonbeam("Precompiles - Ended proposal", (context) => {
+  let proposalIndex: number;
+  before("create a proposal and end it", async function () {
+    // Whitelist caller is track 3
+    proposalIndex = await createProposal(context, "whitelistedcaller");
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.referenda.placeDecisionDeposit(proposalIndex))
+    );
+    const alithAccount = await context.polkadotApi.query.system.account(alith.address);
+    await expectOk(
+      context.createBlock(
+        createContractExecution(context, {
+          contract: convictionVotingContract,
+          contractCall: convictionVotingContract.methods.voteYes(
+            proposalIndex,
+            alithAccount.data.free.toBigInt() - 20n * 10n ** 18n,
+            1
+          ),
+        })
+      )
+    );
+    // 20 minutes jump
+    await jumpBlocks(context, (20 * 60) / 12);
+
+    // Verifies the setup is correct
+    const referendum = await context.polkadotApi.query.referenda.referendumInfoFor(proposalIndex);
+    expect(referendum.unwrap().isApproved).to.be.true;
+  });
+
+  // This and the next "it" and dependant on same state but this one is supposed to
+  // revert and so not impact the proposal state
+  it(`should failed to be removed without track info`, async function () {
+    const block = await context.createBlock(
+      createContractExecution(context, {
+        contract: convictionVotingContract,
+        contractCall: convictionVotingContract.methods.removeVote(proposalIndex),
+      })
+    );
+    expectEVMResult(block.result.events, "Revert", "Reverted");
+    expect(await extractRevertReason(block.result.hash, context.ethers)).to.contain("ClassNeeded");
+  });
+
+  it(`should be removable by specifying the track`, async function () {
+    const block = await context.createBlock(
+      createContractExecution(context, {
+        contract: convictionVotingContract,
+        contractCall: convictionVotingContract.methods.removeVoteForTrack(proposalIndex, 1),
+      })
+    );
+    expectEVMResult(block.result.events, "Succeed");
   });
 });
