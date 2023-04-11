@@ -325,7 +325,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
+	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
 	type CallDispatcher = MoonbeamCall;
 	type PalletInstancesInfo = crate::AllPalletsWithSystem;
