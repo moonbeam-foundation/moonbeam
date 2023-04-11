@@ -175,7 +175,7 @@ describeDevMoonbeam("Call - State Override", (context) => {
     expect(hexToBigInt(result)).to.equal(50n);
   });
 
-  it("should have allowance of 50 but availableFunds 0 with full state override", async function () {
+  it("should have allowance 50 but availableFunds 0 with full state override", async function () {
     const allowanceKey = Web3.utils.soliditySha3(
       {
         type: "uint256",
