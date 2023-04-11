@@ -116,8 +116,11 @@ describeSmokeSuite(
         this.skip();
       }
 
-      if (specName.toString() == "moonbeam") {
-        debug(`Runtime ${specName.toString()} not supported by these tests, skipping.`);
+      if (specVersion.toNumber() < 2300 && specName.toString() == "moonbeam") {
+        debug(
+          `Runtime ${specName.toString()} version ` +
+            `${specVersion.toString()} is less than 2300, skipping test suite.`
+        );
         this.skip();
       }
 
