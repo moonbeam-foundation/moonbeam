@@ -158,13 +158,6 @@ where
 			Runtime::account_to_currency_id(currency_account_id)
 				.ok_or(revert("Unsupported asset, not a valid currency id"))?;
 
-		let amount = transfer_with_payload
-			.amount
-			.try_into()
-			.map_err(|_| revert("Amount overflows balance"))?;
-
-		log::debug!(target: "gmp-precompile", "attempt to transfer {:?} of {:?}", amount, currency_id);
-
 		// Complete a "Contract Controlled Transfer" with the given Wormhole VAA.
 		// We need to invoke Wormhole's completeTransferWithPayload function, passing it the VAA.
 		// Upon success, it should have transferred tokens to this precompile's address.
@@ -188,21 +181,13 @@ where
 		let after_amount: U256 = reader.read()?;
 		log::debug!(target: "gmp-precompile", "after balance: {}", after_amount);
 
-		let amount_transfered = after_amount.saturating_sub(before_amount);
+		let amount_transferred = after_amount.saturating_sub(before_amount);
+		let amount = amount_transferred
+			.min(transfer_with_payload.amount)
+			.try_into()
+			.map_err(|_| revert("Amount overflows balance"))?;
 
-		// TODO: review
-		if amount_transfered < transfer_with_payload.amount {
-			log::debug!(
-				target: "gmp-precompile",
-				"insufficient funds bridged ({} < {})",
-				amount_transfered, transfer_with_payload.amount);
-			return Err(PrecompileFailure::Revert {
-				exit_status: ExitRevert::Reverted,
-				output: "insufficient funds bridged".into(),
-			});
-		}
-
-		// TODO: Wormhole might have transfered unsupported tokens; we should handle this case
+		// TODO: Wormhole might have transferred unsupported tokens; we should handle this case
 		//       gracefully (maybe that's as simple as reverting)
 
 		// TODO:
