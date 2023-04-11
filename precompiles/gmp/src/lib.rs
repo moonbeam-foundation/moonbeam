@@ -19,12 +19,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::ConstU32,
-	weights::Weight,
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
@@ -33,9 +32,8 @@ use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;
-use xcm::opaque::latest::WeightLimit;
-use xcm::VersionedMultiLocation;
-use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
+use xcm::{opaque::latest::WeightLimit, VersionedMultiLocation};
+use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
 mod mock;
@@ -187,22 +185,13 @@ where
 			.try_into()
 			.map_err(|_| revert("Amount overflows balance"))?;
 
-		// TODO: Wormhole might have transferred unsupported tokens; we should handle this case
-		//       gracefully (maybe that's as simple as reverting)
-
-		// TODO:
-		let weight_limit: u64 = 1_000_000_000_000u64;
-
 		log::debug!(target: "gmp-precompile", "sending XCM via xtokens::transfer...");
 		let call: orml_xtokens::Call<Runtime> = match user_action {
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
 				amount,
 				dest: Box::new(VersionedMultiLocation::V3(action.destination)),
-				dest_weight_limit: WeightLimit::Limited(Weight::from_parts(
-					weight_limit,
-					DEFAULT_PROOF_SIZE,
-				)),
+				dest_weight_limit: WeightLimit::Unlimited,
 			},
 		};
 
