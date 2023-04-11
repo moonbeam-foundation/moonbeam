@@ -307,6 +307,17 @@ jobs:
         with:
           name: runtimes
           path: runtimes
+      - name: Save moonbeam binary
+        run: |
+          mkdir -p build
+          cp target/release/moonbeam build/moonbeam;
+      - name: Upload binary
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: moonbeam
+          path: build
+
+      # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
           cargo test --release --all
@@ -335,15 +346,6 @@ jobs:
           fi
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
-      - name: Save moonbeam binary
-        run: |
-          mkdir -p build
-          cp target/release/moonbeam build/moonbeam;
-      - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: moonbeam
-          path: build
 
   typescript-tests:
     runs-on: self-hosted
