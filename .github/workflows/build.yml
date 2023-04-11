@@ -331,7 +331,7 @@ jobs:
           mkdir -p build
           cp target/release/moonbeam build/moonbeam;
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: moonbeam
           path: build
@@ -340,7 +340,7 @@ jobs:
           mkdir -p runtimes
           cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
       - name: Upload runtimes
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: runtimes
           path: runtimes
@@ -641,7 +641,7 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: build
+          path: test/runtimes
       - name: "Install and run upgrade test"
         run: |
           cd test

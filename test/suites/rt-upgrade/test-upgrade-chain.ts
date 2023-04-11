@@ -16,6 +16,7 @@ describeSuite({
       api = context.polkadotJs();
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
+      log(`About to upgrade to runtime...}`);
       await context.upgradeRuntime(context);
       const rtafter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);

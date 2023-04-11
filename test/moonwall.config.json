@@ -212,7 +212,7 @@
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../build/moonbeam_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "./runtimes/moonbeam_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",
@@ -234,7 +234,7 @@
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../build/moonriver_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "./runtimes/moonriver_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",
@@ -256,7 +256,7 @@
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
-        "rtUpgradePath": "../build/moonbase_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "./runtimes/moonbase_runtime.compact.compressed.wasm",
         "launchSpec": [
           {
             "name": "mb",

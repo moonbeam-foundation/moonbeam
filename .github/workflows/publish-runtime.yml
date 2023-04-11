@@ -86,7 +86,7 @@ jobs:
           cat ${{ matrix.chain }}-srtool-digest.json
           cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}-runtime.compact.compressed.wasm
       - name: Archive Artifacts for ${{ matrix.chain }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ matrix.chain }}-runtime
           path: |
