@@ -108,17 +108,17 @@ jobs:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
       - name: Download moonbase runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonbase-runtime
           path: build
       - name: Download moonriver runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonriver-runtime
           path: build
       - name: Download moonbeam runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam-runtime
           path: build
