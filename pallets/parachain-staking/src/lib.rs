@@ -463,7 +463,7 @@ pub mod pallet {
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
 							// it is marked as offline
-							Self::do_go_offline(collator.clone()).unwrap_or_default();
+							let _ = Self::do_go_offline(collator.clone());
 
 							//remove storage info for the collator
 							<CandidateLastActive<T>>::remove(&collator);
