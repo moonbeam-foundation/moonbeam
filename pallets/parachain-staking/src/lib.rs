@@ -457,8 +457,11 @@ pub mod pallet {
 				for collator in collators {
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
 						if round.current.saturating_sub(info.last_round)
-							> T::MaxOfflineRounds::get() && len_counter * 3
-							> (max_collators * 2) as usize
+							> T::MaxOfflineRounds::get() && round
+							.current
+							.saturating_sub(info.last_active)
+							<= T::MaxOfflineRounds::get()
+							&& len_counter * 3 > (max_collators * 2) as usize
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
@@ -469,14 +472,22 @@ pub mod pallet {
 							<CandidateLastActive<T>>::remove(&collator);
 
 							len_counter = len_counter.saturating_sub(1);
+						} else {
+							<CandidateLastActive<T>>::insert(
+								&collator,
+								CollatorActivity {
+									last_round: info.last_round,
+									last_active: round.current.saturating_sub(1),
+								},
+							);
 						}
 					} else {
 						// initialize storage
 						<CandidateLastActive<T>>::insert(
 							&collator,
 							CollatorActivity {
-								last_round: round.current,
-								is_active: false,
+								last_round: 0,
+								last_active: round.current.saturating_sub(1),
 							},
 						);
 					}
@@ -517,7 +528,7 @@ pub mod pallet {
 				&author,
 				CollatorActivity {
 					last_round: now,
-					is_active: true,
+					last_active: now,
 				},
 			);
 			Self::award_points_to_block_author(author, now);

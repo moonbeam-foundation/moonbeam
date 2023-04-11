@@ -280,7 +280,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
       result
     );
     expect(Number(decodedResult[0])).to.equal(1);
-    expect(decodedResult[1]).to.equal(true);
+    expect(Number(decodedResult[1])).to.equal(1);
   });
 
   it("should get 0 for ETHAN as he hasn't produced blocks", async function () {
@@ -296,6 +296,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
       result
     );
     expect(Number(decodedResult[0])).to.equal(0);
-    expect(decodedResult[1]).to.equal(false);
+    expect(Number(decodedResult[1])).to.equal(0);
   });
 });

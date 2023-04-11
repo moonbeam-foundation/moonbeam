@@ -329,12 +329,10 @@ interface ParachainStaking {
     /// @dev Fetch the last round in which a collator produced blocks.
     /// @custom:selector e56b4f6a
     /// @param collator Address of the collator.
-    /// @return A touple with the number of the round and a bool that indicates 
-    /// if the collator is active (producing blocks) or inactive (has been selected as
-    /// a collator but is not producing blocks). 
-    /// If round is zero, the collator is offline or the address provided is not a collator
+    /// @return A tuple with the number of the last round in which the collator
+    // produced blocks and the last round in which it was selected as a collator 
     function getCandidateLastActive(address collator)
         external
         view
-        returns (uint256, bool);
+        returns (uint256, uint256);
 }

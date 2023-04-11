@@ -1809,7 +1809,7 @@ fn get_candidate_last_active_getter() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.execute_returns_encoded((U256::from(0), false));
+				.execute_returns_encoded((U256::from(0), U256::from(0)));
 		});
 }
 

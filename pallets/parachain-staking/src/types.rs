@@ -1697,20 +1697,16 @@ pub struct Nominator2<AccountId, Balance> {
 /// Information about collators activity in previous rounds
 pub struct CollatorActivity<RoundIndex> {
 	/// Last round in which the collator produced blocks
-	/// or round in which CandidateLastActive was initialized
 	pub last_round: RoundIndex,
-	/// Indicates if the collator produced blocks or not in last_round
-	/// If it is "false", last_round is the
-	/// round in which CandidateLastActive
-	/// was initialized for the collator
-	pub is_active: bool,
+	/// Last round in which the collator was included in the collators set
+	pub last_active: RoundIndex,
 }
 
 impl<T: Default> Default for CollatorActivity<T> {
 	fn default() -> CollatorActivity<T> {
 		CollatorActivity {
 			last_round: T::default(),
-			is_active: false,
+			last_active: T::default(),
 		}
 	}
 }

@@ -915,7 +915,7 @@ where
 	fn get_candidate_last_active(
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
-	) -> EvmResult<(U256, bool)> {
+	) -> EvmResult<(U256, U256)> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
@@ -926,7 +926,7 @@ where
 
 		Ok((
 			collator_activity.last_round.into(),
-			collator_activity.is_active.into(),
+			collator_activity.last_active.into(),
 		))
 	}
 

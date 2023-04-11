@@ -526,7 +526,7 @@ pub(crate) fn set_candidate_last_active(acc: u64, round: BlockNumber) {
 		acc,
 		CollatorActivity {
 			last_round: round,
-			is_active: true,
+			last_active: round,
 		},
 	);
 }
