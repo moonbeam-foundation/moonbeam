@@ -23,19 +23,13 @@ describeSuite({
       await context.upgradeRuntime(context);
       const rtafter = api.consts.system.version.specVersion.toNumber();
       expect(rtBefore, "RT upgrade has not increased specVersion").toBeLessThan(rtafter);
+
+      const specName = api.consts.system.version.specName.toString();
+      expect(specName).to.contain(env);
     });
 
     it({
       id: "T1",
-      title: "Sanity check we are connected to the correct chain",
-      test: async () => {
-        const specName = api.consts.system.version.specName.toString();
-        expect(specName).to.contain(env);
-      },
-    });
-
-    it({
-      id: "T2",
       title: "Can create new blocks",
       test: async () => {
         const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
@@ -46,7 +40,7 @@ describeSuite({
     });
 
     it({
-      id: "T3",
+      id: "T2",
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();

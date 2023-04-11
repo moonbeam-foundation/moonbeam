@@ -13,11 +13,11 @@ devDependencies:
     specifier: ^0.2201.0
     version: 0.2201.0
   '@moonwall/cli':
-    specifier: ^0.4.4
-    version: 0.4.4(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
+    specifier: ^0.4.5
+    version: 0.4.5(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
   '@moonwall/util':
-    specifier: ^0.4.2
-    version: 0.4.2(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
+    specifier: ^0.4.5
+    version: 0.4.5(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
   '@polkadot/api':
     specifier: ^10.2.2
     version: 10.2.2
@@ -562,14 +562,14 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonwall/cli@0.4.4(@polkadot/util-crypto@11.1.3)(typescript@4.9.5):
-    resolution: {integrity: sha512-jQ+f/zMhvIwTM4G43RCPEZVYwwD3fdGAaAuKAKVbjQkH93lxpkibNlB6nzcKj/AbNS3Wpqo0B9eiM5ko76P7dA==}
+  /@moonwall/cli@0.4.5(@polkadot/util-crypto@11.1.3)(typescript@4.9.5):
+    resolution: {integrity: sha512-ItBpq2n0Feo7q2mX2Lm58bIrdhMGRZSnn+HDdYNvgjQjplVZnVwnwliSU4xiSJbW9Rel02Fb0cuesBTlSvNaxg==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     hasBin: true
     dependencies:
       '@acala-network/chopsticks': 0.5.10(debug@4.3.4)(ts-node@10.9.1)
       '@moonbeam-network/api-augment': 0.2201.0
-      '@moonwall/util': 0.4.2(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
+      '@moonwall/util': 0.4.5(@polkadot/util-crypto@11.1.3)(typescript@4.9.5)
       '@polkadot/api': 10.2.2
       '@polkadot/api-augment': 10.2.2
       '@polkadot/api-derive': 10.2.2
@@ -647,8 +647,8 @@ packages:
       - webdriverio
     dev: true
 
-  /@moonwall/util@0.4.2(@polkadot/util-crypto@11.1.3)(typescript@4.9.5):
-    resolution: {integrity: sha512-+oEZUS0nFqKibJFaAuBUaCCOU0jD7Y6LQE7dzH4v3TIkKONGdN8Nlw6iLeOrdDZ1Q/IbCJh1iGJPy9VUS13TVQ==}
+  /@moonwall/util@0.4.5(@polkadot/util-crypto@11.1.3)(typescript@4.9.5):
+    resolution: {integrity: sha512-w5PPnOLpgcDCbltBOaUUf8wWygcSCvOeJvn6HfTcpQ6lTCbT25SSSZn8ZhZPp/PkYd82lqOk4bYE5jTrmrqEgA==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@acala-network/chopsticks': 0.5.10(debug@4.3.4)(ts-node@10.9.1)

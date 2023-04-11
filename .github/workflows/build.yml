@@ -618,3 +618,32 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+
+  test-wasm-upgrade-chopsticks:
+    runs-on: ubuntu-latest
+    needs: ["set-tags", "build"]
+    strategy:
+      matrix:
+        chain: ["moonbase", "moonriver", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: "Download runtime"
+        uses: actions/download-artifact@v2
+        with:
+          name: runtimes
+          path: build
+      - name: "Install and run upgrade test"
+        run: |
+          cd test
+          pnpm i
+          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}

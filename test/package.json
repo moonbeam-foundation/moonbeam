@@ -14,8 +14,8 @@
   "devDependencies": {
     "@acala-network/chopsticks": "^0.5.10",
     "@moonbeam-network/api-augment": "^0.2201.0",
-    "@moonwall/cli": "^0.4.4",
-    "@moonwall/util": "^0.4.2",
+    "@moonwall/cli": "^0.4.5",
+    "@moonwall/util": "^0.4.5",
     "@polkadot/api": "^10.2.2",
     "@polkadot/api-augment": "^10.2.2",
     "@polkadot/types": "^10.2.2",
