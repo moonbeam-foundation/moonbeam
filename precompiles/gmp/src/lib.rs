@@ -224,14 +224,8 @@ where
 			"calling {} ...", contract_address,
 		);
 
-		let (reason, output) = handle.call(
-			contract_address,
-			None,
-			call_data,
-			handle.gas_limit(), // TODO
-			false,
-			&sub_context,
-		);
+		let (reason, output) =
+			handle.call(contract_address, None, call_data, None, false, &sub_context);
 
 		ensure_exit_reason_success(reason, &output[..])?;
 
