@@ -924,7 +924,10 @@ where
 			<pallet_parachain_staking::Pallet<Runtime>>::candidate_last_active(&candidate)
 				.unwrap_or_default();
 
-		Ok((collator_activity.last_round.into(), collator_activity.is_active.into()))
+		Ok((
+			collator_activity.last_round.into(),
+			collator_activity.is_active.into(),
+		))
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {

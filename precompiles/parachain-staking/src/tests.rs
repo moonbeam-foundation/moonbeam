@@ -1805,7 +1805,9 @@ fn get_candidate_last_active_getter() {
 				.prepare_test(
 					Alice,
 					Precompile1,
-					PCall::get_candidate_last_active { candidate: Address(Alice.into()) }
+					PCall::get_candidate_last_active {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.execute_returns_encoded((U256::from(0), false));
 		});

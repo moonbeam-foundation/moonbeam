@@ -275,7 +275,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
       ]),
     });
 
-    const decodedResult = PARACHAIN_STAKING_INTERFACE.decodeFunctionResult("getCandidateLastActive", result)
+    const decodedResult = PARACHAIN_STAKING_INTERFACE.decodeFunctionResult(
+      "getCandidateLastActive",
+      result
+    );
     expect(Number(decodedResult[0])).to.equal(1);
     expect(decodedResult[1]).to.equal(true);
   });
@@ -288,7 +291,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - CandidateLastActive", 
       ]),
     });
 
-    const decodedResult = PARACHAIN_STAKING_INTERFACE.decodeFunctionResult("getCandidateLastActive", result)
+    const decodedResult = PARACHAIN_STAKING_INTERFACE.decodeFunctionResult(
+      "getCandidateLastActive",
+      result
+    );
     expect(Number(decodedResult[0])).to.equal(0);
     expect(decodedResult[1]).to.equal(false);
   });
