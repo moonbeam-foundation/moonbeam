@@ -450,10 +450,11 @@ pub mod pallet {
 				// we don't mark any other collator as offline
 				let max_collators = <TotalSelected<T>>::get();
 
+				// track collators length
 				let mut len_counter = collators.len();
 
 				// iter collators to check which of them must be marked as offline
-				for collator in collators.clone() {
+				for collator in collators {
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
 						if round.current.saturating_sub(info.last_round)
 							> T::MaxOfflineRounds::get() && len_counter * 3
@@ -470,6 +471,7 @@ pub mod pallet {
 							len_counter = len_counter.saturating_sub(1);
 						}
 					} else {
+						// initialize storage
 						<CandidateLastActive<T>>::insert(
 							&collator,
 							CollatorActivity {

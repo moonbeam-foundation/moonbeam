@@ -1697,7 +1697,7 @@ pub struct Nominator2<AccountId, Balance> {
 /// Information about collators activity in previous rounds
 pub struct CollatorActivity<RoundIndex> {
 	/// Last round in which the collator produced blocks
-	/// or first round in which was selected as a collator
+	/// or round in which CandidateLastActive was initialized
 	pub last_round: RoundIndex,
 	/// Indicates if the collator produced blocks or not in last_round
 	/// If it is "false", last_round is the
