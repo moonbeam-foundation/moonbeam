@@ -20,7 +20,10 @@ use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Polling};
 use pallet_conviction_voting::Call as ConvictionVotingCall;
-use pallet_conviction_voting::{AccountVote, Conviction, Tally, Vote};
+use pallet_conviction_voting::{
+	AccountVote, Casting, ClassLocksFor, Conviction, Delegating, Tally, TallyOf, Vote, Voting,
+	VotingFor,
+};
 use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
@@ -51,6 +54,13 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 	>,
 >>::Class;
+type VotingOf<Runtime> = Voting<
+	BalanceOf<Runtime>,
+	<Runtime as frame_system::Config>::AccountId,
+	<Runtime as frame_system::Config>::BlockNumber,
+	<<Runtime as pallet_conviction_voting::Config>::Polls as Polling<TallyOf<Runtime>>>::Index,
+	<Runtime as pallet_conviction_voting::Config>::MaxVotes,
+>;
 
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_VOTED: [u8; 32] =
@@ -88,14 +98,16 @@ pub struct ConvictionVotingPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ConvictionVotingPrecompile<Runtime>
 where
 	Runtime: pallet_conviction_voting::Config + pallet_evm::Config + frame_system::Config,
-	BalanceOf<Runtime>: TryFrom<U256>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
+	Runtime::AccountId: Into<H160>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ConvictionVotingCall<Runtime>>,
-	IndexOf<Runtime>: TryFrom<u32>,
-	ClassOf<Runtime>: TryFrom<u16>,
+	IndexOf<Runtime>: TryFrom<u32> + TryInto<u32>,
+	ClassOf<Runtime>: TryFrom<u16> + TryInto<u16>,
+	<Runtime as pallet_conviction_voting::Config>::MaxVotes: std::fmt::Debug,
 {
 	/// Internal helper function for vote* extrinsics exposed in this precompile.
 	fn vote(
@@ -333,6 +345,7 @@ where
 
 		Ok(())
 	}
+
 	#[precompile::public("undelegate(uint16)")]
 	fn undelegate(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult {
 		let caller = handle.context().caller;
@@ -357,6 +370,7 @@ where
 
 		Ok(())
 	}
+
 	#[precompile::public("unlock(uint16,address)")]
 	fn unlock(handle: &mut impl PrecompileHandle, track_id: u16, target: Address) -> EvmResult {
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
@@ -388,26 +402,76 @@ where
 
 		Ok(())
 	}
+
+	#[precompile::public("votingFor(address,uint16)")]
+	#[precompile::view]
+	fn voting_for(
+		handle: &mut impl PrecompileHandle,
+		who: Address,
+		track_id: u16,
+	) -> EvmResult<OutputVotingFor> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let who = Runtime::AddressMapping::into_account_id(who.into());
+		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
+
+		let voting = <VotingFor<Runtime>>::get(&who, &class);
+
+		Ok(Self::voting_to_output(voting)?)
+	}
+
+	#[precompile::public("classLocksFor(address)")]
+	#[precompile::view]
+	fn class_locks_for(
+		handle: &mut impl PrecompileHandle,
+		who: Address,
+	) -> EvmResult<Vec<OutputClassLock>> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let who = Runtime::AddressMapping::into_account_id(who.into());
+
+		let class_locks_for = <ClassLocksFor<Runtime>>::get(&who);
+		let mut output = vec![];
+		for (track_id, amount) in class_locks_for {
+			output.push(OutputClassLock {
+				track: Self::track_id_to_u16(track_id)?,
+				amount: amount.into(),
+			});
+		}
+
+		Ok(output)
+	}
+
 	fn u8_to_conviction(conviction: u8) -> MayRevert<Conviction> {
 		conviction
 			.try_into()
 			.map_err(|_| RevertReason::custom("Must be an integer between 0 and 6 included").into())
 	}
+
 	fn u32_to_index(index: u32) -> MayRevert<IndexOf<Runtime>> {
 		index
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("index type").into())
 	}
+
 	fn u16_to_track_id(class: u16) -> MayRevert<ClassOf<Runtime>> {
 		class
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("trackId type").into())
 	}
+
+	fn track_id_to_u16(class: ClassOf<Runtime>) -> MayRevert<u16> {
+		class
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("trackId type").into())
+	}
+
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
 		value
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
 	}
+
 	fn log_vote_event(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
@@ -479,4 +543,178 @@ where
 		handle.record_log_costs(&[&event])?;
 		Ok((Self::u32_to_index(poll_index)?, vote, event))
 	}
+
+	fn voting_to_output(voting: VotingOf<Runtime>) -> MayRevert<OutputVotingFor> {
+		let output = match voting {
+			Voting::Casting(Casting {
+				votes,
+				delegations,
+				prior,
+			}) => {
+				let mut output_votes = vec![];
+				for (poll_index, account_vote) in votes {
+					let poll_index: u32 = poll_index
+						.try_into()
+						.map_err(|_| RevertReason::value_is_too_large("index type"))?;
+					let account_vote = match account_vote {
+						AccountVote::Standard { vote, balance } => OutputAccountVote {
+							is_standard: true,
+							standard: StandardVote {
+								vote: OutputVote {
+									aye: vote.aye,
+									conviction: vote.conviction.into(),
+								},
+								balance: balance.into(),
+							},
+							..Default::default()
+						},
+						AccountVote::Split { aye, nay } => OutputAccountVote {
+							is_split: true,
+							split: SplitVote {
+								aye: aye.into(),
+								nay: nay.into(),
+							},
+							..Default::default()
+						},
+						AccountVote::SplitAbstain { aye, nay, abstain } => OutputAccountVote {
+							is_split_abstain: true,
+							split_abstain: SplitAbstainVote {
+								aye: aye.into(),
+								nay: nay.into(),
+								abstain: abstain.into(),
+							},
+							..Default::default()
+						},
+					};
+
+					output_votes.push(PollAccountVote {
+						poll_index,
+						account_vote,
+					});
+				}
+
+				OutputVotingFor {
+					is_casting: true,
+					casting: OutputCasting {
+						votes: output_votes,
+						delegations: Delegations {
+							votes: delegations.votes.into(),
+							capital: delegations.capital.into(),
+						},
+						prior: PriorLock {
+							balance: prior.locked().into(),
+						},
+					},
+					..Default::default()
+				}
+			}
+			Voting::Delegating(Delegating {
+				balance,
+				target,
+				conviction,
+				delegations,
+				prior,
+			}) => OutputVotingFor {
+				is_delegating: true,
+				delegating: OutputDelegating {
+					balance: balance.into(),
+					target: Address(target.into()),
+					conviction: conviction.into(),
+					delegations: Delegations {
+						votes: delegations.votes.into(),
+						capital: delegations.capital.into(),
+					},
+					prior: PriorLock {
+						balance: prior.locked().into(),
+					},
+					..Default::default()
+				},
+				..Default::default()
+			},
+		};
+
+		Ok(output)
+	}
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputClassLock {
+	track: u16,
+	amount: U256,
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputVotingFor {
+	is_casting: bool,
+	is_delegating: bool,
+	casting: OutputCasting,
+	delegating: OutputDelegating,
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputCasting {
+	votes: Vec<PollAccountVote>,
+	delegations: Delegations,
+	prior: PriorLock,
+}
+
+#[derive(Default, EvmData)]
+pub struct PollAccountVote {
+	poll_index: u32,
+	account_vote: OutputAccountVote,
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputDelegating {
+	balance: U256,
+	target: Address,
+	conviction: u8,
+	delegations: Delegations,
+	prior: PriorLock,
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputAccountVote {
+	is_standard: bool,
+	is_split: bool,
+	is_split_abstain: bool,
+	standard: StandardVote,
+	split: SplitVote,
+	split_abstain: SplitAbstainVote,
+}
+
+#[derive(Default, EvmData)]
+pub struct StandardVote {
+	vote: OutputVote,
+	balance: U256,
+}
+
+#[derive(Default, EvmData)]
+pub struct OutputVote {
+	aye: bool,
+	conviction: u8,
+}
+
+#[derive(Default, EvmData)]
+pub struct SplitVote {
+	aye: U256,
+	nay: U256,
+}
+
+#[derive(Default, EvmData)]
+pub struct SplitAbstainVote {
+	aye: U256,
+	nay: U256,
+	abstain: U256,
+}
+
+#[derive(Default, EvmData)]
+pub struct Delegations {
+	votes: U256,
+	capital: U256,
+}
+
+#[derive(Default, EvmData)]
+pub struct PriorLock {
+	balance: U256,
 }

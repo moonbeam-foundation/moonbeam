@@ -27,6 +27,10 @@ use sp_runtime::{traits::PostDispatchInfoOf, DispatchResultWithInfo};
 
 const ONGOING_POLL_INDEX: u32 = 3;
 
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
+
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
@@ -390,5 +394,170 @@ fn unlock_logs_work() {
 				}
 				.into()
 			));
+		})
+}
+
+#[test]
+fn test_voting_for_returns_correct_value_for_standard_vote() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote Yes
+			assert_ok!(standard_vote(true, 100_000.into(), 1.into()));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::voting_for {
+						who: H160::from(Alice).into(),
+						track_id: 0u16,
+					},
+				)
+				.expect_no_logs()
+				.execute_returns_encoded(crate::OutputVotingFor {
+					is_casting: true,
+					casting: crate::OutputCasting {
+						votes: vec![crate::PollAccountVote {
+							poll_index: 3,
+							account_vote: crate::OutputAccountVote {
+								is_standard: true,
+								standard: crate::StandardVote {
+									vote: crate::OutputVote {
+										aye: true,
+										conviction: 1,
+									},
+									balance: 100_000.into(),
+								},
+								..Default::default()
+							},
+						}],
+						delegations: crate::Delegations {
+							votes: 0.into(),
+							capital: 0.into(),
+						},
+						prior: crate::PriorLock { balance: 0.into() },
+					},
+					..Default::default()
+				});
+		})
+}
+
+#[test]
+fn test_voting_for_returns_correct_value_for_split_vote() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote Yes
+			assert_ok!(split_vote(20_000.into(), 30_000.into(), None));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::voting_for {
+						who: H160::from(Alice).into(),
+						track_id: 0u16,
+					},
+				)
+				.expect_no_logs()
+				.execute_returns_encoded(crate::OutputVotingFor {
+					is_casting: true,
+					casting: crate::OutputCasting {
+						votes: vec![crate::PollAccountVote {
+							poll_index: 3,
+							account_vote: crate::OutputAccountVote {
+								is_split: true,
+								split: crate::SplitVote {
+									aye: 20_000.into(),
+									nay: 30_000.into(),
+								},
+								..Default::default()
+							},
+						}],
+						delegations: crate::Delegations {
+							votes: 0.into(),
+							capital: 0.into(),
+						},
+						prior: crate::PriorLock { balance: 0.into() },
+					},
+					..Default::default()
+				});
+		})
+}
+
+#[test]
+fn test_voting_for_returns_correct_value_for_split_abstain_vote() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote Yes
+			assert_ok!(split_vote(
+				20_000.into(),
+				30_000.into(),
+				Some(10_000.into())
+			));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::voting_for {
+						who: H160::from(Alice).into(),
+						track_id: 0u16,
+					},
+				)
+				.expect_no_logs()
+				.execute_returns_encoded(crate::OutputVotingFor {
+					is_casting: true,
+					casting: crate::OutputCasting {
+						votes: vec![crate::PollAccountVote {
+							poll_index: 3,
+							account_vote: crate::OutputAccountVote {
+								is_split_abstain: true,
+								split_abstain: crate::SplitAbstainVote {
+									aye: 20_000.into(),
+									nay: 30_000.into(),
+									abstain: 10_000.into(),
+								},
+								..Default::default()
+							},
+						}],
+						delegations: crate::Delegations {
+							votes: 0.into(),
+							capital: 0.into(),
+						},
+						prior: crate::PriorLock { balance: 0.into() },
+					},
+					..Default::default()
+				});
+		})
+}
+
+#[test]
+fn test_class_locks_for_returns_correct_value() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Vote Yes
+			assert_ok!(standard_vote(true, 100_000.into(), 1.into()));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::class_locks_for {
+						who: H160::from(Alice).into(),
+					},
+				)
+				.expect_no_logs()
+				.execute_returns_encoded(vec![crate::OutputClassLock {
+					track: 0u16,
+					amount: U256::from(100_000),
+				}]);
 		})
 }

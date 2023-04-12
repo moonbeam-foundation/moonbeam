@@ -33,6 +33,90 @@ interface ConvictionVoting {
         Locked6x
     }
 
+    struct ClassLock {
+        uint16 trackId;
+        uint256 amount;
+    }
+
+    struct VotingFor {
+        bool isCasting;
+        bool isDelegating;
+        Casting casting;
+        Delegating delegating;
+    }
+
+    struct PollAccountVote {
+        uint32 pollIndex;
+        AccountVote accountVote;
+    }
+
+    struct Casting {
+        PollAccountVote[] votes;
+        Delegations delegations;
+        PriorLock prior;
+    }
+
+    struct Delegating {
+        uint256 balance;
+        address target;
+        Conviction conviction;
+        Delegations delegations;
+        PriorLock prior;
+    }
+
+    struct AccountVote {
+        bool is_standard;
+        bool is_split;
+        bool is_split_abstain;
+        StandardVote standard;
+        SplitVote split;
+        SplitAbstainVote split_abstain;
+    }
+
+    struct StandardVote {
+        Vote vote;
+        uint256 balance;
+    }
+
+    struct Vote {
+        bool aye;
+        Conviction conviction;
+    }
+
+    struct SplitVote {
+        uint256 aye;
+        uint256 nay;
+    }
+
+    struct SplitAbstainVote {
+        uint256 aye;
+        uint256 nay;
+        uint256 abstain;
+    }
+
+    struct Delegations {
+        uint256 votes;
+        uint256 capital;
+    }
+
+    struct PriorLock {
+        uint256 balance;
+    }
+
+    /// @dev Retrieve votings for a given account and track.
+    /// @custom:selector 501447ee
+    /// @param who The requested account
+    /// @param trackId The requested track
+    function votingFor(
+        address who,
+        uint16 trackId
+    ) external view returns (ClassLock[] memory);
+
+    /// @dev Retrieve class locks for a given account.
+    /// @custom:selector 7ae8ac92
+    /// @param who The requested account
+    function classLocksFor(address who) external view returns (uint256);
+
     /// @dev Vote yes in a poll.
     /// @custom:selector da9df518
     /// @param pollIndex Index of poll
