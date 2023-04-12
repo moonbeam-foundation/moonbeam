@@ -16,7 +16,7 @@ import { expectEVMResult, extractRevertReason } from "../../util/eth-transaction
 import { jumpBlocks } from "../../util/block";
 const debug = Debug("test:precompile-conviction-voting");
 
-const CONVICTION_VOTING_CONTRACT = getCompiled("ConvictionVoting");
+const CONVICTION_VOTING_CONTRACT = getCompiled("precompiles/conviction-voting/ConvictionVoting");
 const CONVICTION_VOTING_INTERFACE = new ethers.utils.Interface(
   CONVICTION_VOTING_CONTRACT.contract.abi
 );
