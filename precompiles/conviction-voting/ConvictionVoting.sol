@@ -33,73 +33,119 @@ interface ConvictionVoting {
         Locked6x
     }
 
+    /// @dev Defines the class lock for an account.
     struct ClassLock {
+        /// The track of this lock.
         uint16 trackId;
+        /// The amount locked.
         uint256 amount;
     }
 
+    /// @dev Defines the voting information for an account and track,
     struct VotingFor {
+        /// If the voting type is `Casting`, if `true` then `casting` field is significant.
         bool isCasting;
+        /// If the voting type is `Delegating`, if `true` then `delegating` field is significant.
         bool isDelegating;
+        /// Defines the voting information when `isCasting` is true.
         Casting casting;
+        /// Defines the voting information when `isDelegating` is true.
         Delegating delegating;
     }
 
+    /// @dev Defines the casting vote type from an account.
+    struct Casting {
+        /// The votes registered.
+        PollAccountVote[] votes;
+        /// The delegation info.
+        Delegations delegations;
+        /// Any prior lock information.
+        PriorLock prior;
+    }
+
+    /// @dev Defines the delegating vote type from an account.
+    struct Delegating {
+        /// The delegated balance.
+        uint256 balance;
+        /// The deletegate account
+        address target;
+        /// The conviction type for the vote.
+        Conviction conviction;
+        /// The delegation info.
+        Delegations delegations;
+        /// Any prior lock information.
+        PriorLock prior;
+    }
+
+    /// @dev Defines the vote towards a poll from an account.
     struct PollAccountVote {
+        /// The index of the poll.
         uint32 pollIndex;
+        /// The vote registered for the poll from an account.
         AccountVote accountVote;
     }
 
-    struct Casting {
-        PollAccountVote[] votes;
-        Delegations delegations;
-        PriorLock prior;
-    }
-
-    struct Delegating {
-        uint256 balance;
-        address target;
-        Conviction conviction;
-        Delegations delegations;
-        PriorLock prior;
-    }
-
+    /// @dev Defines the vote from an account.
     struct AccountVote {
-        bool is_standard;
-        bool is_split;
-        bool is_split_abstain;
+        /// If `true` then the vote is a Standard vote and `standard` field is significant.
+        bool isStandard;
+        /// If `true` then the vote is a Split vote and `split` field is significant.
+        bool isSplit;
+        /// If `true` then the vote is a SplitAbstrain vote and `splitAbstain` field is significant.
+        bool isSplitAbstain;
+        /// Defines the standard vote, if `isStandard` is `true`.
         StandardVote standard;
+        /// Defines the split vote, if `isSplit` is `true`.
         SplitVote split;
-        SplitAbstainVote split_abstain;
+        /// Defines the split-abstain vote, if `isSplitAbstrain` is `true`.
+        SplitAbstainVote splitAbstain;
     }
 
+    /// @dev Defines the standard vote.
     struct StandardVote {
+        /// The vote information.
         Vote vote;
+        /// The locked balance for the vote.
         uint256 balance;
     }
 
+    /// @dev Defines the vote parameters for a standard vote.
     struct Vote {
+        /// `true` if the vote is an aye.
         bool aye;
+        /// The conviction type for the vote.
         Conviction conviction;
     }
 
+    /// @dev Defines the standard vote.
     struct SplitVote {
+        /// The amount locked towards aye.
         uint256 aye;
+        /// The amount locked towards nay.
         uint256 nay;
     }
 
+    /// @dev Defines the standard vote.
     struct SplitAbstainVote {
+        /// The amount locked towards aye.
         uint256 aye;
+        /// The amount locked towards nay.
         uint256 nay;
+        /// The amount locked towards abstain.
         uint256 abstain;
     }
 
+    /// @dev Defines the delegations for a vote.
     struct Delegations {
+        /// Total number of votes.
         uint256 votes;
+        /// Total capital locked.
         uint256 capital;
     }
 
+    /// @dev Defines any prior lock for a vote.
     struct PriorLock {
+        /// Amount of balance locked.
         uint256 balance;
     }
 
