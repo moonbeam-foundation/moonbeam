@@ -4,11 +4,9 @@ import { expect } from "chai";
 import * as RLP from "rlp";
 
 import { alith } from "../../util/accounts";
-import { PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
+import { DUMMY_REVERT_BYTECODE, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransaction } from "../../util/transactions";
-
-const DEPLOYED_BYTECODE = "0x60006000fd";
 
 // push1 5 (deployed bytecode length)
 // dup1
@@ -39,7 +37,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
       PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
     ].forEach(async (x) => {
       const code = await context.web3.eth.getCode(x);
-      expect(code).to.equal(DEPLOYED_BYTECODE);
+      expect(code).to.equal(DUMMY_REVERT_BYTECODE);
     });
   });
 
@@ -61,7 +59,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
 
     // check the deployed code by this init code watches what we use for precompiles.
     const code = await context.web3.eth.getCode(contractAddress);
-    expect(code).to.equal(DEPLOYED_BYTECODE);
+    expect(code).to.equal(DUMMY_REVERT_BYTECODE);
 
     // try to call contract (with empty data, shouldn't matter)
 

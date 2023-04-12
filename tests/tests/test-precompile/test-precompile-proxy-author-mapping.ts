@@ -18,9 +18,9 @@ import {
 } from "../../util/constants";
 import { expectEVMResult } from "../../util/eth-transactions";
 
-const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
+const AUTHOR_MAPPING_CONTRACT = getCompiled("precompiles/author-mapping/AuthorMapping");
 const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);
-const PROXY_CONTRACT_JSON = getCompiled("Proxy");
+const PROXY_CONTRACT_JSON = getCompiled("precompiles/proxy/Proxy");
 const PROXY_INTERFACE = new ethers.utils.Interface(PROXY_CONTRACT_JSON.contract.abi);
 
 export async function getMappingInfo(

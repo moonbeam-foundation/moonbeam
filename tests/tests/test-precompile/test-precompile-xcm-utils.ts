@@ -16,7 +16,7 @@ import { expectEVMResult, extractRevertReason } from "../../util/eth-transaction
 
 export const CLEAR_ORIGIN_WEIGHT = 8_514_000n;
 
-const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
+const XCM_UTILS_CONTRACT = getCompiled("precompiles/xcm-utils/XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {

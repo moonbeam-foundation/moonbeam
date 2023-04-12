@@ -5,7 +5,7 @@ import { BN, bnToHex, numberToHex, stringToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, ALITH_ADDRESS, baltathar, charleth } from "../../util/accounts";
+import { alith, baltathar, charleth } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
@@ -18,7 +18,6 @@ import {
   createContract,
   createTransaction,
 } from "../../util/transactions";
-import { createImportSpecifier } from "typescript";
 
 const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
 const ASSET_ID = new BN("42259045809535163221576417993425387648");

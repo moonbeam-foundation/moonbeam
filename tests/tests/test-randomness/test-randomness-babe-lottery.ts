@@ -39,7 +39,7 @@ import {
 
 const LOTTERY_CONTRACT_JSON = getCompiled("RandomnessLotteryDemo");
 const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contract.abi);
-const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
+const RANDOMNESS_CONTRACT_JSON = getCompiled("precompiles/randomness/Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
 const RANDOMNESS_SOURCE_LOCAL_VRF = "0";

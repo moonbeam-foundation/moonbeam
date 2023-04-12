@@ -1,0 +1,126 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "PreimageNoted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "PreimageUnnoted",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes",
+            "name": "encodedProposal",
+            "type": "bytes"
+          }
+        ],
+        "name": "notePreimage",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "preimageHash",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes32", "name": "hash", "type": "bytes32" }
+        ],
+        "name": "unnotePreimage",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000813",
+      "events": {
+        "PreimageNoted(bytes32)": {
+          "custom:selector": "8cb56a8ebdafbb14e25ec706da62a7dde761968dbf1fb45be207d1b15c88c187",
+          "details": "A Preimage was registered on-chain.",
+          "params": { "hash": "bytes32 The computed hash." }
+        },
+        "PreimageUnnoted(bytes32)": {
+          "custom:selector": "be6cb9502cce812b6de50cc08f2481900ff6c7c6466df7d39c9f27a5f2b9c572",
+          "details": "A Preimage was un-registered on-chain.",
+          "params": { "hash": "bytes32 The target preimage hash." }
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "notePreimage(bytes)": {
+          "custom:selector": "cb00f603",
+          "details": "Register a Preimage on-chain.",
+          "params": {
+            "encodedProposal": "The preimage to be registered on-chain"
+          },
+          "returns": { "preimageHash": "The hash of the preimage" }
+        },
+        "unnotePreimage(bytes32)": {
+          "custom:selector": "02e71b45",
+          "details": "Clear an unrequested preimage from storage.",
+          "params": { "hash": "The preimage to be cleared from storage" }
+        }
+      },
+      "title": "Pallet Preimage InterfaceThe interface through which solidity contracts will interact with the Preimage pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "notePreimage(bytes)": "cb00f603",
+        "unnotePreimage(bytes32)": "02e71b45"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"PreimageNoted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"PreimageUnnoted\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedProposal\",\"type\":\"bytes\"}],\"name\":\"notePreimage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"preimageHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"unnotePreimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000813\",\"events\":{\"PreimageNoted(bytes32)\":{\"custom:selector\":\"8cb56a8ebdafbb14e25ec706da62a7dde761968dbf1fb45be207d1b15c88c187\",\"details\":\"A Preimage was registered on-chain.\",\"params\":{\"hash\":\"bytes32 The computed hash.\"}},\"PreimageUnnoted(bytes32)\":{\"custom:selector\":\"be6cb9502cce812b6de50cc08f2481900ff6c7c6466df7d39c9f27a5f2b9c572\",\"details\":\"A Preimage was un-registered on-chain.\",\"params\":{\"hash\":\"bytes32 The target preimage hash.\"}}},\"kind\":\"dev\",\"methods\":{\"notePreimage(bytes)\":{\"custom:selector\":\"cb00f603\",\"details\":\"Register a Preimage on-chain.\",\"params\":{\"encodedProposal\":\"The preimage to be registered on-chain\"},\"returns\":{\"preimageHash\":\"The hash of the preimage\"}},\"unnotePreimage(bytes32)\":{\"custom:selector\":\"02e71b45\",\"details\":\"Clear an unrequested preimage from storage.\",\"params\":{\"hash\":\"The preimage to be cleared from storage\"}}},\"title\":\"Pallet Preimage InterfaceThe interface through which solidity contracts will interact with the Preimage pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Preimage.sol\":\"Preimage\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Preimage.sol\":{\"keccak256\":\"0x8b0a12d239d2226ae5d5d79761b0e66c3aa9bdbe2fb41d512478bbd8b5d516ec\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://8405c679cdc5ecc4725e1869c620910ed303dfdab74a617af60e6b4c6df6ca3e\",\"dweb:/ipfs/QmPsXz13YLPKX2FjaLTZTW1cEBeVL1cKt4GoJewtiHjv2P\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Preimage contract's address.\naddress constant PREIMAGE_ADDRESS = 0x0000000000000000000000000000000000000813;\n\n/// @dev The Preimage contract's instance.\nPreimage constant PREIMAGE_CONTRACT = Preimage(PREIMAGE_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Preimage Interface\n/// @title The interface through which solidity contracts will interact with the Preimage pallet\n/// @custom:address 0x0000000000000000000000000000000000000813\ninterface Preimage {\n    /// @dev Register a Preimage on-chain.\n    /// @custom:selector cb00f603\n    /// @param encodedProposal The preimage to be registered on-chain\n    /// @return preimageHash The hash of the preimage\n    function notePreimage(bytes memory encodedProposal)\n        external\n        returns (bytes32 preimageHash);\n\n    /// @dev Clear an unrequested preimage from storage.\n    /// @custom:selector 02e71b45\n    /// @param hash The preimage to be cleared from storage\n    function unnotePreimage(bytes32 hash) external;\n\n    /// @dev A Preimage was registered on-chain.\n    /// @custom:selector 8cb56a8ebdafbb14e25ec706da62a7dde761968dbf1fb45be207d1b15c88c187\n    /// @param hash bytes32 The computed hash.\n    event PreimageNoted(bytes32 hash);\n\n    /// @dev A Preimage was un-registered on-chain.\n    /// @custom:selector be6cb9502cce812b6de50cc08f2481900ff6c7c6466df7d39c9f27a5f2b9c572\n    /// @param hash bytes32 The target preimage hash.\n    event PreimageUnnoted(bytes32 hash);\n}\n"
+}
