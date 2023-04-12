@@ -1697,6 +1697,21 @@
 <a href="#1697" id="1697">1697</a>
 <a href="#1698" id="1698">1698</a>
 <a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2068,13 +2083,13 @@
 	</span><span class="kw">pub const </span>TargetBlockFullness: Perquintill = Perquintill::from_percent(<span class="number">25</span>);
 	<span class="doccomment">/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
-	</span><span class="kw">pub </span>AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(<span class="number">3</span>, <span class="number">100_000</span>);
+	</span><span class="kw">pub </span>AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(<span class="number">4</span>, <span class="number">1_000</span>);
 	<span class="doccomment">/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always &gt; min value.
-	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
+	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::from(<span class="number">1u128</span>);
 	<span class="doccomment">/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
 	/// as a safety net.
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
@@ -2082,11 +2097,26 @@
 	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
 }
 
-<span class="kw">pub struct </span>FixedGasPrice;
-<span class="kw">impl </span>FeeCalculator <span class="kw">for </span>FixedGasPrice {
+<span class="kw">pub struct </span>TransactionPaymentAsGasPrice;
+<span class="kw">impl </span>FeeCalculator <span class="kw">for </span>TransactionPaymentAsGasPrice {
 	<span class="kw">fn </span>min_gas_price() -&gt; (U256, Weight) {
+		<span class="comment">// note: transaction-payment differs from EIP-1559 in that its tip and length fees are not
+		//       scaled by the multiplier, which means its multiplier will be overstated when
+		//       applied to an ethereum transaction
+		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
+		//       updated once per block in on_finalize) and a &#39;WeightToFee&#39; implementation. Our
+		//       runtime implements this as a &#39;ConstantModifier&#39;, so we can get away with a simple
+		//       multiplication here.
+		// It is imperative that `saturating_mul_int` be performed as late as possible in the
+		// expression since it involves fixed point multiplication with a division by a fixed
+		// divisor. This leads to truncation and subsequent precision loss if performed too early.
+		// This can lead to min_gas_price being same across blocks even if the multiplier changes.
+		// There&#39;s still some precision loss when the final `gas_price` (used_gas * min_gas_price)
+		// is computed in frontier, but that&#39;s currently unavoidable.
+		</span><span class="kw">let </span>min_gas_price = TransactionPayment::next_fee_multiplier()
+			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS <span class="kw">as </span>u128));
 		(
-			(<span class="number">1 </span>* currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
+			min_gas_price.into(),
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>),
 		)
 	}
@@ -2134,7 +2164,7 @@
 <span class="macro">moonbeam_runtime_common::impl_on_charge_evm_transaction!</span>();
 
 <span class="kw">impl </span>pallet_evm::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>FeeCalculator = FixedGasPrice;
+	<span class="kw">type </span>FeeCalculator = TransactionPaymentAsGasPrice;
 	<span class="kw">type </span>GasWeightMapping = pallet_evm::FixedGasWeightMapping&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>WeightPerGas = WeightPerGas;
 	<span class="kw">type </span>BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping&lt;<span class="self">Self</span>&gt;;
