@@ -107,6 +107,31 @@
           },
           {
             "indexed": false,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          }
+        ],
+        "name": "VoteRemovedForTrack",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
             "internalType": "address",
             "name": "caller",
             "type": "address"
@@ -285,6 +310,16 @@
       },
       {
         "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "removeVoteForTrack",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
           { "internalType": "uint16", "name": "trackId", "type": "uint16" }
         ],
         "name": "undelegate",
@@ -423,6 +458,15 @@
             "voter": "address Address of the voter."
           }
         },
+        "VoteRemovedForTrack(uint32,uint16,address)": {
+          "custom:selector": "49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b",
+          "details": "An account removed its vote from an ongoing poll.",
+          "params": {
+            "pollIndex": "uint32 Index of the poll.",
+            "trackId": "uint32 TrackId of the poll.",
+            "voter": "address Address of the voter."
+          }
+        },
         "VoteRemovedOther(uint32,address,address,uint16)": {
           "custom:selector": "c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b",
           "details": "An account removed a vote from a poll.",
@@ -490,6 +534,14 @@
           "custom:selector": "79cae220",
           "details": "Remove vote in poll",
           "params": { "pollIndex": "Index of the poll" }
+        },
+        "removeVoteForTrack(uint32,uint16)": {
+          "custom:selector": "cc3aee1a",
+          "details": "Remove vote in poll for track",
+          "params": {
+            "pollIndex": "Index of the poll",
+            "trackId": "Id of the track"
+          }
         },
         "undelegate(uint16)": {
           "custom:selector": "98be4094",
@@ -576,6 +628,7 @@
         "delegate(uint16,address,uint8,uint256)": "681750e8",
         "removeOtherVote(address,uint16,uint32)": "cbcb9276",
         "removeVote(uint32)": "79cae220",
+        "removeVoteForTrack(uint32,uint16)": "cc3aee1a",
         "undelegate(uint16)": "98be4094",
         "unlock(uint16,address)": "4259d98c",
         "voteNo(uint32,uint256,uint8)": "cc600eba",

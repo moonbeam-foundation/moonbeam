@@ -164,6 +164,12 @@ interface ConvictionVoting {
     /// @param pollIndex Index of the poll
     function removeVote(uint32 pollIndex) external;
 
+    /// @dev Remove vote in poll for track
+    /// @custom:selector cc3aee1a
+    /// @param pollIndex Index of the poll
+    /// @param trackId Id of the track
+    function removeVoteForTrack(uint32 pollIndex, uint16 trackId) external;
+
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
     //// @param target The voter to have vote removed. The removed vote must already be expired.
@@ -247,6 +253,17 @@ interface ConvictionVoting {
     /// @param pollIndex uint32 Index of the poll.
     /// @param voter address Address of the voter.
     event VoteRemoved(uint32 indexed pollIndex, address voter);
+
+    /// @dev An account removed its vote from an ongoing poll.
+    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param trackId uint32 TrackId of the poll.
+    /// @param voter address Address of the voter.
+    event VoteRemovedForTrack(
+        uint32 indexed pollIndex,
+        uint16 trackId,
+        address voter
+    );
 
     /// @dev An account removed a vote from a poll.
     /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b
