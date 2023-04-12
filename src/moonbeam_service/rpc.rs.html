@@ -387,6 +387,19 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -437,7 +450,7 @@
 <span class="kw">use </span>sc_service::TaskManager;
 <span class="kw">use </span>sc_transaction_pool::{ChainApi, Pool};
 <span class="kw">use </span>sc_transaction_pool_api::TransactionPool;
-<span class="kw">use </span>sp_api::{HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{CallApiAt, HeaderT, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::{
 	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
@@ -465,6 +478,18 @@
 		}
 		request
 	}
+}
+
+<span class="kw">pub struct </span>MoonbeamEthConfig&lt;C, BE&gt;(std::marker::PhantomData&lt;(C, BE)&gt;);
+
+<span class="kw">impl</span>&lt;C, BE&gt; fc_rpc::EthConfig&lt;Block, C&gt; <span class="kw">for </span>MoonbeamEthConfig&lt;C, BE&gt;
+<span class="kw">where
+	</span>C: sc_client_api::StorageProvider&lt;Block, BE&gt; + Sync + Send + <span class="lifetime">&#39;static</span>,
+	BE: Backend&lt;Block&gt; + <span class="lifetime">&#39;static</span>,
+{
+	<span class="kw">type </span>EstimateGasAdapter = MoonbeamEGA;
+	<span class="kw">type </span>RuntimeStorageOverride =
+		fc_rpc::frontier_backend_client::SystemAccountId20StorageOverride&lt;Block, C, BE&gt;;
 }
 
 <span class="doccomment">/// Full client dependencies.
@@ -551,6 +576,7 @@
 	C: ProvideRuntimeApi&lt;Block&gt; + StorageProvider&lt;Block, BE&gt; + AuxStore,
 	C: BlockchainEvents&lt;Block&gt;,
 	C: HeaderBackend&lt;Block&gt; + HeaderMetadata&lt;Block, Error = BlockChainError&gt; + <span class="lifetime">&#39;static</span>,
+	C: CallApiAt&lt;Block&gt;,
 	C: Send + Sync + <span class="lifetime">&#39;static</span>,
 	A: ChainApi&lt;Block = Block&gt; + <span class="lifetime">&#39;static</span>,
 	C::Api: RuntimeApiCollection&lt;StateBackend = BE::State&gt;,
@@ -622,7 +648,7 @@
 			fee_history_limit,
 			<span class="number">10</span>,
 		)
-		.with_estimate_gas_adapter::&lt;MoonbeamEGA&gt;()
+		.replace_config::&lt;MoonbeamEthConfig&lt;C, BE&gt;&gt;()
 		.into_rpc(),
 	)<span class="question-mark">?</span>;
 
