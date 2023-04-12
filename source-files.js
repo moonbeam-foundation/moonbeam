@@ -41,6 +41,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_evm_precompile_conviction_voting":["",[],["lib.rs"]],\
 "pallet_evm_precompile_crowdloan_rewards":["",[],["lib.rs"]],\
 "pallet_evm_precompile_democracy":["",[],["lib.rs"]],\
+"pallet_evm_precompile_gmp":["",[],["lib.rs","types.rs"]],\
 "pallet_evm_precompile_parachain_staking":["",[],["lib.rs"]],\
 "pallet_evm_precompile_preimage":["",[],["lib.rs"]],\
 "pallet_evm_precompile_proxy":["",[],["lib.rs"]],\
