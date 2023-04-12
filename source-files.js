@@ -64,6 +64,6 @@ var sourcesIndex = JSON.parse('{\
 "precompile_utils_tests_external":["",[],["lib.rs"]],\
 "session_keys_primitives":["",[],["digest.rs","inherent.rs","lib.rs","vrf.rs"]],\
 "summarize_precompile_checks":["",[],["main.rs"]],\
-"xcm_primitives":["",[],["asset_id_conversions.rs","barriers.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","location_conversion.rs","origin_conversion.rs","transactor_traits.rs","xcm_execution_traits.rs"]]\
+"xcm_primitives":["",[],["asset_id_conversions.rs","barriers.rs","constants.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","location_conversion.rs","origin_conversion.rs","transactor_traits.rs","xcm_execution_traits.rs"]]\
 }');
 createSourceSidebar();

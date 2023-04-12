@@ -259,6 +259,7 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -279,6 +280,7 @@
 <span class="kw">mod </span>moonbeam_xcm_benchmarks_generic;
 
 <span class="kw">use </span><span class="kw">crate</span>::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
+<span class="kw">use </span>core::cmp::min;
 <span class="kw">use </span>frame_support::weights::Weight;
 <span class="kw">use </span>moonbeam_xcm_benchmarks_fungible::WeightInfo <span class="kw">as </span>XcmFungibleWeight;
 <span class="kw">use </span>moonbeam_xcm_benchmarks_generic::SubstrateWeight <span class="kw">as </span>XcmGeneric;
@@ -287,8 +289,7 @@
 	latest::{prelude::<span class="kw-2">*</span>, Weight <span class="kw">as </span>XCMWeight},
 	DoubleEncoded,
 };
-
-<span class="kw">const </span>MAX_ASSETS: u32 = <span class="number">100</span>;
+<span class="kw">use </span>xcm_primitives::MAX_ASSETS;
 
 <span class="kw">trait </span>WeighMultiAssets {
 	<span class="kw">fn </span>weigh_multi_assets(<span class="kw-2">&amp;</span><span class="self">self</span>, weight: Weight) -&gt; XCMWeight;
@@ -304,9 +305,10 @@
 			<span class="self">Self</span>::Definite(assets) =&gt; {
 				weight.saturating_mul(assets.inner().into_iter().count() <span class="kw">as </span>u64)
 			}
-			<span class="self">Self</span>::Wild(AllOf { .. } | AllOfCounted { .. }) =&gt; weight,
-			<span class="self">Self</span>::Wild(AllCounted(count)) =&gt; weight.saturating_mul(<span class="kw-2">*</span>count <span class="kw">as </span>u64),
-			<span class="self">Self</span>::Wild(All) =&gt; weight.saturating_mul(MAX_ASSETS <span class="kw">as </span>u64),
+			<span class="self">Self</span>::Wild(AllCounted(count) | AllOfCounted { count, .. }) =&gt; {
+				weight.saturating_mul(min(MAX_ASSETS, <span class="kw-2">*</span>count) <span class="kw">as </span>u64)
+			}
+			<span class="self">Self</span>::Wild(All | AllOf { .. }) =&gt; weight.saturating_mul(MAX_ASSETS <span class="kw">as </span>u64),
 		}
 	}
 }
