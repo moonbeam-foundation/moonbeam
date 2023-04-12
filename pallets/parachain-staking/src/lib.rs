@@ -456,11 +456,12 @@ pub mod pallet {
 				// iter collators to check which of them must be marked as offline
 				for collator in collators {
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
-						if round.current.saturating_sub(info.last_round)
-							> T::MaxOfflineRounds::get() && round
-							.current
-							.saturating_sub(info.last_active)
-							<= T::MaxOfflineRounds::get()
+						let info_last_round = std::cmp::max(
+							info,
+							<CandidateEnteredSelectedAtRound<T>>::get(&collator)
+						);
+						if round.current.saturating_sub(info_last_round)
+							> T::MaxOfflineRounds::get()
 							&& len_counter * 3 > (max_collators * 2) as usize
 						{
 							// if the collator has not produced any block within
@@ -496,6 +497,29 @@ pub mod pallet {
 				// select top collator candidates for next round
 				let (extra_weight, collator_count, _delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
+
+				// Write current round for new selected candidates
+				// select total collators
+				let new_collators = <SelectedCandidates<T>>::get();
+				
+				for nc in new_collators.iter() {
+					if !collators.contains(&nc) {
+						// This is a new collator
+						<CandidateEnteredSelectedAtRound<T>>::insert(
+							&nc,
+							round.current,
+						);
+					}
+				}
+
+				for old_c in collators {
+					if !new_collators.contains(&old_c) {
+						// This is an old collator that has not been selected
+						<CandidateEnteredSelectedAtRound<T>>::remove(
+							&old_c,
+						);
+					}
+				}
 
 				weight = weight.saturating_add(extra_weight);
 				// start next round
@@ -577,7 +601,13 @@ pub mod pallet {
 	#[pallet::getter(fn candidate_last_active)]
 	/// Stores the last round in which a collator produced blocks
 	pub(crate) type CandidateLastActive<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, CollatorActivity<RoundIndex>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_last_active)]
+	/// Stores the last round in which a collator produced blocks
+	pub(crate) type CandidateEnteredSelectedAtRound<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
