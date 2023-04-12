@@ -259,6 +259,12 @@ fn test_collectives_storage_item_prefixes() {
 	}
 
 	for StorageInfo { pallet_name, .. } in
+		<moonriver_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
 		<moonriver_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
 	{
 		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
