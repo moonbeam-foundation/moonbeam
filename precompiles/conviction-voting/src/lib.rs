@@ -29,7 +29,7 @@ use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
-use sp_std::vec::{self, Vec};
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -117,7 +117,6 @@ where
 	fn vote(
 		handle: &mut impl PrecompileHandle,
 		poll_index: u32,
-		vote: AccountVote<U256>,
 		vote: AccountVote<U256>,
 	) -> EvmResult {
 		let caller = handle.context().caller;
