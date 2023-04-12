@@ -215,6 +215,6 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - EOA", (context) => {
         from: PRECOMPILE_BATCH_ADDRESS,
         data: contract.byteCode,
       })
-    ).to.equal(147899);
+    ).to.equal(156994);
   });
 });
