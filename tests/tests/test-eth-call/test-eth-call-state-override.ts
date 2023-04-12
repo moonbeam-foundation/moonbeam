@@ -68,7 +68,7 @@ describeDevMoonbeam("Call - State Override", (context) => {
     expect(hexToBigInt(result) > 100n * GLMR).to.be.true;
   });
 
-  it("should have a balance of 10 GLMR with state override", async function () {
+  it("should have a balance of 50 GLMR with state override", async function () {
     const { result } = await customWeb3Request(context.web3, "eth_call", [
       {
         from: baltathar.address,
