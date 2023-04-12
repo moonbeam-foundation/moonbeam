@@ -204,3 +204,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
     expect(batchSomeUntilFailureGas).to.be.eq(batchAllGas);
   });
 });
+
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - EOA", (context) => {
+  it("Non-transactional calls allowed from e.g. precompile address", async function () {
+    const contract = getCompiled("MultiplyBy7");
+    expect(
+      await context.web3.eth.estimateGas({
+        from: PRECOMPILE_BATCH_ADDRESS,
+        data: contract.byteCode,
+      })
+    ).to.equal(147899);
+  });
+});
