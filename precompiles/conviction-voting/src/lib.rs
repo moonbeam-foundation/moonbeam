@@ -25,7 +25,7 @@ use pallet_conviction_voting::{
 	VotingFor,
 };
 use pallet_evm::{AddressMapping, Log};
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
@@ -474,7 +474,7 @@ where
 		let who = Runtime::AddressMapping::into_account_id(who.into());
 
 		let class_locks_for = <ClassLocksFor<Runtime>>::get(&who);
-		let mut output = vec![];
+		let mut output = Vec::new();
 		for (track_id, amount) in class_locks_for {
 			output.push(OutputClassLock {
 				track: Self::track_id_to_u16(track_id)?,
@@ -594,7 +594,7 @@ where
 				delegations,
 				prior,
 			}) => {
-				let mut output_votes = vec![];
+				let mut output_votes = Vec::new();
 				for (poll_index, account_vote) in votes {
 					let poll_index: u32 = poll_index
 						.try_into()
