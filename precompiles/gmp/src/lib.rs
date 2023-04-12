@@ -255,7 +255,10 @@ fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()
 /// twox_128("BridgeAddress") => 0xc1586bde54b249fb7f521faf831ade45
 mod storage {
 	use super::*;
-	use frame_support::{storage::types::StorageValue, traits::StorageInstance};
+	use frame_support::{
+		storage::types::{OptionQuery, StorageValue},
+		traits::StorageInstance,
+	};
 
 	// storage for the core contract
 	pub struct CoreAddressStorageInstance;
@@ -265,7 +268,7 @@ mod storage {
 			"gmp"
 		}
 	}
-	pub type CoreAddress = StorageValue<CoreAddressStorageInstance, H160>;
+	pub type CoreAddress = StorageValue<CoreAddressStorageInstance, H160, OptionQuery>;
 
 	// storage for the bridge contract
 	pub struct BridgeAddressStorageInstance;
@@ -275,5 +278,5 @@ mod storage {
 			"gmp"
 		}
 	}
-	pub type BridgeAddress = StorageValue<BridgeAddressStorageInstance, H160>;
+	pub type BridgeAddress = StorageValue<BridgeAddressStorageInstance, H160, OptionQuery>;
 }
