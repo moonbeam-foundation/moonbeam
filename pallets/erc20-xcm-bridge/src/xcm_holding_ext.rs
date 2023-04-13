@@ -16,6 +16,7 @@
 
 //! Module that provides types to extend xcm holding.
 
+use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
@@ -90,6 +91,43 @@ impl XcmHoldingErc20sOrigins {
 		F: FnOnce(&mut Self) -> R,
 	{
 		XCM_HOLDING_ERC20_ORIGINS::with(|erc20s_origins| f(erc20s_origins))
+	}
+}
+
+/// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
+pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>(
+	PhantomData<(RuntimeCall, InnerXcmExecutor)>,
+);
+impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
+	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>
+where
+	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
+{
+	type Prepared = InnerXcmExecutor::Prepared;
+
+	fn prepare(
+		message: xcm::latest::Xcm<RuntimeCall>,
+	) -> Result<Self::Prepared, xcm::latest::Xcm<RuntimeCall>> {
+		InnerXcmExecutor::prepare(message)
+	}
+
+	fn execute(
+		origin: impl Into<xcm::latest::MultiLocation>,
+		pre: Self::Prepared,
+		hash: xcm::latest::XcmHash,
+		weight_credit: xcm::latest::Weight,
+	) -> xcm::latest::Outcome {
+		let mut erc20s_origins = Default::default();
+		XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, || {
+			InnerXcmExecutor::execute(origin, pre, hash, weight_credit)
+		})
+	}
+
+	fn charge_fees(
+		location: impl Into<xcm::latest::MultiLocation>,
+		fees: xcm::latest::MultiAssets,
+	) -> Result<(), xcm::latest::Error> {
+		InnerXcmExecutor::charge_fees(location, fees)
 	}
 }
 
