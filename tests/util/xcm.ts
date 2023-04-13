@@ -15,7 +15,7 @@ import { getCompiled } from "../util/contracts";
 import { AssetMetadata } from "./assets";
 import { ethers } from "ethers";
 
-const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
+const XCM_UTILS_CONTRACT = getCompiled("precompiles/xcm-utils/XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
 // Creates and returns the tx that overrides the paraHRMP existence

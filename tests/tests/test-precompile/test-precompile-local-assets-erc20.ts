@@ -45,7 +45,7 @@ const SELECTORS = {
 };
 const GAS_PRICE = "0x" + (10_000_000_000).toString(16);
 const LOCAL_ASSET_EXTENDED_ERC20_CONTRACT = getCompiled("LocalAssetExtendedErc20Instance");
-const ROLES_CONTRACT = getCompiled("Roles");
+const ROLES_CONTRACT = getCompiled("precompiles/assets-erc20/Roles");
 
 const LOCAL_ASSET_EXTENDED_ERC20_INTERFACE = new ethers.utils.Interface(
   LOCAL_ASSET_EXTENDED_ERC20_CONTRACT.contract.abi

@@ -11,6 +11,7 @@ import { Interface } from "ethers/lib/utils";
 import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "../../util/accounts";
 import {
   PRECOMPILE_DEMOCRACY_ADDRESS,
+  PRECOMPILE_PREIMAGE_ADDRESS,
   PROPOSAL_AMOUNT,
   VOTE_AMOUNT,
   ZERO_ADDRESS,
@@ -47,12 +48,12 @@ const SELECTORS = {
   notePreimage: "cb00f603",
 };
 
-const DEMOCRACY_INTERFACE = new ethers.utils.Interface(getCompiled("Democracy").contract.abi);
-
-export const deployContract = async (context: DevTestContext, contractName: string) => {
-  const { rawTx } = await createContract(context, contractName);
-  await context.createBlock(rawTx);
-};
+const DEMOCRACY_INTERFACE = new ethers.utils.Interface(
+  getCompiled("precompiles/pallet-democracy/Democracy").contract.abi
+);
+const PREIMAGE_INTERFACE = new ethers.utils.Interface(
+  getCompiled("precompiles/preimage/Preimage").contract.abi
+);
 
 export const notePreimagePrecompile = async <
   Call extends SubmittableExtrinsic<ApiType>,
@@ -73,6 +74,7 @@ export const notePreimagePrecompile = async <
   const tx = await createTransaction(context, {
     ...ALITH_TRANSACTION_TEMPLATE,
     to: PRECOMPILE_DEMOCRACY_ADDRESS,
+    gas: 2_000_000,
     data,
   });
 
@@ -81,50 +83,57 @@ export const notePreimagePrecompile = async <
   return blake2AsHex(encodedProposal);
 };
 
-describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
-  before("Setup genesis account for substrate", async () => {
-    await deployContract(context, "Democracy");
-  });
-  it("should check initial state - no referendum", async function () {
-    // referendumCount
-    const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toNumber()).to.equal(0);
-  });
-  it("should check initial state - 0x0 ParachainBondAccount", async function () {
-    // referendumCount
-    const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
-  });
-  it("notePreimage", async function () {
-    // notePreimage
-    const encodedHash = await notePreimagePrecompile(
-      context,
-      DEMOCRACY_INTERFACE,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
-    );
+describeDevMoonbeam(
+  "Democracy - genesis and preimage",
+  (context) => {
+    it("should check initial state - no referendum", async function () {
+      // referendumCount
+      const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+      expect(referendumCount.toNumber()).to.equal(0);
+    });
+    it("should check initial state - 0x0 ParachainBondAccount", async function () {
+      // referendumCount
+      const parachainBondInfo =
+        await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+      expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
+    });
+    it("notePreimage", async function () {
+      // notePreimage
+      const encodedHash = await notePreimagePrecompile(
+        context,
+        PREIMAGE_INTERFACE,
+        context.polkadotApi.tx.system.remark(
+          "This is a democracy motion for a Revised Grant Program Proposal. " +
+            "The full details of the proposal can be found at " +
+            "https://github.com/moonbeam-foundation/grants/blob/" +
+            "c3cd29629059c61ed8a4c5e9ecd253d5554ff940/revised/revised_grant_program.md"
+        )
+      );
 
-    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
-    expect(
-      preimageStatus.unwrap().isUnrequested &&
-        preimageStatus.unwrap().asUnrequested.deposit[0].toString()
-    ).to.equal(alith.address);
-    expect(
-      preimageStatus.unwrap().isUnrequested &&
-        preimageStatus.unwrap().asUnrequested.deposit[1].toString()
-    ).to.equal("5002200000000000000");
-  });
-});
+      const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(
+        encodedHash
+      )) as any;
+      expect(
+        preimageStatus.unwrap().isUnrequested &&
+          preimageStatus.unwrap().asUnrequested.deposit[0].toString()
+      ).to.equal(alith.address);
+      expect(
+        preimageStatus.unwrap().isUnrequested &&
+          preimageStatus.unwrap().asUnrequested.deposit[1].toString()
+      ).to.equal("5024200000000000000");
+    });
+  },
+  "EIP1559"
+);
 
 describeDevMoonbeam("Democracy - propose", (context) => {
   let encodedHash: `0x${string}`;
 
   before("Setup genesis account for substrate", async () => {
-    await deployContract(context, "Democracy");
-
     // encodedHash
     encodedHash = await notePreimagePrecompile(
       context,
-      DEMOCRACY_INTERFACE,
+      PREIMAGE_INTERFACE,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
   });
@@ -165,8 +174,6 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
   let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
-    await deployContract(context, "Democracy");
-
     //launchPeriod
     launchPeriod = context.polkadotApi.consts.democracy.launchPeriod;
 
@@ -242,8 +249,6 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   let enactmentPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
-    await deployContract(context, "Democracy");
-
     // enactmentPeriod
     enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
 

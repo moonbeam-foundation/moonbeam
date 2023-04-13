@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::{Context, FeeCalculator};
+use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -39,7 +39,7 @@ use moonbeam_runtime::{
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
 	AccountId, Balances, CouncilCollective, CrowdloanRewards, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TechCommitteeCollective, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
@@ -47,10 +47,11 @@ use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -73,8 +74,10 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 	IsLocal,
 	LocalAssetInstance,
 >;
-type XcmTransactorV1PCall =
-	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+type XcmTransactorV2PCall =
+	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
+
+const BASE_FEE_GENESIS: u128 = 10000 * GIGAWEI;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -251,6 +254,12 @@ fn test_collectives_storage_item_prefixes() {
 		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
+	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
 	}
 }
 
@@ -496,7 +505,7 @@ fn transfer_through_evm_to_stake() {
 			);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = (100 * GIGAWEI).into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 			// Bob transfers 2_000_000 GLMR to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -917,7 +926,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1163,7 +1172,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1283,6 +1292,46 @@ fn ethereum_invalid_transaction() {
 }
 
 #[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
+fn min_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+	use frame_support::traits::Hooks;
+
+	ExtBuilder::default().build().execute_with(|| {
+		pallet_transaction_payment::NextFeeMultiplier::<Runtime>::put(Multiplier::from(0));
+		TransactionPayment::on_finalize(System::block_number()); // should trigger min to kick in
+
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
 fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1308,7 +1357,7 @@ fn transfer_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_000 * (100 * GIGAWEI))) + (1 * WEI),
+				((1 * GLMR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1321,8 +1370,8 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1338,7 +1387,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_777 * (100 * GIGAWEI))),
+				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1351,8 +1400,8 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1360,7 +1409,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * (100 * GIGAWEI),
+				777 * BASE_FEE_GENESIS,
 			);
 		});
 }
@@ -1440,7 +1489,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
+			(1 * GLMR) + (21_000 * BASE_FEE_GENESIS),
 		)])
 		.build()
 		.execute_with(|| {
@@ -1452,8 +1501,8 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1461,7 +1510,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 100 GWEI base fee.
-			let fee = ((100 * GIGAWEI) * 21_000) as f64;
+			let fee = (BASE_FEE_GENESIS * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2449,7 +2498,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 }
 
 #[test]
-fn transact_through_signed_precompile_not_enabled() {
+fn transact_through_signed_precompile_works_v2() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2465,168 +2514,70 @@ fn transact_through_signed_precompile_not_enabled() {
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
-			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+			let total_weight = 1_000_000_000u64;
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000.into(),
-				20000.into(),
-				Some(4000.into())
-			));
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				1,
-			));
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
 
 			Precompiles::new()
 				.prepare_test(
 					ALICE,
-					xcm_transactor_v1_precompile_address,
-					XcmTransactorV1PCall::transact_through_signed_multilocation {
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
 						dest,
 						fee_asset: fee_payer_asset,
-						weight: 15000,
+						weight: 4_000_000,
 						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(19078)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
 					},
 				)
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("CallFiltered")
+						&& from_utf8(&output).unwrap().contains("ErrorValidating")
 				});
 		});
-}
-
-#[test]
-fn transact_through_signed_mult_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000.into(),
-				20000.into(),
-				// lets say 1000 per instruction
-				Some(4000.into())
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V3(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000.into(),
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
-}
-
-#[test]
-fn transact_through_signed_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000.into(),
-				20000.into(),
-				// lets say 1000 per instruction
-				Some(4000.into())
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V3(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000.into(),
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
 }
 
 #[test]
@@ -2883,8 +2834,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2067,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2067, 2069,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2941,12 +2892,36 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
+fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonbeam_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
+		let precompiles = Precompiles::new();
+		let removed_precompiles = [1025];
+
+		for i in 1..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if !precompiles.is_precompile(address) {
+				continue;
+			}
+
+			if !removed_precompiles.contains(&i) {
+				assert!(
+					precompiles.is_active_precompile(address),
+					"{i} should be an active precompile"
+				);
+				continue;
+			}
+
+			assert!(
+				!precompiles.is_active_precompile(address),
+				"{i} shouldn't be an active precompile"
+			);
+
+			precompiles
+				.prepare_test(Alice, address, [])
+				.execute_reverts(|out| out == b"Removed precompile");
+		}
+	})
 }
 
 #[test]
@@ -2972,7 +2947,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -3011,7 +2986,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
