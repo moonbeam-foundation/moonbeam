@@ -124,17 +124,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
@@ -255,17 +255,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
@@ -422,17 +422,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     ).index;
 
     const xcmMessageNotExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1n,
-      },
+          fungible: 1n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -440,17 +440,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       .as_v2();
 
     const xcmMessageExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 2n,
-      },
+          fungible: 2n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -495,17 +495,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     ).index;
 
     const xcmMessageNotExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1n,
-      },
+          fungible: 1n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -640,17 +640,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // we will prove we get two different events with xcmp.queue
     const xcmFirstFragment = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
       weight_limit: new BN(1_000_000_000),
     })
       .withdraw_asset()
@@ -658,17 +658,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       .as_v2();
 
     const xcmSecondFragment = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 2_000_000_000_000_000n,
-      },
+          fungible: 2_000_000_000_000_000n,
+        },
+      ],
       weight_limit: new BN(2_000_000_000),
     })
       .withdraw_asset()
