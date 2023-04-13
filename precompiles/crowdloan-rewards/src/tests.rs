@@ -225,12 +225,7 @@ fn reward_info_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write(U256::from(50u64))
-						.write(U256::from(10u64))
-						.build(),
-				);
+				.execute_returns_encoded((U256::from(50u64), U256::from(10u64)));
 		});
 }
 

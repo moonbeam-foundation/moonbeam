@@ -100,11 +100,10 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						Writer::new()
-							// Referendum index 0
-							.write::<u32>(0u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							0u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into(),
@@ -113,11 +112,10 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						Writer::new()
-							// Referendum index 1
-							.write::<u32>(1u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							1u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into()
@@ -162,11 +160,10 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						Writer::new()
-							// Referendum index 0
-							.write::<u32>(0u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							0u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into(),
@@ -175,11 +172,10 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						Writer::new()
-							// Referendum index 1
-							.write::<u32>(1u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							1u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into()
@@ -227,12 +223,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-						Writer::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Decision deposit
-							.write::<U256>(U256::from(10))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(10), // decision deposit
+						))
 					)
 				}
 				.into()
@@ -279,12 +274,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-						Writer::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Decision deposit
-							.write::<U256>(U256::from(10))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(10), // decision deposit
+						))
 					)
 				}
 				.into(),
@@ -292,12 +286,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-						Writer::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Submission deposit
-							.write::<U256>(U256::from(15))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(15), // submission deposit
+						))
 					)
 				}
 				.into()

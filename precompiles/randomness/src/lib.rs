@@ -138,10 +138,7 @@ fn provide_randomness(
 		contract,
 		None,
 		// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
-		Writer::new_with_selector(0x1fe543e3_u32)
-			.write(request_id)
-			.write(randomness)
-			.build(),
+		solidity::encode_with_selector(0x1fe543e3_u32, (request_id, randomness)),
 		Some(gas_limit),
 		false,
 		&Context {

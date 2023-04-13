@@ -49,7 +49,7 @@ pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_SUCCEEDED,
-		Writer::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 
@@ -57,7 +57,7 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_FAILED,
-		Writer::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 

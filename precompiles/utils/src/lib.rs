@@ -64,10 +64,8 @@ pub mod prelude {
 					// Allow usage of Codec methods while not exporting the name directly.
 					Codec as _,
 					Convert,
-					Reader,
 					UnboundedBytes,
 					UnboundedString,
-					Writer,
 				},
 				revert::{
 					revert, BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt,

@@ -166,7 +166,7 @@ fn approve() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -193,7 +193,7 @@ fn approve_saturating() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::MAX).build(),
+					solidity::encode_event_data(U256::MAX),
 				))
 				.execute_returns_encoded(true);
 
@@ -286,7 +286,7 @@ fn transfer() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -373,7 +373,7 @@ fn transfer_from() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -469,7 +469,7 @@ fn transfer_from_self() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -509,11 +509,7 @@ fn get_metadata_name() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write::<UnboundedBytes>("Mock token".into())
-						.build(),
-				);
+				.execute_returns_encoded(UnboundedBytes::from("Mock token"));
 		});
 }
 
@@ -527,7 +523,7 @@ fn get_metadata_symbol() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write::<UnboundedBytes>("MOCK".into()).build());
+				.execute_returns_encoded(UnboundedBytes::from("MOCK"));
 		});
 }
 
@@ -608,7 +604,7 @@ fn deposit(data: Vec<u8>) {
 							Precompile1,
 							SELECTOR_LOG_DEPOSIT,
 							CryptoAlith,
-							Writer::new().write(U256::from(500)).build(),
+							solidity::encode_event_data(U256::from(500)),
 						)
 					}),
 					RuntimeEvent::Evm(pallet_evm::Event::Executed {
@@ -652,7 +648,7 @@ fn deposit_function() {
 
 #[test]
 fn deposit_fallback() {
-	deposit(Writer::new_with_selector(0x01234567u32).build())
+	deposit(solidity::encode_with_selector(0x01234567u32, ()))
 }
 
 #[test]
@@ -762,7 +758,7 @@ fn withdraw() {
 					Precompile1,
 					SELECTOR_LOG_WITHDRAWAL,
 					CryptoAlith,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns(vec![]);
 
@@ -880,7 +876,7 @@ fn permit_valid() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(value)).build(),
+					solidity::encode_event_data(U256::from(value)),
 				))
 				.execute_returns(vec![]);
 
@@ -1299,7 +1295,7 @@ fn permit_valid_with_metamask_signed_data() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(1000)).build(),
+					solidity::encode_event_data(U256::from(1000)),
 				))
 				.execute_returns(vec![]);
 		});

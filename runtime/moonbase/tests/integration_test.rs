@@ -66,7 +66,7 @@ use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
 use xcm::latest::prelude::*;
 
@@ -1226,12 +1226,7 @@ fn reward_info_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write(expected_total)
-						.write(expected_claimed)
-						.build(),
-				);
+				.execute_returns_encoded((expected_total, expected_claimed));
 		})
 }
 
@@ -1445,7 +1440,7 @@ fn asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1497,7 +1492,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1518,7 +1513,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1570,7 +1565,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
-					Writer::new().write(U256::from(1000 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(1_000 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1597,7 +1592,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
-					Writer::new().write(U256::from(500 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(500 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1900,7 +1895,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1964,7 +1959,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1985,7 +1980,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					Writer::new().write(U256::from(400 * UNIT)).build(),
+					solidity::encode_event_data(U256::from(400 * UNIT)),
 				))
 				.execute_returns_encoded(true);
 
@@ -2930,11 +2925,11 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					AuthorMappingPCall::set_keys {
-						keys: Writer::new()
-							.write(sp_core::H256::from([1u8; 32]))
-							.write(sp_core::H256::from([3u8; 32]))
-							.build()
-							.into(),
+						keys: solidity::encode_arguments((
+							H256::from([1u8; 32]),
+							H256::from([3u8; 32]),
+						))
+						.into(),
 					},
 				)
 				.expect_cost(16815)
@@ -2955,11 +2950,11 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					AuthorMappingPCall::set_keys {
-						keys: Writer::new()
-							.write(sp_core::H256::from([2u8; 32]))
-							.write(sp_core::H256::from([4u8; 32]))
-							.build()
-							.into(),
+						keys: solidity::encode_arguments((
+							H256::from([2u8; 32]),
+							H256::from([4u8; 32]),
+						))
+						.into(),
 					},
 				)
 				.expect_cost(16815)
@@ -2995,11 +2990,7 @@ fn test_xcm_utils_ml_tp_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				Writer::new()
-					.write(Address(expected_address_parent))
-					.build(),
-			);
+			.execute_returns_encoded(Address(expected_address_parent));
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
@@ -3019,11 +3010,7 @@ fn test_xcm_utils_ml_tp_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				Writer::new()
-					.write(Address(expected_address_parachain))
-					.build(),
-			);
+			.execute_returns_encoded(Address(expected_address_parachain));
 
 		let alice_in_parachain_2000_multilocation = MultiLocation::new(
 			1,
@@ -3050,11 +3037,7 @@ fn test_xcm_utils_ml_tp_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				Writer::new()
-					.write(Address(expected_address_alice_in_parachain_2000))
-					.build(),
-			);
+			.execute_returns_encoded(Address(expected_address_alice_in_parachain_2000));
 	});
 }
 
@@ -3075,7 +3058,7 @@ fn test_xcm_utils_weight_message() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(expected_weight).build());
+			.execute_returns_encoded(expected_weight);
 	});
 }
 
@@ -3094,7 +3077,7 @@ fn test_xcm_utils_get_units_per_second() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(expected_units).build());
+			.execute_returns_encoded(expected_units);
 	});
 }
 

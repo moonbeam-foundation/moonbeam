@@ -16,7 +16,7 @@
 
 use {
 	crate::{
-		solidity::codec::{Codec, Writer},
+		solidity::codec::Codec,
 		testing::{decode_revert_message, MockHandle, PrettyLog, SubcallHandle, SubcallTrait},
 	},
 	fp_evm::{
@@ -193,7 +193,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	/// Execute the precompile set and check it returns provided Solidity encoded output.
 	pub fn execute_returns_encoded(self, output: impl Codec) {
-		self.execute_returns(Writer::new().write(output).build())
+		self.execute_returns(crate::solidity::encode_return_value(output))
 	}
 
 	/// Execute the precompile set and check if it reverts.

@@ -20,7 +20,7 @@ use {
 		solidity::{
 			codec::{
 				xcm::{network_id_from_bytes, network_id_to_bytes},
-				Codec,
+				Reader, Writer,
 			},
 			modifier::{check_function_modifier, FunctionModifier},
 			revert::Backtrace,
@@ -1021,7 +1021,7 @@ fn write_dynamic_size_tuple() {
 
 #[test]
 fn write_static_size_tuple_in_return_position() {
-	let output = (Address(H160::repeat_byte(0x11)), U256::from(1u8)).encode_for_function();
+	let output = solidity::encode_return_value((Address(H160::repeat_byte(0x11)), U256::from(1u8)));
 
 	// (address, uint256) encoded by web3
 	let data = hex!(
@@ -1034,7 +1034,7 @@ fn write_static_size_tuple_in_return_position() {
 
 #[test]
 fn write_dynamic_size_tuple_in_return_position() {
-	let output = (1u8, vec![UnboundedBytes::from(vec![0x01])]).encode_for_function();
+	let output = solidity::encode_return_value((1u8, vec![UnboundedBytes::from(vec![0x01])]));
 
 	// (uint8, bytes[]) encoded by web3
 	let data = hex!(

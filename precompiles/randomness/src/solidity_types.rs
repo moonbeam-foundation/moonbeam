@@ -15,7 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Solidity types for randomness precompile.
-use precompile_utils::prelude::*;
+use precompile_utils::{
+	prelude::*,
+	solidity::codec::{Reader, Writer},
+};
 
 pub enum RequestStatus {
 	DoesNotExist,

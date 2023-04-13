@@ -502,7 +502,7 @@ fn propose_works() {
 							Precompile1,
 							SELECTOR_LOG_PROPOSED,
 							H256::zero(), // proposal index,
-							Writer::new().write::<U256>(100.into()).build(),
+							solidity::encode_event_data(U256::from(100))
 						)
 					}
 					.into(),
@@ -573,9 +573,7 @@ fn second_works() {
 							Precompile1,
 							SELECTOR_LOG_SECONDED,
 							H256::zero(), // proposal index,
-							Writer::new()
-								.write::<Address>(H160::from(Alice).into())
-								.build(),
+							solidity::encode_event_data(Address(Alice.into()))
 						)
 					}
 					.into(),
@@ -641,12 +639,12 @@ fn standard_vote_aye_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							Writer::new()
-								.write::<Address>(H160::from(Alice).into())
-								.write::<bool>(true)
-								.write::<U256>(100000.into())
-								.write::<u8>(0)
-								.build(),
+							solidity::encode_event_data((
+								Address(Alice.into()),
+								true,
+								U256::from(100_000),
+								0u8
+							))
 						),
 					}
 					.into(),
@@ -736,12 +734,12 @@ fn standard_vote_nay_conviction_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							Writer::new()
-								.write::<Address>(H160::from(Alice).into())
-								.write::<bool>(false)
-								.write::<U256>(100000.into())
-								.write::<u8>(3)
-								.build(),
+							solidity::encode_event_data((
+								Address(Alice.into()),
+								false,
+								U256::from(100_000),
+								3u8
+							))
 						),
 					}
 					.into(),
@@ -924,9 +922,7 @@ fn delegate_works() {
 							Precompile1,
 							SELECTOR_LOG_DELEGATED,
 							H160::from(Alice),
-							Writer::new()
-								.write::<Address>(H160::from(Bob).into())
-								.build(),
+							solidity::encode_event_data(Address(Bob.into()))
 						),
 					}
 					.into(),

@@ -59,7 +59,7 @@ fn test_get_account_parent() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(Address(expected_address)).build());
+			.execute_returns_encoded(Address(expected_address));
 	});
 }
 
@@ -79,7 +79,7 @@ fn test_get_account_sibling() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(Address(expected_address)).build());
+			.execute_returns_encoded(Address(expected_address));
 	});
 }
 
@@ -129,7 +129,7 @@ fn test_executor_clear_origin() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100001001)
 			.expect_no_logs()
-			.execute_returns(Writer::new().build());
+			.execute_returns_encoded(());
 	})
 }
 
@@ -156,7 +156,7 @@ fn test_executor_send() {
 			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100002001)
 			.expect_no_logs()
-			.execute_returns(Writer::new().build());
+			.execute_returns_encoded(());
 
 		let sent_messages = sent_xcm();
 		let (_, sent_message) = sent_messages.first().unwrap();
@@ -200,7 +200,7 @@ fn test_executor_transact() {
 				.prepare_test(CryptoAlith, Precompile1, input)
 				.expect_cost(1100001001)
 				.expect_no_logs()
-				.execute_returns(Writer::new().build());
+				.execute_returns_encoded(());
 
 			// Transact executed
 			let baltathar_account: AccountId = CryptoBaltathar.into();
@@ -223,7 +223,7 @@ fn test_send_clear_origin() {
 			// Fixed: TestWeightInfo + (BaseXcmWeight * MessageLen)
 			.expect_cost(100001000)
 			.expect_no_logs()
-			.execute_returns(Writer::new().build());
+			.execute_returns_encoded(());
 
 		let sent_messages = sent_xcm();
 		let (_, sent_message) = sent_messages.first().unwrap();

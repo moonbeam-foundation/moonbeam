@@ -44,61 +44,60 @@ pub trait Codec: Sized {
 	fn is_explicit_tuple() -> bool {
 		false
 	}
+}
 
-	/// Encode the value into its Solidity ABI format.
-	fn encode(self) -> Vec<u8> {
-		Writer::new().write(self).build()
-	}
+/// Encode the value into its Solidity ABI format.
+/// If `T` is a tuple it is encoded as a Solidity tuple with dynamic-size offset.
+fn encode<T: Codec>(value: T) -> Vec<u8> {
+	Writer::new().write(value).build()
+}
 
-	/// Tries to decode value from its Solidity ABI format.
-	fn decode(input: &[u8]) -> MayRevert<Self> {
-		Reader::new(input).read()
-	}
-
-	/// Should be used instead of `encode` when the value represents the list of arguments or the
-	/// return value of a Solidity function or event data. Tuples have special encoding rules in this position.
-	fn encode_for_function(self) -> Vec<u8> {
-		let output = self.encode();
-		if Self::is_explicit_tuple() && !Self::has_static_size() {
-			output[32..].to_vec()
-		} else {
-			output
-		}
-	}
-
-	/// Encode event data. Alias of `encode_for_function` to avoid confusion as event data encoded
-	/// like function arguments but an event is not a function.
-	fn encode_for_event(self) -> Vec<u8> {
-		self.encode_for_function()
-	}
-
-	/// Should be used instead of `decode` when the value represents the list of arguments or the
-	/// return value of a Solidity function or event data. Tuples have special encoding rules in this position.
-	fn decode_for_function(input: &[u8]) -> MayRevert<Self> {
-		if Self::is_explicit_tuple() && !Self::has_static_size() {
-			let writer = Writer::new();
-			let mut writer = writer.write(U256::from(32));
-			writer.write_pointer(input.to_vec());
-			let input = writer.build();
-			Self::decode(&input)
-		} else {
-			Self::decode(&input)
-		}
-	}
-
-	/// Decode event data. Alias of `encode_for_function` to avoid confusion as event data encoded
-	/// like function arguments but an event is not a function.
-	fn decode_for_event(input: &[u8]) -> MayRevert<Self> {
-		Self::decode_for_function(input)
-	}
-
-	/// Encode the value as the arguments of a function with given selector.
-	fn encode_with_selector(self, selector: u32) -> Vec<u8> {
-		Writer::new_with_selector(selector)
-			.write_raw_bytes(&self.encode_for_function())
-			.build()
+/// Encode the value into its Solidity ABI format.
+/// If `T` is a tuple every element is encoded without a prefixed offset.
+/// It matches the encoding of Solidity function arguments and return value, or event data.
+pub fn encode_arguments<T: Codec>(value: T) -> Vec<u8> {
+	let output = encode(value);
+	if T::is_explicit_tuple() && !T::has_static_size() {
+		output[32..].to_vec()
+	} else {
+		output
 	}
 }
+
+pub use self::encode_arguments as encode_return_value;
+pub use self::encode_arguments as encode_event_data;
+
+/// Encode the value as the arguments of a Solidity function with given selector.
+/// If `T` is a tuple each member represents an argument of the function.
+pub fn encode_with_selector<T: Codec>(selector: u32, value: T) -> Vec<u8> {
+	Writer::new_with_selector(selector)
+		.write_raw_bytes(&encode_arguments(value))
+		.build()
+}
+
+/// Decode the value from its Solidity ABI format.
+/// If `T` is a tuple it is decoded as a Solidity tuple with dynamic-size offset.
+fn decode<T: Codec>(input: &[u8]) -> MayRevert<T> {
+	Reader::new(input).read()
+}
+
+/// Decode the value from its Solidity ABI format.
+/// If `T` is a tuple every element is decoded without a prefixed offset.
+/// It matches the encoding of Solidity function arguments and return value, or event data.
+pub fn decode_arguments<T: Codec>(input: &[u8]) -> MayRevert<T> {
+	if T::is_explicit_tuple() && !T::has_static_size() {
+		let writer = Writer::new();
+		let mut writer = writer.write(U256::from(32));
+		writer.write_pointer(input.to_vec());
+		let input = writer.build();
+		decode(&input)
+	} else {
+		decode(&input)
+	}
+}
+
+pub use self::decode_arguments as decode_return_value;
+pub use self::decode_arguments as decode_event_data;
 
 /// Extracts the selector from the start of the input, or returns `None` if the input is too short.
 pub fn selector(input: &[u8]) -> Option<u32> {

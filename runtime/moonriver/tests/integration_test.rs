@@ -1191,12 +1191,7 @@ fn reward_info_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write(expected_total)
-						.write(expected_claimed)
-						.build(),
-				);
+				.execute_returns_encoded((expected_total, expected_claimed));
 		})
 }
 
@@ -1788,7 +1783,7 @@ fn asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1840,7 +1835,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1861,7 +1856,7 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1913,7 +1908,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
-					Writer::new().write(U256::from(1000 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(1_000 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1940,7 +1935,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
-					Writer::new().write(U256::from(500 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(500 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -2256,7 +2251,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -2320,7 +2315,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -2341,7 +2336,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					Writer::new().write(U256::from(400 * MOVR)).build(),
+					solidity::encode_event_data(U256::from(400 * MOVR)),
 				))
 				.execute_returns_encoded(true);
 
@@ -2751,11 +2746,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				Writer::new()
-					.write(Address(expected_address_parent))
-					.build(),
-			);
+			.execute_returns_encoded(Address(expected_address_parent));
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
@@ -2775,11 +2766,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				Writer::new()
-					.write(Address(expected_address_parachain))
-					.build(),
-			);
+			.execute_returns_encoded(Address(expected_address_parachain));
 
 		let alice_in_parachain_2000_multilocation = MultiLocation::new(
 			1,
@@ -2823,7 +2810,7 @@ fn test_xcm_utils_weight_message() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(expected_weight).build());
+			.execute_returns_encoded(expected_weight);
 	});
 }
 
@@ -2842,7 +2829,7 @@ fn test_xcm_utils_get_units_per_second() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(Writer::new().write(expected_units).build());
+			.execute_returns_encoded(expected_units);
 	});
 }
 

@@ -98,48 +98,45 @@ where
 		let output = Self::call(
 			handle,
 			wormhole,
-			Writer::new_with_selector(PARSE_VM_SELECTOR)
-				.write(wormhole_vaa.clone())
-				.build(),
+			solidity::encode_with_selector(PARSE_VM_SELECTOR, wormhole_vaa.clone()),
 		)?;
-		let mut reader = Reader::new(&output[..]);
-		let wormhole_vm: WormholeVM = reader.read()?;
+		let wormhole_vm: WormholeVM = solidity::decode_return_value(&output[..])?;
 
 		// get the bridge transfer data from the wormhole VM payload
 		let output = Self::call(
 			handle,
 			wormhole_bridge,
-			Writer::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
-				.write(wormhole_vm.payload)
-				.build(),
+			solidity::encode_with_selector(
+				PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR,
+				wormhole_vm.payload,
+			),
 		)?;
-		let mut reader = Reader::new(&output[..]);
-		let transfer_with_payload: WormholeTransferWithPayloadData = reader.read()?;
+		let transfer_with_payload: WormholeTransferWithPayloadData =
+			solidity::decode_return_value(&output[..])?;
 
 		// get the wrapper for this asset by calling wrappedAsset()
 		// TODO: this should only be done if needed (when token chain == our chain)
 		let output = Self::call(
 			handle,
 			wormhole_bridge,
-			Writer::new_with_selector(WRAPPED_ASSET_SELECTOR)
-				.write(transfer_with_payload.token_chain)
-				.write(transfer_with_payload.token_address)
-				.build(),
+			solidity::encode_with_selector(
+				WRAPPED_ASSET_SELECTOR,
+				(
+					transfer_with_payload.token_chain,
+					transfer_with_payload.token_address,
+				),
+			),
 		)?;
-		let mut reader = Reader::new(&output[..]);
-		let wrapped_address: Address = reader.read()?;
+		let wrapped_address: Address = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_address);
 
 		// query our "before" balance (our being this precompile)
 		let output = Self::call(
 			handle,
 			wrapped_address.into(),
-			Writer::new_with_selector(BALANCE_OF_SELECTOR)
-				.write(Address::from(handle.code_address()))
-				.build(),
+			solidity::encode_with_selector(BALANCE_OF_SELECTOR, Address(handle.code_address())),
 		)?;
-		let mut reader = Reader::new(&output[..]);
-		let before_amount: U256 = reader.read()?;
+		let before_amount: U256 = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "before balance: {}", before_amount);
 
 		// our inner-most payload should be a VersionedUserAction
@@ -162,21 +159,19 @@ where
 		Self::call(
 			handle,
 			wormhole_bridge,
-			Writer::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
-				.write(wormhole_vaa)
-				.build(),
+			solidity::encode_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR, wormhole_vaa),
 		)?;
 
 		// query our "after" balance (our being this precompile)
 		let output = Self::call(
 			handle,
 			wrapped_address.into(),
-			Writer::new_with_selector(BALANCE_OF_SELECTOR)
-				.write(Address::from(handle.code_address()))
-				.build(),
+			solidity::encode_with_selector(
+				BALANCE_OF_SELECTOR,
+				Address::from(handle.code_address()),
+			),
 		)?;
-		let mut reader = Reader::new(&output[..]);
-		let after_amount: U256 = reader.read()?;
+		let after_amount: U256 = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "after balance: {}", after_amount);
 
 		let amount_transferred = after_amount.saturating_sub(before_amount);

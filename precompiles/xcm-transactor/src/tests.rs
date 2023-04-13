@@ -119,7 +119,7 @@ fn take_index_for_account() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(Writer::new().write(Address(H160::from(Alice))).build());
+				.execute_returns_encoded(Address(H160::from(Alice)));
 		});
 }
 
@@ -159,13 +159,7 @@ fn take_transact_info() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(2)
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write(0u64)
-						.write(1u128)
-						.write(10000u64)
-						.build(),
-				);
+				.execute_returns_encoded((0u64, 1u128, 10000u64));
 		});
 }
 #[test]
@@ -204,13 +198,7 @@ fn take_transact_info_with_signed() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write(0u64)
-						.write(1u128)
-						.write(10000u64)
-						.build(),
-				);
+				.execute_returns_encoded((0u64, 1u128, 10_000u64));
 		});
 }
 

@@ -20,7 +20,7 @@ use precompile_utils::testing::*;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 
-use sp_core::{Hasher, H256, U256};
+use sp_core::{Hasher, U256};
 
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
@@ -87,7 +87,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_NOTED,
-						Writer::new().write::<H256>(expected_hash).build(),
+						solidity::encode_event_data(expected_hash)
 					),
 				}
 				.into(),
@@ -111,7 +111,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_UNNOTED,
-						Writer::new().write::<H256>(expected_hash).build(),
+						solidity::encode_event_data(expected_hash)
 					),
 				}
 				.into()

@@ -390,7 +390,7 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 }
 
 impl solidity::Codec for RewardDestinationWrapper {
-	fn read(reader: &mut Reader) -> MayRevert<Self> {
+	fn read(reader: &mut solidity::codec::Reader) -> MayRevert<Self> {
 		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
 		let reward_destination_bytes: Vec<_> = reward_destination.into();
 		ensure!(
@@ -398,7 +398,8 @@ impl solidity::Codec for RewardDestinationWrapper {
 			RevertReason::custom("Reward destinations cannot be empty")
 		);
 		// For simplicity we use an EvmReader here
-		let mut encoded_reward_destination = Reader::new(&reward_destination_bytes);
+		let mut encoded_reward_destination =
+			solidity::codec::Reader::new(&reward_destination_bytes);
 
 		// We take the first byte
 		let enum_selector = encoded_reward_destination.read_raw_bytes(1)?;
@@ -418,7 +419,7 @@ impl solidity::Codec for RewardDestinationWrapper {
 		}
 	}
 
-	fn write(writer: &mut Writer, value: Self) {
+	fn write(writer: &mut solidity::codec::Writer, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
 		let encoded_bytes: UnboundedBytes = match value.0 {
 			RewardDestination::Staked => {

@@ -17,7 +17,7 @@
 //! Utilities to work with revert messages with support for backtraces and
 //! consistent formatting.
 
-use crate::solidity::codec::{bytes::UnboundedBytes, Codec};
+use crate::solidity::{self, codec::bytes::UnboundedBytes};
 use alloc::string::{String, ToString};
 use fp_evm::{ExitRevert, PrecompileFailure};
 use sp_std::vec::Vec;
@@ -191,7 +191,7 @@ impl Revert {
 	/// Transforms the revert into its bytes representation (from a String).
 	pub fn to_encoded_bytes(self) -> Vec<u8> {
 		let bytes: Vec<u8> = self.into();
-		UnboundedBytes::from(bytes).encode_with_selector(ERROR_SELECTOR)
+		solidity::encode_with_selector(ERROR_SELECTOR, UnboundedBytes::from(bytes))
 	}
 }
 

@@ -226,7 +226,7 @@ where
 			SELECTOR_LOG_APPROVAL,
 			handle.context().caller,
 			spender,
-			Writer::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)?;
 
@@ -311,7 +311,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			handle.context().caller,
 			to,
-			Writer::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)?;
 
@@ -370,7 +370,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			to,
-			Writer::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)?;
 
@@ -520,7 +520,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			H160::default(),
 			to,
-			Writer::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)?;
 
@@ -565,7 +565,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			H160::default(),
-			Writer::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)?;
 

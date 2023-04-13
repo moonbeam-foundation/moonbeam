@@ -273,7 +273,7 @@ fn approve() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -314,7 +314,7 @@ fn approve_saturating() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::MAX).build(),
+					solidity::encode_event_data(U256::MAX),
 				))
 				.execute_returns_encoded(true);
 
@@ -443,7 +443,7 @@ fn transfer() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -570,7 +570,7 @@ fn transfer_from() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Charlie,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -648,7 +648,7 @@ fn transfer_from_non_incremental_approval() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns_encoded(true);
 
@@ -671,7 +671,7 @@ fn transfer_from_non_incremental_approval() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(300)).build(),
+					solidity::encode_event_data(U256::from(300)),
 				))
 				.execute_returns_encoded(true);
 
@@ -779,7 +779,7 @@ fn transfer_from_self() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -835,17 +835,13 @@ fn get_metadata() {
 				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write::<UnboundedBytes>("TestToken".into())
-						.build(),
-				);
+				.execute_returns_encoded(UnboundedBytes::from("TestToken"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write::<UnboundedBytes>("Test".into()).build());
+				.execute_returns_encoded(UnboundedBytes::from("Test"));
 
 			precompiles()
 				.prepare_test(
@@ -942,7 +938,7 @@ fn mint_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Zero,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1003,7 +999,7 @@ fn burn_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					CryptoAlith,
 					Zero,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1146,7 +1142,7 @@ fn thaw_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Bob,
 					CryptoAlith,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -1267,7 +1263,7 @@ fn thaw_asset_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Bob,
 					CryptoAlith,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 		});
@@ -1405,7 +1401,7 @@ fn set_team_local_assets() {
 					SELECTOR_LOG_TRANSFER,
 					Zero,
 					Bob,
-					Writer::new().write(U256::from(400)).build(),
+					solidity::encode_event_data(U256::from(400)),
 				))
 				.execute_returns_encoded(true);
 
@@ -1463,17 +1459,13 @@ fn set_metadata() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					Writer::new()
-						.write::<UnboundedBytes>("TestToken".into())
-						.build(),
-				);
+				.execute_returns_encoded(UnboundedBytes::from("TestToken"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write::<UnboundedBytes>("Test".into()).build());
+				.execute_returns_encoded(UnboundedBytes::from("Test"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
@@ -1533,13 +1525,13 @@ fn clear_metadata() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write::<UnboundedBytes>("".into()).build());
+				.execute_returns_encoded(UnboundedBytes::from(""));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write::<UnboundedBytes>("".into()).build());
+				.execute_returns_encoded(UnboundedBytes::from(""));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
@@ -1620,7 +1612,7 @@ fn permit_valid() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns(vec![]);
 
@@ -1729,7 +1721,7 @@ fn permit_valid_named_asset() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(500)).build(),
+					solidity::encode_event_data(U256::from(500)),
 				))
 				.execute_returns(vec![]);
 
@@ -2207,7 +2199,7 @@ fn permit_valid_with_metamask_signed_data() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					Writer::new().write(U256::from(1000)).build(),
+					solidity::encode_event_data(U256::from(1000)),
 				))
 				.execute_returns(vec![]);
 		});

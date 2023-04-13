@@ -81,6 +81,7 @@ where
 		+ pallet_evm::Config
 		+ frame_system::Config
 		+ pallet_preimage::Config,
+	U256: From<BalanceOf<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + solidity::Codec,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
@@ -226,7 +227,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_PROPOSED,
 			H256::from_low_u64_be(prop_count as u64), // proposal index,
-			Writer::new().write::<U256>(value.into()).build(),
+			solidity::encode_event_data(U256::from(value)),
 		)
 		.record(handle)?;
 
@@ -259,9 +260,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SECONDED,
 			H256::from_low_u64_be(prop_index as u64), // proposal index,
-			Writer::new()
-				.write::<Address>(handle.context().caller.into())
-				.build(),
+			solidity::encode_event_data(Address(handle.context().caller)),
 		)
 		.record(handle)?;
 
@@ -309,12 +308,12 @@ where
 			handle.context().address,
 			SELECTOR_LOG_STANDARD_VOTE,
 			H256::from_low_u64_be(ref_index as u64), // referendum index,
-			Writer::new()
-				.write::<Address>(handle.context().caller.into())
-				.write::<bool>(aye)
-				.write::<U256>(vote_amount)
-				.write::<u8>(conviction.converted())
-				.build(),
+			solidity::encode_event_data((
+				Address(handle.context().caller),
+				aye,
+				vote_amount,
+				conviction.converted(),
+			)),
 		)
 		.record(handle)?;
 
@@ -374,7 +373,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			handle.context().caller,
-			Writer::new().write::<Address>(representative).build(),
+			solidity::encode_event_data(representative),
 		)
 		.record(handle)?;
 

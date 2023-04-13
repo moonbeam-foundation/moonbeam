@@ -325,10 +325,7 @@ fn set_keys_works() {
 
 			// Create input with keys inside a Solidity bytes.
 			let input = PCall::set_keys {
-				keys: Writer::new()
-					.write(sp_core::H256::from([2u8; 32]))
-					.write(sp_core::H256::from([4u8; 32]))
-					.build()
+				keys: solidity::encode_arguments((H256::from([2u8; 32]), H256::from([4u8; 32])))
 					.into(),
 			}
 			.into();

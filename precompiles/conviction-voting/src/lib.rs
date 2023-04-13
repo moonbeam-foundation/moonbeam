@@ -255,7 +255,7 @@ where
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 					H256::from_low_u64_be(poll_index as u64),
-					(track_id, Address(caller)).encode_for_event(),
+					solidity::encode_event_data((track_id, Address(caller))),
 				),
 				Some(Self::u16_to_track_id(track_id).in_field("trackId")?),
 			)
@@ -270,7 +270,7 @@ where
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED,
 					H256::from_low_u64_be(poll_index as u64),
-					Address(caller).encode_for_event(),
+					solidity::encode_event_data(Address(caller)),
 				),
 				None,
 			)
@@ -299,11 +299,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVED_OTHER,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
-			Writer::new()
-				.write::<Address>(Address(caller))
-				.write::<Address>(target)
-				.write::<u16>(track_id)
-				.build(),
+			solidity::encode_event_data((Address(caller), target, track_id)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -348,12 +344,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			Writer::new()
-				.write::<Address>(Address(caller))
-				.write::<Address>(representative)
-				.write::<U256>(amount)
-				.write::<u8>(conviction)
-				.build(),
+			solidity::encode_event_data((Address(caller), representative, amount, conviction)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -392,7 +383,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNDELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			Writer::new().write::<Address>(Address(caller)).build(),
+			solidity::encode_event_data(Address(caller)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -415,7 +406,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNLOCKED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			Writer::new().write::<Address>(target).build(),
+			solidity::encode_event_data(target),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -520,12 +511,12 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTED,
 					H256::from_low_u64_be(poll_index as u64),
-					Writer::new()
-						.write::<Address>(Address(caller))
-						.write::<bool>(vote.aye)
-						.write::<U256>(balance)
-						.write::<u8>(vote.conviction.into())
-						.build(),
+					solidity::encode_event_data((
+						Address(caller),
+						vote.aye,
+						balance,
+						u8::from(vote.conviction),
+					)),
 				);
 				(
 					AccountVote::Standard {
@@ -540,11 +531,7 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT,
 					H256::from_low_u64_be(poll_index as u64),
-					Writer::new()
-						.write::<Address>(Address(caller))
-						.write::<U256>(aye)
-						.write::<U256>(nay)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay)),
 				);
 				(
 					AccountVote::Split {
@@ -559,12 +546,7 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 					H256::from_low_u64_be(poll_index as u64),
-					Writer::new()
-						.write::<Address>(Address(caller))
-						.write::<U256>(aye)
-						.write::<U256>(nay)
-						.write::<U256>(abstain)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay, abstain)),
 				);
 				(
 					AccountVote::SplitAbstain {

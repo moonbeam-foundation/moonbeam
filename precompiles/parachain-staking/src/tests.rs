@@ -651,7 +651,7 @@ fn selected_candidates_works() {
 				.prepare_test(Alice, Precompile1, PCall::selected_candidates {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(Writer::new().write(vec![Address(Alice.into())]).build());
+				.execute_returns_encoded(vec![Address(Alice.into())]);
 		});
 }
 

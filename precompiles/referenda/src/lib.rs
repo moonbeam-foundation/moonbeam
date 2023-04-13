@@ -498,10 +498,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AT,
 			H256::from_low_u64_be(track_id as u64),
-			Writer::new()
-				.write::<u32>(referendum_index)
-				.write::<H256>(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 		event.record(handle)?;
 
@@ -539,10 +536,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AFTER,
 			H256::from_low_u64_be(track_id as u64),
-			Writer::new()
-				.write::<u32>(referendum_index)
-				.write::<H256>(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 
 		event.record(handle)?;
@@ -579,11 +573,11 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			Writer::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(handle.context().caller))
-				.write::<U256>(decision_deposit)
-				.build(),
+			solidity::encode_event_data((
+				index,
+				Address(handle.context().caller),
+				decision_deposit,
+			)),
 		);
 
 		event.record(handle)?;
@@ -619,11 +613,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			Writer::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(who))
-				.write::<U256>(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)?;
@@ -658,11 +648,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-			Writer::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(who))
-				.write::<U256>(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)?;

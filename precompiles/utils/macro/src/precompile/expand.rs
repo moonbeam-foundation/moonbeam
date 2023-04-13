@@ -271,11 +271,11 @@ impl Precompile {
 					.map(|_| quote!(discriminant,));
 
 				let write_output = quote_spanned!(output_span=>
-					Codec::encode_for_function(output?)
+					solidity::encode_return_value(output?)
 				);
 
 				quote!(
-					use ::precompile_utils::solidity::codec::{Codec, Writer};
+					use ::precompile_utils::solidity;
 					let output = <#impl_type>::#variant_ident(
 						#opt_discriminant_arg
 						handle,
