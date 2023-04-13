@@ -124,7 +124,7 @@ describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
     erc20ContractAddress = contractAddress;
   });
 
-  it.only("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
+  it("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
     this.timeout(20_000);
     const paraId = 888;
     const paraSovereign = "0x7369626c78030000000000000000000000000000";
