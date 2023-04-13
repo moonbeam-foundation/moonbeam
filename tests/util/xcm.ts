@@ -253,6 +253,39 @@ export class XcmFragment {
     return this;
   }
 
+  // Add a `WithdrawAsset` instruction
+  withdraw_erc20_asset(erc20XcmPalletIndex: number, contractAddress: string, amount: BigInt): this {
+    this.instructions.push({
+      WithdrawAsset: [
+        {
+          id: {
+            Concrete: this.config.fees.multilocation[0],
+          },
+          fun: { Fungible: this.config.fees.fungible  },
+        },
+        {
+          id: {
+            Concrete: {
+              parents: 0,
+              interior: {
+                X2: [{
+                  PalletInstance: erc20XcmPalletIndex,
+                },{
+                  AccountKey20: {
+                    network: "Any",
+                    key: contractAddress,
+                  },
+                }],
+              },
+            },
+          },
+          fun: { Fungible: amount },
+        },
+      ],
+    });
+    return this;
+  }
+
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
   buy_execution(multilocation_index: number = 0, repeat: bigint = 1n): this {

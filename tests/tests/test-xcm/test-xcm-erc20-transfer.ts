@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import { Contract } from "web3-eth-contract";
 
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS } from "../../util/accounts";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
 import { getCompiled } from "../../util/contracts";
@@ -16,6 +16,11 @@ import {
   createTransaction,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
+import {
+  injectHrmpMessage,
+  RawXcmMessage,
+  XcmFragment,
+} from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
 const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
@@ -44,11 +49,11 @@ const setupErc20Contract = async (context: DevTestContext) => {
   return { contract, contractAddress };
 };
 
-describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
+describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
   let erc20Contract: Contract;
   let erc20ContractAddress: string;
 
-  before("Should Register an asset and set unit per sec", async function () {
+  before("Should deploy erc20 contract", async function () {
     const { contract, contractAddress } = await setupErc20Contract(context);
     erc20Contract = contract;
     erc20ContractAddress = contractAddress;
@@ -106,5 +111,103 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
         })
       ).result
     ).equals(bnToHex(ERC20_TOTAL_SUPPLY - amountTransferred, { bitLength: 256 }));
+  });
+});
+
+describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
+  let erc20Contract: Contract;
+  let erc20ContractAddress: string;
+
+  before("Should deploy erc20 contract", async function () {
+    const { contract, contractAddress } = await setupErc20Contract(context);
+    erc20Contract = contract;
+    erc20ContractAddress = contractAddress;
+  });
+
+  it.only("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
+    this.timeout(20_000);
+    const paraId = 888;
+    const paraSovereign = "0x7369626c78030000000000000000000000000000";
+    const amountTransferred = 1_000_000n;
+
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Balances"
+    ).index;
+    const erc20XcmPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Erc20XcmBridge"
+    ).index;
+
+    // Send some native tokens to the sovereign account of paraId (to pay fees)
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        value: 1_000_000_000_000_000_000,
+        to: paraSovereign,
+        data: "0x",
+      })
+    );
+    expectEVMResult(result.events, "Succeed");
+
+    // Send some erc20 tokens to the sovereign account of paraId
+    const { result: result2 } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: erc20ContractAddress,
+        data: ERC20_INTERFACE.encodeFunctionData("transfer", [
+          paraSovereign,
+          amountTransferred,
+        ]),
+      })
+    );
+    expectEVMResult(result2.events, "Succeed");
+    expect(
+      (
+        await web3EthCall(context.web3, {
+          to: erc20ContractAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [paraSovereign]),
+        })
+      ).result
+    ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
+
+    // Create the incoming xcm message
+    const config = {
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: 1_000_000_000_000_000n,
+      },
+      beneficiary: CHARLETH_ADDRESS,
+    };
+
+    const xcmMessage = new XcmFragment(config)
+      .withdraw_erc20_asset(erc20XcmPalletIndex, erc20ContractAddress, amountTransferred)
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset(2n)
+      .as_v2();
+
+    // Mock the reception of the xcm message
+    await injectHrmpMessage(context, paraId, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+    await context.createBlock();
+
+    // Erc20 tokens should have been received
+    expect(
+      (
+        await web3EthCall(context.web3, {
+          to: erc20ContractAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [CHARLETH_ADDRESS]),
+        })
+      ).result
+    ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
   });
 });
