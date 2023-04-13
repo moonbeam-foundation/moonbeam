@@ -155,6 +155,17 @@ export function descendOriginFromAddress(context: DevTestContext, address?: stri
     descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
   };
 }
+
+export function sovereignAccountOfSibling(context: DevTestContext, paraId: number): string {
+  return u8aToHex(
+    new Uint8Array([
+      ...new TextEncoder().encode("sibl"),
+      ...context.polkadotApi.createType("u32", paraId).toU8a(),
+      ...new Uint8Array(12),
+    ])
+  );
+}
+
 export interface RawXcmMessage {
   type: string;
   payload: any;
@@ -205,10 +216,13 @@ export async function injectHrmpMessageAndSeal(
 }
 
 interface XcmFragmentConfig {
-  fees: {
-    multilocation: any[];
+  assets: {
+    multilocation: {
+      parents: number;
+      interior: any;
+    };
     fungible: bigint;
-  };
+  }[];
   weight_limit?: BN;
   descend_origin?: string;
   beneficiary?: string;
@@ -226,12 +240,12 @@ export class XcmFragment {
   // Add a `ReserveAssetDeposited` instruction
   reserve_asset_deposited(): this {
     this.instructions.push({
-      ReserveAssetDeposited: this.config.fees.multilocation.map((multilocation) => {
+      ReserveAssetDeposited: this.config.assets.map(({ multilocation, fungible }) => {
         return {
           id: {
             Concrete: multilocation,
           },
-          fun: { Fungible: this.config.fees.fungible },
+          fun: { Fungible: fungible },
         };
       }, this),
     });
@@ -241,57 +255,21 @@ export class XcmFragment {
   // Add a `WithdrawAsset` instruction
   withdraw_asset(): this {
     this.instructions.push({
-      WithdrawAsset: this.config.fees.multilocation.map((multilocation) => {
+      WithdrawAsset: this.config.assets.map(({ multilocation, fungible }) => {
         return {
           id: {
             Concrete: multilocation,
           },
-          fun: { Fungible: this.config.fees.fungible },
+          fun: { Fungible: fungible },
         };
       }, this),
     });
     return this;
   }
 
-  // Add a `WithdrawAsset` instruction
-  withdraw_erc20_asset(erc20XcmPalletIndex: number, contractAddress: string, amount: BigInt): this {
-    this.instructions.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: this.config.fees.multilocation[0],
-          },
-          fun: { Fungible: this.config.fees.fungible },
-        },
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X2: [
-                  {
-                    PalletInstance: erc20XcmPalletIndex,
-                  },
-                  {
-                    AccountKey20: {
-                      network: "Any",
-                      key: contractAddress,
-                    },
-                  },
-                ],
-              },
-            },
-          },
-          fun: { Fungible: amount },
-        },
-      ],
-    });
-    return this;
-  }
-
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
-  buy_execution(multilocation_index: number = 0, repeat: bigint = 1n): this {
+  buy_execution(fee_index: number = 0, repeat: bigint = 1n): this {
     const weightLimit =
       this.config.weight_limit != null
         ? { Limited: this.config.weight_limit }
@@ -301,9 +279,9 @@ export class XcmFragment {
         BuyExecution: {
           fees: {
             id: {
-              Concrete: this.config.fees.multilocation[multilocation_index],
+              Concrete: this.config.assets[fee_index].multilocation,
             },
-            fun: { Fungible: this.config.fees.fungible },
+            fun: { Fungible: this.config.assets[fee_index].fungible },
           },
           weightLimit: weightLimit,
         },
@@ -313,15 +291,15 @@ export class XcmFragment {
   }
 
   // Add a `ClaimAsset` instruction
-  claim_asset(): this {
+  claim_asset(index: number = 0): this {
     this.instructions.push({
       ClaimAsset: {
         assets: [
           {
             id: {
-              Concrete: this.config.fees.multilocation[0],
+              Concrete: this.config.assets[index].multilocation,
             },
-            fun: { Fungible: this.config.fees.fungible },
+            fun: { Fungible: this.config.assets[index].fungible },
           },
         ],
         // Ticket seems to indicate the version of the assets

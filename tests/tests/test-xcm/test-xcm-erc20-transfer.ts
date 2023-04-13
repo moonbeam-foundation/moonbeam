@@ -16,7 +16,12 @@ import {
   createTransaction,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
-import { injectHrmpMessage, RawXcmMessage, XcmFragment } from "../../util/xcm";
+import {
+  injectHrmpMessage,
+  RawXcmMessage,
+  sovereignAccountOfSibling,
+  XcmFragment,
+} from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
 const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
@@ -123,9 +128,10 @@ describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
   it("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
     this.timeout(20_000);
     const paraId = 888;
-    const paraSovereign = "0x7369626c78030000000000000000000000000000";
+    const paraSovereign = sovereignAccountOfSibling(context, paraId);
     const amountTransferred = 1_000_000n;
 
+    // Get pallet indices
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
       (pallet) => pallet.name === "Balances"
@@ -165,22 +171,41 @@ describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
 
     // Create the incoming xcm message
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+        {
+          multilocation: {
+            parents: 0,
+            interior: {
+              X2: [
+                {
+                  PalletInstance: erc20XcmPalletIndex,
+                },
+                {
+                  AccountKey20: {
+                    network: "Any",
+                    key: erc20ContractAddress,
+                  },
+                },
+              ],
+            },
+          },
+          fungible: amountTransferred,
+        },
+      ],
       beneficiary: CHARLETH_ADDRESS,
     };
 
     const xcmMessage = new XcmFragment(config)
-      .withdraw_erc20_asset(erc20XcmPalletIndex, erc20ContractAddress, amountTransferred)
+      .withdraw_asset()
       .clear_origin()
       .buy_execution()
       .deposit_asset(2n)
