@@ -54,7 +54,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     erc20ContractAddress = contractAddress;
   });
 
-  it("Should be able to transfer ERC20 token throught xcm with xtokens precomp", async function () {
+  it("Should be able to transfer ERC20 token throught xcm with xtoken precomp", async function () {
     const amountTransferred = 1000n;
     // Destination as multilocation
     const destination = [
