@@ -683,6 +683,11 @@
 <a href="#683" id="683">683</a>
 <a href="#684" id="684">684</a>
 <a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1035,6 +1040,11 @@
 	</span>XcmpQueue,
 );
 
+<span class="kw">type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
+	RuntimeCall,
+	xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;,
+&gt;;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parent.into());
@@ -1046,7 +1056,7 @@
 	<span class="kw">type </span>XcmRouter = XcmRouter;
 	<span class="kw">type </span>ExecuteXcmOrigin = EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
 	<span class="kw">type </span>XcmExecuteFilter = Everything;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>XcmTeleportFilter = Nothing;
 	<span class="kw">type </span>XcmReserveTransferFilter = Everything;
 	<span class="kw">type </span>Weigher = XcmWeigher;
@@ -1068,12 +1078,12 @@
 
 <span class="kw">impl </span>cumulus_pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 }
 
 <span class="kw">impl </span>cumulus_pallet_xcmp_queue::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>ChannelInfo = ParachainSystem;
 	<span class="kw">type </span>VersionWrapper = PolkadotXcm;
 	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
@@ -1085,7 +1095,7 @@
 
 <span class="kw">impl </span>cumulus_pallet_dmp_queue::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
@@ -1232,7 +1242,7 @@
 	<span class="kw">type </span>AccountIdToMultiLocation = AccountIdToMultiLocation&lt;AccountId&gt;;
 	<span class="kw">type </span>CurrencyIdConvert =
 		CurrencyIdtoMultiLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;;
+	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
