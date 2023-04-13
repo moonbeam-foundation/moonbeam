@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cumulus_client_cli::generate_genesis_block;
+use cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
@@ -193,16 +193,6 @@ impl SubstrateCli for RelayChainCli {
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
 		polkadot_cli::Cli::native_runtime_version(chain_spec)
 	}
-}
-
-#[allow(clippy::borrowed_box)]
-fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<Vec<u8>> {
-	let mut storage = chain_spec.build_storage()?;
-
-	storage
-		.top
-		.remove(sp_core::storage::well_known_keys::CODE)
-		.ok_or_else(|| "Could not find wasm file in genesis state!".into())
 }
 
 fn validate_trace_environment(cli: &Cli) -> Result<()> {
@@ -462,7 +452,7 @@ pub fn run() -> Result<()> {
 			let _ = builder.init();
 
 			let raw_wasm_blob =
-				extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
+				extract_genesis_wasm(&*cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
 			let output_buf = if params.raw {
 				raw_wasm_blob
 			} else {
