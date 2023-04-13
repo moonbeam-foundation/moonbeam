@@ -16,11 +16,7 @@ import {
   createTransaction,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
-import {
-  injectHrmpMessage,
-  RawXcmMessage,
-  XcmFragment,
-} from "../../util/xcm";
+import { injectHrmpMessage, RawXcmMessage, XcmFragment } from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
 const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
@@ -154,10 +150,7 @@ describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: erc20ContractAddress,
-        data: ERC20_INTERFACE.encodeFunctionData("transfer", [
-          paraSovereign,
-          amountTransferred,
-        ]),
+        data: ERC20_INTERFACE.encodeFunctionData("transfer", [paraSovereign, amountTransferred]),
       })
     );
     expectEVMResult(result2.events, "Succeed");

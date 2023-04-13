@@ -261,21 +261,24 @@ export class XcmFragment {
           id: {
             Concrete: this.config.fees.multilocation[0],
           },
-          fun: { Fungible: this.config.fees.fungible  },
+          fun: { Fungible: this.config.fees.fungible },
         },
         {
           id: {
             Concrete: {
               parents: 0,
               interior: {
-                X2: [{
-                  PalletInstance: erc20XcmPalletIndex,
-                },{
-                  AccountKey20: {
-                    network: "Any",
-                    key: contractAddress,
+                X2: [
+                  {
+                    PalletInstance: erc20XcmPalletIndex,
                   },
-                }],
+                  {
+                    AccountKey20: {
+                      network: "Any",
+                      key: contractAddress,
+                    },
+                  },
+                ],
               },
             },
           },
