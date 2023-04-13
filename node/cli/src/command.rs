@@ -299,9 +299,8 @@ pub fn run() -> Result<()> {
 				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
 				// we need to extract it here to determine whether we are running the dev service.
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service =
-					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service");
 
 				// Remove Frontier offchain db
 				let frontier_database_config = match config.database {
@@ -391,7 +390,7 @@ pub fn run() -> Result<()> {
 
 			// Cumulus approach here, we directly call the generic load_spec func
 			let chain_spec = load_spec(
-				&params.chain.clone().unwrap_or_default(),
+				params.chain.as_deref().unwrap_or_default(),
 				params.parachain_id.unwrap_or(1000).into(),
 				&cli.run,
 			)?;
@@ -451,8 +450,9 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let raw_wasm_blob =
-				extract_genesis_wasm(&*cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
+			let raw_wasm_blob = extract_genesis_wasm(
+				&*cli.load_spec(params.chain.as_deref().unwrap_or_default())?,
+			)?;
 			let output_buf = if params.raw {
 				raw_wasm_blob
 			} else {
@@ -735,9 +735,9 @@ pub fn run() -> Result<()> {
 				// 1. by providing the --dev-service flag to the CLI
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
 				let dev_service =
-					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service".to_string());
+					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service");
 
 				if dev_service {
 					// When running the dev service, just use Alice's author inherent
