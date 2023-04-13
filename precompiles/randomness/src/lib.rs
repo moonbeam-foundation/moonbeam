@@ -17,7 +17,6 @@
 //! Precompile to interact with randomness through an evm precompile.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 extern crate alloc;
 

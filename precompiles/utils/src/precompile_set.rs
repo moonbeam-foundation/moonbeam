@@ -272,22 +272,48 @@ impl<T: SelectorFilter> PrecompileChecks for CallableByPrecompile<T> {
 	}
 }
 
-fn is_address_eoa_or_precompile<R: pallet_evm::Config>(address: H160) -> bool {
+/// The type of EVM address.
+#[derive(PartialEq)]
+#[cfg_attr(feature = "std", derive(Debug))]
+pub enum AddressType {
+	/// The code stored at the address is less than 5 bytes, but not well known.
+	Unknown,
+	/// No code is stored at the address, therefore is EOA.
+	EOA,
+	/// The 5-byte magic constant for a precompile is stored at the address.
+	Precompile,
+	/// The code is greater than 5-bytes, potentially a Smart Contract.
+	Contract,
+}
+
+/// Retrieves the type of address demarcated by `AddressType`.
+pub fn get_address_type<R: pallet_evm::Config>(address: H160) -> AddressType {
 	let code_len = pallet_evm::AccountCodes::<R>::decode_len(address).unwrap_or(0);
 
 	// 0 => either EOA or precompile without dummy code
 	if code_len == 0 {
-		return true;
+		return AddressType::EOA;
 	}
 
 	// dummy code is 5 bytes long, so any other len means it is a contract.
 	if code_len != 5 {
-		return false;
+		return AddressType::Contract;
 	}
 
 	// check code matches dummy code
 	let code = pallet_evm::AccountCodes::<R>::get(address);
-	&code == &[0x60, 0x00, 0x60, 0x00, 0xfd]
+	if &code == &[0x60, 0x00, 0x60, 0x00, 0xfd] {
+		return AddressType::Precompile;
+	}
+
+	AddressType::Unknown
+}
+
+fn is_address_eoa_or_precompile<R: pallet_evm::Config>(address: H160) -> bool {
+	match get_address_type::<R>(address) {
+		AddressType::EOA | AddressType::Precompile => true,
+		_ => false,
+	}
 }
 
 /// Common checks for precompile and precompile sets.

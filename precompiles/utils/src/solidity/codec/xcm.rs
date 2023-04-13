@@ -30,7 +30,7 @@ use {
 pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
 
 // Function to convert network id to bytes
-// We don't implement EVMData here as these bytes will be appended only
+// We don't implement solidity::Codec here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
 // The first byte represents the enum variant to be used.

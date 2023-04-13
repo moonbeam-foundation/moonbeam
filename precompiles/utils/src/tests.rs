@@ -648,7 +648,7 @@ fn read_vec_of_bytes() {
 // This is important to test on external data since all the above tests can only test consistency
 // between `Reader` and `Writer`.
 //
-// It also provides an example on how to impl `EvmData` for Solidity structs.
+// It also provides an example on how to impl `solidity::Codec` for Solidity structs.
 //
 // struct MultiLocation {
 // 	   uint8 parents;

@@ -39,7 +39,9 @@ fn ui() {
 	t.pass("tests/pass/**/*.rs");
 }
 
+// Cargo expand is not supported on stable rust
 #[test]
+#[ignore]
 fn expand() {
 	// Use `expand` to update the expansions
 	// Replace it with `expand_without_refresh` afterward so that

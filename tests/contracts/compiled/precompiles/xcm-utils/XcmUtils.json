@@ -1,0 +1,195 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmUtils.Multilocation",
+            "name": "multilocation",
+            "type": "tuple"
+          }
+        ],
+        "name": "getUnitsPerSecond",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "unitsPerSecond",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmUtils.Multilocation",
+            "name": "multilocation",
+            "type": "tuple"
+          }
+        ],
+        "name": "multilocationToAddress",
+        "outputs": [
+          { "internalType": "address", "name": "account", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "message", "type": "bytes" }
+        ],
+        "name": "weightMessage",
+        "outputs": [
+          { "internalType": "uint64", "name": "weight", "type": "uint64" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "message", "type": "bytes" },
+          { "internalType": "uint64", "name": "maxWeight", "type": "uint64" }
+        ],
+        "name": "xcmExecute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmUtils.Multilocation",
+            "name": "dest",
+            "type": "tuple"
+          },
+          { "internalType": "bytes", "name": "message", "type": "bytes" }
+        ],
+        "name": "xcmSend",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x000000000000000000000000000000000000080C",
+      "kind": "dev",
+      "methods": {
+        "getUnitsPerSecond((uint8,bytes[]))": {
+          "custom:selector": "3f0f65db",
+          "params": {
+            "multilocation": "scale encoded xcm mversioned xcm message"
+          }
+        },
+        "multilocationToAddress((uint8,bytes[]))": {
+          "custom:selector": "343b3e00",
+          "params": {
+            "multilocation": "The multilocation that we want to know to which account maps to"
+          },
+          "returns": {
+            "account": "The account the multilocation maps to in this chain"
+          }
+        },
+        "weightMessage(bytes)": {
+          "custom:selector": "25d54154",
+          "params": { "message": "scale encoded xcm mversioned xcm message" }
+        },
+        "xcmExecute(bytes,uint64)": {
+          "custom:selector": "34334a02",
+          "details": "This function CANNOT be called from a smart contract",
+          "params": {
+            "maxWeight": "The maximum weight to be consumed",
+            "message": "The versioned message to be executed scale encoded"
+          }
+        },
+        "xcmSend((uint8,bytes[]),bytes)": {
+          "custom:selector": "98600e64",
+          "params": {
+            "dest": "The destination chain to which send this message",
+            "message": "The versioned message to be sent scale-encoded"
+          }
+        }
+      },
+      "title": "Xcm Utils Interface The interface through which solidity contracts will interact with xcm utils pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "getUnitsPerSecond((uint8,bytes[]))": "3f0f65db",
+        "multilocationToAddress((uint8,bytes[]))": "343b3e00",
+        "weightMessage(bytes)": "25d54154",
+        "xcmExecute(bytes,uint64)": "34334a02",
+        "xcmSend((uint8,bytes[]),bytes)": "98600e64"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmUtils.Multilocation\",\"name\":\"multilocation\",\"type\":\"tuple\"}],\"name\":\"getUnitsPerSecond\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"unitsPerSecond\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmUtils.Multilocation\",\"name\":\"multilocation\",\"type\":\"tuple\"}],\"name\":\"multilocationToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"weightMessage\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"maxWeight\",\"type\":\"uint64\"}],\"name\":\"xcmExecute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmUtils.Multilocation\",\"name\":\"dest\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"xcmSend\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x000000000000000000000000000000000000080C\",\"kind\":\"dev\",\"methods\":{\"getUnitsPerSecond((uint8,bytes[]))\":{\"custom:selector\":\"3f0f65db\",\"params\":{\"multilocation\":\"scale encoded xcm mversioned xcm message\"}},\"multilocationToAddress((uint8,bytes[]))\":{\"custom:selector\":\"343b3e00\",\"params\":{\"multilocation\":\"The multilocation that we want to know to which account maps to\"},\"returns\":{\"account\":\"The account the multilocation maps to in this chain\"}},\"weightMessage(bytes)\":{\"custom:selector\":\"25d54154\",\"params\":{\"message\":\"scale encoded xcm mversioned xcm message\"}},\"xcmExecute(bytes,uint64)\":{\"custom:selector\":\"34334a02\",\"details\":\"This function CANNOT be called from a smart contract\",\"params\":{\"maxWeight\":\"The maximum weight to be consumed\",\"message\":\"The versioned message to be executed scale encoded\"}},\"xcmSend((uint8,bytes[]),bytes)\":{\"custom:selector\":\"98600e64\",\"params\":{\"dest\":\"The destination chain to which send this message\",\"message\":\"The versioned message to be sent scale-encoded\"}}},\"title\":\"Xcm Utils Interface The interface through which solidity contracts will interact with xcm utils pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"getUnitsPerSecond((uint8,bytes[]))\":{\"notice\":\"Get units per second charged for a given multilocation\"},\"multilocationToAddress((uint8,bytes[]))\":{\"notice\":\"Get retrieve the account associated to a given MultiLocation\"},\"weightMessage(bytes)\":{\"notice\":\"Get the weight that a message will consume in our chain\"},\"xcmExecute(bytes,uint64)\":{\"notice\":\"Execute custom xcm message\"},\"xcmSend((uint8,bytes[]),bytes)\":{\"notice\":\"Send custom xcm message\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"XcmUtils.sol\":\"XcmUtils\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"XcmUtils.sol\":{\"keccak256\":\"0x47cccfddfabd1b2f28e058cd69e5e77d2240e1366ad53b92e1b6199b23525161\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ad2d0c0619977457efbbc66d2cd2eda54c1fd9bb0b08214cdd46650d930bf61b\",\"dweb:/ipfs/QmP2rBNBHFtjEoS1Ztigs9UpMcK3gJ8jpvZFbTx569prvK\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "getUnitsPerSecond((uint8,bytes[]))": {
+          "notice": "Get units per second charged for a given multilocation"
+        },
+        "multilocationToAddress((uint8,bytes[]))": {
+          "notice": "Get retrieve the account associated to a given MultiLocation"
+        },
+        "weightMessage(bytes)": {
+          "notice": "Get the weight that a message will consume in our chain"
+        },
+        "xcmExecute(bytes,uint64)": { "notice": "Execute custom xcm message" },
+        "xcmSend((uint8,bytes[]),bytes)": {
+          "notice": "Send custom xcm message"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The XcmUtils contract's address.\naddress constant XCM_UTILS_ADDRESS = 0x000000000000000000000000000000000000080C;\n\n/// @dev The XcmUtils contract's instance.\nXcmUtils constant XCM_UTILS_CONTRACT = XcmUtils(XCM_UTILS_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Xcm Utils Interface\n/// The interface through which solidity contracts will interact with xcm utils pallet\n/// @custom:address 0x000000000000000000000000000000000000080C\ninterface XcmUtils {\n    // A multilocation is defined by its number of parents and the encoded junctions (interior)\n    struct Multilocation {\n        uint8 parents;\n        bytes[] interior;\n    }\n\n    /// Get retrieve the account associated to a given MultiLocation\n    /// @custom:selector 343b3e00\n    /// @param multilocation The multilocation that we want to know to which account maps to\n    /// @return account The account the multilocation maps to in this chain\n    function multilocationToAddress(Multilocation memory multilocation)\n        external\n        view\n        returns (address account);\n\n    /// Get the weight that a message will consume in our chain\n    /// @custom:selector 25d54154\n    /// @param message scale encoded xcm mversioned xcm message\n    function weightMessage(bytes memory message)\n        external\n        view\n        returns (uint64 weight);\n\n    /// Get units per second charged for a given multilocation\n    /// @custom:selector 3f0f65db\n    /// @param multilocation scale encoded xcm mversioned xcm message\n    function getUnitsPerSecond(Multilocation memory multilocation)\n        external\n        view\n        returns (uint256 unitsPerSecond);\n\n    /// Execute custom xcm message\n    /// @dev This function CANNOT be called from a smart contract\n    /// @custom:selector 34334a02\n    /// @param message The versioned message to be executed scale encoded\n    /// @param maxWeight The maximum weight to be consumed\n    function xcmExecute(bytes memory message, uint64 maxWeight) external;\n\n    /// Send custom xcm message\n    /// @custom:selector 98600e64\n    /// @param dest The destination chain to which send this message\n    /// @param message The versioned message to be sent scale-encoded\n    function xcmSend(Multilocation memory dest, bytes memory message) external;\n}\n"
+}

@@ -37,9 +37,10 @@ use moonbase_runtime::{
 	asset_config::LocalAssetInstance,
 	get,
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, LocalAssets,
-	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TransactionPayment, XTokens, XcmTransactor,
+	AccountId, AssetId, AssetManager, Assets, Balances, CouncilCollective, CrowdloanRewards,
+	LocalAssets, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TechCommitteeCollective,
+	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use polkadot_parachain::primitives::Sibling;
@@ -312,6 +313,162 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
 	}
+}
+
+#[test]
+fn collective_set_members_root_origin_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert_ok!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TechCommitteeCollective
+		assert_ok!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TreasuryCouncilCollective
+		assert_ok!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// OpenTechCommitteeCollective
+		assert_ok!(OpenTechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+	});
+}
+
+#[test]
+fn collective_set_members_general_admin_origin_works() {
+	use moonbase_runtime::{
+		governance::custom_origins::Origin as CustomOrigin, OriginCaller, Utility,
+	};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let root_caller = <Runtime as frame_system::Config>::RuntimeOrigin::root();
+		let alice = AccountId::from(ALICE);
+
+		// CouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance1>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance2>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TreasuryCouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// OpenTechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller,
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+
+		assert_eq!(
+			System::events()
+				.into_iter()
+				.filter_map(|r| {
+					match r.event {
+						RuntimeEvent::Utility(pallet_utility::Event::DispatchedAs { result })
+							if result.is_ok() =>
+						{
+							Some(true)
+						}
+						_ => None,
+					}
+				})
+				.collect::<Vec<_>>()
+				.len(),
+			4
+		)
+	});
+}
+
+#[test]
+fn collective_set_members_signed_origin_does_not_work() {
+	let alice = AccountId::from(ALICE);
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![alice, AccountId::from(BOB)],
+			Some(alice),
+			2
+		)
+		.is_err());
+		// TechCommitteeCollective
+		assert!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// TreasuryCouncilCollective
+		assert!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// OpenTechCommitteeCollective
+		assert!(OpenTechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+	});
 }
 
 #[test]
@@ -2948,7 +3105,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069,
+			2069, 2070,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

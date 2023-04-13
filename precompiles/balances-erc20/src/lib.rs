@@ -17,7 +17,6 @@
 //! Precompile to interact with pallet_balances instances using the ERC20 interface standard.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(test, feature(assert_matches))]
 
 use fp_evm::PrecompileHandle;
 use frame_support::{

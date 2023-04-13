@@ -56,7 +56,7 @@ pub trait Codec: Sized {
 	}
 
 	/// Should be used instead of `encode` when the value represents the list of arguments or the
-	/// return value of a Solidity function. Tuples have special encoding rules in this position.
+	/// return value of a Solidity function or event data. Tuples have special encoding rules in this position.
 	fn encode_for_function(self) -> Vec<u8> {
 		let output = self.encode();
 		if Self::is_explicit_tuple() && !Self::has_static_size() {
@@ -66,8 +66,14 @@ pub trait Codec: Sized {
 		}
 	}
 
+	/// Encode event data. Alias of `encode_for_function` to avoid confusion as event data encoded
+	/// like function arguments but an event is not a function.
+	fn encode_for_event(self) -> Vec<u8> {
+		self.encode_for_function()
+	}
+
 	/// Should be used instead of `decode` when the value represents the list of arguments or the
-	/// return value of a Solidity function. Tuples have special encoding rules in this position.
+	/// return value of a Solidity function or event data. Tuples have special encoding rules in this position.
 	fn decode_for_function(input: &[u8]) -> MayRevert<Self> {
 		if Self::is_explicit_tuple() && !Self::has_static_size() {
 			let writer = Writer::new();
@@ -78,6 +84,12 @@ pub trait Codec: Sized {
 		} else {
 			Self::decode(&input)
 		}
+	}
+
+	/// Decode event data. Alias of `encode_for_function` to avoid confusion as event data encoded
+	/// like function arguments but an event is not a function.
+	fn decode_for_event(input: &[u8]) -> MayRevert<Self> {
+		Self::decode_for_function(input)
 	}
 
 	/// Encode the value as the arguments of a function with given selector.
@@ -291,7 +303,7 @@ impl Writer {
 	/// Initially write a dummy value as offset in this writer's data, which will be replaced by
 	/// the correct offset once the pointed data is appended.
 	///
-	/// Takes `&mut self` since its goal is to be used inside `EvmData` impl and not in chains.
+	/// Takes `&mut self` since its goal is to be used inside `solidity::Codec` impl and not in chains.
 	pub fn write_pointer(&mut self, data: Vec<u8>) {
 		let offset_position = self.data.len();
 		H256::write(self, H256::repeat_byte(0xff));

@@ -174,7 +174,7 @@ impl Revert {
 
 	/// For all `RevertReason` variants that have a `what` field, change its value.
 	/// Otherwise do nothing.
-	/// It is useful when writing custom types `EvmData` implementations using
+	/// It is useful when writing custom types `solidity::Codec` implementations using
 	/// simpler types.
 	pub fn change_what(mut self, what: impl Into<String>) -> Self {
 		let what = what.into();

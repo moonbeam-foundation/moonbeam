@@ -15,11 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 extern crate alloc;
 
-// Allows to use inside this crate `EvmData` derive macro,which depends on
+// Allows to use inside this crate `solidity::Codec` derive macro,which depends on
 // `precompile_utils` being in the list of imported crates.
 extern crate self as precompile_utils;
 
@@ -39,7 +38,7 @@ use fp_evm::PrecompileFailure;
 
 // pub mod data;
 
-// pub use data::{EvmData, Reader, Writer};
+// pub use data::{solidity::Codec, Reader, Writer};
 pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{keccak256, precompile, precompile_name_from_address};
 
@@ -58,8 +57,17 @@ pub mod prelude {
 				// with parity_scale_codec,
 				self,
 				codec::{
-					Address, BoundedBytes, BoundedString, BoundedVec, Convert, Reader,
-					UnboundedBytes, UnboundedString, Writer,
+					Address,
+					BoundedBytes,
+					BoundedString,
+					BoundedVec,
+					// Allow usage of Codec methods while not exporting the name directly.
+					Codec as _,
+					Convert,
+					Reader,
+					UnboundedBytes,
+					UnboundedString,
+					Writer,
 				},
 				revert::{
 					revert, BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt,

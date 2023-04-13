@@ -2,4 +2,4 @@ error: Precompile pre_check method must have exactly 1 parameter (the Precompile
   --> tests/compile-fail/precompile/pre-check/too-many-parameters.rs:24:2
    |
 24 |     fn pre_check(_: &mut impl PrecompileHandle, _: u32) {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     ^^

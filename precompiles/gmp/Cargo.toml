@@ -1,0 +1,70 @@
+[package]
+name = "pallet-evm-precompile-gmp"
+authors = { workspace = true }
+description = "A Precompile to improve GMP usability."
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+log = { workspace = true }
+num_enum = { workspace = true }
+paste = { workspace = true }
+slices = { workspace = true }
+
+# Moonbeam
+precompile-utils = { workspace = true }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-std = { workspace = true }
+
+# Frontier
+evm = { workspace = true, features = [ "with-codec" ] }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+
+# Polkadot / XCM
+orml-traits = { workspace = true }
+orml-xtokens = { workspace = true }
+pallet-xcm = { workspace = true }
+xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
+xcm-primitives = { workspace = true }
+
+# Cumulus
+cumulus-primitives-core = { workspace = true }
+
+[dev-dependencies]
+derive_more = { workspace = true }
+hex = { workspace = true }
+hex-literal = { workspace = true }
+serde = { workspace = true }
+sha3 = { workspace = true }
+
+pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-timestamp = { workspace = true, features = [ "std" ] }
+parity-scale-codec = { workspace = true, features = [ "max-encoded-len", "std" ] }
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+scale-info = { workspace = true, features = [ "derive", "std" ] }
+sp-runtime = { workspace = true, features = [ "std" ] }
+
+[features]
+default = [ "std" ]
+std = [
+	"fp-evm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-evm/std",
+	"pallet-xcm/std",
+	"parity-scale-codec/std",
+	"precompile-utils/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-std/std",
+	"xcm-primitives/std",
+]
