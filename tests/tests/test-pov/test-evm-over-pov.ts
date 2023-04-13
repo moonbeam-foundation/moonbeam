@@ -1,4 +1,5 @@
 import "@moonbeam-network/api-augment";
+import Debug from "debug";
 
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -6,9 +7,17 @@ import chaiAsPromised from "chai-as-promised";
 import { alith } from "../../util/accounts";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { createContract, createTransaction } from "../../util/transactions";
+import { MAX_BLOCK_DEV_POV } from "../../util/constants";
+import { Contract } from "web3-eth-contract";
+const debug = Debug("test:evm-over-pov");
 
 chaiUse(chaiAsPromised);
 
+interface HeavyContract {
+  deployed: boolean;
+  account: string;
+  key: string;
+}
 /**
  * @description Deploy multiple contracts to test the EVM storage limit.
  * @param context Context of the test
@@ -32,7 +41,6 @@ const deployHeavyContracts = async (context: DevTestContext, first = 6000, last 
   for (const contract of contracts) {
     contract.deployed =
       (await context.polkadotApi.rpc.state.getStorage(contract.key)).toString().length > 10;
-    console.log(contract.deployed, contract.key);
   }
 
   // Create the contract code (24kb of zeros)
@@ -64,67 +72,62 @@ const deployHeavyContracts = async (context: DevTestContext, first = 6000, last 
           nonce: nonce++,
         }),
     ]);
-    console.log("batch:", i, batch.length);
   }
-  return contracts;
+  return contracts as HeavyContract[];
 };
 
-describeDevMoonbeam("Reaching PoV Limit", (context) => {
-  // Need to find a way to support PoV/ProofSize limit in the dev service
-  it.skip("should not prevent the node to produce blocks", async function () {
-    this.timeout(60000);
+describeDevMoonbeam("PoV Limit (4.2Mb in Dev)", (context) => {
+  let contractProxy: Contract;
+  let contracts: HeavyContract[];
 
-    console.log("Starting:");
+  before("Deploy the contracts", async function () {
     // Deploy the CallForwarder contract
-    const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
-    await context.createBlock(rawTx);
-    console.log("Contract:", contractProxy.options.address);
+    const creation = await createContract(context, "CallForwarder");
+    contractProxy = creation.contract;
+    await context.createBlock(creation.rawTx);
 
-    // Deploy the 500 heavy contracts
-    const contracts = await deployHeavyContracts(context, 6000, 6500);
+    // Deploy heavy contracts (test won't use more than what is needed for reaching max pov)
+    contracts = await deployHeavyContracts(
+      context,
+      6000,
+      6000 + Math.ceil(MAX_BLOCK_DEV_POV / 24_000) + 1
+    );
+  });
 
-    // Sends the call generating 20Mb+ of Proof Size
-    const { result } = await context.createBlock(
+  it("should allow to produce block just under the PoV Limit", async function () {
+    const max_contracts = Math.floor(MAX_BLOCK_DEV_POV / 24_000) - 1;
+
+    const { result, block } = await context.createBlock(
       createTransaction(context, {
         to: contractProxy.options.address,
         data: contractProxy.methods
-          .callRange(contracts[0].account, contracts[contracts.length - 1].account)
+          .callRange(contracts[0].account, contracts[max_contracts].account)
           .encodeABI(),
       })
     );
 
+    debug("block.proof_size", block.proof_size);
+    expect(block.proof_size).to.be.at.least(MAX_BLOCK_DEV_POV - 20_000);
+    expect(block.proof_size).to.be.at.most(MAX_BLOCK_DEV_POV - 1);
     // The transaction should be not be included in the block
+    expect(result.successful).to.equal(true);
+  });
+
+  it("should prevent a transaction reaching just over the PoV", async function () {
+    const max_contracts = Math.ceil(MAX_BLOCK_DEV_POV / 24_000);
+
+    const { result, block } = await context.createBlock(
+      createTransaction(context, {
+        to: contractProxy.options.address,
+        data: contractProxy.methods
+          .callRange(contracts[0].account, contracts[max_contracts].account)
+          .encodeABI(),
+      })
+    );
+
+    debug("block.proof_size", block.proof_size);
+    // Empty blocks usually do not exceed 10kb, picking 50kb as a safe limit
+    expect(block.proof_size).to.be.at.most(50_000);
     expect(result.successful).to.equal(false);
   });
 });
-
-// describeDevMoonbeam("Estimate Gas - Check Transfer Gas Cost", (context) => {
-//   it("transfer can generate pov", async function () {
-//     this.timeout(10000000);
-
-//     const contracts = await deployHeavyContracts(context, 200);
-
-//     let nonce = await context.web3.eth.getTransactionCount(alith.address);
-
-//     // Deploy the 500 heavy contracts
-//     const accounts = new Array(10)
-//       .fill(0)
-//       .map((_, i) => `0xDEADBEEF${i.toString(16).padStart(56, "0")}`)
-//       .map((privateKey) => ({
-//         privateKey,
-//         address: context.web3.eth.accounts.privateKeyToAccount(privateKey).address,
-//       }));
-
-//     const { result } = await context.createBlock(
-//       contracts
-//         .filter((_, i) => i < 150)
-//         .map(({ account }) =>
-//           createTransfer(context, account, 1_000_000_000_000_000n, { nonce: nonce++, gas: 300000 })
-//         )
-//     );
-
-//     console.log(result);
-//     const receipt = await context.web3.eth.getTransactionReceipt(result[0]?.hash);
-//     expect(receipt.gasUsed).to.equal(21006);
-//   });
-// });
