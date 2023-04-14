@@ -16,7 +16,7 @@ import { expectEVMResult, extractRevertReason } from "../../util/eth-transaction
 
 export const CLEAR_ORIGIN_WEIGHT = 8_514_000n;
 
-const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
+const XCM_UTILS_CONTRACT = getCompiled("precompiles/xcm-utils/XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
@@ -282,7 +282,7 @@ describeDevMoonbeam(
       const { result } = await context.createBlock(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
-          gasPrice: 100_000_000_000,
+          gasPrice: 1_000_000_000_000,
           to: PRECOMPILE_XCM_UTILS_ADDRESS,
           data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
             receivedMessage.toU8a(),
