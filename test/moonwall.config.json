@@ -4,6 +4,18 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
+      "name": "zombie_alphanet_ci",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "foundation": {
+        "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanet.json"
+        }
+      }
+    },
+    {
       "name": "zombie_alphanet",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],

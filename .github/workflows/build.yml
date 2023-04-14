@@ -667,9 +667,10 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: test/runtimes
-      - name: "Download client node"
+          path: test/tmp
+      - name: "Run zombie test"
         run: |
           cd test
           pnpm i
-          pnpm moonwall download moonbeam
+          pnpm moonwall download moonbeam latest tmp
+          pnpm moonwall test zombie_alphanet_ci

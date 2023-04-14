@@ -10,7 +10,7 @@ describeSuite({
     let paraApi: ApiPromise;
     let relayApi: ApiPromise;
 
-    beforeAll(() => {
+    beforeAll(async () => {
       paraApi = context.polkadotJs({ type: "moon" });
       relayApi = context.polkadotJs({ type: "polkadotJs" });
 
@@ -19,6 +19,9 @@ describeSuite({
 
       const paraNetwork = paraApi.consts.system.version.specName.toString();
       expect(paraNetwork, "Para API incorrect").to.contain("moonbase");
+
+      const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+      expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
     }, 120000);
 
     it({
