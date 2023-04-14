@@ -923,7 +923,8 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1044,7 +1045,8 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1163,7 +1165,8 @@ fn collator_joins_again_and_doesnt_go_offline() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1294,6 +1297,279 @@ fn collator_joins_again_and_doesnt_go_offline() {
 }
 
 #[test]
+fn collator_joins_again_and_doesnt_go_offline_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10), (6, 20)])
+		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				10u32
+			));
+
+			// If we don't change block author, by default is always 0
+			set_block_author(1);
+
+			// Roll to round 2
+			roll_to(10);
+
+			// Assert correct events
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 10,
+					round: 2,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+
+			// Finalize the first block of round 2
+			ParachainStaking::on_finalize(10);
+
+			// Check that storage has updated for collator 1 when the block finalized
+			assert_eq!(
+				ParachainStaking::candidate_last_active(1),
+				Some(CollatorActivity {
+					last_round: 2,
+					last_active: 2,
+					max_offline_counter: 0
+				})
+			);
+
+			// Change block author
+			set_block_author(2);
+
+			// Round 3
+			roll_to(20);
+
+			// Collator 6 joins candidates
+			assert_ok!(ParachainStaking::join_candidates(
+				RuntimeOrigin::signed(6),
+				20,
+				5
+			));
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(2, 4);
+			set_candidate_last_active(3, 4);
+			set_candidate_last_active(4, 4);
+			set_candidate_last_active(5, 4);
+
+			// Round 4
+			roll_to(30);
+
+			// Check that the collator 6 is selected instead of collator 1
+			// as it has more stake bonded
+			assert_events_eq!(
+				Event::ReservedForParachainBond {
+					account: 0,
+					value: 0,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 4,
+					collator_account: 6,
+					total_exposed_amount: 20,
+				},
+				Event::NewRound {
+					starting_block: 30,
+					round: 4,
+					selected_collators_number: 5,
+					total_balance: 60,
+				},
+			);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(2, 6);
+			set_candidate_last_active(3, 6);
+			set_candidate_last_active(4, 6);
+			set_candidate_last_active(5, 6);
+			set_candidate_last_active(6, 6);
+
+			// Round 7
+			roll_to(60);
+
+			// Collator 6 now goes offline
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(6)));
+
+			// Round 8
+			roll_to(70);
+
+			// Check that collator 1 is selected again as a collator
+			// without going offline
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 8,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 8,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 8,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 8,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 8,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 70,
+					round: 8,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+
+			// Check collator 1 is present inside the pool
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 5);
+			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
+			assert_eq!(ParachainStaking::candidate_pool().0[1].owner, 2);
+			assert_eq!(ParachainStaking::candidate_pool().0[2].owner, 3);
+			assert_eq!(ParachainStaking::candidate_pool().0[3].owner, 4);
+			assert_eq!(ParachainStaking::candidate_pool().0[4].owner, 5);
+
+			// Modify CandidateLastActive for collators not to be
+			// marked as offline (only testing purposes)
+			set_candidate_last_active(2, 8);
+			set_candidate_last_active(3, 8);
+			set_candidate_last_active(4, 8);
+			set_candidate_last_active(5, 8);
+
+			// Round 9
+			roll_to(80);
+
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 9,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 9,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 9,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 9,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 9,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 80,
+					round: 9,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+
+			// Round 10
+			roll_to(90);
+
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 1,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 2,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 3,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 4,
+					total_exposed_amount: 10,
+				},
+				Event::CollatorChosen {
+					round: 10,
+					collator_account: 5,
+					total_exposed_amount: 10,
+				},
+				Event::NewRound {
+					starting_block: 90,
+					round: 10,
+					selected_collators_number: 5,
+					total_balance: 50,
+				},
+			);
+		});
+}
+
+#[test]
 fn collator_produces_blocks_successfully() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
@@ -1354,7 +1630,8 @@ fn collator_produces_blocks_successfully() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1418,7 +1695,8 @@ fn collator_produces_blocks_successfully() {
 				ParachainStaking::candidate_last_active(2),
 				Some(CollatorActivity {
 					last_round: 4,
-					last_active: 4
+					last_active: 4,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1427,7 +1705,8 @@ fn collator_produces_blocks_successfully() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 3
+					last_active: 3,
+					max_offline_counter: 0
 				})
 			);
 		});
@@ -1481,7 +1760,8 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1520,7 +1800,8 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 				ParachainStaking::candidate_last_active(2),
 				Some(CollatorActivity {
 					last_round: 6,
-					last_active: 6
+					last_active: 6,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1529,7 +1810,8 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 5
+					last_active: 5,
+					max_offline_counter: 0
 				})
 			);
 		});
@@ -1681,7 +1963,8 @@ fn candidate_joins_again_after_going_offline() {
 				ParachainStaking::candidate_last_active(1),
 				Some(CollatorActivity {
 					last_round: 2,
-					last_active: 2
+					last_active: 2,
+					max_offline_counter: 0
 				})
 			);
 
@@ -1779,6 +2062,9 @@ fn candidate_joins_again_after_going_offline() {
 			);
 		});
 }
+//TODO: test collator enter collators set, goes out, enters again 
+// 2 cases: if produces blocks, it stays
+//          if not, marked as offline
 
 // SCHEDULE LEAVE CANDIDATES
 #[test]
