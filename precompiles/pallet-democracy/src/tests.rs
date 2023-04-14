@@ -122,7 +122,7 @@ fn prop_count_zero() {
 			.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns([0u8; 32].into())
+			.execute_returns(U256::zero())
 	});
 }
 
@@ -143,7 +143,7 @@ fn prop_count_non_zero() {
 				.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1u32);
+				.execute_returns(1u32);
 		});
 }
 
@@ -172,7 +172,7 @@ fn deposit_of_non_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1000u32);
+				.execute_returns(1000u32);
 		});
 }
 
@@ -198,7 +198,7 @@ fn lowest_unbaked_zero() {
 			.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 	});
 }
 
@@ -275,7 +275,7 @@ fn lowest_unbaked_non_zero() {
 				.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1u32);
+				.execute_returns(1u32);
 		});
 }
 
@@ -310,7 +310,7 @@ fn ongoing_ref_info_works() {
 					PCall::ongoing_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
-				.execute_returns_encoded((
+				.execute_returns((
 					U256::from(11),      // end
 					hash,                // hash
 					2u8,                 // threshold type
@@ -412,7 +412,7 @@ fn finished_ref_info_works() {
 					PCall::finished_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
-				.execute_returns_encoded((true, U256::from(11)));
+				.execute_returns((true, U256::from(11)));
 		})
 }
 

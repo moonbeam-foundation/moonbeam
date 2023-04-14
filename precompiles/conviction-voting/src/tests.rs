@@ -428,7 +428,7 @@ fn test_voting_for_returns_correct_value_for_standard_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -475,7 +475,7 @@ fn test_voting_for_returns_correct_value_for_split_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -523,7 +523,7 @@ fn test_voting_for_returns_correct_value_for_split_abstain_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -567,7 +567,7 @@ fn test_class_locks_for_returns_correct_value() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(vec![crate::OutputClassLock {
+				.execute_returns(vec![crate::OutputClassLock {
 					track: 0u16,
 					amount: U256::from(100_000),
 				}]);

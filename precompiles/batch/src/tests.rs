@@ -102,7 +102,7 @@ fn batch_some_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -121,7 +121,7 @@ fn batch_some_until_failure_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -140,7 +140,7 @@ fn batch_all_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -246,7 +246,7 @@ fn batch_some_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -258,7 +258,7 @@ fn batch_some_until_failure_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -270,7 +270,7 @@ fn batch_all_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -341,7 +341,7 @@ fn batch_some_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -350,7 +350,7 @@ fn batch_some_until_failure_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -496,7 +496,7 @@ fn batch_some_incomplete() {
 			.expect_log(log1(Alice, H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 2))
 			.expect_cost(13 + 17 + 19 + total_call_cost * 3)
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -510,7 +510,7 @@ fn batch_some_until_failure_incomplete() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log_subcall_failed(Batch, 1))
 			.expect_cost(13 + 17 + total_call_cost * 2)
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -556,7 +556,7 @@ fn batch_some_log_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_log_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_no_logs()
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -565,7 +565,7 @@ fn batch_some_until_failure_log_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_log_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_no_logs()
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -603,7 +603,7 @@ fn batch_some_call_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_call_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -612,7 +612,7 @@ fn batch_some_until_failure_call_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_call_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -653,7 +653,7 @@ fn batch_some_gas_limit() {
 		batch_gas_limit(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
 			.expect_cost(return_log_cost)
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -662,7 +662,7 @@ fn batch_some_until_failure_gas_limit() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_gas_limit(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 

@@ -116,6 +116,6 @@ fn note_preimage_returns_preimage_hash() {
 						encoded_proposal: BoundedBytes::from(preimage),
 					},
 				)
-				.execute_returns_encoded(preimage_hash);
+				.execute_returns(preimage_hash);
 		})
 }

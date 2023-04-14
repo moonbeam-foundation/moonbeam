@@ -98,7 +98,7 @@ fn transfer_self_reserve_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -145,7 +145,7 @@ fn transfer_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -194,7 +194,7 @@ fn transfer_to_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -249,7 +249,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -298,7 +298,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -353,7 +353,7 @@ fn transfer_multi_asset_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset),
@@ -401,7 +401,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve),
@@ -449,7 +449,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve.clone()),
@@ -503,7 +503,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location),
@@ -554,7 +554,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location.clone()),
@@ -608,7 +608,7 @@ fn transfer_multi_currencies() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset_1: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -685,7 +685,7 @@ fn transfer_multi_assets() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice.into(),

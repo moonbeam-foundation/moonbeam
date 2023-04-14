@@ -390,7 +390,7 @@ mod nimbus_id_of {
 							address: Address(address),
 						},
 					)
-					.execute_returns_encoded(expected);
+					.execute_returns(expected);
 			})
 	}
 
@@ -426,7 +426,7 @@ mod address_of {
 
 				precompiles()
 					.prepare_test(Bob, AuthorMappingAccount, PCall::address_of { nimbus_id })
-					.execute_returns_encoded(Address(expected));
+					.execute_returns(Address(expected));
 			})
 	}
 
@@ -462,7 +462,7 @@ mod keys_of {
 
 				precompiles()
 					.prepare_test(Bob, AuthorMappingAccount, PCall::keys_of { nimbus_id })
-					.execute_returns_encoded(expected);
+					.execute_returns(expected);
 			})
 	}
 

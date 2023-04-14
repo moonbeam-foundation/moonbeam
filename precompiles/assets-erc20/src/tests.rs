@@ -172,7 +172,7 @@ fn get_total_supply() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000u64));
+				.execute_returns(U256::from(1000u64));
 		});
 }
 
@@ -206,7 +206,7 @@ fn get_balances_known_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000u64));
+				.execute_returns(U256::from(1000u64));
 		});
 }
 
@@ -234,7 +234,7 @@ fn get_balances_unknown_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u64));
+				.execute_returns(U256::from(0u64));
 		});
 }
 
@@ -275,7 +275,7 @@ fn approve() {
 					Bob,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -316,7 +316,7 @@ fn approve_saturating() {
 					Bob,
 					solidity::encode_event_data(U256::MAX),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -329,7 +329,7 @@ fn approve_saturating() {
 				)
 				.expect_cost(0u64)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(u128::MAX));
+				.execute_returns(U256::from(u128::MAX));
 		});
 }
 
@@ -375,7 +375,7 @@ fn check_allowance_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(500u64));
+				.execute_returns(U256::from(500u64));
 		});
 }
 
@@ -404,7 +404,7 @@ fn check_allowance_not_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u64));
+				.execute_returns(U256::from(0u64));
 		});
 }
 
@@ -445,7 +445,7 @@ fn transfer() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -457,7 +457,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 
 			precompiles()
 				.prepare_test(
@@ -469,7 +469,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 		});
 }
 
@@ -572,7 +572,7 @@ fn transfer_from() {
 					Charlie,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -584,7 +584,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -596,7 +596,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			precompiles()
 				.prepare_test(
@@ -608,7 +608,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -650,7 +650,7 @@ fn transfer_from_non_incremental_approval() {
 					Bob,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// We then approve 300. Non-incremental, so this is
 			// the approved new value
@@ -673,7 +673,7 @@ fn transfer_from_non_incremental_approval() {
 					Bob,
 					solidity::encode_event_data(U256::from(300)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// This should fail, as now the new approved quantity is 300
 			precompiles()
@@ -781,7 +781,7 @@ fn transfer_from_self() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -793,7 +793,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -805,7 +805,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -835,13 +835,13 @@ fn get_metadata() {
 				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("TestToken"));
+				.execute_returns(UnboundedBytes::from("TestToken"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("Test"));
+				.execute_returns(UnboundedBytes::from("Test"));
 
 			precompiles()
 				.prepare_test(
@@ -851,7 +851,7 @@ fn get_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(12u8);
+				.execute_returns(12u8);
 		});
 }
 
@@ -940,7 +940,7 @@ fn mint_local_assets() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -952,7 +952,7 @@ fn mint_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -1001,7 +1001,7 @@ fn burn_local_assets() {
 					Zero,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1013,7 +1013,7 @@ fn burn_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 		});
 }
 
@@ -1055,7 +1055,7 @@ fn freeze_local_assets() {
 				)
 				.expect_cost(17498000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1113,7 +1113,7 @@ fn thaw_local_assets() {
 				)
 				.expect_cost(17498000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1125,7 +1125,7 @@ fn thaw_local_assets() {
 				)
 				.expect_cost(17842000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1144,7 +1144,7 @@ fn thaw_local_assets() {
 					CryptoAlith,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -1184,7 +1184,7 @@ fn freeze_asset_local_asset() {
 				)
 				.expect_cost(13719000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1240,13 +1240,13 @@ fn thaw_asset_local_assets() {
 				)
 				.expect_cost(13719000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::thaw_asset {})
 				.expect_cost(13764000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1265,7 +1265,7 @@ fn thaw_asset_local_assets() {
 					CryptoAlith,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -1301,7 +1301,7 @@ fn transfer_ownership_local_assets() {
 				)
 				.expect_cost(15366000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Now Bob should be able to change ownership, and not CryptoAlith
 			precompiles()
@@ -1329,7 +1329,7 @@ fn transfer_ownership_local_assets() {
 				)
 				.expect_cost(15366000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -1367,7 +1367,7 @@ fn set_team_local_assets() {
 				)
 				.expect_cost(14437000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Now Bob should be able to mint, and not CryptoAlith
 			precompiles()
@@ -1403,7 +1403,7 @@ fn set_team_local_assets() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1415,7 +1415,7 @@ fn set_team_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -1453,25 +1453,25 @@ fn set_metadata() {
 				)
 				.expect_cost(24489304) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("TestToken"));
+				.execute_returns(UnboundedBytes::from("TestToken"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("Test"));
+				.execute_returns(UnboundedBytes::from("Test"));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(12u8);
+				.execute_returns(12u8);
 		});
 }
 
@@ -1509,7 +1509,7 @@ fn clear_metadata() {
 				)
 				.expect_cost(24489304) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -1519,25 +1519,25 @@ fn clear_metadata() {
 				)
 				.expect_cost(24812000) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from(""));
+				.execute_returns(UnboundedBytes::from(""));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from(""));
+				.execute_returns(UnboundedBytes::from(""));
 
 			precompiles()
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(0u8);
+				.execute_returns(0u8);
 		});
 }
 
@@ -1590,7 +1590,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1614,7 +1614,7 @@ fn permit_valid() {
 					Bob,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			precompiles()
 				.prepare_test(
@@ -1627,7 +1627,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(500u16));
+				.execute_returns(U256::from(500u16));
 
 			precompiles()
 				.prepare_test(
@@ -1639,7 +1639,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1u8));
+				.execute_returns(U256::from(1u8));
 		});
 }
 
@@ -1699,7 +1699,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1723,7 +1723,7 @@ fn permit_valid_named_asset() {
 					Bob,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			precompiles()
 				.prepare_test(
@@ -1736,7 +1736,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(500u16));
+				.execute_returns(U256::from(500u16));
 
 			precompiles()
 				.prepare_test(
@@ -1748,7 +1748,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1u8));
+				.execute_returns(U256::from(1u8));
 		});
 }
 
@@ -1801,7 +1801,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1830,7 +1830,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1842,7 +1842,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -1881,7 +1881,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1910,7 +1910,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1922,7 +1922,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -1977,7 +1977,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -2006,7 +2006,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -2018,7 +2018,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -2201,7 +2201,7 @@ fn permit_valid_with_metamask_signed_data() {
 					Bob,
 					solidity::encode_event_data(U256::from(1000)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -2248,7 +2248,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			precompiles()
 				.prepare_test(
@@ -2260,7 +2260,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000));
+				.execute_returns(U256::from(1000));
 		});
 }
 
@@ -2428,7 +2428,7 @@ fn get_owner() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::owner {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(Bob.into()));
+				.execute_returns(Address(Bob.into()));
 		});
 }
 
@@ -2461,7 +2461,7 @@ fn get_issuer() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::issuer {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(Bob.into()));
+				.execute_returns(Address(Bob.into()));
 		});
 }
 
@@ -2494,7 +2494,7 @@ fn get_admin() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::admin {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(Bob.into()));
+				.execute_returns(Address(Bob.into()));
 		});
 }
 
@@ -2527,7 +2527,7 @@ fn get_freezer() {
 				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::freezer {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(Bob.into()));
+				.execute_returns(Address(Bob.into()));
 		});
 }
 

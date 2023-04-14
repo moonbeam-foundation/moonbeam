@@ -225,7 +225,7 @@ mod tests {
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(1), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -279,7 +279,7 @@ mod tests {
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(2), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -293,7 +293,7 @@ mod tests {
 					PCall::success {},
 				)
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -314,7 +314,7 @@ mod tests {
 							logs: vec![],
 						}
 					})
-					.execute_returns_encoded(());
+					.execute_returns(());
 			}
 			assert!(*subcall_occured.borrow());
 		})

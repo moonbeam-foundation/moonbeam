@@ -101,7 +101,7 @@ fn get_total_supply() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::total_supply {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(3500u64));
+				.execute_returns(U256::from(3500u64));
 		});
 }
 
@@ -121,7 +121,7 @@ fn get_balances_known_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000u64));
+				.execute_returns(U256::from(1000u64));
 		});
 }
 
@@ -141,7 +141,7 @@ fn get_balances_unknown_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u64));
+				.execute_returns(U256::from(0u64));
 		});
 }
 
@@ -168,7 +168,7 @@ fn approve() {
 					Bob,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -195,7 +195,7 @@ fn approve_saturating() {
 					Bob,
 					solidity::encode_event_data(U256::MAX),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -208,7 +208,7 @@ fn approve_saturating() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(u128::MAX));
+				.execute_returns(U256::from(u128::MAX));
 		});
 }
 
@@ -240,7 +240,7 @@ fn check_allowance_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(500u64));
+				.execute_returns(U256::from(500u64));
 		});
 }
 
@@ -261,7 +261,7 @@ fn check_allowance_not_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u64));
+				.execute_returns(U256::from(0u64));
 		});
 }
 
@@ -288,7 +288,7 @@ fn transfer() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -300,7 +300,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -312,7 +312,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -375,7 +375,7 @@ fn transfer_from() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -387,7 +387,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -399,7 +399,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 
 			precompiles()
 				.prepare_test(
@@ -412,7 +412,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(100u64));
+				.execute_returns(U256::from(100u64));
 		});
 }
 
@@ -471,7 +471,7 @@ fn transfer_from_self() {
 					Bob,
 					solidity::encode_event_data(U256::from(400)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			precompiles()
 				.prepare_test(
@@ -483,7 +483,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(600));
+				.execute_returns(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -495,7 +495,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400));
+				.execute_returns(U256::from(400));
 		});
 }
 
@@ -509,7 +509,7 @@ fn get_metadata_name() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("Mock token"));
+				.execute_returns(UnboundedBytes::from("Mock token"));
 		});
 }
 
@@ -523,7 +523,7 @@ fn get_metadata_symbol() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(UnboundedBytes::from("MOCK"));
+				.execute_returns(UnboundedBytes::from("MOCK"));
 		});
 }
 
@@ -537,7 +537,7 @@ fn get_metadata_decimals() {
 				.prepare_test(CryptoAlith, Precompile1, PCall::decimals {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(18u8);
+				.execute_returns(18u8);
 		});
 }
 
@@ -557,7 +557,7 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Deposit
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
@@ -624,7 +624,7 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Check CryptoAlith balance is still 1000.
 			precompiles()
@@ -637,7 +637,7 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000));
+				.execute_returns(U256::from(1000));
 		});
 }
 
@@ -673,7 +673,7 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Deposit
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
@@ -710,7 +710,7 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Check CryptoAlith balance is still 1000.
 			precompiles()
@@ -723,7 +723,7 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000));
+				.execute_returns(U256::from(1000));
 		});
 }
 
@@ -744,7 +744,7 @@ fn withdraw() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Withdraw
 			precompiles()
@@ -760,7 +760,7 @@ fn withdraw() {
 					CryptoAlith,
 					solidity::encode_event_data(U256::from(500)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			// Check CryptoAlith balance is still 1000.
 			precompiles()
@@ -773,7 +773,7 @@ fn withdraw() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000));
+				.execute_returns(U256::from(1000));
 		});
 }
 
@@ -794,7 +794,7 @@ fn withdraw_more_than_owned() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0));
+				.execute_returns(U256::from(0));
 
 			// Withdraw
 			precompiles()
@@ -816,7 +816,7 @@ fn withdraw_more_than_owned() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000));
+				.execute_returns(U256::from(1000));
 		});
 }
 
@@ -854,7 +854,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -878,7 +878,7 @@ fn permit_valid() {
 					Bob,
 					solidity::encode_event_data(U256::from(value)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			precompiles()
 				.prepare_test(
@@ -891,7 +891,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(500u16));
+				.execute_returns(U256::from(500u16));
 
 			precompiles()
 				.prepare_test(
@@ -903,7 +903,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1u8));
+				.execute_returns(U256::from(1u8));
 		});
 }
 
@@ -941,7 +941,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -970,7 +970,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -982,7 +982,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -1007,7 +1007,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1036,7 +1036,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1048,7 +1048,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -1088,7 +1088,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1117,7 +1117,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u16));
+				.execute_returns(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1129,7 +1129,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 		});
 }
 
@@ -1297,7 +1297,7 @@ fn permit_valid_with_metamask_signed_data() {
 					Bob,
 					solidity::encode_event_data(U256::from(1000)),
 				))
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 

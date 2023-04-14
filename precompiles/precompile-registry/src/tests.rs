@@ -68,7 +68,7 @@ mod is_precompile {
 						},
 					)
 					.expect_no_logs()
-					.execute_returns_encoded(output);
+					.execute_returns(output);
 			});
 	}
 
@@ -111,7 +111,7 @@ mod is_active_precompile {
 						},
 					)
 					.expect_no_logs()
-					.execute_returns_encoded(output);
+					.execute_returns(output);
 			});
 	}
 
@@ -156,7 +156,7 @@ mod update_account_code {
 				);
 
 				if expect_changes {
-					tester.execute_returns_encoded(());
+					tester.execute_returns(());
 					let new_code = pallet_evm::AccountCodes::<Runtime>::get(target_address);
 					assert_eq!(&new_code, &[0x60, 0x00, 0x60, 0x00, 0xfd]);
 				} else {

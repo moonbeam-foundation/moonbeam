@@ -98,7 +98,7 @@ fn is_contributor_returns_false() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		});
 }
 
@@ -140,7 +140,7 @@ fn is_contributor_returns_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -225,7 +225,7 @@ fn reward_info_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded((U256::from(50u64), U256::from(10u64)));
+				.execute_returns((U256::from(50u64), U256::from(10u64)));
 		});
 }
 

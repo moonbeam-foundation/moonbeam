@@ -93,7 +93,7 @@ fn valid_permit_returns() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -149,7 +149,7 @@ fn valid_permit_returns() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns_encoded(UnboundedBytes::from(b"TEST"));
+				.execute_returns(UnboundedBytes::from(b"TEST"));
 		})
 }
 
@@ -192,7 +192,7 @@ fn valid_permit_reverts() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -291,7 +291,7 @@ fn invalid_permit_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -357,7 +357,7 @@ fn invalid_permit_gas_limit_too_low() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -425,7 +425,7 @@ fn invalid_permit_gas_limit_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -613,7 +613,7 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -669,7 +669,7 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns_encoded(UnboundedBytes::from(b"TEST"));
+				.execute_returns(UnboundedBytes::from(b"TEST"));
 		})
 }
 

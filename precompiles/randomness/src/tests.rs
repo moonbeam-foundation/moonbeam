@@ -18,11 +18,7 @@
 use crate::{mock::*, prepare_and_finish_fulfillment_gas_cost, subcall_overhead_gas_costs};
 use fp_evm::{ExitReason, ExitRevert, ExitSucceed, FeeCalculator};
 use pallet_randomness::{Event as RandomnessEvent, RandomnessResults, RequestType};
-use precompile_utils::{
-	assert_event_emitted,
-	solidity::codec::{Address, Writer},
-	testing::*,
-};
+use precompile_utils::{assert_event_emitted, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
 #[test]
@@ -85,7 +81,7 @@ fn relay_epoch_index_works() {
 
 		PrecompilesValue::get()
 			.prepare_test(Alice, Precompile1, PCall::relay_epoch_index {})
-			.execute_returns_encoded(1u64);
+			.execute_returns(1u64);
 	})
 }
 
@@ -96,7 +92,7 @@ fn required_deposit_works() {
 
 		PrecompilesValue::get()
 			.prepare_test(Alice, Precompile1, PCall::required_deposit {})
-			.execute_returns_encoded(U256::from(10));
+			.execute_returns(U256::from(10));
 	})
 }
 
@@ -113,7 +109,7 @@ fn get_dne_request_status() {
 					request_id: 1.into(),
 				},
 			)
-			.execute_returns_encoded(0u8);
+			.execute_returns(0u8);
 	})
 }
 
@@ -130,14 +126,14 @@ fn get_pending_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_babe_randomness {
-						refund_address: Address(H160::from(Bob)),
+						refund_address: Address(Bob.into()),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
 						num_words: 1u8,
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -147,7 +143,7 @@ fn get_pending_request_status() {
 						request_id: 0.into(),
 					},
 				)
-				.execute_returns_encoded(1u8);
+				.execute_returns(1u8);
 		})
 }
 
@@ -163,7 +159,7 @@ fn get_ready_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: Address(H160::from(Bob)),
+						refund_address: Address(Bob.into()),
 						fee: U256::one(),
 						gas_limit: 10u64,
 						salt: H256::default(),
@@ -171,7 +167,7 @@ fn get_ready_request_status() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			// run to ready block
 			System::set_block_number(3);
 			// ready status
@@ -183,7 +179,7 @@ fn get_ready_request_status() {
 						request_id: 0.into(),
 					},
 				)
-				.execute_returns_encoded(2u8);
+				.execute_returns(2u8);
 		})
 }
 
@@ -199,7 +195,7 @@ fn get_expired_request_status() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: Address(H160::from(Bob)),
+						refund_address: Address(Bob.into()),
 						fee: U256::one(),
 						gas_limit: 10u64,
 						salt: H256::default(),
@@ -207,7 +203,7 @@ fn get_expired_request_status() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			// run to expired block
 			System::set_block_number(21);
 			// ready status
@@ -219,7 +215,7 @@ fn get_expired_request_status() {
 						request_id: 0.into(),
 					},
 				)
-				.execute_returns_encoded(3u8);
+				.execute_returns(3u8);
 		})
 }
 
@@ -235,7 +231,7 @@ fn get_request_works() {
 					Alice,
 					Precompile1,
 					PCall::request_local_randomness {
-						refund_address: Address(H160::from(Bob)),
+						refund_address: Address(Bob.into()),
 						fee: U256::one(),
 						gas_limit: 100u64,
 						salt: H256::default(),
@@ -243,7 +239,7 @@ fn get_request_works() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			// run to expired block
 			System::set_block_number(21);
 			// ready status
@@ -255,23 +251,21 @@ fn get_request_works() {
 						request_id: 0.into(),
 					},
 				)
-				.execute_returns(
-					Writer::new()
-						.write(U256::zero())
-						.write(Address(H160::from(Bob)))
-						.write(Address(H160::from(Alice)))
-						.write(U256::one())
-						.write(U256::from(100))
-						.write(H256::default())
-						.write(1u8)
-						.write(0u8)
-						.write(3u32)
-						.write(0u64)
-						.write(21u32)
-						.write(0u64)
-						.write(3u8)
-						.build(),
-				);
+				.execute_returns((
+					U256::zero(),
+					Address(Bob.into()),
+					Address(Alice.into()),
+					U256::one(),
+					U256::from(100),
+					H256::default(),
+					1u8,
+					0u8,
+					3u32,
+					0u64,
+					21u32,
+					0u64,
+					3u8,
+				));
 		})
 }
 
@@ -295,7 +289,7 @@ fn request_babe_randomness_works() {
 						num_words: 1u8,
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			assert_event_emitted!(RuntimeEvent::Randomness(
 				RandomnessEvent::RandomnessRequestedBabeEpoch {
 					id: 0,
@@ -332,7 +326,7 @@ fn request_local_randomness_works() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			assert_event_emitted!(RuntimeEvent::Randomness(
 				RandomnessEvent::RandomnessRequestedLocal {
 					id: 0,
@@ -373,7 +367,7 @@ fn fulfill_request_reverts_if_not_enough_gas() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 
 			// run to ready block
 			System::set_block_number(3);
@@ -436,7 +430,7 @@ fn fulfill_request_works() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			// run to ready block
 			System::set_block_number(3);
 			// fill randomness results
@@ -482,10 +476,13 @@ fn fulfill_request_works() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&Writer::new_with_selector(0x1fe543e3_u32)
-							.write(0u64) // request id
-							.write(random_words.clone())
-							.build()
+						&solidity::encode_with_selector(
+							0x1fe543e3_u32,
+							(
+								0u64, // request id
+								random_words.clone()
+							)
+						)
 					);
 
 					SubcallOutput {
@@ -497,7 +494,7 @@ fn fulfill_request_works() {
 				})
 				.with_target_gas(Some(total_cost))
 				.expect_log(crate::log_fulfillment_succeeded(Precompile1))
-				.execute_returns_encoded(());
+				.execute_returns(());
 
 			// correctly refunded
 			assert_eq!(
@@ -540,7 +537,7 @@ fn fulfill_request_works_with_higher_gas() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 
 			// run to ready block
 			System::set_block_number(3);
@@ -588,10 +585,13 @@ fn fulfill_request_works_with_higher_gas() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&Writer::new_with_selector(0x1fe543e3_u32)
-							.write(0u64) // request id
-							.write(random_words.clone())
-							.build()
+						&solidity::encode_with_selector(
+							0x1fe543e3_u32,
+							(
+								0u64, // request id
+								random_words.clone(),
+							)
+						)
 					);
 
 					SubcallOutput {
@@ -603,7 +603,7 @@ fn fulfill_request_works_with_higher_gas() {
 				})
 				.with_target_gas(Some(total_cost + 10_000))
 				.expect_log(crate::log_fulfillment_succeeded(Precompile1))
-				.execute_returns_encoded(());
+				.execute_returns(());
 
 			// correctly refunded
 			assert_eq!(
@@ -646,7 +646,7 @@ fn fulfill_request_works_with_subcall_revert() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 
 			// run to ready block
 			System::set_block_number(3);
@@ -694,10 +694,13 @@ fn fulfill_request_works_with_subcall_revert() {
 					// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 					assert_eq!(
 						&input,
-						&Writer::new_with_selector(0x1fe543e3_u32)
-							.write(0u64) // request id
-							.write(random_words.clone())
-							.build()
+						&solidity::encode_with_selector(
+							0x1fe543e3_u32,
+							(
+								0u64, // request id
+								random_words.clone()
+							)
+						)
 					);
 
 					SubcallOutput {
@@ -709,7 +712,7 @@ fn fulfill_request_works_with_subcall_revert() {
 				})
 				.with_target_gas(Some(total_cost))
 				.expect_log(crate::log_fulfillment_failed(Precompile1))
-				.execute_returns_encoded(());
+				.execute_returns(());
 
 			// correctly refunded
 			assert_eq!(
@@ -739,7 +742,7 @@ fn increase_request_fee_works() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			// increase request fee
 			PrecompilesValue::get()
 				.prepare_test(
@@ -750,7 +753,7 @@ fn increase_request_fee_works() {
 						fee_increase: 10.into(),
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 			assert_event_emitted!(RuntimeEvent::Randomness(
 				RandomnessEvent::RequestFeeIncreased { id: 0, new_fee: 11 }
 			));
@@ -777,7 +780,7 @@ fn purge_expired_request_works() {
 						delay: 2.into(),
 					},
 				)
-				.execute_returns([0u8; 32].into());
+				.execute_returns(U256::zero());
 			System::set_block_number(21);
 			// purge expired request
 			PrecompilesValue::get()
@@ -788,7 +791,7 @@ fn purge_expired_request_works() {
 						request_id: 0.into(),
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 			assert_event_emitted!(RuntimeEvent::Randomness(
 				RandomnessEvent::RequestExpirationExecuted { id: 0 }
 			));

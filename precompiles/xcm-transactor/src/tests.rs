@@ -119,7 +119,7 @@ fn take_index_for_account() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(H160::from(Alice)));
+				.execute_returns(Address(H160::from(Alice)));
 		});
 }
 
@@ -159,7 +159,7 @@ fn take_transact_info() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(2)
 				.expect_no_logs()
-				.execute_returns_encoded((0u64, 1u128, 10000u64));
+				.execute_returns((0u64, 1u128, 10000u64));
 		});
 }
 #[test]
@@ -198,7 +198,7 @@ fn take_transact_info_with_signed() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns_encoded((0u64, 1u128, 10_000u64));
+				.execute_returns((0u64, 1u128, 10_000u64));
 		});
 }
 
@@ -228,7 +228,7 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns_encoded(1u64);
+				.execute_returns(1u64);
 		});
 }
 
@@ -268,7 +268,7 @@ fn test_transact_derivative_multilocation_v2() {
 				)
 				.expect_cost(196892000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -321,7 +321,7 @@ fn test_transact_derivative_multilocation() {
 				)
 				.expect_cost(196892000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -371,7 +371,7 @@ fn test_transact_derivative() {
 				)
 				.expect_cost(196892001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -409,7 +409,7 @@ fn test_transact_derivative_v2() {
 				)
 				.expect_cost(196892001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -454,7 +454,7 @@ fn test_transact_signed() {
 				)
 				.expect_cost(476974001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -487,7 +487,7 @@ fn test_transact_signed_v2() {
 				)
 				.expect_cost(476974001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -534,7 +534,7 @@ fn test_transact_signed_multilocation() {
 				)
 				.expect_cost(476974000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -569,7 +569,7 @@ fn test_transact_signed_multilocation_v2() {
 				)
 				.expect_cost(476974000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
