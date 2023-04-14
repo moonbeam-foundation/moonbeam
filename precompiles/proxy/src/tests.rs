@@ -518,31 +518,6 @@ fn test_is_proxy_returns_true_if_proxy() {
 }
 
 #[test]
-fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Proxy.sol"] {
-		for solidity_fn in sol::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
-}
-
-#[test]
 fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 100000000), (Bob.into(), 100000000)])
@@ -856,4 +831,9 @@ fn proxy_proxy_should_fail_if_called_by_smart_contract_for_a_non_eoa_account() {
 				})
 				.execute_reverts(|output| output == b"real address must be EOA");
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	check_precompile_implements_solidity_interfaces(&["Proxy.sol"], PCall::supports_selector)
 }

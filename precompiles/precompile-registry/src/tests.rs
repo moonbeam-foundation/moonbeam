@@ -195,25 +195,8 @@ mod update_account_code {
 
 #[test]
 fn test_solidity_interface() {
-	for file in ["PrecompileRegistry.sol"] {
-		for solidity_fn in sol::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"unsupported selector 0x{:x} => '{}' for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["PrecompileRegistry.sol"],
+		PCall::supports_selector,
+	)
 }

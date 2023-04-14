@@ -841,27 +841,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Xtokens.sol"] {
-		for solidity_fn in sol::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Xtokens.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -873,7 +853,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
 		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 	] {
-		let selector = sol::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

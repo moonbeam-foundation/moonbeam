@@ -575,52 +575,18 @@ fn test_transact_signed_multilocation_v2() {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v1() {
-	for file in ["src/v1/XcmTransactorV1.sol"] {
-		for solidity_fn in sol::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCallV1::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["src/v1/XcmTransactorV1.sol"],
+		PCallV1::supports_selector,
+	)
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v2() {
-	for file in ["src/v2/XcmTransactorV2.sol"] {
-		for solidity_fn in sol::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCallV2::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["src/v2/XcmTransactorV2.sol"],
+		PCallV2::supports_selector,
+	)
 }
 
 #[test]
@@ -635,7 +601,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 	] {
-		let selector = sol::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCallV1::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
