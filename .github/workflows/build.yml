@@ -649,3 +649,27 @@ jobs:
           cd test
           pnpm i
           pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
+
+  zombie_test_moonbase:
+    runs-on: ubuntu-latest
+    needs: ["set-tags", "build"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: "Download runtime"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: runtimes
+          path: test/runtimes
+      - name: "Download client node"
+        run: |
+          cd test
+          pnpm i
+          pnpm moonwall download moonbeam

@@ -4,6 +4,29 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
+      "name": "zombie_alphanet",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanet.json"
+        }
+      }
+    },
+    {
+      "name": "zombie_common",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*common*"],
+      "foundation": {
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeam.json"
+        }
+      }
+    },
+    {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
       "foundation": {
