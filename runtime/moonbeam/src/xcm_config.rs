@@ -50,7 +50,7 @@ use xcm_executor::traits::JustTry;
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact
+	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
