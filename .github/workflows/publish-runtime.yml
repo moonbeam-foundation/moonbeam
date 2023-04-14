@@ -152,7 +152,7 @@ jobs:
           mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
           mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
 
-          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"`
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonbeam_ver=$runtime_moonbeam_ver" >> $GITHUB_OUTPUT
           mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
           mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
