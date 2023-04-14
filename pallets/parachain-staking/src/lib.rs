@@ -455,7 +455,7 @@ pub mod pallet {
 
 				// iter collators to check which of them must be marked as offline
 				for collator in collators {
-					println!("candidate last active {:?} {:?}", <CandidateLastActive<T>>::get(&collator), collator.clone());
+					println!("candidate last active {:?} C {:?} R {:?}", <CandidateLastActive<T>>::get(&collator), collator.clone(), round.current);
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
 						if round.current.saturating_sub(info.last_round)
 							> T::MaxOfflineRounds::get() && round

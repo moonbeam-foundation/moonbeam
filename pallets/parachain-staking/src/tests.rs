@@ -928,8 +928,8 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 				})
 			);
 
-			// Roll 2 rounds more
-			roll_to(30);
+			// Roll 4 rounds more
+			roll_to(50);
 
 			// Check that the collator 2 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
@@ -941,30 +941,26 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 			// Collators 4 and 5 remain online because the constraint about
 			// not going under the 66% of TotalSelected
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
-					account: 0,
-					value: 0,
-				},
 				Event::CandidateWentOffline { candidate: 2 },
 				Event::CandidateWentOffline { candidate: 3 },
 				Event::CollatorChosen {
-					round: 4,
+					round: 6,
 					collator_account: 1,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 4,
+					round: 6,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 4,
+					round: 6,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 30,
-					round: 4,
+					starting_block: 50,
+					round: 6,
 					selected_collators_number: 3,
 					total_balance: 30,
 				},
@@ -1057,36 +1053,36 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			set_candidate_last_active(4, 4);
 			set_candidate_last_active(5, 4);
 
-			// Roll 4 rounds more
-			roll_to(50);
+			// Roll 5 rounds more
+			roll_to(60);
 
 			// Check that the collator 1 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 3,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 50,
-					round: 6,
+					starting_block: 60,
+					round: 7,
 					selected_collators_number: 4,
 					total_balance: 40,
 				},
@@ -1706,7 +1702,7 @@ fn collator_produces_blocks_successfully() {
 				Some(CollatorActivity {
 					last_round: 2,
 					last_active: 3,
-					max_offline_counter: 0
+					max_offline_counter: 2
 				})
 			);
 		});
@@ -1811,7 +1807,7 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 				Some(CollatorActivity {
 					last_round: 2,
 					last_active: 5,
-					max_offline_counter: 0
+					max_offline_counter: 4
 				})
 			);
 		});
@@ -1975,36 +1971,36 @@ fn candidate_joins_again_after_going_offline() {
 			set_candidate_last_active(4, 4);
 			set_candidate_last_active(5, 4);
 
-			// Roll 4 rounds more
-			roll_to(50);
+			// Roll 5 rounds more
+			roll_to(60);
 
 			// Check that the collator 1 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 3,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 7,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 50,
-					round: 6,
+					starting_block: 60,
+					round: 7,
 					selected_collators_number: 4,
 					total_balance: 40,
 				},
