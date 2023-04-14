@@ -595,7 +595,6 @@
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -649,7 +648,6 @@
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	DEFAULT_PROOF_SIZE,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -797,7 +795,7 @@
 
 <span class="macro">parameter_types! </span>{
 	<span class="doccomment">/// The amount of weight an XCM operation takes. This is safe overestimate.
-	</span><span class="kw">pub </span>UnitWeightCost: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, DEFAULT_PROOF_SIZE);
+	</span><span class="kw">pub </span>UnitWeightCost: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, <span class="number">0</span>);
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	</span><span class="kw">pub </span>MaxInstructions: u32 = <span class="number">100</span>;
@@ -1054,7 +1052,7 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>BaseXcmWeight: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, DEFAULT_PROOF_SIZE);
+	<span class="kw">pub const </span>BaseXcmWeight: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, <span class="number">0</span>);
 	<span class="kw">pub const </span>MaxAssetsForTransfer: usize = <span class="number">2</span>;
 
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset
