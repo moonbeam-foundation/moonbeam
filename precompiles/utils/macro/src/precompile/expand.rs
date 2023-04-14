@@ -271,7 +271,7 @@ impl Precompile {
 					.map(|_| quote!(discriminant,));
 
 				let write_output = quote_spanned!(output_span=>
-					solidity::encode_return_value(output?)
+					::precompile_utils::solidity::encode_return_value(output?)
 				);
 
 				quote!(
