@@ -44,7 +44,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2.1.0
         if: github.repository == 'purestake/moonbeam'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -86,7 +86,7 @@ jobs:
           cat ${{ matrix.chain }}-srtool-digest.json
           cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}-runtime.compact.compressed.wasm
       - name: Archive Artifacts for ${{ matrix.chain }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ matrix.chain }}-runtime
           path: |
@@ -108,17 +108,17 @@ jobs:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
       - name: Download moonbase runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonbase-runtime
           path: build
       - name: Download moonriver runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonriver-runtime
           path: build
       - name: Download moonbeam runtime
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam-runtime
           path: build
@@ -143,17 +143,17 @@ jobs:
         id: get-runtime-ver
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
+          echo "runtime_moonbase_ver=$runtime_moonbase_ver" >> $GITHUB_OUTPUT
           mv build/moonbase-runtime.compact.compressed.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
           mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
 
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          echo "runtime_moonriver_ver=$runtime_moonriver_ver" >> $GITHUB_OUTPUT
           mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
           mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
 
-          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"`
+          echo "runtime_moonbeam_ver=$runtime_moonbeam_ver" >> $GITHUB_OUTPUT
           mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
           mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
 
