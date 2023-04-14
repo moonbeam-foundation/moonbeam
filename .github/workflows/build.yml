@@ -668,9 +668,22 @@ jobs:
         with:
           name: runtimes
           path: test/tmp
+      - name: "Download node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: test/tmp
       - name: "Run zombie test"
         run: |
           cd test
           pnpm i
-          pnpm moonwall download moonbeam latest tmp
+
+          ## Generate old spec using latest published node
+          pnpm moonwall download moonbeam latest tmp/dl/
+          tmp/dl/moonbeam build-spec --chain moonbase_dev --raw --disable-default-bootnode \
+                    > tmp/moonbase-raw-specs.json
+          ## TODO  experiment with using zombienet genesis_wasm_path
+
+
+
           pnpm moonwall test zombie_alphanet_ci

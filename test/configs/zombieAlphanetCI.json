@@ -9,7 +9,8 @@
     "default_args": [
       "--no-hardware-benchmarks",
       "-lparachain=debug",
-      "--database=paritydb"
+      "--database=paritydb",
+      "--wasm-execution=interpreted-i-know-what-i-do"
     ],
     "nodes": [
       {
@@ -24,18 +25,19 @@
   },
   "parachains": [
     {
-      "id": 1282,
-      "cumulus_based": true,
       "chain": "moonbase-local",
-      "chain_spec_path":"tmp/moonbase-test-spec-raw.json",
+      "id": 1282,
       "collator": {
         "name": "alith",
-        "command": "../target/release/moonbeam",
         "args": [
+          "--log=info,evm=trace,ethereum=trace,pallet_parachain_staking=error,cumulus-consensus=trace,cumulus-collator=trace,parachain::collator_protocol=trace,parachain::candidate-selection=trace,parachain::collation_generation=trace,parachain::filtering=trace",
+          "--state-pruning=archive",
+          "--unsafe-rpc-external",
+          "--execution=wasm",
           "--no-hardware-benchmarks",
-          "-lparachain=debug",
-          "--database=paritydb"
-        ]
+          "--wasm-execution=interpreted-i-know-what-i-do"
+        ],
+        "command": "tmp/moonbeam"
       }
     }
   ],

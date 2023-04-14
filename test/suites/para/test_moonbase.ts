@@ -29,6 +29,7 @@ describeSuite({
       title: "Chain can be upgraded",
       timeout: 600000,
       test: async function () {
+
         const blockNumberBefore = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
         const currentCode = await paraApi.rpc.state.getStorage(":code");
         const codeString = currentCode.toString()

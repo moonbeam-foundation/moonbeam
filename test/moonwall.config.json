@@ -11,7 +11,7 @@
         "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
-          "configPath": "./configs/zombieAlphanet.json"
+          "configPath": "./configs/zombieAlphanetCI.json"
         }
       }
     },
