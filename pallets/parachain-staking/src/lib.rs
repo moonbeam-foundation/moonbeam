@@ -1716,7 +1716,9 @@ pub mod pallet {
 		}
 
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
-		/// a vec of their AccountIds (sorted by AccountId)
+		/// a vec of their AccountIds (sorted by AccountId).
+		///
+		/// If the returned vec is empty, the previous candidates should be used.
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let top_n = <TotalSelected<T>>::get() as usize;
 			if top_n == 0 {
