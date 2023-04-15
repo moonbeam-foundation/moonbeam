@@ -15,7 +15,6 @@ describeParachain(
     relaychain: {
       binary: "local",
     },
-    
   },
   (context) => {
     if (localVersion !== previousVersion && !hasAuthoringChanges) {
