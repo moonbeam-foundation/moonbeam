@@ -29,10 +29,11 @@ describeSuite({
       title: "Chain can be upgraded",
       timeout: 600000,
       test: async function () {
-
-        const blockNumberBefore = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+        const blockNumberBefore = (
+          await paraApi.rpc.chain.getBlock()
+        ).block.header.number.toNumber();
         const currentCode = await paraApi.rpc.state.getStorage(":code");
-        const codeString = currentCode.toString()
+        const codeString = currentCode.toString();
 
         const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath);
         const rtHex = `0x${wasm.toString("hex")}`;
@@ -43,12 +44,15 @@ describeSuite({
         }
 
         await context.upgradeRuntime();
-        await context.waitBlock(2)
-        const blockNumberAfter = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
-        log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`)
-        expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(blockNumberBefore);
+        await context.waitBlock(2);
+        const blockNumberAfter = (
+          await paraApi.rpc.chain.getBlock()
+        ).block.header.number.toNumber();
+        log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
+        expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
+          blockNumberBefore
+        );
       },
     });
-
   },
 });

@@ -27,7 +27,7 @@
       "id": 1282,
       "cumulus_based": true,
       "chain": "moonbase-local",
-      "chain_spec_path":"tmp/moonbase-test-spec-raw.json",
+      "chain_spec_path": "tmp/moonbase-test-spec-raw.json",
       "collator": {
         "name": "alith",
         "command": "../target/release/moonbeam",
