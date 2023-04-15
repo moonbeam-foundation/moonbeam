@@ -692,4 +692,5 @@ jobs:
           tmp/dl/moonbeam build-spec --chain moonbase-local > tmp/moonbase-plain-spec.json
 
           ## Start zombie network and run tests
+          chmod uog+x tmp/moonbeam
           pnpm moonwall test zombie_alphanet_ci
