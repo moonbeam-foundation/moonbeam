@@ -689,7 +689,7 @@ jobs:
           pnpm moonwall download moonbeam latest tmp/dl/
 
           ## Generate old spec using latest published node
-          tmp/dl/moonbeam build-spec --chain moonbase_local > tmp/moonbase-plain-spec.json
+          tmp/dl/moonbeam build-spec --chain moonbase-local > tmp/moonbase-plain-spec.json
 
           ## Start zombie network and run tests
           pnpm moonwall test zombie_alphanet_ci
