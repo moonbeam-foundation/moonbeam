@@ -630,7 +630,10 @@ jobs:
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
         with:
           version: 7
@@ -654,7 +657,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
         with:
           version: 7
@@ -678,12 +684,12 @@ jobs:
           cd test
           pnpm i
 
-          ## Generate old spec using latest published node
+          ## Download latest node binaries
+          pnpm moonwall download polkadot latest tmp
           pnpm moonwall download moonbeam latest tmp/dl/
-          tmp/dl/moonbeam build-spec --chain moonbase_dev --raw --disable-default-bootnode \
-                    > tmp/moonbase-raw-specs.json
-          ## TODO  experiment with using zombienet genesis_wasm_path
 
+          ## Generate old spec using latest published node
+          tmp/dl/moonbeam build-spec --chain moonbase_local > tmp/moonbase-plain-spec.json
 
-
+          ## Start zombie network and run tests
           pnpm moonwall test zombie_alphanet_ci
