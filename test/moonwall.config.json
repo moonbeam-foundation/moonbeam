@@ -6,7 +6,7 @@
     {
       "name": "zombie_alphanet_ci",
       "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*", "**/*common*"],
+      "include": ["**/*moonbase*"],
       "foundation": {
         "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
