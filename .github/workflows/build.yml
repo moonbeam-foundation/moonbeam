@@ -530,6 +530,10 @@ jobs:
           cd ../tests
           npm ci
           npm run build
+
+          #### Prepares and copies the typescript generated API to include in the tests
+          npm run setup-typescript-api 
+
           cd ..
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
