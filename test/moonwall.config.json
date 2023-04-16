@@ -4,6 +4,18 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
+      "name": "zombie_moonriver",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonriver*"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonriver.json"
+        }
+      }
+    },
+    {
       "name": "zombie_alphanet_ci",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*"],

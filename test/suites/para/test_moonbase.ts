@@ -107,7 +107,7 @@ describeSuite({
           return;
         }
 
-        await context.upgradeRuntime();
+        await context.upgradeRuntime({ logger: log });
         await context.waitBlock(2);
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()

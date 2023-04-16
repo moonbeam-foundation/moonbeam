@@ -24,10 +24,10 @@
   },
   "parachains": [
     {
-      "id": 1282,
+      "id": 1285,
       "cumulus_based": true,
-      "chain": "moonbase-local",
-      "chain_spec_path": "tmp/moonbase-plain-spec.json",
+      "chain": "moonriver-local",
+      "chain_spec_path": "tmp/moonriver-plain-spec.json",
       "collator": {
         "name": "alith",
         "command": "../target/release/moonbeam",
