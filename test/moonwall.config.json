@@ -4,6 +4,18 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
+      "name": "zombie_moonriver_ci",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbase*"],
+      "foundation": {
+        "rtUpgradePath": "./tmp/moonriver_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonriverCI.json"
+        }
+      }
+    },
+    {
       "name": "zombie_moonriver",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonriver*"],
@@ -16,7 +28,7 @@
       }
     },
     {
-      "name": "zombie_alphanet_ci",
+      "name": "zombie_moonbase_ci",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*"],
       "foundation": {
@@ -28,7 +40,7 @@
       }
     },
     {
-      "name": "zombie_alphanet",
+      "name": "zombie_moonbase",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],
       "foundation": {
