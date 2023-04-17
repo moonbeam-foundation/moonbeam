@@ -32,7 +32,7 @@
     "generate:meta:moonriver": "node --experimental-specifier-resolution=node --loader ts-node/esm  node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
     "generate:meta:moonbeam": "node --experimental-specifier-resolution=node --loader ts-node/esm node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "prebuild": "rimraf build",
-    "build": "npx tsc -b --verbose",
+    "build": "tsc -b --verbose",
     "postbuild": "node --experimental-specifier-resolution=node --loader ts-node/esm ./scripts/postbuild.js",
     "publish": "cd build && npm publish",
     "deploy": "npm run generate && npm run build && npm run publish",
