@@ -527,6 +527,12 @@ jobs:
           ####  Preparing the repository
           cd moonbeam-types-bundle
           npm ci
+          npm run build
+
+          ####  Preparing the typescript api
+          cd ../typescript-api
+          npm ci
+
           cd ../tests
           npm ci
           #### Prepares and copies the typescript generated API to include in the tests
