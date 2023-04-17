@@ -8,14 +8,7 @@ impl ExamplePrecompile {
         handle: &mut impl PrecompileHandle,
     ) -> EvmResult<(Address, U256, UnboundedBytes)> {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(&["example"], &[]),
-                    ),
-                ],
-            ),
+            format_args!("not yet implemented: {0}", format_args!("example")),
         )
     }
 }
@@ -67,10 +60,7 @@ impl ExamplePrecompileCall {
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
-                    ::core::fmt::Arguments::new_v1(
-                        &["__phantom variant should not be used"],
-                        &[],
-                    ),
+                    format_args!("__phantom variant should not be used"),
                 )
             }
         };
@@ -97,10 +87,7 @@ impl ExamplePrecompileCall {
             Self::example {} => EvmDataWriter::new_with_selector(1412775727u32).build(),
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
-                    ::core::fmt::Arguments::new_v1(
-                        &["__phantom variant should not be used"],
-                        &[],
-                    ),
+                    format_args!("__phantom variant should not be used"),
                 )
             }
         }
@@ -130,12 +117,9 @@ pub(crate) fn __ExamplePrecompile_test_solidity_signatures_inner() {
                     &*left_val,
                     &*right_val,
                     ::core::option::Option::Some(
-                        ::core::fmt::Arguments::new_v1(
-                            &[
-                                "",
-                                " function signature doesn\'t match (left: attribute, right: computed from Rust types)",
-                            ],
-                            &[::core::fmt::ArgumentV1::new_display(&"example")],
+                        format_args!(
+                            "{0} function signature doesn\'t match (left: attribute, right: computed from Rust types)",
+                            "example"
                         ),
                     ),
                 );

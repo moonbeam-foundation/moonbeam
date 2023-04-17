@@ -46,7 +46,7 @@ mod tests {
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
 			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-			Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+			Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
 			Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 			Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		}
@@ -312,6 +312,50 @@ mod tests {
 					.execute_returns_encoded(());
 			}
 			assert!(*subcall_occured.borrow());
+		})
+	}
+
+	#[test]
+	fn get_address_type_works_for_eoa() {
+		ExtBuilder::default().build().execute_with(|| {
+			let addr = H160::repeat_byte(0x1d);
+			assert_eq!(AddressType::EOA, get_address_type::<Runtime>(addr));
+		})
+	}
+
+	#[test]
+	fn get_address_type_works_for_precompile() {
+		ExtBuilder::default().build().execute_with(|| {
+			let addr = H160::repeat_byte(0x1d);
+			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x60, 0x00, 0x60, 0x00, 0xfd]);
+			assert_eq!(AddressType::Precompile, get_address_type::<Runtime>(addr));
+		})
+	}
+
+	#[test]
+	fn get_address_type_works_for_smart_contract() {
+		ExtBuilder::default().build().execute_with(|| {
+			let addr = H160::repeat_byte(0x1d);
+
+			// length > 5
+			pallet_evm::AccountCodes::<Runtime>::insert(
+				addr,
+				vec![0x60, 0x00, 0x60, 0x00, 0xfd, 0xff, 0xff],
+			);
+			assert_eq!(AddressType::Contract, get_address_type::<Runtime>(addr));
+
+			// length < 5
+			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x60, 0x00, 0x60]);
+			assert_eq!(AddressType::Contract, get_address_type::<Runtime>(addr));
+		})
+	}
+
+	#[test]
+	fn get_address_type_works_for_unknown() {
+		ExtBuilder::default().build().execute_with(|| {
+			let addr = H160::repeat_byte(0x1d);
+			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x11, 0x00, 0x60, 0x00, 0xfd]);
+			assert_eq!(AddressType::Unknown, get_address_type::<Runtime>(addr));
 		})
 	}
 }

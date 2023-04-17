@@ -11,7 +11,9 @@ import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same gas", (context) => {
   it("should consume the same gas", async function () {
-    const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
+    const batchInterface = new ethers.utils.Interface(
+      getCompiled("precompiles/batch/Batch").contract.abi
+    );
 
     // each tx have a different gas limit to ensure it doesn't impact gas used
     let batchAllTx = await context.web3.eth.accounts.signTransaction(

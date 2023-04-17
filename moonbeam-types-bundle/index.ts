@@ -1,4 +1,4 @@
-import {
+import type {
   OverrideBundleDefinition,
   OverrideBundleType,
   OverrideModuleType,
@@ -6,6 +6,7 @@ import {
   DefinitionRpcSub,
   RegistryTypes,
   OverrideVersionedType,
+  // @ts-expect-error
 } from "@polkadot/types/types";
 
 // override types for specific pallets
