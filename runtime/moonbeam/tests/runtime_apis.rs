@@ -24,7 +24,7 @@ use frame_support::assert_ok;
 use moonbeam_runtime::Header;
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
-use sp_core::{ByteArray, Pair, Public, H160, H256, U256};
+use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
