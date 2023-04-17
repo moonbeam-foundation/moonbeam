@@ -132,7 +132,7 @@ pub struct ExtBuilder {
 	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
-	// AuthorId -> AccoutId mappings
+	// AuthorId -> AccountId mappings
 	mappings: Vec<(NimbusId, AccountId)>,
 	// Crowdloan fund
 	crowdloan_fund: Balance,
