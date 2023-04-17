@@ -254,7 +254,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
@@ -278,22 +277,10 @@ jobs:
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
-      - name: SCCache
-        run: |
-          # We altered the path to avoid old actions to overwrite it
-          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
-          if [ ! -f $SCCACHE_BIN ]; then
-            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
-          fi
-          ls -la $SCCACHE_BIN
-          ps aux | grep sccache
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x $SCCACHE_BIN
-            $SCCACHE_BIN --start-server
-          fi
-          $SCCACHE_BIN -s
-          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.1"
       - name: Build Node
         run: |
           env
