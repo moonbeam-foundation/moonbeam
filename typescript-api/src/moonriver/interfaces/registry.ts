@@ -65,6 +65,7 @@ import type {
   FrameSystemEvent,
   FrameSystemEventRecord,
   FrameSystemExtensionsCheckGenesis,
+  FrameSystemExtensionsCheckNonZeroSender,
   FrameSystemExtensionsCheckNonce,
   FrameSystemExtensionsCheckSpecVersion,
   FrameSystemExtensionsCheckTxVersion,
@@ -246,6 +247,7 @@ import type {
   PalletXcmEvent,
   PalletXcmOrigin,
   PalletXcmQueryStatus,
+  PalletXcmRemoteLockedFungibleRecord,
   PalletXcmTransactorCall,
   PalletXcmTransactorCurrency,
   PalletXcmTransactorCurrencyPayment,
@@ -285,36 +287,51 @@ import type {
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
   XcmDoubleEncoded,
-  XcmV0Junction,
-  XcmV0JunctionBodyId,
-  XcmV0JunctionBodyPart,
-  XcmV0JunctionNetworkId,
-  XcmV0MultiAsset,
-  XcmV0MultiLocation,
-  XcmV0Order,
-  XcmV0OriginKind,
-  XcmV0Response,
-  XcmV0Xcm,
-  XcmV1Junction,
-  XcmV1MultiAsset,
-  XcmV1MultiLocation,
-  XcmV1MultiassetAssetId,
-  XcmV1MultiassetAssetInstance,
-  XcmV1MultiassetFungibility,
-  XcmV1MultiassetMultiAssetFilter,
-  XcmV1MultiassetMultiAssets,
-  XcmV1MultiassetWildFungibility,
-  XcmV1MultiassetWildMultiAsset,
-  XcmV1MultilocationJunctions,
-  XcmV1Order,
-  XcmV1Response,
-  XcmV1Xcm,
+  XcmV2BodyId,
+  XcmV2BodyPart,
   XcmV2Instruction,
+  XcmV2Junction,
+  XcmV2MultiAsset,
+  XcmV2MultiLocation,
+  XcmV2MultiassetAssetId,
+  XcmV2MultiassetAssetInstance,
+  XcmV2MultiassetFungibility,
+  XcmV2MultiassetMultiAssetFilter,
+  XcmV2MultiassetMultiAssets,
+  XcmV2MultiassetWildFungibility,
+  XcmV2MultiassetWildMultiAsset,
+  XcmV2MultilocationJunctions,
+  XcmV2NetworkId,
+  XcmV2OriginKind,
   XcmV2Response,
   XcmV2TraitsError,
-  XcmV2TraitsOutcome,
   XcmV2WeightLimit,
   XcmV2Xcm,
+  XcmV3Instruction,
+  XcmV3Junction,
+  XcmV3JunctionBodyId,
+  XcmV3JunctionBodyPart,
+  XcmV3JunctionNetworkId,
+  XcmV3Junctions,
+  XcmV3MaybeErrorCode,
+  XcmV3MultiAsset,
+  XcmV3MultiLocation,
+  XcmV3MultiassetAssetId,
+  XcmV3MultiassetAssetInstance,
+  XcmV3MultiassetFungibility,
+  XcmV3MultiassetMultiAssetFilter,
+  XcmV3MultiassetMultiAssets,
+  XcmV3MultiassetWildFungibility,
+  XcmV3MultiassetWildMultiAsset,
+  XcmV3PalletInfo,
+  XcmV3QueryResponseInfo,
+  XcmV3Response,
+  XcmV3TraitsError,
+  XcmV3TraitsOutcome,
+  XcmV3VecPalletInfo,
+  XcmV3WeightLimit,
+  XcmV3Xcm,
+  XcmVersionedAssetId,
   XcmVersionedMultiAsset,
   XcmVersionedMultiAssets,
   XcmVersionedMultiLocation,
@@ -383,6 +400,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemEvent: FrameSystemEvent;
     FrameSystemEventRecord: FrameSystemEventRecord;
     FrameSystemExtensionsCheckGenesis: FrameSystemExtensionsCheckGenesis;
+    FrameSystemExtensionsCheckNonZeroSender: FrameSystemExtensionsCheckNonZeroSender;
     FrameSystemExtensionsCheckNonce: FrameSystemExtensionsCheckNonce;
     FrameSystemExtensionsCheckSpecVersion: FrameSystemExtensionsCheckSpecVersion;
     FrameSystemExtensionsCheckTxVersion: FrameSystemExtensionsCheckTxVersion;
@@ -564,6 +582,7 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmEvent: PalletXcmEvent;
     PalletXcmOrigin: PalletXcmOrigin;
     PalletXcmQueryStatus: PalletXcmQueryStatus;
+    PalletXcmRemoteLockedFungibleRecord: PalletXcmRemoteLockedFungibleRecord;
     PalletXcmTransactorCall: PalletXcmTransactorCall;
     PalletXcmTransactorCurrency: PalletXcmTransactorCurrency;
     PalletXcmTransactorCurrencyPayment: PalletXcmTransactorCurrencyPayment;
@@ -603,36 +622,51 @@ declare module "@polkadot/types/types/registry" {
     SpWeightsRuntimeDbWeight: SpWeightsRuntimeDbWeight;
     SpWeightsWeightV2Weight: SpWeightsWeightV2Weight;
     XcmDoubleEncoded: XcmDoubleEncoded;
-    XcmV0Junction: XcmV0Junction;
-    XcmV0JunctionBodyId: XcmV0JunctionBodyId;
-    XcmV0JunctionBodyPart: XcmV0JunctionBodyPart;
-    XcmV0JunctionNetworkId: XcmV0JunctionNetworkId;
-    XcmV0MultiAsset: XcmV0MultiAsset;
-    XcmV0MultiLocation: XcmV0MultiLocation;
-    XcmV0Order: XcmV0Order;
-    XcmV0OriginKind: XcmV0OriginKind;
-    XcmV0Response: XcmV0Response;
-    XcmV0Xcm: XcmV0Xcm;
-    XcmV1Junction: XcmV1Junction;
-    XcmV1MultiAsset: XcmV1MultiAsset;
-    XcmV1MultiLocation: XcmV1MultiLocation;
-    XcmV1MultiassetAssetId: XcmV1MultiassetAssetId;
-    XcmV1MultiassetAssetInstance: XcmV1MultiassetAssetInstance;
-    XcmV1MultiassetFungibility: XcmV1MultiassetFungibility;
-    XcmV1MultiassetMultiAssetFilter: XcmV1MultiassetMultiAssetFilter;
-    XcmV1MultiassetMultiAssets: XcmV1MultiassetMultiAssets;
-    XcmV1MultiassetWildFungibility: XcmV1MultiassetWildFungibility;
-    XcmV1MultiassetWildMultiAsset: XcmV1MultiassetWildMultiAsset;
-    XcmV1MultilocationJunctions: XcmV1MultilocationJunctions;
-    XcmV1Order: XcmV1Order;
-    XcmV1Response: XcmV1Response;
-    XcmV1Xcm: XcmV1Xcm;
+    XcmV2BodyId: XcmV2BodyId;
+    XcmV2BodyPart: XcmV2BodyPart;
     XcmV2Instruction: XcmV2Instruction;
+    XcmV2Junction: XcmV2Junction;
+    XcmV2MultiAsset: XcmV2MultiAsset;
+    XcmV2MultiLocation: XcmV2MultiLocation;
+    XcmV2MultiassetAssetId: XcmV2MultiassetAssetId;
+    XcmV2MultiassetAssetInstance: XcmV2MultiassetAssetInstance;
+    XcmV2MultiassetFungibility: XcmV2MultiassetFungibility;
+    XcmV2MultiassetMultiAssetFilter: XcmV2MultiassetMultiAssetFilter;
+    XcmV2MultiassetMultiAssets: XcmV2MultiassetMultiAssets;
+    XcmV2MultiassetWildFungibility: XcmV2MultiassetWildFungibility;
+    XcmV2MultiassetWildMultiAsset: XcmV2MultiassetWildMultiAsset;
+    XcmV2MultilocationJunctions: XcmV2MultilocationJunctions;
+    XcmV2NetworkId: XcmV2NetworkId;
+    XcmV2OriginKind: XcmV2OriginKind;
     XcmV2Response: XcmV2Response;
     XcmV2TraitsError: XcmV2TraitsError;
-    XcmV2TraitsOutcome: XcmV2TraitsOutcome;
     XcmV2WeightLimit: XcmV2WeightLimit;
     XcmV2Xcm: XcmV2Xcm;
+    XcmV3Instruction: XcmV3Instruction;
+    XcmV3Junction: XcmV3Junction;
+    XcmV3JunctionBodyId: XcmV3JunctionBodyId;
+    XcmV3JunctionBodyPart: XcmV3JunctionBodyPart;
+    XcmV3JunctionNetworkId: XcmV3JunctionNetworkId;
+    XcmV3Junctions: XcmV3Junctions;
+    XcmV3MaybeErrorCode: XcmV3MaybeErrorCode;
+    XcmV3MultiAsset: XcmV3MultiAsset;
+    XcmV3MultiLocation: XcmV3MultiLocation;
+    XcmV3MultiassetAssetId: XcmV3MultiassetAssetId;
+    XcmV3MultiassetAssetInstance: XcmV3MultiassetAssetInstance;
+    XcmV3MultiassetFungibility: XcmV3MultiassetFungibility;
+    XcmV3MultiassetMultiAssetFilter: XcmV3MultiassetMultiAssetFilter;
+    XcmV3MultiassetMultiAssets: XcmV3MultiassetMultiAssets;
+    XcmV3MultiassetWildFungibility: XcmV3MultiassetWildFungibility;
+    XcmV3MultiassetWildMultiAsset: XcmV3MultiassetWildMultiAsset;
+    XcmV3PalletInfo: XcmV3PalletInfo;
+    XcmV3QueryResponseInfo: XcmV3QueryResponseInfo;
+    XcmV3Response: XcmV3Response;
+    XcmV3TraitsError: XcmV3TraitsError;
+    XcmV3TraitsOutcome: XcmV3TraitsOutcome;
+    XcmV3VecPalletInfo: XcmV3VecPalletInfo;
+    XcmV3WeightLimit: XcmV3WeightLimit;
+    XcmV3Xcm: XcmV3Xcm;
+    XcmVersionedAssetId: XcmVersionedAssetId;
     XcmVersionedMultiAsset: XcmVersionedMultiAsset;
     XcmVersionedMultiAssets: XcmVersionedMultiAssets;
     XcmVersionedMultiLocation: XcmVersionedMultiLocation;

@@ -108,7 +108,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay(0)
+          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay({ refTime: 0, proofSize: 0 })
         )
       )
     );
