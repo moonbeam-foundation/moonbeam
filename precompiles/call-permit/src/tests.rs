@@ -18,8 +18,6 @@ use crate::{
 	mock::{CallPermit, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime},
 	CallPermitPrecompile,
 };
-use evm::ExitReason;
-use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
 use precompile_utils::{
 	evm::costs::call_cost, prelude::*, solidity::revert::revert_as_bytes, testing::*,

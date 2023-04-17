@@ -18,7 +18,6 @@ use crate::mock::{
 	AccountId, ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin,
 };
-use evm::{ExitReason, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_proxy::{

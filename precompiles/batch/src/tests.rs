@@ -21,8 +21,7 @@ use crate::mock::{
 use crate::{
 	log_subcall_failed, log_subcall_succeeded, Mode, LOG_SUBCALL_FAILED, LOG_SUBCALL_SUCCEEDED,
 };
-use evm::ExitReason;
-use fp_evm::{ExitError, ExitRevert, ExitSucceed};
+use fp_evm::ExitError;
 use frame_support::{
 	assert_ok,
 	dispatch::{DispatchError, Dispatchable},
