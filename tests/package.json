@@ -50,7 +50,7 @@
     "contract-simulation": "DEBUG=contract* CUSTOM_SPEC_PATH=/tmp/fork-data/moonbeam-state.mod.json BASE_PATH=/tmp/fork-data/moonbeam/para-alith ./node_modules/.bin/mocha -r ts-node/register fork-tests/test-contract*.ts",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
-    "build": "npx tsc && cp -r contracts build/",
+    "build": "tsc && cp -r contracts build/",
     "build-clean": "rm -r node_modules && npm i && npm run build",
     "test-single": "mocha -r ts-node/register 'tests/test-xcm/test-mock-hrmp-transact-ethereum.ts'",
     "current-test": "mocha -r ts-node/register",
