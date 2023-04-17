@@ -1107,10 +1107,7 @@ fn reward_info_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns((
-					expected_total,
-					expected_claimed,
-				));
+				.execute_returns((expected_total, expected_claimed));
 		})
 }
 
