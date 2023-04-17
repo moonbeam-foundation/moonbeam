@@ -255,6 +255,8 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     steps:
@@ -262,16 +264,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
-      - name: Configure sccache
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - uses: arduino/setup-protoc@v1
         with:
           version: "3.x"
@@ -281,8 +273,6 @@ jobs:
         run: rustup show
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.1"
       - name: Build Node
         run: |
           env
@@ -311,7 +301,9 @@ jobs:
         with:
           name: moonbeam
           path: build
-
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
@@ -341,6 +333,9 @@ jobs:
           fi
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
+      - name: Run sccache stat for check
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
 
   typescript-tests:
     runs-on: self-hosted
