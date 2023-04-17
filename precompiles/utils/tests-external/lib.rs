@@ -307,12 +307,7 @@ mod tests {
 					.prepare_test(Alice, H160::from_low_u64_be(4), PCall::subcall {})
 					.with_subcall_handle(move |Subcall { .. }| {
 						*subcall_occured.borrow_mut() = true;
-						SubcallOutput {
-							reason: ExitReason::Succeed(evm::ExitSucceed::Returned),
-							output: vec![],
-							cost: 0,
-							logs: vec![],
-						}
+						SubcallOutput::succeed()
 					})
 					.execute_returns(());
 			}

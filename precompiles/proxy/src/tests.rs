@@ -749,10 +749,10 @@ fn proxy_proxy_should_succeed_if_called_by_smart_contract() {
 					inside2.set(true);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.execute_returns(());
@@ -823,10 +823,10 @@ fn proxy_proxy_should_fail_if_called_by_smart_contract_for_a_non_eoa_account() {
 					inside2.set(true);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.execute_reverts(|output| output == b"real address must be EOA");

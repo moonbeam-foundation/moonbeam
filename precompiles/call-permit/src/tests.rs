@@ -140,10 +140,10 @@ fn valid_permit_returns() {
 					assert_eq!(&input, b"Test");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
@@ -239,10 +239,9 @@ fn valid_permit_reverts() {
 					assert_eq!(&input, b"Test");
 
 					SubcallOutput {
-						reason: ExitReason::Revert(ExitRevert::Reverted),
 						output: revert_as_bytes("TEST"),
 						cost: 13,
-						logs: vec![],
+						..SubcallOutput::revert()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
@@ -660,10 +659,10 @@ fn valid_permit_returns_with_metamask_signed_data() {
 					assert_eq!(&input, &data);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))

@@ -200,10 +200,9 @@ fn batch_returns(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				a if a == Charlie.into() => {
@@ -226,10 +225,9 @@ fn batch_returns(
 					assert_eq!(&input, b"two");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 17,
 						logs: vec![log1(Charlie, H256::repeat_byte(0x22), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -325,10 +323,8 @@ fn batch_out_of_gas(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Error(ExitError::OutOfGas),
-						output: Vec::new(),
 						cost: 11_000,
-						logs: vec![],
+						..SubcallOutput::out_of_gas()
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -421,10 +417,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				a if a == Charlie.into() => {
@@ -447,10 +442,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"");
 
 					SubcallOutput {
-						reason: ExitReason::Revert(ExitRevert::Reverted),
 						output: revert_as_bytes("Revert message"),
 						cost: 17,
-						logs: vec![],
+						..SubcallOutput::revert()
 					}
 				}
 				a if a == Alice.into() => {
@@ -473,10 +467,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 19,
 						logs: vec![log1(Alice, H256::repeat_byte(0x33), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				_ => panic!("unexpected subcall"),

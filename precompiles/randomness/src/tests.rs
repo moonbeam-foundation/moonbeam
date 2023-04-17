@@ -486,10 +486,9 @@ fn fulfill_request_works() {
 					);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: subcall_used_gas,
-						logs: vec![],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(total_cost))
@@ -595,10 +594,9 @@ fn fulfill_request_works_with_higher_gas() {
 					);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: subcall_used_gas,
-						logs: vec![],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(total_cost + 10_000))
@@ -704,10 +702,8 @@ fn fulfill_request_works_with_subcall_revert() {
 					);
 
 					SubcallOutput {
-						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: vec![],
 						cost: subcall_used_gas,
-						logs: vec![],
+						..SubcallOutput::revert()
 					}
 				})
 				.with_target_gas(Some(total_cost))
