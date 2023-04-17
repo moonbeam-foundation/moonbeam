@@ -251,7 +251,7 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: bed5571c
@@ -267,6 +267,12 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
+      - name: Configure sccache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
