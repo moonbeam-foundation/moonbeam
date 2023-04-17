@@ -1424,6 +1424,9 @@
 <a href="#1424" id="1424">1424</a>
 <a href="#1425" id="1425">1425</a>
 <a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2267,6 +2270,7 @@
 				telemetry.clone(),
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+			proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 			<span class="kw">let </span>provider = <span class="kw">move </span>|<span class="kw">_</span>, (relay_parent, validation_data, _author_id)| {
 				<span class="kw">let </span>relay_chain_interface = relay_chain_interface.clone();
@@ -2391,7 +2395,7 @@
 	<span class="kw">let </span>collator = config.role.is_authority();
 
 	<span class="kw">if </span>collator {
-		<span class="kw">let </span><span class="kw-2">mut </span>env = sc_basic_authorship::ProposerFactory::new(
+		<span class="kw">let </span><span class="kw-2">mut </span>env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
@@ -2399,6 +2403,8 @@
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+		env.enable_ensure_proof_size_limit_after_each_extrinsic();
+
 		<span class="kw">let </span>commands_stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = EngineCommand&lt;H256&gt;&gt; + Send + Sync + Unpin&gt; =
 			<span class="kw">match </span>sealing {
 				moonbeam_cli_opt::Sealing::Instant =&gt; {
