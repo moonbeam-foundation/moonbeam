@@ -28,9 +28,9 @@ pub use moonbeam_runtime::{
 	currency::{GIGAWEI, GLMR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, InflationInfo, LocalAssets, ParachainStaking, Range, Runtime, RuntimeCall,
-	RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
-	HOURS, WEEKS,
+	Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking, Range, Runtime,
+	RuntimeCall, RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice,
+	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};

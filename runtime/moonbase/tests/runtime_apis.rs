@@ -21,7 +21,6 @@ use common::*;
 
 use fp_evm::GenesisAccount;
 use frame_support::assert_ok;
-use moonbeam_runtime::Header;
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
 use sp_core::{ByteArray, H160, H256, U256};
