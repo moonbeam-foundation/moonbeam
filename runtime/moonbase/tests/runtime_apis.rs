@@ -304,10 +304,10 @@ fn txpool_runtime_api_extrinsic_filter() {
 fn can_author_when_selected_is_empty() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 20_000_000 * GLMR),
-			(AccountId::from(BOB), 10_000_000 * GLMR),
+			(AccountId::from(ALICE), 20_000_000 * UNIT),
+			(AccountId::from(BOB), 10_000_000 * UNIT),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 2_000_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 2_000_000 * UNIT)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
