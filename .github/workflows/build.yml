@@ -280,10 +280,11 @@ jobs:
           rustup show
       - name: Setup Target Folder
         run: |
-          if [ -d "$TMP_TARGET" ]; then
-            du -sh $TMP_TARGET
-            cp -R $TMP_TARGET ./target
+          if [ ! -d "$TMP_TARGET" ]; then
+             mkdir $TMP_TARGET
           fi
+          du -sh $TMP_TARGET
+          ln -s $TMP_TARGET $(pwd)/target
       - name: Build Node
         run: |
           env
@@ -293,10 +294,6 @@ jobs:
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
-      - name: Save Target Folder
-        run: |
-          mkdir -p $TMP_TARGET
-          cp -R ./target $TMP_TARGET
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
