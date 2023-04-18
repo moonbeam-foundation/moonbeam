@@ -455,14 +455,17 @@ pub mod pallet {
 
 				// iter collators to check which of them must be marked as offline
 				for collator in collators {
-					println!("candidate last active {:?} C {:?} R {:?}", <CandidateLastActive<T>>::get(&collator), collator.clone(), round.current);
+					println!(
+						"candidate last active {:?} C {:?} R {:?}",
+						<CandidateLastActive<T>>::get(&collator),
+						collator.clone(),
+						round.current
+					);
 					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
-						if round.current.saturating_sub(info.last_round)
-							> T::MaxOfflineRounds::get() && round
-							.current
-							.saturating_sub(info.last_active)
-							<= T::MaxOfflineRounds::get()
-							&& len_counter * 3 > (max_collators * 2) as usize
+						if
+						//round.current.saturating_sub(info.last_round) > T::MaxOfflineRounds::get()
+						//&& round.current.saturating_sub(info.last_active) <= T::MaxOfflineRounds::get()&&
+						len_counter * 3 > (max_collators * 2) as usize
 							&& info.max_offline_counter > T::MaxOfflineRounds::get()
 						{
 							// if the collator has not produced any block within
@@ -480,7 +483,7 @@ pub mod pallet {
 								CollatorActivity {
 									last_round: info.last_round,
 									last_active: round.current.saturating_sub(1),
-									max_offline_counter: info.max_offline_counter.saturating_add(1)
+									max_offline_counter: info.max_offline_counter.saturating_add(1),
 								},
 							);
 						}
@@ -491,7 +494,7 @@ pub mod pallet {
 							CollatorActivity {
 								last_round: 0,
 								last_active: round.current.saturating_sub(1),
-								max_offline_counter: 1
+								max_offline_counter: 1,
 							},
 						);
 					}
@@ -533,7 +536,7 @@ pub mod pallet {
 				CollatorActivity {
 					last_round: now,
 					last_active: now,
-					max_offline_counter: 0
+					max_offline_counter: 0,
 				},
 			);
 			Self::award_points_to_block_author(author, now);
