@@ -997,16 +997,6 @@
 <a href="#997" id="997">997</a>
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
-<a href="#1000" id="1000">1000</a>
-<a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
-<a href="#1005" id="1005">1005</a>
-<a href="#1006" id="1006">1006</a>
-<a href="#1007" id="1007">1007</a>
-<a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1026,7 +1016,7 @@
 </span><span class="doccomment">//! This module constructs and executes the appropriate service components for the given subcommand
 
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-<span class="kw">use </span>cumulus_client_cli::generate_genesis_block;
+<span class="kw">use </span>cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>frame_benchmarking_cli::BenchmarkCmd;
 <span class="kw">use </span>log::{info, warn};
@@ -1204,16 +1194,6 @@
 	}
 }
 
-<span class="attr">#[allow(clippy::borrowed_box)]
-</span><span class="kw">fn </span>extract_genesis_wasm(chain_spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
-	<span class="kw">let </span><span class="kw-2">mut </span>storage = chain_spec.build_storage()<span class="question-mark">?</span>;
-
-	storage
-		.top
-		.remove(sp_core::storage::well_known_keys::CODE)
-		.ok_or_else(|| <span class="string">&quot;Could not find wasm file in genesis state!&quot;</span>.into())
-}
-
 <span class="kw">fn </span>validate_trace_environment(cli: <span class="kw-2">&amp;</span>Cli) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
 	<span class="kw">if </span>(cli.run.ethapi.contains(<span class="kw-2">&amp;</span>EthApi::Debug) || cli.run.ethapi.contains(<span class="kw-2">&amp;</span>EthApi::Trace))
 		&amp;&amp; cli
@@ -1318,9 +1298,8 @@
 				<span class="comment">// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
 				// we need to extract it here to determine whether we are running the dev service.
 				</span><span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>config.chain_spec);
-				<span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				<span class="kw">let </span>dev_service =
-					cli.run.dev_service || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.to_string());
+				<span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				<span class="kw">let </span>dev_service = cli.run.dev_service || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
 
 				<span class="comment">// Remove Frontier offchain db
 				</span><span class="kw">let </span>frontier_database_config = <span class="kw">match </span>config.database {
@@ -1410,7 +1389,7 @@
 
 			<span class="comment">// Cumulus approach here, we directly call the generic load_spec func
 			</span><span class="kw">let </span>chain_spec = load_spec(
-				<span class="kw-2">&amp;</span>params.chain.clone().unwrap_or_default(),
+				params.chain.as_deref().unwrap_or_default(),
 				params.parachain_id.unwrap_or(<span class="number">1000</span>).into(),
 				<span class="kw-2">&amp;</span>cli.run,
 			)<span class="question-mark">?</span>;
@@ -1470,8 +1449,9 @@
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">&quot;&quot;</span>);
 			<span class="kw">let _ </span>= builder.init();
 
-			<span class="kw">let </span>raw_wasm_blob =
-				extract_genesis_wasm(<span class="kw-2">&amp;</span>cli.load_spec(<span class="kw-2">&amp;</span>params.chain.clone().unwrap_or_default())<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>raw_wasm_blob = extract_genesis_wasm(
+				<span class="kw-2">&amp;*</span>cli.load_spec(params.chain.as_deref().unwrap_or_default())<span class="question-mark">?</span>,
+			)<span class="question-mark">?</span>;
 			<span class="kw">let </span>output_buf = <span class="kw">if </span>params.raw {
 				raw_wasm_blob
 			} <span class="kw">else </span>{
@@ -1754,9 +1734,9 @@
 				// 1. by providing the --dev-service flag to the CLI
 				// 2. by specifying &quot;dev-service&quot; in the chain spec&#39;s &quot;relay-chain&quot; field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
-				</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
 				<span class="kw">let </span>dev_service =
-					config.chain_spec.is_dev() || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.to_string());
+					config.chain_spec.is_dev() || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
 
 				<span class="kw">if </span>dev_service {
 					<span class="comment">// When running the dev service, just use Alice&#39;s author inherent
