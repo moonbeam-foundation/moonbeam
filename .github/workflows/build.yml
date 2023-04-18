@@ -554,45 +554,7 @@ jobs:
 
           npm run build
 
-          cd ..
-
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-
-          #### Retrieve binary to avoid para-node script to rely on docker
-          mkdir -p build
-          localVersion=$(grep 'spec_version: [0-9]*' runtime/moonbase/src/lib.rs | grep -o '[0-9]*')
-          baseRuntime=$(git tag -l -n 'runtime-[0-9]*' | \
-            cut -d' ' -f 1 | cut -d'-' -f 2 | \
-            sed "1 i ${localVersion}" | \
-            sort -n -r | \
-            uniq | \
-            grep -A1 "${localVersion}" | \
-            tail -1)
-          rev=$(git rev-list -1 runtime-$baseRuntime)
-          sha8=${rev:0:8}
-          dockerImage=purestake/moonbeam:sha-${sha8}
-          binaryPath=build/moonbeam-${sha8}
-          docker create --pull always --name moonbeam-tmp ${dockerImage} && \
-          docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
-          docker rm moonbeam-tmp
-
-          echo "Running para-tests inside docker: $DOCKER_TAG"
-          docker run \
-            -e OVERRIDE_RUNTIME_PATH='./runtimes' \
-            -e BINARY_PATH='../build/moonbeam' \
-            -e MOONBEAM_LOG='info' \
-            -e RELAY_BINARY_PATH='/binaries/polkadot' \
-            -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='../build/' \
-            -e SPECS_DIRECTORY='/tmp/specs' \
-            -v $(pwd):/moonbeam:z \
-            -v $(pwd)/${binaryPath}:/binaries/moonbeam:z \
-            -u $UID \
-            -w /moonbeam/tests \
-            $DOCKER_TAG \
-              node node_modules/.bin/mocha --exit 'build/para-tests/**/test-*.js'
+          node_modules/.bin/mocha 'build/para-tests/**/test-*.js'
 
   docker-moonbeam:
     runs-on: ubuntu-latest
