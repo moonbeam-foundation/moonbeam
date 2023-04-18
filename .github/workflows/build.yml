@@ -251,7 +251,8 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     env:
       CARGO_SCCACHE_COMMIT: bed5571c
