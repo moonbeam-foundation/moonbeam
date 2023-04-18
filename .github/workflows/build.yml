@@ -262,7 +262,7 @@ jobs:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
-      TMP_TARGET=/tmp/target
+      TMP_TARGET: "/tmp/target"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     steps:
@@ -297,8 +297,8 @@ jobs:
         run: ${SCCACHE_PATH} --show-stats
       - name: Save Target Folder
         run: |
-            mkdir -p $TMP_TARGET
-            cp -R ./target $TMP_TARGET
+          mkdir -p $TMP_TARGET
+          cp -R ./target $TMP_TARGET
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
