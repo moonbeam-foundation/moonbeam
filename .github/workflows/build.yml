@@ -188,8 +188,7 @@ jobs:
   ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -201,7 +200,6 @@ jobs:
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/login-action@v2.1.0
         with:
-          registry: registry.hub.docker.com
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
@@ -367,10 +365,10 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 16.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - name: Typescript integration tests (against dev service)
         run: |
           chmod uog+x build/moonbeam
@@ -393,25 +391,12 @@ jobs:
           #### This also better display typescript issues
           npm run build
 
-          cd ..
-
-          #### Retrieving docker image as base to run tests
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-
           CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
 
-          docker run \
-            -e BINARY_PATH='../build/moonbeam' \
-            -v $(pwd):/moonbeam:z \
-            -u $UID \
-            -w /moonbeam/tests \
-            $DOCKER_TAG \
-              node node_modules/.bin/mocha \
-                --parallel -j $((CPUS / 2)) \
-                --exit \
-                'build/tests/**/test-*.js'
+          node node_modules/.bin/mocha \
+            --parallel -j $((CPUS / 2)) \
+            --exit \
+            'build/tests/**/test-*.js'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -494,8 +479,7 @@ jobs:
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
   typescript-para-tests:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
@@ -520,10 +504,10 @@ jobs:
           docker create -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy
-      - name: Use Node.js 16.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - name: Typescript integration tests (against dev service)
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
@@ -621,7 +605,6 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2.1.0
         with:
-          registry: registry.hub.docker.com
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push moonbeam
