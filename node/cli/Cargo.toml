@@ -15,6 +15,7 @@ moonbeam-service = { workspace = true }
 
 # Substrate
 frame-benchmarking-cli = { workspace = true }
+kitchensink-runtime = { workspace = true }
 sc-cli = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
 sc-service = { workspace = true }
@@ -58,9 +59,10 @@ moonbeam-native = [ "moonbeam-service/moonbeam-native" ]
 moonriver-native = [ "moonbeam-service/moonriver-native" ]
 
 runtime-benchmarks = [
+	"kitchensink-runtime/runtime-benchmarks",
 	"moonbeam-service/runtime-benchmarks",
 	"polkadot-service/runtime-benchmarks",
 ]
-try-runtime = [ "moonbeam-service/try-runtime", "try-runtime-cli/try-runtime" ]
+try-runtime = [ "kitchensink-runtime/try-runtime", "moonbeam-service/try-runtime", "try-runtime-cli/try-runtime" ]
 
 moonbase-runtime-benchmarks = [ "moonbeam-service/moonbase-runtime-benchmarks" ]

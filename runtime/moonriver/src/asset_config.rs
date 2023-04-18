@@ -77,6 +77,16 @@ pub type AssetsForceOrigin = EitherOfDiverse<
 	>,
 >;
 
+// Required for runtime benchmarks
+pallet_assets::runtime_benchmarks_enabled! {
+	pub struct BenchmarkHelper;
+	impl<AssetIdParameter: From<u128>> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper {
+		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
+			(id as u128).into()
+		}
+	}
+}
+
 // Foreign assets
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -97,6 +107,9 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 // Local assets
@@ -119,6 +132,9 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 // We instruct how to register the Assets

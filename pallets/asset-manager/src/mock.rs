@@ -107,7 +107,7 @@ parameter_types! {
 	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
 }
 
-pub type AssetId = u32;
+pub type AssetId = u128;
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum MockAssetType {
 	Xcm(MultiLocation),
@@ -203,7 +203,7 @@ parameter_types! {
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
-	type AssetId = u32;
+	type AssetId = u128;
 	type AssetRegistrarMetadata = u32;
 	type ForeignAssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;

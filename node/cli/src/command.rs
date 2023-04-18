@@ -38,6 +38,12 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
 
+#[cfg(feature = "try-runtime")]
+use {
+	kitchensink_runtime::constants::time::SLOT_DURATION,
+	try_runtime_cli::block_building_info::substrate_info,
+};
+
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
@@ -646,6 +652,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonriver_runtime::Block,
@@ -653,7 +660,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonriverExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -666,6 +673,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonbeam_runtime::Block,
@@ -673,7 +681,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonbeamExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -689,6 +697,7 @@ pub fn run() -> Result<()> {
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})?;
 
+						let info_provider = substrate_info(SLOT_DURATION);
 						Ok((
 							cmd.run::<
 								moonbeam_service::moonbase_runtime::Block,
@@ -696,7 +705,7 @@ pub fn run() -> Result<()> {
 									sp_io::SubstrateHostFunctions,
 									<moonbeam_service::MoonbaseExecutor
 										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-							>>(),
+							>, _>(Some(info_provider)),
 							task_manager,
 						))
 					})

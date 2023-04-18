@@ -178,6 +178,7 @@ substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", defaul
 
 # Substrate (client)
 frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+kitchensink-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
 pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
 sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
 sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
