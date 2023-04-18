@@ -18,6 +18,7 @@ on:
         required: false
 env:
   SCCACHE_CACHE_SIZE: "100GB"
+  CARGO_INCREMENTAL: "0"
 
 jobs:
   ####### Check files and formatting #######
@@ -279,13 +280,6 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
-      - name: Setup Target Folders
-        run: |
-          if [ ! -d "$TMP_TARGET" ]; then
-             mkdir $TMP_TARGET
-          fi
-          du -sh $TMP_TARGET
-          ln -s $TMP_TARGET $(pwd)/$CARGO_TARGET_DIR
       - name: Build Node
         run: |
           env
@@ -345,17 +339,13 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
-      - name: Setup Target Folders
-        run: |
-          if [ ! -d "$TMP_TARGET" ]; then
-             mkdir $TMP_TARGET
-          fi
-          du -sh $TMP_TARGET
-          ln -s $TMP_TARGET $(pwd)/$CARGO_TARGET_DIR
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
           cargo test --release --all
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
