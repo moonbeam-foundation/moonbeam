@@ -255,9 +255,9 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      TMPDIR: /var/tmp
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     steps:
@@ -265,13 +265,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
-
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
