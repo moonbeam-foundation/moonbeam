@@ -16,6 +16,8 @@ on:
       pull_request:
         description: set to pull_request number to execute on external pr
         required: false
+env:
+  SCCACHE_CACHE_SIZE: "100GB"
 
 jobs:
   ####### Check files and formatting #######
@@ -318,7 +320,7 @@ jobs:
           name: moonbeam
           path: build
 
-  test:
+  rust-test:
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
