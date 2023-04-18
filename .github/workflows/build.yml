@@ -260,7 +260,6 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target"
       CARGO_TARGET_DIR: "target"
@@ -319,7 +318,6 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target-test"
       CARGO_TARGET_DIR: "target-test"
