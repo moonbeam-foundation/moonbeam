@@ -278,6 +278,13 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
+      - name: Setup Rust toolchain
+        run: |
+          DIR=/var/tmp/target; 
+          if [ -d "$DIR" ]; then
+            du -sh /var/tmp/target
+            cp -R /var/tmp/target ./target
+          fi
       - name: Build Node
         run: |
           env
@@ -287,6 +294,13 @@ jobs:
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
+      - name: Setup Rust toolchain
+        run: |
+          DIR=./target; 
+          if [ -d "$DIR" ]; then
+            du -sh /var/tmp/target
+            cp -R $DIR /var/tmp/target
+          fi
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
