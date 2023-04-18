@@ -257,6 +257,7 @@ jobs:
     env:
       CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
+      TMPDIR: /var/tmp
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     steps:
