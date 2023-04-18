@@ -242,8 +242,7 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     needs: ["set-tags"]
     steps:
       - name: Checkout
