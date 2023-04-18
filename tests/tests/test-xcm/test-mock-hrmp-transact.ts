@@ -56,17 +56,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
     // We are going to test that we can receive a transact operation from parachain 1
     // using descendOrigin first
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 2n,
-      },
+          fungible: transferredBalance / 2n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
@@ -139,17 +139,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact with two Descends", 
     // We are going to test that we can receive a transact operation from parachain 1
     // using 2 descendOrigin first
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 2n,
-      },
+          fungible: transferredBalance / 2n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
@@ -223,17 +223,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without withdraw", (
     // We are going to test that we can receive a transact operation from parachain 1
     // using descendOrigin first but without withdraw
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 2n,
-      },
+          fungible: transferredBalance / 2n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
@@ -305,17 +305,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without buy executio
     // We are going to test that we can receive a transact operation from parachain 1
     // using descendOrigin first but without buy execution
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 2n,
-      },
+          fungible: transferredBalance / 2n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })

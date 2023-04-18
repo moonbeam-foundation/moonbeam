@@ -288,17 +288,17 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 3n,
-      },
+          fungible: transferredBalance / 3n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
@@ -381,17 +381,17 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 3n,
-      },
+          fungible: transferredBalance / 3n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
