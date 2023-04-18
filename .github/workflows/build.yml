@@ -137,7 +137,8 @@ jobs:
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -187,7 +188,8 @@ jobs:
   ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -238,7 +240,8 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -340,7 +343,8 @@ jobs:
         run: cargo check --release --features=runtime-benchmarks
 
   typescript-tests:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
@@ -425,7 +429,8 @@ jobs:
 
   typescript-tracing-tests:
     if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build"]
     steps:
       - name: Checkout
@@ -477,7 +482,8 @@ jobs:
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
   typescript-para-tests:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
