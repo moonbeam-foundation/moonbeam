@@ -25,9 +25,9 @@
   },
   "parachains": [
     {
-      "chain": "moonriver-local",
-      "chain_spec_path": "tmp/moonriver-plain-spec.json",
-      "id": 1285,
+      "chain": "moonbeam-local",
+      "chain_spec_path": "tmp/moonbeam-plain-spec.json",
+      "id": 1000,
       "collator": {
         "name": "alith",
         "args": [

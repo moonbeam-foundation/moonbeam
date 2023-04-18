@@ -24,28 +24,20 @@
   },
   "parachains": [
     {
+      "id": 1000,
       "chain": "moonbeam-local",
-      "id": 2000,
-      "collators": [
-        {
-          "name": "alith",
-          "args": [
-            "--no-hardware-benchmarks",
-            "-lparachain=debug",
-            "--database=paritydb"
-          ],
-          "command": "../target/release/moonbeam"
-        },
-        {
-          "name": "baltathar",
-          "args": [
-            "--no-hardware-benchmarks",
-            "-lparachain=debug",
-            "--database=paritydb"
-          ],
-          "command": "../target/release/moonbeam"
-        }
-      ]
+      "chain_spec_path": "tmp/moonbeam-raw-spec3m.json",
+      "collator": {
+        "name": "alith",
+        "command": "tmp/moonbeam",
+        "ws_port": 33345, 
+        "args": [
+          "--no-hardware-benchmarks",
+          "--force-authoring",
+          "-lparachain=debug",
+          "--database=paritydb"
+        ]
+      }
     }
   ],
   "types": {

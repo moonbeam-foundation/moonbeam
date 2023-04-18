@@ -4,26 +4,26 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
-      "name": "zombie_moonriver_ci",
+      "name": "zombie_moonbeam_ci",
       "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*"],
+      "include": ["**/*moonbeam*"],
       "foundation": {
         "rtUpgradePath": "./tmp/moonriver_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
-          "configPath": "./configs/zombieMoonriverCI.json"
+          "configPath": "./configs/zombieMoonbeamCI.json"
         }
       }
     },
     {
-      "name": "zombie_moonriver",
+      "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
-      "include": ["**/*moonriver*"],
+      "include": ["**/*moonbeam*"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "tmp/moonbeam-runtime-latest.wasm",
         "type": "zombie",
         "zombieSpec": {
-          "configPath": "./configs/zombieMoonriver.json"
+          "configPath": "./configs/zombieMoonbeam.json"
         }
       }
     },

@@ -22,7 +22,7 @@ describeSuite({
       expect(relayNetwork, "Relay API incorrect").to.contain("rococo");
 
       const paraNetwork = paraApi.consts.system.version.specName.toString();
-      expect(paraNetwork, "Para API incorrect").to.contain("moonriver");
+      expect(paraNetwork, "Para API incorrect").to.contain("moonbeam");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
@@ -109,9 +109,10 @@ describeSuite({
 
         await context.upgradeRuntime({
           logger: log,
-          runtimeName: "moonriver",
+          runtimeName: "moonbeam",
           localPath: MoonwallContext.getContext().rtUpgradePath,
           useGovernance: true,
+          waitMigration: true,
           runtimeTag: "local",
         });
         await context.waitBlock(2);

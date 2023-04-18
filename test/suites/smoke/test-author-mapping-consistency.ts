@@ -1,4 +1,4 @@
-import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import chalk from "chalk";
 import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
