@@ -272,7 +272,11 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
       - name: SCCache
         run: |
           # We altered the path to avoid old actions to overwrite it
