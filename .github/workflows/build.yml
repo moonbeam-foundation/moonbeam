@@ -261,8 +261,7 @@ jobs:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
+      CARGO_TARGET_DIR: "target"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -278,13 +277,13 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
-      - name: Setup Target Folder
+      - name: Setup Target Folders
         run: |
           if [ ! -d "$TMP_TARGET" ]; then
              mkdir $TMP_TARGET
           fi
           du -sh $TMP_TARGET
-          ln -s $TMP_TARGET $(pwd)/target
+          ln -s $TMP_TARGET $(pwd)/$CARGO_TARGET_DIR
       - name: Build Node
         run: |
           env
@@ -297,13 +296,13 @@ jobs:
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-          MB_VERSION=`./target/release/moonbeam --version`
+          MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Save runtime wasm
         run: |
           mkdir -p runtimes
-          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+          cp $CARGO_TARGET_DIR/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -312,13 +311,45 @@ jobs:
       - name: Save moonbeam binary
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam;
+          cp $CARGO_TARGET_DIR/release/moonbeam build/moonbeam;
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:
           name: moonbeam
           path: build
 
+  test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    env:
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
+      TMP_TARGET: "/tmp/target-test"
+      CARGO_TARGET_DIR: "target-test"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
+      - name: Setup Target Folders
+        run: |
+          if [ ! -d "$TMP_TARGET" ]; then
+             mkdir $TMP_TARGET
+          fi
+          du -sh $TMP_TARGET
+          ln -s $TMP_TARGET $(pwd)/$CARGO_TARGET_DIR
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
