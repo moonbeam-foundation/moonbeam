@@ -201,6 +201,7 @@ jobs:
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/login-action@v2.1.0
         with:
+          registry: registry.hub.docker.com
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
@@ -261,6 +262,7 @@ jobs:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
+      TMP_TARGET=/tmp/target
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     steps:
@@ -278,12 +280,11 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
-      - name: Setup Rust toolchain
+      - name: Setup Target Folder
         run: |
-          DIR=/var/tmp/target; 
-          if [ -d "$DIR" ]; then
-            du -sh /var/tmp/target
-            cp -R /var/tmp/target ./target
+          if [ -d "$TMP_TARGET" ]; then
+            du -sh $TMP_TARGET
+            cp -R $TMP_TARGET ./target
           fi
       - name: Build Node
         run: |
@@ -294,13 +295,10 @@ jobs:
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
-      - name: Setup Rust toolchain
+      - name: Save Target Folder
         run: |
-          DIR=./target; 
-          if [ -d "$DIR" ]; then
-            du -sh /var/tmp/target
-            cp -R $DIR /var/tmp/target
-          fi
+            mkdir -p $TMP_TARGET
+            cp -R ./target $TMP_TARGET
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
@@ -623,6 +621,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2.1.0
         with:
+          registry: registry.hub.docker.com
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push moonbeam
