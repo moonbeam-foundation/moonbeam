@@ -181,7 +181,6 @@ where
 
 		let amount_transferred = after_amount.saturating_sub(before_amount);
 		let amount = amount_transferred
-			.min(transfer_with_payload.amount)
 			.try_into()
 			.map_err(|_| revert("Amount overflows balance"))?;
 
