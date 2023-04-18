@@ -282,6 +282,8 @@ jobs:
       - name: Build Node
         run: |
           env
+          rustup show
+          rustc --version
           cargo build --release --all
       - name: Run sccache stat for check pre test
         shell: bash
