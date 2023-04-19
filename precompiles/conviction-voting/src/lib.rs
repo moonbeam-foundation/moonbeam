@@ -25,7 +25,7 @@ use pallet_conviction_voting::{
 	VotingFor,
 };
 use pallet_evm::{AddressMapping, Log};
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
@@ -255,10 +255,7 @@ where
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 					H256::from_low_u64_be(poll_index as u64),
-					EvmDataWriter::new()
-						.write::<u16>(track_id)
-						.write::<Address>(Address(caller))
-						.build(),
+					solidity::encode_event_data((track_id, Address(caller))),
 				),
 				Some(Self::u16_to_track_id(track_id).in_field("trackId")?),
 			)
@@ -273,9 +270,7 @@ where
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED,
 					H256::from_low_u64_be(poll_index as u64),
-					EvmDataWriter::new()
-						.write::<Address>(Address(caller))
-						.build(),
+					solidity::encode_event_data(Address(caller)),
 				),
 				None,
 			)
@@ -304,11 +299,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVED_OTHER,
 			H256::from_low_u64_be(poll_index as u64), // poll index,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.write::<Address>(target)
-				.write::<u16>(track_id)
-				.build(),
+			solidity::encode_event_data((Address(caller), target, track_id)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -353,12 +344,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.write::<Address>(representative)
-				.write::<U256>(amount)
-				.write::<u8>(conviction)
-				.build(),
+			solidity::encode_event_data((Address(caller), representative, amount, conviction)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -397,9 +383,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNDELEGATED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new()
-				.write::<Address>(Address(caller))
-				.build(),
+			solidity::encode_event_data(Address(caller)),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -422,7 +406,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_UNLOCKED,
 			H256::from_low_u64_be(track_id as u64), // track id,
-			EvmDataWriter::new().write::<Address>(target).build(),
+			solidity::encode_event_data(target),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -527,12 +511,12 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTED,
 					H256::from_low_u64_be(poll_index as u64),
-					EvmDataWriter::new()
-						.write::<Address>(Address(caller))
-						.write::<bool>(vote.aye)
-						.write::<U256>(balance)
-						.write::<u8>(vote.conviction.into())
-						.build(),
+					solidity::encode_event_data((
+						Address(caller),
+						vote.aye,
+						balance,
+						u8::from(vote.conviction),
+					)),
 				);
 				(
 					AccountVote::Standard {
@@ -547,11 +531,7 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT,
 					H256::from_low_u64_be(poll_index as u64),
-					EvmDataWriter::new()
-						.write::<Address>(Address(caller))
-						.write::<U256>(aye)
-						.write::<U256>(nay)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay)),
 				);
 				(
 					AccountVote::Split {
@@ -566,12 +546,7 @@ where
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 					H256::from_low_u64_be(poll_index as u64),
-					EvmDataWriter::new()
-						.write::<Address>(Address(caller))
-						.write::<U256>(aye)
-						.write::<U256>(nay)
-						.write::<U256>(abstain)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay, abstain)),
 				);
 				(
 					AccountVote::SplitAbstain {
@@ -679,13 +654,13 @@ where
 	}
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputClassLock {
 	track: u16,
 	amount: U256,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputVotingFor {
 	is_casting: bool,
 	is_delegating: bool,
@@ -693,20 +668,20 @@ pub struct OutputVotingFor {
 	delegating: OutputDelegating,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputCasting {
 	votes: Vec<PollAccountVote>,
 	delegations: Delegations,
 	prior: PriorLock,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct PollAccountVote {
 	poll_index: u32,
 	account_vote: OutputAccountVote,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputDelegating {
 	balance: U256,
 	target: Address,
@@ -715,7 +690,7 @@ pub struct OutputDelegating {
 	prior: PriorLock,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputAccountVote {
 	is_standard: bool,
 	is_split: bool,
@@ -725,38 +700,38 @@ pub struct OutputAccountVote {
 	split_abstain: SplitAbstainVote,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct StandardVote {
 	vote: OutputVote,
 	balance: U256,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct OutputVote {
 	aye: bool,
 	conviction: u8,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct SplitVote {
 	aye: U256,
 	nay: U256,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct SplitAbstainVote {
 	aye: U256,
 	nay: U256,
 	abstain: U256,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct Delegations {
 	votes: U256,
 	capital: U256,
 }
 
-#[derive(Default, EvmData)]
+#[derive(Default, solidity::Codec)]
 pub struct PriorLock {
 	balance: U256,
 }

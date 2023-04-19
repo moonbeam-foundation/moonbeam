@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::PCall;
-use precompile_utils::testing::*;
+use precompile_utils::prelude::*;
 
-#[test]
-fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	check_precompile_implements_solidity_interfaces(&["Gmp.sol"], PCall::supports_selector)
-}
+#[derive(solidity::Codec)]
+struct Empty1;
+
+#[derive(solidity::Codec)]
+struct Empty2 {}
+
+#[derive(solidity::Codec)]
+struct Empty3 ();
+
+fn main() {}

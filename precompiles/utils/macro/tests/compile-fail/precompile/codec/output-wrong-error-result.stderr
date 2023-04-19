@@ -1,5 +1,5 @@
 error[E0277]: `?` couldn't convert the error to `PrecompileFailure`
-  --> tests/compile-fail/precompile/evm-data/output-wrong-error-result.rs:25:51
+  --> tests/compile-fail/precompile/codec/output-wrong-error-result.rs:25:51
    |
 25 |     fn foo(test: &mut impl PrecompileHandle) -> Result<(), String> {
    |                                                      ^ the trait `From<String>` is not implemented for `PrecompileFailure`
@@ -9,5 +9,5 @@ error[E0277]: `?` couldn't convert the error to `PrecompileFailure`
              <PrecompileFailure as From<ExitError>>
              <PrecompileFailure as From<RevertReason>>
              <PrecompileFailure as From<TryDispatchError>>
-             <PrecompileFailure as From<precompile_utils::revert::Revert>>
+             <PrecompileFailure as From<precompile_utils::prelude::Revert>>
    = note: required for `Result<PrecompileOutput, PrecompileFailure>` to implement `FromResidual<Result<Infallible, String>>`

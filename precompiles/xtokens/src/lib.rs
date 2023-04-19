@@ -24,7 +24,7 @@ use frame_support::{
 	traits::Get,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
@@ -70,7 +70,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	#[precompile::public("transfer(address,uint256,(uint8,bytes[]),uint64)")]
@@ -323,7 +323,7 @@ where
 }
 
 // Currency
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct Currency {
 	address: Address,
 	amount: U256,
@@ -338,7 +338,7 @@ impl From<(Address, U256)> for Currency {
 	}
 }
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct EvmMultiAsset {
 	location: MultiLocation,
 	amount: U256,

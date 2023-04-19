@@ -79,7 +79,7 @@ where
 		fee_asset: MultiLocation,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
-		fee_amount: SolidityConvert<U256, u128>,
+		fee_amount: Convert<U256, u128>,
 		overall_weight: u64,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation_fee_weight(
@@ -111,7 +111,7 @@ where
 		fee_asset: Address,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
-		fee_amount: SolidityConvert<U256, u128>,
+		fee_amount: Convert<U256, u128>,
 		overall_weight: u64,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_derivative_fee_weight(
@@ -141,7 +141,7 @@ where
 		fee_asset: MultiLocation,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
-		fee_amount: SolidityConvert<U256, u128>,
+		fee_amount: Convert<U256, u128>,
 		overall_weight: u64,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation_fee_weight(
@@ -164,7 +164,7 @@ where
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
-		fee_amount: SolidityConvert<U256, u128>,
+		fee_amount: Convert<U256, u128>,
 		overall_weight: u64,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_signed_fee_weight(

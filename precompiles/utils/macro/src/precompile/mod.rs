@@ -106,7 +106,7 @@ struct Variant {
 	/// A unit test will be generated to check that this selector matches
 	/// the Rust arguments.
 	///
-	/// > EvmData trait allows to generate this string at runtime only. Thus
+	/// > solidity::Codec trait allows to generate this string at runtime only. Thus
 	/// > it is required to write it manually in the selector attribute, and
 	/// > a unit test is generated to check it matches.
 	solidity_arguments_type: String,

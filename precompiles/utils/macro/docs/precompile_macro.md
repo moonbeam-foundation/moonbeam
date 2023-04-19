@@ -4,7 +4,7 @@ This procedural macro allows to simplify the implementation of an EVM precompile
 using an `impl` block with annotations to automatically generate:
 
 - the implementation of the trait `Precompile` or `PrecompileSet` (exposed by the `fp_evm` crate)
-- parsing of the method parameters from Solidity encoding into Rust type, based on the `EvmData`
+- parsing of the method parameters from Solidity encoding into Rust type, based on the `solidity::Codec`
   trait (exposed by the `precompile-utils` crate)
 - a test to ensure the types expressed in the Solidity signature match the Rust types in the
   implementation.
@@ -60,11 +60,11 @@ support renamed functions with backward compatibility, however the arguments mus
 type. It is not allowed to use the exact same signature multiple times.
 
 The function must take a `&mut impl PrecompileHandle` as parameter, followed by all the parameters
-of the Solidity function in the same order. Those parameters types must implement `EvmData`, and
+of the Solidity function in the same order. Those parameters types must implement `solidity::Codec`, and
 their name should match the one used in the Solidity interface (.sol) while being in `snake_case`,
 which will automatically be converted to `camelCase` in revert messages. The function must return an
 `EvmResult<T>`, which is an alias of `Result<T, PrecompileFailure>`. This `T` must implement the
-`EvmData` trait and must match the return type in the Solidity interface. The macro will
+`solidity::Codec` trait and must match the return type in the Solidity interface. The macro will
 automatically encode it to Solidity format.
 
 By default those functions are considered non-payable and non-view (can cause state changes). This
@@ -133,7 +133,7 @@ where
 ## Solidity signatures test
 
 The macro will automatically generate a unit test to ensure that the types expressed in a `public`
-attribute matches the Rust parameters of the function, thanks to the `EvmData` trait having the
+attribute matches the Rust parameters of the function, thanks to the `solidity::Codec` trait having the
 `solidity_type() -> String` function.
 
 If any **parsed** argument (discriminant is not concerned) depends on the type parameters of the
