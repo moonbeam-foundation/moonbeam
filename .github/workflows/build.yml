@@ -627,6 +627,7 @@ jobs:
     needs: ["build", "build-rt-binary"]
     strategy:
       matrix:
+        ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
@@ -643,30 +644,29 @@ jobs:
           node-version: 18.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
-      - name: "Download runtime"
+      - name: "Download branch built runtime"
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
           path: test/tmp
-      - name: "Download node"
+      - name: "Download branch built node"
         uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam
           path: test/tmp
-      - name: "Download RT node"
+      - name: "Download current runtime's node binary"
         uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeamRT
           path: test/tmp/RT
-      - name: "Extract polkadot version"
-        run: |
-          echo "POLKADOT_VERSION=$(grep -oP "moonbeam-polkadot-v\K\d+\.\d+\.\d+" "Cargo.toml" | sort | uniq -d | head -n 1)" >> $GITHUB_OUTPUT
       - name: "Run zombie test"
         run: |
+          ## TODO: replace this with current deployed relaychain version eventually
+          export POLKADOT_VERSION=$(grep -oP "moonbeam-polkadot-v\K\d+\.\d+\.\d+" "Cargo.toml" | sort | uniq -d | head -n 1)
+
           cd test
           pnpm i
-
-          pnpm moonwall download polkadot ${{env.POLKADOT_VERSION}} tmp
+          pnpm moonwall download polkadot $POLKADOT_VERSION tmp
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/RT/moonbeam
