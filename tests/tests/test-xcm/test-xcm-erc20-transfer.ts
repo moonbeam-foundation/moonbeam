@@ -60,7 +60,7 @@ describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
     erc20ContractAddress = contractAddress;
   });
 
-  it("Should be able to transfer ERC20 token throught xcm with xtoken precomp", async function () {
+  it("Should be able to transfer ERC20 token through xcm with xtoken precomp", async function () {
     const amountTransferred = 1000n;
     // Destination as multilocation
     const destination = [
@@ -125,7 +125,7 @@ describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
     erc20ContractAddress = contractAddress;
   });
 
-  it("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
+  it("Should be able to transfer ERC20 token through incoming XCM message", async function () {
     this.timeout(20_000);
     const paraId = 888;
     const paraSovereign = sovereignAccountOfSibling(context, paraId);
@@ -249,7 +249,7 @@ describeDevMoonbeam("Mock XCM - Send two local ERC20", (context) => {
     erc20ContractAddress2 = contractAddress;
   });
 
-  it("Should be able to transfer two ERC20 tokens throught xtoken precomp", async function () {
+  it("Should be able to transfer two ERC20 tokens through xtoken precomp", async function () {
     const amountTransferred = 1000n;
     // Destination as multilocation
     const destination = [
@@ -390,7 +390,7 @@ describeDevMoonbeam("Mock XCM - Receive two ERC20", (context) => {
     erc20ContractAddress2 = contractAddress;
   });
 
-  it("Should be able to transfer two ERC20 throught incoming XCM meesage", async function () {
+  it("Should be able to transfer two ERC20 through incoming XCM meesage", async function () {
     this.timeout(20_000);
     const paraId = 888;
     const paraSovereign = sovereignAccountOfSibling(context, paraId);
