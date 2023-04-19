@@ -666,7 +666,7 @@ jobs:
           cd test
           pnpm i
 
-          pnpm moonwall download polkadot $POLKADOT_VERSION tmp
+          pnpm moonwall download polkadot ${{env.POLKADOT_VERSION}} tmp
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/RT/moonbeam
