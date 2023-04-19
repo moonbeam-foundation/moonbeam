@@ -352,7 +352,7 @@
 </span><span class="kw">use </span>evm::{ExitError, ExitReason};
 <span class="kw">use </span>fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, Transfer};
 <span class="kw">use </span>frame_support::traits::ConstU32;
-<span class="kw">use </span>precompile_utils::{costs::call_cost, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::{evm::costs::call_cost, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
@@ -380,7 +380,7 @@
 	log1(
 		address,
 		LOG_SUBCALL_SUCCEEDED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 
@@ -388,7 +388,7 @@
 	log1(
 		address,
 		LOG_SUBCALL_FAILED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 

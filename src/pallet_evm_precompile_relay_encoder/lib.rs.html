@@ -455,6 +455,7 @@
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
 <a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -484,7 +485,7 @@
 	traits::ConstU32,
 };
 <span class="kw">use </span>pallet_staking::RewardDestination;
-<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H256, U256};
 <span class="kw">use </span>sp_runtime::AccountId32;
 <span class="kw">use </span>sp_runtime::Perbill;
@@ -618,7 +619,7 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>encode_validate(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		comission: SolidityConvert&lt;U256, u32&gt;,
+		comission: Convert&lt;U256, u32&gt;,
 		blocked: bool,
 	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
 		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
@@ -830,7 +831,7 @@
 		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))
 }
 
-<span class="comment">// A wrapper to be able to implement here the EvmData reader
+<span class="comment">// A wrapper to be able to implement here the solidity::Codec reader
 </span><span class="attr">#[derive(Clone, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>RewardDestinationWrapper(RewardDestination&lt;AccountId32&gt;);
 
@@ -846,8 +847,8 @@
 	</span>}
 }
 
-<span class="kw">impl </span>EvmData <span class="kw">for </span>RewardDestinationWrapper {
-	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+<span class="kw">impl </span>solidity::Codec <span class="kw">for </span>RewardDestinationWrapper {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>solidity::codec::Reader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">let </span>reward_destination = reader.read::&lt;BoundedBytes&lt;GetRewardDestinationSizeLimit&gt;&gt;()<span class="question-mark">?</span>;
 		<span class="kw">let </span>reward_destination_bytes: Vec&lt;<span class="kw">_</span>&gt; = reward_destination.into();
 		<span class="macro">ensure!</span>(
@@ -855,7 +856,8 @@
 			RevertReason::custom(<span class="string">&quot;Reward destinations cannot be empty&quot;</span>)
 		);
 		<span class="comment">// For simplicity we use an EvmReader here
-		</span><span class="kw">let </span><span class="kw-2">mut </span>encoded_reward_destination = EvmDataReader::new(<span class="kw-2">&amp;</span>reward_destination_bytes);
+		</span><span class="kw">let </span><span class="kw-2">mut </span>encoded_reward_destination =
+			solidity::codec::Reader::new(<span class="kw-2">&amp;</span>reward_destination_bytes);
 
 		<span class="comment">// We take the first byte
 		</span><span class="kw">let </span>enum_selector = encoded_reward_destination.read_raw_bytes(<span class="number">1</span>)<span class="question-mark">?</span>;
@@ -875,7 +877,7 @@
 		}
 	}
 
-	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>solidity::codec::Writer, value: <span class="self">Self</span>) {
 		<span class="kw">let </span><span class="kw-2">mut </span>encoded: Vec&lt;u8&gt; = Vec::new();
 		<span class="kw">let </span>encoded_bytes: UnboundedBytes = <span class="kw">match </span>value.<span class="number">0 </span>{
 			RewardDestination::Staked =&gt; {
@@ -901,15 +903,15 @@
 				encoded.as_slice().into()
 			}
 		};
-		EvmData::write(writer, encoded_bytes);
+		solidity::Codec::write(writer, encoded_bytes);
 	}
 
 	<span class="kw">fn </span>has_static_size() -&gt; bool {
 		<span class="bool-val">false
 	</span>}
 
-	<span class="kw">fn </span>solidity_type() -&gt; String {
-		UnboundedBytes::solidity_type()
+	<span class="kw">fn </span>signature() -&gt; String {
+		UnboundedBytes::signature()
 	}
 }
 </code></pre></div>

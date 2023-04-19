@@ -270,8 +270,8 @@
 
 </span><span class="kw">use </span>{
 	<span class="kw">crate</span>::{
+		solidity::codec::Codec,
 		testing::{decode_revert_message, MockHandle, PrettyLog, SubcallHandle, SubcallTrait},
-		EvmData, EvmDataWriter,
 	},
 	fp_evm::{
 		Context, ExitError, ExitSucceed, Log, PrecompileFailure, PrecompileOutput,
@@ -407,7 +407,7 @@
 	}
 
 	<span class="doccomment">/// Execute the precompile set and check it returns provided output.
-	</span><span class="kw">pub fn </span>execute_returns(<span class="kw-2">mut </span><span class="self">self</span>, output: Vec&lt;u8&gt;) {
+	</span><span class="kw">pub fn </span>execute_returns_raw(<span class="kw-2">mut </span><span class="self">self</span>, output: Vec&lt;u8&gt;) {
 		<span class="kw">let </span>res = <span class="self">self</span>.execute();
 
 		<span class="kw">match </span>res {
@@ -446,8 +446,8 @@
 	}
 
 	<span class="doccomment">/// Execute the precompile set and check it returns provided Solidity encoded output.
-	</span><span class="kw">pub fn </span>execute_returns_encoded(<span class="self">self</span>, output: <span class="kw">impl </span>EvmData) {
-		<span class="self">self</span>.execute_returns(EvmDataWriter::new().write(output).build())
+	</span><span class="kw">pub fn </span>execute_returns(<span class="self">self</span>, output: <span class="kw">impl </span>Codec) {
+		<span class="self">self</span>.execute_returns_raw(<span class="kw">crate</span>::solidity::encode_return_value(output))
 	}
 
 	<span class="doccomment">/// Execute the precompile set and check if it reverts.

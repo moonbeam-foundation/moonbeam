@@ -180,7 +180,7 @@
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_NOTED,
-			EvmDataWriter::new().write::&lt;H256&gt;(hash.into()).build(),
+			solidity::encode_arguments(H256::from(hash)),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -202,7 +202,7 @@
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_UNNOTED,
-			EvmDataWriter::new().write::&lt;H256&gt;(hash).build(),
+			solidity::encode_arguments(H256::from(hash)),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 

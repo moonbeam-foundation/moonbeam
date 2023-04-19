@@ -80,20 +80,6 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -114,17 +100,15 @@
 
 </span><span class="kw">extern crate </span>alloc;
 
-<span class="comment">// Allows to use inside this crate `EvmData` derive macro,which depends on
+<span class="comment">// Allows to use inside this crate `solidity::Codec` derive macro,which depends on
 // `precompile_utils` being in the list of imported crates.
 </span><span class="kw">extern crate </span><span class="self">self </span><span class="kw">as </span>precompile_utils;
 
-<span class="kw">pub mod </span>costs;
-<span class="kw">pub mod </span>handle;
-<span class="kw">pub mod </span>logs;
-<span class="kw">pub mod </span>modifier;
+<span class="kw">pub mod </span>evm;
 <span class="kw">pub mod </span>precompile_set;
-<span class="kw">pub mod </span>revert;
 <span class="kw">pub mod </span>substrate;
+
+<span class="kw">pub mod </span>solidity;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;testing&quot;</span>)]
 </span><span class="kw">pub mod </span>testing;
@@ -132,41 +116,13 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span><span class="kw">crate</span>::alloc::{borrow::ToOwned, vec::Vec};
-<span class="kw">use </span>fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileOutput};
+<span class="kw">use </span>fp_evm::PrecompileFailure;
 
-<span class="kw">pub mod </span>data;
+<span class="comment">// pub mod data;
 
-<span class="kw">pub use </span>data::{EvmData, EvmDataReader, EvmDataWriter};
-<span class="kw">pub use </span>fp_evm::Precompile;
-<span class="kw">pub use </span>precompile_utils_macro::{
-	generate_function_selector, keccak256, precompile, precompile_name_from_address,
-};
-
-<span class="doccomment">/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
-/// If the revert needs improved formatting such as backtraces, `Revert` type should
-/// be used instead.
-</span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>revert(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; PrecompileFailure {
-	PrecompileFailure::Revert {
-		exit_status: ExitRevert::Reverted,
-		output: encoded_revert(output),
-	}
-}
-
-<span class="kw">pub fn </span>encoded_revert(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; Vec&lt;u8&gt; {
-	EvmDataWriter::new_with_selector(revert::RevertSelector::Generic)
-		.write::&lt;data::UnboundedBytes&gt;(output.as_ref().to_owned().into())
-		.build()
-}
-
-<span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>succeed(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; PrecompileOutput {
-	PrecompileOutput {
-		exit_status: ExitSucceed::Returned,
-		output: output.as_ref().to_owned(),
-	}
-}
+// pub use data::{solidity::Codec, Reader, Writer};
+</span><span class="kw">pub use </span>fp_evm::Precompile;
+<span class="kw">pub use </span>precompile_utils_macro::{keccak256, precompile, precompile_name_from_address};
 
 <span class="doccomment">/// Alias for Result returning an EVM precompile error.
 </span><span class="kw">pub type </span>EvmResult&lt;T = ()&gt; = <span class="prelude-ty">Result</span>&lt;T, PrecompileFailure&gt;;
@@ -174,20 +130,36 @@
 <span class="kw">pub mod </span>prelude {
 	<span class="kw">pub use </span>{
 		<span class="kw">crate</span>::{
-			data::{
-				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
-				EvmDataWriter, SolidityConvert, UnboundedBytes, UnboundedString,
+			evm::{
+				handle::PrecompileHandleExt,
+				logs::{log0, log1, log2, log3, log4, LogExt},
 			},
-			handle::{with_precompile_handle, PrecompileHandleExt},
-			logs::{log0, log1, log2, log3, log4, LogExt},
-			modifier::{check_function_modifier, FunctionModifier},
-			revert,
-			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
+			solidity::{
+				<span class="comment">// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
+				// with parity_scale_codec,
+				</span><span class="self">self</span>,
+				codec::{
+					Address,
+					BoundedBytes,
+					BoundedString,
+					BoundedVec,
+					<span class="comment">// Allow usage of Codec methods while not exporting the name directly.
+					</span>Codec <span class="kw">as _</span>,
+					Convert,
+					UnboundedBytes,
+					UnboundedString,
+				},
+				revert::{
+					revert, BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt,
+					RevertReason,
+				},
+			},
 			substrate::{RuntimeHelper, TryDispatchError},
-			succeed, EvmResult,
+			EvmResult,
 		},
+		alloc::string::String,
 		pallet_evm::{PrecompileHandle, PrecompileOutput},
-		precompile_utils_macro::{generate_function_selector, keccak256, precompile},
+		precompile_utils_macro::{keccak256, precompile},
 	};
 }
 </code></pre></div>

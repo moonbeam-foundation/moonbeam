@@ -281,7 +281,7 @@
 	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
-<span class="kw">use </span>precompile_utils::{costs::call_cost, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::{evm::costs::call_cost, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_io::hashing::keccak_256;
 <span class="kw">use </span>sp_std::vec::Vec;
@@ -342,13 +342,13 @@
 		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
 		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
-		<span class="kw">let </span>domain_separator_inner = EvmDataWriter::new()
-			.write(H256::from(PERMIT_DOMAIN))
-			.write(name)
-			.write(version)
-			.write(chain_id)
-			.write(Address(address))
-			.build();
+		<span class="kw">let </span>domain_separator_inner = solidity::encode_arguments((
+			H256::from(PERMIT_DOMAIN),
+			name,
+			version,
+			chain_id,
+			Address(address),
+		));
 
 		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
 	}
@@ -365,17 +365,17 @@
 	) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>domain_separator = <span class="self">Self</span>::compute_domain_separator(address);
 
-		<span class="kw">let </span>permit_content = EvmDataWriter::new()
-			.write(H256::from(PERMIT_TYPEHASH))
-			.write(Address(from))
-			.write(Address(to))
-			.write(value)
+		<span class="kw">let </span>permit_content = solidity::encode_arguments((
+			H256::from(PERMIT_TYPEHASH),
+			Address(from),
+			Address(to),
+			value,
 			<span class="comment">// bytes are encoded as the keccak_256 of the content
-			</span>.write(H256::from(keccak_256(<span class="kw-2">&amp;</span>data)))
-			.write(gaslimit)
-			.write(nonce)
-			.write(deadline)
-			.build();
+			</span>H256::from(keccak_256(<span class="kw-2">&amp;</span>data)),
+			gaslimit,
+			nonce,
+			deadline,
+		));
 		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
 		pre_digest.extend_from_slice(<span class="string">b&quot;\x19\x01&quot;</span>);

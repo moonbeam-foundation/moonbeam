@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["generate_function_selector","This macro allows to associate to each variant of an enumeration a discriminant (of type u32 whose value corresponds to the first 4 bytes of the Hash Keccak256 of the character string indicated by the user of this macro."],["precompile",""],["precompile_name_from_address",""]],"derive":[["EvmData",""]],"macro":[["keccak256",""]]};
+window.SIDEBAR_ITEMS = {"attr":[["precompile",""],["precompile_name_from_address",""]],"derive":[["Codec",""]],"macro":[["keccak256",""]]};

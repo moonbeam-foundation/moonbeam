@@ -385,7 +385,12 @@
 	<span class="kw">use </span>frame_support::traits::Everything;
 	<span class="kw">use </span>frame_support::{construct_runtime, parameter_types, weights::Weight};
 	<span class="kw">use </span>pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-	<span class="kw">use </span>precompile_utils::{precompile_set::<span class="kw-2">*</span>, revert, testing::<span class="kw-2">*</span>, EvmDataWriter, EvmResult};
+	<span class="kw">use </span>precompile_utils::{
+		precompile_set::<span class="kw-2">*</span>,
+		solidity::{codec::Writer, revert::revert},
+		testing::<span class="kw-2">*</span>,
+		EvmResult,
+	};
 	<span class="kw">use </span>sp_core::H160;
 	<span class="kw">use </span>sp_core::{H256, U256};
 	<span class="kw">use </span>sp_runtime::{
@@ -474,7 +479,7 @@
 				handle.code_address(),
 				<span class="prelude-val">None</span>,
 				<span class="comment">// calls subcallLayer2()
-				</span>EvmDataWriter::new_with_selector(<span class="number">0x0b93381bu32</span>).build(),
+				</span>Writer::new_with_selector(<span class="number">0x0b93381bu32</span>).build(),
 				<span class="prelude-val">None</span>,
 				<span class="bool-val">false</span>,
 				<span class="kw-2">&amp;</span>Context {
@@ -581,7 +586,7 @@
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(<span class="number">1</span>), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| <span class="macro">panic!</span>(<span class="string">&quot;there should be no subcall&quot;</span>))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -635,7 +640,7 @@
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(<span class="number">2</span>), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| <span class="macro">panic!</span>(<span class="string">&quot;there should be no subcall&quot;</span>))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -649,7 +654,7 @@
 					PCall::success {},
 				)
 				.with_subcall_handle(|Subcall { .. }| <span class="macro">panic!</span>(<span class="string">&quot;there should be no subcall&quot;</span>))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -663,14 +668,9 @@
 					.prepare_test(Alice, H160::from_low_u64_be(<span class="number">4</span>), PCall::subcall {})
 					.with_subcall_handle(<span class="kw">move </span>|Subcall { .. }| {
 						<span class="kw-2">*</span>subcall_occured.borrow_mut() = <span class="bool-val">true</span>;
-						SubcallOutput {
-							reason: ExitReason::Succeed(evm::ExitSucceed::Returned),
-							output: <span class="macro">vec!</span>[],
-							cost: <span class="number">0</span>,
-							logs: <span class="macro">vec!</span>[],
-						}
+						SubcallOutput::succeed()
 					})
-					.execute_returns_encoded(());
+					.execute_returns(());
 			}
 			<span class="macro">assert!</span>(<span class="kw-2">*</span>subcall_occured.borrow());
 		})

@@ -656,20 +656,6 @@
 <a href="#656" id="656">656</a>
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -699,7 +685,7 @@
 	ReferendumInfo, ReferendumInfoFor, TracksInfo,
 };
 <span class="kw">use </span>parity_scale_codec::Encode;
-<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
@@ -737,7 +723,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
 	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmissionDepositRefunded(uint32,address,uint256)&quot;</span>);
 
-<span class="attr">#[derive(EvmData)]
+<span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>TrackInfo {
 	name: UnboundedBytes,
 	max_deciding: U256,
@@ -750,7 +736,7 @@
 	min_support: UnboundedBytes,
 }
 
-<span class="attr">#[derive(EvmData)]
+<span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>OngoingReferendumInfo {
 	<span class="doccomment">/// The track of this referendum.
 	</span>track_id: u16,
@@ -788,7 +774,7 @@
 	alarm_task_address: UnboundedBytes,
 }
 
-<span class="attr">#[derive(EvmData)]
+<span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>ClosedReferendumInfo {
 	status: u8,
 	end: U256,
@@ -1170,10 +1156,7 @@
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AT,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(referendum_index)
-				.write::&lt;H256&gt;(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 		event.record(handle)<span class="question-mark">?</span>;
 
@@ -1211,10 +1194,7 @@
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AFTER,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64),
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(referendum_index)
-				.write::&lt;H256&gt;(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 
 		event.record(handle)<span class="question-mark">?</span>;
@@ -1251,11 +1231,11 @@
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(index)
-				.write::&lt;Address&gt;(Address(handle.context().caller))
-				.write::&lt;U256&gt;(decision_deposit)
-				.build(),
+			solidity::encode_event_data((
+				index,
+				Address(handle.context().caller),
+				decision_deposit,
+			)),
 		);
 
 		event.record(handle)<span class="question-mark">?</span>;
@@ -1291,11 +1271,7 @@
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(index)
-				.write::&lt;Address&gt;(Address(who))
-				.write::&lt;U256&gt;(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)<span class="question-mark">?</span>;
@@ -1330,11 +1306,7 @@
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new()
-				.write::&lt;u32&gt;(index)
-				.write::&lt;Address&gt;(Address(who))
-				.write::&lt;U256&gt;(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)<span class="question-mark">?</span>;

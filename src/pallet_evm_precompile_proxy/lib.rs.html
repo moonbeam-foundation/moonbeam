@@ -400,10 +400,6 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -428,13 +424,9 @@
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_proxy::Call <span class="kw">as </span>ProxyCall;
 <span class="kw">use </span>pallet_proxy::Pallet <span class="kw">as </span>ProxyPallet;
+<span class="kw">use </span>precompile_utils::precompile_set::{<span class="self">self</span>, AddressType, SelectorFilter};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>precompile_utils::{
-	data::{Address, String},
-	precompile_set::{<span class="self">self</span>, AddressType, SelectorFilter},
-};
-<span class="kw">use </span>sp_core::H160;
-<span class="kw">use </span>sp_core::U256;
+<span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, StaticLookup, Zero},

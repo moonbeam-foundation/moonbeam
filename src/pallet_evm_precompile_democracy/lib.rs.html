@@ -481,12 +481,6 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
-<a href="#484" id="484">484</a>
-<a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -570,7 +564,8 @@
 		+ pallet_evm::Config
 		+ frame_system::Config
 		+ pallet_preimage::Config,
-	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + TryInto&lt;u128&gt; + Into&lt;U256&gt; + Debug + EvmData,
+	U256: From&lt;BalanceOf&lt;Runtime&gt;&gt;,
+	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + TryInto&lt;u128&gt; + Into&lt;U256&gt; + Debug + solidity::Codec,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime::RuntimeCall: From&lt;DemocracyCall&lt;Runtime&gt;&gt;,
@@ -596,7 +591,7 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>deposit_of(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		prop_index: SolidityConvert&lt;U256, u32&gt;,
+		prop_index: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult&lt;U256&gt; {
 		<span class="kw">let </span>prop_index = prop_index.converted();
 
@@ -715,7 +710,7 @@
 			handle.context().address,
 			SELECTOR_LOG_PROPOSED,
 			H256::from_low_u64_be(prop_count <span class="kw">as </span>u64), <span class="comment">// proposal index,
-			</span>EvmDataWriter::new().write::&lt;U256&gt;(value.into()).build(),
+			</span>solidity::encode_event_data(U256::from(value)),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 
@@ -725,8 +720,8 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;second(uint256,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>second(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		prop_index: SolidityConvert&lt;U256, u32&gt;,
-		seconds_upper_bound: SolidityConvert&lt;U256, u32&gt;,
+		prop_index: Convert&lt;U256, u32&gt;,
+		seconds_upper_bound: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>prop_index = prop_index.converted();
@@ -748,9 +743,7 @@
 			handle.context().address,
 			SELECTOR_LOG_SECONDED,
 			H256::from_low_u64_be(prop_index <span class="kw">as </span>u64), <span class="comment">// proposal index,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(handle.context().caller.into())
-				.build(),
+			</span>solidity::encode_event_data(Address(handle.context().caller)),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 
@@ -761,10 +754,10 @@
 	#[precompile::public(<span class="string">&quot;standard_vote(uint256,bool,uint256,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>standard_vote(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		ref_index: SolidityConvert&lt;U256, u32&gt;,
+		ref_index: Convert&lt;U256, u32&gt;,
 		aye: bool,
 		vote_amount: U256,
-		conviction: SolidityConvert&lt;U256, u8&gt;,
+		conviction: Convert&lt;U256, u8&gt;,
 	) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>ref_index = ref_index.converted();
@@ -798,12 +791,12 @@
 			handle.context().address,
 			SELECTOR_LOG_STANDARD_VOTE,
 			H256::from_low_u64_be(ref_index <span class="kw">as </span>u64), <span class="comment">// referendum index,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(handle.context().caller.into())
-				.write::&lt;bool&gt;(aye)
-				.write::&lt;U256&gt;(vote_amount)
-				.write::&lt;u8&gt;(conviction.converted())
-				.build(),
+			</span>solidity::encode_event_data((
+				Address(handle.context().caller),
+				aye,
+				vote_amount,
+				conviction.converted(),
+			)),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 
@@ -812,10 +805,7 @@
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;removeVote(uint256)&quot;</span>)]
 	#[precompile::public(<span class="string">&quot;remove_vote(uint256)&quot;</span>)]
-	</span><span class="kw">fn </span>remove_vote(
-		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		ref_index: SolidityConvert&lt;U256, u32&gt;,
-	) -&gt; EvmResult {
+	</span><span class="kw">fn </span>remove_vote(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, ref_index: Convert&lt;U256, u32&gt;) -&gt; EvmResult {
 		<span class="kw">let </span>ref_index: u32 = ref_index.converted();
 
 		<span class="macro">log::trace!</span>(
@@ -836,7 +826,7 @@
 	</span><span class="kw">fn </span>delegate(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		representative: Address,
-		conviction: SolidityConvert&lt;U256, u8&gt;,
+		conviction: Convert&lt;U256, u8&gt;,
 		amount: U256,
 	) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
@@ -866,9 +856,7 @@
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			handle.context().caller,
-			EvmDataWriter::new()
-				.write::&lt;Address&gt;(representative)
-				.build(),
+			solidity::encode_event_data(representative),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 

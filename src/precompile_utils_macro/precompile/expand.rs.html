@@ -602,8 +602,8 @@
 			<span class="kw">let </span>modifier = syn::Ident::new(modifier, span);
 
 			<span class="macro">quote!</span>(
-				<span class="kw">use </span>::precompile_utils::modifier::FunctionModifier;
-				<span class="kw">use </span>::precompile_utils::handle::PrecompileHandleExt;
+				<span class="kw">use </span>::precompile_utils::solidity::modifier::FunctionModifier;
+				<span class="kw">use </span>::precompile_utils::evm::handle::PrecompileHandleExt;
 				handle.check_function_modifier(FunctionModifier::#modifier)<span class="question-mark">?</span>;
 			)
 		});
@@ -620,7 +620,7 @@
 				<span class="kw">fn </span>#fn_parse(
 					handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
 				) -&gt; ::precompile_utils::EvmResult&lt;<span class="self">Self</span>&gt; {
-					<span class="kw">use </span>::precompile_utils::revert::InjectBacktrace;
+					<span class="kw">use </span>::precompile_utils::solidity::revert::InjectBacktrace;
 
 					#modifier_check
 					#variant_parsing
@@ -630,7 +630,7 @@
 	}
 
 	<span class="doccomment">/// Generates the parsing code for a variant, reading the input from the handle and
-	/// parsing it using EvmDataReader.
+	/// parsing it using Reader.
 	</span><span class="kw">fn </span>expand_variant_parsing_from_handle(
 		variant_ident: <span class="kw-2">&amp;</span>syn::Ident,
 		variant: <span class="kw-2">&amp;</span>Variant,
@@ -730,7 +730,7 @@
 				)*
 
 				<span class="kw">pub fn </span>encode(<span class="self">self</span>) -&gt; ::sp_std::vec::Vec&lt;u8&gt; {
-					<span class="kw">use </span>::precompile_utils::EvmDataWriter;
+					<span class="kw">use </span>::precompile_utils::solidity::codec::Writer;
 					<span class="kw">match </span><span class="self">self </span>{
 						#(
 							<span class="self">Self</span>::#variants_ident2 { #(#variants_list),* } =&gt; {
@@ -783,11 +783,11 @@
 					.map(|<span class="kw">_</span>| <span class="macro">quote!</span>(discriminant,));
 
 				<span class="kw">let </span>write_output = <span class="macro">quote_spanned!</span>(output_span=&gt;
-					::precompile_utils::data::encode_as_function_return_value(output<span class="question-mark">?</span>)
+					::precompile_utils::solidity::encode_return_value(output<span class="question-mark">?</span>)
 				);
 
 				<span class="macro">quote!</span>(
-					<span class="kw">use </span>::precompile_utils::EvmDataWriter;
+					<span class="kw">use </span>::precompile_utils::solidity;
 					<span class="kw">let </span>output = &lt;#impl_type&gt;::#variant_ident(
 						#opt_discriminant_arg
 						handle,
@@ -803,7 +803,7 @@
 				#opt_discriminant_arg
 				handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
 			) -&gt; ::precompile_utils::EvmResult&lt;::fp_evm::PrecompileOutput&gt; {
-				<span class="kw">use </span>::precompile_utils::data::EvmDataWriter;
+				<span class="kw">use </span>::precompile_utils::solidity::codec::Writer;
 				<span class="kw">use </span>::fp_evm::{PrecompileOutput, ExitSucceed};
 
 				<span class="kw">let </span>output = <span class="kw">match </span><span class="self">self </span>{
@@ -834,7 +834,7 @@
 				});
 
 				<span class="macro">quote!</span>(
-					EvmDataWriter::new_with_selector(#selector)
+					Writer::new_with_selector(#selector)
 					#(#write_arguments)*
 					.build()
 				)
@@ -869,7 +869,7 @@
 			<span class="kw">pub fn </span>parse_call_data(
 				handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
 			) -&gt; ::precompile_utils::EvmResult&lt;<span class="self">Self</span>&gt; {
-				<span class="kw">use </span>::precompile_utils::revert::RevertReason;
+				<span class="kw">use </span>::precompile_utils::solidity::revert::RevertReason;
 
 				<span class="kw">let </span>input = handle.input();
 
@@ -975,7 +975,7 @@
 				<span class="macro">quote_spanned!</span>(span=&gt;
 					<span class="macro">assert_eq!</span>(
 						#solidity,
-						&lt;(#(#types,)<span class="kw-2">*</span>) <span class="kw">as </span>EvmData&gt;::solidity_type(),
+						&lt;(#(#types,)<span class="kw-2">*</span>) <span class="kw">as </span>Codec&gt;::signature(),
 						<span class="string">&quot;{} function signature doesn&#39;t match (left: attribute, right: computed \
 						from Rust types)&quot;</span>,
 						#name
@@ -993,7 +993,7 @@
 			<span class="macro">quote!</span>(
 				<span class="attr">#[allow(non_snake_case)]
 				</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>#inner_name #impl_generics () #where_clause {
-					<span class="kw">use </span>::precompile_utils::data::EvmData;
+					<span class="kw">use </span>::precompile_utils::solidity::Codec;
 					#(#variant_test)*
 				}
 
@@ -1008,7 +1008,7 @@
 			<span class="macro">quote!</span>(
 				<span class="attr">#[allow(non_snake_case)]
 				</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>#inner_name() {
-					<span class="kw">use </span>::precompile_utils::data::EvmData;
+					<span class="kw">use </span>::precompile_utils::solidity::Codec;
 					#(#variant_test)*
 				}
 

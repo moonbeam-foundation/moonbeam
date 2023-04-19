@@ -378,7 +378,7 @@
 	traits::Get,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_std::{
 	boxed::Box,
@@ -424,7 +424,7 @@
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;orml_xtokens::Call&lt;Runtime&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	XBalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + EvmData,
+	XBalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>)]
@@ -677,7 +677,7 @@
 }
 
 <span class="comment">// Currency
-</span><span class="attr">#[derive(EvmData)]
+</span><span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>Currency {
 	address: Address,
 	amount: U256,
@@ -692,7 +692,7 @@
 	}
 }
 
-<span class="attr">#[derive(EvmData)]
+<span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>EvmMultiAsset {
 	location: MultiLocation,
 	amount: U256,

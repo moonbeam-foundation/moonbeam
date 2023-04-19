@@ -407,9 +407,9 @@
 		address.into(),
 		SELECTOR_LOG_PROPOSED,
 		who.into(),
-		H256::from_slice(<span class="kw-2">&amp;</span>EvmDataWriter::new().write(index).build()),
+		H256::from_slice(<span class="kw-2">&amp;</span>solidity::encode_arguments(index)),
 		hash,
-		EvmDataWriter::new().write(threshold).build(),
+		solidity::encode_arguments(threshold),
 	)
 }
 
@@ -419,7 +419,7 @@
 		SELECTOR_LOG_VOTED,
 		who.into(),
 		hash,
-		EvmDataWriter::new().write(voted).build(),
+		solidity::encode_arguments(voted),
 	)
 }
 

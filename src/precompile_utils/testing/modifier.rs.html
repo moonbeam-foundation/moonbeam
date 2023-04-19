@@ -145,8 +145,8 @@
 
 </span><span class="kw">use </span>{
 	<span class="kw">crate</span>::{
+		solidity::codec::Writer,
 		testing::{decode_revert_message, MockHandle},
-		EvmDataWriter,
 	},
 	fp_evm::{Context, PrecompileFailure, PrecompileSet},
 	sp_core::{H160, U256},
@@ -182,7 +182,7 @@
 		</span><span class="kw">let </span>handle = <span class="kw-2">&amp;mut </span><span class="self">self</span>.handle;
 		handle.is_static = <span class="bool-val">true</span>;
 		handle.context.apparent_value = U256::zero();
-		handle.input = EvmDataWriter::new_with_selector(selector).build();
+		handle.input = Writer::new_with_selector(selector).build();
 
 		<span class="kw">let </span>res = <span class="self">self</span>.precompiles.execute(handle);
 
@@ -202,7 +202,7 @@
 		</span><span class="kw">let </span>handle = <span class="kw-2">&amp;mut </span><span class="self">self</span>.handle;
 		handle.is_static = <span class="bool-val">false</span>;
 		handle.context.apparent_value = U256::one();
-		handle.input = EvmDataWriter::new_with_selector(selector).build();
+		handle.input = Writer::new_with_selector(selector).build();
 
 		<span class="kw">let </span>res = <span class="self">self</span>.precompiles.execute(handle);
 

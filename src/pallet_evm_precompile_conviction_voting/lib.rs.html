@@ -735,31 +735,6 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -787,7 +762,7 @@
 	VotingFor,
 };
 <span class="kw">use </span>pallet_evm::{AddressMapping, Log};
-<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_runtime::traits::StaticLookup;
 <span class="kw">use </span>sp_std::marker::PhantomData;
@@ -1017,10 +992,7 @@
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
-					EvmDataWriter::new()
-						.write::&lt;u16&gt;(track_id)
-						.write::&lt;Address&gt;(Address(caller))
-						.build(),
+					solidity::encode_event_data((track_id, Address(caller))),
 				),
 				<span class="prelude-val">Some</span>(<span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>),
 			)
@@ -1035,9 +1007,7 @@
 					handle.context().address,
 					SELECTOR_LOG_VOTE_REMOVED,
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
-					EvmDataWriter::new()
-						.write::&lt;Address&gt;(Address(caller))
-						.build(),
+					solidity::encode_event_data(Address(caller)),
 				),
 				<span class="prelude-val">None</span>,
 			)
@@ -1066,11 +1036,7 @@
 			handle.context().address,
 			SELECTOR_LOG_VOTE_REMOVED_OTHER,
 			H256::from_low_u64_be(poll_index <span class="kw">as </span>u64), <span class="comment">// poll index,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(Address(caller))
-				.write::&lt;Address&gt;(target)
-				.write::&lt;u16&gt;(track_id)
-				.build(),
+			</span>solidity::encode_event_data((Address(caller), target, track_id)),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
@@ -1115,12 +1081,7 @@
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64), <span class="comment">// track id,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(Address(caller))
-				.write::&lt;Address&gt;(representative)
-				.write::&lt;U256&gt;(amount)
-				.write::&lt;u8&gt;(conviction)
-				.build(),
+			</span>solidity::encode_event_data((Address(caller), representative, amount, conviction)),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
@@ -1159,9 +1120,7 @@
 			handle.context().address,
 			SELECTOR_LOG_UNDELEGATED,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64), <span class="comment">// track id,
-			</span>EvmDataWriter::new()
-				.write::&lt;Address&gt;(Address(caller))
-				.build(),
+			</span>solidity::encode_event_data(Address(caller)),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
@@ -1184,7 +1143,7 @@
 			handle.context().address,
 			SELECTOR_LOG_UNLOCKED,
 			H256::from_low_u64_be(track_id <span class="kw">as </span>u64), <span class="comment">// track id,
-			</span>EvmDataWriter::new().write::&lt;Address&gt;(target).build(),
+			</span>solidity::encode_event_data(target),
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
@@ -1289,12 +1248,12 @@
 					contract_addr,
 					SELECTOR_LOG_VOTED,
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
-					EvmDataWriter::new()
-						.write::&lt;Address&gt;(Address(caller))
-						.write::&lt;bool&gt;(vote.aye)
-						.write::&lt;U256&gt;(balance)
-						.write::&lt;u8&gt;(vote.conviction.into())
-						.build(),
+					solidity::encode_event_data((
+						Address(caller),
+						vote.aye,
+						balance,
+						u8::from(vote.conviction),
+					)),
 				);
 				(
 					AccountVote::Standard {
@@ -1309,11 +1268,7 @@
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT,
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
-					EvmDataWriter::new()
-						.write::&lt;Address&gt;(Address(caller))
-						.write::&lt;U256&gt;(aye)
-						.write::&lt;U256&gt;(nay)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay)),
 				);
 				(
 					AccountVote::Split {
@@ -1328,12 +1283,7 @@
 					contract_addr,
 					SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
-					EvmDataWriter::new()
-						.write::&lt;Address&gt;(Address(caller))
-						.write::&lt;U256&gt;(aye)
-						.write::&lt;U256&gt;(nay)
-						.write::&lt;U256&gt;(abstain)
-						.build(),
+					solidity::encode_event_data((Address(caller), aye, nay, abstain)),
 				);
 				(
 					AccountVote::SplitAbstain {
@@ -1441,13 +1391,13 @@
 	}
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputClassLock {
 	track: u16,
 	amount: U256,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputVotingFor {
 	is_casting: bool,
 	is_delegating: bool,
@@ -1455,20 +1405,20 @@
 	delegating: OutputDelegating,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputCasting {
 	votes: Vec&lt;PollAccountVote&gt;,
 	delegations: Delegations,
 	prior: PriorLock,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>PollAccountVote {
 	poll_index: u32,
 	account_vote: OutputAccountVote,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputDelegating {
 	balance: U256,
 	target: Address,
@@ -1477,7 +1427,7 @@
 	prior: PriorLock,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputAccountVote {
 	is_standard: bool,
 	is_split: bool,
@@ -1487,38 +1437,38 @@
 	split_abstain: SplitAbstainVote,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>StandardVote {
 	vote: OutputVote,
 	balance: U256,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>OutputVote {
 	aye: bool,
 	conviction: u8,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>SplitVote {
 	aye: U256,
 	nay: U256,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>SplitAbstainVote {
 	aye: U256,
 	nay: U256,
 	abstain: U256,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>Delegations {
 	votes: U256,
 	capital: U256,
 }
 
-<span class="attr">#[derive(Default, EvmData)]
+<span class="attr">#[derive(Default, solidity::Codec)]
 </span><span class="kw">pub struct </span>PriorLock {
 	balance: U256,
 }

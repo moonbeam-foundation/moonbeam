@@ -84,6 +84,9 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -101,7 +104,10 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="doccomment">//! Solidity types for randomness precompile.
-</span><span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+</span><span class="kw">use </span>precompile_utils::{
+	prelude::<span class="kw-2">*</span>,
+	solidity::codec::{Reader, Writer},
+};
 
 <span class="kw">pub enum </span>RequestStatus {
 	DoesNotExist,
@@ -115,8 +121,8 @@
 	RelayBabeEpoch,
 }
 
-<span class="kw">impl </span>EvmData <span class="kw">for </span>RequestStatus {
-	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+<span class="kw">impl </span>solidity::Codec <span class="kw">for </span>RequestStatus {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>Reader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">match </span>reader.read().in_field(<span class="string">&quot;variant&quot;</span>)<span class="question-mark">? </span>{
 			<span class="number">0u8 </span>=&gt; <span class="prelude-val">Ok</span>(RequestStatus::DoesNotExist),
 			<span class="number">1u8 </span>=&gt; <span class="prelude-val">Ok</span>(RequestStatus::Pending),
@@ -126,27 +132,27 @@
 		}
 	}
 
-	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>Writer, value: <span class="self">Self</span>) {
 		<span class="kw">let </span>encoded: u8 = <span class="kw">match </span>value {
 			RequestStatus::DoesNotExist =&gt; <span class="number">0u8</span>,
 			RequestStatus::Pending =&gt; <span class="number">1u8</span>,
 			RequestStatus::Ready =&gt; <span class="number">2u8</span>,
 			RequestStatus::Expired =&gt; <span class="number">3u8</span>,
 		};
-		EvmData::write(writer, encoded);
+		solidity::Codec::write(writer, encoded);
 	}
 
 	<span class="kw">fn </span>has_static_size() -&gt; bool {
 		<span class="bool-val">true
 	</span>}
 
-	<span class="kw">fn </span>solidity_type() -&gt; String {
-		u8::solidity_type()
+	<span class="kw">fn </span>signature() -&gt; String {
+		u8::signature()
 	}
 }
 
-<span class="kw">impl </span>EvmData <span class="kw">for </span>RandomnessSource {
-	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+<span class="kw">impl </span>solidity::Codec <span class="kw">for </span>RandomnessSource {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>Reader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">match </span>reader.read().in_field(<span class="string">&quot;variant&quot;</span>)<span class="question-mark">? </span>{
 			<span class="number">0u8 </span>=&gt; <span class="prelude-val">Ok</span>(RandomnessSource::LocalVRF),
 			<span class="number">1u8 </span>=&gt; <span class="prelude-val">Ok</span>(RandomnessSource::RelayBabeEpoch),
@@ -154,20 +160,20 @@
 		}
 	}
 
-	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>Writer, value: <span class="self">Self</span>) {
 		<span class="kw">let </span>encoded: u8 = <span class="kw">match </span>value {
 			RandomnessSource::LocalVRF =&gt; <span class="number">0u8</span>,
 			RandomnessSource::RelayBabeEpoch =&gt; <span class="number">1u8</span>,
 		};
-		EvmData::write(writer, encoded);
+		solidity::Codec::write(writer, encoded);
 	}
 
 	<span class="kw">fn </span>has_static_size() -&gt; bool {
 		<span class="bool-val">true
 	</span>}
 
-	<span class="kw">fn </span>solidity_type() -&gt; String {
-		u8::solidity_type()
+	<span class="kw">fn </span>signature() -&gt; String {
+		u8::signature()
 	}
 }
 </code></pre></div>

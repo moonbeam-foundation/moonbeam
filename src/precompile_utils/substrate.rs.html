@@ -138,7 +138,7 @@
 //! - Substrate DB read and write costs
 
 </span><span class="kw">use </span>{
-	<span class="kw">crate</span>::{handle::using_precompile_handle, revert},
+	<span class="kw">crate</span>::{evm::handle::using_precompile_handle, solidity::revert::revert},
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{

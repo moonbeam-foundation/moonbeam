@@ -912,9 +912,6 @@
 <a href="#912" id="912">912</a>
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -970,7 +967,7 @@
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime::RuntimeCall: From&lt;pallet_parachain_staking::Call&lt;Runtime&gt;&gt;,
-	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + EvmData,
+	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
 {
 	<span class="comment">// Constants
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;minDelegation()&quot;</span>)]
@@ -992,10 +989,7 @@
 	<span class="comment">// Storage Getters
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;points(uint256)&quot;</span>)]
 	#[precompile::view]
-	</span><span class="kw">fn </span>points(
-		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		round: SolidityConvert&lt;U256, u32&gt;,
-	) -&gt; EvmResult&lt;u32&gt; {
+	</span><span class="kw">fn </span>points(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, round: Convert&lt;U256, u32&gt;) -&gt; EvmResult&lt;u32&gt; {
 		<span class="kw">let </span>round = round.converted();
 		<span class="comment">// Fetch info.
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
@@ -1355,7 +1349,7 @@
 	</span><span class="kw">fn </span>join_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		amount: U256,
-		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>candidate_count = candidate_count.converted();
@@ -1377,7 +1371,7 @@
 	#[precompile::public(<span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>schedule_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>candidate_count = candidate_count.converted();
 
@@ -1398,7 +1392,7 @@
 	</span><span class="kw">fn </span>execute_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
-		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>candidate_count = candidate_count.converted();
 		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
@@ -1420,7 +1414,7 @@
 	#[precompile::public(<span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>cancel_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>candidate_count = candidate_count.converted();
 
@@ -1528,8 +1522,8 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
 		amount: U256,
-		candidate_delegation_count: SolidityConvert&lt;U256, u32&gt;,
-		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_delegation_count: Convert&lt;U256, u32&gt;,
+		delegator_delegation_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>candidate_delegation_count = candidate_delegation_count.converted();
@@ -1558,9 +1552,9 @@
 		candidate: Address,
 		amount: U256,
 		auto_compound: u8,
-		candidate_delegation_count: SolidityConvert&lt;U256, u32&gt;,
-		candidate_auto_compounding_delegation_count: SolidityConvert&lt;U256, u32&gt;,
-		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_delegation_count: Convert&lt;U256, u32&gt;,
+		candidate_auto_compounding_delegation_count: Convert&lt;U256, u32&gt;,
+		delegator_delegation_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">if </span>auto_compound &gt; <span class="number">100 </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(
@@ -1616,7 +1610,7 @@
 	</span><span class="kw">fn </span>execute_leave_delegators(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		delegator: Address,
-		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+		delegator_delegation_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
 		<span class="kw">let </span>delegator_delegation_count = delegator_delegation_count.converted();
@@ -1759,8 +1753,8 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
 		value: u8,
-		candidate_auto_compounding_delegation_count: SolidityConvert&lt;U256, u32&gt;,
-		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+		candidate_auto_compounding_delegation_count: Convert&lt;U256, u32&gt;,
+		delegator_delegation_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">if </span>value &gt; <span class="number">100 </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(

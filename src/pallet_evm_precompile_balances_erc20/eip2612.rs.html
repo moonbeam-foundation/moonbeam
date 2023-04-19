@@ -171,8 +171,6 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -220,18 +218,16 @@
 {
 	<span class="kw">pub fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>name: H256 = keccak_256(Metadata::name().as_bytes()).into();
-
 		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
-
 		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
-		<span class="kw">let </span>domain_separator_inner = EvmDataWriter::new()
-			.write(H256::from(PERMIT_DOMAIN))
-			.write(name)
-			.write(version)
-			.write(chain_id)
-			.write(Address(address))
-			.build();
+		<span class="kw">let </span>domain_separator_inner = solidity::encode_arguments((
+			H256::from(PERMIT_DOMAIN),
+			name,
+			version,
+			chain_id,
+			Address(address),
+		));
 
 		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
 	}
@@ -246,14 +242,14 @@
 	) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>domain_separator = <span class="self">Self</span>::compute_domain_separator(address);
 
-		<span class="kw">let </span>permit_content = EvmDataWriter::new()
-			.write(H256::from(PERMIT_TYPEHASH))
-			.write(Address(owner))
-			.write(Address(spender))
-			.write(value)
-			.write(nonce)
-			.write(deadline)
-			.build();
+		<span class="kw">let </span>permit_content = solidity::encode_arguments((
+			H256::from(PERMIT_TYPEHASH),
+			Address(owner),
+			Address(spender),
+			value,
+			nonce,
+			deadline,
+		));
 		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
@@ -327,7 +323,7 @@
 			SELECTOR_LOG_APPROVAL,
 			owner,
 			spender,
-			EvmDataWriter::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 

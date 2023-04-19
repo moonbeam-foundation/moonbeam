@@ -396,7 +396,7 @@
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;pallet_assets::Call&lt;Runtime, Instance&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + EvmData,
+	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
 	Runtime: AccountIdAssetIdConversion&lt;Runtime::AccountId, AssetIdOf&lt;Runtime, Instance&gt;&gt;,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: OriginTrait,
 	IsLocal: Get&lt;bool&gt;,
@@ -419,13 +419,13 @@
 		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
 		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
-		<span class="kw">let </span>domain_separator_inner = EvmDataWriter::new()
-			.write(H256::from(PERMIT_DOMAIN))
-			.write(name)
-			.write(version)
-			.write(chain_id)
-			.write(Address(address))
-			.build();
+		<span class="kw">let </span>domain_separator_inner = solidity::encode_arguments((
+			H256::from(PERMIT_DOMAIN),
+			name,
+			version,
+			chain_id,
+			Address(address),
+		));
 
 		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
 	}
@@ -441,14 +441,14 @@
 	) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>domain_separator = <span class="self">Self</span>::compute_domain_separator(address, asset_id);
 
-		<span class="kw">let </span>permit_content = EvmDataWriter::new()
-			.write(H256::from(PERMIT_TYPEHASH))
-			.write(Address(owner))
-			.write(Address(spender))
-			.write(value)
-			.write(nonce)
-			.write(deadline)
-			.build();
+		<span class="kw">let </span>permit_content = solidity::encode_arguments((
+			H256::from(PERMIT_TYPEHASH),
+			Address(owner),
+			Address(spender),
+			value,
+			nonce,
+			deadline,
+		));
 		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
@@ -513,7 +513,7 @@
 			SELECTOR_LOG_APPROVAL,
 			owner,
 			spender,
-			EvmDataWriter::new().write(value).build(),
+			solidity::encode_event_data(value),
 		)
 		.record(handle)<span class="question-mark">?</span>;
 

@@ -994,6 +994,9 @@
 <a href="#994" id="994">994</a>
 <a href="#995" id="995">995</a>
 <a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1010,11 +1013,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! Provide utils assemble precompiles and precompilesets into a
+</span><span class="doccomment">//! Provide utils to assemble precompiles and precompilesets into a
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-</span><span class="kw">use crate</span>::{data::String, revert, substrate::RuntimeHelper};
+</span><span class="kw">use crate</span>::{
+	solidity::{codec::String, revert::revert},
+	substrate::RuntimeHelper,
+};
 <span class="kw">use </span>fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 <span class="kw">use </span>frame_support::pallet_prelude::Get;
 <span class="kw">use </span>impl_trait_for_tuples::impl_for_tuples;
@@ -1377,7 +1383,7 @@
 		<span class="kw">if </span>!<span class="self">self</span>.allow_subcalls {
 			<span class="kw">return </span>(
 				evm::ExitReason::Revert(evm::ExitRevert::Reverted),
-				<span class="kw">crate</span>::encoded_revert(<span class="string">&quot;subcalls disabled for this precompile&quot;</span>),
+				<span class="kw">crate</span>::solidity::revert::revert_as_bytes(<span class="string">&quot;subcalls disabled for this precompile&quot;</span>),
 			);
 		}
 

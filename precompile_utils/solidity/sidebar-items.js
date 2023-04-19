@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":[["Codec",""]],"mod":[["codec","Solidity encoding following the Contract ABI Specification"],["modifier","Provide checks related to function modifiers (view/payable)."],["revert","Utilities to work with revert messages with support for backtraces and consistent formatting."]]};
