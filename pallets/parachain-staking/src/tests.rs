@@ -928,8 +928,8 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 				})
 			);
 
-			// Roll 4 rounds more
-			roll_to(50);
+			// Roll 3 rounds more
+			roll_to(40);
 
 			// Check that the collator 2 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
@@ -944,23 +944,23 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 				Event::CandidateWentOffline { candidate: 2 },
 				Event::CandidateWentOffline { candidate: 3 },
 				Event::CollatorChosen {
-					round: 6,
+					round: 5,
 					collator_account: 1,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 5,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 6,
+					round: 5,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 50,
-					round: 6,
+					starting_block: 40,
+					round: 5,
 					selected_collators_number: 3,
 					total_balance: 30,
 				},
@@ -1046,7 +1046,9 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 				})
 			);
 
+			// Round 4
 			roll_to(30);
+
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
 			set_candidate_last_active(2, 4);
@@ -1054,36 +1056,36 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			set_candidate_last_active(4, 4);
 			set_candidate_last_active(5, 4);
 
-			// Roll 3 rounds more
-			roll_to(60);
+			// Roll 2 rounds more
+			roll_to(50);
 
 			// Check that the collator 1 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 3,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 60,
-					round: 7,
+					starting_block: 50,
+					round: 6,
 					selected_collators_number: 4,
 					total_balance: 40,
 				},
@@ -1102,7 +1104,7 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 }
 
 #[test]
-fn collator_joins_again_and_goes_offline_v2() {
+fn collator_joins_again_and_goes_offline() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10), (6, 20)])
 		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
@@ -1180,15 +1182,15 @@ fn collator_joins_again_and_goes_offline_v2() {
 				5
 			));
 
+			// Round 4
+			roll_to(30);
+
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
 			set_candidate_last_active(2, 4);
 			set_candidate_last_active(3, 4);
 			set_candidate_last_active(4, 4);
 			set_candidate_last_active(5, 4);
-
-			// Round 4
-			roll_to(30);
 
 			// Check that the collator 6 is selected instead of collator 1
 			// as it has more stake bonded
@@ -1230,6 +1232,9 @@ fn collator_joins_again_and_goes_offline_v2() {
 				},
 			);
 
+			// Round 7
+			roll_to(60);
+
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
 			set_candidate_last_active(2, 6);
@@ -1237,9 +1242,6 @@ fn collator_joins_again_and_goes_offline_v2() {
 			set_candidate_last_active(4, 6);
 			set_candidate_last_active(5, 6);
 			set_candidate_last_active(6, 6);
-
-			// Round 7
-			roll_to(60);
 
 			// Collator 6 now goes offline
 			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(6)));
@@ -1339,11 +1341,7 @@ fn collator_joins_again_and_goes_offline_v2() {
 			roll_to(90);
 
 			assert_events_eq!(
-				Event::CollatorChosen {
-					round: 10,
-					collator_account: 1,
-					total_exposed_amount: 10,
-				},
+				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
 					round: 10,
 					collator_account: 2,
@@ -1367,40 +1365,6 @@ fn collator_joins_again_and_goes_offline_v2() {
 				Event::NewRound {
 					starting_block: 90,
 					round: 10,
-					selected_collators_number: 5,
-					total_balance: 50,
-				},
-			);
-
-			// Round 11
-			roll_to(100);
-
-			// Check that collator 1 goes offline
-			assert_events_eq!(
-				Event::CandidateWentOffline { candidate: 1 },
-				Event::CollatorChosen {
-					round: 11,
-					collator_account: 2,
-					total_exposed_amount: 10,
-				},
-				Event::CollatorChosen {
-					round: 11,
-					collator_account: 3,
-					total_exposed_amount: 10,
-				},
-				Event::CollatorChosen {
-					round: 11,
-					collator_account: 4,
-					total_exposed_amount: 10,
-				},
-				Event::CollatorChosen {
-					round: 11,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
-				Event::NewRound {
-					starting_block: 100,
-					round: 11,
 					selected_collators_number: 4,
 					total_balance: 40,
 				},
@@ -1409,7 +1373,7 @@ fn collator_joins_again_and_goes_offline_v2() {
 }
 
 #[test]
-fn collator_joins_again_and_doesnt_go_offline_v2() {
+fn collator_joins_again_and_doesnt_go_offline() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10), (6, 20)])
 		.with_candidates(vec![(1, 10), (2, 10), (3, 10), (4, 10), (5, 10)])
@@ -1487,15 +1451,15 @@ fn collator_joins_again_and_doesnt_go_offline_v2() {
 				5
 			));
 
+			// Round 4
+			roll_to(30);
+
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
 			set_candidate_last_active(2, 4);
 			set_candidate_last_active(3, 4);
 			set_candidate_last_active(4, 4);
 			set_candidate_last_active(5, 4);
-
-			// Round 4
-			roll_to(30);
 
 			// Check that the collator 6 is selected instead of collator 1
 			// as it has more stake bonded
@@ -1537,6 +1501,9 @@ fn collator_joins_again_and_doesnt_go_offline_v2() {
 				},
 			);
 
+			// Round 7
+			roll_to(60);
+
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
 			set_candidate_last_active(2, 6);
@@ -1544,9 +1511,6 @@ fn collator_joins_again_and_doesnt_go_offline_v2() {
 			set_candidate_last_active(4, 6);
 			set_candidate_last_active(5, 6);
 			set_candidate_last_active(6, 6);
-
-			// Round 7
-			roll_to(60);
 
 			// Collator 6 now goes offline
 			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(6)));
@@ -2137,35 +2101,35 @@ fn candidate_joins_again_after_going_offline() {
 			set_candidate_last_active(5, 4);
 
 			// Roll 5 rounds more
-			roll_to(60);
+			roll_to(50);
 
 			// Check that the collator 1 goes offline if it doesn't produce blocks
 			// within MaxOfflineRounds rounds (in this case 3)
 			assert_events_eq!(
 				Event::CandidateWentOffline { candidate: 1 },
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 2,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 3,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 4,
 					total_exposed_amount: 10,
 				},
 				Event::CollatorChosen {
-					round: 7,
+					round: 6,
 					collator_account: 5,
 					total_exposed_amount: 10,
 				},
 				Event::NewRound {
-					starting_block: 60,
-					round: 7,
+					starting_block: 50,
+					round: 6,
 					selected_collators_number: 4,
 					total_balance: 40,
 				},
@@ -2221,9 +2185,6 @@ fn candidate_joins_again_after_going_offline() {
 			);
 		});
 }
-//TODO: test collator enter collators set, goes out, enters again
-// 2 cases: if produces blocks, it stays
-//          if not, marked as offline
 
 // SCHEDULE LEAVE CANDIDATES
 #[test]

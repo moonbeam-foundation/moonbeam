@@ -466,7 +466,7 @@ pub mod pallet {
 						//round.current.saturating_sub(info.last_round) > T::MaxOfflineRounds::get()
 						//&& round.current.saturating_sub(info.last_active) <= T::MaxOfflineRounds::get()&&
 						len_counter * 3 > (max_collators * 2) as usize
-							&& info.max_offline_counter > T::MaxOfflineRounds::get()
+							&& info.max_offline_counter >= T::MaxOfflineRounds::get()
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)

@@ -1701,7 +1701,7 @@ pub struct CollatorActivity<RoundIndex> {
 	/// Last round in which the collator was included in the collators set
 	pub last_active: RoundIndex,
 
-	pub max_offline_counter: RoundIndex
+	pub max_offline_counter: RoundIndex,
 }
 
 impl<T: Default> Default for CollatorActivity<T> {
