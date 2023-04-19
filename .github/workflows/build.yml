@@ -19,7 +19,6 @@ on:
 env:
   SCCACHE_CACHE_SIZE: "100GB"
   CARGO_INCREMENTAL: "0"
-  RUSTC_WRAPPER: "sccache"
 
 jobs:
   ####### Check files and formatting #######
@@ -261,6 +260,7 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
+      RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target"
       CARGO_TARGET_DIR: "target"
     steps:
@@ -316,6 +316,7 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
+      RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target-features"
       CARGO_TARGET_DIR: "target-features"
     steps:
@@ -383,6 +384,8 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     env:
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
+      RUSTC_WRAPPER: "sccache"
       TMP_TARGET: "/tmp/target-test"
       CARGO_TARGET_DIR: "target-test"
     steps:
