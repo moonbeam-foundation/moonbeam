@@ -278,59 +278,6 @@ describeDevMoonbeam("Mock XCM - Send two local ERC20", (context) => {
       ]
     );
 
-    //--------------------Another way (using transferMultiAssets)--------------------------------
-    //
-    // Get pallet indices
-    /* const metadata = await context.polkadotApi.rpc.state.getMetadata();
-    const erc20XcmPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => pallet.name === "Erc20XcmBridge"
-    ).index;
-
-    const assetMultiLocation1 = [
-      0,
-      // Represents 
-      // X2(PalletInstance(erc20XcmPalletIndex), AccountKey20(erc20ContractAddress1, NetworkAny))
-      //
-      // PalletInstance variant (04) + 
-      // erc20XcmPalletIndex + 
-      // AccountKey20 variant(03) + 
-      // the 20 bytes account of contract 1 + 
-      // Any network variant (00)
-      //
-      ["0x04" + erc20XcmPalletIndex.toString() + "03" + erc20ContractAddress1.slice(2) + "00"]
-    ];
-
-    const assetMultiLocation2 = [
-      0,
-      ["0x04" + erc20XcmPalletIndex.toString() + "03" + erc20ContractAddress2.slice(2) + "00"]
-    ];
-
-    const multiAsset1 = [
-      assetMultiLocation1,
-      amountTransferred 
-    ];
-
-    const multiAsset2 = [
-      assetMultiLocation2,
-      amountTransferred 
-    ];
-
-    const data = XTOKENS_INTERFACE.encodeFunctionData(
-      // action
-      "transferMultiAssets",
-      [
-        // addresses of the multiassets
-        [multiAsset1, multiAsset2],
-        // index fee
-        1n,
-        // Destination as multilocation
-        destination,
-        // weight
-        500_000_000n,
-      ]
-    ); */
-    //------------------------------------------------------------------------------
-
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -651,5 +598,134 @@ describeDevMoonbeam("Mock XCM - Fails trying to pay fees with ERC20", (context) 
         })
       ).result
     ).equals(bnToHex(0n, { bitLength: 256 }));
+  });
+});
+
+describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
+  let erc20Contract: Contract;
+  let erc20ContractAddress: string;
+
+  before("Should deploy erc20 contract", async function () {
+    const { contract, contractAddress } = await setupErc20Contract(context, "NewToken", "NTK");
+    erc20Contract = contract;
+    erc20ContractAddress = contractAddress;
+  });
+
+  it("Should not trap any ERC20", async function () {
+    this.timeout(20_000);
+    const paraId = 888;
+    const paraSovereign = sovereignAccountOfSibling(context, paraId);
+    const amountTransferred = 1_000_000n;
+
+    // Get pallet index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Balances"
+    ).index;
+    const erc20XcmPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Erc20XcmBridge"
+    ).index;
+
+    // Send some native tokens to the sovereign account of paraId (to pay fees)
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        value: 1_000_000_000_000_000_000,
+        to: paraSovereign,
+        data: "0x",
+      })
+    );
+    expectEVMResult(result.events, "Succeed");
+
+    // Send some erc20 tokens to the sovereign account of paraId
+    const { result: result2 } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: erc20ContractAddress,
+        data: ERC20_INTERFACE.encodeFunctionData("transfer", [paraSovereign, amountTransferred]),
+      })
+    );
+    expectEVMResult(result2.events, "Succeed");
+
+    // Check the sovereign account has reveived erc20 tokens
+    expect(
+      (
+        await web3EthCall(context.web3, {
+          to: erc20ContractAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [paraSovereign]),
+        })
+      ).result
+    ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
+
+    // Create xcm message to send ERC20 tokens to Charleth
+    const config = {
+      assets: [
+        {
+          multilocation: {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+          fungible: 1_000_000_000_000_000n,
+        },
+        {
+          multilocation: {
+            parents: 0,
+            interior: {
+              X2: [
+                {
+                  PalletInstance: erc20XcmPalletIndex,
+                },
+                {
+                  AccountKey20: {
+                    network: "Any",
+                    key: erc20ContractAddress,
+                  },
+                },
+              ],
+            },
+          },
+          fungible: amountTransferred,
+        },
+      ],
+      beneficiary: CHARLETH_ADDRESS,
+    };
+
+    // Build the xcm message with trap()
+    const xcmMessage = new XcmFragment(config)
+      .withdraw_asset()
+      .trap()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset(2n)
+      .as_v2();
+
+    // Mock the reception of the xcm message
+    await injectHrmpMessage(context, paraId, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+    await context.createBlock();
+
+    // Search for Fail event
+    const records = (await context.polkadotApi.query.system.events()) as any;
+    const events = records.filter(
+      ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+    );
+
+    // Check the error is Barrier
+    expect(events).to.have.lengthOf(1);
+    expect(events[0].toHuman().event.data.error).equals("Barrier");
+
+    // Check the sovereign account has the same initial amount of ERC20 tokens
+    expect(
+      (
+        await web3EthCall(context.web3, {
+          to: erc20ContractAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [paraSovereign]),
+        })
+      ).result
+    ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
   });
 });
