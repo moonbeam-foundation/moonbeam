@@ -30,7 +30,7 @@
       "collator": {
         "name": "alith",
         "command": "tmp/moonbeam",
-        "ws_port": 33345, 
+        "ws_port": 33345,
         "args": [
           "--no-hardware-benchmarks",
           "--force-authoring",

@@ -1,10 +1,5 @@
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import {
-  ALITH_PRIVATE_KEY,
-  BALTATHAR_ADDRESS,
-  CHARLETH_ADDRESS,
-  alith,
-} from "@moonwall/util";
+import { ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther, ethers, Transaction, Wallet, parseUnits } from "ethers";
 import "@moonbeam-network/api-augment";
@@ -18,7 +13,7 @@ describeSuite({
     const DUMMY_ACCOUNT = "0x11d88f59425cbc1867883fcf93614bf70e87E854";
 
     beforeAll(() => {
-      api = context.getMoonbeam();
+      api = context.polkadotJs();
     });
 
     it({
