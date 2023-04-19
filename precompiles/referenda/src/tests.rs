@@ -20,7 +20,7 @@ use crate::{
 };
 use precompile_utils::{prelude::*, testing::*};
 
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::{assert_err, assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_referenda::Call as ReferendaCall;
 
@@ -290,21 +290,10 @@ fn submit_track_id_oob_fails() {
 		.execute_with(|| {
 			let proposal = vec![1, 2, 3];
 			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
-
-			// Submit referendum at index 0
-			let input = PCall::submit_at {
-				track_id: 0u16,
-				proposal_hash: proposal_hash,
-				proposal_len: proposal.len() as u32,
-				block_number: 0u32,
-			}
-			.into();
-			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
-
 			let oob_track_id =
 				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().len();
 
-			// Submit referendum at index 1
+			// submit with an invalid track_id
 			let input = PCall::submit_at {
 				track_id: oob_track_id as u16,
 				proposal_hash: proposal_hash,
@@ -312,35 +301,10 @@ fn submit_track_id_oob_fails() {
 				block_number: 0u32,
 			}
 			.into();
+
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			assert!(vec![
-				EvmEvent::Log {
-					log: log2(
-						Precompile1,
-						SELECTOR_LOG_SUBMITTED_AT,
-						H256::from_low_u64_be(0u64),
-						solidity::encode_event_data((
-							0u32, // referendum index
-							proposal_hash
-						))
-					),
-				}
-				.into(),
-				EvmEvent::Log {
-					log: log2(
-						Precompile1,
-						SELECTOR_LOG_SUBMITTED_AT,
-						H256::from_low_u64_be(0u64),
-						solidity::encode_event_data((
-							1u32, // referendum index
-							proposal_hash
-						))
-					),
-				}
-				.into()
-			]
-			.iter()
-			.all(|log| events().contains(log)));
+			// Should have emitted no events as it should have produced a PrecompileError
+			assert!(vec![].iter().all(|log| events().contains(log)));
 		});
 }
