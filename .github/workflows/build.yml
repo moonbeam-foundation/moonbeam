@@ -249,6 +249,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
       - name: Setup Rust toolchain
         run: rustup show
       - name: Clippy
