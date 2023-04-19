@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
-import { FrameSystemEventRecord, XcmV1MultiLocation } from "@polkadot/types/lookup";
+import { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
 import { FIVE_MINS } from "../util/constants";
 import { isMuted } from "../util/foreign-chains";
 const debug = require("debug")("smoke:xcm-failures");
@@ -34,7 +34,7 @@ describeSmokeSuite(
           events[Math.max(0, index - 1)].event
         )
       ) {
-        const { interior } = events[index - 1].event.data[1] as XcmV1MultiLocation;
+        const { interior } = events[index - 1].event.data[1] as XcmV3MultiLocation;
         if (interior.isX1) {
           muted = isMuted(chainName, interior.asX1.asParachain.toNumber());
         }

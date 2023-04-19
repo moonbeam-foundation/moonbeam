@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.2201.0",
+  "version": "0.2301.0",
   "type": "module",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
@@ -32,7 +32,7 @@
     "generate:meta:moonriver": "node --experimental-specifier-resolution=node --loader ts-node/esm  node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
     "generate:meta:moonbeam": "node --experimental-specifier-resolution=node --loader ts-node/esm node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "prebuild": "rimraf build",
-    "build": "npx tsc -b --verbose",
+    "build": "tsc -b --verbose",
     "postbuild": "node --experimental-specifier-resolution=node --loader ts-node/esm ./scripts/postbuild.js",
     "publish": "cd build && npm publish",
     "deploy": "npm run generate && npm run build && npm run publish",
@@ -84,8 +84,8 @@
     "api"
   ],
   "devDependencies": {
-    "@polkadot/api": "^10.1.3",
-    "@polkadot/typegen": "^10.1.3",
+    "@polkadot/api": "^10.3.4",
+    "@polkadot/typegen": "^10.3.4",
     "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",

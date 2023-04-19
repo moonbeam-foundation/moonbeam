@@ -18,7 +18,7 @@ use crate::{
 	SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED, SELECTOR_LOG_SUBMITTED_AFTER,
 	SELECTOR_LOG_SUBMITTED_AT,
 };
-use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -42,27 +42,7 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Referenda.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Referenda.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -100,11 +80,10 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
-							// Referendum index 0
-							.write::<u32>(0u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							0u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into(),
@@ -113,11 +92,10 @@ fn submitted_at_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AT,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
-							// Referendum index 1
-							.write::<u32>(1u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							1u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into()
@@ -162,11 +140,10 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
-							// Referendum index 0
-							.write::<u32>(0u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							0u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into(),
@@ -175,11 +152,10 @@ fn submitted_after_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_SUBMITTED_AFTER,
 						H256::from_low_u64_be(0u64),
-						EvmDataWriter::new()
-							// Referendum index 1
-							.write::<u32>(1u32)
-							.write::<H256>(proposal_hash)
-							.build(),
+						solidity::encode_event_data((
+							1u32, // referendum index
+							proposal_hash
+						))
 					),
 				}
 				.into()
@@ -227,12 +203,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-						EvmDataWriter::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Decision deposit
-							.write::<U256>(U256::from(10))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(10), // decision deposit
+						))
 					)
 				}
 				.into()
@@ -279,12 +254,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Decision deposit
-							.write::<U256>(U256::from(10))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(10), // decision deposit
+						))
 					)
 				}
 				.into(),
@@ -292,12 +266,11 @@ fn place_and_refund_decision_deposit_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-						EvmDataWriter::new()
-							.write::<u32>(referendum_index)
-							.write::<Address>(Address(Alice.into()))
-							// Submission deposit
-							.write::<U256>(U256::from(15))
-							.build(),
+						solidity::encode_event_data((
+							referendum_index,
+							Address(Alice.into()),
+							U256::from(15), // submission deposit
+						))
 					)
 				}
 				.into()

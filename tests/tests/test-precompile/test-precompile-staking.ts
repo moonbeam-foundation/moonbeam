@@ -11,7 +11,7 @@ import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransaction, ETHAN_TRANSACTION_TEMPLATE } from "../../util/transactions";
 
-const PARACHAIN_STAKING_CONTRACT = getCompiled("ParachainStaking");
+const PARACHAIN_STAKING_CONTRACT = getCompiled("precompiles/parachain-staking/ParachainStaking");
 const PARACHAIN_STAKING_INTERFACE = new ethers.utils.Interface(
   PARACHAIN_STAKING_CONTRACT.contract.abi
 );

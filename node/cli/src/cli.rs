@@ -164,12 +164,7 @@ pub struct RunCmd {
 	// pub author_id: Option<NimbusId>,
 
 	/// Enable EVM tracing module on a non-authority node.
-	#[clap(
-		long,
-		conflicts_with = "collator",
-		conflicts_with = "validator",
-		value_delimiter = ','
-	)]
+	#[clap(long, value_delimiter = ',')]
 	pub ethapi: Vec<EthApi>,
 
 	/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.

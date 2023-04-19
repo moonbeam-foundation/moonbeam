@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
@@ -28,7 +27,7 @@ use pallet_referenda::{
 	ReferendumInfo, ReferendumInfoFor, TracksInfo,
 };
 use parity_scale_codec::Encode;
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
@@ -66,7 +65,7 @@ pub(crate) const SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; 32] =
 pub(crate) const SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; 32] =
 	keccak256!("SubmissionDepositRefunded(uint32,address,uint256)");
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct TrackInfo {
 	name: UnboundedBytes,
 	max_deciding: U256,
@@ -79,7 +78,7 @@ pub struct TrackInfo {
 	min_support: UnboundedBytes,
 }
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct OngoingReferendumInfo {
 	/// The track of this referendum.
 	track_id: u16,
@@ -117,7 +116,7 @@ pub struct OngoingReferendumInfo {
 	alarm_task_address: UnboundedBytes,
 }
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct ClosedReferendumInfo {
 	status: u8,
 	end: U256,
@@ -499,10 +498,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AT,
 			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(referendum_index)
-				.write::<H256>(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 		event.record(handle)?;
 
@@ -540,10 +536,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SUBMITTED_AFTER,
 			H256::from_low_u64_be(track_id as u64),
-			EvmDataWriter::new()
-				.write::<u32>(referendum_index)
-				.write::<H256>(proposal_hash)
-				.build(),
+			solidity::encode_event_data((referendum_index, proposal_hash)),
 		);
 
 		event.record(handle)?;
@@ -580,11 +573,11 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_PLACED,
-			EvmDataWriter::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(handle.context().caller))
-				.write::<U256>(decision_deposit)
-				.build(),
+			solidity::encode_event_data((
+				index,
+				Address(handle.context().caller),
+				decision_deposit,
+			)),
 		);
 
 		event.record(handle)?;
@@ -620,11 +613,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(who))
-				.write::<U256>(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)?;
@@ -659,11 +648,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED,
-			EvmDataWriter::new()
-				.write::<u32>(index)
-				.write::<Address>(Address(who))
-				.write::<U256>(refunded_deposit)
-				.build(),
+			solidity::encode_event_data((index, Address(who), refunded_deposit)),
 		);
 
 		event.record(handle)?;

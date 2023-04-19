@@ -15,12 +15,12 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::*;
 use crate::*;
-use precompile_utils::{testing::*, EvmDataWriter};
+use precompile_utils::testing::*;
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 
-use sp_core::{Hasher, H256, U256};
+use sp_core::{Hasher, U256};
 
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
@@ -42,27 +42,7 @@ fn precompiles() -> Precompiles<Runtime> {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Preimage.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Preimage.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -87,7 +67,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_NOTED,
-						EvmDataWriter::new().write::<H256>(expected_hash).build(),
+						solidity::encode_event_data(expected_hash)
 					),
 				}
 				.into(),
@@ -111,7 +91,7 @@ fn note_unnote_preimage_logs_work() {
 					log: log1(
 						Precompile1,
 						SELECTOR_LOG_PREIMAGE_UNNOTED,
-						EvmDataWriter::new().write::<H256>(expected_hash).build(),
+						solidity::encode_event_data(expected_hash)
 					),
 				}
 				.into()
@@ -136,6 +116,6 @@ fn note_preimage_returns_preimage_hash() {
 						encoded_proposal: BoundedBytes::from(preimage),
 					},
 				)
-				.execute_returns_encoded(preimage_hash);
+				.execute_returns(preimage_hash);
 		})
 }

@@ -894,6 +894,7 @@ where
 				telemetry.clone(),
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+			proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
@@ -1018,7 +1019,7 @@ where
 	let collator = config.role.is_authority();
 
 	if collator {
-		let mut env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
@@ -1026,6 +1027,8 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+		env.enable_ensure_proof_size_limit_after_each_extrinsic();
+
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				moonbeam_cli_opt::Sealing::Instant => {

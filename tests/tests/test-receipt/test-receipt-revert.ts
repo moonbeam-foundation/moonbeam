@@ -15,9 +15,9 @@ describeDevMoonbeamAllEthTxTypes("Receipt - Revert", (context) => {
     expect(receipt).to.include({
       blockNumber: 1,
       contractAddress: "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
-      cumulativeGasUsed: 54600,
+      cumulativeGasUsed: 54602,
       from: "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
-      gasUsed: 54600,
+      gasUsed: 54602,
       to: null,
       transactionHash: result.hash,
       transactionIndex: 0,

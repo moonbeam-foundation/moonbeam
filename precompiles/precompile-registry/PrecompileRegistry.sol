@@ -10,14 +10,14 @@ interface PrecompileRegistry {
     /// @param a: Address to query
     /// @return output Is this address a precompile?
     /// @custom:selector 446b450e
-    function isPrecompile(address a) external returns (bool);
+    function isPrecompile(address a) external view returns (bool);
 
     /// @dev Query if the given address is an active precompile. Will return false if the
     /// address is not a precompile or if this precompile is deactivated.
     /// @param a: Address to query
     /// @return output Is this address an active precompile?
     /// @custom:selector 6f5e23cf
-    function isActivePrecompile(address a) external returns (bool);
+    function isActivePrecompile(address a) external view returns (bool);
 
     /// @dev Update the account code of a precompile address.
     /// As precompiles are implemented inside the Runtime, they don't have a bytecode, and
