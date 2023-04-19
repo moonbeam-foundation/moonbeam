@@ -658,7 +658,7 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
-        chain: ["moonbase", "moonriver"]
+        chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
@@ -689,12 +689,15 @@ jobs:
           cd test
           pnpm i
 
-          ## Download latest node binaries
+          ## Download latest released binaries. When infra improved instead,
+          ## fetch node binary corresponding to published RT
           pnpm moonwall download polkadot latest tmp
-          pnpm moonwall download moonbeam latest tmp/dl/
+          pnpm moonwall download moonbeam latest tmp/old/
 
-          ## Generate old spec using latest published node
-          tmp/dl/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          ## Generate old spec using latest published node, modify it, and generate raw spec
+          tmp/old/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          tmp/old/moonbeam build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam

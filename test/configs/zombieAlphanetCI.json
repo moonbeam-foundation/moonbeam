@@ -27,7 +27,7 @@
     {
       "chain": "moonbase-local",
       "chain_spec_path": "tmp/moonbase-plain-spec.json",
-      "id": 1282,
+      "id": 1000,
       "collator": {
         "name": "alith",
         "args": [

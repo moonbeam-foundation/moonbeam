@@ -24,8 +24,7 @@
   },
   "parachains": [
     {
-      "id": 1282,
-      "cumulus_based": true,
+      "id": 1000,
       "chain": "moonbase-local",
       "chain_spec_path": "tmp/moonbase-plain-spec.json",
       "collator": {
