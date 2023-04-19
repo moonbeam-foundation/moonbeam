@@ -663,6 +663,60 @@ jobs:
           pnpm i
           pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
 
+  build-rt-node:
+    runs-on: self-hosted
+    env:
+      CARGO_SCCACHE_COMMIT: bed5571c
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
+      # MOONBEAM_LOG: info
+      # DEBUG: "test*"
+    steps:
+      - name: Get RT git tag name
+        run: |
+          echo "LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("Runtime";"i")) | .tag_name' | head -n 1)" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.LATEST_RUNTIME_RELEASE }}
+      - uses: actions/cache@v3
+        with:
+          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
+
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: SCCache
+        run: |
+          # We altered the path to avoid old actions to overwrite it
+          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
+          if [ ! -f $SCCACHE_BIN ]; then
+            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
+          fi
+          ls -la $SCCACHE_BIN
+          ps aux | grep sccache
+          if [[ -z `pgrep sccache` ]]; then
+            chmod +x $SCCACHE_BIN
+            $SCCACHE_BIN --start-server
+          fi
+          $SCCACHE_BIN -s
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+      - name: Build Node
+        run: |
+          env
+          cargo build --release --all
+      - name: Save moonbeam binary
+        run: |
+          mkdir -p build
+          cp target/release/moonbeam build/moonbeam;
+      - name: Upload binary
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: moonbeamRT
+          path: build
+
   zombie_upgrade_test:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
@@ -694,20 +748,21 @@ jobs:
         with:
           name: moonbeam
           path: test/tmp
+      - name: "Download RT node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeamRT
+          path: test/tmp/RT
       - name: "Run zombie test"
         run: |
           cd test
           pnpm i
-
-          ## Download latest released binaries. When infra improved instead,
-          ## fetch node binary corresponding to published RT
           pnpm moonwall download polkadot latest tmp
-          pnpm moonwall download moonbeam latest tmp/old/
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
-          tmp/old/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          tmp/RT/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-          tmp/old/moonbeam build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+          tmp/RT/moonbeam build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam

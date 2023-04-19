@@ -26,12 +26,14 @@
     {
       "id": 1000,
       "chain": "moonbase-local",
-      "chain_spec_path": "tmp/moonbase-plain-spec.json",
+      "chain_spec_path": "tmp/moonbase-raw-spec.json",
       "collator": {
         "name": "alith",
+        "ws_port": 33345,
         "command": "../target/release/moonbeam",
         "args": [
           "--no-hardware-benchmarks",
+          "--force-authoring",
           "-lparachain=debug",
           "--database=paritydb"
         ]
