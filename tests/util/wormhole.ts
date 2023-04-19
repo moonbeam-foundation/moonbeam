@@ -153,12 +153,12 @@ export function genTransferVAA(
   const b = [
     "0x",
     encode("uint8", 1),
-    encode("uint256", Math.floor(amount * 100000000)),
+    encode("uint256", amount),
     encode("address32", tokenAddress),
     encode("uint16", tokenChain),
     encode("address32", toAddress),
     encode("uint16", toChain),
-    encode("uint256", Math.floor(fee * 100000000)),
+    encode("uint256", fee),
   ];
 
   let seconds = Math.floor(new Date().getTime() / 1000.0);
@@ -181,7 +181,7 @@ export function genTransferWithPayloadVAA(
   guardianSet: number,
   nonce: number,
   seq: number,
-  amount: number,
+  amount: BigInt,
   tokenAddress: string,
   tokenChain: number,
   tokenEmitterChainId: number,
@@ -194,7 +194,7 @@ export function genTransferWithPayloadVAA(
   const b = [
     "0x",
     encode("uint8", 3),
-    encode("uint256", Math.floor(amount * 100000000)),
+    encode("uint256", amount),
     encode("address32", tokenAddress),
     encode("uint16", tokenChain),
     encode("address32", toAddress),
