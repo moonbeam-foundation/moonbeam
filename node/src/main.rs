@@ -18,9 +18,6 @@
 
 #![warn(missing_docs)]
 
-#[cfg(test)]
-mod tests;
-
 fn main() -> moonbeam_cli::Result<()> {
 	moonbeam_cli::run()
 }
