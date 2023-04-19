@@ -26,9 +26,6 @@ yargs(hideBin(process.argv))
     async (argv) => {
       const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath)).toString());
       plainSpec.bootNodes = [];
-      plainSpec.genesis.runtime.parachainStaking.candidates = [
-        [ALITH_ADDRESS, 2000000000000000000000000],
-      ];
       plainSpec.genesis.runtime.authorMapping.mappings = [
         ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
       ];
