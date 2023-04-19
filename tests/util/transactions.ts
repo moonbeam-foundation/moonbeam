@@ -6,6 +6,7 @@ import { Contract } from "web3-eth-contract";
 import {
   alith,
   ALITH_PRIVATE_KEY,
+  ALITH_ADDRESS,
   baltathar,
   BALTATHAR_PRIVATE_KEY,
   charleth,
@@ -18,6 +19,7 @@ import {
 import { getCompiled } from "./contracts";
 import { customWeb3Request } from "./providers";
 import { DevTestContext } from "./setup-dev-tests";
+import { expectEVMResult } from "./eth-transactions";
 
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
@@ -432,3 +434,25 @@ export const sendAllStreamAndWaitLast = async (
   }
   await Promise.all(promises);
 };
+
+export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
+export const setupErc20Contract = async (context: DevTestContext, name: string, symbol: string) => {
+  const { contract, contractAddress, rawTx } = await createContract(
+    context,
+    "ERC20WithInitialSupply",
+    {
+      ...ALITH_TRANSACTION_TEMPLATE,
+      gas: 5_000_000,
+    },
+    [name, symbol, ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
+  );
+  const { result } = await context.createBlock(rawTx);
+  expectEVMResult(result.events, "Succeed");
+  return { contract, contractAddress };
+};
+
+export async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
+  const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
+  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
+  return account.data.free.toBigInt();
+}
