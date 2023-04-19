@@ -68,7 +68,7 @@ mod is_precompile {
 						},
 					)
 					.expect_no_logs()
-					.execute_returns_encoded(output);
+					.execute_returns(output);
 			});
 	}
 
@@ -111,7 +111,7 @@ mod is_active_precompile {
 						},
 					)
 					.expect_no_logs()
-					.execute_returns_encoded(output);
+					.execute_returns(output);
 			});
 	}
 
@@ -156,7 +156,7 @@ mod update_account_code {
 				);
 
 				if expect_changes {
-					tester.execute_returns_encoded(());
+					tester.execute_returns(());
 					let new_code = pallet_evm::AccountCodes::<Runtime>::get(target_address);
 					assert_eq!(&new_code, &[0x60, 0x00, 0x60, 0x00, 0xfd]);
 				} else {
@@ -195,25 +195,8 @@ mod update_account_code {
 
 #[test]
 fn test_solidity_interface() {
-	for file in ["PrecompileRegistry.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"unsupported selector 0x{:x} => '{}' for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["PrecompileRegistry.sol"],
+		PCall::supports_selector,
+	)
 }

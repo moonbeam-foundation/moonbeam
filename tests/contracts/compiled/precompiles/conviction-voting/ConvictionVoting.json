@@ -1,0 +1,647 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "delegatedAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint8",
+            "name": "conviction",
+            "type": "uint8"
+          }
+        ],
+        "name": "Delegated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          }
+        ],
+        "name": "Undelegated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          }
+        ],
+        "name": "Unlocked",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          }
+        ],
+        "name": "VoteRemoved",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          }
+        ],
+        "name": "VoteRemovedForTrack",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          }
+        ],
+        "name": "VoteRemovedOther",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "aye",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "nay",
+            "type": "uint256"
+          }
+        ],
+        "name": "VoteSplit",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "aye",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "nay",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "abstain",
+            "type": "uint256"
+          }
+        ],
+        "name": "VoteSplitAbstained",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "pollIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "voter",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "aye",
+            "type": "bool"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "voteAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint8",
+            "name": "conviction",
+            "type": "uint8"
+          }
+        ],
+        "name": "Voted",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" }
+        ],
+        "name": "classLocksFor",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          {
+            "internalType": "address",
+            "name": "representative",
+            "type": "address"
+          },
+          {
+            "internalType": "enum ConvictionVoting.Conviction",
+            "name": "conviction",
+            "type": "uint8"
+          },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "delegate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "target", "type": "address" },
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" }
+        ],
+        "name": "removeOtherVote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" }
+        ],
+        "name": "removeVote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "removeVoteForTrack",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "undelegate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          { "internalType": "address", "name": "target", "type": "address" }
+        ],
+        "name": "unlock",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          {
+            "internalType": "uint256",
+            "name": "voteAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum ConvictionVoting.Conviction",
+            "name": "conviction",
+            "type": "uint8"
+          }
+        ],
+        "name": "voteNo",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          { "internalType": "uint256", "name": "aye", "type": "uint256" },
+          { "internalType": "uint256", "name": "nay", "type": "uint256" }
+        ],
+        "name": "voteSplit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          { "internalType": "uint256", "name": "aye", "type": "uint256" },
+          { "internalType": "uint256", "name": "nay", "type": "uint256" },
+          { "internalType": "uint256", "name": "abstain", "type": "uint256" }
+        ],
+        "name": "voteSplitAbstain",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "pollIndex", "type": "uint32" },
+          {
+            "internalType": "uint256",
+            "name": "voteAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum ConvictionVoting.Conviction",
+            "name": "conviction",
+            "type": "uint8"
+          }
+        ],
+        "name": "voteYes",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" },
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "votingFor",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+              { "internalType": "uint256", "name": "amount", "type": "uint256" }
+            ],
+            "internalType": "struct ConvictionVoting.ClassLock[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000812",
+      "events": {
+        "Delegated(uint16,address,address,uint256,uint8)": {
+          "custom:selector": "6cc151d547592e227b1e85a264ac3699c6f1014112b08bb3832de1f23b9c66db",
+          "details": "An account delegated for the given trackId.",
+          "params": {
+            "conviction": "uint8 Conviction being delegated.",
+            "delegatedAmount": "uint256 Amount being delegated.",
+            "from": "address Address of the caller.",
+            "to": "address Address of the representative.",
+            "trackId": "uint16 The trackId."
+          }
+        },
+        "Undelegated(uint16,address)": {
+          "custom:selector": "1053303328f6db14014ccced6297bcad2b3897157ce46070711ab995a05dfa14",
+          "details": "An account undelegated for the given trackId.",
+          "params": {
+            "caller": "address Address of the caller.",
+            "trackId": "uint16 The trackId."
+          }
+        },
+        "Unlocked(uint16,address)": {
+          "custom:selector": "dcf72fa65ca7fb720b9ccc8ee28e0188edc3d943115124cdd4086c49f836a128",
+          "details": "An account called to unlock tokens for the given trackId.",
+          "params": {
+            "caller": "address Address of the caller.",
+            "trackId": "uint16 The trackId."
+          }
+        },
+        "VoteRemoved(uint32,address)": {
+          "custom:selector": "49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b",
+          "details": "An account removed its vote from an ongoing poll.",
+          "params": {
+            "pollIndex": "uint32 Index of the poll.",
+            "voter": "address Address of the voter."
+          }
+        },
+        "VoteRemovedForTrack(uint32,uint16,address)": {
+          "custom:selector": "49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b",
+          "details": "An account removed its vote from an ongoing poll.",
+          "params": {
+            "pollIndex": "uint32 Index of the poll.",
+            "trackId": "uint32 TrackId of the poll.",
+            "voter": "address Address of the voter."
+          }
+        },
+        "VoteRemovedOther(uint32,address,address,uint16)": {
+          "custom:selector": "c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b",
+          "details": "An account removed a vote from a poll.",
+          "params": {
+            "caller": "address Address of the origin caller.",
+            "pollIndex": "uint32 Index of the poll.",
+            "target": "address Address of the address which's vote is being removed.",
+            "trackId": "uint16 The trackId."
+          }
+        },
+        "VoteSplit(uint32,address,uint256,uint256)": {
+          "custom:selector": "022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0",
+          "details": "An account made a split vote in a poll.",
+          "params": {
+            "aye": "uint256 Amount for aye vote.",
+            "nay": "uint256 Amount for nay vote.",
+            "pollIndex": "uint32 Index of the poll.",
+            "voter": "address Address of the voter."
+          }
+        },
+        "VoteSplitAbstained(uint32,address,uint256,uint256,uint256)": {
+          "custom:selector": "476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4",
+          "details": "An account made a split abstain vote in a poll.",
+          "params": {
+            "abstain": "uint256 Amount for abstained.",
+            "aye": "uint256 Amount for aye vote.",
+            "nay": "uint256 Amount for nay vote.",
+            "pollIndex": "uint32 Index of the poll.",
+            "voter": "address Address of the voter."
+          }
+        },
+        "Voted(uint32,address,bool,uint256,uint8)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "An account made a vote in a poll.",
+          "params": {
+            "aye": "bool Is it a vote for or against the poll.",
+            "conviction": "uint8 Conviction of the vote.",
+            "pollIndex": "uint32 Index of the poll.",
+            "voteAmount": "uint256 Amount used to vote.",
+            "voter": "address Address of the voter."
+          }
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "classLocksFor(address)": {
+          "custom:selector": "7ae8ac92",
+          "details": "Retrieve class locks for a given account.",
+          "params": { "who": "The requested account" }
+        },
+        "delegate(uint16,address,uint8,uint256)": {
+          "custom:selector": "681750e8",
+          "details": "Delegate to a representative for the vote trackId",
+          "params": {
+            "amount": "delegated to representative for this vote trackId",
+            "conviction": "The conviction multiplier",
+            "representative": "The representative for the trackId",
+            "trackId": "The trackId"
+          }
+        },
+        "removeOtherVote(address,uint16,uint32)": {
+          "params": { "pollIndex": "the poll index", "trackId": "The trackId" }
+        },
+        "removeVote(uint32)": {
+          "custom:selector": "79cae220",
+          "details": "Remove vote in poll",
+          "params": { "pollIndex": "Index of the poll" }
+        },
+        "removeVoteForTrack(uint32,uint16)": {
+          "custom:selector": "cc3aee1a",
+          "details": "Remove vote in poll for track",
+          "params": {
+            "pollIndex": "Index of the poll",
+            "trackId": "Id of the track"
+          }
+        },
+        "undelegate(uint16)": {
+          "custom:selector": "98be4094",
+          "details": "Undelegate for the trackId",
+          "params": { "trackId": "The trackId" }
+        },
+        "unlock(uint16,address)": {
+          "custom:selector": "4259d98c",
+          "details": "Unlock tokens locked for trackId",
+          "params": { "target": "The target address", "trackId": "The trackId" }
+        },
+        "voteNo(uint32,uint256,uint8)": {
+          "custom:selector": "cc600eba",
+          "details": "Vote no in a poll.",
+          "params": {
+            "conviction": "Conviction multiplier for length of vote lock",
+            "pollIndex": "Index of poll",
+            "voteAmount": "Balance locked for vote"
+          }
+        },
+        "voteSplit(uint32,uint256,uint256)": {
+          "custom:selector": "dd6c52a4",
+          "details": "Vote split in a poll.",
+          "params": {
+            "aye": "Balance locked for aye vote",
+            "nay": "Balance locked for nay vote",
+            "pollIndex": "Index of poll"
+          }
+        },
+        "voteSplitAbstain(uint32,uint256,uint256,uint256)": {
+          "custom:selector": "52004540",
+          "details": "Vote split abstain in a poll.",
+          "params": {
+            "abstain": "Balance locked for abstain vote (support)",
+            "aye": "Balance locked for aye vote",
+            "nay": "Balance locked for nay vote",
+            "pollIndex": "Index of poll"
+          }
+        },
+        "voteYes(uint32,uint256,uint8)": {
+          "custom:selector": "da9df518",
+          "details": "Vote yes in a poll.",
+          "params": {
+            "conviction": "Conviction multiplier for length of vote lock",
+            "pollIndex": "Index of poll",
+            "voteAmount": "Balance locked for vote"
+          }
+        },
+        "votingFor(address,uint16)": {
+          "custom:selector": "501447ee",
+          "details": "Retrieve votings for a given account and track.",
+          "params": {
+            "trackId": "The requested track",
+            "who": "The requested account"
+          }
+        }
+      },
+      "title": "Pallet Conviction Voting InterfaceThe interface through which solidity contracts will interact with the Conviction Voting pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "classLocksFor(address)": "7ae8ac92",
+        "delegate(uint16,address,uint8,uint256)": "681750e8",
+        "removeOtherVote(address,uint16,uint32)": "cbcb9276",
+        "removeVote(uint32)": "79cae220",
+        "removeVoteForTrack(uint32,uint16)": "cc3aee1a",
+        "undelegate(uint16)": "98be4094",
+        "unlock(uint16,address)": "4259d98c",
+        "voteNo(uint32,uint256,uint8)": "cc600eba",
+        "voteSplit(uint32,uint256,uint256)": "dd6c52a4",
+        "voteSplitAbstain(uint32,uint256,uint256,uint256)": "52004540",
+        "voteYes(uint32,uint256,uint8)": "da9df518",
+        "votingFor(address,uint16)": "501447ee"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"delegatedAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"conviction\",\"type\":\"uint8\"}],\"name\":\"Delegated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"}],\"name\":\"Undelegated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"}],\"name\":\"Unlocked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"}],\"name\":\"VoteRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"}],\"name\":\"VoteRemovedForTrack\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"VoteRemovedOther\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"aye\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"nay\",\"type\":\"uint256\"}],\"name\":\"VoteSplit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"aye\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"nay\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"abstain\",\"type\":\"uint256\"}],\"name\":\"VoteSplitAbstained\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"aye\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"voteAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"conviction\",\"type\":\"uint8\"}],\"name\":\"Voted\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"classLocksFor\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"address\",\"name\":\"representative\",\"type\":\"address\"},{\"internalType\":\"enum ConvictionVoting.Conviction\",\"name\":\"conviction\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"delegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"}],\"name\":\"removeOtherVote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"}],\"name\":\"removeVote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"removeVoteForTrack\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"undelegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"unlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"voteAmount\",\"type\":\"uint256\"},{\"internalType\":\"enum ConvictionVoting.Conviction\",\"name\":\"conviction\",\"type\":\"uint8\"}],\"name\":\"voteNo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"aye\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nay\",\"type\":\"uint256\"}],\"name\":\"voteSplit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"aye\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nay\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"abstain\",\"type\":\"uint256\"}],\"name\":\"voteSplitAbstain\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"pollIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"voteAmount\",\"type\":\"uint256\"},{\"internalType\":\"enum ConvictionVoting.Conviction\",\"name\":\"conviction\",\"type\":\"uint8\"}],\"name\":\"voteYes\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"votingFor\",\"outputs\":[{\"components\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"struct ConvictionVoting.ClassLock[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000812\",\"events\":{\"Delegated(uint16,address,address,uint256,uint8)\":{\"custom:selector\":\"6cc151d547592e227b1e85a264ac3699c6f1014112b08bb3832de1f23b9c66db\",\"details\":\"An account delegated for the given trackId.\",\"params\":{\"conviction\":\"uint8 Conviction being delegated.\",\"delegatedAmount\":\"uint256 Amount being delegated.\",\"from\":\"address Address of the caller.\",\"to\":\"address Address of the representative.\",\"trackId\":\"uint16 The trackId.\"}},\"Undelegated(uint16,address)\":{\"custom:selector\":\"1053303328f6db14014ccced6297bcad2b3897157ce46070711ab995a05dfa14\",\"details\":\"An account undelegated for the given trackId.\",\"params\":{\"caller\":\"address Address of the caller.\",\"trackId\":\"uint16 The trackId.\"}},\"Unlocked(uint16,address)\":{\"custom:selector\":\"dcf72fa65ca7fb720b9ccc8ee28e0188edc3d943115124cdd4086c49f836a128\",\"details\":\"An account called to unlock tokens for the given trackId.\",\"params\":{\"caller\":\"address Address of the caller.\",\"trackId\":\"uint16 The trackId.\"}},\"VoteRemoved(uint32,address)\":{\"custom:selector\":\"49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b\",\"details\":\"An account removed its vote from an ongoing poll.\",\"params\":{\"pollIndex\":\"uint32 Index of the poll.\",\"voter\":\"address Address of the voter.\"}},\"VoteRemovedForTrack(uint32,uint16,address)\":{\"custom:selector\":\"49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b\",\"details\":\"An account removed its vote from an ongoing poll.\",\"params\":{\"pollIndex\":\"uint32 Index of the poll.\",\"trackId\":\"uint32 TrackId of the poll.\",\"voter\":\"address Address of the voter.\"}},\"VoteRemovedOther(uint32,address,address,uint16)\":{\"custom:selector\":\"c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b\",\"details\":\"An account removed a vote from a poll.\",\"params\":{\"caller\":\"address Address of the origin caller.\",\"pollIndex\":\"uint32 Index of the poll.\",\"target\":\"address Address of the address which's vote is being removed.\",\"trackId\":\"uint16 The trackId.\"}},\"VoteSplit(uint32,address,uint256,uint256)\":{\"custom:selector\":\"022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0\",\"details\":\"An account made a split vote in a poll.\",\"params\":{\"aye\":\"uint256 Amount for aye vote.\",\"nay\":\"uint256 Amount for nay vote.\",\"pollIndex\":\"uint32 Index of the poll.\",\"voter\":\"address Address of the voter.\"}},\"VoteSplitAbstained(uint32,address,uint256,uint256,uint256)\":{\"custom:selector\":\"476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4\",\"details\":\"An account made a split abstain vote in a poll.\",\"params\":{\"abstain\":\"uint256 Amount for abstained.\",\"aye\":\"uint256 Amount for aye vote.\",\"nay\":\"uint256 Amount for nay vote.\",\"pollIndex\":\"uint32 Index of the poll.\",\"voter\":\"address Address of the voter.\"}},\"Voted(uint32,address,bool,uint256,uint8)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"An account made a vote in a poll.\",\"params\":{\"aye\":\"bool Is it a vote for or against the poll.\",\"conviction\":\"uint8 Conviction of the vote.\",\"pollIndex\":\"uint32 Index of the poll.\",\"voteAmount\":\"uint256 Amount used to vote.\",\"voter\":\"address Address of the voter.\"}}},\"kind\":\"dev\",\"methods\":{\"classLocksFor(address)\":{\"custom:selector\":\"7ae8ac92\",\"details\":\"Retrieve class locks for a given account.\",\"params\":{\"who\":\"The requested account\"}},\"delegate(uint16,address,uint8,uint256)\":{\"custom:selector\":\"681750e8\",\"details\":\"Delegate to a representative for the vote trackId\",\"params\":{\"amount\":\"delegated to representative for this vote trackId\",\"conviction\":\"The conviction multiplier\",\"representative\":\"The representative for the trackId\",\"trackId\":\"The trackId\"}},\"removeOtherVote(address,uint16,uint32)\":{\"params\":{\"pollIndex\":\"the poll index\",\"trackId\":\"The trackId\"}},\"removeVote(uint32)\":{\"custom:selector\":\"79cae220\",\"details\":\"Remove vote in poll\",\"params\":{\"pollIndex\":\"Index of the poll\"}},\"removeVoteForTrack(uint32,uint16)\":{\"custom:selector\":\"cc3aee1a\",\"details\":\"Remove vote in poll for track\",\"params\":{\"pollIndex\":\"Index of the poll\",\"trackId\":\"Id of the track\"}},\"undelegate(uint16)\":{\"custom:selector\":\"98be4094\",\"details\":\"Undelegate for the trackId\",\"params\":{\"trackId\":\"The trackId\"}},\"unlock(uint16,address)\":{\"custom:selector\":\"4259d98c\",\"details\":\"Unlock tokens locked for trackId\",\"params\":{\"target\":\"The target address\",\"trackId\":\"The trackId\"}},\"voteNo(uint32,uint256,uint8)\":{\"custom:selector\":\"cc600eba\",\"details\":\"Vote no in a poll.\",\"params\":{\"conviction\":\"Conviction multiplier for length of vote lock\",\"pollIndex\":\"Index of poll\",\"voteAmount\":\"Balance locked for vote\"}},\"voteSplit(uint32,uint256,uint256)\":{\"custom:selector\":\"dd6c52a4\",\"details\":\"Vote split in a poll.\",\"params\":{\"aye\":\"Balance locked for aye vote\",\"nay\":\"Balance locked for nay vote\",\"pollIndex\":\"Index of poll\"}},\"voteSplitAbstain(uint32,uint256,uint256,uint256)\":{\"custom:selector\":\"52004540\",\"details\":\"Vote split abstain in a poll.\",\"params\":{\"abstain\":\"Balance locked for abstain vote (support)\",\"aye\":\"Balance locked for aye vote\",\"nay\":\"Balance locked for nay vote\",\"pollIndex\":\"Index of poll\"}},\"voteYes(uint32,uint256,uint8)\":{\"custom:selector\":\"da9df518\",\"details\":\"Vote yes in a poll.\",\"params\":{\"conviction\":\"Conviction multiplier for length of vote lock\",\"pollIndex\":\"Index of poll\",\"voteAmount\":\"Balance locked for vote\"}},\"votingFor(address,uint16)\":{\"custom:selector\":\"501447ee\",\"details\":\"Retrieve votings for a given account and track.\",\"params\":{\"trackId\":\"The requested track\",\"who\":\"The requested account\"}}},\"title\":\"Pallet Conviction Voting InterfaceThe interface through which solidity contracts will interact with the Conviction Voting pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"ConvictionVoting\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x2add8014a077a91b84a4887f719d0c9745dcf3c6f457514bc869aa42489d3731\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://8f6271e73b96e4f16028d45b4f95386915cd9ea9b85216d5eb71f1c947b3a2aa\",\"dweb:/ipfs/QmU24F6MjfNZHxXmghH7ghqo4MrRPuv6FFmkHx3kH7AjFW\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Conviction Voting contract's address.\naddress constant CONVICTION_VOTING_ADDRESS = 0x0000000000000000000000000000000000000812;\n\n/// @dev The Conviction Voting contract's instance.\nConvictionVoting constant CONVICTION_VOTING_CONTRACT = ConvictionVoting(\n    CONVICTION_VOTING_ADDRESS\n);\n\n/// @author The Moonbeam Team\n/// @title Pallet Conviction Voting Interface\n/// @title The interface through which solidity contracts will interact with the Conviction Voting pallet\n/// @custom:address 0x0000000000000000000000000000000000000812\ninterface ConvictionVoting {\n    /// @dev Defines the conviction multiplier type.\n    /// The values start at `0` and are represented as `uint8`.\n    /// None => 0.1x votes, unlocked.\n    /// Locked1x => 1x votes, locked for an enactment period following a successful vote.\n    /// Locked2x => 2x votes, locked for 2x enactment periods following a successful vote\n    /// Locked3x => 3x votes, locked for 4x...\n    /// Locked4x => 4x votes, locked for 8x...,\n    /// Locked5x => 5x votes, locked for 16x...\n    /// Locked6x => 6x votes, locked for 32x...\n    enum Conviction {\n        None,\n        Locked1x,\n        Locked2x,\n        Locked3x,\n        Locked4x,\n        Locked5x,\n        Locked6x\n    }\n\n    /// @dev Defines the class lock for an account.\n    struct ClassLock {\n        /// The track of this lock.\n        uint16 trackId;\n        /// The amount locked.\n        uint256 amount;\n    }\n\n    /// @dev Defines the voting information for an account and track,\n    struct VotingFor {\n        /// If the voting type is `Casting`, if `true` then `casting` field is significant.\n        bool isCasting;\n        /// If the voting type is `Delegating`, if `true` then `delegating` field is significant.\n        bool isDelegating;\n        /// Defines the voting information when `isCasting` is true.\n        Casting casting;\n        /// Defines the voting information when `isDelegating` is true.\n        Delegating delegating;\n    }\n\n    /// @dev Defines the casting vote type from an account.\n    struct Casting {\n        /// The votes registered.\n        PollAccountVote[] votes;\n        /// The delegation info.\n        Delegations delegations;\n        /// Any prior lock information.\n        PriorLock prior;\n    }\n\n    /// @dev Defines the delegating vote type from an account.\n    struct Delegating {\n        /// The delegated balance.\n        uint256 balance;\n        /// The deletegate account\n        address target;\n        /// The conviction type for the vote.\n        Conviction conviction;\n        /// The delegation info.\n        Delegations delegations;\n        /// Any prior lock information.\n        PriorLock prior;\n    }\n\n    /// @dev Defines the vote towards a poll from an account.\n    struct PollAccountVote {\n        /// The index of the poll.\n        uint32 pollIndex;\n        /// The vote registered for the poll from an account.\n        AccountVote accountVote;\n    }\n\n    /// @dev Defines the vote from an account.\n    struct AccountVote {\n        /// If `true` then the vote is a Standard vote and `standard` field is significant.\n        bool isStandard;\n        /// If `true` then the vote is a Split vote and `split` field is significant.\n        bool isSplit;\n        /// If `true` then the vote is a SplitAbstrain vote and `splitAbstain` field is significant.\n        bool isSplitAbstain;\n        /// Defines the standard vote, if `isStandard` is `true`.\n        StandardVote standard;\n        /// Defines the split vote, if `isSplit` is `true`.\n        SplitVote split;\n        /// Defines the split-abstain vote, if `isSplitAbstrain` is `true`.\n        SplitAbstainVote splitAbstain;\n    }\n\n    /// @dev Defines the standard vote.\n    struct StandardVote {\n        /// The vote information.\n        Vote vote;\n        /// The locked balance for the vote.\n        uint256 balance;\n    }\n\n    /// @dev Defines the vote parameters for a standard vote.\n    struct Vote {\n        /// `true` if the vote is an aye.\n        bool aye;\n        /// The conviction type for the vote.\n        Conviction conviction;\n    }\n\n    /// @dev Defines the standard vote.\n    struct SplitVote {\n        /// The amount locked towards aye.\n        uint256 aye;\n        /// The amount locked towards nay.\n        uint256 nay;\n    }\n\n    /// @dev Defines the standard vote.\n    struct SplitAbstainVote {\n        /// The amount locked towards aye.\n        uint256 aye;\n        /// The amount locked towards nay.\n        uint256 nay;\n        /// The amount locked towards abstain.\n        uint256 abstain;\n    }\n\n    /// @dev Defines the delegations for a vote.\n    struct Delegations {\n        /// Total number of votes.\n        uint256 votes;\n        /// Total capital locked.\n        uint256 capital;\n    }\n\n    /// @dev Defines any prior lock for a vote.\n    struct PriorLock {\n        /// Amount of balance locked.\n        uint256 balance;\n    }\n\n    /// @dev Retrieve votings for a given account and track.\n    /// @custom:selector 501447ee\n    /// @param who The requested account\n    /// @param trackId The requested track\n    function votingFor(\n        address who,\n        uint16 trackId\n    ) external view returns (ClassLock[] memory);\n\n    /// @dev Retrieve class locks for a given account.\n    /// @custom:selector 7ae8ac92\n    /// @param who The requested account\n    function classLocksFor(address who) external view returns (uint256);\n\n    /// @dev Vote yes in a poll.\n    /// @custom:selector da9df518\n    /// @param pollIndex Index of poll\n    /// @param voteAmount Balance locked for vote\n    /// @param conviction Conviction multiplier for length of vote lock\n    function voteYes(\n        uint32 pollIndex,\n        uint256 voteAmount,\n        Conviction conviction\n    ) external;\n\n    /// @dev Vote no in a poll.\n    /// @custom:selector cc600eba\n    /// @param pollIndex Index of poll\n    /// @param voteAmount Balance locked for vote\n    /// @param conviction Conviction multiplier for length of vote lock\n    function voteNo(\n        uint32 pollIndex,\n        uint256 voteAmount,\n        Conviction conviction\n    ) external;\n\n    /// @dev Vote split in a poll.\n    /// @custom:selector dd6c52a4\n    /// @param pollIndex Index of poll\n    /// @param aye Balance locked for aye vote\n    /// @param nay Balance locked for nay vote\n    function voteSplit(uint32 pollIndex, uint256 aye, uint256 nay) external;\n\n    /// @dev Vote split abstain in a poll.\n    /// @custom:selector 52004540\n    /// @param pollIndex Index of poll\n    /// @param aye Balance locked for aye vote\n    /// @param nay Balance locked for nay vote\n    /// @param abstain Balance locked for abstain vote (support)\n    function voteSplitAbstain(\n        uint32 pollIndex,\n        uint256 aye,\n        uint256 nay,\n        uint256 abstain\n    ) external;\n\n    /// @dev Remove vote in poll\n    /// @custom:selector 79cae220\n    /// @param pollIndex Index of the poll\n    function removeVote(uint32 pollIndex) external;\n\n    /// @dev Remove vote in poll for track\n    /// @custom:selector cc3aee1a\n    /// @param pollIndex Index of the poll\n    /// @param trackId Id of the track\n    function removeVoteForTrack(uint32 pollIndex, uint16 trackId) external;\n\n    /// @dev Remove vote in poll for other voter\n    /// @custom:selector cbcb9276\n    //// @param target The voter to have vote removed. The removed vote must already be expired.\n    /// @param trackId The trackId\n    /// @param pollIndex the poll index\n    function removeOtherVote(\n        address target,\n        uint16 trackId,\n        uint32 pollIndex\n    ) external;\n\n    /// @dev Delegate to a representative for the vote trackId\n    /// @custom:selector 681750e8\n    /// @param trackId The trackId\n    /// @param representative The representative for the trackId\n    /// @param conviction The conviction multiplier\n    /// @param amount delegated to representative for this vote trackId\n    function delegate(\n        uint16 trackId,\n        address representative,\n        Conviction conviction,\n        uint256 amount\n    ) external;\n\n    /// @dev Undelegate for the trackId\n    /// @custom:selector 98be4094\n    /// @param trackId The trackId\n    function undelegate(uint16 trackId) external;\n\n    /// @dev Unlock tokens locked for trackId\n    /// @custom:selector 4259d98c\n    /// @param trackId The trackId\n    /// @param target The target address\n    function unlock(uint16 trackId, address target) external;\n\n    /// @dev An account made a vote in a poll.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param voter address Address of the voter.\n    /// @param aye bool Is it a vote for or against the poll.\n    /// @param voteAmount uint256 Amount used to vote.\n    /// @param conviction uint8 Conviction of the vote.\n    event Voted(\n        uint32 indexed pollIndex,\n        address voter,\n        bool aye,\n        uint256 voteAmount,\n        uint8 conviction\n    );\n\n    /// @dev An account made a split vote in a poll.\n    /// @custom:selector 022787093a8aa26fe59d28969068711f73e0e78ae67d9359c71058b6a21f7ef0\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param voter address Address of the voter.\n    /// @param aye uint256 Amount for aye vote.\n    /// @param nay uint256 Amount for nay vote.\n    event VoteSplit(\n        uint32 indexed pollIndex,\n        address voter,\n        uint256 aye,\n        uint256 nay\n    );\n\n    /// @dev An account made a split abstain vote in a poll.\n    /// @custom:selector 476e687ab5e38fc714552f3acc083d7d83ccaa12ea11dd5f3393478d158c6fd4\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param voter address Address of the voter.\n    /// @param aye uint256 Amount for aye vote.\n    /// @param nay uint256 Amount for nay vote.\n    /// @param abstain uint256 Amount for abstained.\n    event VoteSplitAbstained(\n        uint32 indexed pollIndex,\n        address voter,\n        uint256 aye,\n        uint256 nay,\n        uint256 abstain\n    );\n\n    /// @dev An account removed its vote from an ongoing poll.\n    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param voter address Address of the voter.\n    event VoteRemoved(uint32 indexed pollIndex, address voter);\n\n    /// @dev An account removed its vote from an ongoing poll.\n    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param trackId uint32 TrackId of the poll.\n    /// @param voter address Address of the voter.\n    event VoteRemovedForTrack(\n        uint32 indexed pollIndex,\n        uint16 trackId,\n        address voter\n    );\n\n    /// @dev An account removed a vote from a poll.\n    /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b\n    /// @param pollIndex uint32 Index of the poll.\n    /// @param caller address Address of the origin caller.\n    /// @param target address Address of the address which's vote is being removed.\n    /// @param trackId uint16 The trackId.\n    event VoteRemovedOther(\n        uint32 indexed pollIndex,\n        address caller,\n        address target,\n        uint16 trackId\n    );\n\n    /// @dev An account delegated for the given trackId.\n    /// @custom:selector 6cc151d547592e227b1e85a264ac3699c6f1014112b08bb3832de1f23b9c66db\n    /// @param trackId uint16 The trackId.\n    /// @param from address Address of the caller.\n    /// @param to address Address of the representative.\n    /// @param delegatedAmount uint256 Amount being delegated.\n    /// @param conviction uint8 Conviction being delegated.\n    event Delegated(\n        uint16 indexed trackId,\n        address from,\n        address to,\n        uint256 delegatedAmount,\n        uint8 conviction\n    );\n\n    /// @dev An account undelegated for the given trackId.\n    /// @custom:selector 1053303328f6db14014ccced6297bcad2b3897157ce46070711ab995a05dfa14\n    /// @param trackId uint16 The trackId.\n    /// @param caller address Address of the caller.\n    event Undelegated(uint16 indexed trackId, address caller);\n\n    /// @dev An account called to unlock tokens for the given trackId.\n    /// @custom:selector dcf72fa65ca7fb720b9ccc8ee28e0188edc3d943115124cdd4086c49f836a128\n    /// @param trackId uint16 The trackId.\n    /// @param caller address Address of the caller.\n    event Unlocked(uint16 indexed trackId, address caller);\n}\n"
+}

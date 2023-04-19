@@ -24,7 +24,12 @@ mod tests {
 	use frame_support::traits::Everything;
 	use frame_support::{construct_runtime, parameter_types, weights::Weight};
 	use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-	use precompile_utils::{precompile_set::*, revert, testing::*, EvmDataWriter, EvmResult};
+	use precompile_utils::{
+		precompile_set::*,
+		solidity::{codec::Writer, revert::revert},
+		testing::*,
+		EvmResult,
+	};
 	use sp_core::H160;
 	use sp_core::{H256, U256};
 	use sp_runtime::{
@@ -113,7 +118,7 @@ mod tests {
 				handle.code_address(),
 				None,
 				// calls subcallLayer2()
-				EvmDataWriter::new_with_selector(0x0b93381bu32).build(),
+				Writer::new_with_selector(0x0b93381bu32).build(),
 				None,
 				false,
 				&Context {
@@ -220,7 +225,7 @@ mod tests {
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(1), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -274,7 +279,7 @@ mod tests {
 			precompiles()
 				.prepare_test(Alice, H160::from_low_u64_be(2), PCall::success {})
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -288,7 +293,7 @@ mod tests {
 					PCall::success {},
 				)
 				.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-				.execute_returns_encoded(())
+				.execute_returns(())
 		})
 	}
 
@@ -302,14 +307,9 @@ mod tests {
 					.prepare_test(Alice, H160::from_low_u64_be(4), PCall::subcall {})
 					.with_subcall_handle(move |Subcall { .. }| {
 						*subcall_occured.borrow_mut() = true;
-						SubcallOutput {
-							reason: ExitReason::Succeed(evm::ExitSucceed::Returned),
-							output: vec![],
-							cost: 0,
-							logs: vec![],
-						}
+						SubcallOutput::succeed()
 					})
-					.execute_returns_encoded(());
+					.execute_returns(());
 			}
 			assert!(*subcall_occured.borrow());
 		})

@@ -33,6 +33,136 @@ interface ConvictionVoting {
         Locked6x
     }
 
+    /// @dev Defines the class lock for an account.
+    struct ClassLock {
+        /// The track of this lock.
+        uint16 trackId;
+        /// The amount locked.
+        uint256 amount;
+    }
+
+    /// @dev Defines the voting information for an account and track,
+    struct VotingFor {
+        /// If the voting type is `Casting`, if `true` then `casting` field is significant.
+        bool isCasting;
+        /// If the voting type is `Delegating`, if `true` then `delegating` field is significant.
+        bool isDelegating;
+        /// Defines the voting information when `isCasting` is true.
+        Casting casting;
+        /// Defines the voting information when `isDelegating` is true.
+        Delegating delegating;
+    }
+
+    /// @dev Defines the casting vote type from an account.
+    struct Casting {
+        /// The votes registered.
+        PollAccountVote[] votes;
+        /// The delegation info.
+        Delegations delegations;
+        /// Any prior lock information.
+        PriorLock prior;
+    }
+
+    /// @dev Defines the delegating vote type from an account.
+    struct Delegating {
+        /// The delegated balance.
+        uint256 balance;
+        /// The deletegate account
+        address target;
+        /// The conviction type for the vote.
+        Conviction conviction;
+        /// The delegation info.
+        Delegations delegations;
+        /// Any prior lock information.
+        PriorLock prior;
+    }
+
+    /// @dev Defines the vote towards a poll from an account.
+    struct PollAccountVote {
+        /// The index of the poll.
+        uint32 pollIndex;
+        /// The vote registered for the poll from an account.
+        AccountVote accountVote;
+    }
+
+    /// @dev Defines the vote from an account.
+    struct AccountVote {
+        /// If `true` then the vote is a Standard vote and `standard` field is significant.
+        bool isStandard;
+        /// If `true` then the vote is a Split vote and `split` field is significant.
+        bool isSplit;
+        /// If `true` then the vote is a SplitAbstrain vote and `splitAbstain` field is significant.
+        bool isSplitAbstain;
+        /// Defines the standard vote, if `isStandard` is `true`.
+        StandardVote standard;
+        /// Defines the split vote, if `isSplit` is `true`.
+        SplitVote split;
+        /// Defines the split-abstain vote, if `isSplitAbstrain` is `true`.
+        SplitAbstainVote splitAbstain;
+    }
+
+    /// @dev Defines the standard vote.
+    struct StandardVote {
+        /// The vote information.
+        Vote vote;
+        /// The locked balance for the vote.
+        uint256 balance;
+    }
+
+    /// @dev Defines the vote parameters for a standard vote.
+    struct Vote {
+        /// `true` if the vote is an aye.
+        bool aye;
+        /// The conviction type for the vote.
+        Conviction conviction;
+    }
+
+    /// @dev Defines the standard vote.
+    struct SplitVote {
+        /// The amount locked towards aye.
+        uint256 aye;
+        /// The amount locked towards nay.
+        uint256 nay;
+    }
+
+    /// @dev Defines the standard vote.
+    struct SplitAbstainVote {
+        /// The amount locked towards aye.
+        uint256 aye;
+        /// The amount locked towards nay.
+        uint256 nay;
+        /// The amount locked towards abstain.
+        uint256 abstain;
+    }
+
+    /// @dev Defines the delegations for a vote.
+    struct Delegations {
+        /// Total number of votes.
+        uint256 votes;
+        /// Total capital locked.
+        uint256 capital;
+    }
+
+    /// @dev Defines any prior lock for a vote.
+    struct PriorLock {
+        /// Amount of balance locked.
+        uint256 balance;
+    }
+
+    /// @dev Retrieve votings for a given account and track.
+    /// @custom:selector 501447ee
+    /// @param who The requested account
+    /// @param trackId The requested track
+    function votingFor(
+        address who,
+        uint16 trackId
+    ) external view returns (ClassLock[] memory);
+
+    /// @dev Retrieve class locks for a given account.
+    /// @custom:selector 7ae8ac92
+    /// @param who The requested account
+    function classLocksFor(address who) external view returns (uint256);
+
     /// @dev Vote yes in a poll.
     /// @custom:selector da9df518
     /// @param pollIndex Index of poll
@@ -79,6 +209,12 @@ interface ConvictionVoting {
     /// @custom:selector 79cae220
     /// @param pollIndex Index of the poll
     function removeVote(uint32 pollIndex) external;
+
+    /// @dev Remove vote in poll for track
+    /// @custom:selector cc3aee1a
+    /// @param pollIndex Index of the poll
+    /// @param trackId Id of the track
+    function removeVoteForTrack(uint32 pollIndex, uint16 trackId) external;
 
     /// @dev Remove vote in poll for other voter
     /// @custom:selector cbcb9276
@@ -163,6 +299,17 @@ interface ConvictionVoting {
     /// @param pollIndex uint32 Index of the poll.
     /// @param voter address Address of the voter.
     event VoteRemoved(uint32 indexed pollIndex, address voter);
+
+    /// @dev An account removed its vote from an ongoing poll.
+    /// @custom:selector 49fc1dd929f126e1d88cbb9c135625e30c2deba291adeea4740e446098b9957b
+    /// @param pollIndex uint32 Index of the poll.
+    /// @param trackId uint32 TrackId of the poll.
+    /// @param voter address Address of the voter.
+    event VoteRemovedForTrack(
+        uint32 indexed pollIndex,
+        uint16 trackId,
+        address voter
+    );
 
     /// @dev An account removed a vote from a poll.
     /// @custom:selector c1d068675720ab00d0c8792a0cbc7e198c0d2202111f0280f039f2c09c50491b

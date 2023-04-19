@@ -1,4 +1,5 @@
-import { RegistryTypes } from "@polkadot/types/types";
+// @ts-expect-error
+import type { RegistryTypes } from "@polkadot/types/types";
 import fs from "fs";
 import { moonbeamDefinitions } from ".";
 

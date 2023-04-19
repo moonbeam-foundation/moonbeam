@@ -290,7 +290,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
-	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
 pub struct XcmExecutorConfig;
@@ -350,6 +350,11 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
+	RuntimeCall,
+	xcm_executor::XcmExecutor<XcmExecutorConfig>,
+>;
+
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
 	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
@@ -361,7 +366,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Everything;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = XcmWeigher;
@@ -383,12 +388,12 @@ impl pallet_xcm::Config for Runtime {
 
 impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+	type XcmExecutor = XcmExecutor;
 }
 
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
@@ -400,7 +405,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+	type XcmExecutor = XcmExecutor;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
@@ -518,7 +523,7 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight
-		= Weight::from_parts(200_000_000u64, xcm_primitives::DEFAULT_PROOF_SIZE);
+		= Weight::from_parts(200_000_000u64, 0);
 	pub const MaxAssetsForTransfer: usize = 2;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
@@ -547,7 +552,7 @@ impl orml_xtokens::Config for Runtime {
 	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
 	type CurrencyIdConvert =
 		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
 	type BaseXcmWeight = BaseXcmWeight;

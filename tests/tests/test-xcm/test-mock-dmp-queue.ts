@@ -39,17 +39,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // go on idle
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
