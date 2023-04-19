@@ -17,6 +17,7 @@ import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
 import { expectEVMResult } from "../../util/eth-transactions";
+import { expect } from "chai";
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -209,12 +210,14 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    const amount = 100000000000000000123456789n;
+
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
       nonce++,
       123, // sequence
-      999, // amount of tokens
+      amount,
       wethContract.contractAddress,
       ETHChain,
       ETHChain,
@@ -236,6 +239,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     expectEVMResult(result.result.events, "Succeed", "Returned");
-    expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    let substrateEvents = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+
+    // TODO: improve this mess
+    // console.log(`substrate events: ${substrateEvents[0].data[1][0].fun.asFungible.unwrap()}`);
+    // shield your eyes, i'm sorry!
+    expect(substrateEvents[0].data[1][0].fun.asFungible.unwrap().toBigInt()).to.equal(amount);
+
   });
 });
