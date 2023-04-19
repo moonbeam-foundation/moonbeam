@@ -560,6 +560,8 @@ jobs:
           path: tests/runtimes
       - name: Retrieve polkadot
         run: |
+          ls -la build
+          ls -la build/polkadot
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           # Clear the dummy container if it wasn't properly cleaned up
