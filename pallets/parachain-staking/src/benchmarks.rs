@@ -185,7 +185,7 @@ benchmarks! {
 	// ROOT DISPATCHABLES
 
 	set_total_selected {
-		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 	}: _(RawOrigin::Root, 100u32)
 	verify {
 		assert_eq!(Pallet::<T>::total_selected(), 100u32);
@@ -882,7 +882,7 @@ benchmarks! {
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 
 		let collator = create_funded_collator::<T>(
@@ -928,7 +928,7 @@ benchmarks! {
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 
 		let mut seed = USER_SEED + 1;

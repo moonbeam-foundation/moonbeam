@@ -21,7 +21,7 @@
 use evm::{ExitError, ExitReason};
 use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::traits::ConstU32;
-use precompile_utils::{costs::call_cost, prelude::*};
+use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
@@ -49,7 +49,7 @@ pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_SUCCEEDED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 
@@ -57,7 +57,7 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 	log1(
 		address,
 		LOG_SUBCALL_FAILED,
-		EvmDataWriter::new().write(U256::from(index)).build(),
+		solidity::encode_event_data(U256::from(index)),
 	)
 }
 

@@ -16,8 +16,8 @@
 
 use {
 	crate::{
+		solidity::codec::Codec,
 		testing::{decode_revert_message, MockHandle, PrettyLog, SubcallHandle, SubcallTrait},
-		EvmData, EvmDataWriter,
 	},
 	fp_evm::{
 		Context, ExitError, ExitSucceed, Log, PrecompileFailure, PrecompileOutput,
@@ -153,7 +153,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	}
 
 	/// Execute the precompile set and check it returns provided output.
-	pub fn execute_returns(mut self, output: Vec<u8>) {
+	pub fn execute_returns_raw(mut self, output: Vec<u8>) {
 		let res = self.execute();
 
 		match res {
@@ -192,8 +192,8 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	}
 
 	/// Execute the precompile set and check it returns provided Solidity encoded output.
-	pub fn execute_returns_encoded(self, output: impl EvmData) {
-		self.execute_returns(EvmDataWriter::new().write(output).build())
+	pub fn execute_returns(self, output: impl Codec) {
+		self.execute_returns_raw(crate::solidity::encode_return_value(output))
 	}
 
 	/// Execute the precompile set and check if it reverts.

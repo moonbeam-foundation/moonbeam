@@ -27,6 +27,7 @@ use frame_support::pallet;
 
 pub use erc20_trap::AssetTrapWrapper;
 pub use pallet::*;
+pub use xcm_holding_ext::XcmExecutorWrapper;
 
 #[pallet]
 pub mod pallet {

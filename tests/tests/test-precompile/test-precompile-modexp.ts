@@ -3,8 +3,12 @@ import { expectEVMResult } from "../../util/eth-transactions";
 import { Contract } from "web3-eth-contract";
 import testInputs from "../../util/artefacts/modexp.json";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution } from "../../util/transactions";
-import { ALITH_PRIVATE_KEY, alith } from "../../util/accounts";
+import {
+  createContract,
+  createContractExecution,
+  createTransaction,
+} from "../../util/transactions";
+import { ALITH_PRIVATE_KEY, alith, ALITH_ADDRESS } from "../../util/accounts";
 import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { expect } from "chai";

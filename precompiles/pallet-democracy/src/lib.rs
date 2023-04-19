@@ -17,7 +17,6 @@
 //! Precompile to interact with pallet democracy through an evm precompile.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
@@ -82,7 +81,8 @@ where
 		+ pallet_evm::Config
 		+ frame_system::Config
 		+ pallet_preimage::Config,
-	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + EvmData,
+	U256: From<BalanceOf<Runtime>>,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + solidity::Codec,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<DemocracyCall<Runtime>>,
@@ -108,7 +108,7 @@ where
 	#[precompile::view]
 	fn deposit_of(
 		handle: &mut impl PrecompileHandle,
-		prop_index: SolidityConvert<U256, u32>,
+		prop_index: Convert<U256, u32>,
 	) -> EvmResult<U256> {
 		let prop_index = prop_index.converted();
 
@@ -227,7 +227,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_PROPOSED,
 			H256::from_low_u64_be(prop_count as u64), // proposal index,
-			EvmDataWriter::new().write::<U256>(value.into()).build(),
+			solidity::encode_event_data(U256::from(value)),
 		)
 		.record(handle)?;
 
@@ -237,8 +237,8 @@ where
 	#[precompile::public("second(uint256,uint256)")]
 	fn second(
 		handle: &mut impl PrecompileHandle,
-		prop_index: SolidityConvert<U256, u32>,
-		seconds_upper_bound: SolidityConvert<U256, u32>,
+		prop_index: Convert<U256, u32>,
+		seconds_upper_bound: Convert<U256, u32>,
 	) -> EvmResult {
 		handle.record_log_costs_manual(2, 32)?;
 		let prop_index = prop_index.converted();
@@ -260,9 +260,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_SECONDED,
 			H256::from_low_u64_be(prop_index as u64), // proposal index,
-			EvmDataWriter::new()
-				.write::<Address>(handle.context().caller.into())
-				.build(),
+			solidity::encode_event_data(Address(handle.context().caller)),
 		)
 		.record(handle)?;
 
@@ -273,10 +271,10 @@ where
 	#[precompile::public("standard_vote(uint256,bool,uint256,uint256)")]
 	fn standard_vote(
 		handle: &mut impl PrecompileHandle,
-		ref_index: SolidityConvert<U256, u32>,
+		ref_index: Convert<U256, u32>,
 		aye: bool,
 		vote_amount: U256,
-		conviction: SolidityConvert<U256, u8>,
+		conviction: Convert<U256, u8>,
 	) -> EvmResult {
 		handle.record_log_costs_manual(2, 32 * 4)?;
 		let ref_index = ref_index.converted();
@@ -310,12 +308,12 @@ where
 			handle.context().address,
 			SELECTOR_LOG_STANDARD_VOTE,
 			H256::from_low_u64_be(ref_index as u64), // referendum index,
-			EvmDataWriter::new()
-				.write::<Address>(handle.context().caller.into())
-				.write::<bool>(aye)
-				.write::<U256>(vote_amount)
-				.write::<u8>(conviction.converted())
-				.build(),
+			solidity::encode_event_data((
+				Address(handle.context().caller),
+				aye,
+				vote_amount,
+				conviction.converted(),
+			)),
 		)
 		.record(handle)?;
 
@@ -324,10 +322,7 @@ where
 
 	#[precompile::public("removeVote(uint256)")]
 	#[precompile::public("remove_vote(uint256)")]
-	fn remove_vote(
-		handle: &mut impl PrecompileHandle,
-		ref_index: SolidityConvert<U256, u32>,
-	) -> EvmResult {
+	fn remove_vote(handle: &mut impl PrecompileHandle, ref_index: Convert<U256, u32>) -> EvmResult {
 		let ref_index: u32 = ref_index.converted();
 
 		log::trace!(
@@ -348,7 +343,7 @@ where
 	fn delegate(
 		handle: &mut impl PrecompileHandle,
 		representative: Address,
-		conviction: SolidityConvert<U256, u8>,
+		conviction: Convert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
 		handle.record_log_costs_manual(2, 32)?;
@@ -378,9 +373,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_DELEGATED,
 			handle.context().caller,
-			EvmDataWriter::new()
-				.write::<Address>(representative)
-				.build(),
+			solidity::encode_event_data(representative),
 		)
 		.record(handle)?;
 

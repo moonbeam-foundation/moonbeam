@@ -2,15 +2,9 @@ import "@moonbeam-network/api-augment";
 import { nToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
-import { alith, baltathar, charleth, dorothy, ethan, faith } from "../../util/accounts";
-import {
-  GLMR,
-  MIN_GLMR_DELEGATOR,
-  MIN_GLMR_STAKING,
-  PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-} from "../../util/constants";
+import { alith, baltathar } from "../../util/accounts";
+import { MIN_GLMR_DELEGATOR, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { expectOk } from "../../util/expect";
@@ -19,7 +13,6 @@ import {
   ALITH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
-  TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
 
 const SMART_CONTRACT_PRECOMPILE_CALL_JSON = getCompiled("SmartContractPrecompileCallTest");
@@ -28,7 +21,9 @@ const SMART_CONTRACT_PRECOMPILE_CALL = new ethers.utils.Interface(
 );
 
 const MULTIPLY_BY_7 = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
-const PARACHAIN_STAKING = new ethers.utils.Interface(getCompiled("ParachainStaking").contract.abi);
+const PARACHAIN_STAKING = new ethers.utils.Interface(
+  getCompiled("precompiles/parachain-staking/ParachainStaking").contract.abi
+);
 
 async function setupTestContract(context: DevTestContext) {
   const { contract, rawTx } = await createContract(context, "SmartContractPrecompileCallTest", {

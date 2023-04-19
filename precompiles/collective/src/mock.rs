@@ -204,6 +204,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles

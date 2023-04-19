@@ -5561,6 +5561,7 @@ dependencies = [
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -5652,7 +5653,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.31.0"
+version = "0.31.1"
 dependencies = [
  "clap",
  "cumulus-client-cli",
@@ -5686,7 +5687,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.31.0"
+version = "0.31.1"
 dependencies = [
  "account",
  "bip32",
@@ -6023,6 +6024,7 @@ dependencies = [
  "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
+ "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
@@ -6120,7 +6122,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.31.0"
+version = "0.31.1"
 dependencies = [
  "ansi_term",
  "async-io",
@@ -6365,6 +6367,7 @@ dependencies = [
  "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-referenda",
+ "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
@@ -7927,6 +7930,43 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "pallet-evm",
+]
+
+[[package]]
+name = "pallet-evm-precompile-gmp"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "orml-traits",
+ "orml-xtokens",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "paste",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3",
+ "slices",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
 ]
 
 [[package]]

@@ -18,9 +18,15 @@ pub mod account;
 pub mod execution;
 pub mod handle;
 pub mod modifier;
-pub mod solidity;
+mod solidity;
 
-pub use {account::*, execution::*, handle::*, modifier::*};
+pub use {
+	account::*,
+	execution::*,
+	handle::*,
+	modifier::*,
+	solidity::{check_precompile_implements_solidity_interfaces, compute_selector},
+};
 
 use fp_evm::Log;
 

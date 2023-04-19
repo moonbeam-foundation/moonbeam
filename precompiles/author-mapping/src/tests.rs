@@ -325,10 +325,7 @@ fn set_keys_works() {
 
 			// Create input with keys inside a Solidity bytes.
 			let input = PCall::set_keys {
-				keys: EvmDataWriter::new()
-					.write(sp_core::H256::from([2u8; 32]))
-					.write(sp_core::H256::from([4u8; 32]))
-					.build()
+				keys: solidity::encode_arguments((H256::from([2u8; 32]), H256::from([4u8; 32])))
 					.into(),
 			}
 			.into();
@@ -393,7 +390,7 @@ mod nimbus_id_of {
 							address: Address(address),
 						},
 					)
-					.execute_returns_encoded(expected);
+					.execute_returns(expected);
 			})
 	}
 
@@ -429,7 +426,7 @@ mod address_of {
 
 				precompiles()
 					.prepare_test(Bob, AuthorMappingAccount, PCall::address_of { nimbus_id })
-					.execute_returns_encoded(Address(expected));
+					.execute_returns(Address(expected));
 			})
 	}
 
@@ -465,7 +462,7 @@ mod keys_of {
 
 				precompiles()
 					.prepare_test(Bob, AuthorMappingAccount, PCall::keys_of { nimbus_id })
-					.execute_returns_encoded(expected);
+					.execute_returns(expected);
 			})
 	}
 
@@ -482,27 +479,10 @@ mod keys_of {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["AuthorMappingInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["AuthorMappingInterface.sol"],
+		PCall::supports_selector,
+	)
 }
 
 #[test]
@@ -514,7 +494,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"remove_keys()",
 		"set_keys(bytes)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

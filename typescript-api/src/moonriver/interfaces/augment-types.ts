@@ -18,6 +18,7 @@ import type {
   I32,
   I64,
   I8,
+  ISize,
   Json,
   Null,
   OptionBool,
@@ -40,6 +41,7 @@ import type {
   i32,
   i64,
   i8,
+  isize,
   u128,
   u16,
   u256,
@@ -406,6 +408,7 @@ import type {
   SignerPayload,
   Sr25519Signature,
 } from "@polkadot/types/interfaces/extrinsics";
+import type { FungiblesAccessError } from "@polkadot/types/interfaces/fungibles";
 import type {
   AssetOptions,
   Owner,
@@ -582,6 +585,7 @@ import type {
   MmrBatchProof,
   MmrEncodableOpaqueLeaf,
   MmrError,
+  MmrHash,
   MmrLeafBatchProof,
   MmrLeafIndex,
   MmrLeafProof,
@@ -635,6 +639,9 @@ import type {
   DisputeStatementSet,
   DoubleVoteReport,
   DownwardMessage,
+  ExecutorParam,
+  ExecutorParams,
+  ExecutorParamsHash,
   ExplicitDisputeStatement,
   GlobalValidationData,
   GlobalValidationSchedule,
@@ -681,6 +688,8 @@ import type {
   ParathreadEntry,
   PersistedValidationData,
   PvfCheckStatement,
+  PvfExecTimeoutKind,
+  PvfPrepTimeoutKind,
   QueuedParathread,
   RegisteredParachainInfo,
   RelayBlockNumber,
@@ -1575,6 +1584,9 @@ declare module "@polkadot/types/types/registry" {
     EvmLog: EvmLog;
     EvmVicinity: EvmVicinity;
     ExecReturnValue: ExecReturnValue;
+    ExecutorParam: ExecutorParam;
+    ExecutorParams: ExecutorParams;
+    ExecutorParamsHash: ExecutorParamsHash;
     ExitError: ExitError;
     ExitFatal: ExitFatal;
     ExitReason: ExitReason;
@@ -1635,6 +1647,7 @@ declare module "@polkadot/types/types/registry" {
     FungibilityV0: FungibilityV0;
     FungibilityV1: FungibilityV1;
     FungibilityV2: FungibilityV2;
+    FungiblesAccessError: FungiblesAccessError;
     Gas: Gas;
     GiltBid: GiltBid;
     GlobalValidationData: GlobalValidationData;
@@ -1722,6 +1735,8 @@ declare module "@polkadot/types/types/registry" {
     InteriorMultiLocation: InteriorMultiLocation;
     InvalidDisputeStatementKind: InvalidDisputeStatementKind;
     InvalidTransaction: InvalidTransaction;
+    isize: isize;
+    ISize: ISize;
     Json: Json;
     Junction: Junction;
     Junctions: Junctions;
@@ -1780,6 +1795,7 @@ declare module "@polkadot/types/types/registry" {
     MmrBatchProof: MmrBatchProof;
     MmrEncodableOpaqueLeaf: MmrEncodableOpaqueLeaf;
     MmrError: MmrError;
+    MmrHash: MmrHash;
     MmrLeafBatchProof: MmrLeafBatchProof;
     MmrLeafIndex: MmrLeafIndex;
     MmrLeafProof: MmrLeafProof;
@@ -1950,6 +1966,8 @@ declare module "@polkadot/types/types/registry" {
     ProxyState: ProxyState;
     ProxyType: ProxyType;
     PvfCheckStatement: PvfCheckStatement;
+    PvfExecTimeoutKind: PvfExecTimeoutKind;
+    PvfPrepTimeoutKind: PvfPrepTimeoutKind;
     QueryId: QueryId;
     QueryStatus: QueryStatus;
     QueueConfigData: QueueConfigData;
