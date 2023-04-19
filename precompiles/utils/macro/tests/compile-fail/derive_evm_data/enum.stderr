@@ -1,5 +1,0 @@
-error: EvmData can only be derived for structs with named fields
-  --> tests/compile-fail/derive_evm_data/enum.rs:20:6
-   |
-20 | enum Test {
-   |      ^^^^

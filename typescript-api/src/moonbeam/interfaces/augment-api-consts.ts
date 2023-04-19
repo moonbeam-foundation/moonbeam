@@ -16,7 +16,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  XcmV1MultiLocation,
+  XcmV3MultiLocation,
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -382,9 +382,9 @@ declare module "@polkadot/api-base/types/consts" {
     };
     xcmTransactor: {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
-      baseXcmWeight: u64 & AugmentedConst<ApiType>;
+      baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV1MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -394,9 +394,9 @@ declare module "@polkadot/api-base/types/consts" {
        *
        * The actually weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`.
        */
-      baseXcmWeight: u64 & AugmentedConst<ApiType>;
+      baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV1MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };

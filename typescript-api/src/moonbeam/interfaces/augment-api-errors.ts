@@ -496,6 +496,8 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     polkadotXcm: {
+      /** The given account is not an identifiable sovereign account for any location. */
+      AccountNotSovereign: AugmentedError<ApiType>;
       /** The location is invalid since it already has a subscription from us. */
       AlreadySubscribed: AugmentedError<ApiType>;
       /**
@@ -511,10 +513,20 @@ declare module "@polkadot/api-base/types/errors" {
       DestinationNotInvertible: AugmentedError<ApiType>;
       /** The assets to be sent are empty. */
       Empty: AugmentedError<ApiType>;
+      /** The operation required fees to be paid which the initiator could not meet. */
+      FeesNotMet: AugmentedError<ApiType>;
       /** The message execution fails the filter. */
       Filtered: AugmentedError<ApiType>;
+      /** The unlock operation cannot succeed because there are still users of the lock. */
+      InUse: AugmentedError<ApiType>;
+      /** Invalid asset for the operation. */
+      InvalidAsset: AugmentedError<ApiType>;
       /** Origin is invalid for sending. */
       InvalidOrigin: AugmentedError<ApiType>;
+      /** A remote lock with the corresponding data could not be found. */
+      LockNotFound: AugmentedError<ApiType>;
+      /** The owner does not own (all) of the asset that they wish to do the operation on. */
+      LowBalance: AugmentedError<ApiType>;
       /** The referenced subscription could not be found. */
       NoSubscription: AugmentedError<ApiType>;
       /**
@@ -524,6 +536,8 @@ declare module "@polkadot/api-base/types/errors" {
       SendFailure: AugmentedError<ApiType>;
       /** Too many assets have been attempted for transfer. */
       TooManyAssets: AugmentedError<ApiType>;
+      /** The asset owner has too many locks on the asset. */
+      TooManyLocks: AugmentedError<ApiType>;
       /** The desired destination was unreachable, generally because there is a no way of routing to it. */
       Unreachable: AugmentedError<ApiType>;
       /** The message's weight could not be determined. */
@@ -707,7 +721,8 @@ declare module "@polkadot/api-base/types/errors" {
       CannotReanchor: AugmentedError<ApiType>;
       DestinationNotInvertible: AugmentedError<ApiType>;
       DispatchWeightBiggerThanTotalWeight: AugmentedError<ApiType>;
-      ErrorSending: AugmentedError<ApiType>;
+      ErrorDelivering: AugmentedError<ApiType>;
+      ErrorValidating: AugmentedError<ApiType>;
       FailedMultiLocationToJunction: AugmentedError<ApiType>;
       FeePerSecondNotSet: AugmentedError<ApiType>;
       HrmpHandlerNotImplemented: AugmentedError<ApiType>;

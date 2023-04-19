@@ -53,7 +53,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_parachain_staking::Call<Runtime>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
 	// Constants
 	#[precompile::public("minDelegation()")]
@@ -75,10 +75,7 @@ where
 	// Storage Getters
 	#[precompile::public("points(uint256)")]
 	#[precompile::view]
-	fn points(
-		handle: &mut impl PrecompileHandle,
-		round: SolidityConvert<U256, u32>,
-	) -> EvmResult<u32> {
+	fn points(handle: &mut impl PrecompileHandle, round: Convert<U256, u32>) -> EvmResult<u32> {
 		let round = round.converted();
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -438,7 +435,7 @@ where
 	fn join_candidates(
 		handle: &mut impl PrecompileHandle,
 		amount: U256,
-		candidate_count: SolidityConvert<U256, u32>,
+		candidate_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let candidate_count = candidate_count.converted();
@@ -460,7 +457,7 @@ where
 	#[precompile::public("schedule_leave_candidates(uint256)")]
 	fn schedule_leave_candidates(
 		handle: &mut impl PrecompileHandle,
-		candidate_count: SolidityConvert<U256, u32>,
+		candidate_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let candidate_count = candidate_count.converted();
 
@@ -481,7 +478,7 @@ where
 	fn execute_leave_candidates(
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
-		candidate_count: SolidityConvert<U256, u32>,
+		candidate_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let candidate_count = candidate_count.converted();
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
@@ -503,7 +500,7 @@ where
 	#[precompile::public("cancel_leave_candidates(uint256)")]
 	fn cancel_leave_candidates(
 		handle: &mut impl PrecompileHandle,
-		candidate_count: SolidityConvert<U256, u32>,
+		candidate_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let candidate_count = candidate_count.converted();
 
@@ -611,8 +608,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
 		amount: U256,
-		candidate_delegation_count: SolidityConvert<U256, u32>,
-		delegator_delegation_count: SolidityConvert<U256, u32>,
+		candidate_delegation_count: Convert<U256, u32>,
+		delegator_delegation_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let candidate_delegation_count = candidate_delegation_count.converted();
@@ -641,9 +638,9 @@ where
 		candidate: Address,
 		amount: U256,
 		auto_compound: u8,
-		candidate_delegation_count: SolidityConvert<U256, u32>,
-		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
-		delegator_delegation_count: SolidityConvert<U256, u32>,
+		candidate_delegation_count: Convert<U256, u32>,
+		candidate_auto_compounding_delegation_count: Convert<U256, u32>,
+		delegator_delegation_count: Convert<U256, u32>,
 	) -> EvmResult {
 		if auto_compound > 100 {
 			return Err(
@@ -699,7 +696,7 @@ where
 	fn execute_leave_delegators(
 		handle: &mut impl PrecompileHandle,
 		delegator: Address,
-		delegator_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: Convert<U256, u32>,
 	) -> EvmResult {
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 		let delegator_delegation_count = delegator_delegation_count.converted();
@@ -842,8 +839,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
 		value: u8,
-		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
-		delegator_delegation_count: SolidityConvert<U256, u32>,
+		candidate_auto_compounding_delegation_count: Convert<U256, u32>,
+		delegator_delegation_count: Convert<U256, u32>,
 	) -> EvmResult {
 		if value > 100 {
 			return Err(

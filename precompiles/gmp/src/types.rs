@@ -19,10 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use parity_scale_codec::{Decode, Encode};
-use precompile_utils::{
-	data::{BoundedBytes, String},
-	EvmData,
-};
+use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
@@ -48,7 +45,7 @@ pub enum VersionedUserAction {
 // in the Wormhole Ethereum contracts.
 //
 // https://github.com/wormhole-foundation/wormhole/blob/main/ethereum/contracts/Structs.sol
-#[derive(Debug, EvmData)]
+#[derive(Debug, solidity::Codec)]
 pub struct WormholeVM {
 	pub version: u8,
 	pub timestamp: u32,
@@ -65,7 +62,7 @@ pub struct WormholeVM {
 }
 
 // Struct representing a Wormhole Signature struct
-#[derive(Debug, EvmData)]
+#[derive(Debug, solidity::Codec)]
 pub struct WormholeSignature {
 	pub r: U256,
 	pub s: U256,
@@ -76,7 +73,7 @@ pub struct WormholeSignature {
 // Struct representing a wormhole "BridgeStructs.TransferWithPayload" struct
 // As with WormholeVM, the main purpose of this struct is to decode the ABI encoded struct when it
 // returned from calls to Wormhole Ethereum contracts.
-#[derive(Debug, EvmData)]
+#[derive(Debug, solidity::Codec)]
 pub struct WormholeTransferWithPayloadData {
 	pub payload_id: u8,
 	pub amount: U256,

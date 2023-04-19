@@ -17,7 +17,7 @@
 //! Utilities to work with revert messages with support for backtraces and
 //! consistent formatting.
 
-use crate::{data::UnboundedBytes, EvmDataWriter};
+use crate::solidity::{self, codec::bytes::UnboundedBytes};
 use alloc::string::{String, ToString};
 use fp_evm::{ExitRevert, PrecompileFailure};
 use sp_std::vec::Vec;
@@ -25,13 +25,21 @@ use sp_std::vec::Vec;
 /// Represent the result of a computation that can revert.
 pub type MayRevert<T = ()> = Result<T, Revert>;
 
+/// Generate an encoded revert from a simple String.
+/// Returns a `PrecompileFailure` that fits in an `EvmResult::Err`.
+pub fn revert(msg: impl Into<String>) -> PrecompileFailure {
+	RevertReason::custom(msg).into()
+}
+
+/// Generate an encoded revert from a simple String.
+/// Returns a `Vec<u8>` in case `PrecompileFailure` is too high level.
+pub fn revert_as_bytes(msg: impl Into<String>) -> Vec<u8> {
+	Revert::new(RevertReason::custom(msg)).to_encoded_bytes()
+}
+
 /// Generic error to build abi-encoded revert output.
 /// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
-#[precompile_utils_macro::generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum RevertSelector {
-	Generic = "Error(string)",
-}
+pub const ERROR_SELECTOR: u32 = 0x08c379a0;
 
 #[derive(Clone, PartialEq, Eq)]
 enum BacktracePart {
@@ -166,7 +174,7 @@ impl Revert {
 
 	/// For all `RevertReason` variants that have a `what` field, change its value.
 	/// Otherwise do nothing.
-	/// It is useful when writing custom types `EvmData` implementations using
+	/// It is useful when writing custom types `solidity::Codec` implementations using
 	/// simpler types.
 	pub fn change_what(mut self, what: impl Into<String>) -> Self {
 		let what = what.into();
@@ -181,8 +189,9 @@ impl Revert {
 	}
 
 	/// Transforms the revert into its bytes representation (from a String).
-	pub fn to_bytes(self) -> Vec<u8> {
-		self.into()
+	pub fn to_encoded_bytes(self) -> Vec<u8> {
+		let bytes: Vec<u8> = self.into();
+		solidity::encode_with_selector(ERROR_SELECTOR, UnboundedBytes::from(bytes))
 	}
 }
 
@@ -361,9 +370,7 @@ impl From<Revert> for PrecompileFailure {
 	fn from(err: Revert) -> Self {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
-			output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
-				.write::<UnboundedBytes>(err.to_string().into())
-				.build(),
+			output: err.to_encoded_bytes(),
 		}
 	}
 }

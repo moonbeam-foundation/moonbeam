@@ -39,6 +39,7 @@ members = [
 	"runtime/moonriver",
 	"runtime/summarize-precompile-checks",
 ]
+resolver = "2"
 
 [workspace.package]
 authors = [ "PureStake" ]

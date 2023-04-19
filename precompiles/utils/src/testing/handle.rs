@@ -16,11 +16,13 @@
 
 use {
 	crate::testing::PrettyLog,
+	evm::{ExitRevert, ExitSucceed},
 	fp_evm::{Context, ExitError, ExitReason, Log, PrecompileHandle, Transfer},
 	sp_core::{H160, H256},
 	sp_std::boxed::Box,
 };
 
+#[derive(Debug, Clone)]
 pub struct Subcall {
 	pub address: H160,
 	pub transfer: Option<Transfer>,
@@ -30,11 +32,41 @@ pub struct Subcall {
 	pub context: Context,
 }
 
+#[derive(Debug, Clone)]
 pub struct SubcallOutput {
 	pub reason: ExitReason,
 	pub output: Vec<u8>,
 	pub cost: u64,
 	pub logs: Vec<Log>,
+}
+
+impl SubcallOutput {
+	pub fn revert() -> Self {
+		Self {
+			reason: ExitReason::Revert(ExitRevert::Reverted),
+			output: Vec::new(),
+			cost: 0,
+			logs: Vec::new(),
+		}
+	}
+
+	pub fn succeed() -> Self {
+		Self {
+			reason: ExitReason::Succeed(ExitSucceed::Returned),
+			output: Vec::new(),
+			cost: 0,
+			logs: Vec::new(),
+		}
+	}
+
+	pub fn out_of_gas() -> Self {
+		Self {
+			reason: ExitReason::Error(ExitError::OutOfGas),
+			output: Vec::new(),
+			cost: 0,
+			logs: Vec::new(),
+		}
+	}
 }
 
 pub trait SubcallTrait: FnMut(Subcall) -> SubcallOutput + 'static {}
@@ -83,7 +115,7 @@ impl PrecompileHandle for MockHandle {
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
 		if self
-			.record_cost(crate::costs::call_cost(
+			.record_cost(crate::evm::costs::call_cost(
 				context.apparent_value,
 				&evm::Config::london(),
 			))
