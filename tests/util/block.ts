@@ -471,12 +471,17 @@ export function extractPreimageDeposit(
       }
 ) {
   const deposit = "deposit" in request ? request.deposit : request;
-  if ("isSome" in deposit) {
+  if ("isSome" in deposit && deposit.isSome) {
     return {
       accountId: deposit.unwrap()[0].toHex(),
       amount: deposit.unwrap()[1],
     };
   }
+
+  if (deposit.isEmpty) {
+    return { accountId: "", amount: 0n };
+  }
+
   return {
     accountId: deposit[0].toHex(),
     amount: deposit[1],
