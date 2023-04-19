@@ -624,7 +624,7 @@ jobs:
 
   zombie_upgrade_test:
     runs-on: ubuntu-latest
-    needs: ["build", "build-rt-binary", "build-polkadot-binary"]
+    needs: ["build", "build-rt-binary"]
     strategy:
       matrix:
         chain: ["moonbase", "moonbeam"]
