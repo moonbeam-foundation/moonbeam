@@ -706,7 +706,7 @@ jobs:
       - name: Build Node
         run: |
           env
-          cargo build --release --all
+          cargo build --release
       - name: Save moonbeam binary
         run: |
           mkdir -p build
@@ -760,6 +760,7 @@ jobs:
           pnpm moonwall download polkadot latest tmp
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
+          chmod uog+x tmp/RT/moonbeam
           tmp/RT/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
           tmp/RT/moonbeam build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json

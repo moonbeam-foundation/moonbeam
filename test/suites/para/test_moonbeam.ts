@@ -38,58 +38,6 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "Can connect to parachain and execute a transaction",
-      timeout: 60000,
-      test: async function () {
-        const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-
-        log("Please wait, this will take at least 30s for transaction to complete");
-
-        await new Promise((resolve) => {
-          paraApi.tx.balances
-            .transfer(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-            .signAndSend(charleth, ({ status, events }) => {
-              if (status.isInBlock) {
-                log("Transaction is in block");
-              }
-              if (status.isFinalized) {
-                log("Transaction is finalized!");
-                resolve(events);
-              }
-            });
-        });
-
-        const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-        expect(balBefore.lt(balAfter)).to.be.true;
-      },
-    });
-
-    it({
-      id: "T03",
-      title: "Tags are present on emulated Ethereum blocks",
-      test: async function () {
-        expect(
-          (await ethersSigner.provider.getBlock("safe")).number,
-          "Safe tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await ethersSigner.provider.getBlock("finalized")).number,
-          "Finalized tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await ethersSigner.provider.getBlock("latest")).number,
-          "Latest tag is not present"
-        ).to.be.greaterThan(0);
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
-        // await context
-        //   .ethersSigner()
-        //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
-      },
-    });
-
-    it({
-      id: "T04",
       title: "Chain can be upgraded",
       timeout: 600000,
       test: async function () {
@@ -123,6 +71,58 @@ describeSuite({
         expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
           blockNumberBefore
         );
+      },
+    });
+
+    it({
+      id: "T03",
+      title: "Can connect to parachain and execute a transaction",
+      timeout: 60000,
+      test: async function () {
+        const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
+
+        log("Please wait, this will take at least 30s for transaction to complete");
+
+        await new Promise((resolve) => {
+          paraApi.tx.balances
+            .transfer(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+            .signAndSend(charleth, ({ status, events }) => {
+              if (status.isInBlock) {
+                log("Transaction is in block");
+              }
+              if (status.isFinalized) {
+                log("Transaction is finalized!");
+                resolve(events);
+              }
+            });
+        });
+
+        const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
+        expect(balBefore.lt(balAfter)).to.be.true;
+      },
+    });
+
+    it({
+      id: "T04",
+      title: "Tags are present on emulated Ethereum blocks",
+      test: async function () {
+        expect(
+          (await ethersSigner.provider.getBlock("safe")).number,
+          "Safe tag is not present"
+        ).to.be.greaterThan(0);
+        expect(
+          (await ethersSigner.provider.getBlock("finalized")).number,
+          "Finalized tag is not present"
+        ).to.be.greaterThan(0);
+        expect(
+          (await ethersSigner.provider.getBlock("latest")).number,
+          "Latest tag is not present"
+        ).to.be.greaterThan(0);
+        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
+        // await context
+        //   .ethersSigner()
+        //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
+        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
       },
     });
   },
