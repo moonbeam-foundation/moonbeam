@@ -107,8 +107,8 @@ describeSuite({
           return;
         } else {
           log("Runtime not upgraded, proceeding with test");
-          log("Current runtime hash: " + rtHex.slice(0, 10) +"..." + rtHex.slice(-10));
-          log("New runtime hash: " + codeString.slice(0, 10) +"..." + codeString.slice(-10));
+          log("Current runtime hash: " + rtHex.slice(0, 10) + "..." + rtHex.slice(-10));
+          log("New runtime hash: " + codeString.slice(0, 10) + "..." + codeString.slice(-10));
         }
 
         await context.upgradeRuntime({ logger: log });
