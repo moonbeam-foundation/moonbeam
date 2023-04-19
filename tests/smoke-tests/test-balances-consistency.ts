@@ -277,10 +277,11 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
               ? status[1].unwrap().asUnrequested
               : status[1].unwrap().asRequested
           );
+
           return {
             accountId: deposit.accountId,
             reserved: {
-              preimage: deposit.amount.toBigInt(),
+              preimage: deposit.amount !== 0n ? deposit.amount.toBigInt() : 0n,
             },
           };
         }),
