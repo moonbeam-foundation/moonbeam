@@ -305,6 +305,6 @@ fn submit_track_id_oob_fails() {
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Should have emitted no events as it should have produced a PrecompileError
-			assert!(vec![].iter().all(|log| events().contains(log)));
+			events().is_empty();
 		});
 }
