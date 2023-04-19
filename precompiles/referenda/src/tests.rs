@@ -279,3 +279,68 @@ fn place_and_refund_decision_deposit_logs_work() {
 			.all(|log| events().contains(log)));
 		});
 }
+
+#[test]
+fn submit_track_id_oob_fails() {
+	use pallet_referenda::TracksInfo;
+
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			let proposal = vec![1, 2, 3];
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+
+			// Submit referendum at index 0
+			let input = PCall::submit_at {
+				track_id: 0u16,
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			let oob_track_id =
+				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().len();
+
+			// Submit referendum at index 1
+			let input = PCall::submit_at {
+				track_id: oob_track_id as u16,
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
+				block_number: 0u32,
+			}
+			.into();
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			assert!(vec![
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AT,
+						H256::from_low_u64_be(0u64),
+						solidity::encode_event_data((
+							0u32, // referendum index
+							proposal_hash
+						))
+					),
+				}
+				.into(),
+				EvmEvent::Log {
+					log: log2(
+						Precompile1,
+						SELECTOR_LOG_SUBMITTED_AT,
+						H256::from_low_u64_be(0u64),
+						solidity::encode_event_data((
+							1u32, // referendum index
+							proposal_hash
+						))
+					),
+				}
+				.into()
+			]
+			.iter()
+			.all(|log| events().contains(log)));
+		});
+}
