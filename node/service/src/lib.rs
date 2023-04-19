@@ -53,11 +53,13 @@ pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
+use sc_client_api::BlockBackend;
 use sc_client_api::ExecutorProvider;
 use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
+use sc_service::WarpSyncParams;
 use sc_service::{
 	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
@@ -77,7 +79,8 @@ mod client;
 type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
-type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
+type MaybeSelectChain = Option<FullSelectChain>;
 
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
@@ -383,6 +386,17 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<TelemetryWorkerHandle>,
 			Arc<fc_db::Backend<Block>>,
 			FeeHistoryCache,
+			sc_consensus_grandpa::GrandpaBlockImport<
+				FullBackend,
+				Block,
+				FullClient<RuntimeApi, Executor>,
+				FullSelectChain,
+			>,
+			sc_consensus_grandpa::LinkHalf<
+				Block,
+				FullClient<RuntimeApi, Executor>,
+				FullSelectChain,
+			>,
 		),
 	>,
 	ServiceError,
@@ -444,8 +458,9 @@ where
 		telemetry
 	});
 
+	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 	let maybe_select_chain = if dev_service {
-		Some(sc_consensus::LongestChain::new(backend.clone()))
+		Some(select_chain.clone())
 	} else {
 		None
 	};
@@ -480,6 +495,13 @@ where
 		!dev_service,
 	)?;
 
+	let (grandpa_block_import, grandpa_link) = sc_consensus_grandpa::block_import(
+		client.clone(),
+		&(client.clone() as Arc<_>),
+		select_chain.clone(),
+		telemetry.as_ref().map(|x| x.handle()),
+	)?;
+
 	Ok(PartialComponents {
 		backend,
 		client,
@@ -495,6 +517,8 @@ where
 			telemetry_worker_handle,
 			frontier_backend,
 			fee_history_cache,
+			grandpa_block_import,
+			grandpa_link,
 		),
 	})
 }
@@ -572,12 +596,14 @@ where
 
 	let params = new_partial(&mut parachain_config, false)?;
 	let (
-		_block_import,
+		_frontier_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
 		frontier_backend,
 		fee_history_cache,
+		_grandpa_block_import,
+		grandpa_link,
 	) = params.other;
 
 	let client = params.client.clone();
@@ -596,6 +622,26 @@ where
 	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
+		&client
+			.block_hash(0)
+			.ok()
+			.flatten()
+			.expect("Genesis block exists; qed"),
+		&parachain_config.chain_spec,
+	);
+
+	parachain_config
+		.network
+		.extra_sets
+		.push(sc_consensus_grandpa::grandpa_peers_set_config(
+			grandpa_protocol_name.clone(),
+		));
+	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		grandpa_link.shared_authority_set().clone(),
+		Vec::default(),
+	));
 
 	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
@@ -612,7 +658,7 @@ where
 			block_announce_validator_builder: Some(Box::new(|_| {
 				Box::new(block_announce_validator)
 			})),
-			warp_sync_params: None,
+			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
 		})?;
 
 	let overrides = crate::rpc::overrides_handle(client.clone());
@@ -939,8 +985,31 @@ where
 				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
+				_grandpa_block_import,
+				grandpa_link,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
+
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
+		&client
+			.block_hash(0)
+			.ok()
+			.flatten()
+			.expect("Genesis block exists; qed"),
+		&config.chain_spec,
+	);
+
+	config
+		.network
+		.extra_sets
+		.push(sc_consensus_grandpa::grandpa_peers_set_config(
+			grandpa_protocol_name.clone(),
+		));
+	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		grandpa_link.shared_authority_set().clone(),
+		Vec::default(),
+	));
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -950,7 +1019,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: None,
+			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
 		})?;
 
 	if config.offchain_worker.enabled {
