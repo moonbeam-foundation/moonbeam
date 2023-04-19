@@ -105,6 +105,10 @@ describeSuite({
         if (rtHex === codeString) {
           log("Runtime already upgraded, skipping test");
           return;
+        } else {
+          log("Runtime not upgraded, proceeding with test");
+          log("Current runtime hash: " + rtHex.slice(0, 10) +"..." + rtHex.slice(-10));
+          log("New runtime hash: " + codeString.slice(0, 10) +"..." + codeString.slice(-10));
         }
 
         await context.upgradeRuntime({ logger: log });
