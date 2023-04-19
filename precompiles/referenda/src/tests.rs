@@ -20,11 +20,15 @@ use crate::{
 };
 use precompile_utils::{prelude::*, testing::*};
 
-use frame_support::{assert_err, assert_ok, dispatch::Dispatchable};
+use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_referenda::Call as ReferendaCall;
 
 use sp_core::{Hasher, H256, U256};
+
+fn precompiles() -> TestPrecompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
@@ -299,12 +303,10 @@ fn submit_track_id_oob_fails() {
 				proposal_hash: proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
-			}
-			.into();
+			};
 
-			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
-
-			// Should have emitted no events as it should have produced a PrecompileError
-			events().is_empty();
+			precompiles()
+				.prepare_test(Alice, Precompile1, input)
+				.execute_reverts(|output| output == b"trackId: No such track");
 		});
 }
