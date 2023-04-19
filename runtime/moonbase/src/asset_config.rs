@@ -80,7 +80,10 @@ pub type AssetsForceOrigin = EitherOfDiverse<
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
 	pub struct BenchmarkHelper;
-	impl<AssetIdParameter: From<u128>> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper {
+	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
+	where
+		AssetIdParameter: From<u128>,
+	{
 		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
 			(id as u128).into()
 		}

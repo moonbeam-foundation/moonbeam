@@ -33,7 +33,7 @@ use sp_runtime::{
 };
 
 use super::*;
-use pallet_ethereum::IntermediateStateRoot;
+use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use sp_runtime::{
 	traits::DispatchInfoOf,
 	transaction_validity::{TransactionValidity, TransactionValidityError},
@@ -180,7 +180,7 @@ impl pallet_evm::Config for Test {
 }
 
 parameter_types! {
-	pub const PostBlockAndTxnHashes: pallet_ethereum::PostLogContent = pallet_ethereum::PostLogContent::BlockAndTxnHashes;
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
 }
 
 impl pallet_ethereum::Config for Test {
