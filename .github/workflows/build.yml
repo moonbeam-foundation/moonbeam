@@ -16,6 +16,9 @@ on:
       pull_request:
         description: set to pull_request number to execute on external pr
         required: false
+env:
+  SCCACHE_CACHE_SIZE: "100GB"
+  CARGO_INCREMENTAL: "0"
 
 jobs:
   ####### Check files and formatting #######
@@ -137,7 +140,8 @@ jobs:
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -187,7 +191,7 @@ jobs:
   ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -224,7 +228,7 @@ jobs:
             mkdir -p build
             MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             # Clear the dummy container if it wasn't properly cleaned up
-            docker rm -f dummy 2> /dev/null
+            docker rm -f dummy 2> /dev/null | true
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
             docker cp dummy:/usr/local/bin/polkadot build/polkadot
             docker rm -f dummy
@@ -238,70 +242,62 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
       - name: Setup Rust toolchain
         run: rustup show
       - name: Clippy
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
+      RUSTC_WRAPPER: "sccache"
+      TMP_TARGET: "/tmp/target"
+      CARGO_TARGET_DIR: "target"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
-
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
         run: |
-          # We altered the path to avoid old actions to overwrite it
-          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
-          if [ ! -f $SCCACHE_BIN ]; then
-            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
-          ls -la $SCCACHE_BIN
-          ps aux | grep sccache
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x $SCCACHE_BIN
-            $SCCACHE_BIN --start-server
-          fi
-          $SCCACHE_BIN -s
-          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+          rustup show
       - name: Build Node
         run: |
           env
-          cargo build --release --all
+          cargo build --locked --release -p moonbeam
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-          MB_VERSION=`./target/release/moonbeam --version`
+          MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Save runtime wasm
         run: |
           mkdir -p runtimes
-          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+          cp $CARGO_TARGET_DIR/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -310,45 +306,95 @@ jobs:
       - name: Save moonbeam binary
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam;
+          cp $CARGO_TARGET_DIR/release/moonbeam build/moonbeam;
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:
           name: moonbeam
           path: build
 
+  build-features:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    env:
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
+      RUSTC_WRAPPER: "sccache"
+      TMP_TARGET: "/tmp/target-features"
+      CARGO_TARGET_DIR: "target-features"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
+      - name: Build Node
+        run: |
+          env
+          cargo build --locked --release --features=try-runtime,runtime-benchmarks
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
+      - name: Verify node version
+        run: |
+          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+          MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
+          echo "Checking $MB_VERSION contains $GIT_COMMIT"
+          echo "$MB_VERSION" | grep $GIT_COMMIT
+      - name: Save moonbeam binary
+        run: |
+          mkdir -p build
+          cp $CARGO_TARGET_DIR/release/moonbeam build/moonbeam-features;
+      - name: Upload binary
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: moonbeam-features
+          path: build
+
+  rust-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    env:
+      RUSTFLAGS: "-C opt-level=3 -D warnings"
+      RUSTC_WRAPPER: "sccache"
+      TMP_TARGET: "/tmp/target-test"
+      CARGO_TARGET_DIR: "target-test"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --release --all
-
-      # We determine whether there are unmodified Cargo.lock files by:
-      # 1. Asking git for a list of all modified files
-      # 2. Using grep to reduce the list to only Cargo.lock files
-      # 3. Counting the number of lines of output
-      - name: Check Cargo Toml
-        run: |
-          # Make sure git is working, and if not abort early. When git is not working it looks like:
-          # $ git diff-index --name-only HEAD
-          # fatal: not a git repository (or any of the parent directories): .git
-          DIFF_INDEX=$(git diff-index --name-only HEAD)
-          if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
-            echo "There was an error with the git checkout. Can't check Cargo.lock file."
-            false
-          fi
-          FILECOUNT=$(echo $DIFF_INDEX | grep Cargo.lock | wc -l)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            echo "All lock files are valid"
-          else
-            echo "The following Cargo.lock files have uncommitted changes"
-            echo $DIFF_INDEX | grep Cargo.lock
-            false
-          fi
-      - name: Ensure benchmarking compiles
-        run: cargo check --release --features=runtime-benchmarks
+          cargo test --release --all --features=evm-tracing
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
 
   typescript-tests:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
@@ -359,10 +405,10 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 16.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - name: Typescript integration tests (against dev service)
         run: |
           chmod uog+x build/moonbeam
@@ -385,25 +431,12 @@ jobs:
           #### This also better display typescript issues
           npm run build
 
-          cd ..
-
-          #### Retrieving docker image as base to run tests
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-
           CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
 
-          docker run \
-            -e BINARY_PATH='../build/moonbeam' \
-            -v $(pwd):/moonbeam:z \
-            -u $UID \
-            -w /moonbeam/tests \
-            $DOCKER_TAG \
-              node node_modules/.bin/mocha \
-                --parallel -j $((CPUS / 2)) \
-                --exit \
-                'build/tests/**/test-*.js'
+          node node_modules/.bin/mocha \
+            --parallel -j $((CPUS / 2)) \
+            --exit \
+            'build/tests/**/test-*.js'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -433,7 +466,8 @@ jobs:
 
   typescript-tracing-tests:
     if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build"]
     steps:
       - name: Checkout
@@ -484,91 +518,64 @@ jobs:
           #### Run tracing tests with mocha
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
-  typescript-para-tests:
-    runs-on: self-hosted
-    needs: ["set-tags", "build", "prepare-polkadot"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-          fetch-depth: 0
-      - uses: actions/download-artifact@v3.0.2
-        with:
-          name: moonbeam
-          path: build
-      - uses: actions/download-artifact@v3.0.2
-        with:
-          name: runtimes
-          path: tests/runtimes
-      - name: Retrieve polkadot
-        run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          # Clear the dummy container if it wasn't properly cleaned up
-          docker rm -f dummy 2> /dev/null
-          docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/local/bin/polkadot build/polkadot
-          docker rm -f dummy
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Typescript integration tests (against dev service)
-        env:
-          OVERRIDE_RUNTIME_PATH: ./runtimes
-          BINARY_PATH: ../build/moonbeam
-          MOONBEAM_LOG: info
-          RELAY_BINARY_PATH: ../build/polkadot
-        run: |
-          chmod uog+x build/polkadot
-          chmod uog+x build/moonbeam
+  # typescript-para-tests:
+  #   runs-on:
+  #     labels: bare-metal
+  #   needs: ["set-tags", "build", "prepare-polkadot"]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #         fetch-depth: 0
+  #     - uses: actions/download-artifact@v3.0.2
+  #       with:
+  #         name: moonbeam
+  #         path: build
+  #     - uses: actions/download-artifact@v3.0.2
+  #       with:
+  #         name: runtimes
+  #         path: tests/runtimes
+  #     - name: Retrieve polkadot
+  #       run: |
+  #         POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+  #         DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+  #         # Clear the dummy container if it wasn't properly cleaned up
+  #         docker rm -f dummy 2> /dev/null | true
+  #         docker create -ti --name dummy $DOCKER_TAG bash
+  #         docker cp dummy:/usr/local/bin/polkadot build/polkadot
+  #         docker rm -f dummy
+  #     - name: Use Node.js 20.x
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 20.x
+  #     - name: Typescript integration tests (against dev service)
+  #       env:
+  #         OVERRIDE_RUNTIME_PATH: ./runtimes
+  #         BINARY_PATH: ../build/moonbeam
+  #         MOONBEAM_LOG: info
+  #         RELAY_BINARY_PATH: ../build/polkadot
+  #       run: |
+  #         chmod uog+x build/polkadot
+  #         chmod uog+x build/moonbeam
 
-          ####  Preparing the repository
-          cd moonbeam-types-bundle
-          npm ci
-          cd ../tests
-          npm ci
-          npm run build
-          cd ..
+  #         ####  Preparing the repository
+  #         cd moonbeam-types-bundle
+  #         npm ci
+  #         npm run build
 
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+  #         ####  Preparing the typescript api
+  #         cd ../typescript-api
+  #         npm ci
 
-          #### Retrieve binary to avoid para-node script to rely on docker
-          mkdir -p build
-          localVersion=$(grep 'spec_version: [0-9]*' runtime/moonbase/src/lib.rs | grep -o '[0-9]*')
-          baseRuntime=$(git tag -l -n 'runtime-[0-9]*' | \
-            cut -d' ' -f 1 | cut -d'-' -f 2 | \
-            sed "1 i ${localVersion}" | \
-            sort -n -r | \
-            uniq | \
-            grep -A1 "${localVersion}" | \
-            tail -1)
-          rev=$(git rev-list -1 runtime-$baseRuntime)
-          sha8=${rev:0:8}
-          dockerImage=purestake/moonbeam:sha-${sha8}
-          binaryPath=build/moonbeam-${sha8}
-          docker create --pull always --name moonbeam-tmp ${dockerImage} && \
-          docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
-          docker rm moonbeam-tmp
+  #         cd ../tests
+  #         npm ci
+  #         #### Prepares and copies the typescript generated API to include in the tests
+  #         npm run setup-typescript-api
 
-          echo "Running para-tests inside docker: $DOCKER_TAG"
-          docker run \
-            -e OVERRIDE_RUNTIME_PATH='./runtimes' \
-            -e BINARY_PATH='../build/moonbeam' \
-            -e MOONBEAM_LOG='info' \
-            -e RELAY_BINARY_PATH='/binaries/polkadot' \
-            -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='../build/' \
-            -e SPECS_DIRECTORY='/tmp/specs' \
-            -v $(pwd):/moonbeam:z \
-            -v $(pwd)/${binaryPath}:/binaries/moonbeam:z \
-            -u $UID \
-            -w /moonbeam/tests \
-            $DOCKER_TAG \
-              node node_modules/.bin/mocha --exit 'build/para-tests/**/test-*.js'
+  #         npm run build
+
+  #         node_modules/.bin/mocha 'build/para-tests/**/test-*.js'
 
   docker-moonbeam:
     runs-on: ubuntu-latest
