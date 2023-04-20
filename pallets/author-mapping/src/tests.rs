@@ -16,15 +16,11 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, DepositAmount, ExtBuilder, Runtime,
-	RuntimeEvent as MetaEvent, RuntimeOrigin, System, TestAuthor,
+	last_event, AuthorMapping, Balances, ExtBuilder, Runtime, RuntimeEvent as MetaEvent,
+	RuntimeOrigin, System, TestAuthor,
 };
-use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
-use frame_support::{
-	assert_noop, assert_ok,
-	traits::ReservableCurrency,
-};
-use nimbus_primitives::NimbusId;
+use crate::{keys_size, keys_wrapper, Error, Event};
+use frame_support::{assert_noop, assert_ok};
 
 #[test]
 fn check_key_size() {
