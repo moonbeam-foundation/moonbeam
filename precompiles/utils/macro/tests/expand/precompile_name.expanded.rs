@@ -15,14 +15,13 @@ pub enum PrecompileName {
 #[automatically_derived]
 impl ::core::fmt::Debug for PrecompileName {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        match self {
-            PrecompileName::FooPrecompile => {
-                ::core::fmt::Formatter::write_str(f, "FooPrecompile")
-            }
-            PrecompileName::BarPrecompile => {
-                ::core::fmt::Formatter::write_str(f, "BarPrecompile")
-            }
-        }
+        ::core::fmt::Formatter::write_str(
+            f,
+            match self {
+                PrecompileName::FooPrecompile => "FooPrecompile",
+                PrecompileName::BarPrecompile => "BarPrecompile",
+            },
+        )
     }
 }
 impl PrecompileName {

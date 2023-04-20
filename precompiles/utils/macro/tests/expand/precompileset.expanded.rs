@@ -610,61 +610,52 @@ where
         use ::fp_evm::{PrecompileOutput, ExitSucceed};
         let output = match self {
             Self::allowance { owner, spender } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::allowance(discriminant, handle, owner, spender);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::approve { spender, value } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::approve(discriminant, handle, spender, value);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::balance_of { who } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::balance_of(discriminant, handle, who);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::burn { from, value } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::burn(discriminant, handle, from, value);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::clear_metadata {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::clear_metadata(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::decimals {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::decimals(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::eip2612_domain_separator {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_domain_separator(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::eip2612_nonces { owner } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_nonces(discriminant, handle, owner);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::eip2612_permit { owner, spender, value, deadline, v, r, s } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::eip2612_permit(
@@ -678,92 +669,79 @@ where
                     r,
                     s,
                 );
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::freeze { account } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze(discriminant, handle, account);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::freeze_asset {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::freeze_asset(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::mint { to, value } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::mint(discriminant, handle, to, value);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::name {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::name(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::set_metadata { name, symbol, decimals } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_metadata(discriminant, handle, name, symbol, decimals);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::set_team { issuer, admin, freezer } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::set_team(discriminant, handle, issuer, admin, freezer);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::symbol {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::symbol(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::thaw { account } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::thaw(discriminant, handle, account);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::thaw_asset {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<Runtime>>::thaw_asset(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::total_supply {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::total_supply(discriminant, handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::transfer { to, value } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer(discriminant, handle, to, value);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::transfer_from { from, to, value } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_from(discriminant, handle, from, to, value);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::transfer_ownership { owner } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <PrecompileSet<
                     Runtime,
                 >>::transfer_ownership(discriminant, handle, owner);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(

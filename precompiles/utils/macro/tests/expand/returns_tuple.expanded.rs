@@ -54,9 +54,8 @@ impl ExamplePrecompileCall {
         use ::fp_evm::{PrecompileOutput, ExitSucceed};
         let output = match self {
             Self::example {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <ExamplePrecompile>::example(handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
