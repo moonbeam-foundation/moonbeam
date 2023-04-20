@@ -722,7 +722,7 @@ jobs:
 
           docker rm -f moonbeam_container 2> /dev/null | true
           docker create --name moonbeam_container $DOCKER_TAG bash
-          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/RT/moonbeam
+          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
       - name: "Run zombie test"
         run: |
@@ -731,10 +731,10 @@ jobs:
           pnpm moonwall download polkadot $POLKADOT_VERSION tmp
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/RT/moonbeam
-          tmp/RT/moonbeam build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          chmod uog+x tmp/moonbeam_rt
+          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-          tmp/RT/moonbeam build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam
