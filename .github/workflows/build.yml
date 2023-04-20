@@ -72,7 +72,7 @@ jobs:
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
           echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt}}" | jq -r '.object.sha' | cut -c 1-8)"
-          echo "latest_rt8=$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest-rt}}" | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
+          echo "latest_rt8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest-rt}}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
