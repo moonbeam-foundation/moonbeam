@@ -13,7 +13,8 @@ import {
 } from "../../util/xcm";
 import { expectOk } from "../../util/expect";
 import { KeyringPair } from "@substrate/txwrapper-core";
-import { TARGET_FILL_AMOUNT } from "../../util/constants";
+import { GLMR, TARGET_FILL_AMOUNT } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -440,5 +441,13 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
         proofSize: 1,
       });
     expect((adjusted_weight_fee as any).toBigInt()).to.eq(50_000n);
+  });
+
+  it("should be able to calculate entire fee", async function () {
+    const tx = await context.polkadotApi.tx.balances
+      .transfer(alith.address, GLMR)
+      .signAsync(alith);
+    const result = await context.createBlock(tx);
+    await verifyLatestBlockFees(context);
   });
 });
