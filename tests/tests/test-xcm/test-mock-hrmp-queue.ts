@@ -40,6 +40,9 @@ export async function calculateShufflingAndExecution(
   weightUsePerMessage: bigint,
   totalXcmpWeight: bigint
 ) {
+  // There is a maximum 20 messages that can be processed by a single queue in a block.
+  // 10 on initialize and 10 on idle.
+  expect(numParaMsgs).to.be.lessThanOrEqual(20);
   // the randomization is as follows
   // for every rand number, we do module number of paras
   // the given index is swaped with that obtained with the
@@ -61,13 +64,14 @@ export async function calculateShufflingAndExecution(
   const decay = queueConfig.weightRestrictDecay.refTime.toBigInt();
   const thresholdWeight = queueConfig.thresholdWeight.refTime.toBigInt();
 
+  let max_message_processed_per_queue = 10;
   for (let i = 0; i < numParaMsgs; i++) {
     let rand = rng.nextU32();
     let j = rand % numParaMsgs;
     [indices[i], indices[j]] = [indices[j], indices[i]];
 
     // mimics the decay algorithm
-    if (totalXcmpWeight - weightUsed > thresholdWeight) {
+    if (totalXcmpWeight - weightUsed > thresholdWeight && max_message_processed_per_queue > 0) {
       if (weightAvailable != totalXcmpWeight) {
         weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
         if (weightAvailable + thresholdWeight > totalXcmpWeight) {
@@ -82,6 +86,7 @@ export async function calculateShufflingAndExecution(
         shouldItExecute[i] = XcmpExecution.InitializationExecutedPassingBarrier;
         weightUsed += weightUsePerMessage;
       }
+      max_message_processed_per_queue--;
     } else {
       // we know this will execute on idle
       shouldItExecute[i] = XcmpExecution.OnIdleExecutedPassingBarrier;
@@ -103,12 +108,12 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay(0)
+          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay({ refTime: 0, proofSize: 0 })
         )
       )
     );
 
-    const numParaMsgs = 50;
+    const numParaMsgs = 20;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
@@ -119,17 +124,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
@@ -210,9 +215,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // assert we dont have on_idle execution
     expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
       .true;
-    expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedNotPassingBarrier) > -1).to
-      .be.true;
-    expect(shouldItExecute.indexOf(XcmpExecution.OnIdleExecutedPassingBarrier) > -1).to.be.false;
+    expect(shouldItExecute.indexOf(XcmpExecution.OnIdleExecutedPassingBarrier) > -1).to.be.true;
 
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
@@ -227,14 +230,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
       let balance = await context.polkadotApi.query.system.account(sovereignAddress);
 
-      if (
-        shouldItExecute[indices.indexOf(i)] == XcmpExecution.InitializationExecutedPassingBarrier ||
-        shouldItExecute[indices.indexOf(i)] == XcmpExecution.OnIdleExecutedPassingBarrier
-      ) {
-        expect(balance.data.free.toBigInt()).to.eq(1n * GLMR - 1_000_000_000_000_000n);
-      } else {
-        expect(balance.data.free.toBigInt()).to.eq(1n * GLMR);
-      }
+      expect(balance.data.free.toBigInt()).to.eq(1n * GLMR - 1_000_000_000_000_000n);
     }
   });
 });
@@ -248,7 +244,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    const numParaMsgs = 50;
+    const numParaMsgs = 20;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
@@ -259,17 +255,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
@@ -426,17 +422,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     ).index;
 
     const xcmMessageNotExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1n,
-      },
+          fungible: 1n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -444,17 +440,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       .as_v2();
 
     const xcmMessageExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 2n,
-      },
+          fungible: 2n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -499,17 +495,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     ).index;
 
     const xcmMessageNotExecuted = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1n,
-      },
+          fungible: 1n,
+        },
+      ],
       weight_limit: new BN(20000000000),
     })
       .withdraw_asset()
@@ -586,7 +582,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     ) as any;
 
     const destination = {
-      V1: {
+      V3: {
         parents: 1,
         interior: { X1: { Parachain: suspendedPara } },
       },
@@ -644,17 +640,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // we will prove we get two different events with xcmp.queue
     const xcmFirstFragment = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
       weight_limit: new BN(1_000_000_000),
     })
       .withdraw_asset()
@@ -662,17 +658,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       .as_v2();
 
     const xcmSecondFragment = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 2_000_000_000_000_000n,
-      },
+          fungible: 2_000_000_000_000_000n,
+        },
+      ],
       weight_limit: new BN(2_000_000_000),
     })
       .withdraw_asset()

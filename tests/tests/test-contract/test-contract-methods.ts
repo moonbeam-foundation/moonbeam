@@ -48,7 +48,8 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       })
       .catch((err: { message: string }) =>
         expect(err.message).to.equal(
-          `Returned error: VM Exception while processing transaction: revert`
+          "Returned error: VM Exception while processing transaction: " +
+            "revert Contract does not have fallback nor receive functions"
         )
       );
   });
@@ -78,7 +79,8 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       })
       .catch((err: { message: string }) =>
         expect(err.message).to.equal(
-          `Returned error: VM Exception while processing transaction: revert`
+          "Returned error: VM Exception while processing transaction: " +
+            "revert Contract does not have fallback nor receive functions"
         )
       );
   });
@@ -109,7 +111,8 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       })
       .catch((err: { message: string }) =>
         expect(err.message).to.equal(
-          `Returned error: VM Exception while processing transaction: revert`
+          "Returned error: VM Exception while processing transaction: " +
+            "revert Contract does not have fallback nor receive functions"
         )
       );
   });

@@ -39,4 +39,5 @@ sp-transaction-pool = { workspace = true }
 fc-consensus = { workspace = true }
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
 fc-rpc-core = { workspace = true }
+fc-storage = { workspace = true }
 fp-rpc = { workspace = true }

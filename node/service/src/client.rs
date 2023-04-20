@@ -320,7 +320,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		prefix: Option<&'a StorageKey>,
 		start_key: Option<&StorageKey>,
 	) -> sp_blockchain::Result<
-		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+		KeyIterator<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
 		match_client!(self, storage_keys_iter(hash, prefix, start_key))
 	}
@@ -350,7 +350,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		prefix: Option<&'a StorageKey>,
 		start_key: Option<&StorageKey>,
 	) -> sp_blockchain::Result<
-		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+		KeyIterator<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
 		match_client!(
 			self,

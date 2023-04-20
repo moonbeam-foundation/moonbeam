@@ -1,0 +1,39 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
+    "start": "pnpm moonwall"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@acala-network/chopsticks": "^0.5.10",
+    "@moonbeam-network/api-augment": "^0.2201.0",
+    "@moonwall/cli": "^0.4.6",
+    "@moonwall/util": "^0.4.5",
+    "@polkadot/api": "^10.2.2",
+    "@polkadot/api-augment": "^10.2.2",
+    "@polkadot/types": "^10.2.2",
+    "@polkadot/types-codec": "^10.2.2",
+    "@polkadot/util": "^11.1.3",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^18.15.11",
+    "bottleneck": "^2.19.5",
+    "debug": "^4.3.4",
+    "ethers": "^6.2.3",
+    "pnpm": "^7.31.0",
+    "prettier": "^2.8.7",
+    "typescript": "^4.9.5",
+    "web3": "4.0.1-alpha.5",
+    "web3-eth": "4.0.1-alpha.5",
+    "web3-providers-ws": "4.0.1-alpha.5"
+  },
+  "dependencies": {
+    "chalk": "^5.2.0"
+  }
+}

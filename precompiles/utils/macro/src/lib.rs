@@ -18,16 +18,11 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro2::Literal;
 use quote::{quote, quote_spanned};
 use sha3::{Digest, Keccak256};
-use syn::{
-	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, ItemType, Lit,
-	LitStr,
-};
+use syn::{parse_macro_input, spanned::Spanned, Expr, Ident, ItemType, Lit, LitStr};
 
-mod derive_evm_data;
-mod generate_function_selector;
+mod derive_codec;
 mod precompile;
 mod precompile_name_from_address;
 
@@ -65,35 +60,6 @@ pub fn keccak256(input: TokenStream) -> TokenStream {
 	quote!(#eval_ts).into()
 }
 
-/// This macro allows to associate to each variant of an enumeration a discriminant (of type u32
-/// whose value corresponds to the first 4 bytes of the Hash Keccak256 of the character string
-///indicated by the user of this macro.
-///
-/// Usage:
-///
-/// ```ignore
-/// #[generate_function_selector]
-/// enum Action {
-/// 	Toto = "toto()",
-/// 	Tata = "tata()",
-/// }
-/// ```
-///
-/// Extended to:
-///
-/// ```rust
-/// #[repr(u32)]
-/// enum Action {
-/// 	Toto = 119097542u32,
-/// 	Tata = 1414311903u32,
-/// }
-/// ```
-///
-#[proc_macro_attribute]
-pub fn generate_function_selector(attr: TokenStream, input: TokenStream) -> TokenStream {
-	generate_function_selector::main(attr, input)
-}
-
 #[proc_macro_attribute]
 pub fn precompile(attr: TokenStream, input: TokenStream) -> TokenStream {
 	precompile::main(attr, input)
@@ -104,7 +70,7 @@ pub fn precompile_name_from_address(attr: TokenStream, input: TokenStream) -> To
 	precompile_name_from_address::main(attr, input)
 }
 
-#[proc_macro_derive(EvmData)]
-pub fn derive_evm_data(input: TokenStream) -> TokenStream {
-	derive_evm_data::main(input)
+#[proc_macro_derive(Codec)]
+pub fn derive_codec(input: TokenStream) -> TokenStream {
+	derive_codec::main(input)
 }

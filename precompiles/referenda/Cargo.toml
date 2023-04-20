@@ -49,6 +49,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-balances/std",
 	"pallet-evm/std",
 	"pallet-referenda/std",
 	"parity-scale-codec/std",

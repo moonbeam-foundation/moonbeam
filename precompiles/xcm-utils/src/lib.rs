@@ -17,19 +17,18 @@
 //! Precompile to xcm utils runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
 	traits::OriginTrait,
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
 use precompile_utils::precompile_set::SelectorFilter;
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
@@ -39,6 +38,8 @@ use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
 use xcm_executor::traits::WeightTrader;
+
+use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
@@ -144,7 +145,10 @@ where
 
 		// buy_weight returns unused assets
 		let unused = trader
-			.buy_weight(weight_per_second, vec![multiasset.clone()].into())
+			.buy_weight(
+				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
+				vec![multiasset.clone()].into(),
+			)
 			.map_err(|_| {
 				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
 			})?;
@@ -187,7 +191,7 @@ where
 				.into()),
 		};
 
-		result
+		Ok(result?.ref_time())
 	}
 
 	#[precompile::public("xcmExecute(bytes,uint64)")]
@@ -209,7 +213,7 @@ where
 
 		let call = pallet_xcm::Call::<Runtime>::execute {
 			message: Box::new(xcm),
-			max_weight: weight,
+			max_weight: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

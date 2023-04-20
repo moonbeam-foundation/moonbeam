@@ -16,7 +16,9 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    const numMsgs = 50;
+    // TODO this test mostly changes it's nature due to proof size accounting
+    // by now we just decrease the number of supported messages from 50 to 20.
+    const numMsgs = 20;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
@@ -37,17 +39,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // go on idle
 
     const config = {
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: 1_000_000_000_000_000n,
-      },
+          fungible: 1_000_000_000_000_000n,
+        },
+      ],
     };
 
     // How much does the withdraw weight?
@@ -111,12 +113,13 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // lets grab at which point the dmp queue was exhausted
     const index = events.findIndex((event) => {
-      if (event.includes("dmpQueue.WeightExhausted.")) {
+      if (event.includes("dmpQueue.MaxMessagesExhausted.")) {
         return true;
       } else {
         return false;
       }
     });
+    expect(index).to.be.greaterThanOrEqual(0);
     const eventsExecutedOnInitialization = events.slice(0, index + 1);
     const eventsExecutedOnIdle = events.slice(index + 1, events.length);
 
@@ -139,8 +142,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     });
 
     // the test was designed to go half and half
-    expect(executedOnInitialization).to.be.eq(25);
-    expect(executedOnIdle).to.be.eq(25);
+    expect(executedOnInitialization).to.be.eq(10);
+    expect(executedOnIdle).to.be.eq(10);
     const pageIndex = await apiAt.query.dmpQueue.pageIndex();
     expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
     expect(pageIndex.endUsed.toBigInt()).to.eq(0n);

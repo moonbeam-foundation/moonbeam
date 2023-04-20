@@ -1,5 +1,8 @@
 # Functional testing for Moonbeam
 
+:information_source: This is the location of all the typescript based tests for Moonbeam/Moonriver. 
+In the future this will be replaced by the `/test/` folder which is using the [Moonwall](https://github.com/Moonsong-Labs/moonwall) framework.
+
 This folder contains a set of functional tests designed for Moonbeam network.
 
 It is written in typescript, using Mocha/Chai as Test framework.

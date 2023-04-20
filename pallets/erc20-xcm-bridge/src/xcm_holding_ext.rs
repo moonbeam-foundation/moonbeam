@@ -103,16 +103,31 @@ impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
 where
 	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
 {
-	fn execute_xcm_in_credit(
-		origin: impl Into<xcm::latest::MultiLocation>,
+	type Prepared = InnerXcmExecutor::Prepared;
+
+	fn prepare(
 		message: xcm::latest::Xcm<RuntimeCall>,
-		weight_limit: xcm::latest::Weight,
+	) -> Result<Self::Prepared, xcm::latest::Xcm<RuntimeCall>> {
+		InnerXcmExecutor::prepare(message)
+	}
+
+	fn execute(
+		origin: impl Into<xcm::latest::MultiLocation>,
+		pre: Self::Prepared,
+		hash: xcm::latest::XcmHash,
 		weight_credit: xcm::latest::Weight,
 	) -> xcm::latest::Outcome {
 		let mut erc20s_origins = Default::default();
 		XCM_HOLDING_ERC20_ORIGINS::using(&mut erc20s_origins, || {
-			InnerXcmExecutor::execute_xcm_in_credit(origin, message, weight_limit, weight_credit)
+			InnerXcmExecutor::execute(origin, pre, hash, weight_credit)
 		})
+	}
+
+	fn charge_fees(
+		location: impl Into<xcm::latest::MultiLocation>,
+		fees: xcm::latest::MultiAssets,
+	) -> Result<(), xcm::latest::Error> {
+		InnerXcmExecutor::charge_fees(location, fees)
 	}
 }
 

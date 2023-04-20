@@ -90,6 +90,7 @@ import type {
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
   PalletXcmQueryStatus,
+  PalletXcmRemoteLockedFungibleRecord,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
@@ -99,7 +100,8 @@ import type {
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
-  XcmV1MultiLocation,
+  XcmV3MultiLocation,
+  XcmVersionedAssetId,
   XcmVersionedMultiLocation,
 } from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
@@ -521,6 +523,9 @@ declare module "@polkadot/api-base/types/storage" {
         () => Observable<CumulusPalletDmpQueueConfigData>,
         []
       > &
+        QueryableStorageEntry<ApiType, []>;
+      /** Counter for the related counted storage map */
+      counterForOverweight: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** The overweight messages. */
       overweight: AugmentedQuery<
@@ -1154,6 +1159,15 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
+      /** Fungible assets which we know are locked on this chain. */
+      lockedFungibles: AugmentedQuery<
+        ApiType,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<Vec<ITuple<[u128, XcmVersionedMultiLocation]>>>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
       /** The ongoing queries. */
       queries: AugmentedQuery<
         ApiType,
@@ -1164,6 +1178,17 @@ declare module "@polkadot/api-base/types/storage" {
       /** The latest available query index. */
       queryCounter: AugmentedQuery<ApiType, () => Observable<u64>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /** Fungible assets which we know are locked on a remote chain. */
+      remoteLockedFungibles: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u32 | AnyNumber | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array,
+          arg3: XcmVersionedAssetId | { V3: any } | string | Uint8Array
+        ) => Observable<Option<PalletXcmRemoteLockedFungibleRecord>>,
+        [u32, AccountId20, XcmVersionedAssetId]
+      > &
+        QueryableStorageEntry<ApiType, [u32, AccountId20, XcmVersionedAssetId]>;
       /**
        * Default version to encode XCM when latest version of destination is unknown. If `None`,
        * then the destinations whose XCM version is unknown are considered unreachable.
@@ -1175,7 +1200,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
+          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
         ) => Observable<Option<u32>>,
         [u32, XcmVersionedMultiLocation]
       > &
@@ -1196,7 +1221,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
+          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
         ) => Observable<Option<u64>>,
         [u32, XcmVersionedMultiLocation]
       > &
@@ -1209,8 +1234,8 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
-        ) => Observable<Option<ITuple<[u64, u64, u32]>>>,
+          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+        ) => Observable<Option<ITuple<[u64, SpWeightsWeightV2Weight, u32]>>>,
         [u32, XcmVersionedMultiLocation]
       > &
         QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
@@ -1578,6 +1603,9 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     xcmpQueue: {
+      /** Counter for the related counted storage map */
+      counterForOverweight: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Inbound aggregate XCMP messages. It can only be one per ParaId/block. */
       inboundXcmpMessages: AugmentedQuery<
         ApiType,
@@ -1664,11 +1692,11 @@ declare module "@polkadot/api-base/types/storage" {
       destinationAssetFeePerSecond: AugmentedQuery<
         ApiType,
         (
-          arg: XcmV1MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
+          arg: XcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
-        [XcmV1MultiLocation]
+        [XcmV3MultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [XcmV1MultiLocation]>;
+        QueryableStorageEntry<ApiType, [XcmV3MultiLocation]>;
       /**
        * Since we are using pallet-utility for account derivation (through AsDerivative), we need to
        * provide an index for the account derivation. This storage item stores the index assigned
@@ -1688,11 +1716,11 @@ declare module "@polkadot/api-base/types/storage" {
       transactInfoWithWeightLimit: AugmentedQuery<
         ApiType,
         (
-          arg: XcmV1MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
+          arg: XcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<PalletXcmTransactorRemoteTransactInfoWithMaxWeight>>,
-        [XcmV1MultiLocation]
+        [XcmV3MultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [XcmV1MultiLocation]>;
+        QueryableStorageEntry<ApiType, [XcmV3MultiLocation]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };

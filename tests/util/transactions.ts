@@ -131,9 +131,13 @@ export const createTransaction = async (
     })
     .catch((e) => {
       error = e;
-      return 0;
+      return options.gas || 12_500_000;
     });
 
+  let warning = "";
+  if (options.gas && options.gas < estimatedGas) {
+    warning = `Provided gas ${options.gas} is lower than estimated gas ${estimatedGas}`;
+  }
   // Instead of hardcoding the gas limit, we estimate the gas
   const gas = options.gas || estimatedGas;
 
@@ -212,7 +216,8 @@ export const createTransaction = async (
               ? data.data
               : data.data.substr(0, 5) + "..." + data.data.substr(data.data.length - 3)
           }, `) +
-      (error ? `ERROR: ${error.toString()}, ` : "")
+      (error ? `ERROR: ${error.toString()}, ` : "") +
+      (warning ? `WARN: ${warning.toString()}, ` : "")
   );
   return rawTransaction;
 };
@@ -276,7 +281,10 @@ export async function createContractExecution(
     contract: Contract;
     contractCall: any;
   },
-  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
+  options: TransactionOptions = {
+    from: alith.address,
+    privateKey: ALITH_PRIVATE_KEY,
+  }
 ) {
   const rawTx = await createTransaction(context, {
     ...options,

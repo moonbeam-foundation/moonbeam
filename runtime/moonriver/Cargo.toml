@@ -56,6 +56,7 @@ pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
 pallet-evm-precompile-randomness = { workspace = true }
 pallet-evm-precompile-referenda = { workspace = true }
+pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }

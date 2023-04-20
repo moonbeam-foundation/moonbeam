@@ -18,10 +18,10 @@ use crate::{
 	mock::{CallPermit, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime},
 	CallPermitPrecompile,
 };
-use evm::ExitReason;
-use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, testing::*};
+use precompile_utils::{
+	evm::costs::call_cost, prelude::*, solidity::revert::revert_as_bytes, testing::*,
+};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -91,7 +91,7 @@ fn valid_permit_returns() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -138,20 +138,16 @@ fn valid_permit_returns() {
 					assert_eq!(&input, b"Test");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(b"TEST"))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(b"TEST"));
 		})
 }
 
@@ -194,7 +190,7 @@ fn valid_permit_reverts() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -241,10 +237,9 @@ fn valid_permit_reverts() {
 					assert_eq!(&input, b"Test");
 
 					SubcallOutput {
-						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: encoded_revert(b"TEST"),
+						output: revert_as_bytes("TEST"),
 						cost: 13,
-						logs: vec![],
+						..SubcallOutput::revert()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
@@ -293,7 +288,7 @@ fn invalid_permit_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -359,7 +354,7 @@ fn invalid_permit_gas_limit_too_low() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -427,7 +422,7 @@ fn invalid_permit_gas_limit_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -615,7 +610,7 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(0u8));
+				.execute_returns(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -662,44 +657,20 @@ fn valid_permit_returns_with_metamask_signed_data() {
 					assert_eq!(&input, &data);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(b"TEST"))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(b"TEST"));
 		})
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["CallPermit.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["CallPermit.sol"], PCall::supports_selector)
 }

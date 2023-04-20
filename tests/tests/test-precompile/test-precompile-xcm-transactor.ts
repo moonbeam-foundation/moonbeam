@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
-import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
+import { mockAssetBalance, RELAY_V3_SOURCE_LOCATION } from "../../util/assets";
 import { verifyLatestBlockFees } from "../../util/block";
 import {
   PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
@@ -22,11 +22,11 @@ import {
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
-const XCM_TRANSACTOR_CONTRACT_V1 = getCompiled("XcmTransactorV1");
+const XCM_TRANSACTOR_CONTRACT_V1 = getCompiled("precompiles/xcm-transactor/src/v1/XcmTransactorV1");
 const XCM_TRANSACTOR_INTERFACE_V1 = new ethers.utils.Interface(
   XCM_TRANSACTOR_CONTRACT_V1.contract.abi
 );
-const XCM_TRANSACTOR_CONTRACT_V2 = getCompiled("XcmTransactorV2");
+const XCM_TRANSACTOR_CONTRACT_V2 = getCompiled("precompiles/xcm-transactor/src/v2/XcmTransactorV2");
 const XCM_TRANSACTOR_INTERFACE_V2 = new ethers.utils.Interface(
   XCM_TRANSACTOR_CONTRACT_V2.contract.abi
 );
@@ -41,10 +41,10 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setTransactInfo(
-        RELAY_V1_SOURCE_LOCATION,
-        new BN(0),
-        new BN(20000000000),
-        new BN(0)
+        RELAY_V3_SOURCE_LOCATION,
+        { refTime: 1, proofSize: 64 * 1024 } as any,
+        { refTime: 20000000000, proofSize: 256 * 1024 } as any,
+        { refTime: 1, proofSize: 64 * 1024 } as any
       )
     )
   );
@@ -52,14 +52,11 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
-        RELAY_V1_SOURCE_LOCATION,
+        RELAY_V3_SOURCE_LOCATION,
         new BN(1000000000000)
       )
     )
   );
-
-  const { rawTx } = await createContract(context, "XcmTransactorV1");
-  await context.createBlock(rawTx);
 };
 
 const registerXcmTransactorDerivativeIndex = async (context: DevTestContext) => {
@@ -98,7 +95,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         })
       ).result
     ).to.equal(
-      "0x0000000000000000000000000000000000000000000000000000000000000000" +
+      "0x0000000000000000000000000000000000000000000000000000000000000001" +
         "000000000000000000000000000000000000000000000000000000e8d4a51000" +
         "00000000000000000000000000000000000000000000000000000004a817c800"
     );
@@ -173,14 +170,14 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       })
     );
 
-    // We have used 1000 units to pay for the fees in the relay, so balance and supply should
-    // have changed
+    // We have used 1000 units to pay for the fees in the relay  (plus 1 transact_extra_weight), so
+    // balance and supply should have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
       alith.address
     );
 
-    const expectedBalance = 100000000000000n - 1000n;
+    const expectedBalance = 100000000000000n - 1000n - 1n;
     expect(afterAssetBalance.unwrap().balance.toBigInt()).to.equal(expectedBalance);
 
     const AfterAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
@@ -270,7 +267,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       alith.address
     );
 
-    const expectedBalance = 100000000000000n - 1000n;
+    const expectedBalance = 100000000000000n - 1000n - 1n;
     expect(afterAssetBalance.unwrap().balance.toBigInt()).to.equal(expectedBalance);
 
     const AfterAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
@@ -329,8 +326,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     });
 
     expect(tx_call.result).to.equal(
-      "0x0000000000000000000000000000000000000000000000000000000000000000" +
-        "0000000000000000000000000000000000000000000000000000000000000000" +
+      "0x0000000000000000000000000000000000000000000000000000000000000001" +
+        "0000000000000000000000000000000000000000000000000000000000000001" +
         "00000000000000000000000000000000000000000000000000000004a817c800"
     );
   });
@@ -725,8 +722,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       })
     );
 
-    // We have used 1000 units to pay for the fees in the relay, so balance and supply should
-    // have changed
+    // We have used 1000 units to pay for the fees in the relay  (plus 1 transact_extra_weight), so
+    // balance and supply should have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
       alith.address

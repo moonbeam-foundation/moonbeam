@@ -57,5 +57,4 @@ runtime-benchmarks = [
 	"parity-scale-codec",
 	"scale-info",
 	"xcm-executor/runtime-benchmarks",
-	"xcm/runtime-benchmarks",
 ]
