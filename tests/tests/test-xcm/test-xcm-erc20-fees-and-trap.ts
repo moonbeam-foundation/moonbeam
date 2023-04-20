@@ -13,6 +13,7 @@ import {
   ALITH_TRANSACTION_TEMPLATE,
   createTransaction,
   setupErc20Contract,
+  getBalance,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
 import {
@@ -223,7 +224,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     };
 
     // Build the xcm message without deposit_asset()
-    // This is for XcmExecutor to trap all the assets present in the holding register
+    // This is to trap all the assets present in the holding register
     const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
       .clear_origin()
@@ -237,8 +238,104 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     } as RawXcmMessage);
     await context.createBlock();
 
+    const amountOfTrappedAssets = 876_639_200_000_000n;
+    const claimConfig = {
+      assets: [
+        {
+          multilocation: {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+          fungible: amountOfTrappedAssets,
+        },
+      ],
+      beneficiary: paraSovereign,
+    };
+    // Check non-erc20 can be claimed
+    const xcmMessageToClaimAssets = new XcmFragment(claimConfig)
+      .claim_asset()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
+
+    // Mock the reception of the xcm message
+    await injectHrmpMessage(context, paraId, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessageToClaimAssets,
+    } as RawXcmMessage);
+    await context.createBlock();
+
+    // Search for AssetsClaimed event
+    const records = (await context.polkadotApi.query.system.events()) as any;
+    const events = records.filter(
+      ({ event }) => event.section == "polkadotXcm" && event.method == "AssetsClaimed"
+    );
+    expect(events).to.have.lengthOf(1);
+
+    const feePaidForClaimingAssets = 30_962_750_000_000n;
+
+    // Check the balance is correct
+    expect(await getBalance(context, 5, paraSovereign)).to.equal(
+      (await getBalance(context, 4, paraSovereign)) +
+        (amountOfTrappedAssets - feePaidForClaimingAssets)
+    );
+
+    // Mock again the reception of the initial xcm message
+    await injectHrmpMessage(context, paraId, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+    await context.createBlock();
+
+    const failedClaimConfig = {
+      assets: [
+        {
+          multilocation: {
+            parents: 0,
+            interior: {
+              X2: [
+                {
+                  PalletInstance: erc20XcmPalletIndex,
+                },
+                {
+                  AccountKey20: {
+                    network: "Any",
+                    key: erc20ContractAddress,
+                  },
+                },
+              ],
+            },
+          },
+          fungible: amountTransferred,
+        },
+      ],
+      beneficiary: paraSovereign,
+    };
+
+    // Check erc20 cannot be claimed
+    const xcmMessageFailedClaim = new XcmFragment(failedClaimConfig)
+      .claim_asset()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
+
+    await injectHrmpMessage(context, paraId, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessageFailedClaim,
+    } as RawXcmMessage);
+    await context.createBlock();
+
+    // Search for UnknownClaim error
+    const records2 = (await context.polkadotApi.query.system.events()) as any;
+    const events2 = records2.filter(
+      ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+    );
+    expect(events2).to.have.lengthOf(1);
+    expect(events2[0].toHuman().event.data.error).equals("UnknownClaim");
+
     // Check the sovereign account has the same initial amount of ERC20 tokens
-    // This means no ERC20 was trapped
     expect(
       (
         await web3EthCall(context.web3, {
