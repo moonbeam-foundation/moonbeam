@@ -15,7 +15,6 @@ Each group will start a dev service with the
 ## Test categories
 
 - `test`: Tests expected to run by spawning a new dev node (~1-2 minutes)
-- `para-test`: Tests spawning a complete relay+para network (~5-20 minutes)
 - `smoke-test`: Tests veryfing the data (consistency) on an existing chain (~5-20 minutes)
 
 ## Installation
@@ -67,36 +66,6 @@ You can debug specific smoke test with `debug` library using prefix `smoke:*`:
 ```
 DEBUG=smoke:* WSS_URL=wss://localhost:9944 npm run smoke-test
 ```
-
-# Parachain test
-
-Either use script or use parachain testing framework.
-
-## Using Script
-
-You can directly launch a parachain test with this script.
-It takes care of getting the binary relay node and spawns 2 validators and 2 collators.
-
-```bash
-scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
-```
-
-## Using parachain testing framework
-
-### Requirements
-
-First make sure you have compiled moonbeam with `cargo build --release` and also copied
-the polkadot executable (built with `cargo build --release`) into the same folder as
-the moonbeam executable: `./target/release`
-(`cp ./target/release/polkadot ../moonbeam/target/release/polkadot`).
-
-Also don't forget to build `moonbeam-types-bundle` with `yarn run build` in that folder.
-
-### Execution
-
-Then run `npm run para-test-no-ci` to run the parachain tests in the para-tests-no-ci folder.
-
-This script is prefixed with `DEBUG=test:substrateEvents ` to log events during the tests.
 
 ## Write Tests
 
