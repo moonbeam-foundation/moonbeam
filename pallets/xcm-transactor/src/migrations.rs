@@ -80,9 +80,16 @@ pub struct OldRemoteTransactInfoWithMaxWeight {
 
 impl From<OldRemoteTransactInfoWithMaxWeight> for RemoteTransactInfoWithMaxWeight {
 	fn from(old: OldRemoteTransactInfoWithMaxWeight) -> RemoteTransactInfoWithMaxWeight {
-		let transact_extra_weight: Weight =
-			Weight::from_parts(old.transact_extra_weight, DEFAULT_PROOF_SIZE);
-		let max_weight: Weight = Weight::from_parts(old.max_weight, DEFAULT_PROOF_SIZE);
+		// This only accounts for everything outside the Transact instruction
+		// A.K.A. outside require weight at most.
+		let transact_extra_weight: Weight = Weight::from_parts(
+			old.transact_extra_weight,
+			DEFAULT_PROOF_SIZE.saturating_div(2),
+		);
+		let max_weight: Weight = Weight::from_parts(
+			old.max_weight,
+			cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
+		);
 		let transact_extra_weight_signed: Option<Weight> =
 			if let Some(w) = old.transact_extra_weight_signed {
 				Some(Weight::from_parts(w, DEFAULT_PROOF_SIZE))
