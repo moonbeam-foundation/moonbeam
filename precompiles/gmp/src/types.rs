@@ -16,8 +16,6 @@
 
 //! Precompile to receive GMP callbacks and forward to XCM
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
