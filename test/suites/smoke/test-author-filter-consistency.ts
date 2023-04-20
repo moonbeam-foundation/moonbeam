@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiDecoration } from "@polkadot/api/types";
 
 describeSuite({
@@ -12,10 +12,10 @@ describeSuite({
     let specVersion: number = 0;
 
     beforeAll(async function () {
-      atBlockNumber = (await context.getSubstrateApi().rpc.chain.getHeader()).number.toNumber();
+      atBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .getSubstrateApi()
-        .at(await context.getSubstrateApi().rpc.chain.getBlockHash(atBlockNumber));
+        .polkadotJs()
+        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
       specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
     });
 

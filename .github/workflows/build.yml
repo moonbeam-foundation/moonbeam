@@ -28,11 +28,13 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
+      image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
+      latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -50,9 +52,16 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
+
       - uses: actions/checkout@v3
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      - name: Get Latest RT Release
+        id: get-latest-rt
+        run: |
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
+          echo $LATEST_RUNTIME_RELEASE
+          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
         id: get-sha
         run: |
@@ -61,6 +70,9 @@ jobs:
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
+
+          echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}" | jq -r '.object.sha' | cut -c 1-8)"
+          echo "latest_rt_sha8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -72,6 +84,8 @@ jobs:
           echo sha: ${{ steps.get-sha.outputs.sha }}
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
+          echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
+          echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
 
   check-copyright:
     runs-on: ubuntu-latest
@@ -396,6 +410,8 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build", "prepare-polkadot"]
+    env:
+      BINARY_PATH: "../build/moonbeam"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -518,65 +534,6 @@ jobs:
           #### Run tracing tests with mocha
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
-  # typescript-para-tests:
-  #   runs-on:
-  #     labels: bare-metal
-  #   needs: ["set-tags", "build", "prepare-polkadot"]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         ref: ${{ needs.set-tags.outputs.git_ref }}
-  #         fetch-depth: 0
-  #     - uses: actions/download-artifact@v3.0.2
-  #       with:
-  #         name: moonbeam
-  #         path: build
-  #     - uses: actions/download-artifact@v3.0.2
-  #       with:
-  #         name: runtimes
-  #         path: tests/runtimes
-  #     - name: Retrieve polkadot
-  #       run: |
-  #         POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-  #         DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-  #         # Clear the dummy container if it wasn't properly cleaned up
-  #         docker rm -f dummy 2> /dev/null | true
-  #         docker create -ti --name dummy $DOCKER_TAG bash
-  #         docker cp dummy:/usr/local/bin/polkadot build/polkadot
-  #         docker rm -f dummy
-  #     - name: Use Node.js 20.x
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 20.x
-  #     - name: Typescript integration tests (against dev service)
-  #       env:
-  #         OVERRIDE_RUNTIME_PATH: ./runtimes
-  #         BINARY_PATH: ../build/moonbeam
-  #         MOONBEAM_LOG: info
-  #         RELAY_BINARY_PATH: ../build/polkadot
-  #       run: |
-  #         chmod uog+x build/polkadot
-  #         chmod uog+x build/moonbeam
-
-  #         ####  Preparing the repository
-  #         cd moonbeam-types-bundle
-  #         npm ci
-  #         npm run build
-
-  #         ####  Preparing the typescript api
-  #         cd ../typescript-api
-  #         npm ci
-
-  #         cd ../tests
-  #         npm ci
-  #         #### Prepares and copies the typescript generated API to include in the tests
-  #         npm run setup-typescript-api
-
-  #         npm run build
-
-  #         node_modules/.bin/mocha 'build/para-tests/**/test-*.js'
-
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
@@ -629,7 +586,8 @@ jobs:
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
   test-wasm-upgrade-chopsticks:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags", "build"]
     strategy:
       matrix:
@@ -637,7 +595,10 @@ jobs:
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
         with:
           version: 7
@@ -656,3 +617,70 @@ jobs:
           cd test
           pnpm i
           pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
+
+  zombie_upgrade_test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    strategy:
+      matrix:
+        ## TODO: add moonriver here when it is ready
+        chain: ["moonbase", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: runtimes
+          path: test/tmp
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: test/tmp
+      - name: Retrieve polkadot binary from docker
+        run: |
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy $DOCKER_TAG bash
+          docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
+          docker rm -f dummy
+      - name: Retrieve moonbeam binary from docker (for plainSpec generation)
+        run: |
+          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
+          DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
+
+          docker rm -f moonbeam_container 2> /dev/null | true
+          docker create --name moonbeam_container $DOCKER_TAG bash
+          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
+          docker rm -f moonbeam_container
+      - name: "Run zombie test"
+        run: |
+          cd test
+          pnpm i
+
+          ## Generate old spec using latest published node, modify it, and generate raw spec
+          chmod uog+x tmp/moonbeam_rt
+          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+
+          ## Start zombie network and run tests
+          chmod uog+x tmp/moonbeam
+          chmod uog+x tmp/polkadot
+          pnpm moonwall test zombie_${{ matrix.chain }}_ci
