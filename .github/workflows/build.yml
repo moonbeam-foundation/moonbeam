@@ -414,54 +414,6 @@ jobs:
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
 
-  # build-rt-binary:
-  #   runs-on:
-  #     labels: bare-metal
-  #   needs: ["set-tags"]
-  #   env:
-  #     RUSTFLAGS: "-C opt-level=3 -D warnings"
-  #     RUSTC_WRAPPER: "sccache"
-  #     TMP_TARGET: "/tmp/target"
-  #     CARGO_TARGET_DIR: "target"
-  #   steps:
-  #     - name: Get RT git tag name
-  #       run: |
-  #         echo "LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("Runtime";"i")) | .tag_name' | head -n 1)" >> $GITHUB_ENV
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         ref: ${{  env.LATEST_RUNTIME_RELEASE  }}
-  #     - name: Run sccache-cache
-  #       uses: mozilla-actions/sccache-action@v0.0.3
-  #     - name: Setup Rust toolchain
-  #       run: |
-  #         if ! which "rustup" > /dev/null; then
-  #           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-  #         fi
-  #         rustup show
-  #     - name: Build Node
-  #       run: |
-  #         env
-  #         cargo build --release
-  #     - name: Run sccache stat for check pre test
-  #       shell: bash
-  #       run: ${SCCACHE_PATH} --show-stats
-  #     - name: Verify node version
-  #       run: |
-  #         GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-  #         MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
-  #         echo "Checking $MB_VERSION contains $GIT_COMMIT"
-  #         echo "$MB_VERSION" | grep $GIT_COMMIT
-  #     - name: Save moonbeam binary
-  #       run: |
-  #         mkdir -p build
-  #         cp target/release/moonbeam build/moonbeam;
-  #     - name: Upload binary
-  #       uses: actions/upload-artifact@v3.1.2
-  #       with:
-  #         name: moonbeamRT
-  #         path: build
-
   typescript-tests:
     runs-on:
       labels: bare-metal
@@ -762,25 +714,26 @@ jobs:
         with:
           name: moonbeam
           path: test/tmp
-      - name: "Download current runtime's node binary"
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: moonbeamRT
-          path: test/tmp/RT
-      - name: "Run zombie test"
+      - name: Retrieve polkadot binary from docker
         run: |
-          ## TODO: replace this with current deployed relaychain version eventually
-          export POLKADOT_VERSION=$(grep -oP "moonbeam-polkadot-v\K\d+\.\d+\.\d+" "Cargo.toml" | sort | uniq -d | head -n 1)
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
-          ## Fetch the node binary (from docker) of the latest runtime release
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy $DOCKER_TAG bash
+          docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
+          docker rm -f dummy
+      - name: Retrieve moonbeam binary from docker (for plainSpec generation)
+        run: |
           export LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("Runtime";"i")) | .tag_name' | head -n 1)
           export SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,7)}')
 
           docker pull purestake/moonbeam:$SHORT_HASH
           docker create --name moonbeam_container purestake/moonbeam:$SHORT_HASH
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/RT/moonbeam
-          docker rm moonbeam_container
-
+          docker rm -f moonbeam_container
+      - name: "Run zombie test"
+        run: |
           cd test
           pnpm i
           pnpm moonwall download polkadot $POLKADOT_VERSION tmp
@@ -793,4 +746,5 @@ jobs:
 
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam
+          chmod uog+x tmp/polkadot
           pnpm moonwall test zombie_${{ matrix.chain }}_ci
