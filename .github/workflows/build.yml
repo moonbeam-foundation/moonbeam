@@ -33,6 +33,8 @@ jobs:
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
+      latest_rt8: ${{ steps.get-latest-rt.outputs.latest_rt8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -50,6 +52,11 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
+          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
+          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
+          echo "latest_rt8=$SHORT_HASH" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v3
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -703,13 +710,11 @@ jobs:
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
-          echo $LATEST_RUNTIME_RELEASE
-          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
-          echo $SHORT_HASH
+          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt8 }}
+          DOCKER_TAG="purestake/moonbeam:$MOONBEAM_COMMIT"
 
-          docker pull purestake/moonbeam:$SHORT_HASH
-          docker create --name moonbeam_container purestake/moonbeam:$SHORT_HASH
+          docker rm -f moonbeam_container 2> /dev/null | true
+          docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/RT/moonbeam
           docker rm -f moonbeam_container
       - name: "Run zombie test"
