@@ -676,7 +676,7 @@ jobs:
 
   zombie_upgrade_test:
     runs-on: ubuntu-latest
-    needs: ["build"]
+    needs: ["build", "set-tags"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
