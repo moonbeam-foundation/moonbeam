@@ -67,7 +67,7 @@ jobs:
 
           LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
-          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
+          SHORT_HASH=$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/runtime-2301" | jq -r '.object.sha[0:8]' | awk '{print "sha-" $1}')
           echo "latest_rt8=$SHORT_HASH" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
