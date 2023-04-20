@@ -703,8 +703,10 @@ jobs:
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          export LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("Runtime";"i")) | .tag_name' | head -n 1)
-          export SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
+          echo $LATEST_RUNTIME_RELEASE
+          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
+          echo $SHORT_HASH
 
           docker pull purestake/moonbeam:$SHORT_HASH
           docker create --name moonbeam_container purestake/moonbeam:$SHORT_HASH
