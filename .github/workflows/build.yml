@@ -411,7 +411,7 @@ jobs:
       labels: bare-metal
     needs: ["set-tags", "build", "prepare-polkadot"]
     env:
-      BINARY_PATH: "build/moonbeam"
+      BINARY_PATH: "../build/moonbeam"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
