@@ -22,7 +22,7 @@ use crate::mock::{
 use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	assert_noop, assert_ok,
-	traits::{OnRuntimeUpgrade, ReservableCurrency},
+	traits::ReservableCurrency,
 };
 use nimbus_primitives::NimbusId;
 
@@ -430,51 +430,5 @@ fn full_rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 				RuntimeOrigin::signed(1),
 				keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Alice.into())
 			));
-		})
-}
-
-#[test]
-fn add_reverse_mapping_migration_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 300)])
-		.build()
-		.execute_with(|| {
-			// register 3 NimbusId owned by 1 account
-			let alice_as_nimbus: NimbusId = TestAuthor::Alice.into();
-			let bob_as_nimbus: NimbusId = TestAuthor::Bob.into();
-			let charlie_as_nimbus: NimbusId = TestAuthor::Charlie.into();
-			MappingWithDeposit::<Runtime>::insert(
-				alice_as_nimbus.clone(),
-				RegistrationInfo {
-					account: 1,
-					deposit: DepositAmount::get(),
-					keys: alice_as_nimbus.clone(),
-				},
-			);
-			MappingWithDeposit::<Runtime>::insert(
-				bob_as_nimbus.clone(),
-				RegistrationInfo {
-					account: 1,
-					deposit: DepositAmount::get(),
-					keys: bob_as_nimbus.clone(),
-				},
-			);
-			MappingWithDeposit::<Runtime>::insert(
-				charlie_as_nimbus.clone(),
-				RegistrationInfo {
-					account: 1,
-					deposit: DepositAmount::get(),
-					keys: charlie_as_nimbus.clone(),
-				},
-			);
-			assert_ok!(Balances::reserve(&1, DepositAmount::get() * 3));
-			// run migration
-			crate::migrations::AddAccountIdToNimbusLookup::<Runtime>::on_runtime_upgrade();
-			// ensure last 2 mappings revoked => 200 unreserved but still 100 reserved
-			assert_eq!(Balances::free_balance(&1), DepositAmount::get() * 2);
-			assert_eq!(Balances::reserved_balance(&1), DepositAmount::get() * 1);
-			assert!(MappingWithDeposit::<Runtime>::get(bob_as_nimbus).is_some());
-			assert!(MappingWithDeposit::<Runtime>::get(alice_as_nimbus).is_none());
-			assert!(MappingWithDeposit::<Runtime>::get(charlie_as_nimbus).is_none());
 		})
 }
