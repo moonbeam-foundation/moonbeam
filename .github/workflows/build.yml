@@ -56,6 +56,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      - name: Get Latest RT Release
+        id: get-latest-rt
+        run: |
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
+          echo $LATEST_RUNTIME_RELEASE
+          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
         id: get-sha
         run: |
@@ -65,12 +71,8 @@ jobs:
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
-          echo $LATEST_RUNTIME_RELEASE
-          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
-
-          echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/$LATEST_RUNTIME_RELEASE" | jq -r '.object.sha' | cut -c 1-8)"
-          SHORT_HASH=$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/$LATEST_RUNTIME_RELEASE" | jq -r '.object.sha' | cut -c 1-8 )
+          echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt}}" | jq -r '.object.sha' | cut -c 1-8)"
+          SHORT_HASH=$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest-rt}}" | jq -r '.object.sha' | cut -c 1-8 )
           echo "latest_rt8=$SHORT_HASH" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
@@ -83,7 +85,7 @@ jobs:
           echo sha: ${{ steps.get-sha.outputs.sha }}
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
-          echo latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
+          echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_sha8: ${{ steps.get-sha.outputs.latest_sha8 }}
 
   check-copyright:
