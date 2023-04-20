@@ -220,11 +220,11 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
 			.in_field("trackId")?;
-		let tracks = Runtime::Tracks::tracks();
-		let index = tracks
-			.binary_search_by_key(&track_id, |(id, _)| *id)
-			.unwrap_or_else(|x| x);
-		let (_, track_info) = &tracks[index];
+		let track = Runtime::Tracks::tracks()
+			.iter()
+			.find(|(id, _)| *id == track_id)
+			.ok_or(RevertReason::custom("No such track").in_field("trackId"))?;
+		let track_info = &track.1;
 
 		Ok(TrackInfo {
 			name: track_info.name.into(),
@@ -241,11 +241,11 @@ where
 
 	/// Use Runtime::Tracks::tracks to get the origin for input trackId
 	fn track_id_to_origin(track_id: TrackIdOf<Runtime>) -> EvmResult<Box<OriginOf<Runtime>>> {
-		let tracks = Runtime::Tracks::tracks();
-		let index = tracks
-			.binary_search_by_key(&track_id, |(id, _)| *id)
-			.unwrap_or_else(|x| x);
-		let (_, track_info) = &tracks[index];
+		let track = Runtime::Tracks::tracks()
+			.iter()
+			.find(|(id, _)| *id == track_id)
+			.ok_or(RevertReason::custom("No such track").in_field("trackId"))?;
+		let track_info = &track.1;
 		let origin = if track_info.name == "root" {
 			frame_system::RawOrigin::Root.into()
 		} else {
