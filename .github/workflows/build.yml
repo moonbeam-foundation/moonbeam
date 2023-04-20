@@ -728,7 +728,6 @@ jobs:
         run: |
           cd test
           pnpm i
-          pnpm moonwall download polkadot $POLKADOT_VERSION tmp
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
