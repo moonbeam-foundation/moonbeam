@@ -34,7 +34,7 @@ jobs:
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
-      latest_sha8: ${{ steps.get-sha.outputs.latest_sha8 }}
+      latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -72,7 +72,7 @@ jobs:
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
           echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}" | jq -r '.object.sha' | cut -c 1-8)"
-          echo "latest_sha8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
+          echo "latest_rt_sha8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -85,7 +85,7 @@ jobs:
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
-          echo latest_sha8: ${{ steps.get-sha.outputs.latest_sha8 }}
+          echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
 
   check-copyright:
     runs-on: ubuntu-latest
@@ -662,7 +662,7 @@ jobs:
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_sha8 }}
+          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
           DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
 
           docker rm -f moonbeam_container 2> /dev/null | true
