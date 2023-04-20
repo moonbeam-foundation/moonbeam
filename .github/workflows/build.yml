@@ -415,13 +415,14 @@ jobs:
         run: ${SCCACHE_PATH} --show-stats
 
   build-rt-binary:
-    runs-on: self-hosted
+    runs-on:
+      labels: bare-metal
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
+      RUSTC_WRAPPER: "sccache"
+      TMP_TARGET: "/tmp/target"
+      CARGO_TARGET_DIR: "target"
     steps:
       - name: Get RT git tag name
         run: |
@@ -429,36 +430,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ env.LATEST_RUNTIME_RELEASE }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
-
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+          ref: ${{  env.LATEST_RUNTIME_RELEASE  }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
       - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
         run: |
-          # We altered the path to avoid old actions to overwrite it
-          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
-          if [ ! -f $SCCACHE_BIN ]; then
-            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
-          ls -la $SCCACHE_BIN
-          ps aux | grep sccache
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x $SCCACHE_BIN
-            $SCCACHE_BIN --start-server
-          fi
-          $SCCACHE_BIN -s
-          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+          rustup show
       - name: Build Node
         run: |
           env
           cargo build --release
+      - name: Run sccache stat for check pre test
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
+      - name: Verify node version
+        run: |
+          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+          MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
+          echo "Checking $MB_VERSION contains $GIT_COMMIT"
+          echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Save moonbeam binary
         run: |
           mkdir -p build

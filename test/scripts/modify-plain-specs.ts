@@ -24,7 +24,10 @@ yargs(hideBin(process.argv))
         });
     },
     async (argv) => {
+      process.stdout.write(`Reading from: ${argv.inputPath} ...`);
       const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath)).toString());
+      process.stdout.write(`Done ✅\n`);
+
       plainSpec.bootNodes = [];
       plainSpec.genesis.runtime.authorMapping.mappings = [
         ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
@@ -32,10 +35,12 @@ yargs(hideBin(process.argv))
       plainSpec.genesis.runtime.councilCollective.members = [ALITH_ADDRESS];
       plainSpec.genesis.runtime.techCommitteeCollective.members = [ALITH_ADDRESS];
 
+      process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
         argv.outputPath,
         convertExponentials(JSONbig.stringify(plainSpec, null, 3))
       );
+      process.stdout.write(`Done ✅\n`);
     }
   )
   .parse();
