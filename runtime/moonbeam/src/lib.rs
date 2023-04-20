@@ -720,6 +720,19 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+pub struct CustomMarkOfflineCallback;
+impl pallet_parachain_staking::MarkOfflineCallback<Runtime> for CustomMarkOfflineCallback {
+	fn mark_offline(
+		collator_id: AccountId,
+		round: pallet_parachain_staking::RoundIndex,
+	) -> Result<(), pallet_parachain_staking::Error<Runtime>> {
+		if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+			return ParachainStaking::do_go_offline(collator_id);
+		};
+		Ok(())
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -759,6 +772,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = ();
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
+	type MarkOfflineCallback = CustomMarkOfflineCallback;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }

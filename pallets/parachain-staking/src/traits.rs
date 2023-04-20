@@ -16,6 +16,7 @@
 
 //! traits for parachain-staking
 
+use crate::Error;
 use frame_support::pallet_prelude::Weight;
 
 pub trait OnCollatorPayout<AccountId, Balance> {
@@ -62,5 +63,24 @@ impl<Runtime: crate::Config> PayoutCollatorReward<Runtime> for () {
 		amount: crate::BalanceOf<Runtime>,
 	) -> Weight {
 		crate::Pallet::<Runtime>::mint_collator_reward(for_round, collator_id, amount)
+	}
+}
+
+/// Defines the behavior to mark collators as offline.
+pub trait MarkOfflineCallback<Runtime: crate::Config> {
+	fn mark_offline(
+		collator_id: Runtime::AccountId,
+		round: crate::RoundIndex,
+	) -> Result<(), Error<Runtime>>;
+}
+
+/// Defines the default behavior for marking collators as offline.
+/// The collator is directly marked as offline.
+impl<Runtime: crate::Config> MarkOfflineCallback<Runtime> for () {
+	fn mark_offline(
+		collator_id: <Runtime>::AccountId,
+		_round: crate::RoundIndex,
+	) -> Result<(), Error<Runtime>> {
+		crate::Pallet::<Runtime>::do_go_offline(collator_id)
 	}
 }

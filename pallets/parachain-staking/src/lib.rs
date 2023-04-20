@@ -175,6 +175,9 @@ pub mod pallet {
 		/// Handler to distribute a collator's reward.
 		/// To use the default implementation of minting rewards, specify the type `()`.
 		type PayoutCollatorReward: PayoutCollatorReward<Self>;
+		/// Handler to mark collators as offline.
+		/// To use the default implementation, specify the type `()`.
+		type MarkOfflineCallback: MarkOfflineCallback<Self>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -455,48 +458,28 @@ pub mod pallet {
 
 				// iter collators to check which of them must be marked as offline
 				for collator in collators {
-					println!(
-						"candidate last active {:?} C {:?} R {:?}",
-						<CandidateLastActive<T>>::get(&collator),
-						collator.clone(),
-						round.current
-					);
-					if let Some(info) = <CandidateLastActive<T>>::get(&collator) {
-						if
-						//round.current.saturating_sub(info.last_round) > T::MaxOfflineRounds::get()
-						//&& round.current.saturating_sub(info.last_active) <= T::MaxOfflineRounds::get()&&
-						len_counter * 3 > (max_collators * 2) as usize
-							&& info.max_offline_counter >= T::MaxOfflineRounds::get()
+					if let Some(max_offline_counter) = <CandidateLastActive<T>>::get(&collator) {
+						if len_counter * 3 > (max_collators * 2) as usize
+							&& max_offline_counter >= T::MaxOfflineRounds::get()
 						{
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
 							// it is marked as offline
-							let _ = Self::do_go_offline(collator.clone());
-
-							//remove storage info for the collator
-							<CandidateLastActive<T>>::remove(&collator);
+							let _ = T::MarkOfflineCallback::mark_offline(
+								collator.clone(),
+								round.current.saturating_sub(1),
+							);
 
 							len_counter = len_counter.saturating_sub(1);
 						} else {
 							<CandidateLastActive<T>>::insert(
 								&collator,
-								CollatorActivity {
-									last_round: info.last_round,
-									last_active: round.current.saturating_sub(1),
-									max_offline_counter: info.max_offline_counter.saturating_add(1),
-								},
+								max_offline_counter.saturating_add(1),
 							);
 						}
 					} else {
 						// initialize storage
-						<CandidateLastActive<T>>::insert(
-							&collator,
-							CollatorActivity {
-								last_round: 0,
-								last_active: round.current.saturating_sub(1),
-								max_offline_counter: 1,
-							},
-						);
+						<CandidateLastActive<T>>::insert(&collator, 1);
 					}
 				}
 
@@ -531,14 +514,7 @@ pub mod pallet {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			// update candidate's last producing round
-			<CandidateLastActive<T>>::insert(
-				&author,
-				CollatorActivity {
-					last_round: now,
-					last_active: now,
-					max_offline_counter: 0,
-				},
-			);
+			<CandidateLastActive<T>>::insert(&author, 0);
 			Self::award_points_to_block_author(author, now);
 		}
 	}
@@ -583,9 +559,9 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_last_active)]
-	/// Stores the last round in which a collator produced blocks
+	/// Stores a counter that represents during how many rounds a collator has not produced blocks
 	pub(crate) type CandidateLastActive<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, CollatorActivity<RoundIndex>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
@@ -2033,6 +2009,7 @@ pub mod pallet {
 				<CandidatePool<T>>::put(candidates);
 			}
 			<CandidateInfo<T>>::insert(&collator, state);
+			<CandidateLastActive<T>>::remove(&collator);
 			Self::deposit_event(Event::CandidateWentOffline {
 				candidate: collator,
 			});

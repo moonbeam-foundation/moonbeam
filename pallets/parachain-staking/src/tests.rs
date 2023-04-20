@@ -29,7 +29,6 @@ use crate::mock::{
 	set_candidate_last_active, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin,
 	Test,
 };
-use crate::types::*;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
@@ -919,14 +918,7 @@ fn inactive_collators_go_offline_if_dont_produce_blocks() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Roll 3 rounds more
 			roll_to(40);
@@ -1037,24 +1029,17 @@ fn collator_goes_offline_if_doesnt_produce_blocks() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Round 4
 			roll_to(30);
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Roll 2 rounds more
 			roll_to(50);
@@ -1160,14 +1145,7 @@ fn collator_joins_again_and_goes_offline() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Change block author
 			set_block_author(2);
@@ -1187,10 +1165,10 @@ fn collator_joins_again_and_goes_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Check that the collator 6 is selected instead of collator 1
 			// as it has more stake bonded
@@ -1237,11 +1215,11 @@ fn collator_joins_again_and_goes_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 6);
-			set_candidate_last_active(3, 6);
-			set_candidate_last_active(4, 6);
-			set_candidate_last_active(5, 6);
-			set_candidate_last_active(6, 6);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			// Collator 6 now goes offline
 			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(6)));
@@ -1295,10 +1273,10 @@ fn collator_joins_again_and_goes_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 8);
-			set_candidate_last_active(3, 8);
-			set_candidate_last_active(4, 8);
-			set_candidate_last_active(5, 8);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Round 9
 			roll_to(80);
@@ -1429,14 +1407,7 @@ fn collator_joins_again_and_doesnt_go_offline() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Change block author
 			set_block_author(2);
@@ -1456,10 +1427,10 @@ fn collator_joins_again_and_doesnt_go_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Check that the collator 6 is selected instead of collator 1
 			// as it has more stake bonded
@@ -1506,11 +1477,11 @@ fn collator_joins_again_and_doesnt_go_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 6);
-			set_candidate_last_active(3, 6);
-			set_candidate_last_active(4, 6);
-			set_candidate_last_active(5, 6);
-			set_candidate_last_active(6, 6);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			// Collator 6 now goes offline
 			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(6)));
@@ -1564,10 +1535,10 @@ fn collator_joins_again_and_doesnt_go_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 8);
-			set_candidate_last_active(3, 8);
-			set_candidate_last_active(4, 8);
-			set_candidate_last_active(5, 8);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Round 9
 			roll_to(80);
@@ -1609,7 +1580,7 @@ fn collator_joins_again_and_doesnt_go_offline() {
 			set_block_author(1);
 
 			// Finalize the first block of round 2
-			ParachainStaking::on_finalize(10);
+			ParachainStaking::on_finalize(80);
 
 			// Round 10
 			roll_to(90);
@@ -1749,24 +1720,17 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalizes
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Change block author
 			set_block_author(2);
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 3);
-			set_candidate_last_active(3, 3);
-			set_candidate_last_active(4, 3);
-			set_candidate_last_active(5, 3);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Roll 2 rounds more
 			roll_to(30);
@@ -1814,24 +1778,10 @@ fn collator_produces_blocks_successfully() {
 			ParachainStaking::on_finalize(30);
 
 			// Check the storage for the collator 2 has been updated
-			assert_eq!(
-				ParachainStaking::candidate_last_active(2),
-				Some(CollatorActivity {
-					last_round: 4,
-					last_active: 4,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(2), Some(0));
 
 			// Check that last_round for the collator 1 holds the same value
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 3,
-					max_offline_counter: 2
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(2));
 		});
 }
 
@@ -1879,14 +1829,7 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			// Change block author
 			set_block_author(2);
@@ -1919,24 +1862,10 @@ fn collator_doesnt_go_offline_low_selected_candidates_length() {
 			ParachainStaking::on_finalize(50);
 
 			// Check the storage for the collator 2 has been updated
-			assert_eq!(
-				ParachainStaking::candidate_last_active(2),
-				Some(CollatorActivity {
-					last_round: 6,
-					last_active: 6,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(2), Some(0));
 
 			// Check the storage for the collator 1 hasn't been removed
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 5,
-					max_offline_counter: 4
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(4));
 		});
 }
 
@@ -2010,11 +1939,11 @@ fn new_candidate_doesnt_go_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 4);
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			roll_to_round_begin(6);
 			roll_blocks(1);
@@ -2082,23 +2011,16 @@ fn candidate_joins_again_after_going_offline() {
 			ParachainStaking::on_finalize(10);
 
 			// Check that storage has updated for collator 1 when the block finalized
-			assert_eq!(
-				ParachainStaking::candidate_last_active(1),
-				Some(CollatorActivity {
-					last_round: 2,
-					last_active: 2,
-					max_offline_counter: 0
-				})
-			);
+			assert_eq!(ParachainStaking::candidate_last_active(1), Some(0));
 
 			roll_to(30);
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			// Roll 5 rounds more
 			roll_to(50);
@@ -2137,10 +2059,10 @@ fn candidate_joins_again_after_going_offline() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(2, 6);
-			set_candidate_last_active(3, 6);
-			set_candidate_last_active(4, 6);
-			set_candidate_last_active(5, 6);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
 
 			roll_blocks(1);
 			assert_ok!(ParachainStaking::go_online(RuntimeOrigin::signed(1)));
@@ -6334,12 +6256,12 @@ fn collator_selection_chooses_top_candidates() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 3);
-			set_candidate_last_active(2, 3);
-			set_candidate_last_active(3, 3);
-			set_candidate_last_active(4, 3);
-			set_candidate_last_active(5, 3);
-			set_candidate_last_active(6, 3);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			roll_to_round_begin(4);
 			roll_blocks(1);
@@ -6368,12 +6290,12 @@ fn collator_selection_chooses_top_candidates() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 4);
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
-			set_candidate_last_active(5, 4);
-			set_candidate_last_active(6, 4);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			roll_to_round_begin(6);
 			// should choose top TotalSelectedCandidates (5), in order
@@ -6461,10 +6383,10 @@ fn payout_distribution_to_solo_collators() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline
-			set_candidate_last_active(1, 4);
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
 
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
@@ -6500,10 +6422,10 @@ fn payout_distribution_to_solo_collators() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline
-			set_candidate_last_active(1, 4);
-			set_candidate_last_active(2, 4);
-			set_candidate_last_active(3, 4);
-			set_candidate_last_active(4, 4);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
 
 			// pay total issuance to 1 at 2nd block
 			roll_blocks(3);
@@ -6558,10 +6480,10 @@ fn payout_distribution_to_solo_collators() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 6);
-			set_candidate_last_active(2, 6);
-			set_candidate_last_active(3, 6);
-			set_candidate_last_active(4, 6);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
 
 			// ~ each collator produces 1 block this round
 			set_author(6, 1, 20);
@@ -6738,12 +6660,12 @@ fn multiple_delegations() {
 			roll_to_round_begin(4);
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 5);
-			set_candidate_last_active(2, 5);
-			set_candidate_last_active(3, 5);
-			set_candidate_last_active(4, 5);
-			set_candidate_last_active(5, 5);
-			set_candidate_last_active(6, 5);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			roll_to_round_begin(6);
 			roll_blocks(1);
@@ -6983,10 +6905,10 @@ fn payouts_follow_delegation_changes() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 3);
-			set_candidate_last_active(2, 3);
-			set_candidate_last_active(3, 3);
-			set_candidate_last_active(4, 3);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
 
 			// ~ set block author as 1 for all blocks this round
 			set_author(2, 1, 100);
@@ -7111,12 +7033,12 @@ fn payouts_follow_delegation_changes() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 5);
-			set_candidate_last_active(2, 5);
-			set_candidate_last_active(3, 5);
-			set_candidate_last_active(4, 5);
-			set_candidate_last_active(5, 5);
-			set_candidate_last_active(6, 5);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
@@ -7277,12 +7199,12 @@ fn payouts_follow_delegation_changes() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 8);
-			set_candidate_last_active(2, 8);
-			set_candidate_last_active(3, 8);
-			set_candidate_last_active(4, 8);
-			set_candidate_last_active(5, 8);
-			set_candidate_last_active(6, 8);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			roll_to_round_begin(9);
 			// no more paying 6
@@ -7440,12 +7362,12 @@ fn payouts_follow_delegation_changes() {
 
 			// Modify CandidateLastActive for collators not to be
 			// marked as offline (only testing purposes)
-			set_candidate_last_active(1, 11);
-			set_candidate_last_active(2, 11);
-			set_candidate_last_active(3, 11);
-			set_candidate_last_active(4, 11);
-			set_candidate_last_active(5, 11);
-			set_candidate_last_active(6, 11);
+			set_candidate_last_active(1);
+			set_candidate_last_active(2);
+			set_candidate_last_active(3);
+			set_candidate_last_active(4);
+			set_candidate_last_active(5);
+			set_candidate_last_active(6);
 
 			roll_to_round_begin(12);
 			// new delegation is rewarded for first time

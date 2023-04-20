@@ -16,7 +16,6 @@
 
 //! Test utilities
 use crate as pallet_parachain_staking;
-use crate::types::*;
 use crate::{
 	pallet, AwardedPts, CandidateLastActive, Config, Event as ParachainStakingEvent, InflationInfo,
 	Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
@@ -147,6 +146,7 @@ impl Config for Test {
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
 	type PayoutCollatorReward = ();
+	type MarkOfflineCallback = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }
@@ -521,15 +521,8 @@ pub(crate) fn set_block_author(acc: u64) {
 	<BlockAuthorMap<Test>>::set(acc);
 }
 
-pub(crate) fn set_candidate_last_active(acc: u64, round: BlockNumber) {
-	<CandidateLastActive<Test>>::insert(
-		acc,
-		CollatorActivity {
-			last_round: round,
-			last_active: round,
-			max_offline_counter: 0,
-		},
-	);
+pub(crate) fn set_candidate_last_active(acc: u64) {
+	<CandidateLastActive<Test>>::insert(acc, 0);
 }
 
 /// fn to query the lock amount
