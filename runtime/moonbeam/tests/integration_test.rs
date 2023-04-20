@@ -1022,7 +1022,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 
 			// Assert precompile reports Charlie is a nominator
 			Precompiles::new()
@@ -1035,7 +1035,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
 }
 
@@ -1107,12 +1107,7 @@ fn reward_info_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(expected_total)
-						.write(expected_claimed)
-						.build(),
-				);
+				.execute_returns((expected_total, expected_claimed));
 		})
 }
 
@@ -1652,7 +1647,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -1665,7 +1660,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 		});
 }
 
@@ -1702,9 +1697,9 @@ fn asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure BOB has 400 GLMR
 			Precompiles::new()
@@ -1717,7 +1712,7 @@ fn asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -1754,9 +1749,9 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -1775,9 +1770,9 @@ fn asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure CHARLIE has 400 GLMR
 			Precompiles::new()
@@ -1790,7 +1785,7 @@ fn asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -1827,9 +1822,9 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(1000 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(1_000 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert the asset has been minted
 			assert_eq!(LocalAssets::total_supply(0u128), 2_000 * GLMR);
@@ -1854,9 +1849,9 @@ fn asset_erc20_precompiles_mint_burn() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
-					EvmDataWriter::new().write(U256::from(500 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(500 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert the asset has been burnt
 			assert_eq!(LocalAssets::total_supply(0u128), 1_500 * GLMR);
@@ -1895,7 +1890,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 				)
 				.expect_cost(6699)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1914,7 +1909,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 				)
 				.expect_cost(6713)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
@@ -1949,7 +1944,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 				)
 				.expect_cost(5548)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1966,7 +1961,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 				)
 				.expect_cost(5550)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
@@ -2003,7 +1998,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 				)
 				.expect_cost(6614)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// No clear way of testing BOB is new owner, other than doing a priviledged function
 			// e.g., transfer_ownership again
@@ -2045,7 +2040,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 				)
 				.expect_cost(5577)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
@@ -2109,7 +2104,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -2122,7 +2117,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 		});
 }
 
@@ -2172,9 +2167,9 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure BOB has 400 GLMR
 			Precompiles::new()
@@ -2187,7 +2182,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -2237,9 +2232,9 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -2258,9 +2253,9 @@ fn xcm_asset_erc20_precompiles_approve() {
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure CHARLIE has 400 GLMR
 			Precompiles::new()
@@ -2273,7 +2268,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -2333,7 +2328,7 @@ fn xtokens_precompile_transfer() {
 				)
 				.expect_cost(24000)
 				.expect_no_logs()
-				.execute_returns(vec![])
+				.execute_returns(())
 		})
 }
 
@@ -2385,7 +2380,7 @@ fn xtokens_precompile_transfer_multiasset() {
 				)
 				.expect_cost(24000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		})
 }
 
@@ -2533,7 +2528,7 @@ fn transact_through_signed_precompile_works_v2() {
 				)
 				.expect_cost(19078)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -2734,11 +2729,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address_parent))
-					.build(),
-			);
+			.execute_returns(Address(expected_address_parent));
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
@@ -2758,11 +2749,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address_parachain))
-					.build(),
-			);
+			.execute_returns(Address(expected_address_parachain));
 
 		let alice_in_parachain_2000_multilocation = MultiLocation::new(
 			1,
@@ -2806,7 +2793,7 @@ fn test_xcm_utils_weight_message() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_weight).build());
+			.execute_returns(expected_weight);
 	});
 }
 
@@ -2825,7 +2812,7 @@ fn test_xcm_utils_get_units_per_second() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_units).build());
+			.execute_returns(expected_units);
 	});
 }
 

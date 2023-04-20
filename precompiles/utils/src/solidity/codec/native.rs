@@ -15,30 +15,33 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use crate::solidity::revert::InjectBacktrace;
+use impl_trait_for_tuples::impl_for_tuples;
+use sp_core::{ConstU32, Get, H160};
 
-impl EvmData for () {
-	fn read(_reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for () {
+	fn read(_reader: &mut Reader) -> MayRevert<Self> {
 		Ok(())
 	}
 
-	fn write(_writer: &mut EvmDataWriter, _value: Self) {}
+	fn write(_writer: &mut Writer, _value: Self) {}
 
 	fn has_static_size() -> bool {
 		true
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		String::from("()")
 	}
 }
 
 #[impl_for_tuples(1, 18)]
-impl EvmData for Tuple {
+impl Codec for Tuple {
 	fn has_static_size() -> bool {
 		for_tuples!(#( Tuple::has_static_size() )&*)
 	}
 
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		if Self::has_static_size() {
 			let mut index = 0;
 			Ok(for_tuples!( ( #( {
@@ -57,19 +60,19 @@ impl EvmData for Tuple {
 		}
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		if Self::has_static_size() {
 			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
 		} else {
-			let mut inner_writer = EvmDataWriter::new();
+			let mut inner_writer = Writer::new();
 			for_tuples!( #( Tuple::write(&mut inner_writer, value.Tuple); )* );
 			writer.write_pointer(inner_writer.build());
 		}
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		let mut subtypes = Vec::new();
-		for_tuples!( #( subtypes.push(Tuple::solidity_type()); )* );
+		for_tuples!( #( subtypes.push(Tuple::signature()); )* );
 		alloc::format!("({})", subtypes.join(","))
 	}
 
@@ -78,8 +81,8 @@ impl EvmData for Tuple {
 	}
 }
 
-impl EvmData for H256 {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for H256 {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
@@ -90,7 +93,7 @@ impl EvmData for H256 {
 		Ok(H256::from_slice(data))
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		writer.data.extend_from_slice(value.as_bytes());
 	}
 
@@ -98,7 +101,7 @@ impl EvmData for H256 {
 		true
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		String::from("bytes32")
 	}
 }
@@ -132,8 +135,8 @@ impl Address {
 	}
 }
 
-impl EvmData for Address {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for Address {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
@@ -144,7 +147,7 @@ impl EvmData for Address {
 		Ok(H160::from_slice(&data[12..32]).into())
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		H256::write(writer, value.0.into());
 	}
 
@@ -152,13 +155,13 @@ impl EvmData for Address {
 		true
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		String::from("address")
 	}
 }
 
-impl EvmData for U256 {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for U256 {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
@@ -169,7 +172,7 @@ impl EvmData for U256 {
 		Ok(U256::from_big_endian(data))
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let mut buffer = [0u8; 32];
 		value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
@@ -179,7 +182,7 @@ impl EvmData for U256 {
 		true
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		String::from("uint256")
 	}
 }
@@ -187,21 +190,21 @@ impl EvmData for U256 {
 macro_rules! impl_evmdata_for_uints {
 	($($uint:ty, )*) => {
 		$(
-			impl EvmData for $uint {
-				fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+			impl Codec for $uint {
+				fn read(reader: &mut Reader) -> MayRevert<Self> {
 					let value256: U256 = reader.read()
 					.map_err(|_| RevertReason::read_out_of_bounds(
-						Self::solidity_type()
+						Self::signature()
 					))?;
 
 					value256
 						.try_into()
 						.map_err(|_| RevertReason::value_is_too_large(
-							Self::solidity_type()
+							Self::signature()
 						).into())
 				}
 
-				fn write(writer: &mut EvmDataWriter, value: Self) {
+				fn write(writer: &mut Writer, value: Self) {
 					U256::write(writer, value.into());
 				}
 
@@ -209,7 +212,7 @@ macro_rules! impl_evmdata_for_uints {
 					true
 				}
 
-				fn solidity_type() -> String {
+				fn signature() -> String {
 					alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
 				}
 			}
@@ -219,14 +222,14 @@ macro_rules! impl_evmdata_for_uints {
 
 impl_evmdata_for_uints!(u8, u16, u32, u64, u128,);
 
-impl EvmData for bool {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for bool {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let h256 = H256::read(reader).map_err(|_| RevertReason::read_out_of_bounds("bool"))?;
 
 		Ok(!h256.is_zero())
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let mut buffer = [0u8; 32];
 		if value {
 			buffer[31] = 1;
@@ -239,19 +242,19 @@ impl EvmData for bool {
 		true
 	}
 
-	fn solidity_type() -> String {
+	fn signature() -> String {
 		String::from("bool")
 	}
 }
 
 type ConstU32Max = ConstU32<{ u32::MAX }>;
 
-impl<T: EvmData> EvmData for Vec<T> {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl<T: Codec> Codec for Vec<T> {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		BoundedVec::<T, ConstU32Max>::read(reader).map(|x| x.into())
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		BoundedVec::<T, ConstU32Max>::write(
 			writer,
 			BoundedVec {
@@ -265,8 +268,8 @@ impl<T: EvmData> EvmData for Vec<T> {
 		false
 	}
 
-	fn solidity_type() -> String {
-		alloc::format!("{}[]", T::solidity_type())
+	fn signature() -> String {
+		alloc::format!("{}[]", T::signature())
 	}
 }
 
@@ -277,8 +280,8 @@ pub struct BoundedVec<T, S> {
 	_phantom: PhantomData<S>,
 }
 
-impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl<T: Codec, S: Get<u32>> Codec for BoundedVec<T, S> {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
 		let array_size: usize = inner_reader
@@ -293,7 +296,7 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 
 		let mut array = vec![];
 
-		let mut item_reader = EvmDataReader {
+		let mut item_reader = Reader {
 			input: inner_reader
 				.input
 				.get(32..)
@@ -311,9 +314,9 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 		})
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let value: Vec<_> = value.into();
-		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
+		let mut inner_writer = Writer::new().write(U256::from(value.len()));
 
 		for inner in value {
 			// Any offset in items are relative to the start of the item instead of the
@@ -321,7 +324,7 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 			// all items (offsets) are written. We thus need to rely on `compute_offsets` to do
 			// that, and must store a "shift" to correct the offsets.
 			let shift = inner_writer.data.len();
-			let item_writer = EvmDataWriter::new().write(inner);
+			let item_writer = Writer::new().write(inner);
 
 			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
 			for mut offset_datum in item_writer.offset_data {
@@ -338,8 +341,8 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 		false
 	}
 
-	fn solidity_type() -> String {
-		alloc::format!("{}[]", T::solidity_type())
+	fn signature() -> String {
+		alloc::format!("{}[]", T::signature())
 	}
 }
 

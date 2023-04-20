@@ -17,9 +17,9 @@
 //! Encoding of XCM types for solidity
 
 use {
-	crate::{
-		data::{BoundedBytes, EvmData, EvmDataReader, EvmDataWriter, UnboundedBytes},
-		revert::{InjectBacktrace, MayRevert, RevertReason},
+	crate::solidity::{
+		codec::{bytes::*, Codec, Reader, Writer},
+		revert::{BacktraceExt, InjectBacktrace, MayRevert, RevertReason},
 	},
 	alloc::string::String,
 	frame_support::{ensure, traits::ConstU32},
@@ -30,7 +30,7 @@ use {
 pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
 
 // Function to convert network id to bytes
-// We don't implement EVMData here as these bytes will be appended only
+// We don't implement solidity::Codec here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
 // The first byte represents the enum variant to be used.
@@ -113,7 +113,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 		encoded_bytes.len() > 0,
 		RevertReason::custom("Junctions cannot be empty")
 	);
-	let mut encoded_network_id = EvmDataReader::new(&encoded_bytes);
+	let mut encoded_network_id = Reader::new(&encoded_bytes);
 
 	let network_selector = encoded_network_id
 		.read_raw_bytes(1)
@@ -160,8 +160,8 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 	}
 }
 
-impl EvmData for Junction {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for Junction {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
 		let junction_bytes: Vec<_> = junction.into();
 
@@ -171,7 +171,7 @@ impl EvmData for Junction {
 		);
 
 		// For simplicity we use an EvmReader here
-		let mut encoded_junction = EvmDataReader::new(&junction_bytes);
+		let mut encoded_junction = Reader::new(&junction_bytes);
 
 		// We take the first byte
 		let enum_selector = encoded_junction
@@ -259,7 +259,7 @@ impl EvmData for Junction {
 		}
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
 		let encoded_bytes: UnboundedBytes = match value {
 			Junction::Parachain(para_id) => {
@@ -314,20 +314,20 @@ impl EvmData for Junction {
 			// type that we need to evaluate how to support
 			_ => unreachable!("Junction::Plurality not supported yet"),
 		};
-		EvmData::write(writer, encoded_bytes);
+		Codec::write(writer, encoded_bytes);
 	}
 
 	fn has_static_size() -> bool {
 		false
 	}
 
-	fn solidity_type() -> String {
-		UnboundedBytes::solidity_type()
+	fn signature() -> String {
+		UnboundedBytes::signature()
 	}
 }
 
-impl EvmData for Junctions {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+impl Codec for Junctions {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let junctions_bytes: Vec<Junction> = reader.read()?;
 		let mut junctions = Junctions::Here;
 		for item in junctions_bytes {
@@ -339,39 +339,38 @@ impl EvmData for Junctions {
 		Ok(junctions)
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
+	fn write(writer: &mut Writer, value: Self) {
 		let encoded: Vec<Junction> = value.iter().map(|junction| junction.clone()).collect();
-		EvmData::write(writer, encoded);
+		Codec::write(writer, encoded);
 	}
 
 	fn has_static_size() -> bool {
 		false
 	}
 
-	fn solidity_type() -> String {
-		Vec::<Junction>::solidity_type()
+	fn signature() -> String {
+		Vec::<Junction>::signature()
 	}
 }
 
 // Cannot used derive macro since it is a foreign struct.
-impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		use crate::revert::BacktraceExt;
+impl Codec for MultiLocation {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let (parents, interior) = reader
 			.read()
 			.map_in_tuple_to_field(&["parents", "interior"])?;
 		Ok(MultiLocation { parents, interior })
 	}
 
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, (value.parents, value.interior));
+	fn write(writer: &mut Writer, value: Self) {
+		Codec::write(writer, (value.parents, value.interior));
 	}
 
 	fn has_static_size() -> bool {
 		<(u8, Junctions)>::has_static_size()
 	}
 
-	fn solidity_type() -> String {
-		<(u8, Junctions)>::solidity_type()
+	fn signature() -> String {
+		<(u8, Junctions)>::signature()
 	}
 }

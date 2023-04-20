@@ -27,7 +27,7 @@ use pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
 };
-use precompile_utils::{costs::call_cost, prelude::*};
+use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -138,10 +138,7 @@ fn provide_randomness(
 		contract,
 		None,
 		// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
-		EvmDataWriter::new_with_selector(0x1fe543e3_u32)
-			.write(request_id)
-			.write(randomness)
-			.build(),
+		solidity::encode_with_selector(0x1fe543e3_u32, (request_id, randomness)),
 		Some(gas_limit),
 		false,
 		&Context {
@@ -199,7 +196,7 @@ where
 	#[precompile::view]
 	fn get_request_status(
 		handle: &mut impl PrecompileHandle,
-		request_id: SolidityConvert<U256, u64>,
+		request_id: Convert<U256, u64>,
 	) -> EvmResult<RequestStatus> {
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
@@ -225,7 +222,7 @@ where
 	#[precompile::view]
 	fn get_request(
 		handle: &mut impl PrecompileHandle,
-		request_id: SolidityConvert<U256, u64>,
+		request_id: Convert<U256, u64>,
 	) -> EvmResult<(
 		U256,    // id
 		Address, // refund address
@@ -361,7 +358,7 @@ where
 		gas_limit: u64,
 		salt: H256,
 		num_words: u8,
-		delay: SolidityConvert<u64, u32>,
+		delay: Convert<u64, u32>,
 	) -> EvmResult<U256> {
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
@@ -406,7 +403,7 @@ where
 	#[precompile::public("fulfillRequest(uint256)")]
 	fn fulfill_request(
 		handle: &mut impl PrecompileHandle,
-		request_id: SolidityConvert<U256, u64>,
+		request_id: Convert<U256, u64>,
 	) -> EvmResult {
 		let request_id = request_id.converted();
 
@@ -495,7 +492,7 @@ where
 	#[precompile::public("increaseRequestFee(uint256,uint256)")]
 	fn increase_request_fee(
 		handle: &mut impl PrecompileHandle,
-		request_id: SolidityConvert<U256, u64>,
+		request_id: Convert<U256, u64>,
 		fee_increase: U256,
 	) -> EvmResult {
 		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
@@ -516,7 +513,7 @@ where
 	#[precompile::public("purgeExpiredRequest(uint256)")]
 	fn purge_expired_request(
 		handle: &mut impl PrecompileHandle,
-		request_id: SolidityConvert<U256, u64>,
+		request_id: Convert<U256, u64>,
 	) -> EvmResult {
 		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
 

@@ -17,7 +17,7 @@
 //! Provide checks related to function modifiers (view/payable).
 
 use {
-	crate::revert::{MayRevert, RevertReason},
+	crate::solidity::revert::{MayRevert, RevertReason},
 	fp_evm::Context,
 	sp_core::U256,
 };
