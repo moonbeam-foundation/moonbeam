@@ -425,3 +425,18 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
   });
 });
+
+describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
+  it("should be able to query length fee", async function () {
+    const adjusted_length_fee = await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(1n);
+    expect((adjusted_length_fee as any).toBigInt()).to.eq(1_000_000_001n);
+  });
+
+  it("should be able to query weight fee", async function () {
+    const adjusted_weight_fee = await context.polkadotApi.call.transactionPaymentApi.queryWeightToFee({
+      refTime: 1,
+      proofSize: 1,
+    });
+    expect((adjusted_weight_fee as any).toBigInt()).to.eq(50_000n);
+  });
+});
