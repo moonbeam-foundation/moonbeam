@@ -284,7 +284,7 @@ jobs:
       - name: Build Node
         run: |
           env
-          cargo build --release --all
+          cargo build --locked --release -p moonbeam
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
@@ -340,7 +340,7 @@ jobs:
       - name: Build Node
         run: |
           env
-          cargo build --release --features=try-runtime,runtime-benchmarks,evm-tracing
+          cargo build --locked --release --features=try-runtime,runtime-benchmarks
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
@@ -350,28 +350,6 @@ jobs:
           MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
-      - name: Check Cargo Toml
-        # We determine whether there are unmodified Cargo.lock files by:
-        # 1. Asking git for a list of all modified files
-        # 2. Using grep to reduce the list to only Cargo.lock files
-        # 3. Counting the number of lines of output
-        run: |
-          # Make sure git is working, and if not abort early. When git is not working it looks like:
-          # $ git diff-index --name-only HEAD
-          # fatal: not a git repository (or any of the parent directories): .git
-          DIFF_INDEX=$(git diff-index --name-only HEAD)
-          if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
-            echo "There was an error with the git checkout. Can't check Cargo.lock file."
-            false
-          fi
-          FILECOUNT=$(echo $DIFF_INDEX | grep Cargo.lock | wc -l)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            echo "All lock files are valid"
-          else
-            echo "The following Cargo.lock files have uncommitted changes"
-            echo $DIFF_INDEX | grep Cargo.lock
-            false
-          fi
       - name: Save moonbeam binary
         run: |
           mkdir -p build
@@ -409,7 +387,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --release --all
+          cargo test --release --all --features=evm-tracing
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
