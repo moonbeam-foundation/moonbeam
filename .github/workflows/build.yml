@@ -28,13 +28,13 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
+      image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
-      latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
-      latest_rt8: ${{ steps.get-latest-rt.outputs.latest_rt8 }}
+      latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
+      latest_sha8: ${{ steps.get-sha.outputs.latest_sha8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -52,10 +52,6 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
-          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
-          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
-          echo "latest_rt8=$SHORT_HASH" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
         with:
@@ -68,6 +64,11 @@ jobs:
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
+
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1)
+          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
+          SHORT_HASH=$(git rev-list -n 1 $LATEST_RUNTIME_RELEASE | awk '{print "sha-" substr($1,1,8)}')
+          echo "latest_rt8=$SHORT_HASH" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -79,6 +80,8 @@ jobs:
           echo sha: ${{ steps.get-sha.outputs.sha }}
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
+          echo latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
+          echo latest_sha8: ${{ steps.get-sha.outputs.latest_sha8 }}
 
   check-copyright:
     runs-on: ubuntu-latest
@@ -710,7 +713,7 @@ jobs:
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt8 }}
+          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_sha8 }}
           DOCKER_TAG="purestake/moonbeam:$MOONBEAM_COMMIT"
 
           docker rm -f moonbeam_container 2> /dev/null | true
