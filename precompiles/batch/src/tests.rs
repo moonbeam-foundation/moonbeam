@@ -21,14 +21,14 @@ use crate::mock::{
 use crate::{
 	log_subcall_failed, log_subcall_succeeded, Mode, LOG_SUBCALL_FAILED, LOG_SUBCALL_SUCCEEDED,
 };
-use evm::ExitReason;
-use fp_evm::{ExitError, ExitRevert, ExitSucceed};
+use fp_evm::ExitError;
 use frame_support::{
 	assert_ok,
 	dispatch::{DispatchError, Dispatchable},
 };
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{costs::call_cost, prelude::*, revert::RevertSelector, testing::*};
+use precompile_utils::solidity::revert::revert_as_bytes;
+use precompile_utils::{evm::costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 use sp_runtime::{DispatchErrorWithPostInfo, ModuleError};
 
@@ -101,7 +101,7 @@ fn batch_some_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -120,7 +120,7 @@ fn batch_some_until_failure_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -139,7 +139,7 @@ fn batch_all_empty() {
 				},
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -199,10 +199,9 @@ fn batch_returns(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				a if a == Charlie.into() => {
@@ -225,10 +224,9 @@ fn batch_returns(
 					assert_eq!(&input, b"two");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 17,
 						logs: vec![log1(Charlie, H256::repeat_byte(0x22), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -245,7 +243,7 @@ fn batch_some_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -257,7 +255,7 @@ fn batch_some_until_failure_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -269,7 +267,7 @@ fn batch_all_returns() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 1))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -324,10 +322,8 @@ fn batch_out_of_gas(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Error(ExitError::OutOfGas),
-						output: Vec::new(),
 						cost: 11_000,
-						logs: vec![],
+						..SubcallOutput::out_of_gas()
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -340,7 +336,7 @@ fn batch_some_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -349,7 +345,7 @@ fn batch_some_until_failure_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -420,10 +416,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"one");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				a if a == Charlie.into() => {
@@ -446,12 +441,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"");
 
 					SubcallOutput {
-						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
-							.write::<UnboundedBytes>(b"Revert message".into())
-							.build(),
+						output: revert_as_bytes("Revert message"),
 						cost: 17,
-						logs: vec![],
+						..SubcallOutput::revert()
 					}
 				}
 				a if a == Alice.into() => {
@@ -474,10 +466,9 @@ fn batch_incomplete(
 					assert_eq!(&input, b"");
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: Vec::new(),
 						cost: 19,
 						logs: vec![log1(Alice, H256::repeat_byte(0x33), vec![])],
+						..SubcallOutput::succeed()
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -497,7 +488,7 @@ fn batch_some_incomplete() {
 			.expect_log(log1(Alice, H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Batch, 2))
 			.expect_cost(13 + 17 + 19 + total_call_cost * 3)
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -511,7 +502,7 @@ fn batch_some_until_failure_incomplete() {
 			.expect_log(log_subcall_succeeded(Batch, 0))
 			.expect_log(log_subcall_failed(Batch, 1))
 			.expect_cost(13 + 17 + total_call_cost * 2)
-			.execute_returns(Vec::new())
+			.execute_returns(())
 	})
 }
 
@@ -557,7 +548,7 @@ fn batch_some_log_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_log_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_no_logs()
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -566,7 +557,7 @@ fn batch_some_until_failure_log_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_log_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_no_logs()
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -604,7 +595,7 @@ fn batch_some_call_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_call_out_of_gas(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -613,7 +604,7 @@ fn batch_some_until_failure_call_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_call_out_of_gas(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -654,7 +645,7 @@ fn batch_some_gas_limit() {
 		batch_gas_limit(&precompiles(), Mode::BatchSome)
 			.expect_log(log_subcall_failed(Batch, 0))
 			.expect_cost(return_log_cost)
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -663,7 +654,7 @@ fn batch_some_until_failure_gas_limit() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_gas_limit(&precompiles(), Mode::BatchSomeUntilFailure)
 			.expect_log(log_subcall_failed(Batch, 0))
-			.execute_returns(Vec::new());
+			.execute_returns(());
 	})
 }
 
@@ -1098,25 +1089,5 @@ fn batch_is_not_callable_by_dummy_code() {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Batch.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Batch.sol"], PCall::supports_selector)
 }

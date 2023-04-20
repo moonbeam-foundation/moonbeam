@@ -97,18 +97,14 @@ fn test_encode_bond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Bond(
-								[1u8; 32].into(),
-								100u32.into(),
-								RewardDestination::Controller,
-							))
-							.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Bond(
+						[1u8; 32].into(),
+						100u32.into(),
+						RewardDestination::Controller,
+					))
+					.as_slice(),
+				));
 		});
 }
 
@@ -126,14 +122,10 @@ fn test_encode_bond_more() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
-								.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
+						.as_slice(),
+				));
 		});
 }
 
@@ -147,13 +139,9 @@ fn test_encode_chill() {
 				.prepare_test(Alice, Precompile1, PCall::encode_chill {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Chill).as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Chill).as_slice(),
+				));
 		});
 }
 
@@ -173,17 +161,13 @@ fn test_encode_nominate() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
-								[1u8; 32].into(),
-								[2u8; 32].into(),
-							]))
-							.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
+						[1u8; 32].into(),
+						[2u8; 32].into(),
+					]))
+					.as_slice(),
+				));
 		});
 }
 
@@ -201,14 +185,9 @@ fn test_encode_rebond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
-								.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128)).as_slice(),
+				));
 		});
 }
 
@@ -228,16 +207,10 @@ fn test_encode_set_controller() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::SetController(
-								[1u8; 32].into(),
-							))
-							.as_slice(),
-						))
-						.build(),
-				)
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
+						.as_slice(),
+				))
 		});
 }
 
@@ -257,16 +230,12 @@ fn test_encode_set_payee() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
-								RewardDestination::Controller,
-							))
-							.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
+						RewardDestination::Controller,
+					))
+					.as_slice(),
+				));
 		});
 }
 
@@ -284,14 +253,9 @@ fn test_encode_unbond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
-								.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into())).as_slice(),
+				));
 		});
 }
 
@@ -312,19 +276,13 @@ fn test_encode_validate() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::Validate(
-								ValidatorPrefs {
-									commission: Perbill::from_parts(100u32.into()),
-									blocked: true,
-								},
-							))
-							.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
+						commission: Perbill::from_parts(100u32.into()),
+						blocked: true,
+					}))
+					.as_slice(),
+				));
 		});
 }
 
@@ -342,42 +300,16 @@ fn test_encode_withdraw_unbonded() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(UnboundedBytes::from(
-							TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(
-								100u32.into(),
-							))
-							.as_slice(),
-						))
-						.build(),
-				);
+				.execute_returns(UnboundedBytes::from(
+					TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
+						.as_slice(),
+				));
 		});
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["RelayEncoder.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["RelayEncoder.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -394,7 +326,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"encode_set_controller(uint256)",
 		"encode_rebond(uint256)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

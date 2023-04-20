@@ -119,11 +119,7 @@ fn take_index_for_account() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(Address(H160::from(Alice)))
-						.build(),
-				);
+				.execute_returns(Address(H160::from(Alice)));
 		});
 }
 
@@ -163,13 +159,7 @@ fn take_transact_info() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(2)
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(0u64)
-						.write(1u128)
-						.write(10000u64)
-						.build(),
-				);
+				.execute_returns((0u64, 1u128, 10000u64));
 		});
 }
 #[test]
@@ -208,13 +198,7 @@ fn take_transact_info_with_signed() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(0u64)
-						.write(1u128)
-						.write(10000u64)
-						.build(),
-				);
+				.execute_returns((0u64, 1u128, 10_000u64));
 		});
 }
 
@@ -244,7 +228,7 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns_encoded(1u64);
+				.execute_returns(1u64);
 		});
 }
 
@@ -284,7 +268,7 @@ fn test_transact_derivative_multilocation_v2() {
 				)
 				.expect_cost(196892000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -337,7 +321,7 @@ fn test_transact_derivative_multilocation() {
 				)
 				.expect_cost(196892000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -387,7 +371,7 @@ fn test_transact_derivative() {
 				)
 				.expect_cost(196892001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -425,7 +409,7 @@ fn test_transact_derivative_v2() {
 				)
 				.expect_cost(196892001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -470,7 +454,7 @@ fn test_transact_signed() {
 				)
 				.expect_cost(476974001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -503,7 +487,7 @@ fn test_transact_signed_v2() {
 				)
 				.expect_cost(476974001)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -550,7 +534,7 @@ fn test_transact_signed_multilocation() {
 				)
 				.expect_cost(476974000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
@@ -585,58 +569,24 @@ fn test_transact_signed_multilocation_v2() {
 				)
 				.expect_cost(476974000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		});
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v1() {
-	for file in ["src/v1/XcmTransactorV1.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCallV1::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["src/v1/XcmTransactorV1.sol"],
+		PCallV1::supports_selector,
+	)
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v2() {
-	for file in ["src/v2/XcmTransactorV2.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCallV2::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["src/v2/XcmTransactorV2.sol"],
+		PCallV2::supports_selector,
+	)
 }
 
 #[test]
@@ -651,7 +601,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCallV1::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
