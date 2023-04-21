@@ -969,7 +969,7 @@ pub mod pallet {
 		fn buy_execution(
 			asset: MultiAsset,
 			at: &MultiLocation,
-			weight: u64,
+			_weight: u64,
 		) -> Result<Instruction<()>, DispatchError> {
 			let ancestry = T::LocationInverter::ancestry();
 			let fees = asset
@@ -978,7 +978,7 @@ pub mod pallet {
 
 			Ok(BuyExecution {
 				fees,
-				weight_limit: WeightLimit::Limited(weight),
+				weight_limit: WeightLimit::Unlimited,
 			})
 		}
 
