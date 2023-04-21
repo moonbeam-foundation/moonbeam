@@ -450,9 +450,3 @@ export const setupErc20Contract = async (context: DevTestContext, name: string, 
   expectEVMResult(result.events, "Succeed");
   return { contract, contractAddress };
 };
-
-export async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
-  const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
-  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
-  return account.data.free.toBigInt();
-}
