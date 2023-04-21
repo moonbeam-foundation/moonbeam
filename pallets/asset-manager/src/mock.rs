@@ -110,8 +110,8 @@ parameter_types! {
 pub type AssetId = u32;
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum MockAssetType {
-	MockAsset(AssetId),
 	Xcm(MultiLocation),
+	MockAsset(AssetId),
 }
 
 impl Default for MockAssetType {

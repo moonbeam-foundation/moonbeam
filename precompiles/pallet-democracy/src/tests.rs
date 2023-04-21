@@ -122,7 +122,7 @@ fn prop_count_zero() {
 			.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns([0u8; 32].into())
+			.execute_returns(U256::zero())
 	});
 }
 
@@ -143,7 +143,7 @@ fn prop_count_non_zero() {
 				.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1u32);
+				.execute_returns(1u32);
 		});
 }
 
@@ -172,7 +172,7 @@ fn deposit_of_non_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1000u32);
+				.execute_returns(1000u32);
 		});
 }
 
@@ -198,7 +198,7 @@ fn lowest_unbaked_zero() {
 			.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 	});
 }
 
@@ -275,7 +275,7 @@ fn lowest_unbaked_non_zero() {
 				.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1u32);
+				.execute_returns(1u32);
 		});
 }
 
@@ -310,7 +310,7 @@ fn ongoing_ref_info_works() {
 					PCall::ongoing_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
-				.execute_returns_encoded((
+				.execute_returns((
 					U256::from(11),      // end
 					hash,                // hash
 					2u8,                 // threshold type
@@ -412,7 +412,7 @@ fn finished_ref_info_works() {
 					PCall::finished_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
-				.execute_returns_encoded((true, U256::from(11)));
+				.execute_returns((true, U256::from(11)));
 		})
 }
 
@@ -502,7 +502,7 @@ fn propose_works() {
 							Precompile1,
 							SELECTOR_LOG_PROPOSED,
 							H256::zero(), // proposal index,
-							EvmDataWriter::new().write::<U256>(100.into()).build(),
+							solidity::encode_event_data(U256::from(100))
 						)
 					}
 					.into(),
@@ -573,9 +573,7 @@ fn second_works() {
 							Precompile1,
 							SELECTOR_LOG_SECONDED,
 							H256::zero(), // proposal index,
-							EvmDataWriter::new()
-								.write::<Address>(H160::from(Alice).into())
-								.build(),
+							solidity::encode_event_data(Address(Alice.into()))
 						)
 					}
 					.into(),
@@ -641,12 +639,12 @@ fn standard_vote_aye_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							EvmDataWriter::new()
-								.write::<Address>(H160::from(Alice).into())
-								.write::<bool>(true)
-								.write::<U256>(100000.into())
-								.write::<u8>(0)
-								.build(),
+							solidity::encode_event_data((
+								Address(Alice.into()),
+								true,
+								U256::from(100_000),
+								0u8
+							))
 						),
 					}
 					.into(),
@@ -736,12 +734,12 @@ fn standard_vote_nay_conviction_works() {
 							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
-							EvmDataWriter::new()
-								.write::<Address>(H160::from(Alice).into())
-								.write::<bool>(false)
-								.write::<U256>(100000.into())
-								.write::<u8>(3)
-								.build(),
+							solidity::encode_event_data((
+								Address(Alice.into()),
+								false,
+								U256::from(100_000),
+								3u8
+							))
 						),
 					}
 					.into(),
@@ -924,9 +922,7 @@ fn delegate_works() {
 							Precompile1,
 							SELECTOR_LOG_DELEGATED,
 							H160::from(Alice),
-							EvmDataWriter::new()
-								.write::<Address>(H160::from(Bob).into())
-								.build(),
+							solidity::encode_event_data(Address(Bob.into()))
 						),
 					}
 					.into(),
@@ -1443,27 +1439,10 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["DemocracyInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["DemocracyInterface.sol"],
+		PCall::supports_selector,
+	)
 }
 
 #[test]
@@ -1478,11 +1457,11 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"note_preimage(bytes)",
 		"note_imminent_preimage(bytes)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
-				"failed decoding selector 0x{:x} => '{}' as Action",
-				selector, deprecated_function,
+				"deprecated selector {selector:x} for '{deprecated_function}' should be supported but\
+				is not",
 			)
 		}
 	}

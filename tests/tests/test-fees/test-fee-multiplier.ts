@@ -124,7 +124,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     // the multiplier (and thereby base_fee) will have decreased very slightly...
     blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
     baseFeePerGas = BigInt((await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
-    expect(baseFeePerGas).to.equal(124_880_845_878_351n);
+    expect(baseFeePerGas).to.equal(124_880_903_689_844n);
 
     const tx = await createContractExecution(
       context,
@@ -141,13 +141,13 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
 
     const successEvent = result.events.filter(({ event }) => event.method == "ExtrinsicSuccess")[0];
     let weight = (successEvent.event.data as any).dispatchInfo.weight.refTime.toBigInt();
-    expect(weight).to.equal(4_162_425_000n);
+    expect(weight).to.equal(2_396_800_000n);
 
     const withdrawEvents = result.events.filter(({ event }) => event.method == "Withdraw");
     expect(withdrawEvents.length).to.equal(1);
     const withdrawEvent = withdrawEvents[0];
     let amount = (withdrawEvent.event.data as any).amount.toBigInt();
-    expect(amount).to.equal(20_828_626_522_358_406_588n);
+    expect(amount).to.equal(11_986_693_540_669_676_340n);
   });
 });
 
@@ -288,41 +288,23 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 3n,
-      },
+          fungible: transferredBalance / 3n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
       .descend_origin()
       .withdraw_asset()
       .buy_execution()
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncoded,
-          },
-        },
-      })
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncoded,
-          },
-        },
-      })
       .push_any({
         Transact: {
           originType: "SovereignAccount",
@@ -399,17 +381,17 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .sudo(context.polkadotApi.tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
       .signAndSend(alith, { nonce: -1 });
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        ],
-        fungible: transferredBalance / 3n,
-      },
+          fungible: transferredBalance / 3n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
@@ -422,15 +404,6 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
           requireWeightAtMost: new BN(1000000000),
           call: {
             encoded: transferCallEncodedV1,
-          },
-        },
-      })
-      .push_any({
-        Transact: {
-          originType: "SovereignAccount",
-          requireWeightAtMost: new BN(1000000000),
-          call: {
-            encoded: transferCallEncodedV2,
           },
         },
       })

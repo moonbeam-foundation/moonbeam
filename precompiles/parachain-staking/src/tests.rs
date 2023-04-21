@@ -154,7 +154,7 @@ fn min_delegation_works() {
 			.prepare_test(Alice, Precompile1, PCall::min_delegation {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(3u32)
+			.execute_returns(3u32)
 	});
 }
 
@@ -170,7 +170,7 @@ fn points_zero() {
 				.prepare_test(Alice, Precompile1, PCall::points { round: 1.into() })
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(0u32);
+				.execute_returns(0u32);
 		});
 }
 
@@ -188,7 +188,7 @@ fn points_non_zero() {
 				.prepare_test(Alice, Precompile1, PCall::points { round: 1.into() })
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(100u32);
+				.execute_returns(100u32);
 		});
 }
 
@@ -212,7 +212,7 @@ fn awarded_points_zero() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(0u32);
+				.execute_returns(0u32);
 		});
 }
 
@@ -237,7 +237,7 @@ fn awarded_points_non_zero() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(100u32);
+				.execute_returns(100u32);
 		});
 }
 
@@ -258,7 +258,7 @@ fn delegation_amount_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(0u32);
+				.execute_returns(0u32);
 		});
 }
 
@@ -281,7 +281,7 @@ fn delegation_amount_nonzero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1000u32);
+				.execute_returns(1000u32);
 		});
 }
 
@@ -302,7 +302,7 @@ fn is_not_in_top_delegations_when_delegation_dne() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		});
 }
 
@@ -334,7 +334,7 @@ fn is_not_in_top_delegations_because_not_in_top() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		});
 }
 
@@ -357,7 +357,7 @@ fn is_in_top_delegations() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -368,7 +368,7 @@ fn round_works() {
 			.prepare_test(Alice, Precompile1, PCall::round {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(1u32);
+			.execute_returns(1u32);
 
 		// test next `ROUNDS_TO_TEST` rounds
 		const ROUNDS_TO_TEST: u32 = 10;
@@ -382,7 +382,7 @@ fn round_works() {
 				.prepare_test(Alice, Precompile1, PCall::round {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(current_round);
+				.execute_returns(current_round);
 		}
 	});
 }
@@ -415,7 +415,7 @@ fn candidate_delegation_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(3u32);
+				.execute_returns(3u32);
 		});
 }
 
@@ -453,7 +453,7 @@ fn candidate_auto_compounding_delegation_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(1u32);
+				.execute_returns(1u32);
 		});
 }
 
@@ -485,7 +485,7 @@ fn candidate_auto_compounding_elegation_count_works_with_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(0u32);
+				.execute_returns(0u32);
 		});
 }
 
@@ -515,7 +515,7 @@ fn delegator_delegation_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(2u32);
+				.execute_returns(2u32);
 		});
 }
 
@@ -533,7 +533,7 @@ fn is_delegator_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	});
 }
 
@@ -556,7 +556,7 @@ fn is_delegator_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -574,7 +574,7 @@ fn is_candidate_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	});
 }
 
@@ -596,7 +596,7 @@ fn is_candidate_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -614,7 +614,7 @@ fn is_selected_candidate_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	});
 }
 
@@ -636,7 +636,7 @@ fn is_selected_candidate_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		});
 }
 
@@ -651,11 +651,7 @@ fn selected_candidates_works() {
 				.prepare_test(Alice, Precompile1, PCall::selected_candidates {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(vec![Address(Alice.into())])
-						.build(),
-				);
+				.execute_returns(vec![Address(Alice.into())]);
 		});
 }
 
@@ -683,7 +679,7 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 
 			// Schedule Revoke request
 			precompiles()
@@ -696,7 +692,7 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(293131000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			// Assert that we have pending requests
 			precompiles()
@@ -710,7 +706,7 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
 }
 
@@ -729,7 +725,7 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	})
 }
 
@@ -751,7 +747,7 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 
 			// Schedule exit request
 			precompiles()
@@ -764,7 +760,7 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(325075534)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			// Assert that we have pending exit
 			precompiles()
@@ -777,7 +773,7 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
 }
 
@@ -795,7 +791,7 @@ fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	})
 }
 
@@ -817,7 +813,7 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 
 			// Schedule bond less request
 			precompiles()
@@ -828,7 +824,7 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(163239000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			// Assert that we have pending requests
 			precompiles()
@@ -841,7 +837,7 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
 }
 
@@ -859,7 +855,7 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	})
 }
 
@@ -887,7 +883,7 @@ fn delegation_auto_compound_returns_value_if_set() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(50u8);
+				.execute_returns(50u8);
 		})
 }
 
@@ -910,7 +906,7 @@ fn delegation_auto_compound_returns_zero_if_not_set() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(0u8);
+				.execute_returns(0u8);
 		})
 }
 
@@ -1734,7 +1730,7 @@ fn get_delegator_total_staked_getter() {
 						delegator: Address(Charlie.into()),
 					},
 				)
-				.execute_returns_encoded(U256::from(1_499));
+				.execute_returns(U256::from(1_499));
 		});
 }
 
@@ -1757,7 +1753,7 @@ fn get_delegator_total_staked_getter_unknown() {
 						delegator: Address(Charlie.into()),
 					},
 				)
-				.execute_returns_encoded(U256::zero());
+				.execute_returns(U256::zero());
 		});
 }
 
@@ -1784,33 +1780,16 @@ fn get_candidate_total_counted_getter() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.execute_returns_encoded(U256::from(2_000));
+				.execute_returns(U256::from(2_000));
 		});
 }
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["StakingInterface.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["StakingInterface.sol"],
+		PCall::supports_selector,
+	)
 }
 
 #[test]
@@ -1846,7 +1825,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"execute_delegation_request(address,address)",
 		"cancel_delegation_request(address)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

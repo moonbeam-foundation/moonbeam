@@ -1,0 +1,7 @@
+error[E0277]: the `?` operator can only be applied to values that implement `Try`
+  --> tests/compile-fail/precompile/codec/output-not-result.rs:25:46
+   |
+25 |     fn foo(test: &mut impl PrecompileHandle) -> String {
+   |                                                 ^^^^^^ the `?` operator cannot be applied to type `String`
+   |
+   = help: the trait `Try` is not implemented for `String`

@@ -43,7 +43,7 @@ const CALL_PERMIT_DEMO_INTERFACE = new ethers.utils.Interface(
   CALL_PERMIT_DEMO_CONTRACT_JSON.contract.abi
 );
 
-const CALL_PERMIT_CONTRACT_JSON = getCompiled("CallPermit");
+const CALL_PERMIT_CONTRACT_JSON = getCompiled("precompiles/call-permit/CallPermit");
 const CALL_PERMIT_INTERFACE = new ethers.utils.Interface(CALL_PERMIT_CONTRACT_JSON.contract.abi);
 
 function getSignatureParameters(signature: string) {

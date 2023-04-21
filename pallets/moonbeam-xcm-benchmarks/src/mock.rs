@@ -14,25 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::parameter_types;
+use frame_support::{dispatch::Weight, parameter_types, traits::ContainsPair};
 use xcm::latest::prelude::*;
-use xcm::latest::Weight as XCMWeight;
-use xcm_executor::traits::FilterAssetLocation;
 
 // An xcm sender/receiver akin to > /dev/null
 pub struct DevNull;
-impl xcm::opaque::latest::SendXcm for DevNull {
-	fn send_xcm(_: impl Into<MultiLocation>, _: Xcm<()>) -> SendResult {
-		Ok(())
+impl SendXcm for DevNull {
+	type Ticket = ();
+
+	fn validate(
+		_destination: &mut Option<MultiLocation>,
+		_message: &mut Option<opaque::Xcm>,
+	) -> SendResult<Self::Ticket> {
+		Ok(((), MultiAssets::new()))
+	}
+
+	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
+		Ok(XcmHash::default())
 	}
 }
 
 impl xcm_executor::traits::OnResponse for DevNull {
-	fn expecting_response(_: &MultiLocation, _: u64) -> bool {
+	fn expecting_response(_: &MultiLocation, _: u64, _: Option<&MultiLocation>) -> bool {
 		false
 	}
-	fn on_response(_: &MultiLocation, _: u64, _: Response, _: XCMWeight) -> XCMWeight {
-		0
+	fn on_response(
+		_: &MultiLocation,
+		_: u64,
+		_: Option<&MultiLocation>,
+		_: Response,
+		_: Weight,
+		_: &XcmContext,
+	) -> Weight {
+		Weight::zero()
 	}
 }
 
@@ -60,8 +74,8 @@ parameter_types! {
 }
 
 pub struct AllAssetLocationsPass;
-impl FilterAssetLocation for AllAssetLocationsPass {
-	fn filter_asset_location(_: &MultiAsset, _: &MultiLocation) -> bool {
+impl ContainsPair<MultiAsset, MultiLocation> for AllAssetLocationsPass {
+	fn contains(_: &MultiAsset, _: &MultiLocation) -> bool {
 		true
 	}
 }

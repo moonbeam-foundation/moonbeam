@@ -11,11 +11,11 @@ import {
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-import { expectEVMResult } from "../../util/eth-transactions";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
-const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
+const RANDOMNESS_CONTRACT_JSON = getCompiled("precompiles/randomness/Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
 const SIMPLE_SALT = new Uint8Array([..."my_salt".padEnd(32, " ")].map((a) => a.charCodeAt(0)));
@@ -157,6 +157,12 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
     expect(result.successful).to.be.true;
     expectEVMResult(result.events, "Revert");
 
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Error in pallet_randomness: Module(ModuleError { index: 39, error: [5, 0, 0, 0],
+    // message: Some("CannotRequestRandomnessBeforeMinDelay") })
+    expect(revertReason).to.contain("CannotRequestRandomnessBeforeMinDelay");
+
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
   });
@@ -179,6 +185,12 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
 
     expect(result.successful).to.be.true;
     expectEVMResult(result.events, "Revert");
+
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Error in pallet_randomness: Module(ModuleError { index: 39, error: [4, 0, 0, 0],
+    // message: Some("CannotRequestRandomnessAfterMaxDelay") })
+    expect(revertReason).to.contain("CannotRequestRandomnessAfterMaxDelay");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
@@ -204,6 +216,11 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
 
     expect(result.successful).to.be.true;
     expectEVMResult(result.events, "Revert");
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Error in pallet_randomness: Module(ModuleError { index: 39, error: [2, 0, 0, 0],
+    // message: Some("MustRequestAtLeastOneWord") })
+    expect(revertReason).to.contain("MustRequestAtLeastOneWord");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
@@ -229,6 +246,11 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
 
     expect(result.successful).to.be.true;
     expectEVMResult(result.events, "Revert");
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Error in pallet_randomness: Module(ModuleError { index: 39, error: [3, 0, 0, 0],
+    // message: Some("CannotRequestMoreWordsThanMax") })
+    expect(revertReason).to.contain("CannotRequestMoreWordsThanMax");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);

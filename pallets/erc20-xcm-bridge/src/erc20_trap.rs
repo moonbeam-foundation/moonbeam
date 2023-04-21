@@ -26,6 +26,7 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 	fn drop_assets(
 		origin: &xcm::latest::MultiLocation,
 		mut assets: xcm_executor::Assets,
+		context: &XcmContext,
 	) -> xcm::latest::Weight {
 		// Remove all erc20 assets
 		let assets_to_remove: Vec<_> = assets
@@ -42,6 +43,6 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 				},
 			));
 		}
-		AssetTrap::drop_assets(origin, assets)
+		AssetTrap::drop_assets(origin, assets, context)
 	}
 }

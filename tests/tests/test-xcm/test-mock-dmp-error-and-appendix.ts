@@ -33,17 +33,17 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
 
   it("Should make sure that Alith does not receive 10 dot without error", async function () {
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
       weight_limit: new BN(500000000),
       beneficiary: alith.address,
     })
@@ -97,17 +97,17 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
 
   it("Should make sure that Alith does receive 10 dot because there is error", async function () {
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
       weight_limit: new BN(1000000000),
       beneficiary: alith.address,
     })
@@ -162,17 +162,17 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
 
   it("Should make sure Alith receives 10 dot with appendix and without error", async function () {
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
       weight_limit: new BN(800000000),
       beneficiary: alith.address,
     })
@@ -224,17 +224,17 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
 
   it("Should make sure Alith receives 10 dot with appendix and without error", async function () {
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
       weight_limit: new BN(1000000000),
       beneficiary: alith.address,
     })
@@ -293,17 +293,17 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     // Since we only BuyExecution, but we do not do anything with the assets after that,
     // they are trapped
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
     })
       .reserve_asset_deposited()
       .buy_execution()
@@ -333,17 +333,17 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
 
   it("Should make sure that Alith receives claimed assets", async function () {
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               Here: null,
             },
           },
-        ],
-        fungible: 10n * RELAY_TOKEN,
-      },
+          fungible: 10n * RELAY_TOKEN,
+        },
+      ],
       weight_limit: new BN(1000000000),
       beneficiary: alith.address,
     })

@@ -14,7 +14,7 @@ export interface ForeignChainsInfo {
 export interface ForeignChainInfo {
   name: string;
   paraId: number;
-  muted?: boolean;
+  mutedUntil?: number;
   endpoints?: string[];
 }
 
@@ -50,7 +50,8 @@ export const isMuted = (moonbeamNetworkName: string, paraId: number) => {
       return false;
     }
 
-    return match.muted;
+    const currentTime = new Date().getTime();
+    return match.mutedUntil && match.mutedUntil >= currentTime;
   } else return false;
 };
 
@@ -70,6 +71,7 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Bifrost",
         paraId: 2001,
+        mutedUntil: new Date("2023-04-04").getTime(),
       },
       {
         name: "Khala",

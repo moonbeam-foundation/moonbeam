@@ -25,7 +25,7 @@ import {
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-import { expectEVMResult } from "../../util/eth-transactions";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
@@ -36,7 +36,7 @@ import {
 
 const LOTTERY_CONTRACT_JSON = getCompiled("RandomnessLotteryDemo");
 const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contract.abi);
-const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
+const RANDOMNESS_CONTRACT_JSON = getCompiled("precompiles/randomness/Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
 const RANDOMNESS_SOURCE_LOCAL_VRF = "0";
@@ -141,6 +141,12 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
       })
     );
     expectEVMResult(result.events, "Revert");
+
+    const revertReason = await extractRevertReason(result.hash, context.ethers);
+    // Full error expected:
+    // Module(ModuleError { index: 39, error: [7, 0, 0, 0],
+    // message: Some("RequestCannotYetBeFulfilled") })
+    expect(revertReason).to.contain("RequestCannotYetBeFulfilled");
   });
 
   it("should be rolling the numbers", async function () {

@@ -25,7 +25,7 @@ use frame_support::{
 	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
-use precompile_utils::{costs::call_cost, prelude::*};
+use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_io::hashing::keccak_256;
 use sp_std::vec::Vec;
@@ -86,13 +86,13 @@ where
 		let version: H256 = keccak256!("1").into();
 		let chain_id: U256 = Runtime::ChainId::get().into();
 
-		let domain_separator_inner = EvmDataWriter::new()
-			.write(H256::from(PERMIT_DOMAIN))
-			.write(name)
-			.write(version)
-			.write(chain_id)
-			.write(Address(address))
-			.build();
+		let domain_separator_inner = solidity::encode_arguments((
+			H256::from(PERMIT_DOMAIN),
+			name,
+			version,
+			chain_id,
+			Address(address),
+		));
 
 		keccak_256(&domain_separator_inner).into()
 	}
@@ -109,17 +109,17 @@ where
 	) -> [u8; 32] {
 		let domain_separator = Self::compute_domain_separator(address);
 
-		let permit_content = EvmDataWriter::new()
-			.write(H256::from(PERMIT_TYPEHASH))
-			.write(Address(from))
-			.write(Address(to))
-			.write(value)
+		let permit_content = solidity::encode_arguments((
+			H256::from(PERMIT_TYPEHASH),
+			Address(from),
+			Address(to),
+			value,
 			// bytes are encoded as the keccak_256 of the content
-			.write(H256::from(keccak_256(&data)))
-			.write(gaslimit)
-			.write(nonce)
-			.write(deadline)
-			.build();
+			H256::from(keccak_256(&data)),
+			gaslimit,
+			nonce,
+			deadline,
+		));
 		let permit_content = keccak_256(&permit_content);
 		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
 		pre_digest.extend_from_slice(b"\x19\x01");

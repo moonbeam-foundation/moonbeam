@@ -21,11 +21,11 @@ import {
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
 } from "../../util/constants";
-import { expectEVMResult } from "../../util/eth-transactions";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 
-const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
+const AUTHOR_MAPPING_CONTRACT = getCompiled("precompiles/author-mapping/AuthorMapping");
 const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);
-const PROXY_CONTRACT_JSON = getCompiled("Proxy");
+const PROXY_CONTRACT_JSON = getCompiled("precompiles/proxy/Proxy");
 const PROXY_INTERFACE = new ethers.utils.Interface(PROXY_CONTRACT_JSON.contract.abi);
 
 export async function getMappingInfo(
@@ -63,7 +63,7 @@ describeDevMoonbeam("Proxy : Non transfer - Evm transfer", (context) => {
   it("should fail in simple evm transfer", async function () {
     const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
     const {
-      result: { events },
+      result: { events, hash },
     } = await context.createBlock(
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
@@ -73,6 +73,9 @@ describeDevMoonbeam("Proxy : Non transfer - Evm transfer", (context) => {
       })
     );
     expectEVMResult(events, "Revert");
+    const revertReason = await extractRevertReason(hash, context.ethers);
+    expect(revertReason).to.contain("CallFiltered");
+
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
     expect(afterCharlethBalance).to.be.eq(beforeCharlethBalance);
   });
