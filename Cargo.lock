@@ -5359,6 +5359,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-multisig",
  "pallet-parachain-staking",
  "pallet-preimage",
  "pallet-proxy",
