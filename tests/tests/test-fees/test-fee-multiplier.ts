@@ -450,4 +450,12 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
     const result = await context.createBlock(tx);
     await verifyLatestBlockFees(context);
   });
+
+  it("should be able to calculate entire fee including tip", async function () {
+    const tx = await context.polkadotApi.tx.balances
+      .transfer(alith.address, GLMR)
+      .signAsync(alith, { tip: 123 });
+    const result = await context.createBlock(tx);
+    await verifyLatestBlockFees(context);
+  });
 });

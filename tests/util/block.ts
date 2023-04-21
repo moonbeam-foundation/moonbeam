@@ -221,16 +221,23 @@ export const verifyBlockFees = async (
                 txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
+                console.log(`evaluating substrate fee: ${fee}`);
+                console.log(`    weight: ${fee.weight}`);
+                console.log(`    weight refTime: ${(fee.weight as any).refTime}`);
+                console.log(`wtf, event: ${event}`);
                 let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
                 txFees = fee.partialFee.toBigInt();
                 txBurnt += feePortions.burnt;
 
                 // verify entire substrate txn fee
-                // let apiAt = await context.polkadotApi.at(blockDetails.block.hash.toString());
-                let apiAt = await context.polkadotApi.at(previousBlockHash); // TODO: i think this is right because multiplier is updated in on_finalize
-                let lengthFee = (await apiAt.call.transactionPaymentApi.queryLengthToFee(dispatchInfo.encodedLength) as any).toBigInt();
+                let apiAt = await context.polkadotApi.at(previousBlockHash);
+                let lengthFee = (await apiAt.call.transactionPaymentApi.queryLengthToFee(extrinsic.encodedLength) as any).toBigInt();
 
-                let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee(dispatchInfo.weight) as any).toBigInt();
+                // let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee(dispatchInfo.weight) as any).toBigInt();
+                let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                  refTime: fee.weight,
+                  proofSize: 0n,
+                }) as any).toBigInt();
                 let multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
                 console.log(`multiplier: ${multiplier}`);
                 let denominator = 1_000_000_000_000_000_000n;
@@ -241,18 +248,25 @@ export const verifyBlockFees = async (
                   proofSize: 0n,
                 }) as any).toBigInt();
 
+                let tip = extrinsic.tip.toBigInt();
+
+                let expectedPartialFee = lengthFee + weightFee + baseFee + tip;
+
                 console.log(`fee calc:
-                    inclusion fee:
+                    expected fee:            ${fee.partialFee}
+                    calculated fee:          ${expectedPartialFee}
                         lengthFee:           ${lengthFee}
                         weightFee:           ${weightFee}
                         baseFee:             ${baseFee}
+                        tip:                 ${tip}
                     other:
                         unadjustedWeightFee: ${unadjustedWeightFee}
                         multiplier:          ${multiplier}
                         denominator:         ${denominator}
+                        weight (dispatch):   ${dispatchInfo.weight}
+                        weight (fee):        ${fee.weight}
                     `);
 
-                let expectedPartialFee = lengthFee + weightFee + baseFee;
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
 
               }
