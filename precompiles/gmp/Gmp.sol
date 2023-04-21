@@ -2,7 +2,7 @@
 pragma solidity >=0.8.3;
 
 /// @dev The Gmp contract's address.
-address constant GMP_ADDRESS = 0x0000000000000000000000000000000000000815;
+address constant GMP_ADDRESS = 0x0000000000000000000000000000000000000816;
 
 /// @dev The Gmp contract's instance.
 Gmp constant GMP_CONTRACT = Gmp(GMP_ADDRESS);

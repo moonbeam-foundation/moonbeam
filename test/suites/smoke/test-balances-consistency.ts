@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonsong-labs/moonwall-cli";
-import { extractPreimageDeposit, printTokens } from "@moonsong-labs/moonwall-util";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { extractPreimageDeposit, printTokens } from "@moonwall/util";
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
 import { u32 } from "@polkadot/types";
@@ -30,10 +30,10 @@ describeSuite({
 
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.getSubstrateApi().rpc.chain.getHeader()).number.toNumber();
+        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .getSubstrateApi()
-        .at(await context.getSubstrateApi().rpc.chain.getBlockHash(atBlockNumber));
+        .polkadotJs()
+        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
       runtimeName = apiAt.runtimeVersion.specName.toString();
 
@@ -411,7 +411,7 @@ describeSuite({
                       key // @ts-ignore-error
                     ) =>
                       `${key}: ${printTokens(
-                        context.getSubstrateApi(),
+                        context.polkadotJs(),
                         expectedReserveByAccount[accountId].reserved[key]
                       )}`
                   )
@@ -513,10 +513,9 @@ describeSuite({
             if (expectedLocks[key] > locks[key]) {
               failedLocks.push(
                 `${accountId} (lock ${key}: actual ${
-                  locks[key] && printTokens(context.getSubstrateApi(), locks[key])
+                  locks[key] && printTokens(context.polkadotJs(), locks[key])
                 } < expected: ${
-                  (expectedLocks[key] &&
-                    printTokens(context.getSubstrateApi(), expectedLocks[key])) ||
+                  (expectedLocks[key] && printTokens(context.polkadotJs(), expectedLocks[key])) ||
                   ""
                 })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
                   .map(

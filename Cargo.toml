@@ -39,6 +39,7 @@ members = [
 	"runtime/moonriver",
 	"runtime/summarize-precompile-checks",
 ]
+resolver = "2"
 
 [workspace.package]
 authors = ["PureStake"]
@@ -138,6 +139,7 @@ pallet-collective = { git = "https://github.com/purestake/substrate", branch = "
 pallet-conviction-voting = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-identity = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-multisig = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
