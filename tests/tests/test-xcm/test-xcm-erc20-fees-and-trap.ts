@@ -20,7 +20,7 @@ import {
   RawXcmMessage,
   sovereignAccountOfSibling,
   XcmFragment,
-  weightMessage
+  weightMessage,
 } from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
