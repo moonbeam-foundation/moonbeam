@@ -800,6 +800,13 @@
 <a href="#800" id="800">800</a>
 <a href="#801" id="801">801</a>
 <a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1222,10 +1229,17 @@
 							<span class="comment">// return false if author mapping not registered like in can_author impl
 							</span><span class="kw">return </span><span class="bool-val">false
 						</span>};
+						<span class="kw">let </span>candidates = pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::compute_top_candidates();
+						<span class="kw">if </span>candidates.is_empty() {
+							<span class="comment">// If there are zero selected candidates, we use the same eligibility
+							// as the previous round
+							</span><span class="kw">return </span>AuthorInherent::can_author(<span class="kw-2">&amp;</span>author, <span class="kw-2">&amp;</span>slot);
+						}
+
 						<span class="comment">// predict eligibility post-selection by computing selection results now
 						</span><span class="kw">let </span>(eligible, <span class="kw">_</span>) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::&lt;<span class="self">Self</span>&gt;(
-								pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::compute_top_candidates(),
+								candidates,
 								<span class="kw-2">&amp;</span>slot
 							);
 						eligible.contains(<span class="kw-2">&amp;</span>author_account_id)

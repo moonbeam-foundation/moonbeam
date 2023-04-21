@@ -2004,6 +2004,8 @@
 <a href="#2004" id="2004">2004</a>
 <a href="#2005" id="2005">2005</a>
 <a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3722,7 +3724,9 @@
 		}
 
 		<span class="doccomment">/// Compute the top `TotalSelected` candidates in the CandidatePool and return
-		/// a vec of their AccountIds (sorted by AccountId)
+		/// a vec of their AccountIds (sorted by AccountId).
+		///
+		/// If the returned vec is empty, the previous candidates should be used.
 		</span><span class="kw">pub fn </span>compute_top_candidates() -&gt; Vec&lt;T::AccountId&gt; {
 			<span class="kw">let </span>top_n = &lt;TotalSelected&lt;T&gt;&gt;::get() <span class="kw">as </span>usize;
 			<span class="kw">if </span>top_n == <span class="number">0 </span>{
