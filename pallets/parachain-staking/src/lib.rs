@@ -465,22 +465,25 @@ pub mod pallet {
 							// if the collator has not produced any block within
 							// MaxOfflineRounds e.g(3 rounds for Moonriver)
 							// it is marked as offline
-							let _ = T::MarkOfflineCallback::mark_offline(
+							let mark_offline_weight = T::MarkOfflineCallback::mark_offline(
 								collator.clone(),
 								round.current.saturating_sub(1),
 							);
-
+							weight = weight.saturating_add(mark_offline_weight);
 							len_counter = len_counter.saturating_sub(1);
 						} else {
 							<CandidateLastActive<T>>::insert(
 								&collator,
 								max_offline_counter.saturating_add(1),
 							);
+							weight = weight.saturating_add(T::DbWeight::get().writes(1));
 						}
 					} else {
 						// initialize storage
 						<CandidateLastActive<T>>::insert(&collator, 1);
+						weight = weight.saturating_add(T::DbWeight::get().writes(1));
 					}
+					weight = weight.saturating_add(T::DbWeight::get().reads(1));
 				}
 
 				// select top collator candidates for next round
@@ -499,7 +502,8 @@ pub mod pallet {
 					total_balance: total_staked,
 				});
 				// account for Round and Staked writes
-				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+				// account for SelectedCandidates and TotalSelected reads
+				weight = weight.saturating_add(T::DbWeight::get().reads_writes(2, 2));
 			} else {
 				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
@@ -2027,7 +2031,7 @@ pub mod pallet {
 			weight
 		}
 
-		pub fn do_go_offline(collator: T::AccountId) -> Result<(), Error<T>> {
+		pub fn do_go_offline(collator: T::AccountId) -> Result<Weight, Error<T>> {
 			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
 			state.go_offline();
@@ -2040,7 +2044,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateWentOffline {
 				candidate: collator,
 			});
-			Ok(())
+			Ok(T::DbWeight::get().reads_writes(2, 3))
 		}
 	}
 

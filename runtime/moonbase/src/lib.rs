@@ -683,11 +683,16 @@ impl pallet_parachain_staking::MarkOfflineCallback<Runtime> for CustomMarkOfflin
 	fn mark_offline(
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
-	) -> Result<(), pallet_parachain_staking::Error<Runtime>> {
-		if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
-			return ParachainStaking::do_go_offline(collator_id);
+	) -> Weight {
+		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+			ParachainStaking::do_go_offline(collator_id).unwrap_or_default()
+		}else{
+			Weight::zero()
 		};
-		Ok(())
+
+		<Runtime as frame_system::Config>::DbWeight::get()
+			.reads(1)
+			.saturating_add(extra_weight)
 	}
 }
 

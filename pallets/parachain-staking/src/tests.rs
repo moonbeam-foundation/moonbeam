@@ -10338,7 +10338,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2_637_230_483;
+			let expected_on_init = 3_312_230_483;
 			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -10355,9 +10355,11 @@ fn test_on_initialize_weights() {
 			)
 			.ref_time();
 			// Round and Staked writes, done in on-round-change code block inside on_initialize()
-			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
+			expected_weight += RocksDbWeight::get().reads_writes(2, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 3).ref_time();
+			// weight amount added due to the process of marking collators offline
+			expected_weight += 625_000_000;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
