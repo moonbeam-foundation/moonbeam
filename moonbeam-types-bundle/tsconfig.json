@@ -6,7 +6,8 @@
     "declaration": true,
     "outDir": "dist",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "moduleResolution": "node16"
   },
   "exclude": ["node_modules", "dist"]
 }

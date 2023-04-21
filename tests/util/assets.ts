@@ -10,8 +10,9 @@ import { DevTestContext } from "./setup-dev-tests";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import type { KeyringPair } from "@substrate/txwrapper-core";
+import { DUMMY_REVERT_BYTECODE } from "./constants";
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
-export const RELAY_V1_SOURCE_LOCATION = { V1: { parents: 1, interior: "Here" } };
+export const RELAY_V3_SOURCE_LOCATION = { V3: { parents: 1, interior: "Here" } } as any;
 export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
 };
@@ -82,15 +83,25 @@ export async function mockAssetBalance(
     ...blake2concatAccount,
   ]);
 
-  // Get keys to modify total supply
+  // Get keys to modify total supply & dummyCode (TODO: remove once dummy code inserted by node)
   let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
+  let evmCodeAssetKey = context.polkadotApi.query.evm.accountCodes.key(
+    "0xFfFFfFff" + assetId.toHex().slice(2)
+  );
+
   await context.createBlock(
     context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
           [u8aToHex(overallAccountKey), u8aToHex(assetBalance.toU8a())],
           [u8aToHex(overallAssetKey), u8aToHex(assetDetails.toU8a())],
+          [
+            evmCodeAssetKey,
+            `0x${((DUMMY_REVERT_BYTECODE.length - 2) * 2)
+              .toString(16)
+              .padStart(2)}${DUMMY_REVERT_BYTECODE.slice(2)}`,
+          ],
         ])
       )
       .signAsync(sudoAccount)

@@ -54,7 +54,10 @@ fn ethereum_runtime_rpc_api_account_basic() {
 #[test]
 fn ethereum_runtime_rpc_api_gas_price() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price().0);
+		assert_eq!(
+			Runtime::gas_price(),
+			TransactionPaymentAsGasPrice::min_gas_price().0
+		);
 	});
 }
 
@@ -186,7 +189,7 @@ fn ethereum_runtime_rpc_api_create() {
 #[test]
 fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
@@ -247,7 +250,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 #[test]
 fn ethereum_runtime_rpc_api_current_receipts() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()

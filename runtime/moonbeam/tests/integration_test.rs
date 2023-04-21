@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::{Context, FeeCalculator};
+use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -37,8 +37,9 @@ use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AccountId, Balances, CrowdloanRewards, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
+	AccountId, Balances, CouncilCollective, CrowdloanRewards, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
@@ -46,10 +47,11 @@ use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
+use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -72,8 +74,10 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 	IsLocal,
 	LocalAssetInstance,
 >;
-type XcmTransactorV1PCall =
-	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+type XcmTransactorV2PCall =
+	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
+
+const BASE_FEE_GENESIS: u128 = 10000 * GIGAWEI;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -251,6 +255,70 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
+	}
+}
+
+#[test]
+fn collective_set_members_root_origin_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert_ok!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TechCommitteeCollective
+		assert_ok!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+		// TreasuryCouncilCollective
+		assert_ok!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+	});
+}
+
+#[test]
+fn collective_set_members_signed_origin_does_not_work() {
+	let alice = AccountId::from(ALICE);
+	ExtBuilder::default().build().execute_with(|| {
+		// CouncilCollective
+		assert!(CouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![alice, AccountId::from(BOB)],
+			Some(alice),
+			2
+		)
+		.is_err());
+		// TechCommitteeCollective
+		assert!(TechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// TreasuryCouncilCollective
+		assert!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+	});
 }
 
 #[test]
@@ -345,14 +413,14 @@ fn verify_proxy_type_indices() {
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 200_000 * GLMR),
-			(AccountId::from(BOB), 200_000 * GLMR),
-			(AccountId::from(CHARLIE), 110_000 * GLMR),
-			(AccountId::from(DAVE), 100_000 * GLMR),
+			(AccountId::from(ALICE), 10_000_000 * GLMR),
+			(AccountId::from(BOB), 10_000_000 * GLMR),
+			(AccountId::from(CHARLIE), 10_000_000 * GLMR),
+			(AccountId::from(DAVE), 10_000_000 * GLMR),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 100_000 * GLMR),
-			(AccountId::from(BOB), 100_000 * GLMR),
+			(AccountId::from(ALICE), 2_000_000 * GLMR),
+			(AccountId::from(BOB), 2_000_000 * GLMR),
 		])
 		.with_delegations(vec![
 			(
@@ -367,7 +435,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
-					100_000 * GLMR,
+					2_000_000 * GLMR,
 					2u32
 				),
 				pallet_parachain_staking::Error::<Runtime>::CandidateExists
@@ -375,7 +443,7 @@ fn join_collator_candidates() {
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					100_000 * GLMR,
+					2_000_000 * GLMR,
 					2u32
 				),
 				pallet_parachain_staking::Error::<Runtime>::DelegatorExists
@@ -383,7 +451,7 @@ fn join_collator_candidates() {
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				100_000 * GLMR,
+				2_000_000 * GLMR,
 				2u32
 			));
 			assert_eq!(
@@ -391,32 +459,32 @@ fn join_collator_candidates() {
 				RuntimeEvent::ParachainStaking(
 					pallet_parachain_staking::Event::JoinedCollatorCandidates {
 						account: AccountId::from(DAVE),
-						amount_locked: 100_000 * GLMR,
-						new_total_amt_locked: 310_000 * GLMR
+						amount_locked: 2_000_000 * GLMR,
+						new_total_amt_locked: 6_010_000 * GLMR
 					}
 				)
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
-			assert_eq!(candidates.0[0].amount, 105_000 * GLMR);
+			assert_eq!(candidates.0[0].amount, 2_005_000 * GLMR);
 			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
-			assert_eq!(candidates.0[1].amount, 105_000 * GLMR);
+			assert_eq!(candidates.0[1].amount, 2_005_000 * GLMR);
 			assert_eq!(candidates.0[2].owner, AccountId::from(DAVE));
-			assert_eq!(candidates.0[2].amount, 100_000 * GLMR);
+			assert_eq!(candidates.0[2].amount, 2_000_000 * GLMR);
 		});
 }
 
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 200_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 10_000_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					100_000 * GLMR,
+					2_000_000 * GLMR,
 					2u32
 				),
 				DispatchError::Module(ModuleError {
@@ -425,22 +493,25 @@ fn transfer_through_evm_to_stake() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			// Alice transfer from free balance 200_000 GLMR to Bob
+			// Alice transfer from free balance 3_000_000 GLMR to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				200_000 * GLMR,
+				3_000_000 * GLMR,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 200_000 * GLMR);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(BOB)),
+				3_000_000 * GLMR
+			);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = (100 * GIGAWEI).into();
-			// Bob transfers 100_000 GLMR to Charlie via EVM
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
+			// Bob transfers 2_000_000 GLMR to Charlie via EVM
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
 				target: H160::from(CHARLIE),
 				input: vec![],
-				value: (100_000 * GLMR).into(),
+				value: (2_000_000 * GLMR).into(),
 				gas_limit,
 				max_fee_per_gas: gas_price,
 				max_priority_fee_per_gas: None,
@@ -450,18 +521,18 @@ fn transfer_through_evm_to_stake() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				100_000 * GLMR,
+				2_000_000 * GLMR,
 			);
 
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				100_000 * GLMR,
+				2_000_000 * GLMR,
 				2u32
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
-			assert_eq!(candidates.0[0].amount, 100_000 * GLMR);
+			assert_eq!(candidates.0[0].amount, 2_000_000 * GLMR);
 		});
 }
 
@@ -470,10 +541,10 @@ fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 10k extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 210_000 * GLMR),
-			(AccountId::from(BOB), 100_000 * GLMR),
+			(AccountId::from(ALICE), 10_010_000 * GLMR),
+			(AccountId::from(BOB), 10_000_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 2_000_000 * GLMR)])
 		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -492,21 +563,21 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				100_000 * GLMR,
+				8_000_000 * GLMR,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				50_000 * GLMR,
+				9_950_000 * GLMR,
 			);
 			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				111366666658400000000000,
+				8980978048702400000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				54133333329200000000000,
+				9969521950497200000000000,
 			);
 		});
 }
@@ -516,11 +587,11 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 10k extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 210_000 * GLMR),
-			(AccountId::from(BOB), 100_000 * GLMR),
-			(AccountId::from(CHARLIE), 100 * GLMR),
+			(AccountId::from(ALICE), 10_010_000 * GLMR),
+			(AccountId::from(BOB), 10_000_000 * GLMR),
+			(AccountId::from(CHARLIE), 10_000 * GLMR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 2_000_000 * GLMR)])
 		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
@@ -543,30 +614,30 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				100_000 * GLMR,
+				8_000_000 * GLMR,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				50_000 * GLMR,
+				9_950_000 * GLMR,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				100 * GLMR,
+				10_000 * GLMR,
 			);
 			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				108269333328165000000000,
+				8688492682878000000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				52584166664082500000000,
+				9962207316621500000000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				4751500000000000000000,
+				310300000000000000000000,
 			);
 		});
 }
@@ -855,7 +926,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -951,7 +1022,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 
 			// Assert precompile reports Charlie is a nominator
 			Precompiles::new()
@@ -964,7 +1035,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
 }
 
@@ -1036,12 +1107,7 @@ fn reward_info_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(
-					EvmDataWriter::new()
-						.write(expected_total)
-						.write(expected_claimed)
-						.build(),
-				);
+				.execute_returns((expected_total, expected_claimed));
 		})
 }
 
@@ -1101,7 +1167,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 100_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENESIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1221,6 +1287,46 @@ fn ethereum_invalid_transaction() {
 }
 
 #[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
+fn min_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+	use frame_support::traits::Hooks;
+
+	ExtBuilder::default().build().execute_with(|| {
+		pallet_transaction_payment::NextFeeMultiplier::<Runtime>::put(Multiplier::from(0));
+		TransactionPayment::on_finalize(System::block_number()); // should trigger min to kick in
+
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(1u128));
+
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(
+				125_000_000_000u128.into(),
+				Weight::from_ref_time(25_000_000u64)
+			)
+		);
+	});
+}
+
+#[test]
 fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1246,7 +1352,7 @@ fn transfer_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_000 * (100 * GIGAWEI))) + (1 * WEI),
+				((1 * GLMR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1259,8 +1365,8 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1276,7 +1382,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_777 * (100 * GIGAWEI))),
+				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -1289,8 +1395,8 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1298,7 +1404,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * (100 * GIGAWEI),
+				777 * BASE_FEE_GENESIS,
 			);
 		});
 }
@@ -1378,7 +1484,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
+			(1 * GLMR) + (21_000 * BASE_FEE_GENESIS),
 		)])
 		.build()
 		.execute_with(|| {
@@ -1390,8 +1496,8 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
-				max_priority_fee_per_gas: None,
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
+				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
@@ -1399,7 +1505,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 100 GWEI base fee.
-			let fee = ((100 * GIGAWEI) * 21_000) as f64;
+			let fee = (BASE_FEE_GENESIS * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -1433,7 +1539,7 @@ fn root_can_change_default_xcm_vers() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -1445,8 +1551,8 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-					WeightLimit::Limited(4000000000)
+					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1462,8 +1568,8 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
-				Box::new(xcm::VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(4000000000.into())
 			));
 		})
 }
@@ -1541,7 +1647,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -1554,7 +1660,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 		});
 }
 
@@ -1585,15 +1691,15 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure BOB has 400 GLMR
 			Precompiles::new()
@@ -1606,7 +1712,7 @@ fn asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -1637,15 +1743,15 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -1658,15 +1764,15 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure CHARLIE has 400 GLMR
 			Precompiles::new()
@@ -1679,7 +1785,7 @@ fn asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -1710,15 +1816,15 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13249)
+				.expect_cost(12787)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(1000 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(1_000 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert the asset has been minted
 			assert_eq!(LocalAssets::total_supply(0u128), 2_000 * GLMR);
@@ -1737,15 +1843,15 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13575)
+				.expect_cost(13016)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
-					EvmDataWriter::new().write(U256::from(500 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(500 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert the asset has been burnt
 			assert_eq!(LocalAssets::total_supply(0u128), 1_500 * GLMR);
@@ -1782,9 +1888,9 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7094)
+				.expect_cost(6699)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1801,9 +1907,9 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(7074)
+				.expect_cost(6713)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
@@ -1836,9 +1942,9 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5944)
+				.expect_cost(5548)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1853,9 +1959,9 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5964)
+				.expect_cost(5550)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
@@ -1890,9 +1996,9 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6973)
+				.expect_cost(6614)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// No clear way of testing BOB is new owner, other than doing a priviledged function
 			// e.g., transfer_ownership again
@@ -1932,9 +2038,9 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						issuer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5940)
+				.expect_cost(5577)
 				.expect_no_logs()
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
@@ -1998,7 +2104,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -2011,7 +2117,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(1000 * GLMR));
+				.execute_returns(U256::from(1000 * GLMR));
 		});
 }
 
@@ -2055,15 +2161,15 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24133)
+				.expect_cost(23497)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure BOB has 400 GLMR
 			Precompiles::new()
@@ -2076,7 +2182,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -2120,15 +2226,15 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14596)
+				.expect_cost(13862)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -2141,15 +2247,15 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29624)
+				.expect_cost(29021)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
-					EvmDataWriter::new().write(U256::from(400 * GLMR)).build(),
+					solidity::encode_event_data(U256::from(400 * GLMR)),
 				))
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 
 			// Make sure CHARLIE has 400 GLMR
 			Precompiles::new()
@@ -2162,7 +2268,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns_encoded(U256::from(400 * GLMR));
+				.execute_returns(U256::from(400 * GLMR));
 		});
 }
 
@@ -2203,7 +2309,7 @@ fn xtokens_precompile_transfer() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2222,7 +2328,7 @@ fn xtokens_precompile_transfer() {
 				)
 				.expect_cost(24000)
 				.expect_no_logs()
-				.execute_returns(vec![])
+				.execute_returns(())
 		})
 }
 
@@ -2253,7 +2359,7 @@ fn xtokens_precompile_transfer_multiasset() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -2274,7 +2380,7 @@ fn xtokens_precompile_transfer_multiasset() {
 				)
 				.expect_cost(24000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 		})
 }
 
@@ -2296,18 +2402,18 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
 			assert_ok!(XTokens::transfer_multiasset(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedMultiAsset::V1(MultiAsset {
+				Box::new(VersionedMultiAsset::V3(MultiAsset {
 					id: Concrete(moonbeam_runtime::xcm_config::SelfReserve::get()),
 					fun: Fungible(1000)
 				})),
-				Box::new(VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(40000)
+				Box::new(VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(40000.into())
 			));
 		});
 }
@@ -2330,7 +2436,7 @@ fn make_sure_glmr_can_be_transferred() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2338,8 +2444,8 @@ fn make_sure_glmr_can_be_transferred() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::SelfReserve,
 				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				WeightLimit::Limited(40000)
+				Box::new(VersionedMultiLocation::V3(dest)),
+				WeightLimit::Limited(40000.into())
 			));
 		});
 }
@@ -2361,7 +2467,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2373,9 +2479,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedMultiLocation::V1(dest.clone())),
-					beneficiary: Box::new(VersionedMultiLocation::V1(dest)),
-					assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+					dest: Box::new(VersionedMultiLocation::V3(dest.clone())),
+					beneficiary: Box::new(VersionedMultiLocation::V3(dest)),
+					assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2387,7 +2493,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 }
 
 #[test]
-fn transact_through_signed_precompile_not_enabled() {
+fn transact_through_signed_precompile_works_v2() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2403,168 +2509,70 @@ fn transact_through_signed_precompile_not_enabled() {
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
-			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+			let total_weight = 1_000_000_000u64;
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				Some(4000)
-			));
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1,
-			));
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
 
 			Precompiles::new()
 				.prepare_test(
 					ALICE,
-					xcm_transactor_v1_precompile_address,
-					XcmTransactorV1PCall::transact_through_signed_multilocation {
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
 						dest,
 						fee_asset: fee_payer_asset,
-						weight: 15000,
+						weight: 4_000_000,
 						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(19078)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					XcmTransactorV2PCall::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
 					},
 				)
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("CallFiltered")
+						&& from_utf8(&output).unwrap().contains("ErrorValidating")
 				});
 		});
-}
-
-#[test]
-fn transact_through_signed_mult_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
-}
-
-#[test]
-fn transact_through_signed_not_enabled() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
-
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
-
-			assert_noop!(
-				RuntimeCall::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
 }
 
 #[test]
@@ -2598,17 +2606,17 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
+				3000.into(),
+				20000.into(),
 				None
 			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1,
 			));
 
@@ -2619,14 +2627,14 @@ fn transactor_cannot_use_more_than_max_weight() {
 					0,
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
-							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
 						)),
 						fee_amount: None
 					},
 					vec![],
 					// 2000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2644,7 +2652,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001,
+						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
 					}
 				),
@@ -2678,7 +2686,7 @@ fn call_xtokens_with_fee() {
 			let dest = MultiLocation {
 				parents: 1,
 				interior: X1(AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			};
@@ -2692,8 +2700,8 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-				WeightLimit::Limited(4000000000)
+				Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+				WeightLimit::Limited(4000000000.into())
 			));
 
 			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
@@ -2721,11 +2729,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address_parent))
-					.build(),
-			);
+			.execute_returns(Address(expected_address_parent));
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
@@ -2745,18 +2749,14 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(Address(expected_address_parachain))
-					.build(),
-			);
+			.execute_returns(Address(expected_address_parachain));
 
 		let alice_in_parachain_2000_multilocation = MultiLocation::new(
 			1,
 			X2(
 				Parachain(2000),
 				AccountKey20 {
-					network: Any,
+					network: None,
 					key: ALICE,
 				},
 			),
@@ -2781,9 +2781,9 @@ fn test_xcm_utils_ml_to_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
+		let expected_weight = UnitWeightCost::get().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2793,7 +2793,7 @@ fn test_xcm_utils_weight_message() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_weight).build());
+			.execute_returns(expected_weight);
 	});
 }
 
@@ -2812,7 +2812,7 @@ fn test_xcm_utils_get_units_per_second() {
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(expected_units).build());
+			.execute_returns(expected_units);
 	});
 }
 
@@ -2821,8 +2821,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2059, 2060, 2062, 2063, 2064, 2067,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2067, 2069,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2879,12 +2879,36 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
+fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonbeam_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
+		let precompiles = Precompiles::new();
+		let removed_precompiles = [1025];
+
+		for i in 1..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if !precompiles.is_precompile(address) {
+				continue;
+			}
+
+			if !removed_precompiles.contains(&i) {
+				assert!(
+					precompiles.is_active_precompile(address),
+					"{i} should be an active precompile"
+				);
+				continue;
+			}
+
+			assert!(
+				!precompiles.is_active_precompile(address),
+				"{i} shouldn't be an active precompile"
+			);
+
+			precompiles
+				.prepare_test(Alice, address, [])
+				.execute_reverts(|out| out == b"Removed precompile");
+		}
+	})
 }
 
 #[test]
@@ -2910,7 +2934,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2949,7 +2973,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_fee_per_gas: BASE_FEE_GENESIS.into(),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),

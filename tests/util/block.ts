@@ -58,34 +58,6 @@ export interface BlockDetails {
   txWithEvents: TxWithEventAndFee[];
 }
 
-export function mapExtrinsics(
-  extrinsics: Extrinsic[],
-  records: FrameSystemEventRecord[],
-  fees?: RuntimeDispatchInfo[] | RuntimeDispatchInfoV1[]
-): TxWithEventAndFee[] {
-  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
-    let dispatchError: DispatchError | undefined;
-    let dispatchInfo: DispatchInfo | undefined;
-
-    const events = records
-      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-      .map(({ event }) => {
-        if (event.section === "system") {
-          if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as any as DispatchInfo;
-          } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as any as DispatchError;
-            dispatchInfo = event.data[1] as any as DispatchInfo;
-          }
-        }
-
-        return event as any;
-      });
-
-    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
-  });
-}
-
 const getBlockDetails = async (
   api: ApiPromise,
   blockHash: BlockHash | string | any
@@ -402,6 +374,17 @@ export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
   };
 };
 
+// Determine if the block range intersects with an upgrade event
+export const checkTimeSliceForUpgrades = async (
+  api: ApiPromise,
+  blockNumbers: number[],
+  currentVersion: u32
+) => {
+  const apiAt = await api.at(await api.rpc.chain.getBlockHash(blockNumbers[0]));
+  const onChainRt = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion;
+  return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
+};
+
 const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
   const hash = await api.rpc.chain.getBlockHash(blockNum);
   const block = await api.rpc.chain.getBlock(hash);
@@ -488,14 +471,47 @@ export function extractPreimageDeposit(
       }
 ) {
   const deposit = "deposit" in request ? request.deposit : request;
-  if ("isSome" in deposit) {
+  if ("isSome" in deposit && deposit.isSome) {
     return {
       accountId: deposit.unwrap()[0].toHex(),
       amount: deposit.unwrap()[1],
     };
   }
+
+  if (deposit.isEmpty) {
+    return { accountId: "", amount: 0n };
+  }
+
   return {
     accountId: deposit[0].toHex(),
     amount: deposit[1],
   };
+}
+
+export function mapExtrinsics(
+  extrinsics: Extrinsic[],
+  records: FrameSystemEventRecord[],
+  fees?: RuntimeDispatchInfo[] | RuntimeDispatchInfoV1[]
+): TxWithEventAndFee[] {
+  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
+    let dispatchError: DispatchError | undefined;
+    let dispatchInfo: DispatchInfo | undefined;
+
+    const events = records
+      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+      .map(({ event }) => {
+        if (event.section === "system") {
+          if (event.method === "ExtrinsicSuccess") {
+            dispatchInfo = event.data[0] as any as DispatchInfo;
+          } else if (event.method === "ExtrinsicFailed") {
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
+          }
+        }
+
+        return event as any;
+      });
+
+    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
+  });
 }

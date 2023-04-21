@@ -65,9 +65,9 @@ pub fn log_proposed(
 		address.into(),
 		SELECTOR_LOG_PROPOSED,
 		who.into(),
-		H256::from_slice(&EvmDataWriter::new().write(index).build()),
+		H256::from_slice(&solidity::encode_arguments(index)),
 		hash,
-		EvmDataWriter::new().write(threshold).build(),
+		solidity::encode_arguments(threshold),
 	)
 }
 
@@ -77,7 +77,7 @@ pub fn log_voted(address: impl Into<H160>, who: impl Into<H160>, hash: H256, vot
 		SELECTOR_LOG_VOTED,
 		who.into(),
 		hash,
-		EvmDataWriter::new().write(voted).build(),
+		solidity::encode_arguments(voted),
 	)
 }
 
@@ -255,7 +255,10 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
+				proposal_weight_bound: Weight::from_parts(
+					proposal_weight_bound,
+					xcm_primitives::DEFAULT_PROOF_SIZE,
+				),
 				length_bound,
 			},
 		)?;

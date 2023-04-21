@@ -90,8 +90,8 @@ impl Precompile {
 			let modifier = syn::Ident::new(modifier, span);
 
 			quote!(
-				use ::precompile_utils::modifier::FunctionModifier;
-				use ::precompile_utils::handle::PrecompileHandleExt;
+				use ::precompile_utils::solidity::modifier::FunctionModifier;
+				use ::precompile_utils::evm::handle::PrecompileHandleExt;
 				handle.check_function_modifier(FunctionModifier::#modifier)?;
 			)
 		});
@@ -108,7 +108,7 @@ impl Precompile {
 				fn #fn_parse(
 					handle: &mut impl PrecompileHandle
 				) -> ::precompile_utils::EvmResult<Self> {
-					use ::precompile_utils::revert::InjectBacktrace;
+					use ::precompile_utils::solidity::revert::InjectBacktrace;
 
 					#modifier_check
 					#variant_parsing
@@ -118,7 +118,7 @@ impl Precompile {
 	}
 
 	/// Generates the parsing code for a variant, reading the input from the handle and
-	/// parsing it using EvmDataReader.
+	/// parsing it using Reader.
 	fn expand_variant_parsing_from_handle(
 		variant_ident: &syn::Ident,
 		variant: &Variant,
@@ -218,7 +218,7 @@ impl Precompile {
 				)*
 
 				pub fn encode(self) -> ::sp_std::vec::Vec<u8> {
-					use ::precompile_utils::EvmDataWriter;
+					use ::precompile_utils::solidity::codec::Writer;
 					match self {
 						#(
 							Self::#variants_ident2 { #(#variants_list),* } => {
@@ -271,11 +271,11 @@ impl Precompile {
 					.map(|_| quote!(discriminant,));
 
 				let write_output = quote_spanned!(output_span=>
-					::precompile_utils::data::encode_as_function_return_value(output?)
+					::precompile_utils::solidity::encode_return_value(output?)
 				);
 
 				quote!(
-					use ::precompile_utils::EvmDataWriter;
+					use ::precompile_utils::solidity;
 					let output = <#impl_type>::#variant_ident(
 						#opt_discriminant_arg
 						handle,
@@ -291,7 +291,7 @@ impl Precompile {
 				#opt_discriminant_arg
 				handle: &mut impl PrecompileHandle
 			) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
-				use ::precompile_utils::data::EvmDataWriter;
+				use ::precompile_utils::solidity::codec::Writer;
 				use ::fp_evm::{PrecompileOutput, ExitSucceed};
 
 				let output = match self {
@@ -322,7 +322,7 @@ impl Precompile {
 				});
 
 				quote!(
-					EvmDataWriter::new_with_selector(#selector)
+					Writer::new_with_selector(#selector)
 					#(#write_arguments)*
 					.build()
 				)
@@ -357,7 +357,7 @@ impl Precompile {
 			pub fn parse_call_data(
 				handle: &mut impl PrecompileHandle
 			) -> ::precompile_utils::EvmResult<Self> {
-				use ::precompile_utils::revert::RevertReason;
+				use ::precompile_utils::solidity::revert::RevertReason;
 
 				let input = handle.input();
 
@@ -463,7 +463,7 @@ impl Precompile {
 				quote_spanned!(span=>
 					assert_eq!(
 						#solidity,
-						<(#(#types,)*) as EvmData>::solidity_type(),
+						<(#(#types,)*) as Codec>::signature(),
 						"{} function signature doesn't match (left: attribute, right: computed \
 						from Rust types)",
 						#name
@@ -481,7 +481,7 @@ impl Precompile {
 			quote!(
 				#[allow(non_snake_case)]
 				pub(crate) fn #inner_name #impl_generics () #where_clause {
-					use ::precompile_utils::data::EvmData;
+					use ::precompile_utils::solidity::Codec;
 					#(#variant_test)*
 				}
 
@@ -496,7 +496,7 @@ impl Precompile {
 			quote!(
 				#[allow(non_snake_case)]
 				pub(crate) fn #inner_name() {
-					use ::precompile_utils::data::EvmData;
+					use ::precompile_utils::solidity::Codec;
 					#(#variant_test)*
 				}
 

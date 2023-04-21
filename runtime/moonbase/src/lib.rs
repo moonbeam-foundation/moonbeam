@@ -145,7 +145,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -179,7 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 2300,
+	spec_version: 2400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -479,6 +479,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -1269,6 +1270,24 @@ impl pallet_randomness::Config for Runtime {
 
 impl pallet_root_testing::Config for Runtime {}
 
+parameter_types! {
+	// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
+	pub const DepositBase: Balance = currency::deposit(1, 76);
+	// Additional storage item size of 32 bytes.
+	pub const DepositFactor: Balance = currency::deposit(0, 20);
+	pub const MaxSignatories: u32 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1327,6 +1346,7 @@ construct_runtime! {
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 	}
 }
 
@@ -1339,6 +1359,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
+	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
@@ -1416,7 +1437,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
 							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.6;
+							let charge_transaction = &signed_extra.7;
 							charge_transaction.tip()
 						}
 					};

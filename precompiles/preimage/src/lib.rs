@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
@@ -70,7 +69,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_NOTED,
-			EvmDataWriter::new().write::<H256>(hash.into()).build(),
+			solidity::encode_arguments(H256::from(hash)),
 		);
 		handle.record_log_costs(&[&event])?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -92,7 +91,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_UNNOTED,
-			EvmDataWriter::new().write::<H256>(hash).build(),
+			solidity::encode_arguments(H256::from(hash)),
 		);
 		handle.record_log_costs(&[&event])?;
 

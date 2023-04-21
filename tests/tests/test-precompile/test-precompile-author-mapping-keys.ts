@@ -15,7 +15,7 @@ import {
 } from "../../util/transactions";
 
 const debug = require("debug")("test-precompile:author-mapping");
-const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
+const AUTHOR_MAPPING_CONTRACT = getCompiled("precompiles/author-mapping/AuthorMapping");
 const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);
 
 // Keys used to set author-mapping in the tests

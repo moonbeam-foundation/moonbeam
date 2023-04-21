@@ -140,7 +140,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -174,7 +174,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2300,
+	spec_version: 2400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -469,6 +469,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
+	type OnCreate = ();
 }
 
 parameter_types! {
@@ -685,9 +686,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 1000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCollatorStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 500 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -1048,11 +1049,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
-			// We filter for now transact through signed
-			RuntimeCall::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
-				_ => true,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
@@ -1351,6 +1347,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
+	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
@@ -1426,7 +1423,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						None => 0,
 						Some((_, _, ref signed_extra)) => {
 							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.6;
+							let charge_transaction = &signed_extra.7;
 							charge_transaction.tip()
 						}
 					};
@@ -1585,11 +1582,11 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(1 * KILOMOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(500 * MOVR)
+			Balance::from(10 * KILOMOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

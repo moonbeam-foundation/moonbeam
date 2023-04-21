@@ -30,7 +30,7 @@ where
 		MultiLocation {
 			parents: 0,
 			interior: X1(AccountKey20 {
-				network: NetworkId::Any,
+				network: None,
 				key: account.into(),
 			}),
 		}
@@ -52,7 +52,7 @@ where
 		o.try_with_caller(|caller| match caller.try_into() {
 			Ok(frame_system::RawOrigin::Signed(who)) => Ok(AccountKey20 {
 				key: who.into(),
-				network: Network::get(),
+				network: Some(Network::get()),
 			}
 			.into()),
 			Ok(other) => Err(other.into()),

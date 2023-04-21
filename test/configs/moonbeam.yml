@@ -1,0 +1,20 @@
+endpoint: wss://wss.api.moonbeam.network
+mock-signature-host: true
+db: ./tmp/db_mb.sqlite
+# block: 3280099
+
+import-storage:
+  System:
+    Account:
+      - - - "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+        - data:
+            free: "100000000000000000000000"
+  TechCommitteeCollective:
+    Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]
+  CouncilCollective:
+    Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]
+  TreasuryCouncilCollective:
+    Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]
+  AuthorFilter:
+    EligibleRatio: 100
+    EligibleCount: 100

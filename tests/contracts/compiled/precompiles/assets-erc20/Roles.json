@@ -1,0 +1,106 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "freezer",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "issuer",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0xFFFFFFFE + hex(assetId)",
+      "details": "Extension of the ERC20 interface that allows users to get the account capable of fulfilling different asset roles",
+      "kind": "dev",
+      "methods": {
+        "admin()": {
+          "custom:selector": "f851a440",
+          "details": "Function to check the admin of the assetAdmin: the account that can unfreeze and force transfer",
+          "returns": { "_0": "the address of the admin." }
+        },
+        "freezer()": {
+          "custom:selector": "92716054",
+          "details": "Function to check the freezer of the assetFreezer: the account that can freeze an asset",
+          "returns": { "_0": "the address of the freezer." }
+        },
+        "issuer()": {
+          "custom:selector": "1d143848",
+          "details": "Function to check the issuer of the assetIssuer: the account that can issue tokens for an asset",
+          "returns": { "_0": "the address of the issuer." }
+        },
+        "owner()": {
+          "custom:selector": "8da5cb5b",
+          "details": "Function to check the owner of the asset",
+          "returns": { "_0": "the address of the owner." }
+        }
+      },
+      "title": "ERC20 interface Asset Roles",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "admin()": "f851a440",
+        "freezer()": "92716054",
+        "issuer()": "1d143848",
+        "owner()": "8da5cb5b"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"freezer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"issuer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0xFFFFFFFE + hex(assetId)\",\"details\":\"Extension of the ERC20 interface that allows users to get the account capable of fulfilling different asset roles\",\"kind\":\"dev\",\"methods\":{\"admin()\":{\"custom:selector\":\"f851a440\",\"details\":\"Function to check the admin of the assetAdmin: the account that can unfreeze and force transfer\",\"returns\":{\"_0\":\"the address of the admin.\"}},\"freezer()\":{\"custom:selector\":\"92716054\",\"details\":\"Function to check the freezer of the assetFreezer: the account that can freeze an asset\",\"returns\":{\"_0\":\"the address of the freezer.\"}},\"issuer()\":{\"custom:selector\":\"1d143848\",\"details\":\"Function to check the issuer of the assetIssuer: the account that can issue tokens for an asset\",\"returns\":{\"_0\":\"the address of the issuer.\"}},\"owner()\":{\"custom:selector\":\"8da5cb5b\",\"details\":\"Function to check the owner of the asset\",\"returns\":{\"_0\":\"the address of the owner.\"}}},\"title\":\"ERC20 interface Asset Roles\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Roles.sol\":\"Roles\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Roles.sol\":{\"keccak256\":\"0x63dd5a22e0dcbc98935e7ba2b3a5d4533cdbaf08d29f208495b4226f5e686356\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://9b57d41f0b711dc42f7418a736c1971ce44c474ad8b50536021b74dcff9dc139\",\"dweb:/ipfs/QmZF4xsrQwbPnJUuTLknCxvhfb2utTU1R6w46ivwMeWZye\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title ERC20 interface Asset Roles\n/// @dev Extension of the ERC20 interface that allows users to get the account capable of fulfilling different asset roles\n/// @custom:address 0xFFFFFFFE + hex(assetId)\ninterface Roles {\n    /// @dev Function to check the owner of the asset\n    /// @custom:selector 8da5cb5b\n    /// @return the address of the owner.\n    function owner()\n        external\n        view\n        returns (address);\n\n    /// @dev Function to check the freezer of the asset\n    /// @dev Freezer: the account that can freeze an asset\n    /// @custom:selector 92716054\n    /// @return the address of the freezer.\n    function freezer()\n        external\n        view\n        returns (address);\n\n    /// @dev Function to check the issuer of the asset\n    /// @dev Issuer: the account that can issue tokens for an asset\n    /// @custom:selector 1d143848\n    /// @return the address of the issuer.\n    function issuer()\n        external\n        view\n        returns (address);\n\n    /// @dev Function to check the admin of the asset\n    /// @dev Admin: the account that can unfreeze and force transfer\n    /// @custom:selector f851a440\n    /// @return the address of the admin.\n    function admin()\n        external\n        view\n        returns (address);\n}\n"
+}

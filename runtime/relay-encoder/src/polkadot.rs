@@ -17,7 +17,7 @@
 // We want to avoid including the rococo-runtime here.
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
-use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
+use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
@@ -82,6 +82,8 @@ pub enum HrmpCall {
 	AcceptOpenChannel(ParaId),
 	#[codec(index = 2u8)]
 	CloseChannel(HrmpChannelId),
+	#[codec(index = 6u8)]
+	CancelOpenRequest(HrmpChannelId, u32),
 }
 
 pub struct PolkadotEncoder;
@@ -114,6 +116,9 @@ impl xcm_primitives::HrmpEncodeCall for PolkadotEncoder {
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
 			}
 		}
 	}
@@ -545,6 +550,42 @@ mod tests {
 					sender: 1000u32.into(),
 					recipient: 1001u32.into()
 				})
+			),
+			Ok(expected_encoded)
+		);
+	}
+
+	#[test]
+	fn test_hrmp_cancel() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+
+		let index = <polkadot_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			polkadot_runtime::Hrmp,
+		>()
+		.unwrap() as u8;
+		expected_encoded.push(index);
+
+		let channel_id = HrmpChannelId {
+			sender: 1u32.into(),
+			recipient: 1u32.into(),
+		};
+		let open_requests: u32 = 1;
+
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			polkadot_runtime::Runtime
+		>::hrmp_cancel_open_request {
+			channel_id: channel_id.clone(),
+			open_requests
+		}
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<PolkadotEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
+				xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
+					channel_id.clone(),
+					open_requests
+				)
 			),
 			Ok(expected_encoded)
 		);

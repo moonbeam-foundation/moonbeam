@@ -18,7 +18,6 @@ use crate::mock::{
 	AccountId, ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin,
 };
-use evm::{ExitReason, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
@@ -191,7 +190,7 @@ fn test_add_proxy_succeeds() {
 						delay: 1,
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyAdded {
 				delegator: Alice.into(),
 				delegatee: Bob.into(),
@@ -281,7 +280,7 @@ fn test_remove_proxy_succeeds() {
 						delay: 0,
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyRemoved {
 				delegator: Alice.into(),
 				delegatee: Bob.into(),
@@ -315,7 +314,7 @@ fn test_remove_proxies_succeeds() {
 
 			PrecompilesValue::get()
 				.prepare_test(Alice, Precompile1, PCall::remove_proxies {})
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
@@ -330,7 +329,7 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 		.execute_with(|| {
 			PrecompilesValue::get()
 				.prepare_test(Alice, Precompile1, PCall::remove_proxies {})
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
@@ -395,7 +394,7 @@ fn test_proxy_fails_if_call_filtered() {
 						delay: 0,
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			// Trying to use delayed proxy without any announcement
 			PrecompilesValue::get()
@@ -429,7 +428,7 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 						delay: 0,
 					},
 				)
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		})
 }
 
@@ -457,7 +456,7 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 						delay: 0,
 					},
 				)
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		})
 }
 
@@ -485,7 +484,7 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 						delay: 0,
 					},
 				)
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		})
 }
 
@@ -513,33 +512,8 @@ fn test_is_proxy_returns_true_if_proxy() {
 						delay: 1,
 					},
 				)
-				.execute_returns_encoded(true);
+				.execute_returns(true);
 		})
-}
-
-#[test]
-fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Proxy.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
 }
 
 #[test]
@@ -639,7 +613,7 @@ fn succeed_if_called_by_precompile() {
 						delay: 1,
 					},
 				)
-				.execute_returns(vec![]);
+				.execute_returns(());
 		})
 }
 
@@ -663,7 +637,7 @@ fn succeed_if_is_proxy_called_by_smart_contract() {
 						delay: 1,
 					},
 				)
-				.execute_returns_encoded(false);
+				.execute_returns(false);
 		})
 }
 
@@ -774,17 +748,91 @@ fn proxy_proxy_should_succeed_if_called_by_smart_contract() {
 					inside2.set(true);
 
 					SubcallOutput {
-						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
 					}
 				})
-				.execute_returns_encoded(());
+				.execute_returns(());
 
 			// Ensure that the subcall was actually called.
 			// proxy.proxy does not propagate the return value, so we cannot check for the return
 			// value "TEST"
 			assert!(inside.get(), "subcall not called");
 		})
+}
+
+#[test]
+fn proxy_proxy_should_fail_if_called_by_smart_contract_for_a_non_eoa_account() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AddressU64::<1>::get().into(), 1000),
+			(Bob.into(), 1000),
+		])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice & Bob addresses as if they are smart contracts.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Bob), vec![10u8]);
+
+			// Bob allows Alice to make calls on his behalf
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Alice.into(),
+				proxy_type: ProxyType::Any,
+				delay: 0,
+			})
+			.dispatch(RuntimeOrigin::signed(Bob.into())));
+
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
+			// The smart contract calls proxy.proxy to call address Charlie as if it was Bob
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Bob.into()),
+						call_to: Address(Charlie.into()),
+						call_data: BoundedBytes::from([1]),
+					},
+				)
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, Bob.into());
+					assert_eq!(address, Charlie.into());
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(context.address, Charlie.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input, &[1]);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: b"TEST".to_vec(),
+						cost: 13,
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
+						..SubcallOutput::succeed()
+					}
+				})
+				.execute_reverts(|output| output == b"real address must be EOA");
+		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	check_precompile_implements_solidity_interfaces(&["Proxy.sol"], PCall::supports_selector)
 }

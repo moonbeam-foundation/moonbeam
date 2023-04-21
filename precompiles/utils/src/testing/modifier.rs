@@ -16,8 +16,8 @@
 
 use {
 	crate::{
+		solidity::codec::Writer,
 		testing::{decode_revert_message, MockHandle},
-		EvmDataWriter,
 	},
 	fp_evm::{Context, PrecompileFailure, PrecompileSet},
 	sp_core::{H160, U256},
@@ -53,7 +53,7 @@ impl<P: PrecompileSet> PrecompilesModifierTester<P> {
 		let handle = &mut self.handle;
 		handle.is_static = true;
 		handle.context.apparent_value = U256::zero();
-		handle.input = EvmDataWriter::new_with_selector(selector).build();
+		handle.input = Writer::new_with_selector(selector).build();
 
 		let res = self.precompiles.execute(handle);
 
@@ -73,7 +73,7 @@ impl<P: PrecompileSet> PrecompilesModifierTester<P> {
 		let handle = &mut self.handle;
 		handle.is_static = false;
 		handle.context.apparent_value = U256::one();
-		handle.input = EvmDataWriter::new_with_selector(selector).build();
+		handle.input = Writer::new_with_selector(selector).build();
 
 		let res = self.precompiles.execute(handle);
 
