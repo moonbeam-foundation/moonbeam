@@ -15,7 +15,6 @@ import {
   createTransaction,
   setupErc20Contract,
   ERC20_TOTAL_SUPPLY,
-  getBalance,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
 import {
@@ -79,8 +78,8 @@ describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // Fees should have been spent
-    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
-      (await getBalance(context, 1, ALITH_ADDRESS)) - fees
+    expect(BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS, 2))).to.equal(
+      BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS, 1)) - fees
     );
 
     // Erc20 tokens should have been spent

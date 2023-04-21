@@ -13,7 +13,6 @@ import {
   ALITH_TRANSACTION_TEMPLATE,
   createTransaction,
   setupErc20Contract,
-  getBalance,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
 import {
@@ -21,6 +20,7 @@ import {
   RawXcmMessage,
   sovereignAccountOfSibling,
   XcmFragment,
+  weightMessage
 } from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
@@ -188,6 +188,8 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
       ).result
     ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
 
+    const feeAssetAmount = 1_000_000_000_000_000n;
+
     // Create xcm message to send ERC20 tokens to Charleth
     const config = {
       assets: [
@@ -198,7 +200,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-          fungible: 1_000_000_000_000_000n,
+          fungible: feeAssetAmount,
         },
         {
           multilocation: {
@@ -238,7 +240,15 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     } as RawXcmMessage);
     await context.createBlock();
 
-    const amountOfTrappedAssets = 876_639_200_000_000n;
+    const chargedWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
+    );
+    // We are charging chargedWeight
+    // chargedWeight * 50000 = chargedFee
+    const chargedFee = chargedWeight * 50000n;
+
+    const amountOfTrappedAssets = feeAssetAmount - chargedFee;
     const claimConfig = {
       assets: [
         {
@@ -274,12 +284,18 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     );
     expect(events).to.have.lengthOf(1);
 
-    const feePaidForClaimingAssets = 30_962_750_000_000n;
+    const chargedWeightForClaim = await weightMessage(
+      context,
+      context.polkadotApi.createType("XcmVersionedXcm", xcmMessageToClaimAssets) as any
+    );
+    // We are charging chargedWeightForClaim
+    // chargedWeightForClaim * 50000 = chargedFeeForClaim
+    const chargedFeeForClaim = chargedWeightForClaim * 50000n;
 
     // Check the balance is correct
-    expect(await getBalance(context, 5, paraSovereign)).to.equal(
-      (await getBalance(context, 4, paraSovereign)) +
-        (amountOfTrappedAssets - feePaidForClaimingAssets)
+    expect(BigInt(await context.web3.eth.getBalance(paraSovereign, 5))).to.equal(
+      BigInt(await context.web3.eth.getBalance(paraSovereign, 4)) +
+        (amountOfTrappedAssets - chargedFeeForClaim)
     );
 
     // Mock again the reception of the initial xcm message
