@@ -724,6 +724,7 @@ pub fn run() -> Result<()> {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
+				let collator_options = cli.run.collator_options();
 
 				let rpc_config = RpcConfig {
 					ethapi: cli.run.ethapi,
@@ -752,6 +753,17 @@ pub fn run() -> Result<()> {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
+					let polkadot_cli = RelayChainCli::new(
+						&config,
+						[RelayChainCli::executable_name().to_string()]
+							.iter()
+							.chain(cli.relaychain_args.iter()),
+					);
+					let polkadot_config = SubstrateCli::create_configuration(
+						&polkadot_cli,
+						&polkadot_cli,
+						config.tokio_handle.clone(),
+					)?;
 
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
@@ -762,19 +774,49 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							polkadot_config,
+							collator_options,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+							id,
+						)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							polkadot_config,
+							collator_options,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+							id,
+						)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							polkadot_config,
+							collator_options,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+							id,
+						)
+						.await
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),

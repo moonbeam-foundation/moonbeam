@@ -26,7 +26,6 @@ pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
-use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -53,13 +52,11 @@ pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
-use sc_client_api::BlockBackend;
 use sc_client_api::ExecutorProvider;
 use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
-use sc_service::WarpSyncParams;
 use sc_service::{
 	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
@@ -79,8 +76,7 @@ mod client;
 type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
-type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-type MaybeSelectChain = Option<FullSelectChain>;
+type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
@@ -386,17 +382,6 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<TelemetryWorkerHandle>,
 			Arc<fc_db::Backend<Block>>,
 			FeeHistoryCache,
-			sc_consensus_grandpa::GrandpaBlockImport<
-				FullBackend,
-				Block,
-				FullClient<RuntimeApi, Executor>,
-				FullSelectChain,
-			>,
-			sc_consensus_grandpa::LinkHalf<
-				Block,
-				FullClient<RuntimeApi, Executor>,
-				FullSelectChain,
-			>,
 		),
 	>,
 	ServiceError,
@@ -458,9 +443,8 @@ where
 		telemetry
 	});
 
-	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 	let maybe_select_chain = if dev_service {
-		Some(select_chain.clone())
+		Some(sc_consensus::LongestChain::new(backend.clone()))
 	} else {
 		None
 	};
@@ -495,13 +479,6 @@ where
 		!dev_service,
 	)?;
 
-	let (grandpa_block_import, grandpa_link) = sc_consensus_grandpa::block_import(
-		client.clone(),
-		&(client.clone() as Arc<_>),
-		select_chain.clone(),
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-
 	Ok(PartialComponents {
 		backend,
 		client,
@@ -517,8 +494,6 @@ where
 			telemetry_worker_handle,
 			frontier_backend,
 			fee_history_cache,
-			grandpa_block_import,
-			grandpa_link,
 		),
 	})
 }
@@ -602,8 +577,6 @@ where
 		telemetry_worker_handle,
 		frontier_backend,
 		fee_history_cache,
-		_grandpa_block_import,
-		grandpa_link,
 	) = params.other;
 
 	let client = params.client.clone();
@@ -621,45 +594,22 @@ where
 	.await
 	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
-	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
-	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
-		&client
-			.block_hash(0)
-			.ok()
-			.flatten()
-			.expect("Genesis block exists; qed"),
-		&parachain_config.chain_spec,
-	);
-
-	parachain_config
-		.network
-		.extra_sets
-		.push(sc_consensus_grandpa::grandpa_peers_set_config(
-			grandpa_protocol_name.clone(),
-		));
-	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
-		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
-		Vec::default(),
-	));
-
 	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &parachain_config,
+		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
+			parachain_config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			block_announce_validator_builder: Some(Box::new(|_| {
-				Box::new(block_announce_validator)
-			})),
-			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
-		})?;
+			para_id: id,
+			relay_chain_interface: relay_chain_interface.clone(),
+		})
+		.await?;
 
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
@@ -951,12 +901,15 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub fn new_dev<RuntimeApi, Executor>(
+pub async fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
+	polkadot_config: Configuration,
+	collator_options: CollatorOptions,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	para_id: ParaId,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -983,45 +936,35 @@ where
 				block_import,
 				filter_pool,
 				mut telemetry,
-				_telemetry_worker_handle,
+				telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
-				_grandpa_block_import,
-				grandpa_link,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
-	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
-		&client
-			.block_hash(0)
-			.ok()
-			.flatten()
-			.expect("Genesis block exists; qed"),
-		&config.chain_spec,
-	);
-
-	config
-		.network
-		.extra_sets
-		.push(sc_consensus_grandpa::grandpa_peers_set_config(
-			grandpa_protocol_name.clone(),
-		));
-	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
-		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
-		Vec::default(),
-	));
+	let (relay_chain_interface, _collator_key) =
+		cumulus_client_service::build_relay_chain_interface(
+			polkadot_config,
+			&config,
+			telemetry_worker_handle,
+			&mut task_manager,
+			collator_options.clone(),
+			hwbench.clone(),
+		)
+		.await
+		.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &config,
+		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
+			parachain_config: &config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			block_announce_validator_builder: None,
-			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
-		})?;
+			para_id,
+			relay_chain_interface: relay_chain_interface.clone(),
+		})
+		.await?;
 
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(

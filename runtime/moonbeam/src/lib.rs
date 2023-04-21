@@ -502,7 +502,6 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
@@ -519,7 +518,6 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
@@ -536,7 +534,6 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
