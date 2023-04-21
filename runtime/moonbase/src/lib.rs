@@ -680,13 +680,10 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 
 pub struct CustomMarkOfflineCallback;
 impl pallet_parachain_staking::MarkOfflineCallback<Runtime> for CustomMarkOfflineCallback {
-	fn mark_offline(
-		collator_id: AccountId,
-		round: pallet_parachain_staking::RoundIndex,
-	) -> Weight {
+	fn mark_offline(collator_id: AccountId, round: pallet_parachain_staking::RoundIndex) -> Weight {
 		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
 			ParachainStaking::do_go_offline(collator_id).unwrap_or_default()
-		}else{
+		} else {
 			Weight::zero()
 		};
 
