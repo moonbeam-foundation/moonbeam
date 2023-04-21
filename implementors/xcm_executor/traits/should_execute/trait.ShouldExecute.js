@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"xcm_primitives":[["impl&lt;T:&nbsp;Contains&lt;MultiLocation&gt;&gt; ShouldExecute for <a class=\"struct\" href=\"xcm_primitives/struct.AllowTopLevelPaidExecutionDescendOriginFirst.html\" title=\"struct xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst\">AllowTopLevelPaidExecutionDescendOriginFirst</a>&lt;T&gt;"]]
+"xcm_primitives":[["impl&lt;T: Contains&lt;MultiLocation&gt;&gt; ShouldExecute for <a class=\"struct\" href=\"xcm_primitives/struct.AllowTopLevelPaidExecutionDescendOriginFirst.html\" title=\"struct xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst\">AllowTopLevelPaidExecutionDescendOriginFirst</a>&lt;T&gt;"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

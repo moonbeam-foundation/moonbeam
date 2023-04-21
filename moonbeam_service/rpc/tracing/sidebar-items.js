@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["spawn_tracing_tasks",""]],"struct":[["RpcRequesters",""]]};
+window.SIDEBAR_ITEMS = {"fn":["spawn_tracing_tasks"],"struct":["RpcRequesters"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["GIGAWEI",""],["GLMR",""],["KILOGLMR",""],["KILOWEI",""],["MEGAWEI",""],["MICROGLMR",""],["MILLIGLMR",""],["STORAGE_BYTE_FEE",""],["SUPPLY_FACTOR",""],["TRANSACTION_BYTE_FEE",""],["WEI",""],["WEIGHT_FEE",""]],"fn":[["deposit",""]]};
+window.SIDEBAR_ITEMS = {"constant":["GIGAWEI","GLMR","KILOGLMR","KILOWEI","MEGAWEI","MICROGLMR","MILLIGLMR","STORAGE_BYTE_FEE","SUPPLY_FACTOR","TRANSACTION_BYTE_FEE","WEI","WEIGHT_FEE"],"fn":["deposit"]};

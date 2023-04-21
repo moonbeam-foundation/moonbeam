@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CreateScheme",""],["EvmEvent",""]],"struct":[["Transfer",""]]};
+window.SIDEBAR_ITEMS = {"enum":["CreateScheme","EvmEvent"],"struct":["Transfer"]};

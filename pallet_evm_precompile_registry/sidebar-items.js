@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["PrecompileRegistryCall",""]],"struct":[["PrecompileRegistry",""]]};
+window.SIDEBAR_ITEMS = {"enum":["PrecompileRegistryCall"],"struct":["PrecompileRegistry"]};

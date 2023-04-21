@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["RequesterInput",""],["Response",""]],"struct":[["Debug",""],["DebugHandler",""],["TraceParams",""]],"trait":[["DebugServer","Server trait implementation for the `Debug` RPC API."]],"type":[["DebugRequester",""],["Responder",""]]};
+window.SIDEBAR_ITEMS = {"enum":["RequesterInput","Response"],"struct":["Debug","DebugHandler","TraceParams"],"trait":["DebugServer"],"type":["DebugRequester","Responder"]};

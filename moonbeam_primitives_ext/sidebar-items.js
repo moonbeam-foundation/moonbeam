@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["moonbeam_ext",""]]};
+window.SIDEBAR_ITEMS = {"mod":["moonbeam_ext"]};

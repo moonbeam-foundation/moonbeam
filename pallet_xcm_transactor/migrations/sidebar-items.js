@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["OldRemoteTransactInfoWithMaxWeight",""],["XcmV2ToV3XcmTransactor",""]]};
+window.SIDEBAR_ITEMS = {};

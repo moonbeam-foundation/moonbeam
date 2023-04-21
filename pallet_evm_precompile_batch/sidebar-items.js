@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["ARRAY_LIMIT",""],["CALL_DATA_LIMIT",""],["LOG_SUBCALL_FAILED",""],["LOG_SUBCALL_SUCCEEDED",""]],"enum":[["BatchPrecompileCall",""],["Mode",""]],"fn":[["log_subcall_failed",""],["log_subcall_succeeded",""]],"struct":[["BatchPrecompile","Batch precompile."]]};
+window.SIDEBAR_ITEMS = {"constant":["ARRAY_LIMIT","CALL_DATA_LIMIT","LOG_SUBCALL_FAILED","LOG_SUBCALL_SUCCEEDED"],"enum":["BatchPrecompileCall","Mode"],"fn":["log_subcall_failed","log_subcall_succeeded"],"struct":["BatchPrecompile"]};

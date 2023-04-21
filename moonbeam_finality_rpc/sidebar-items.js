@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["MoonbeamFinality",""]],"trait":[["MoonbeamFinalityApiServer","Server trait implementation for the `MoonbeamFinalityApi` RPC API."]]};
+window.SIDEBAR_ITEMS = {"struct":["MoonbeamFinality"],"trait":["MoonbeamFinalityApiServer"]};

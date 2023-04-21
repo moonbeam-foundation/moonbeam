@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["weights",""]]};
+window.SIDEBAR_ITEMS = {"mod":["weights"]};
