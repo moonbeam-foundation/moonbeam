@@ -1,12 +1,12 @@
-import { describeSuite, expect, beforeAll } from "@moonsong-labs/moonwall-cli";
+import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import {
   CHARLETH_ADDRESS,
   BALTATHAR_ADDRESS,
   alithSigner,
   alith,
   setupLogger,
-} from "@moonsong-labs/moonwall-util";
-import { WebSocketProvider, parseEther, formatEther } from "ethers";
+} from "@moonwall/util";
+import { WebSocketProvider, parseEther, formatEther, Signer } from "ethers";
 import { BN } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";
 
@@ -15,15 +15,15 @@ describeSuite({
   title: "Dev test suite",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {
-    let api: WebSocketProvider;
+    let signer: Signer;
     let w3;
     let polkadotJs: ApiPromise;
     const anotherLogger = setupLogger("anotherLogger");
 
     beforeAll(() => {
-      api = context.getEthers();
-      w3 = context.getWeb3();
-      polkadotJs = context.getMoonbeam();
+      signer = context.ethersSigner();
+      w3 = context.web3();
+      polkadotJs = context.polkadotJs();
     });
 
     it({
@@ -78,7 +78,6 @@ describeSuite({
       id: "E04",
       title: "Can send Ethers txns",
       test: async function () {
-        const signer = alithSigner(api);
         const balanceBefore = (await polkadotJs.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
         await signer.sendTransaction({
