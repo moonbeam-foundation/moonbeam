@@ -9,11 +9,12 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "../../util/a
 import { PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
 import { getCompiled } from "../../util/contracts";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
-  createContract,
   createTransaction,
+  setupErc20Contract,
+  ERC20_TOTAL_SUPPLY,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
 import {
@@ -25,42 +26,20 @@ import {
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
 const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
-const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 const XTOKENS_CONTRACT = getCompiled("XtokensInstance");
 const XTOKENS_INTERFACE = new ethers.utils.Interface(XTOKENS_CONTRACT.contract.abi);
-
-async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
-  const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
-  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
-  return account.data.free.toBigInt();
-}
-
-const setupErc20Contract = async (context: DevTestContext) => {
-  const { contract, contractAddress, rawTx } = await createContract(
-    context,
-    "ERC20WithInitialSupply",
-    {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      gas: 5_000_000,
-    },
-    ["MyToken", "TKN", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
-  );
-  const { result } = await context.createBlock(rawTx);
-  expectEVMResult(result.events, "Succeed");
-  return { contract, contractAddress };
-};
 
 describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
   let erc20Contract: Contract;
   let erc20ContractAddress: string;
 
   before("Should deploy erc20 contract", async function () {
-    const { contract, contractAddress } = await setupErc20Contract(context);
+    const { contract, contractAddress } = await setupErc20Contract(context, "MyToken", "TKN");
     erc20Contract = contract;
     erc20ContractAddress = contractAddress;
   });
 
-  it("Should be able to transfer ERC20 token throught xcm with xtoken precomp", async function () {
+  it("Should be able to transfer ERC20 token through xcm with xtoken precomp", async function () {
     const amountTransferred = 1000n;
     // Destination as multilocation
     const destination = [
@@ -99,8 +78,8 @@ describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // Fees should have been spent
-    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
-      (await getBalance(context, 1, ALITH_ADDRESS)) - fees
+    expect(BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS, 2))).to.equal(
+      BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS, 1)) - fees
     );
 
     // Erc20 tokens should have been spent
@@ -115,17 +94,17 @@ describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - Receice back erc20", (context) => {
+describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
   let erc20Contract: Contract;
   let erc20ContractAddress: string;
 
   before("Should deploy erc20 contract", async function () {
-    const { contract, contractAddress } = await setupErc20Contract(context);
+    const { contract, contractAddress } = await setupErc20Contract(context, "MyToken", "TKN");
     erc20Contract = contract;
     erc20ContractAddress = contractAddress;
   });
 
-  it("Should be able to transfer ERC20 token throught incoming XCM message", async function () {
+  it("Should be able to transfer ERC20 token through incoming XCM message", async function () {
     this.timeout(20_000);
     const paraId = 888;
     const paraSovereign = sovereignAccountOfSibling(context, paraId);
