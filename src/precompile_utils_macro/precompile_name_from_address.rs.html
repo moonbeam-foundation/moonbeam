@@ -211,7 +211,7 @@
 		.into()
 	} <span class="kw">else </span>{
 		<span class="kw">return </span><span class="macro">quote_spanned! </span>{
-			ty.span() =&gt; compile_error(<span class="string">&quot;Expected tuple&quot;</span>);
+			ty.span() =&gt; <span class="macro">compile_error!</span>(<span class="string">&quot;Expected tuple&quot;</span>);
 		}
 		.into();
 	}
