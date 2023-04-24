@@ -1,20 +1,29 @@
 import "@moonbeam-network/api-augment";
+import "@polkadot/api-augment"
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { extractPreimageDeposit, printTokens } from "@moonwall/util";
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
-import { u32 } from "@polkadot/types";
+import { u32, StorageKey } from "@polkadot/types";
 import { FrameSystemAccountInfo, PalletPreimageRequestStatus } from "@polkadot/types/lookup";
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
-import { StorageKey } from "@polkadot/types";
+
+
+// This test involves checking the balances for all accounts on chain, so care needs to be taken
+// with regards to both network load but also memory consumption. We do batched queries for reading
+// system balances, and make use of KVP maps in order to reduce local load. 
+
+// For the individual storage queries, we still use standard objects, as the methods available
+// are richer and allow cleaner operations on the data. However we still use a KVP Map to store
+// the combined data, so that the final assert can be done more efficiently.
 
 describeSuite({
   id: "S300",
   title: `Verifying balances consistency`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    const accounts: { [account: string]: FrameSystemAccountInfo } = {};
+    const accountMap = new Map<string, FrameSystemAccountInfo>();
     const limiter = new Bottleneck({ maxConcurrent: 20, minTime: 150 });
 
     let atBlockNumber: number = 0;
@@ -23,7 +32,6 @@ describeSuite({
     let runtimeName: string;
 
     beforeAll(async function () {
-      // It takes time to load all the accounts.
       const limit = 1000;
       let last_key = "";
       let count = 0;
@@ -39,7 +47,7 @@ describeSuite({
 
       if (process.env.ACCOUNT_ID) {
         const userId = process.env.ACCOUNT_ID.toLowerCase();
-        accounts[userId] = await apiAt.query.system.account(userId);
+        accountMap.set(userId, await apiAt.query.system.account(userId));
         return;
       }
 
@@ -56,12 +64,13 @@ describeSuite({
         if (query.length === 0) {
           break;
         }
+
         count += query.length;
 
         for (const user of query) {
           const accountId = `0x${user[0].toHex().slice(-40)}`;
           last_key = user[0].toString();
-          accounts[accountId] = user[1];
+          accountMap.set(accountId, user[1]);
         }
         if (count % (10 * limit) == 0) {
           log(`Retrieved ${count} accounts`);
@@ -153,6 +162,66 @@ describeSuite({
           },
           {} as any
         ) as { [account: string]: boolean };
+
+        const expectedReserveMap = new Map<
+          string,
+          { total?: bigint; reserved?: { [key: string]: bigint } }
+        >();
+
+        const updateReserveMap = (
+          account: string,
+          newReserve: {
+            [key: string]: bigint;
+          }
+        ) => {
+          const value = expectedReserveMap.get(account);
+          if (value === undefined) {
+            expectedReserveMap.set(account, { total: 0n, reserved: newReserve });
+            return;
+          }
+          const newReserved = { ...value.reserved, ...newReserve };
+          const newTotal = value.total;
+
+          expectedReserveMap.set(account, { total: newTotal, reserved: newReserved });
+        };
+
+        treasuryProposals.forEach((proposal) =>
+          updateReserveMap(`0x${proposal[1].unwrap().proposer.toHex().slice(-40)}`, {
+            treasury: proposal[1].unwrap().bond.toBigInt(),
+          })
+        );
+
+        proxies.forEach((proxy) =>
+          updateReserveMap(`0x${proxy[0].toHex().slice(-40)}`, {
+            proxy: proxy[1][1].toBigInt(),
+          })
+        );
+
+        proxyAnnouncements.forEach((announcement) =>
+          updateReserveMap(`0x${announcement[0].toHex().slice(-40)}`, {
+            announcement: announcement[1][1].toBigInt(),
+          })
+        );
+
+        mappingWithDeposit.forEach((mapping) =>
+          updateReserveMap(`0x${mapping[1].unwrap().account.toHex().slice(-40)}`, {
+            mapping: mapping[1].unwrap().deposit.toBigInt(),
+          })
+        );
+
+        candidateInfo.forEach((candidate) => {
+          if (
+            specVersion < 1700 ||
+            (specVersion < 1800 &&
+              !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`])
+          ) {
+            updateReserveMap(`0x${candidate[0].toHex().slice(-40)}`, {
+              candidate: candidate[1].unwrap().bond.toBigInt(),
+            });
+          }
+        });
+
+        console.log(expectedReserveMap);
 
         const expectedReserveByAccount: {
           [accountId: string]: { total: bigint; reserved: { [key: string]: bigint } };
@@ -398,8 +467,8 @@ describeSuite({
 
         const failedReserved = [];
 
-        for (const accountId of Object.keys(accounts)) {
-          let reserved = accounts[accountId].data.reserved.toBigInt();
+        for (const accountId of accountMap.keys()) {
+          const reserved = accountMap.get(accountId).data.reserved.toBigInt();
           const expectedReserve = expectedReserveByAccount[accountId]?.total || 0n;
 
           if (reserved != expectedReserve) {
@@ -548,9 +617,7 @@ describeSuite({
           );
         }
 
-        log(
-          `Verified ${Object.keys(accounts).length} total reserved balance (at #${atBlockNumber})`
-        );
+        log(`Verified ${accountMap.size} total reserved balance (at #${atBlockNumber})`);
       },
     });
 
@@ -562,10 +629,10 @@ describeSuite({
         const totalIssuance = await apiAt.query.balances.totalIssuance();
 
         expect(
-          Object.keys(accounts).reduce(
+          Array.from(accountMap.keys()).reduce(
             (p, accountId) =>
-              accounts[accountId].data.free.toBigInt() +
-              accounts[accountId].data.reserved.toBigInt() +
+              accountMap.get(accountId).data.free.toBigInt() +
+              accountMap.get(accountId).data.reserved.toBigInt() +
               p,
             0n
           )

@@ -63,6 +63,25 @@
       }
     },
     {
+      "name": "smoke_stagenet",
+      "testFileDir": ["/suites/smoke"],
+      "foundation": {
+        "type": "read_only"
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
+        },
+        {
+          "name": "PolkadotJs",
+          "type": "moon",
+          "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
+        }
+      ]
+    },
+    {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
       "foundation": {
