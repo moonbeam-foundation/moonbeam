@@ -135,19 +135,19 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn buy_execution() -> Weight {
 		Weight::from_ref_time(158_702_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
 	}
 	// Storage: PolkadotXcm Queries (r:1 w:0)
 	#[rustfmt::skip]
 	fn query_response() -> Weight {
 		Weight::from_ref_time(25_944_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact() -> Weight {
 		Weight::from_ref_time(34_785_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn refund_surplus() -> Weight {
@@ -181,15 +181,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn report_error() -> Weight {
 		Weight::from_ref_time(26_411_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: PolkadotXcm AssetTraps (r:1 w:1)
 	#[rustfmt::skip]
 	fn claim_asset() -> Weight {
 		Weight::from_ref_time(35_553_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn trap() -> Weight {
@@ -204,14 +204,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn subscribe_version() -> Weight {
 		Weight::from_ref_time(31_742_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(6 as u64))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:0 w:1)
 	#[rustfmt::skip]
 	fn unsubscribe_version() -> Weight {
 		Weight::from_ref_time(14_391_000 as u64)
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -221,8 +221,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn initiate_reserve_withdraw() -> Weight {
 		Weight::from_ref_time(579_258_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
@@ -233,8 +233,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
 		Weight::from_ref_time(810_463_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
 	fn burn_asset() -> Weight {
@@ -264,8 +264,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn query_pallet() -> Weight {
 		Weight::from_ref_time(48_848_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
 	fn expect_pallet() -> Weight {
