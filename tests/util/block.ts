@@ -231,22 +231,30 @@ export const verifyBlockFees = async (
 
                 // verify entire substrate txn fee
                 let apiAt = await context.polkadotApi.at(previousBlockHash);
-                let lengthFee = (await apiAt.call.transactionPaymentApi.queryLengthToFee(extrinsic.encodedLength) as any).toBigInt();
+                let lengthFee = (
+                  (await apiAt.call.transactionPaymentApi.queryLengthToFee(
+                    extrinsic.encodedLength
+                  )) as any
+                ).toBigInt();
 
                 // let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee(dispatchInfo.weight) as any).toBigInt();
-                let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee({
-                  refTime: fee.weight,
-                  proofSize: 0n,
-                }) as any).toBigInt();
+                let unadjustedWeightFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: fee.weight,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
                 let multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
                 console.log(`multiplier: ${multiplier}`);
                 let denominator = 1_000_000_000_000_000_000n;
                 let weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
 
-                let baseFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee({
-                  refTime: EXTRINSIC_BASE_WEIGHT,
-                  proofSize: 0n,
-                }) as any).toBigInt();
+                let baseFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: EXTRINSIC_BASE_WEIGHT,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
 
                 let tip = extrinsic.tip.toBigInt();
 
@@ -268,7 +276,6 @@ export const verifyBlockFees = async (
                     `);
 
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
-
               }
 
               blockFees += txFees;

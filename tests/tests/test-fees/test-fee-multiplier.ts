@@ -444,9 +444,7 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
   });
 
   it("should be able to calculate entire fee", async function () {
-    const tx = await context.polkadotApi.tx.balances
-      .transfer(alith.address, GLMR)
-      .signAsync(alith);
+    const tx = await context.polkadotApi.tx.balances.transfer(alith.address, GLMR).signAsync(alith);
     const result = await context.createBlock(tx);
     await verifyLatestBlockFees(context);
   });
