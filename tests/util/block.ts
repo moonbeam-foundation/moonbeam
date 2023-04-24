@@ -225,39 +225,39 @@ export const verifyBlockFees = async (
                 console.log(`    weight: ${fee.weight}`);
                 console.log(`    weight refTime: ${(fee.weight as any).refTime}`);
                 console.log(`wtf, event: ${event}`);
-                let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
                 txFees = fee.partialFee.toBigInt();
                 txBurnt += feePortions.burnt;
 
                 // verify entire substrate txn fee
-                let apiAt = await context.polkadotApi.at(previousBlockHash);
-                let lengthFee = (
+                const apiAt = await context.polkadotApi.at(previousBlockHash);
+                const lengthFee = (
                   (await apiAt.call.transactionPaymentApi.queryLengthToFee(
                     extrinsic.encodedLength
                   )) as any
                 ).toBigInt();
 
-                let unadjustedWeightFee = (
+                const unadjustedWeightFee = (
                   (await apiAt.call.transactionPaymentApi.queryWeightToFee({
                     refTime: fee.weight,
                     proofSize: 0n,
                   })) as any
                 ).toBigInt();
-                let multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
+                const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
                 console.log(`multiplier: ${multiplier}`);
-                let denominator = 1_000_000_000_000_000_000n;
-                let weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
+                const denominator = 1_000_000_000_000_000_000n;
+                const weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
 
-                let baseFee = (
+                const baseFee = (
                   (await apiAt.call.transactionPaymentApi.queryWeightToFee({
                     refTime: EXTRINSIC_BASE_WEIGHT,
                     proofSize: 0n,
                   })) as any
                 ).toBigInt();
 
-                let tip = extrinsic.tip.toBigInt();
+                const tip = extrinsic.tip.toBigInt();
 
-                let expectedPartialFee = lengthFee + weightFee + baseFee + tip;
+                const expectedPartialFee = lengthFee + weightFee + baseFee + tip;
 
                 console.log(`fee calc:
                     expected fee:            ${fee.partialFee}
