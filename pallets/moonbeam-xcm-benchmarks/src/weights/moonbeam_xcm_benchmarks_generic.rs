@@ -227,87 +227,108 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn burn_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_error() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn query_pallet() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_pallet() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn report_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn clear_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn universal_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn export_message() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn lock_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unlock_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn note_unlockable() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn request_unlock() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn set_fees_mode() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn set_topic() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn clear_topic() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn alias_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unpaid_execution() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 }
 
@@ -412,86 +433,107 @@ impl WeightInfo for () {
 
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn burn_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_error() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn query_pallet() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn expect_pallet() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn report_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn clear_transact_status() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn universal_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn export_message() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn lock_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unlock_asset() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn note_unlockable() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn request_unlock() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn set_fees_mode() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn set_topic() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn clear_topic() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn alias_origin() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unpaid_execution() -> Weight{
-		todo!();
+		// TODO benchmark
+		Weight::MAX
 	}
 }
