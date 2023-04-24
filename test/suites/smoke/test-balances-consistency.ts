@@ -9,6 +9,8 @@ import { FrameSystemAccountInfo, PalletPreimageRequestStatus } from "@polkadot/t
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 
+// TODO: FIX MOONWALL CONFIG
+
 
 // This test involves checking the balances for all accounts on chain, so care needs to be taken
 // with regards to both network load but also memory consumption. We do batched queries for reading
