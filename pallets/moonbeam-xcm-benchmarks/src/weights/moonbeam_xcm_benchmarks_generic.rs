@@ -135,19 +135,19 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn buy_execution() -> Weight {
 		Weight::from_ref_time(158_702_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
 	}
 	// Storage: PolkadotXcm Queries (r:1 w:0)
 	#[rustfmt::skip]
 	fn query_response() -> Weight {
 		Weight::from_ref_time(25_944_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
 	}
 	// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact() -> Weight {
 		Weight::from_ref_time(34_785_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn refund_surplus() -> Weight {
@@ -181,15 +181,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn report_error() -> Weight {
 		Weight::from_ref_time(26_411_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(5 as u64))
-			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: PolkadotXcm AssetTraps (r:1 w:1)
 	#[rustfmt::skip]
 	fn claim_asset() -> Weight {
 		Weight::from_ref_time(35_553_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
-			.saturating_add(T::DbWeight::get().writes(1 as u64))
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn trap() -> Weight {
@@ -204,14 +204,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn subscribe_version() -> Weight {
 		Weight::from_ref_time(31_742_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(6 as u64))
-			.saturating_add(T::DbWeight::get().writes(3 as u64))
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:0 w:1)
 	#[rustfmt::skip]
 	fn unsubscribe_version() -> Weight {
 		Weight::from_ref_time(14_391_000 as u64)
-			.saturating_add(T::DbWeight::get().writes(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -221,114 +221,129 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn initiate_reserve_withdraw() -> Weight {
 		Weight::from_ref_time(579_258_000 as u64)
-			.saturating_add(T::DbWeight::get().reads(5 as u64))
-			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
-		// TODO benchmark
-		Weight::MAX
+		Weight::from_ref_time(810_463_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn burn_asset() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn burn_asset() -> Weight {
+		Weight::from_ref_time(285_885_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_asset() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_asset() -> Weight {
+		Weight::from_ref_time(19_742_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_origin() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_origin() -> Weight {
+		Weight::from_ref_time(5_580_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_error() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_error() -> Weight {
+		Weight::from_ref_time(5_405_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_transact_status() -> Weight {
+		Weight::from_ref_time(6_156_000 as u64)
+	}
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
+	#[rustfmt::skip]
+	fn query_pallet() -> Weight {
+		Weight::from_ref_time(48_848_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn query_pallet() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_pallet() -> Weight {
+		Weight::from_ref_time(15_537_000 as u64)
+	}
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
+	#[rustfmt::skip]
+	fn report_transact_status() -> Weight {
+		Weight::from_ref_time(36_149_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn expect_pallet() -> Weight{
-		// TODO benchmark
-		Weight::MAX
-	}
-	#[rustfmt::skip]
-	fn report_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
-	}
-	#[rustfmt::skip]
-	fn clear_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn clear_transact_status() -> Weight {
+		Weight::from_ref_time(5_479_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn universal_origin() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn export_message() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn lock_asset() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unlock_asset() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn note_unlockable() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn request_unlock() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
-	fn set_fees_mode() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn set_fees_mode() -> Weight {
+		Weight::from_ref_time(5_457_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn set_topic() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn set_topic() -> Weight {
+		Weight::from_ref_time(5_314_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn clear_topic() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn clear_topic() -> Weight {
+		Weight::from_ref_time(5_500_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn alias_origin() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
-	fn unpaid_execution() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn unpaid_execution() -> Weight {
+		Weight::from_ref_time(5_664_000 as u64)
 	}
 }
 
@@ -431,109 +446,124 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
-		// TODO benchmark
-		Weight::MAX
+		Weight::from_ref_time(810_463_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn burn_asset() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn burn_asset() -> Weight {
+		Weight::from_ref_time(285_885_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_asset() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_asset() -> Weight {
+		Weight::from_ref_time(19_742_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_origin() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_origin() -> Weight {
+		Weight::from_ref_time(5_580_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_error() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_error() -> Weight {
+		Weight::from_ref_time(5_405_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn expect_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_transact_status() -> Weight {
+		Weight::from_ref_time(6_156_000 as u64)
+	}
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
+	#[rustfmt::skip]
+	fn query_pallet() -> Weight {
+		Weight::from_ref_time(48_848_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn query_pallet() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn expect_pallet() -> Weight {
+		Weight::from_ref_time(15_537_000 as u64)
+	}
+	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
+	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
+	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
+	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
+	#[rustfmt::skip]
+	fn report_transact_status() -> Weight {
+		Weight::from_ref_time(36_149_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	#[rustfmt::skip]
-	fn expect_pallet() -> Weight{
-		// TODO benchmark
-		Weight::MAX
-	}
-	#[rustfmt::skip]
-	fn report_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
-	}
-	#[rustfmt::skip]
-	fn clear_transact_status() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn clear_transact_status() -> Weight {
+		Weight::from_ref_time(5_479_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn universal_origin() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn export_message() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn lock_asset() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn unlock_asset() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn note_unlockable() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
 	fn request_unlock() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
-	fn set_fees_mode() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn set_fees_mode() -> Weight {
+		Weight::from_ref_time(5_457_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn set_topic() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn set_topic() -> Weight {
+		Weight::from_ref_time(5_314_000 as u64)
 	}
 	#[rustfmt::skip]
-	fn clear_topic() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn clear_topic() -> Weight {
+		Weight::from_ref_time(5_500_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn alias_origin() -> Weight{
-		// TODO benchmark
 		Weight::MAX
 	}
 	#[rustfmt::skip]
-	fn unpaid_execution() -> Weight{
-		// TODO benchmark
-		Weight::MAX
+	fn unpaid_execution() -> Weight {
+		Weight::from_ref_time(5_664_000 as u64)
 	}
 }
