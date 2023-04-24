@@ -226,15 +226,10 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
 		Weight::from_ref_time(810_463_000 as u64)
@@ -262,15 +257,10 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_ref_time(6_156_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn query_pallet() -> Weight {
 		Weight::from_ref_time(48_848_000 as u64)
@@ -282,15 +272,10 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_ref_time(15_537_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_transact_status() -> Weight {
 		Weight::from_ref_time(36_149_000 as u64)
@@ -447,15 +432,10 @@ impl WeightInfo for () {
 	}
 
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_holding() -> Weight {
 		Weight::from_ref_time(810_463_000 as u64)
@@ -483,15 +463,10 @@ impl WeightInfo for () {
 		Weight::from_ref_time(6_156_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn query_pallet() -> Weight {
 		Weight::from_ref_time(48_848_000 as u64)
@@ -503,15 +478,10 @@ impl WeightInfo for () {
 		Weight::from_ref_time(15_537_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Proof Skipped: PolkadotXcm VersionDiscoveryQueue (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Proof Skipped: ParachainSystem HostConfiguration (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	#[rustfmt::skip]
 	fn report_transact_status() -> Weight {
 		Weight::from_ref_time(36_149_000 as u64)
