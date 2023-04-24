@@ -237,7 +237,6 @@ export const verifyBlockFees = async (
                   )) as any
                 ).toBigInt();
 
-                // let unadjustedWeightFee = (await apiAt.call.transactionPaymentApi.queryWeightToFee(dispatchInfo.weight) as any).toBigInt();
                 let unadjustedWeightFee = (
                   (await apiAt.call.transactionPaymentApi.queryWeightToFee({
                     refTime: fee.weight,
