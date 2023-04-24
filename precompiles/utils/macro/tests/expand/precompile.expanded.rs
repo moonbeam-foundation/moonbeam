@@ -171,30 +171,26 @@ where
         use ::fp_evm::{PrecompileOutput, ExitSucceed};
         let output = match self {
             Self::batch_all { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_all(handle, to, value, call_data, gas_limit);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some(handle, to, value, call_data, gas_limit);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some_until_failure(handle, to, value, call_data, gas_limit);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::fallback {} => {
-                use ::precompile_utils::solidity::codec::{Codec, Writer};
                 let output = <BatchPrecompile<Runtime>>::fallback(handle);
-                Codec::encode_for_function(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
