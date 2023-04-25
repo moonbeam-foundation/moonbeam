@@ -21,6 +21,8 @@ use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
+use frame_benchmarking::BenchmarkResult;
+use frame_support::traits::Get;
 
 benchmarks! {
 	buy_execution {
@@ -41,8 +43,41 @@ benchmarks! {
 
 	} : {
 		executor.bench_process(xcm)?;
-	} verify {
+	}
 
+	exchange_asset {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	export_message {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	lock_asset {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	note_unlockable {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	request_unlock {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	universal_origin {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+	}
+
+	unlock_asset {
+	} : {
+		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
 	}
 
 	impl_benchmark_test_suite!(
