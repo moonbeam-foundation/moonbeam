@@ -16,12 +16,13 @@
 
 use scale_info::TypeInfo;
 use sp_runtime::{
-	codec::{Decode, Encode},
-	RuntimeDebug,
+	codec::{Decode, Encode, MaxEncodedLen},
+	traits::Get,
+	BoundedVec, RuntimeDebug,
 };
 use sp_std::vec::Vec;
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+#[derive(Decode, Encode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
 pub struct CurrentOrbiter<AccountId> {
 	pub account_id: AccountId,
 	pub removed: bool,
@@ -47,30 +48,33 @@ pub(super) struct RotateOrbiterResult<AccountId> {
 	pub maybe_next_orbiter: Option<AccountId>,
 }
 
-#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
-pub struct CollatorPoolInfo<AccountId> {
-	orbiters: Vec<AccountId>,
+#[derive(Decode, Encode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(MaxPoolSize))]
+pub struct CollatorPoolInfo<AccountId, MaxPoolSize: Get<u32>> {
+	orbiters: BoundedVec<AccountId, MaxPoolSize>,
 	maybe_current_orbiter: Option<CurrentOrbiter<AccountId>>,
 	next_orbiter: u32,
 }
 
-impl<AccountId> Default for CollatorPoolInfo<AccountId> {
+impl<AccountId, MaxPoolSize: Get<u32>> Default for CollatorPoolInfo<AccountId, MaxPoolSize> {
 	fn default() -> Self {
 		Self {
-			orbiters: Vec::new(),
+			orbiters: BoundedVec::default(),
 			maybe_current_orbiter: None,
 			next_orbiter: 0,
 		}
 	}
 }
 
-impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
-	pub(super) fn add_orbiter(&mut self, orbiter: AccountId) {
+impl<AccountId: Clone + PartialEq, MaxPoolSize: Get<u32>> CollatorPoolInfo<AccountId, MaxPoolSize> {
+	pub(super) fn add_orbiter(&mut self, orbiter: AccountId) -> Result<(), AccountId> {
 		if self.next_orbiter > self.orbiters.len() as u32 {
 			self.next_orbiter = 0;
 		}
-		self.orbiters.insert(self.next_orbiter as usize, orbiter);
+		self.orbiters
+			.try_insert(self.next_orbiter as usize, orbiter)?;
 		self.next_orbiter += 1;
+		Ok(())
 	}
 	pub(super) fn contains_orbiter(&self, orbiter: &AccountId) -> bool {
 		if let Some(CurrentOrbiter { ref account_id, .. }) = self.maybe_current_orbiter {

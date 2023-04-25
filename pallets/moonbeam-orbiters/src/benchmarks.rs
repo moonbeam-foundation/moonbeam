@@ -55,7 +55,7 @@ fn create_collator<T: Config>(string: &'static str, n: u32, balance: u32) -> T::
 	collator_account
 }
 
-/// Create a funded user ard register it as an orbiter
+/// Create a funded user and register it as an orbiter
 fn create_orbiter<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
 	let orbiter_account: T::AccountId = create_funded_user::<T>(string, n, balance);
 	Pallet::<T>::orbiter_register(RawOrigin::Signed(orbiter_account.clone()).into())
@@ -69,6 +69,9 @@ benchmarks! {
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// To test the worst case, we pre-fill the collator pool to the maximum size minus one
+		// If the pool is full, it interrupts the execution earlier, and therefore does not check
+		// the reserve deposit. The proof size induced by reading the reserve deposit is higher than
+		// an accountid, so this scenario is really the worst in terms of proof size.
 		for i in 1..T::MaxPoolSize::get() {
 			let orbiter_account: T::AccountId =
 				create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
@@ -149,6 +152,9 @@ benchmarks! {
 
 		for i in 0..n {
 			let _: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED + i, 10_000);
+		}
+		for i in 0..T::MaxPoolSize::get() {
+			let _: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
 		}
 		let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED, 20_000);
 	}: _(RawOrigin::Signed(orbiter_account), n)

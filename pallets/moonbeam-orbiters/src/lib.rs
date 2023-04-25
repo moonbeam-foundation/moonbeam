@@ -51,10 +51,11 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
+	use sp_runtime::traits::{
+		AtLeast32Bit, CheckedSub, MaybeDisplay, One, Saturating, StaticLookup, Zero,
+	};
 
 	#[pallet::pallet]
-	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	pub type BalanceOf<T> =
@@ -83,6 +84,13 @@ pub mod pallet {
 		type DelCollatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		#[pallet::constant]
+		/// The maximum number of collator pools
+		/// WARNING: when changing `MaxCollatorPools` by a lower value, some storage entries will
+		/// not be clean for the next `MaxRoundArchive`, theses storage entries should be kill by
+		/// root or by a migration.
+		type MaxCollatorPools: Get<u32>;
+
+		#[pallet::constant]
 		/// Maximum number of orbiters per collator.
 		type MaxPoolSize: Get<u32>;
 
@@ -100,14 +108,14 @@ pub mod pallet {
 		type RotatePeriod: Get<Self::RoundIndex>;
 
 		/// Round index type.
-		type RoundIndex: Parameter
+		type RoundIndex: AtLeast32Bit
+			+ Copy
+			+ Default
+			+ Parameter
 			+ Member
 			+ MaybeSerializeDeserialize
-			+ sp_std::fmt::Debug
-			+ Default
-			+ sp_runtime::traits::MaybeDisplay
-			+ sp_runtime::traits::AtLeast32Bit
-			+ Copy;
+			+ MaybeDisplay
+			+ MaxEncodedLen;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -119,11 +127,25 @@ pub mod pallet {
 	pub type AccountLookupOverride<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, Option<T::AccountId>>;
 
+	pub struct CollatorsPoolMaxValues<T>(PhantomData<T>);
+	impl<T: Config> Get<Option<u32>> for CollatorsPoolMaxValues<T> {
+		fn get() -> Option<u32> {
+			Some(T::MaxCollatorPools::get())
+		}
+	}
+
 	#[pallet::storage]
 	#[pallet::getter(fn collators_pool)]
 	/// Current orbiters, with their "parent" collator
-	pub type CollatorsPool<T: Config> =
-		CountedStorageMap<_, Blake2_128Concat, T::AccountId, CollatorPoolInfo<T::AccountId>>;
+	pub type CollatorsPool<T: Config> = CountedStorageMap<
+		_,
+		Blake2_128Concat,
+		T::AccountId,
+		CollatorPoolInfo<T::AccountId, T::MaxPoolSize>,
+		OptionQuery,
+		GetDefault,
+		CollatorsPoolMaxValues<T>,
+	>;
 
 	#[pallet::storage]
 	/// Current round index
@@ -189,12 +211,12 @@ pub mod pallet {
 			if let Some(round_to_prune) =
 				CurrentRound::<T>::get().checked_sub(&T::MaxRoundArchive::get())
 			{
-				// TODO: Find better limit.
-				// Is it sure to be cleared in a single block? In which case we can probably have
-				// a lower limit.
-				// Otherwise, we should still have a lower limit, and implement a multi-block clear
-				// by using the return value of clear_prefix for subsequent blocks.
-				let result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
+				// We should have at most MaxCollatorPools entries per round index
+				let result = OrbiterPerRound::<T>::clear_prefix(
+					round_to_prune,
+					T::MaxCollatorPools::get(),
+					None,
+				);
 				T::WeightInfo::on_initialize(result.unique)
 			} else {
 				T::DbWeight::get().reads(1)
@@ -224,6 +246,8 @@ pub mod pallet {
 		OrbiterNotFound,
 		/// The orbiter is still at least in one pool
 		OrbiterStillInAPool,
+		/// There are already too many collator pools
+		TooManyCollatorPools,
 	}
 
 	#[pallet::event]
@@ -292,7 +316,9 @@ pub mod pallet {
 				Error::<T>::OrbiterDepositNotFound
 			);
 
-			collator_pool.add_orbiter(orbiter.clone());
+			collator_pool
+				.add_orbiter(orbiter.clone())
+				.map_err(|_| Error::<T>::CollatorPoolTooLarge)?;
 			CollatorsPool::<T>::insert(&collator, collator_pool);
 
 			Self::deposit_event(Event::OrbiterJoinCollatorPool { collator, orbiter });
@@ -392,8 +418,13 @@ pub mod pallet {
 			let collator = T::Lookup::lookup(collator)?;
 
 			ensure!(
-				CollatorsPool::<T>::get(&collator).is_none(),
+				!CollatorsPool::<T>::contains_key(&collator),
 				Error::<T>::CollatorAlreadyAdded
+			);
+
+			ensure!(
+				CollatorsPool::<T>::count() < T::MaxCollatorPools::get(),
+				Error::<T>::TooManyCollatorPools
 			);
 
 			CollatorsPool::<T>::insert(collator, CollatorPoolInfo::default());
@@ -452,7 +483,7 @@ pub mod pallet {
 		fn on_rotate(round_index: T::RoundIndex) -> Weight {
 			let mut writes = 1;
 			// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
-			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
+			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId, T::MaxPoolSize>, _>(
 				|collator, mut pool| {
 					let RotateOrbiterResult {
 						maybe_old_orbiter,
@@ -556,8 +587,11 @@ pub mod pallet {
 			}
 		}
 
-		/// Check if an account is an orbiter account for a given round
-		pub fn is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -> bool {
+		/// Check if an account is a collator that have active orbiters for a given round
+		pub fn is_collator_with_active_orbiter(
+			for_round: T::RoundIndex,
+			collator: T::AccountId,
+		) -> bool {
 			OrbiterPerRound::<T>::contains_key(for_round, &collator)
 		}
 	}

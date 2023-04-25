@@ -629,11 +629,12 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
-		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
-			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-		} else {
-			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
-		};
+		let extra_weight =
+			if MoonbeamOrbiters::is_collator_with_active_orbiter(for_round, collator_id) {
+				MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+			} else {
+				ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+			};
 
 		<Runtime as frame_system::Config>::DbWeight::get()
 			.reads(1)
@@ -1171,6 +1172,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
 	type DelCollatorOrigin = DelCollatorOrigin;
+	type MaxCollatorPools = ConstU32<16>;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
