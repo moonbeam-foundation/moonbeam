@@ -269,7 +269,7 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup show
       - name: Clippy
-        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks
 
   build:
     runs-on:
