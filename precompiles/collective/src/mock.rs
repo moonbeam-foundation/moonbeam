@@ -21,7 +21,6 @@ use frame_support::{
 	traits::{ConstU128, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
-use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use precompile_utils::{
 	precompile_set::*,
@@ -202,7 +201,6 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type SetMembersOrigin = EnsureRoot<Self::AccountId>;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = frame_system::EnsureRoot<AccountId>;
 }
