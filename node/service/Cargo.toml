@@ -104,10 +104,7 @@ fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
 fp-rpc = { workspace = true, features = [ "std" ] }
 fp-storage = { workspace = true, features = [ "std" ] }
-pallet-ethereum = { workspace = true, features = [
-	"forbid-evm-reentrancy",
-	"std",
-] }
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
