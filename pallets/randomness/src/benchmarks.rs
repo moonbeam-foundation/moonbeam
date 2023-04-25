@@ -71,7 +71,7 @@ benchmarks! {
 		assert_eq!(
 			RandomnessResults::<T>::get(
 				RequestType::BabeEpoch(benchmarking_new_epoch)
-			).unwrap().randomness,
+			).expect("must exist").randomness,
 			Some(benchmarking_babe_output)
 		);
 		assert!(InherentIncluded::<T>::get().is_some());
@@ -155,7 +155,7 @@ benchmarks! {
 		// convert vrf output and check if it matches as expected
 		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
 		assert_eq!(
-			RandomnessResults::<T>::get(RequestType::Local(block_num)).unwrap().randomness,
+			RandomnessResults::<T>::get(RequestType::Local(block_num)).expect("must exist").randomness,
 			Some(randomness_output)
 		);
 	}
@@ -193,14 +193,14 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).unwrap();
+		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
 		result.randomness = Some(Default::default());
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
 	}: {
 		let fulfillment_args = Pallet::<T>::prepare_fulfillment(0u64);
 		assert!(fulfillment_args.is_ok(), "Prepare Fulfillment Failed");
-		assert_eq!(fulfillment_args.unwrap().randomness.len(), x as usize);
+		assert_eq!(fulfillment_args.expect("must exist").randomness.len(), x as usize);
 	}
 	verify {}
 
@@ -216,7 +216,7 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).unwrap();
+		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
 		result.randomness = Some(Default::default());
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
