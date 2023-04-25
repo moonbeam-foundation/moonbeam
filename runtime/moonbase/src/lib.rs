@@ -678,6 +678,24 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+pub struct OnInactiveCollator;
+impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollator {
+	fn on_inactive_collator(
+		collator_id: AccountId,
+		round: pallet_parachain_staking::RoundIndex,
+	) -> Weight {
+		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+			ParachainStaking::do_go_offline(collator_id).unwrap_or_default()
+		} else {
+			Weight::zero()
+		};
+
+		<Runtime as frame_system::Config>::DbWeight::get()
+			.reads(1)
+			.saturating_add(extra_weight)
+	}
+}
+
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
@@ -687,6 +705,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
+	/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive
+	type MaxOfflineRounds = ConstU32<2>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<2>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -718,6 +738,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = ();
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
+	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }
@@ -1613,6 +1634,14 @@ mod tests {
 		assert_eq!(
 			get!(pallet_proxy, AnnouncementDepositFactor, u128),
 			Balance::from(5600 * MICROUNIT)
+		);
+	}
+
+	#[test]
+	fn max_offline_rounds_lower_or_eq_than_reward_payment_delay() {
+		assert!(
+			get!(pallet_parachain_staking, MaxOfflineRounds, u32)
+				<= get!(pallet_parachain_staking, RewardPaymentDelay, u32)
 		);
 	}
 

@@ -121,6 +121,9 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
+		/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive
+		#[pallet::constant]
+		type MaxOfflineRounds: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -171,6 +174,10 @@ pub mod pallet {
 		/// Handler to distribute a collator's reward.
 		/// To use the default implementation of minting rewards, specify the type `()`.
 		type PayoutCollatorReward: PayoutCollatorReward<Self>;
+		/// Handler to notify the runtime when a collator is inactive.
+		/// The default behavior is to mark the collator as offline.
+		/// If you need to use the default implementation, specify the type `()`.
+		type OnInactiveCollator: OnInactiveCollator<Self>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -225,6 +232,8 @@ pub mod pallet {
 		TooLowDelegationCountToAutoCompound,
 		TooLowCandidateAutoCompoundingDelegationCountToAutoCompound,
 		TooLowCandidateAutoCompoundingDelegationCountToDelegate,
+		TooLowCollatorCountToNotifyAsInactive,
+		CannotBeNotifiedAsInactive,
 	}
 
 	#[pallet::event]
@@ -507,6 +516,12 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_last_active)]
+	/// Last round in which a candidate produced blocks
+	pub(crate) type CandidateLastActive<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
+
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
@@ -577,7 +592,7 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
-		ValueQuery,
+		OptionQuery,
 	>;
 
 	#[pallet::storage]
@@ -1123,17 +1138,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::go_offline())]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
-			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
-			state.go_offline();
-			let mut candidates = <CandidatePool<T>>::get();
-			if candidates.remove(&Bond::from_owner(collator.clone())) {
-				<CandidatePool<T>>::put(candidates);
-			}
-			<CandidateInfo<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CandidateWentOffline {
-				candidate: collator,
-			});
+			Self::do_go_offline(collator)?;
 			Ok(().into())
 		}
 
@@ -1442,6 +1447,69 @@ pub mod pallet {
 				<DelegationScheduledRequests<T>>::remove(candidate);
 			}
 
+			Ok(().into())
+		}
+
+		/// Notify a collator is inactive during MaxOfflineRounds
+		#[pallet::call_index(29)]
+		#[pallet::weight(
+			T::DbWeight::get().reads_writes(0 as u64, 0 as u64)
+		)]
+		pub fn notify_inactive_collator(
+			origin: OriginFor<T>,
+			collator: T::AccountId,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+
+			let collators = <SelectedCandidates<T>>::get();
+			let max_collators = <TotalSelected<T>>::get();
+
+			// Check collators length is not below or eq to 66% of max_collators.
+			// We use saturating logic here with (2/3)
+			// as it is dangerous to use floating point numbers directly.
+			ensure!(
+				collators.len() * 3 > (max_collators * 2) as usize,
+				<Error<T>>::TooLowCollatorCountToNotifyAsInactive
+			);
+
+			let round_info = <Round<T>>::get();
+			let max_offline_rounds = T::MaxOfflineRounds::get();
+
+			// Take last round to have rounds_to_check = [7,8,9]
+			// in case we are in round 10 for instance
+			let round = round_info.current.saturating_sub(1);
+
+			let mut rounds_to_check: Vec<RoundIndex> = vec![];
+			for round_index in (0..max_offline_rounds).rev() {
+				rounds_to_check.push(round.saturating_sub(round_index));
+			}
+
+			// If this counter is eq to max_offline_rounds,
+			// the collator should be notified as inactive
+			let mut inactive_counter: RoundIndex = RoundIndex::default();
+
+			// Iter rounds to check
+			//
+			// - The collator has AtStake associated and their AwardedPts are zero
+			//
+			// If the previous condition is met in all rounds of rounds_to_check,
+			// the collator is notified as inactive
+			for r in rounds_to_check.clone() {
+				let stake = <AtStake<T>>::get(r, &collator);
+				let pts = <AwardedPts<T>>::get(r, &collator);
+
+				if stake.is_some() && pts.is_zero() {
+					inactive_counter = inactive_counter.saturating_add(1);
+				}
+			}
+
+			if inactive_counter == max_offline_rounds {
+				let _ = T::OnInactiveCollator::on_inactive_collator(collator.clone(), round);
+			} else {
+				return Err(<Error<T>>::CannotBeNotifiedAsInactive.into());
+			}
+
+			//TODO: update weights
 			Ok(().into())
 		}
 	}
@@ -1979,6 +2047,22 @@ pub mod pallet {
 			};
 
 			weight
+		}
+
+		pub fn do_go_offline(collator: T::AccountId) -> Result<Weight, Error<T>> {
+			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
+			state.go_offline();
+			let mut candidates = <CandidatePool<T>>::get();
+			if candidates.remove(&Bond::from_owner(collator.clone())) {
+				<CandidatePool<T>>::put(candidates);
+			}
+			<CandidateInfo<T>>::insert(&collator, state);
+			<CandidateLastActive<T>>::remove(&collator);
+			Self::deposit_event(Event::CandidateWentOffline {
+				candidate: collator,
+			});
+			Ok(T::DbWeight::get().reads_writes(2, 3))
 		}
 	}
 

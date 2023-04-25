@@ -25,15 +25,15 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
+	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, set_block_author,
+	Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, pallet_prelude::*};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -938,6 +938,93 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 					Error::<Test>::TooLowCandidateCountToLeaveCandidates
 				);
 			}
+		});
+}
+
+#[test]
+fn max_offline_rounds_lower_or_eq_than_reward_payment_delay() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {});
+}
+
+#[test]
+fn notify_inactive_collator_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			// Round 2
+			roll_to_round_begin(2);
+
+			// Change block author
+			set_block_author(1);
+
+			// Finalize the first block of round 2
+			ParachainStaking::on_finalize(5);
+
+			// Round 6
+			roll_to_round_begin(6);
+			roll_blocks(1);
+
+			// Call 'notify_inactive_collator' extrinsic
+			assert_ok!(ParachainStaking::notify_inactive_collator(
+				RuntimeOrigin::signed(1),
+				1
+			));
+
+			// Check the collator was marked as offline as it hasn't produced blocks
+			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
+		});
+}
+
+#[test]
+fn notify_inactive_collator_fails_too_low_collator_count() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
+		.build()
+		.execute_with(|| {
+			// Round 4
+			roll_to_round_begin(4);
+			roll_blocks(1);
+
+			// Call 'notify_inactive_collator' extrinsic
+			assert_noop!(
+				ParachainStaking::notify_inactive_collator(RuntimeOrigin::signed(1), 1),
+				Error::<Test>::TooLowCollatorCountToNotifyAsInactive
+			);
+		});
+}
+
+#[test]
+fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			// Round 2
+			roll_to_round_begin(2);
+
+			// Change block author
+			set_block_author(1);
+
+			// Finalize the first block of round 2
+			ParachainStaking::on_finalize(5);
+
+			// Round 4
+			roll_to_round_begin(4);
+			roll_blocks(1);
+
+			// Call 'notify_inactive_collator' extrinsic
+			assert_noop!(
+				ParachainStaking::notify_inactive_collator(RuntimeOrigin::signed(1), 1),
+				Error::<Test>::CannotBeNotifiedAsInactive
+			);
 		});
 }
 
@@ -7138,7 +7225,8 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 				rewards: 5,
 			},);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),
@@ -7196,7 +7284,8 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 				rewards: 5,
 			},);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),
@@ -7284,7 +7373,8 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				},
 			);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),
@@ -7349,7 +7439,8 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 				},
 			);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),
@@ -7427,7 +7518,8 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 				rewards: 5,
 			},);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),
@@ -7482,7 +7574,8 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 				rewards: 5,
 			},);
 			let collator_snapshot =
-				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
+					.unwrap_or_default();
 			assert_eq!(
 				1,
 				collator_snapshot.delegations.len(),

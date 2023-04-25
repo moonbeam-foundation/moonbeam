@@ -64,3 +64,16 @@ impl<Runtime: crate::Config> PayoutCollatorReward<Runtime> for () {
 		crate::Pallet::<Runtime>::mint_collator_reward(for_round, collator_id, amount)
 	}
 }
+
+pub trait OnInactiveCollator<Runtime: crate::Config> {
+	fn on_inactive_collator(collator_id: Runtime::AccountId, round: crate::RoundIndex) -> Weight;
+}
+
+impl<Runtime: crate::Config> OnInactiveCollator<Runtime> for () {
+	fn on_inactive_collator(
+		collator_id: <Runtime>::AccountId,
+		_round: crate::RoundIndex,
+	) -> Weight {
+		crate::Pallet::<Runtime>::do_go_offline(collator_id).unwrap_or_default()
+	}
+}
