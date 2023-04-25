@@ -13,11 +13,12 @@ import {
   PalletParachainStakingBond,
 } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
-import Bottleneck from "bottleneck";
+import { rateLimiter } from "../util/common";
 import { AccountId20 } from "@polkadot/types/interfaces";
 import { FIVE_MINS, ONE_HOURS, TWO_HOURS } from "../util/constants";
 import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
+const limiter = rateLimiter();
 
 describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function (context, testIt) {
   let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
@@ -78,11 +79,6 @@ describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function 
   testIt("C200", `should have accurate collator stats in snapshot`, async function () {
     this.timeout(FIVE_MINS);
 
-    const limiter = new Bottleneck({
-      maxConcurrent: 5,
-      minTime: 200,
-    });
-
     const results = await limiter.schedule(() => {
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
         const [
@@ -132,10 +128,6 @@ describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function 
 
     this.timeout(TWO_HOURS);
     this.slow(TWO_HOURS);
-    const limiter = new Bottleneck({
-      maxConcurrent: 10,
-      minTime: 100,
-    });
     // Function to check a single Delegator's delegation to a collator
     const checkDelegatorDelegation = async (
       accountId: AccountId20,
@@ -246,10 +238,6 @@ describeSmokeSuite("S2000", `When verifying ParachainStaking rewards`, function 
 
     this.timeout(ONE_HOURS);
     this.slow(ONE_HOURS);
-    const limiter = new Bottleneck({
-      maxConcurrent: 10,
-      minTime: 100,
-    });
 
     // Function to check a single Delegator's delegation to a collator
     const checkDelegatorAutocompound = async (

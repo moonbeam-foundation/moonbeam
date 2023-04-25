@@ -3,11 +3,11 @@ import { expect } from "chai";
 import { numberToHex } from "@polkadot/util";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { NetworkTestArtifact, tracingTxns } from "../util/tracing-txns";
-import Bottleneck from "bottleneck";
+import { rateLimiter } from "../util/common";
 import { BigNumber, providers } from "ethers";
 
 const debug = require("debug")("smoke:historic-compatibility");
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 const httpEndpoint = process.env.HTTP_URL;
 
 describeSmokeSuite("S1200", `Verifying historic compatibility`, async (context, testIt) => {
