@@ -74,8 +74,7 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 		use crate::generic::Pallet as MoonbeamXcmGenericBench;
 		if MoonbeamXcmGenericBench::<T>::benchmarks(true)
 			.iter()
-			.find(|&x| x.name == extrinsic)
-			.is_some()
+			.any(|x| x.name == extrinsic)
 		{
 			MoonbeamXcmGenericBench::<T>::run_benchmark(
 				extrinsic,
