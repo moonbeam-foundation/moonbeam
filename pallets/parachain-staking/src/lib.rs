@@ -516,12 +516,6 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn candidate_last_active)]
-	/// Last round in which a candidate produced blocks
-	pub(crate) type CandidateLastActive<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, RoundIndex, OptionQuery>;
-
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
@@ -2058,7 +2052,6 @@ pub mod pallet {
 				<CandidatePool<T>>::put(candidates);
 			}
 			<CandidateInfo<T>>::insert(&collator, state);
-			<CandidateLastActive<T>>::remove(&collator);
 			Self::deposit_event(Event::CandidateWentOffline {
 				candidate: collator,
 			});

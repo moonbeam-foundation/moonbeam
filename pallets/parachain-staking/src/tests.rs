@@ -942,15 +942,6 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 }
 
 #[test]
-fn max_offline_rounds_lower_or_eq_than_reward_payment_delay() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {});
-}
-
-#[test]
 fn notify_inactive_collator_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
