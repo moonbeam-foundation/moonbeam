@@ -193,7 +193,8 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
+		let mut result =
+			<RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
 		result.randomness = Some(Default::default());
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
@@ -216,7 +217,8 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
+		let mut result =
+			<RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
 		result.randomness = Some(Default::default());
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
