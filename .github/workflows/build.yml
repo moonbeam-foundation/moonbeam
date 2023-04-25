@@ -4,6 +4,7 @@ name: Build
 # 1. It generates only 1 action item in the list making it more readable
 # 2. It includes the PR/Commit text in the action item
 # 3. Artifacts are not available between workflows.
+# test
 
 on:
   pull_request:
