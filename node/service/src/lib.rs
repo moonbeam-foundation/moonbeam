@@ -903,13 +903,10 @@ where
 /// the parachain inherent.
 pub async fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
-	polkadot_config: Configuration,
-	collator_options: CollatorOptions,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	para_id: ParaId,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -936,35 +933,22 @@ where
 				block_import,
 				filter_pool,
 				mut telemetry,
-				telemetry_worker_handle,
+				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
-	let (relay_chain_interface, _collator_key) =
-		cumulus_client_service::build_relay_chain_interface(
-			polkadot_config,
-			&config,
-			telemetry_worker_handle,
-			&mut task_manager,
-			collator_options.clone(),
-			hwbench.clone(),
-		)
-		.await
-		.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
-
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
-		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
-			parachain_config: &config,
+		sc_service::build_network(sc_service::BuildNetworkParams {
+			config: &config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			para_id,
-			relay_chain_interface: relay_chain_interface.clone(),
-		})
-		.await?;
+			block_announce_validator_builder: None,
+			warp_sync_params: None,
+		})?;
 
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
