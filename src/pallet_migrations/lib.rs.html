@@ -407,9 +407,6 @@
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -660,10 +657,7 @@
 				// left for us by pre_upgrade()
 
 				</span><span class="kw">match </span>state_map.get(<span class="kw-2">&amp;</span>migration_name.to_string()) {
-					<span class="prelude-val">Some</span>(value) =&gt; <span class="macro">assert!</span>(
-						<span class="bool-val">true </span>== value.clone(),
-						<span class="string">&quot;our dummy value might as well be true&quot;
-					</span>),
+					<span class="prelude-val">Some</span>(value) =&gt; <span class="macro">assert!</span>(value.clone(), <span class="string">&quot;our dummy value might as well be true&quot;</span>),
 					<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
 				}
 
