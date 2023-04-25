@@ -15,14 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use frame_benchmarking::benchmarks;
-use frame_support::dispatch::Weight;
+use frame_benchmarking::{benchmarks, BenchmarkResult};
+use frame_support::{
+	traits::Get,
+	dispatch::Weight,
+};
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
-use frame_benchmarking::BenchmarkResult;
-use frame_support::traits::Get;
 
 benchmarks! {
 	buy_execution {
@@ -71,11 +72,6 @@ benchmarks! {
 	}
 
 	universal_origin {
-	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-	}
-
-	unlock_asset {
 	} : {
 		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
 	}
