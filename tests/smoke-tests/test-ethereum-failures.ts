@@ -3,14 +3,14 @@ import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
-import Bottleneck from "bottleneck";
+import { rateLimiter } from "../util/common";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { GenericExtrinsic } from "@polkadot/types";
 import { AnyTuple } from "@polkadot/types/types";
 const debug = require("debug")("smoke:eth-failures");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 const hours = (timePeriod / (1000 * 60 * 60)).toFixed(2);
 
 type BlockFilteredRecord = {
@@ -30,7 +30,7 @@ describeSmokeSuite(
 
     before("Retrieve events for previous blocks", async function () {
       this.timeout(timeout);
-      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
+      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod);
 
       debug(`Collecting ${hours} hours worth of events`);
 

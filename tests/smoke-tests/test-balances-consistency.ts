@@ -10,15 +10,15 @@ import type {
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
+import { rateLimiter } from "../util/common";
 const debug = require("debug")("smoke:balances");
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-  const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
+  const limiter = rateLimiter();
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
