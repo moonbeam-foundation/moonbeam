@@ -1,4 +1,10 @@
 import { BN } from "@polkadot/util";
+import Bottleneck from "bottleneck";
+
+export function rateLimiter() {
+  const settings = process.env.CI === "true" ? {} : { maxConcurrent: 10, minTime: 150 };
+  return new Bottleneck(settings);
+}
 
 // Sort dict by key
 export function sortObjectByKeys(o) {
