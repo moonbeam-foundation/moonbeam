@@ -6,6 +6,7 @@ import { DevTestContext } from "./setup-dev-tests";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmVersionedXcm,
+  XcmV3JunctionNetworkId,
 } from "@polkadot/types/lookup";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../util/constants";
@@ -267,6 +268,21 @@ export class XcmFragment {
     return this;
   }
 
+  // Add a `BurnAsset` instruction
+  burn_asset(amount: bigint = 0n): this {
+    this.instructions.push({
+      BurnAsset: this.config.assets.map(({ multilocation, fungible }) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: amount == 0n ? fungible : amount },
+        };
+      }, this),
+    });
+    return this;
+  }
+
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
   buy_execution(fee_index: number = 0, repeat: bigint = 1n): this {
@@ -340,7 +356,10 @@ export class XcmFragment {
   }
 
   // Add a `DepositAsset` instruction
-  deposit_asset(max_assets: bigint = 1n): this {
+  deposit_asset(
+    max_assets: bigint = 1n,
+    network: "Any" | XcmV3JunctionNetworkId["type"] = "Any"
+  ): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
     }
@@ -350,7 +369,7 @@ export class XcmFragment {
         maxAssets: max_assets,
         beneficiary: {
           parents: 0,
-          interior: { X1: { AccountKey20: { network: "Any", key: this.config.beneficiary } } },
+          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
         },
       },
     });
@@ -411,6 +430,12 @@ export class XcmFragment {
     };
   }
 
+  as_v3(): any {
+    return {
+      V3: replaceNetworkAny(this.instructions),
+    };
+  }
+
   // Overrides the weight limit of the first buyExeuction encountered
   // with the measured weight
   async override_weight(context: DevTestContext): Promise<this> {
@@ -435,3 +460,24 @@ export class XcmFragment {
     return this;
   }
 }
+
+function replaceNetworkAny(obj: AnyObject | Array<AnyObject>) {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => replaceNetworkAny(item));
+  } else if (typeof obj === "object" && obj !== null) {
+    const newObj: AnyObject = {};
+    for (const key in obj) {
+      if (key === "network" && obj[key] === "Any") {
+        newObj[key] = "Ethereum";
+      } else {
+        newObj[key] = replaceNetworkAny(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+}
+
+type AnyObject = {
+  [key: string]: any;
+};

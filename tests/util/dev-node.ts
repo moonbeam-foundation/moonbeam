@@ -69,7 +69,8 @@ export async function startMoonbeamDevNode(
   }
   nodeStarted = true;
   const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
-
+  console.log("Remove me")
+console.log(wsPort.toString())
   if (process.env.FORCE_WASM_EXECUTION == "true") {
     withWasm = true;
   }

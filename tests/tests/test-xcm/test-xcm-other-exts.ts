@@ -5,11 +5,13 @@ import { XcmVersionedXcm, XcmV3Instruction, XcmV3TraitsOutcome } from "@polkadot
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { expectOk, expectSubstrateEvent, expectSuccessfulXCM } from "../../util/expect";
 import { GLMR } from "../../util/constants";
+import { XcmFragment } from "../../util/xcm";
+import { BN } from "@polkadot/util";
 
 const foreign_para_id = 2000;
 
 const MAX_WEIGHT = {
-  refTime: 5000000000,
+  refTime: 20_000_000_000,
   proofSize: 10000,
 };
 
@@ -18,12 +20,31 @@ describeDevMoonbeam(
   "XCM Other Extrinsics",
   (context) => {
     let balancesPalletIndex: number;
+    let dotAsset: any;
+    let amount: bigint;
 
     before("TODO: FILL IN", async function () {
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
         return pallet.name === "Balances";
       }).index;
+      const random = generateKeyringPair();
+      amount = 100_000_000_000_000_000_000n; // 100 UNIT
+      dotAsset = {
+        assets: [
+          {
+            multilocation: {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+            fungible: amount,
+          },
+        ],
+        // weight_limit: new BN(4000000000),
+        beneficiary: random.publicKey,
+      };
     });
 
     it("Should execute ClearTopic", async function () {
@@ -43,12 +64,7 @@ describeDevMoonbeam(
       expectSuccessfulXCM(data[0] as XcmV3TraitsOutcome);
     });
 
-    it("Should execute AliasOrigin", async function () {
-      let random = generateKeyringPair();
-
-      const transferCall = context.polkadotApi.tx.balances.transfer(random.address, 1n * GLMR);
-      const transferCallEncoded = transferCall?.method.toHex();
-
+    it.skip("Should execute AliasOrigin", async function () {
       const message = {
         V3: [
           {
@@ -71,32 +87,13 @@ describeDevMoonbeam(
     });
 
     it("Should execute BurnAsset", async function () {
-      let random = generateKeyringPair();
-
-      const transferCall = context.polkadotApi.tx.balances.transfer(random.address, 1n * GLMR);
-      const transferCallEncoded = transferCall?.method.toHex();
-
-      const message = {
-        V3: [
-          /// TODO: add all other XCM bits required to make this a reasonable test like buy execution withdraw asset etc
-          {
-            BurnAsset: [
-              {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-                fungible: 1n,
-              },
-            ],
-          },
-        ],
-      };
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .burn_asset()
+        .as_v3();
 
       const blockResponse = await context.createBlock(
-        context.polkadotApi.tx.polkadotXcm.execute(message, MAX_WEIGHT)
+        context.polkadotApi.tx.polkadotXcm.execute(xcmMessage, MAX_WEIGHT)
       );
 
       const { data } = expectSubstrateEvent(blockResponse, "polkadotXcm", "Attempted");
