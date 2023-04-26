@@ -16,10 +16,7 @@
 
 use super::*;
 use frame_benchmarking::{benchmarks, BenchmarkResult};
-use frame_support::{
-	traits::Get,
-	dispatch::Weight,
-};
+use frame_support::{dispatch::Weight, traits::Get};
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
 use sp_std::vec::Vec;
