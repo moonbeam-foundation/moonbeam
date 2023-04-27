@@ -38,7 +38,7 @@ enum ReserveType {
   LocalAssetDeposit = "16",
   Named = "17",
   SubIdentity = "18",
-  PreimageStatus = "19"
+  PreimageStatus = "19",
 }
 
 const getReserveTypeByValue = (value: string): string | null => {
@@ -196,7 +196,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         return;
       }
       const account64 = hexToBase64(account);
-      
+
       const value = expectedReserveMap.get(account64);
       if (value === undefined) {
         expectedReserveMap.set(account64, {
@@ -347,21 +347,24 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     preimageStatuses
       .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
-      .forEach((status) => {
+      .map((status) => {
         const deposit = extractPreimageDeposit(
           status[1].unwrap().isUnrequested
             ? status[1].unwrap().asUnrequested
             : status[1].unwrap().asRequested
         );
+        return { accountId: deposit.accountId, deposit: deposit.amount };
+      })
+      .forEach(({ deposit, accountId }) => {
+        const key = hexToBase64(accountId);
+        const value =
+          expectedReserveMap.has(key) &&
+          !!expectedReserveMap.get(key).reserved[ReserveType.PreimageStatus]
+            ? expectedReserveMap.get(key).reserved[ReserveType.PreimageStatus] + deposit.toBigInt()
+            : deposit.toBigInt();
 
-        if (deposit.accountId.toString() == "0x16095c509f728721ad19a51704fc39116157be3a"){
-          console.log(deposit.accountId)
-          console.log(deposit.amount)
-        
-        }
-        
-        updateReserveMap(deposit.accountId.toString(), {
-          [ReserveType.PreimageStatus]: deposit.amount.toBigInt() !== 0n ? deposit.amount.toBigInt() : 0n,
+        updateReserveMap(accountId, {
+          [ReserveType.PreimageStatus]: value,
         });
       });
 
@@ -587,8 +590,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       }
       debug(`Checked ${totalAccounts} total accounts`);
     }
-
-    console.log(expectedReserveMap.get(hexToBase64("0x0394c0edfcca370b20622721985b577850b0eb75")));
 
     //3) Collect and process failures
     locks.forEach((lock) => {
