@@ -196,8 +196,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         return;
       }
       const account64 = hexToBase64(account);
-
       const value = expectedReserveMap.get(account64);
+
       if (value === undefined) {
         expectedReserveMap.set(account64, {
           total: 0n,
@@ -206,7 +206,16 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         return;
       }
 
-      const newReserved = { ...value.reserved, ...newReserve };
+      let tempRegister;
+      Object.keys(newReserve).forEach((key) => {
+        if (value.reserved[key]) {
+          tempRegister = { [key]: value.reserved[key] + newReserve[key] };
+        } else {
+          tempRegister = { [key]: newReserve[key] };
+        }
+      });
+
+      const newReserved = { ...value.reserved, ...tempRegister };
       const newTotal = value.total;
 
       expectedReserveMap.set(account64, {
@@ -356,15 +365,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         return { accountId: deposit.accountId, deposit: deposit.amount };
       })
       .forEach(({ deposit, accountId }) => {
-        const key = hexToBase64(accountId);
-        const value =
-          expectedReserveMap.has(key) &&
-          !!expectedReserveMap.get(key).reserved[ReserveType.PreimageStatus]
-            ? expectedReserveMap.get(key).reserved[ReserveType.PreimageStatus] + deposit.toBigInt()
-            : deposit.toBigInt();
-
         updateReserveMap(accountId, {
-          [ReserveType.PreimageStatus]: value,
+          [ReserveType.PreimageStatus]: deposit.toBigInt(),
         });
       });
 
@@ -556,7 +558,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID;
-      // accountMap.set(hexToBase64(userId), await apiAt.query.system.account(userId));
       const user = await apiAt.query.system.account(userId);
       checkReservedBalance(userId, user.data.reserved.toBigInt());
     } else {
