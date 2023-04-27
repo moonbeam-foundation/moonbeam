@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use frame_benchmarking::{benchmarks, BenchmarkResult};
+use frame_benchmarking::{benchmarks, BenchmarkError, BenchmarkResult};
 use frame_support::{dispatch::Weight, traits::Get};
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
@@ -45,32 +45,51 @@ benchmarks! {
 
 	exchange_asset {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	export_message {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	lock_asset {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	unlock_asset {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	note_unlockable {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	request_unlock {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	universal_origin {
 	} : {
-		BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	impl_benchmark_test_suite!(
