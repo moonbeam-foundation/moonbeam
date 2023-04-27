@@ -401,7 +401,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
+          cargo test --profile testnet --all --features=evm-tracing
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
