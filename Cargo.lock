@@ -2191,7 +2191,7 @@ dependencies = [
  "convert_case 0.4.0",
  "proc-macro2",
  "quote",
- "rustc_version 0.4.0",
+ "rustc_version",
  "syn 1.0.109",
 ]
 
@@ -3176,21 +3176,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "frame-benchmarking-pallet-pov"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "frame-election-provider-solution-type"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
@@ -4088,12 +4073,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "indexmap-nostd"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e04e2fd2b8188ea827b32ef11de88377086d690286ab35747ef7f9bf3ccb590"
-
-[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4362,109 +4341,6 @@ name = "keccak"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9b7d56ba4a8344d6be9729995e6b06f928af29998cdf79fe390cbf6b1fee838"
-
-[[package]]
-name = "kitchensink-runtime"
-version = "3.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-benchmarking-pallet-pov",
- "frame-election-provider-support",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "log",
- "node-primitives",
- "pallet-alliance",
- "pallet-asset-tx-payment",
- "pallet-assets",
- "pallet-authority-discovery",
- "pallet-authorship",
- "pallet-babe",
- "pallet-bags-list",
- "pallet-balances",
- "pallet-bounties",
- "pallet-child-bounties",
- "pallet-collective",
- "pallet-contracts",
- "pallet-contracts-primitives",
- "pallet-conviction-voting",
- "pallet-core-fellowship",
- "pallet-democracy",
- "pallet-election-provider-multi-phase",
- "pallet-election-provider-support-benchmarking",
- "pallet-elections-phragmen",
- "pallet-fast-unstake",
- "pallet-glutton",
- "pallet-grandpa",
- "pallet-identity",
- "pallet-im-online",
- "pallet-indices",
- "pallet-insecure-randomness-collective-flip",
- "pallet-lottery",
- "pallet-membership",
- "pallet-message-queue",
- "pallet-mmr",
- "pallet-multisig",
- "pallet-nfts",
- "pallet-nfts-runtime-api",
- "pallet-nis",
- "pallet-nomination-pools",
- "pallet-nomination-pools-benchmarking",
- "pallet-nomination-pools-runtime-api",
- "pallet-offences",
- "pallet-offences-benchmarking",
- "pallet-preimage",
- "pallet-proxy",
- "pallet-ranked-collective",
- "pallet-recovery",
- "pallet-referenda",
- "pallet-remark",
- "pallet-root-testing",
- "pallet-salary",
- "pallet-scheduler",
- "pallet-session",
- "pallet-session-benchmarking",
- "pallet-society",
- "pallet-staking",
- "pallet-staking-reward-curve",
- "pallet-staking-runtime-api",
- "pallet-state-trie-migration",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-tips",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-transaction-storage",
- "pallet-treasury",
- "pallet-uniques",
- "pallet-utility",
- "pallet-vesting",
- "pallet-whitelist",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
- "sp-authority-discovery",
- "sp-block-builder",
- "sp-consensus-babe",
- "sp-consensus-grandpa",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-staking",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "static_assertions",
- "substrate-wasm-builder",
-]
 
 [[package]]
 name = "kusama-runtime"
@@ -5666,7 +5542,6 @@ dependencies = [
  "cumulus-client-service",
  "cumulus-primitives-core",
  "frame-benchmarking-cli",
- "kitchensink-runtime",
  "log",
  "moonbeam-cli-opt",
  "moonbeam-service",
@@ -6703,19 +6578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-primitives"
-version = "2.0.0"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-application-crypto",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
 name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7056,27 +6918,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-alliance"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "array-bytes 4.1.0",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-collective",
- "pallet-identity",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-core-hashing",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-asset-manager"
 version = "0.1.0"
 dependencies = [
@@ -7094,24 +6935,6 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-primitives",
-]
-
-[[package]]
-name = "pallet-asset-tx-payment"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-transaction-payment",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -7387,59 +7210,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-contracts"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "bitflags",
- "environmental",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "impl-trait-for-tuples",
- "log",
- "pallet-contracts-primitives",
- "pallet-contracts-proc-macro",
- "parity-scale-codec",
- "rand 0.8.5",
- "rand_pcg",
- "scale-info",
- "serde",
- "smallvec",
- "sp-api",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "wasm-instrument 0.4.0",
- "wasmi 0.20.0",
- "wasmparser-nostd",
-]
-
-[[package]]
-name = "pallet-contracts-primitives"
-version = "7.0.0"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "bitflags",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std",
- "sp-weights",
-]
-
-[[package]]
-name = "pallet-contracts-proc-macro"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "pallet-conviction-voting"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
@@ -7451,24 +7221,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-core-fellowship"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-arithmetic",
- "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -8342,24 +8094,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-glutton"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "blake2",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-grandpa"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
@@ -8436,34 +8170,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-insecure-randomness-collective-flip"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "safe-mix",
- "scale-info",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-lottery"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-maintenance-mode"
 version = "0.1.0"
 dependencies = [
@@ -8495,25 +8201,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-message-queue"
-version = "7.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "sp-weights",
 ]
 
 [[package]]
@@ -8588,35 +8275,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-nfts"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "enumflags2",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-nfts-runtime-api"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-support",
- "pallet-nfts",
- "parity-scale-codec",
- "sp-api",
 ]
 
 [[package]]
@@ -8872,23 +8530,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-remark"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-root-testing"
 version = "1.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
@@ -8897,24 +8538,6 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-salary"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-arithmetic",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9154,27 +8777,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-transaction-storage"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "array-bytes 4.1.0",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-inherents",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "sp-transaction-storage-proof",
-]
-
-[[package]]
 name = "pallet-treasury"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
@@ -9187,21 +8789,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-uniques"
-version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.40#e7de77328d2b05ea4ed524f7fde7d4a9dbed7a62"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -11659,15 +11246,6 @@ checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
 name = "rustc_version"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
-dependencies = [
- "semver 0.9.0",
-]
-
-[[package]]
-name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
@@ -11794,15 +11372,6 @@ name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
-
-[[package]]
-name = "safe-mix"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d3d055a2582e6b00ed7a31c1524040aa391092bf636328350813f3a0605215c"
-dependencies = [
- "rustc_version 0.2.3",
-]
 
 [[package]]
 name = "safe_arch"
@@ -12341,7 +11910,7 @@ dependencies = [
  "sp-version",
  "sp-wasm-interface",
  "tracing",
- "wasmi 0.13.2",
+ "wasmi",
 ]
 
 [[package]]
@@ -12353,8 +11922,8 @@ dependencies = [
  "sp-maybe-compressed-blob",
  "sp-wasm-interface",
  "thiserror",
- "wasm-instrument 0.3.0",
- "wasmi 0.13.2",
+ "wasm-instrument",
+ "wasmi",
 ]
 
 [[package]]
@@ -12367,7 +11936,7 @@ dependencies = [
  "sc-executor-common",
  "sp-runtime-interface",
  "sp-wasm-interface",
- "wasmi 0.13.2",
+ "wasmi",
 ]
 
 [[package]]
@@ -13181,15 +12750,6 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
-dependencies = [
- "semver-parser",
-]
-
-[[package]]
-name = "semver"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e25dfac463d778e353db5be2449d1cce89bd6fd23c9f1ea21310ce6e5a1b29c4"
@@ -13469,7 +13029,7 @@ dependencies = [
  "curve25519-dalek 4.0.0-pre.1",
  "rand_core 0.6.4",
  "ring",
- "rustc_version 0.4.0",
+ "rustc_version",
  "sha2 0.10.6",
  "subtle",
 ]
@@ -14188,7 +13748,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "sp-std",
- "wasmi 0.13.2",
+ "wasmi",
  "wasmtime",
 ]
 
@@ -15611,15 +15171,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasm-instrument"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a47ecb37b9734d1085eaa5ae1a81e60801fd8c28d4cabdd8aedb982021918bc"
-dependencies = [
- "parity-wasm",
-]
-
-[[package]]
 name = "wasm-opt"
 version = "0.111.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15683,19 +15234,7 @@ checksum = "06c326c93fbf86419608361a2c925a31754cf109da1b8b55737070b4d6669422"
 dependencies = [
  "parity-wasm",
  "wasmi-validation",
- "wasmi_core 0.2.1",
-]
-
-[[package]]
-name = "wasmi"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01bf50edb2ea9d922aa75a7bf3c15e26a6c9e2d18c56e862b49737a582901729"
-dependencies = [
- "spin 0.9.4",
- "wasmi_arena",
- "wasmi_core 0.5.0",
- "wasmparser-nostd",
+ "wasmi_core",
 ]
 
 [[package]]
@@ -15706,12 +15245,6 @@ checksum = "91ff416ad1ff0c42e5a926ed5d5fab74c0f098749aa0ad8b2a34b982ce0e867b"
 dependencies = [
  "parity-wasm",
 ]
-
-[[package]]
-name = "wasmi_arena"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1ea379cbb0b41f3a9f0bf7b47036d036aae7f43383d8cc487d4deccf40dee0a"
 
 [[package]]
 name = "wasmi_core"
@@ -15728,17 +15261,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasmi_core"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5bf998ab792be85e20e771fe14182b4295571ad1d4f89d3da521c1bef5f597a"
-dependencies = [
- "downcast-rs",
- "libm",
- "num-traits",
-]
-
-[[package]]
 name = "wasmparser"
 version = "0.100.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15746,15 +15268,6 @@ checksum = "64b20236ab624147dfbb62cf12a19aaf66af0e41b8398838b66e997d07d269d4"
 dependencies = [
  "indexmap",
  "url",
-]
-
-[[package]]
-name = "wasmparser-nostd"
-version = "0.91.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c37f310b5a62bfd5ae7c0f1d8e6f98af16a5d6d84ba764e9c36439ec14e318b"
-dependencies = [
- "indexmap-nostd",
 ]
 
 [[package]]
