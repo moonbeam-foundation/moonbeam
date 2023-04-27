@@ -16,13 +16,14 @@ import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
+// import {to} from "@polkadot/util"
 const debug = require("debug")("smoke:balances");
 
 enum ReserveType {
   Treasury = "1",
   Proxy = "2",
   Announcement = "3",
-  Mapping = "4",
+  AuthorMapping = "4",
   Candidate = "5",
   Delegator = "6",
   RequestJudgements = "7",
@@ -38,16 +39,17 @@ enum ReserveType {
   Named = "17",
 }
 
-const  getReserveTypeByValue = ( value: string): string | null => {
+const getReserveTypeByValue = (value: string): string | null => {
   for (const key in ReserveType) {
     if (ReserveType[key] === value) {
       return key;
     }
   }
   return null;
-}
+};
 
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
+type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
   // const accounts: { [account: string]: FrameSystemAccountInfo } = {};
@@ -65,8 +67,13 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   let delegatorStakingMigrationAccounts;
   let collatorStakingMigrationAccounts;
 
-  const accountIdTo20 = (accountId: string) =>
-    context.polkadotApi.createType("AccountId20", accountId.toLowerCase()).toString();
+  const hexToBase64 = (hex: string): string => {
+    const formatted = hex.includes("0x") ? hex.slice(2) : hex;
+    return Buffer.from(formatted, "hex").toString("base64");
+  };
+  const base64ToHex = (base64: string): string => {
+    return "0x" + Buffer.from(base64, "base64").toString("hex");
+  };
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
@@ -86,36 +93,35 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID;
-      accountMap.set(accountIdTo20(userId), await apiAt.query.system.account(userId));
-      return;
+      accountMap.set(hexToBase64(userId), await apiAt.query.system.account(userId));
+    } else {
+      // loop over all system accounts
+      while (true) {
+        const query = await limiter.schedule(() =>
+          apiAt.query.system.account.entriesPaged({
+            args: [],
+            pageSize: limit,
+            startKey: last_key,
+          })
+        );
+
+        if (query.length === 0) {
+          break;
+        }
+
+        count += query.length;
+
+        for (const user of query) {
+          last_key = user[0].toString();
+          const accountId = user[0].toHex().slice(-40);
+          accountMap.set(hexToBase64(accountId), user[1]);
+        }
+        if (count % (10 * limit) == 0) {
+          debug(`Retrieved ${count} accounts`);
+        }
+      }
+      debug(`Retrieved ${count} total accounts`);
     }
-
-    // loop over all system accounts
-    while (true) {
-      const query = await limiter.schedule(() =>
-        apiAt.query.system.account.entriesPaged({
-          args: [],
-          pageSize: limit,
-          startKey: last_key,
-        })
-      );
-
-      if (query.length === 0) {
-        break;
-      }
-
-      count += query.length;
-
-      for (const user of query) {
-        last_key = user[0].toString();
-        const accountId = `0x${user[0].toHex().slice(-40)}`;
-        accountMap.set(accountIdTo20(accountId), user[1]);
-      }
-      if (count % (10 * limit) == 0) {
-        debug(`Retrieved ${count} accounts`);
-      }
-    }
-    debug(`Retrieved ${count} total accounts`);
 
     candidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
 
@@ -133,7 +139,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       (delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
         (p, migration: any) => {
           if (migration[1].isTrue) {
-            p[`0x${migration[0].toHex().slice(-40)}`] = true;
+            p[migration[0].toHex().slice(-40)] = true;
           }
           return p;
         },
@@ -142,7 +148,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     collatorStakingMigrationAccounts = collatorStakingMigrations.reduce((p, migration: any) => {
       if (migration[1].isTrue) {
-        p[`0x${migration[0].toHex().slice(-40)}`] = true;
+        p[migration[0].toHex().slice(-40)] = true;
       }
       return p;
     }, {} as any) as { [account: string]: boolean };
@@ -212,58 +218,55 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       if (isZero) {
         return;
       }
-      const account20 = accountIdTo20(account);
-
-      const value = expectedReserveMap.get(account20);
+      const account64 = hexToBase64(account);
+      const value = expectedReserveMap.get(account64);
       if (value === undefined) {
-        expectedReserveMap.set(account20, {
+        expectedReserveMap.set(account64, {
           total: 0n,
           reserved: newReserve,
         });
         return;
       }
- 
 
       const newReserved = { ...value.reserved, ...newReserve };
       const newTotal = value.total;
 
-      expectedReserveMap.set(account20, {
+      expectedReserveMap.set(account64, {
         total: newTotal,
         reserved: newReserved,
       });
     };
 
     treasuryProposals.forEach((proposal) =>
-      updateReserveMap(`0x${proposal[1].unwrap().proposer.toHex().slice(-40)}`, {
+      updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
         [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
       })
     );
 
     proxies.forEach((proxy) => {
-      // updateReserveMap(`0x${proxy[0].toHex().slice(-40)}`, {
-      //   [ReserveType.Proxy]: proxy[1][1].toBigInt(),
-      // });
+      updateReserveMap(proxy[0].toHex().slice(-40), {
+        [ReserveType.Proxy]: proxy[1][1].toBigInt(),
+      });
     });
 
     proxyAnnouncements.forEach((announcement) =>
-      updateReserveMap(`0x${announcement[0].toHex().slice(-40)}`, {
+      updateReserveMap(announcement[0].toHex().slice(-40), {
         [ReserveType.Announcement]: announcement[1][1].toBigInt(),
       })
     );
 
     mappingWithDeposit.forEach((mapping) =>
-      updateReserveMap(`0x${mapping[1].unwrap().account.toHex().slice(-40)}`, {
-        [ReserveType.Mapping]: mapping[1].unwrap().deposit.toBigInt(),
+      updateReserveMap(mapping[1].unwrap().account.toHex().slice(-40), {
+        [ReserveType.AuthorMapping]: mapping[1].unwrap().deposit.toBigInt(),
       })
     );
 
     candidateInfo.forEach((candidate) => {
       if (
         specVersion < 1700 ||
-        (specVersion < 1800 &&
-          !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`])
+        (specVersion < 1800 && !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
       ) {
-        updateReserveMap(`0x${candidate[0].toHex().slice(-40)}`, {
+        updateReserveMap(candidate[0].toHex().slice(-40), {
           [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
         });
       }
@@ -272,17 +275,16 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     delegatorState.forEach((delegator) => {
       if (
         specVersion < 1700 ||
-        (specVersion < 1800 &&
-          !delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`])
+        (specVersion < 1800 && !delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)])
       ) {
-        updateReserveMap(`0x${delegator[0].toHex().slice(-40)}`, {
+        updateReserveMap(delegator[0].toHex().slice(-40), {
           [ReserveType.Delegator]: delegator[1].unwrap().total.toBigInt(),
         });
       }
     });
 
     identities.forEach((identity) => {
-      updateReserveMap(`0x${identity[0].toHex().slice(-40)}`, {
+      updateReserveMap(identity[0].toHex().slice(-40), {
         [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
         [ReserveType.RequestJudgements]: identity[1]
           .unwrap()
@@ -294,7 +296,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     subIdentities.forEach((subIdentity) => {
-      updateReserveMap(`0x${subIdentity[0].toHex().slice(-40)}`, {
+      updateReserveMap(subIdentity[0].toHex().slice(-40), {
         [ReserveType.Identity]: subIdentity[1][0].toBigInt(),
       });
     });
@@ -402,24 +404,27 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         // TODO: better handle unwrapping
 
         updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
-          [ReserveType.ReferendumInfo]: (deposit.unwrap ? deposit.unwrap() : deposit).amount.toBigInt(),
+          [ReserveType.ReferendumInfo]: (deposit.unwrap
+            ? deposit.unwrap()
+            : deposit
+          ).amount.toBigInt(),
         });
       });
     });
 
     assets.forEach((asset) => {
-      updateReserveMap(`0x${asset[1].unwrap().owner.toHex().slice(-40)}`, {
+      updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
         [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
       });
     });
 
     assetsMetadata.forEach((assetMetadata) => {
       updateReserveMap(
-        `0x${assets
+        assets
           .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
           .unwrap()
           .owner.toHex()
-          .slice(-40)}`,
+          .slice(-40),
         {
           [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
         }
@@ -427,21 +432,21 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     localAssets.forEach((localAsset) => {
-      updateReserveMap(`0x${localAsset[1].unwrap().owner.toHex().slice(-40)}`, {
+      updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
         [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
       });
     });
 
     localAssetsMetadata.forEach((localAssetMetadata) => {
       updateReserveMap(
-        `0x${localAssets
+        localAssets
           .find(
             (localAsset) =>
               localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
           )[1]
           .unwrap()
           .owner.toHex()
-          .slice(-40)}`,
+          .slice(-40),
         {
           [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
         }
@@ -455,7 +460,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     namedReserves.forEach((namedReservesOf) => {
-      updateReserveMap(`0x${namedReservesOf[0].toHex().slice(-40)}`, {
+      updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
         [ReserveType.Named]: namedReservesOf[1]
           .map((namedDeposit) => namedDeposit.amount.toBigInt())
           .reduce((accumulator, curr) => accumulator + curr),
@@ -484,7 +489,9 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
       if (reserved != expectedReserve) {
         failedReserved.push(
-          `⚠️  ${accountId.toString()} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
+          `⚠️  ${base64ToHex(
+            accountId
+          )} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
             `\tℹ️  Expected only contains: (${Object.keys(
               (expectedReserveMap.has(accountId) && expectedReserveMap.get(accountId).reserved) ||
                 {}
@@ -517,29 +524,27 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     this.timeout(30000);
     const locks = await apiAt.query.balances.locks.entries();
     const democracyVotes = await apiAt.query.democracy.votingOf.entries();
-    const expectedLocksMap = new Map<
-      string,
-      { total?: bigint; locks?: { [key: string]: bigint } }
-    >();
+    const expectedLocksMap = new Map<string, LocksInfo>();
 
     const updateExpectedLocksMap = (account: string, lock: { [key: string]: bigint }) => {
-      const value = expectedLocksMap.get(account);
+      const account64 = hexToBase64(account);
+      const value = expectedLocksMap.get(account64);
       if (value === undefined) {
-        expectedLocksMap.set(account, { total: 0n, locks: lock });
+        expectedLocksMap.set(account64, { total: 0n, locks: lock });
         return;
       }
       const updatedLocks = { ...value.locks, ...lock };
       const newTotal = value.total;
-      expectedLocksMap.set(account, { total: newTotal, locks: updatedLocks });
+      expectedLocksMap.set(account64, { total: newTotal, locks: updatedLocks });
     };
 
     candidateInfo.forEach((candidate) => {
       // Support the case of the migration in 1700
       if (
         specVersion >= 1800 ||
-        collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
+        collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
       ) {
-        updateExpectedLocksMap(`0x${candidate[0].toHex().slice(-40)}`, {
+        updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
           ColStake: candidate[1].unwrap().bond.toBigInt(),
         });
       }
@@ -549,9 +554,9 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       // Support the case of the migration in 1700
       if (
         specVersion >= 1800 ||
-        delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
+        delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)]
       ) {
-        updateExpectedLocksMap(`0x${delegator[0].toHex().slice(-40)}`, {
+        updateExpectedLocksMap(delegator[0].toHex().slice(-40), {
           DelStake: delegator[1].unwrap().total.toBigInt(),
         });
       }
@@ -559,7 +564,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     democracyVotes.forEach((votes) => {
       if (votes[1].isDirect) {
-        updateExpectedLocksMap(`0x${votes[0].toHex().slice(-40)}`, {
+        updateExpectedLocksMap(votes[0].toHex().slice(-40), {
           democracy: votes[1].asDirect.votes.reduce((p, v) => {
             const value = v[1].isStandard
               ? v[1].asStandard.balance.toBigInt()
@@ -584,7 +589,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     const failedLocks = [];
     const locksByAccount = locks.reduce((p, lockSet) => {
-      p[`0x${lockSet[0].toHex().slice(-40)}`] = Object.values(lockSet[1].toArray()).reduce(
+      p[lockSet[0].toHex().slice(-40)] = Object.values(lockSet[1].toArray()).reduce(
         (p, lock) => ({
           ...(p as any),
           [(lock as any).id.toHuman().toString()]: (lock as any).amount.toBigInt(),
@@ -596,8 +601,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     for (const accountId of Object.keys(locksByAccount)) {
       const locks = locksByAccount[accountId] || {};
-      // const expectedLocks = expectedLocksByAccount[accountId] || {};
-      const expectedLocks = expectedLocksMap.get(accountId).locks;
+      const expectedLocks = expectedLocksMap.get(hexToBase64(accountId)).locks;
 
       for (const key of new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])) {
         if (expectedLocks[key] > locks[key]) {
