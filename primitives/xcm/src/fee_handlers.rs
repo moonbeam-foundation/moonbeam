@@ -146,7 +146,9 @@ impl<
 {
 	fn drop(&mut self) {
 		if let Some((id, amount, _)) = self.1.clone() {
-			R::take_revenue((id, amount).into());
+			if amount > 0 {
+				R::take_revenue((id, amount).into());
+			}
 		}
 	}
 }
