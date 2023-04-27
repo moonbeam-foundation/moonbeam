@@ -2054,7 +2054,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CandidateWentOffline {
 				candidate: collator,
 			});
-			Ok(T::DbWeight::get().reads_writes(2, 3))
+			Ok(T::DbWeight::get().reads_writes(2, 2))
 		}
 	}
 
