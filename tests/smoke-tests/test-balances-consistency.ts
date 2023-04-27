@@ -2,11 +2,10 @@ import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
 import { u32 } from "@polkadot/types";
-import { AccountId20 } from "@polkadot/types/interfaces/runtime";
+import { u8aToBigInt } from "@polkadot/util";
 import type {
   FrameSystemAccountInfo,
   PalletReferendaDeposit,
-  PalletBalancesBalanceLock,
   PalletPreimageRequestStatus,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
@@ -16,7 +15,8 @@ import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
-// import {to} from "@polkadot/util"
+import { ONE_HOURS } from "../util/constants";
+
 const debug = require("debug")("smoke:balances");
 
 enum ReserveType {
@@ -52,21 +52,29 @@ const getReserveTypeByValue = (value: string): string | null => {
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 
-describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
-  // const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-  const accountMap = new Map<string, FrameSystemAccountInfo>();
-  const limiter = rateLimiter();
+// This test attemps to reconcile the total amount of locked tokens across the entire
+// chain by ensuring that individual storages match the reserved balances and locks.
+// In order to not exhaust memory, the expected results are calculated first and then
+// All system accounts are iterated over, without storing them, to ensure memory
+// is not exhausted.
 
+// TODO: Remove expected results on every check so we can check the map shrinks over time
+
+describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
+  // const accountMap = new Map<string, FrameSystemAccountInfo>();
+  const expectedReserveMap = new Map<string, ReservedInfo>();
+  const expectedLocksMap = new Map<string, LocksInfo>();
+  const locksMap = new Map<string, { total: bigint }>();
+  const limiter = rateLimiter();
+  let failedLocks = [];
+  let failedReserved = [];
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
   let runtimeName: string;
-  let candidateInfo;
-  let collatorStakingMigrations;
-  let delegatorState;
-  let delegatorStakingMigrations;
-  let delegatorStakingMigrationAccounts;
-  let collatorStakingMigrationAccounts;
+  let totalAccounts: bigint = 0n;
+  let totalIssuance: bigint = 0n;
+  let symbol: string;
 
   const hexToBase64 = (hex: string): string => {
     const formatted = hex.includes("0x") ? hex.slice(2) : hex;
@@ -77,12 +85,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   };
 
   before("Retrieve all balances", async function () {
-    // It takes time to load all the accounts.
-    this.timeout(3600000); // 1 hour should be enough
-    const limit = 1000;
-    let last_key = "";
-    let count = 0;
-
+    this.timeout(ONE_HOURS); // 1 hour timeout
     atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
@@ -91,72 +94,10 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     );
     specVersion = apiAt.consts.system.version.specVersion.toNumber();
     runtimeName = apiAt.runtimeVersion.specName.toString();
+    symbol = (await context.polkadotApi.rpc.system.properties()).tokenSymbol.unwrap()[0].toString();
 
-    if (process.env.ACCOUNT_ID) {
-      const userId = process.env.ACCOUNT_ID;
-      accountMap.set(hexToBase64(userId), await apiAt.query.system.account(userId));
-    } else {
-      // loop over all system accounts
-      while (true) {
-        const query = await limiter.schedule(() =>
-          apiAt.query.system.account.entriesPaged({
-            args: [],
-            pageSize: limit,
-            startKey: last_key,
-          })
-        );
+    // 1a) Build Expected Results - Reserved Map
 
-        if (query.length === 0) {
-          break;
-        }
-
-        count += query.length;
-
-        for (const user of query) {
-          last_key = user[0].toString();
-          const accountId = user[0].toHex().slice(-40);
-          accountMap.set(hexToBase64(accountId), user[1]);
-        }
-        if (count % (10 * limit) == 0) {
-          debug(`Retrieved ${count} accounts`);
-        }
-      }
-      debug(`Retrieved ${count} total accounts`);
-    }
-
-    candidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
-
-    collatorStakingMigrations =
-      specVersion >= 1700 && specVersion < 1800
-        ? await apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
-        : [];
-
-    delegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
-
-    (delegatorStakingMigrations =
-      specVersion >= 1700 && specVersion < 1800
-        ? await apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
-        : []),
-      (delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
-        (p, migration: any) => {
-          if (migration[1].isTrue) {
-            p[migration[0].toHex().slice(-40)] = true;
-          }
-          return p;
-        },
-        {} as any
-      ) as { [account: string]: boolean });
-
-    collatorStakingMigrationAccounts = collatorStakingMigrations.reduce((p, migration: any) => {
-      if (migration[1].isTrue) {
-        p[migration[0].toHex().slice(-40)] = true;
-      }
-      return p;
-    }, {} as any) as { [account: string]: boolean };
-  });
-
-  testIt("C100", `should have matching deposit/reserved`, async function () {
-    this.timeout(240000);
     const [
       proxies,
       proxyAnnouncements,
@@ -174,6 +115,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       localAssetsMetadata,
       localAssetDeposits,
       namedReserves,
+      locks,
+      democracyVotes,
+      candidateInfo,
+      delegatorState,
+      delegatorStakingMigrations,
+      collatorStakingMigrations,
     ] = await Promise.all([
       apiAt.query.proxy.proxies.entries(),
       apiAt.query.proxy.announcements.entries(),
@@ -198,11 +145,39 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       apiAt.query.localAssets.metadata.entries(),
       apiAt.query.assetManager.localAssetDeposit.entries(),
       apiAt.query.balances.reserves.entries(),
+      apiAt.query.balances.locks.entries(),
+      apiAt.query.democracy.votingOf.entries(),
+      apiAt.query.parachainStaking.candidateInfo.entries(),
+      apiAt.query.parachainStaking.delegatorState.entries(),
+      specVersion >= 1700 && specVersion < 1800
+        ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
+        : [],
+      specVersion >= 1700 && specVersion < 1800
+        ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
+        : [],
     ]);
 
-    // TODO: make each check blob so we throw away the query bit after each save into the DB
+    const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
+      (p, migration: any) => {
+        if (migration[1].isTrue) {
+          p[`0x${migration[0].toHex().slice(-40)}`] = true;
+        }
+        return p;
+      },
+      {} as any
+    ) as { [account: string]: boolean };
 
-    const expectedReserveMap = new Map<string, ReservedInfo>();
+    const collatorStakingMigrationAccounts = collatorStakingMigrations.reduce(
+      (p, migration: any) => {
+        if (migration[1].isTrue) {
+          p[`0x${migration[0].toHex().slice(-40)}`] = true;
+        }
+        return p;
+      },
+      {} as any
+    ) as { [account: string]: boolean };
+
+    // TODO: make each check blob so we throw away the query bit after each save into the DB
 
     const updateReserveMap = (
       account: string,
@@ -478,54 +453,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       expectedReserveMap.set(key, { reserved, total });
     });
 
-    const failedReserved = [];
-
-    for (const accountId of accountMap.keys()) {
-      const reserved = accountMap.has(accountId)
-        ? accountMap.get(accountId).data.reserved.toBigInt()
-        : 0n;
-      const expectedReserve = expectedReserveMap.has(accountId)
-        ? expectedReserveMap.get(accountId).total
-        : 0n;
-
-      if (reserved != expectedReserve) {
-        failedReserved.push(
-          `⚠️  ${base64ToHex(
-            accountId
-          )} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
-            `\tℹ️  Expected only contains: (${Object.keys(
-              (expectedReserveMap.has(accountId) && expectedReserveMap.get(accountId).reserved) ||
-                {}
-            )
-              .map(
-                (key) =>
-                  `${getReserveTypeByValue(key)}: ${printTokens(
-                    context.polkadotApi,
-                    expectedReserveMap.get(accountId).reserved[key]
-                  )}`
-              )
-              .join(` - `)})`
-        );
-      }
-    }
-
-    if (failedReserved.length > 0) {
-      debug("Failed accounts reserves");
-    }
-
-    expect(
-      failedReserved.length,
-      `❌ Mismatched account reserves: \n${failedReserved.join(",\n")}`
-    ).to.equal(0);
-
-    debug(`Verified ${accountMap.size} total reserved balance (at #${atBlockNumber})`);
-  });
-
-  testIt("C200", "should match total locks", async function () {
-    this.timeout(30000);
-    const locks = await apiAt.query.balances.locks.entries();
-    const democracyVotes = await apiAt.query.democracy.votingOf.entries();
-    const expectedLocksMap = new Map<string, LocksInfo>();
+    //1b) Build Expected Results - Locks Map
 
     const updateExpectedLocksMap = (account: string, lock: { [key: string]: bigint }) => {
       const account64 = hexToBase64(account);
@@ -574,7 +502,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           }, 0n),
         });
       }
-
       // Not sure if in isDelegation should the balance be counted to the delegator ?
     });
 
@@ -588,64 +515,176 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       expectedLocksMap.set(key, { locks, total });
     });
 
+    //2) Build Actual Results - System Accounts
+    const limit = 1000;
+    let last_key = "";
+    let count = 0;
 
-    const failedLocks = [];
-    const locksByAccount = locks.reduce((p, lockSet) => {
-      p[lockSet[0].toHex().slice(-40)] = Object.values(lockSet[1].toArray()).reduce(
-        (p, lock) => ({
-          ...(p as any),
-          [(lock as any).id.toHuman().toString()]: (lock as any).amount.toBigInt(),
-        }),
-        {}
-      );
-      return p;
-    }, {} as { [account: string]: { [id: string]: bigint } });
-
-    for (const accountId of Object.keys(locksByAccount)) {     
-      const locks = locksByAccount[accountId] || {};
-      const expectedLocks = expectedLocksMap.has(hexToBase64(accountId)) ? expectedLocksMap.get(hexToBase64(accountId)).locks : {};
-
-      for (const key of new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])) {
-        if (expectedLocks[key] > locks[key]) {
-          failedLocks.push(
-            `${accountId} (lock ${key}: actual ${
-              locks[key] && printTokens(context.polkadotApi, locks[key])
-            } < expected: ${
-              (expectedLocks[key] && printTokens(context.polkadotApi, expectedLocks[key])) || ""
-            })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
+    const checkReservedBalance = (userId: string, reservedBalance: bigint) => {
+      const key = hexToBase64(userId);
+      const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key).total : 0n;
+      if (expected !== reservedBalance) {
+        debug(`⚠️  Reserve balance mismatch for ${base64ToHex(key)}`);
+        failedReserved.push(
+          `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance} vs expected: ${expected})\n` +
+            `\tℹ️  Expected contains: (${Object.keys(
+              (expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {}
+            )
               .map(
-                (key) =>
-                  `         - ${key}: actual ${(locks[key] || "")
-                    .toString()
-                    .padStart(23, " ")} - ${(expectedLocks[key] || "")
-                    .toString()
-                    .padStart(23, " ")}`
+                (reserveType) =>
+                  `${getReserveTypeByValue(key)}: ${printTokens(
+                    context.polkadotApi,
+                    expectedReserveMap.get(key).reserved[reserveType]
+                  )}`
               )
-              .join("\n")}`
-          );
+              .join(` - `)})`
+        );
+      }
+    };
+
+    if (process.env.ACCOUNT_ID) {
+      const userId = process.env.ACCOUNT_ID;
+      // accountMap.set(hexToBase64(userId), await apiAt.query.system.account(userId));
+      const user = await apiAt.query.system.account(userId);
+      checkReservedBalance(userId, user.data.reserved.toBigInt());
+    } else {
+      // loop over all system accounts
+      while (true) {
+        const query = await limiter.schedule(() =>
+          apiAt.query.system.account.entriesPaged({
+            args: [],
+            pageSize: limit,
+            startKey: last_key,
+          })
+        );
+
+        if (query.length === 0) {
+          break;
+        }
+
+        count += query.length;
+
+        for (const user of query) {
+          last_key = user[0].toString();
+          const accountId = user[0].toHex().slice(-40);
+          totalIssuance += user[1].data.free.toBigInt() + user[1].data.reserved.toBigInt();
+          totalAccounts++;
+          checkReservedBalance(accountId, user[1].data.reserved.toBigInt());
+          // TODO: Remove that value from expectedReserveMap
+        }
+        if (count % (10 * limit) == 0) {
+          debug(`Checked ${count} accounts`);
         }
       }
+      debug(`Checked ${totalAccounts} total accounts`);
     }
 
+    //3) Collect and process failures
+    locks.forEach((lock) => {
+      const key = hexToBase64(lock[0].toHex().slice(-40));
+      const total = lock[1].reduce((acc, curr) => {
+        return curr.amount.toBigInt() + acc;
+      }, 0n);
+      locksMap.set(key, { total });
+    });
+
+    // const locksByAccount = locks.reduce((p, lockSet) => {
+    //   p[lockSet[0].toHex().slice(-40)] = Object.values(lockSet[1].toArray()).reduce(
+    //     (p, lock) => ({
+    //       ...(p as any),
+    //       [(lock as any).id.toHuman().toString()]: (lock as any).amount.toBigInt(),
+    //     }),
+    //     {}
+    //   );
+    //   return p;
+    // }, {} as { [account: string]: { [id: string]: bigint } });
+
+    // console.log(locksByAccount.length);
+    // console.log(locksMap.size);
+
+    locksMap.forEach((value, key) => {
+      if (expectedLocksMap.has(key)) {
+        if (expectedLocksMap.get(key).total !== value.total) {
+          failedLocks.push(
+            `\t${base64ToHex(key)} (total: actual ${printTokens(
+              context.polkadotApi,
+              value.total
+            )} - expected: ${printTokens(context.polkadotApi, expectedLocksMap.get(key).total)})`
+          );
+        }
+      } else {
+        failedLocks.push(
+          `\t${base64ToHex(key)} (total: actual ${printTokens(
+            context.polkadotApi,
+            value.total
+          )} - expected: ${printTokens(context.polkadotApi, 0n)})`
+        );
+      }
+    });
+
+    // for (const accountId of Object.keys(locksByAccount)) {
+    //   const locks = locksByAccount[accountId] || {};
+    //   const expectedLocks = expectedLocksMap.has(hexToBase64(accountId))
+    //     ? expectedLocksMap.get(hexToBase64(accountId)).locks
+    //     : {};
+
+    //   for (const key of new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])) {
+    //     if (expectedLocks[key] > locks[key]) {
+    //       failedLocks.push(
+    //         `${accountId} (lock ${key}: actual ${
+    //           locks[key] && printTokens(context.polkadotApi, locks[key])
+    //         } < expected: ${
+    //           (expectedLocks[key] && printTokens(context.polkadotApi, expectedLocks[key])) || ""
+    //         })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
+    //           .map(
+    //             (key) =>
+    //               `         - ${key}: actual ${(locks[key] || "")
+    //                 .toString()
+    //                 .padStart(23, " ")} - ${(expectedLocks[key] || "")
+    //                 .toString()
+    //                 .padStart(23, " ")}`
+    //           )
+    //           .join("\n")}`
+    //       );
+    //     }
+    //   }
+    // }
+  });
+
+  testIt("C100", `should have matching deposit/reserved`, async function () {
+    if (failedReserved.length > 0) {
+      debug("Failed accounts reserves");
+    }
+
+    expect(
+      failedReserved.length,
+      `❌ Mismatched account reserves: \n${failedReserved.join(",\n")}`
+    ).to.equal(0);
+
+    debug(`Verified ${totalAccounts} total reserve balances (at #${atBlockNumber})`);
+
+    //TODO: Check that expectedAcconts hasn't got remaining locks in it
+  });
+
+  testIt("C200", "should match total locks", async function () {
     if (failedLocks.length > 0) {
       debug("Failed accounts locks");
     }
-    expect(failedLocks.length, `Failed accounts locks: ${failedLocks.join(", ")}`).to.equal(0);
+    expect(failedLocks.length, `❌  Failed accounts locks: \n${failedLocks.join(",\n")}`).to.equal(
+      0
+    );
+
+    //TODO: Check that expectedLocksMap hasn't got remaining locks in it
   });
 
   testIt("C300", `should match total supply`, async function () {
-    this.timeout(30000);
-    const totalIssuance = await apiAt.query.balances.totalIssuance();
+    if (!!process.env.ACCOUNT_ID) {
+      debug(`Env var ACCOUNT_ID set, skipping total supply check`);
+      this.skip();
+    }
+    const queriedIssuance = (await apiAt.query.balances.totalIssuance()).toBigInt();
 
-    expect(
-      Array.from(accountMap.keys()).reduce(
-        (p, accountId) =>
-          accountMap.get(accountId).data.free.toBigInt() +
-          accountMap.get(accountId).data.reserved.toBigInt() +
-          p,
-        0n
-      )
-    ).to.equal(totalIssuance.toBigInt());
-    debug(`Verified total issuance`);
+    debug(`Verified total issuance to be ${totalIssuance / 10n ** 18n}  ${symbol}`);
+    expect(queriedIssuance).to.equal(totalIssuance);
   });
 });
