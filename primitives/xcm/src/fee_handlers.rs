@@ -169,8 +169,8 @@ impl<
 	fn take_revenue(revenue: MultiAsset) {
 		match Matcher::matches_fungibles(&revenue) {
 			Ok((asset_id, amount)) => {
-					let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
-					debug_assert!(ok, "`mint_into` cannot generally fail; qed");
+				let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
+				debug_assert!(ok, "`mint_into` cannot generally fail; qed");
 			}
 			Err(_) => log::debug!(
 				target: "xcm",
