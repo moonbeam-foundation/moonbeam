@@ -37,6 +37,7 @@ enum ReserveType {
   LocalAssetMetadata = "15",
   LocalAssetDeposit = "16",
   Named = "17",
+  SubIdentity = "18",
 }
 
 const getReserveTypeByValue = (value: string): string | null => {
@@ -297,7 +298,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     subIdentities.forEach((subIdentity) => {
       updateReserveMap(subIdentity[0].toHex().slice(-40), {
-        [ReserveType.Identity]: subIdentity[1][0].toBigInt(),
+        [ReserveType.SubIdentity]: subIdentity[1][0].toBigInt(),
       });
     });
 
@@ -587,6 +588,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       expectedLocksMap.set(key, { locks, total });
     });
 
+
     const failedLocks = [];
     const locksByAccount = locks.reduce((p, lockSet) => {
       p[lockSet[0].toHex().slice(-40)] = Object.values(lockSet[1].toArray()).reduce(
@@ -599,9 +601,9 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       return p;
     }, {} as { [account: string]: { [id: string]: bigint } });
 
-    for (const accountId of Object.keys(locksByAccount)) {
+    for (const accountId of Object.keys(locksByAccount)) {     
       const locks = locksByAccount[accountId] || {};
-      const expectedLocks = expectedLocksMap.get(hexToBase64(accountId)).locks;
+      const expectedLocks = expectedLocksMap.has(hexToBase64(accountId)) ? expectedLocksMap.get(hexToBase64(accountId)).locks : {};
 
       for (const key of new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])) {
         if (expectedLocks[key] > locks[key]) {
