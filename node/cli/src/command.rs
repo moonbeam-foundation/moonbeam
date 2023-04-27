@@ -39,7 +39,7 @@ use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
 
 #[cfg(feature = "try-runtime")]
-use try_runtime_cli::block_building_info::substrate_info,
+use try_runtime_cli::block_building_info::substrate_info;
 #[cfg(feature = "try-runtime")]
 const SLOT_DURATION: u64 = 12;
 
