@@ -1503,7 +1503,6 @@ pub mod pallet {
 				return Err(<Error<T>>::CannotBeNotifiedAsInactive.into());
 			}
 
-			//TODO: update weights
 			Ok(().into())
 		}
 	}
