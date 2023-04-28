@@ -157,64 +157,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     // 1a) Build Expected Results - Reserved Map
     // We iteratively build the expected results by iterating over the storage keys, adding the
     // the amount to a results map
-    let [
-      // proxies,
-      // proxyAnnouncements,
-      // treasuryProposals,
-      // mappingWithDeposit,
-      // identities,
-      // subIdentities,
-      // democracyDeposits,
-      // democracyPreimages, // TODO add this check back to map
-      // preimageStatuses,
-      // referendumInfoFor,
-      // assets,
-      // assetsMetadata,
-      // localAssets,
-      // localAssetsMetadata,
-      // localAssetDeposits,
-      // namedReserves,
-      // locks,
-      democracyVotes,
-      // candidateInfo,
-      delegatorState,
-      delegatorStakingMigrations,
-      collatorStakingMigrations,
-    ] = await Promise.all([
-      // apiAt.query.proxy.proxies.entries(),
-      // apiAt.query.proxy.announcements.entries(),
-      // apiAt.query.treasury.proposals.entries(),
-      // apiAt.query.authorMapping.mappingWithDeposit.entries(),
-      // apiAt.query.identity.identityOf.entries(),
-      // apiAt.query.identity.subsOf.entries(),
-      // apiAt.query.democracy.depositOf.entries(),
-      // specVersion < 2000
-      //   ? apiAt.query.democracy.preimages.entries()
-      //   : ([] as [StorageKey<[H256]>, Option<any>][]),
-      // (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
-      //   ? apiAt.query.preimage.statusFor.entries()
-      //   : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
-      // (specVersion >= 1900 && runtimeName == "moonbase") ||
-      // (specVersion >= 2100 && runtimeName == "moonriver")
-      //   ? apiAt.query.referenda.referendumInfoFor.entries()
-      //   : ([] as [StorageKey<[u32]>, Option<any>][]),
-      // apiAt.query.assets.asset.entries(),
-      // apiAt.query.assets.metadata.entries(),
-      // apiAt.query.localAssets.asset.entries(),
-      // apiAt.query.localAssets.metadata.entries(),
-      // apiAt.query.assetManager.localAssetDeposit.entries(),
-      // apiAt.query.balances.reserves.entries(),
-      // apiAt.query.balances.locks.entries(),
-      apiAt.query.democracy.votingOf.entries(),
-      // apiAt.query.parachainStaking.candidateInfo.entries(),
-      apiAt.query.parachainStaking.delegatorState.entries(),
-      specVersion >= 1700 && specVersion < 1800
-        ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
-        : [],
-      specVersion >= 1700 && specVersion < 1800
-        ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
-        : [],
-    ]);
 
     await new Promise((resolve, reject) => {
       apiAt.query.proxy.proxies
@@ -233,6 +175,18 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
+    let [democracyVotes, delegatorState, delegatorStakingMigrations, collatorStakingMigrations] =
+      await Promise.all([
+        apiAt.query.democracy.votingOf.entries(),
+        apiAt.query.parachainStaking.delegatorState.entries(),
+        specVersion >= 1700 && specVersion < 1800
+          ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
+          : [],
+        specVersion >= 1700 && specVersion < 1800
+          ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
+          : [],
+      ]);
+
     await new Promise((resolve, reject) => {
       apiAt.query.treasury.proposals
         .entries()
@@ -249,7 +203,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-
     const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
       (p, migration: any) => {
         if (migration[1].isTrue) {
@@ -270,21 +223,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       {} as any
     ) as { [account: string]: boolean };
 
-    // TODO : delete individual storage queries after map is updated
-    // TODO : TUrn this into a promise
-    // treasuryProposals.forEach((proposal) =>
-    //   updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
-    //     [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
-    //   })
-    // );
-    // treasuryProposals = [];
-
-    // proxies.forEach((proxy) => {
-    //   updateReserveMap(proxy[0].toHex().slice(-40), {
-    //     [ReserveType.Proxy]: proxy[1][1].toBigInt(),
-    //   });
-    // });
-
     await new Promise((resolve, reject) => {
       apiAt.query.proxy.announcements
         .entries()
@@ -301,12 +239,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-
-    // proxyAnnouncements.forEach((announcement) =>
-    //   updateReserveMap(announcement[0].toHex().slice(-40), {
-    //     [ReserveType.Announcement]: announcement[1][1].toBigInt(),
-    //   })
-    // );
 
     await new Promise((resolve, reject) => {
       apiAt.query.authorMapping.mappingWithDeposit
@@ -325,27 +257,11 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-    // mappingWithDeposit.forEach((mapping) =>
-    //   updateReserveMap(mapping[1].unwrap().account.toHex().slice(-40), {
-    //     [ReserveType.AuthorMapping]: mapping[1].unwrap().deposit.toBigInt(),
-    //   })
-    // );
-
-    // candidateInfo.forEach((candidate) => {
-    //   if (
-    //     specVersion < 1700 ||
-    //     (specVersion < 1800 && !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
-    //   ) {
-    //     updateReserveMap(candidate[0].toHex().slice(-40), {
-    //       [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
-    //     });
-    //   }
-    // });
-
+    // StorageQuery: ParachainStaking.CandidateInfo
     await new Promise((resolve, reject) => {
       apiAt.query.parachainStaking.candidateInfo
         .entries()
-        .then((candidateInfo) => {
+        .then(async (candidateInfo) => {
           candidateInfo.forEach((candidate) => {
             if (
               specVersion < 1700 ||
@@ -365,6 +281,19 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
               });
             }
           });
+
+          candidateInfo.forEach((candidate) => {
+            // Support the case of the migration in 1700
+            if (
+              specVersion >= 1800 ||
+              collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
+            ) {
+              updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
+                ColStake: candidate[1].unwrap().bond.toBigInt(),
+              });
+            }
+          });
+
           resolve("candidate info scraped");
         })
         .catch((error) => {
@@ -372,31 +301,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-
-    delegatorState.forEach((delegator) => {
-      if (
-        specVersion < 1700 ||
-        (specVersion < 1800 && !delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)])
-      ) {
-        updateReserveMap(delegator[0].toHex().slice(-40), {
-          [ReserveType.Delegator]: delegator[1].unwrap().total.toBigInt(),
-        });
-      }
-    });
-
-    // identities.forEach((identity) => {
-    //   updateReserveMap(identity[0].toHex().slice(-40), {
-    //     [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
-    //   });
-    //   updateReserveMap(identity[0].toHex().slice(-40), {
-    //     [ReserveType.RequestJudgements]: identity[1]
-    //       .unwrap()
-    //       .judgements.reduce(
-    //         (acc, value) => acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
-    //         0n
-    //       ),
-    //   });
-    // });
 
     await new Promise((resolve, reject) => {
       apiAt.query.identity.identityOf
@@ -424,12 +328,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-    // subIdentities.forEach((subIdentity) => {
-    //   updateReserveMap(subIdentity[0].toHex().slice(-40), {
-    //     [ReserveType.SubIdentity]: subIdentity[1][0].toBigInt(),
-    //   });
-    // });
-
     await new Promise((resolve, reject) => {
       apiAt.query.identity.subsOf
         .entries()
@@ -446,64 +344,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-
-    // democracyDeposits
-    //   .map((depositOf) =>
-    //     depositOf[1]
-    //       .unwrap()[0]
-    //       .map((deposit) => ({
-    //         accountId: deposit.toHex(),
-    //         reserved: depositOf[1].unwrap()[1].toBigInt(),
-    //       }))
-    //       .flat()
-    //       .reduce((p, deposit) => {
-    //         // We merge multiple reserves together for same account
-    //         if (!p[deposit.accountId]) {
-    //           p[deposit.accountId] = {
-    //             accountId: deposit.accountId,
-    //             reserved: {
-    //               [ReserveType.DemocracyDeposit]: 0n,
-    //             },
-    //           };
-    //         }
-    //         p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-    //         return p;
-    //       }, {})
-    //   )
-    //   .forEach((deposit: any) => {
-    //     updateReserveMap(deposit.accountId, deposit.reserved);
-    //   });
-
-    // Object.values(
-    //   democracyDeposits
-    //     .map((depositOf) =>
-    //       depositOf[1].unwrap()[0].map((deposit) => ({
-    //         accountId: deposit.toHex(),
-    //         reserved: depositOf[1].unwrap()[1].toBigInt(),
-    //       }))
-    //     )
-    //     .flat()
-    //     .reduce(
-    //       (p, deposit) => {
-    //         // We merge multiple reserves together for same account
-    //         if (!p[deposit.accountId]) {
-    //           p[deposit.accountId] = {
-    //             accountId: deposit.accountId,
-    //             reserved: {
-    //               [ReserveType.DemocracyDeposit]: 0n,
-    //             },
-    //           };
-    //         }
-    //         p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-    //         return p;
-    //       },
-    //       {} as {
-    //         [accountId: string]: { accountId: string; reserved: { [key: string]: bigint } };
-    //       }
-    //     )
-    // ).forEach((deposit: any) => {
-    //   updateReserveMap(deposit.accountId, deposit.reserved);
-    // });
 
     await new Promise((resolve, reject) => {
       apiAt.query.democracy.depositOf
@@ -575,14 +415,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-    // democracyPreimages
-    //   .filter((preimg: any) => preimg[1].unwrap().isAvailable)
-    //   .forEach((preimage: any) => {
-    //     updateReserveMap(preimage[1].unwrap().asAvailable.provider.toHex(), {
-    //       [ReserveType.Preimage]: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
-    //     });
-    //   });
-
     await new Promise((resolve, reject) => {
       if (specVersion < 2000) {
         apiAt.query.democracy.preimages
@@ -603,26 +435,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       }
       resolve("democracyPreimages scraped");
     });
-
-    // preimageStatuses
-    // .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
-    // .map((status) => {
-    //   const deposit = extractPreimageDeposit(
-    //     status[1].unwrap().isUnrequested
-    //       ? status[1].unwrap().asUnrequested
-    //       : status[1].unwrap().asRequested
-    //   );
-    //   return { accountId: deposit.accountId, deposit: deposit.amount };
-    // })
-    // .forEach(({ deposit, accountId }) => {
-    //   updateReserveMap(accountId, {
-    //     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
-    //   });
-    // });
-
-    // (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
-    // ? apiAt.query.preimage.statusFor.entries()
-    // : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
 
     await new Promise((resolve, reject) => {
       if ((specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000) {
@@ -654,38 +466,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           });
       }
     });
-
-    // referendumInfoFor.forEach((info) => {
-    //   const deposits = (
-    //     info[1].unwrap().isApproved
-    //       ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
-    //       : info[1].unwrap().isRejected
-    //       ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
-    //       : info[1].unwrap().isCancelled
-    //       ? [info[1].unwrap().asCancelled[1], info[1].unwrap().asCancelled[2].unwrapOr(null)]
-    //       : info[1].unwrap().isTimedOut
-    //       ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
-    //       : info[1].unwrap().isOngoing
-    //       ? [
-    //           info[1].unwrap().asOngoing.submissionDeposit,
-    //           info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
-    //         ]
-    //       : ([] as PalletReferendaDeposit[])
-    //   ).filter((value) => !!value && !value.isNone);
-
-    //   deposits.forEach((deposit) => {
-    //     // Support for https://github.com/paritytech/substrate/pull/12788
-    //     // which make deposit optional.
-    //     // TODO: better handle unwrapping
-
-    //     updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
-    //       [ReserveType.ReferendumInfo]: (deposit.unwrap
-    //         ? deposit.unwrap()
-    //         : deposit
-    //       ).amount.toBigInt(),
-    //     });
-    //   });
-    // });
 
     await new Promise((resolve, reject) => {
       if (
@@ -738,12 +518,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       resolve("referendumInfoFor scraped");
     });
 
-    // assets.forEach((asset) => {
-    //   updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
-    //     [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
-    //   });
-    // });
-
     await new Promise((resolve, reject) => {
       apiAt.query.assets.asset
         .entries()
@@ -788,44 +562,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-
-    // assetsMetadata.forEach((assetMetadata) => {
-    //   updateReserveMap(
-    //     assets
-    //       .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
-    //       .unwrap()
-    //       .owner.toHex()
-    //       .slice(-40),
-    //     {
-    //       [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
-    //     }
-    //   );
-    // });
-
-    // localAssets.forEach((localAsset) => {
-    //   updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
-    //     [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
-    //   });
-    // });
-
-    // localAssetsMetadata.forEach((localAssetMetadata) => {
-    //   updateReserveMap(
-    //     localAssets
-    //       .find(
-    //         (localAsset) =>
-    //           localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
-    //       )[1]
-    //       .unwrap()
-    //       .owner.toHex()
-    //       .slice(-40),
-    //     {
-    //       [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
-    //     }
-    //   );
-    // });
-
-    // apiAt.query.localAssets.asset.entries(),
-    // apiAt.query.localAssets.metadata.entries(),
 
     await new Promise((resolve, reject) => {
       apiAt.query.localAssets.asset
@@ -873,12 +609,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-    // localAssetDeposits.forEach((assetDeposit) => {
-    //   updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
-    //     [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
-    //   });
-    // });
-
     await new Promise((resolve, reject) => {
       apiAt.query.assetManager.localAssetDeposit
         .entries()
@@ -895,20 +625,10 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error); // Reject the outer promise with the error
         });
     });
-    
-    // apiAt.query.balances.reserves.entries(),
-
-    // namedReserves.forEach((namedReservesOf) => {
-    //   updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
-    //     [ReserveType.Named]: namedReservesOf[1]
-    //       .map((namedDeposit) => namedDeposit.amount.toBigInt())
-    //       .reduce((accumulator, curr) => accumulator + curr),
-    //   });
-    // });
 
     await new Promise((resolve, reject) => {
       apiAt.query.balances.reserves
-      .entries()
+        .entries()
         .then((namedReserves) => {
           namedReserves.forEach((namedReservesOf) => {
             updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
@@ -925,8 +645,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-
-
     debug(`Retrieved ${expectedReserveMap.size} deposits`);
 
     expectedReserveMap.forEach(({ reserved }, key) => {
@@ -938,19 +656,44 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     //1b) Build Expected Results - Locks Map
-    let locks = await apiAt.query.balances.locks.entries();
-
-    // candidateInfo.forEach((candidate) => {
-    //   // Support the case of the migration in 1700
-    //   if (
-    //     specVersion >= 1800 ||
-    //     collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-    //   ) {
-    //     updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-    //       ColStake: candidate[1].unwrap().bond.toBigInt(),
-    //     });
-    //   }
+    // const locks = await apiAt.query.balances.locks.entries();
+    // locks.forEach((lock) => {
+    //   const key = hexToBase64(lock[0].toHex().slice(-40));
+    //   const total = lock[1].reduce((acc, curr) => {
+    //     return curr.amount.toBigInt() + acc;
+    //   }, 0n);
+    //   locksMap.set(key, { total });
     // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.balances.locks
+        .entries()
+        .then((locks) => {
+          locks.forEach((lock) => {
+            const key = hexToBase64(lock[0].toHex().slice(-40));
+            const total = lock[1].reduce((acc, curr) => {
+              return curr.amount.toBigInt() + acc;
+            }, 0n);
+            locksMap.set(key, { total });
+          });
+          resolve("locks scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching locks:", error);
+          reject(error);
+        });
+    });
+
+    delegatorState.forEach((delegator) => {
+      if (
+        specVersion < 1700 ||
+        (specVersion < 1800 && !delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)])
+      ) {
+        updateReserveMap(delegator[0].toHex().slice(-40), {
+          [ReserveType.Delegator]: delegator[1].unwrap().total.toBigInt(),
+        });
+      }
+    });
 
     delegatorState.forEach((delegator) => {
       // Support the case of the migration in 1700
@@ -966,14 +709,17 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     democracyVotes.forEach((votes) => {
       if (votes[1].isDirect) {
-        updateExpectedLocksMap(votes[0].toHex().slice(-40), {
-          democracy: votes[1].asDirect.votes.reduce((p, v) => {
-            const value = v[1].isStandard
-              ? v[1].asStandard.balance.toBigInt()
-              : v[1].asSplit.aye.toBigInt() + v[1].asSplit.nay.toBigInt();
-            return p > value ? p : value;
-          }, 0n),
-        });
+        const accountId = votes[0].toHex().slice(-40);
+
+        const democracy = votes[1].asDirect.votes.reduce((acc, curr) => {
+          const subTotal = curr[1].isStandard
+            ? curr[1].asStandard.balance.toBigInt()
+            : curr[1].isSplit
+            ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+            : 0n;
+          return acc > subTotal ? acc : subTotal;
+        }, 0n);
+        updateExpectedLocksMap(accountId, { democracy });
       }
       // Not sure if in isDelegation should the balance be counted to the delegator ?
     });
@@ -1046,7 +792,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           totalIssuance += user[1].data.free.toBigInt() + user[1].data.reserved.toBigInt();
           totalAccounts++;
           checkReservedBalance(accountId, user[1].data.reserved.toBigInt());
-          // TODO: Remove that value from expectedReserveMap
         }
         if (count % (10 * limit) == 0) {
           debug(`Checked ${count} accounts`);
@@ -1055,28 +800,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       debug(`Checked ${totalAccounts} total accounts`);
     }
 
-    //3) Collect and process failures
-    locks.forEach((lock) => {
-      const key = hexToBase64(lock[0].toHex().slice(-40));
-      const total = lock[1].reduce((acc, curr) => {
-        return curr.amount.toBigInt() + acc;
-      }, 0n);
-      locksMap.set(key, { total });
-    });
-
-    // const locksByAccount = locks.reduce((p, lockSet) => {
-    //   p[lockSet[0].toHex().slice(-40)] = Object.values(lockSet[1].toArray()).reduce(
-    //     (p, lock) => ({
-    //       ...(p as any),
-    //       [(lock as any).id.toHuman().toString()]: (lock as any).amount.toBigInt(),
-    //     }),
-    //     {}
-    //   );
-    //   return p;
-    // }, {} as { [account: string]: { [id: string]: bigint } });
-
-    // console.log(locksByAccount.length);
-    // console.log(locksMap.size);
+    //3) Collect and process locks failures
 
     locksMap.forEach((value, key) => {
       if (expectedLocksMap.has(key)) {
@@ -1097,34 +821,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         );
       }
     });
-
-    // for (const accountId of Object.keys(locksByAccount)) {
-    //   const locks = locksByAccount[accountId] || {};
-    //   const expectedLocks = expectedLocksMap.has(hexToBase64(accountId))
-    //     ? expectedLocksMap.get(hexToBase64(accountId)).locks
-    //     : {};
-
-    //   for (const key of new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])) {
-    //     if (expectedLocks[key] > locks[key]) {
-    //       failedLocks.push(
-    //         `${accountId} (lock ${key}: actual ${
-    //           locks[key] && printTokens(context.polkadotApi, locks[key])
-    //         } < expected: ${
-    //           (expectedLocks[key] && printTokens(context.polkadotApi, expectedLocks[key])) || ""
-    //         })\n ${[...new Set([...Object.keys(expectedLocks), ...Object.keys(locks)])]
-    //           .map(
-    //             (key) =>
-    //               `         - ${key}: actual ${(locks[key] || "")
-    //                 .toString()
-    //                 .padStart(23, " ")} - ${(expectedLocks[key] || "")
-    //                 .toString()
-    //                 .padStart(23, " ")}`
-    //           )
-    //           .join("\n")}`
-    //       );
-    //     }
-    //   }
-    // }
   });
 
   testIt("C100", `should have matching deposit/reserved`, async function () {
@@ -1139,26 +835,29 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     debug(`Verified ${totalAccounts} total reserve balances (at #${atBlockNumber})`);
 
-    const failuresExpectedReserveMap = []
-    if  (expectedReserveMap.size > 0) {
-      debug(`expectedReserveMap size: ${expectedReserveMap.size}`)
+    const failuresExpectedReserveMap = [];
+    if (expectedReserveMap.size > 0) {
+      debug(`expectedReserveMap size: ${expectedReserveMap.size}`);
       expectedReserveMap.forEach((value, key) => {
-        failuresExpectedReserveMap.push(`${base64ToHex(key)}`)
-      })
+        failuresExpectedReserveMap.push(`${base64ToHex(key)}`);
+      });
     }
 
-    expect(expectedReserveMap.size, `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(`, `)}`).to.equal(0);
+    expect(
+      expectedReserveMap.size,
+      `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(
+        `, `
+      )}`
+    ).to.equal(0);
   });
 
   testIt("C200", "should match total locks", async function () {
-    this.skip();
     if (failedLocks.length > 0) {
       debug("Failed accounts locks");
     }
     expect(failedLocks.length, `❌  Failed accounts locks: \n${failedLocks.join(",\n")}`).to.equal(
       0
     );
-
     //TODO: Check that expectedLocksMap hasn't got remaining locks in it
   });
 
