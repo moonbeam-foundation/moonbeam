@@ -59,12 +59,14 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
+          set -o pipefail
           LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
         id: get-sha
         run: |
+          set -o pipefail
           echo "sha=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
           echo "sha8=$(git log -1 --format='%H' | cut -c1-8)" >> $GITHUB_OUTPUT
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
