@@ -187,7 +187,7 @@ jobs:
           mkdir -p /tmp/proffiles
           find . -name \*.profraw -exec cp {} /tmp/proffiles \;
           mv /tmp/proffiles proffiles
-          ./grcov proffiles/ -s ./ --binary-path ../$CARGO_TARGET_DIR/release/ -t html --branch --ignore-not-existing -o coverage/ --llvm-path ./  --llvm
+          ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ -t html --branch --ignore-not-existing -o coverage/ --llvm-path ./  --llvm
       - name: Upload coverage
         uses: actions/upload-artifact@v3.1.2
         with:
