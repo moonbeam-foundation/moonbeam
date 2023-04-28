@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
-import {  u16 } from "@polkadot/types";
+import { u16 } from "@polkadot/types";
 import { AccountId20 } from "@polkadot/types/interfaces";
 import type {
   PalletReferendaDeposit,
