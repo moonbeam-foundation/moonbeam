@@ -2,14 +2,14 @@ import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
+import { rateLimiter } from "../util/common";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ForeignChainsEndpoints, getEndpoints } from "../util/foreign-chains";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 const debug = require("debug")("smoke:foreign-xcm-fails");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 30 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
-const limiter = new Bottleneck({ maxConcurrent: 20 });
+const limiter = rateLimiter();
 
 type BlockEventsRecord = {
   blockNum: number;
@@ -82,7 +82,7 @@ describeSmokeSuite(
             throw new Error("Cannot Connect");
           }
 
-          const blockNumArray = await getBlockArray(api, timePeriod, limiter);
+          const blockNumArray = await getBlockArray(api, timePeriod);
 
           // Determine if the block range intersects with an upgrade event
           const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(

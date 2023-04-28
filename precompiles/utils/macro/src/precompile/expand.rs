@@ -275,7 +275,6 @@ impl Precompile {
 				);
 
 				quote!(
-					use ::precompile_utils::solidity;
 					let output = <#impl_type>::#variant_ident(
 						#opt_discriminant_arg
 						handle,

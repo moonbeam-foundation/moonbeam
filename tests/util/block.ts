@@ -10,16 +10,14 @@ import {
 } from "@polkadot/types/interfaces";
 import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
 import { u32, u64, u128, Option } from "@polkadot/types";
-
 import { expect } from "chai";
-
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
-
+import { rateLimiter } from "./common";
 import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { ITuple } from "@polkadot/types-codec/types";
-import Bottleneck from "bottleneck";
+
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -412,7 +410,7 @@ export const fetchHistoricBlockNum = async (
   );
 };
 
-export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter?: Bottleneck) => {
+export const getBlockArray = async (api: ApiPromise, timePeriod: number) => {
   /**  
   @brief Returns an sequential array of block numbers from a given period of time in the past
   @param api Connected ApiPromise to perform queries on
@@ -420,9 +418,7 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   @param limiter Bottleneck rate limiter to throttle requests
   */
 
-  if (limiter == null) {
-    limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
-  }
+  const limiter = rateLimiter();
   const finalizedHead = await limiter.schedule(() => api.rpc.chain.getFinalizedHead());
   const signedBlock = await limiter.schedule(() => api.rpc.chain.getBlock(finalizedHead));
 

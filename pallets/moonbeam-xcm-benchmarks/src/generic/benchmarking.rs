@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use frame_benchmarking::benchmarks;
-use frame_support::dispatch::Weight;
+use frame_benchmarking::{benchmarks, BenchmarkError, BenchmarkResult};
+use frame_support::{dispatch::Weight, traits::Get};
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
 use sp_std::vec::Vec;
@@ -41,8 +41,55 @@ benchmarks! {
 
 	} : {
 		executor.bench_process(xcm)?;
-	} verify {
+	}
 
+	exchange_asset {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	export_message {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	lock_asset {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	unlock_asset {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	note_unlockable {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	request_unlock {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
+	}
+
+	universal_origin {
+	} : {
+		Err(BenchmarkError::Override(
+			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
+		))?;
 	}
 
 	impl_benchmark_test_suite!(
@@ -74,8 +121,7 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 		use crate::generic::Pallet as MoonbeamXcmGenericBench;
 		if MoonbeamXcmGenericBench::<T>::benchmarks(true)
 			.iter()
-			.find(|&x| x.name == extrinsic)
-			.is_some()
+			.any(|x| x.name == extrinsic)
 		{
 			MoonbeamXcmGenericBench::<T>::run_benchmark(
 				extrinsic,
