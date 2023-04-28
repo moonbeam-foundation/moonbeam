@@ -185,7 +185,7 @@ jobs:
       - name: Retrieve coverage
         run: |
           mkdir -p /tmp/proffiles
-          find . -name \*.profraw -exec cp {} /tmp/proffiles \;
+          find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
           mv /tmp/proffiles proffiles
           ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
             -t html --branch --ignore-not-existing \
@@ -209,6 +209,7 @@ jobs:
             -t html --branch --ignore-not-existing \
             -o coverage/ --llvm-path ./  --llvm
           fi
+          rm -rf proffiles/
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3.1.2
