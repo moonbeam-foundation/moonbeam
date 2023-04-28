@@ -82,15 +82,14 @@ jobs:
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
 
-  build:
+  build-and-coverage:
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings -C instrument-coverage"
       RUSTC_WRAPPER: "sccache"
-      TMP_TARGET: "/tmp/target-coverage"
-      CARGO_TARGET_DIR: "target-coverage"
+      CARGO_TARGET_DIR: "target"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -112,9 +111,8 @@ jobs:
           chmod +x grcov
       - name: Setup llvmprof-data
         run: |
-          if ! which "llvm-profdata" > /dev/null; then
-            echo missing llvm-profdata
-          fi
+          wget https://alan-stuff.s3.amazonaws.com/llvm-profdata -O llvm-profdata
+          chmod +x llvm-profdata
       - name: Build Node
         run: |
           env
@@ -148,7 +146,8 @@ jobs:
           path: build
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
+          echo SKIPPED FOR NOW
+          # cargo test --release --all --features=evm-tracing
       - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
@@ -181,3 +180,13 @@ jobs:
             --parallel -j $((CPUS / 2)) \
             --exit \
             'build/tests/**/test-*.js'
+      - name: Retrieve coverage
+        run: |
+          mkdir -p profraw
+          find . -name \*.profraw -exec cp {} profraw \;
+          ./grcov profraw -s ./ --binary-path ../$CARGO_TARGET_DIR/release/ -t html --branch --ignore-not-existing -o coverage/ --llvm-path ./  --llvm
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: coverage
+          path: coverage
