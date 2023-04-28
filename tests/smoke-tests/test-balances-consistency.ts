@@ -504,7 +504,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
                 // Support for https://github.com/paritytech/substrate/pull/12788
                 // which make deposit optional.
                 // TODO: better handle unwrapping
-
                 updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
                   [ReserveType.ReferendumInfo]: (deposit.unwrap
                     ? deposit.unwrap()
@@ -650,7 +649,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     debug(`Retrieved ${expectedReserveMap.size} deposits`);
-
     expectedReserveMap.forEach(({ reserved }, key) => {
       const total = Object.values(reserved).reduce((total, amount) => {
         total += amount;
@@ -692,7 +690,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
             (votingFor: [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]) => {
               votingFor.forEach((votes) => {
                 if (votes[1].isCasting) {
-                  const accountId = votes[0].args[0].toHex().slice(-40)
+                  const accountId = votes[0].args[0].toHex().slice(-40);
                   const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
                     const amount = curr[1].isStandard
                       ? curr[1].asStandard.balance.toBigInt()
@@ -706,16 +704,9 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
                     return acc > amount ? acc : amount;
                   }, 0n);
-                  // console.log(accountId)
                   updateExpectedLocksMap(accountId, { convictionVoting });
-                  console.log(accountId);
-                  console.log(convictionVoting);
-                  // const allVoteDeposits = vote.
                 }
               });
-              // // const allVotes = votingFor[]
-              // const accountId = votingFor[0][0].toHex().slice(-40);
-              // const allVoteDeposits = (votingFor[1] as PalletConvictionVotingVoteVoting).isCasting
               resolve("convictionVoting scraped");
             }
           )
@@ -763,7 +754,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         }, 0n);
         updateExpectedLocksMap(accountId, { democracy });
       }
-      // Not sure if in isDelegation should the balance be counted to the delegator ?
+
+      if (votes[1].isDelegating) {
+        const accountId = votes[0].toHex().slice(-40);
+        const delegatedDemocracy = votes[1].asDelegating.prior[1].toBigInt();
+        updateExpectedLocksMap(accountId, { delegatedDemocracy });
+      }
     });
 
     debug(`Retrieved ${expectedLocksMap.size} accounts with locks`);
@@ -811,9 +807,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       const user = await apiAt.query.system.account(userId);
       checkReservedBalance(userId, user.data.reserved.toBigInt());
     } else {
-      // loop over all system accounts
+      // Loop over ALL System accounts
       while (true) {
-        // maybe bottleneck cant handle the amount of requests?
         const query = await limiter.schedule(() =>
           apiAt.query.system.account.entriesPaged({
             args: [],
@@ -843,7 +838,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     }
 
     //3) Collect and process locks failures
-
+    // Loose check because we don't have a way to clever way to verify expired but unclaimed locks
     locksMap.forEach((value, key) => {
       if (expectedLocksMap.has(key)) {
         if (expectedLocksMap.get(key).total > value.total) {
@@ -854,13 +849,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
             )} - expected: ${printTokens(context.polkadotApi, expectedLocksMap.get(key).total)})`
           );
         }
-      } else {
-        failedLocks.push(
-          `\t${base64ToHex(key)} (total: actual ${printTokens(
-            context.polkadotApi,
-            value.total
-          )} - expected: ${printTokens(context.polkadotApi, 0n)})`
-        );
       }
     });
   });
@@ -902,7 +890,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     expect(failedLocks.length, `❌  Failed accounts locks: \n${failedLocks.join(",\n")}`).to.equal(
       0
     );
-    //TODO: Check that expectedLocksMap hasn't got remaining locks in it
   });
 
   testIt("C300", `should match total supply`, async function () {
