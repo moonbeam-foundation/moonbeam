@@ -99,7 +99,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     // 1a) Build Expected Results - Reserved Map
 
-    const [
+    let [
       proxies,
       proxyAnnouncements,
       treasuryProposals,
@@ -116,7 +116,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       localAssetsMetadata,
       localAssetDeposits,
       namedReserves,
-      locks,
+      // locks,
       democracyVotes,
       candidateInfo,
       delegatorState,
@@ -146,7 +146,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       apiAt.query.localAssets.metadata.entries(),
       apiAt.query.assetManager.localAssetDeposit.entries(),
       apiAt.query.balances.reserves.entries(),
-      apiAt.query.balances.locks.entries(),
+      // apiAt.query.balances.locks.entries(),
       apiAt.query.democracy.votingOf.entries(),
       apiAt.query.parachainStaking.candidateInfo.entries(),
       apiAt.query.parachainStaking.delegatorState.entries(),
@@ -223,12 +223,14 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         reserved: newReserved,
       });
     };
-
+// TODO : delete individual storage queries after map is updated
+// TODO : TUrn this into a promise
     treasuryProposals.forEach((proposal) =>
       updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
         [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
       })
-    );
+    ) 
+    treasuryProposals = []
 
     proxies.forEach((proxy) => {
       updateReserveMap(proxy[0].toHex().slice(-40), {
@@ -280,7 +282,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
             0n
           ),
       });
-    });
+    }) 
 
     subIdentities.forEach((subIdentity) => {
       updateReserveMap(subIdentity[0].toHex().slice(-40), {
@@ -468,7 +470,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     //1b) Build Expected Results - Locks Map
-
+    let locks = await apiAt.query.balances.locks.entries()
     const updateExpectedLocksMap = (account: string, lock: { [key: string]: bigint }) => {
       const account64 = hexToBase64(account);
       const value = expectedLocksMap.get(account64);
@@ -563,13 +565,15 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     } else {
       // loop over all system accounts
       while (true) {
-        const query = await limiter.schedule(() =>
-          apiAt.query.system.account.entriesPaged({
+
+        // maybe bottleneck cant handle the amount of requests?
+        // const query = await limiter.schedule(() =>
+          const query = await apiAt.query.system.account.entriesPaged({
             args: [],
             pageSize: limit,
             startKey: last_key,
           })
-        );
+        // );
 
         if (query.length === 0) {
           break;
