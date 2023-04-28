@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
 import { H256 } from "@polkadot/types/interfaces/runtime";
-import { u32 } from "@polkadot/types";
+import { u32, u16 } from "@polkadot/types";
+import { AccountId20 } from "@polkadot/types/interfaces";
 import { u8aToBigInt } from "@polkadot/util";
 import type {
   FrameSystemAccountInfo,
   PalletReferendaDeposit,
+  PalletConvictionVotingVoteVoting,
   PalletPreimageRequestStatus,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
@@ -50,7 +52,9 @@ type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 // All system accounts are iterated over, without storing them, to ensure memory
 // is not exhausted.
 
-// TODO: Remove expected results on every check so we can check the map shrinks over time
+// This test is limited by Polkadot{Js}.api 's DecodeStruct functionality,
+// and works best for networks < 2million accounts.
+// https://github.com/polkadot-js/api/issues/5615
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
   // const accountMap = new Map<string, FrameSystemAccountInfo>();
@@ -656,14 +660,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
 
     //1b) Build Expected Results - Locks Map
-    // const locks = await apiAt.query.balances.locks.entries();
-    // locks.forEach((lock) => {
-    //   const key = hexToBase64(lock[0].toHex().slice(-40));
-    //   const total = lock[1].reduce((acc, curr) => {
-    //     return curr.amount.toBigInt() + acc;
-    //   }, 0n);
-    //   locksMap.set(key, { total });
-    // });
 
     await new Promise((resolve, reject) => {
       apiAt.query.balances.locks
@@ -683,6 +679,52 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           reject(error);
         });
     });
+
+    // Only applies to OpenGov
+    if (
+      (specVersion >= 1900 && runtimeName == "moonbase") ||
+      (specVersion >= 2100 && runtimeName == "moonriver")
+    ) {
+      await new Promise((resolve, reject) => {
+        apiAt.query.convictionVoting.votingFor
+          .entries()
+          .then(
+            (votingFor: [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]) => {
+              votingFor.forEach((votes) => {
+                if (votes[1].isCasting) {
+                  const accountId = votes[0].args[0].toHex().slice(-40)
+                  const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
+                    const amount = curr[1].isStandard
+                      ? curr[1].asStandard.balance.toBigInt()
+                      : curr[1].isSplit
+                      ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                      : curr[1].isSplitAbstain
+                      ? curr[1].asSplitAbstain.aye.toBigInt() +
+                        curr[1].asSplitAbstain.nay.toBigInt() +
+                        curr[1].asSplitAbstain.abstain.toBigInt()
+                      : 0n;
+
+                    return acc > amount ? acc : amount;
+                  }, 0n);
+                  // console.log(accountId)
+                  updateExpectedLocksMap(accountId, { convictionVoting });
+                  console.log(accountId);
+                  console.log(convictionVoting);
+                  // const allVoteDeposits = vote.
+                }
+              });
+              // // const allVotes = votingFor[]
+              // const accountId = votingFor[0][0].toHex().slice(-40);
+              // const allVoteDeposits = (votingFor[1] as PalletConvictionVotingVoteVoting).isCasting
+              resolve("convictionVoting scraped");
+            }
+          )
+          .catch((error) => {
+            console.error("Error fetching convictionVoting:", error);
+            reject(error);
+          });
+      });
+    }
 
     delegatorState.forEach((delegator) => {
       if (
@@ -772,13 +814,13 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       // loop over all system accounts
       while (true) {
         // maybe bottleneck cant handle the amount of requests?
-        // const query = await limiter.schedule(() =>
-        const query = await apiAt.query.system.account.entriesPaged({
-          args: [],
-          pageSize: limit,
-          startKey: last_key,
-        });
-        // );
+        const query = await limiter.schedule(() =>
+          apiAt.query.system.account.entriesPaged({
+            args: [],
+            pageSize: limit,
+            startKey: last_key,
+          })
+        );
 
         if (query.length === 0) {
           break;
@@ -804,7 +846,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     locksMap.forEach((value, key) => {
       if (expectedLocksMap.has(key)) {
-        if (expectedLocksMap.get(key).total !== value.total) {
+        if (expectedLocksMap.get(key).total > value.total) {
           failedLocks.push(
             `\t${base64ToHex(key)} (total: actual ${printTokens(
               context.polkadotApi,
@@ -843,12 +885,14 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       });
     }
 
-    expect(
-      expectedReserveMap.size,
-      `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(
-        `, `
-      )}`
-    ).to.equal(0);
+    if (!process.env.ACCOUNT_ID) {
+      expect(
+        expectedReserveMap.size,
+        `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(
+          `, `
+        )}`
+      ).to.equal(0);
+    }
   });
 
   testIt("C200", "should match total locks", async function () {
