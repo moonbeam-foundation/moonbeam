@@ -41,15 +41,6 @@ enum ReserveType {
   PreimageStatus = "19",
 }
 
-const getReserveTypeByValue = (value: string): string | null => {
-  for (const key in ReserveType) {
-    if (ReserveType[key] === value) {
-      return key;
-    }
-  }
-  return null;
-};
-
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 
@@ -130,6 +121,27 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     });
   };
 
+  const updateExpectedLocksMap = (account: string, lock: { [key: string]: bigint }) => {
+    const account64 = hexToBase64(account);
+    const value = expectedLocksMap.get(account64);
+    if (value === undefined) {
+      expectedLocksMap.set(account64, { total: 0n, locks: lock });
+      return;
+    }
+    const updatedLocks = { ...value.locks, ...lock };
+    const newTotal = value.total;
+    expectedLocksMap.set(account64, { total: newTotal, locks: updatedLocks });
+  };
+
+  const getReserveTypeByValue = (value: string): string | null => {
+    for (const key in ReserveType) {
+      if (ReserveType[key] === value) {
+        return key;
+      }
+    }
+    return null;
+  };
+
   before("Retrieve all balances", async function () {
     this.timeout(ONE_HOURS); // 1 hour timeout
     atBlockNumber = process.env.BLOCK_NUMBER
@@ -147,54 +159,54 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     // the amount to a results map
     let [
       // proxies,
-      proxyAnnouncements,
-      treasuryProposals,
-      mappingWithDeposit,
-      identities,
-      subIdentities,
-      democracyDeposits,
-      democracyPreimages, // TODO add this check back to map
-      preimageStatuses,
-      referendumInfoFor,
-      assets,
-      assetsMetadata,
-      localAssets,
-      localAssetsMetadata,
-      localAssetDeposits,
-      namedReserves,
+      // proxyAnnouncements,
+      // treasuryProposals,
+      // mappingWithDeposit,
+      // identities,
+      // subIdentities,
+      // democracyDeposits,
+      // democracyPreimages, // TODO add this check back to map
+      // preimageStatuses,
+      // referendumInfoFor,
+      // assets,
+      // assetsMetadata,
+      // localAssets,
+      // localAssetsMetadata,
+      // localAssetDeposits,
+      // namedReserves,
       // locks,
       democracyVotes,
-      candidateInfo,
+      // candidateInfo,
       delegatorState,
       delegatorStakingMigrations,
       collatorStakingMigrations,
     ] = await Promise.all([
       // apiAt.query.proxy.proxies.entries(),
-      apiAt.query.proxy.announcements.entries(),
-      apiAt.query.treasury.proposals.entries(),
-      apiAt.query.authorMapping.mappingWithDeposit.entries(),
-      apiAt.query.identity.identityOf.entries(),
-      apiAt.query.identity.subsOf.entries(),
-      apiAt.query.democracy.depositOf.entries(),
-      specVersion < 2000
-        ? apiAt.query.democracy.preimages.entries()
-        : ([] as [StorageKey<[H256]>, Option<any>][]),
-      (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
-        ? apiAt.query.preimage.statusFor.entries()
-        : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
-      (specVersion >= 1900 && runtimeName == "moonbase") ||
-      (specVersion >= 2100 && runtimeName == "moonriver")
-        ? apiAt.query.referenda.referendumInfoFor.entries()
-        : ([] as [StorageKey<[u32]>, Option<any>][]),
-      apiAt.query.assets.asset.entries(),
-      apiAt.query.assets.metadata.entries(),
-      apiAt.query.localAssets.asset.entries(),
-      apiAt.query.localAssets.metadata.entries(),
-      apiAt.query.assetManager.localAssetDeposit.entries(),
-      apiAt.query.balances.reserves.entries(),
+      // apiAt.query.proxy.announcements.entries(),
+      // apiAt.query.treasury.proposals.entries(),
+      // apiAt.query.authorMapping.mappingWithDeposit.entries(),
+      // apiAt.query.identity.identityOf.entries(),
+      // apiAt.query.identity.subsOf.entries(),
+      // apiAt.query.democracy.depositOf.entries(),
+      // specVersion < 2000
+      //   ? apiAt.query.democracy.preimages.entries()
+      //   : ([] as [StorageKey<[H256]>, Option<any>][]),
+      // (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
+      //   ? apiAt.query.preimage.statusFor.entries()
+      //   : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
+      // (specVersion >= 1900 && runtimeName == "moonbase") ||
+      // (specVersion >= 2100 && runtimeName == "moonriver")
+      //   ? apiAt.query.referenda.referendumInfoFor.entries()
+      //   : ([] as [StorageKey<[u32]>, Option<any>][]),
+      // apiAt.query.assets.asset.entries(),
+      // apiAt.query.assets.metadata.entries(),
+      // apiAt.query.localAssets.asset.entries(),
+      // apiAt.query.localAssets.metadata.entries(),
+      // apiAt.query.assetManager.localAssetDeposit.entries(),
+      // apiAt.query.balances.reserves.entries(),
       // apiAt.query.balances.locks.entries(),
       apiAt.query.democracy.votingOf.entries(),
-      apiAt.query.parachainStaking.candidateInfo.entries(),
+      // apiAt.query.parachainStaking.candidateInfo.entries(),
       apiAt.query.parachainStaking.delegatorState.entries(),
       specVersion >= 1700 && specVersion < 1800
         ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
@@ -221,6 +233,23 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
+    await new Promise((resolve, reject) => {
+      apiAt.query.treasury.proposals
+        .entries()
+        .then((treasuryProposals) => {
+          treasuryProposals.forEach((proposal) => {
+            updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
+              [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
+            });
+          });
+          resolve("treasury props scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching treasury props:", error);
+          reject(error); // Reject the outer promise with the error
+        });
+    });
+
     const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
       (p, migration: any) => {
         if (migration[1].isTrue) {
@@ -243,12 +272,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     // TODO : delete individual storage queries after map is updated
     // TODO : TUrn this into a promise
-    treasuryProposals.forEach((proposal) =>
-      updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
-        [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
-      })
-    );
-    treasuryProposals = [];
+    // treasuryProposals.forEach((proposal) =>
+    //   updateReserveMap(proposal[1].unwrap().proposer.toHex().slice(-40), {
+    //     [ReserveType.Treasury]: proposal[1].unwrap().bond.toBigInt(),
+    //   })
+    // );
+    // treasuryProposals = [];
 
     // proxies.forEach((proxy) => {
     //   updateReserveMap(proxy[0].toHex().slice(-40), {
@@ -256,27 +285,92 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     //   });
     // });
 
-    proxyAnnouncements.forEach((announcement) =>
-      updateReserveMap(announcement[0].toHex().slice(-40), {
-        [ReserveType.Announcement]: announcement[1][1].toBigInt(),
-      })
-    );
-
-    mappingWithDeposit.forEach((mapping) =>
-      updateReserveMap(mapping[1].unwrap().account.toHex().slice(-40), {
-        [ReserveType.AuthorMapping]: mapping[1].unwrap().deposit.toBigInt(),
-      })
-    );
-
-    candidateInfo.forEach((candidate) => {
-      if (
-        specVersion < 1700 ||
-        (specVersion < 1800 && !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
-      ) {
-        updateReserveMap(candidate[0].toHex().slice(-40), {
-          [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
+    await new Promise((resolve, reject) => {
+      apiAt.query.proxy.announcements
+        .entries()
+        .then((proxyAnnouncements) => {
+          proxyAnnouncements.forEach((announcement) => {
+            updateReserveMap(announcement[0].toHex().slice(-40), {
+              [ReserveType.Announcement]: announcement[1][1].toBigInt(),
+            });
+          });
+          resolve("proxy announcement scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching proxy announcement:", error);
+          reject(error); // Reject the outer promise with the error
         });
-      }
+    });
+
+    // proxyAnnouncements.forEach((announcement) =>
+    //   updateReserveMap(announcement[0].toHex().slice(-40), {
+    //     [ReserveType.Announcement]: announcement[1][1].toBigInt(),
+    //   })
+    // );
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.authorMapping.mappingWithDeposit
+        .entries()
+        .then((mappingWithDeposit) => {
+          mappingWithDeposit.forEach((mapping) => {
+            updateReserveMap(mapping[1].unwrap().account.toHex().slice(-40), {
+              [ReserveType.AuthorMapping]: mapping[1].unwrap().deposit.toBigInt(),
+            });
+          });
+          resolve("author mapping scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching author mapping:", error);
+          reject(error); // Reject the outer promise with the error
+        });
+    });
+
+    // mappingWithDeposit.forEach((mapping) =>
+    //   updateReserveMap(mapping[1].unwrap().account.toHex().slice(-40), {
+    //     [ReserveType.AuthorMapping]: mapping[1].unwrap().deposit.toBigInt(),
+    //   })
+    // );
+
+    // candidateInfo.forEach((candidate) => {
+    //   if (
+    //     specVersion < 1700 ||
+    //     (specVersion < 1800 && !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
+    //   ) {
+    //     updateReserveMap(candidate[0].toHex().slice(-40), {
+    //       [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
+    //     });
+    //   }
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.parachainStaking.candidateInfo
+        .entries()
+        .then((candidateInfo) => {
+          candidateInfo.forEach((candidate) => {
+            if (
+              specVersion < 1700 ||
+              (specVersion < 1800 &&
+                !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
+            ) {
+              updateReserveMap(candidate[0].toHex().slice(-40), {
+                [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
+              });
+            }
+            if (
+              specVersion >= 1800 ||
+              collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
+            ) {
+              updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
+                ColStake: candidate[1].unwrap().bond.toBigInt(),
+              });
+            }
+          });
+          resolve("candidate info scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching candidate info:", error);
+          reject(error); // Reject the outer promise with the error
+        });
     });
 
     delegatorState.forEach((delegator) => {
@@ -290,194 +384,548 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       }
     });
 
-    identities.forEach((identity) => {
-      updateReserveMap(identity[0].toHex().slice(-40), {
-        [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
-      });
-      updateReserveMap(identity[0].toHex().slice(-40), {
-        [ReserveType.RequestJudgements]: identity[1]
-          .unwrap()
-          .judgements.reduce(
-            (acc, value) => acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
-            0n
-          ),
-      });
+    // identities.forEach((identity) => {
+    //   updateReserveMap(identity[0].toHex().slice(-40), {
+    //     [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
+    //   });
+    //   updateReserveMap(identity[0].toHex().slice(-40), {
+    //     [ReserveType.RequestJudgements]: identity[1]
+    //       .unwrap()
+    //       .judgements.reduce(
+    //         (acc, value) => acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
+    //         0n
+    //       ),
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.identity.identityOf
+        .entries()
+        .then((identities) => {
+          identities.forEach((identity) => {
+            updateReserveMap(identity[0].toHex().slice(-40), {
+              [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
+            });
+            updateReserveMap(identity[0].toHex().slice(-40), {
+              [ReserveType.RequestJudgements]: identity[1]
+                .unwrap()
+                .judgements.reduce(
+                  (acc, value) =>
+                    acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
+                  0n
+                ),
+            });
+          });
+          resolve("identities scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching identities:", error);
+          reject(error); // Reject the outer promise with the error
+        });
     });
 
-    subIdentities.forEach((subIdentity) => {
-      updateReserveMap(subIdentity[0].toHex().slice(-40), {
-        [ReserveType.SubIdentity]: subIdentity[1][0].toBigInt(),
-      });
+    // subIdentities.forEach((subIdentity) => {
+    //   updateReserveMap(subIdentity[0].toHex().slice(-40), {
+    //     [ReserveType.SubIdentity]: subIdentity[1][0].toBigInt(),
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.identity.subsOf
+        .entries()
+        .then((subIdentities) => {
+          subIdentities.forEach((subIdentity) => {
+            updateReserveMap(subIdentity[0].toHex().slice(-40), {
+              [ReserveType.SubIdentity]: subIdentity[1][0].toBigInt(),
+            });
+          });
+          resolve("subIdentities scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching subIdentities:", error);
+          reject(error); // Reject the outer promise with the error
+        });
     });
 
-    democracyDeposits
-      .map((depositOf) =>
-        depositOf[1]
-          .unwrap()[0]
-          .map((deposit) => ({
-            accountId: deposit.toHex(),
-            reserved: depositOf[1].unwrap()[1].toBigInt(),
-          }))
-          .flat()
-          .reduce((p, deposit) => {
-            // We merge multiple reserves together for same account
-            if (!p[deposit.accountId]) {
-              p[deposit.accountId] = {
-                accountId: deposit.accountId,
-                reserved: {
-                  [ReserveType.DemocracyDeposit]: 0n,
+    // democracyDeposits
+    //   .map((depositOf) =>
+    //     depositOf[1]
+    //       .unwrap()[0]
+    //       .map((deposit) => ({
+    //         accountId: deposit.toHex(),
+    //         reserved: depositOf[1].unwrap()[1].toBigInt(),
+    //       }))
+    //       .flat()
+    //       .reduce((p, deposit) => {
+    //         // We merge multiple reserves together for same account
+    //         if (!p[deposit.accountId]) {
+    //           p[deposit.accountId] = {
+    //             accountId: deposit.accountId,
+    //             reserved: {
+    //               [ReserveType.DemocracyDeposit]: 0n,
+    //             },
+    //           };
+    //         }
+    //         p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
+    //         return p;
+    //       }, {})
+    //   )
+    //   .forEach((deposit: any) => {
+    //     updateReserveMap(deposit.accountId, deposit.reserved);
+    //   });
+
+    // Object.values(
+    //   democracyDeposits
+    //     .map((depositOf) =>
+    //       depositOf[1].unwrap()[0].map((deposit) => ({
+    //         accountId: deposit.toHex(),
+    //         reserved: depositOf[1].unwrap()[1].toBigInt(),
+    //       }))
+    //     )
+    //     .flat()
+    //     .reduce(
+    //       (p, deposit) => {
+    //         // We merge multiple reserves together for same account
+    //         if (!p[deposit.accountId]) {
+    //           p[deposit.accountId] = {
+    //             accountId: deposit.accountId,
+    //             reserved: {
+    //               [ReserveType.DemocracyDeposit]: 0n,
+    //             },
+    //           };
+    //         }
+    //         p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
+    //         return p;
+    //       },
+    //       {} as {
+    //         [accountId: string]: { accountId: string; reserved: { [key: string]: bigint } };
+    //       }
+    //     )
+    // ).forEach((deposit: any) => {
+    //   updateReserveMap(deposit.accountId, deposit.reserved);
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.democracy.depositOf
+        .entries()
+        .then((democracyDeposits) => {
+          democracyDeposits
+            .map((depositOf) =>
+              depositOf[1]
+                .unwrap()[0]
+                .map((deposit) => ({
+                  accountId: deposit.toHex(),
+                  reserved: depositOf[1].unwrap()[1].toBigInt(),
+                }))
+                .flat()
+                .reduce((p, deposit) => {
+                  // We merge multiple reserves together for same account
+                  if (!p[deposit.accountId]) {
+                    p[deposit.accountId] = {
+                      accountId: deposit.accountId,
+                      reserved: {
+                        [ReserveType.DemocracyDeposit]: 0n,
+                      },
+                    };
+                  }
+                  p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
+                  return p;
+                }, {})
+            )
+            .forEach((deposit: any) => {
+              updateReserveMap(deposit.accountId, deposit.reserved);
+            });
+
+          Object.values(
+            democracyDeposits
+              .map((depositOf) =>
+                depositOf[1].unwrap()[0].map((deposit) => ({
+                  accountId: deposit.toHex(),
+                  reserved: depositOf[1].unwrap()[1].toBigInt(),
+                }))
+              )
+              .flat()
+              .reduce(
+                (p, deposit) => {
+                  // We merge multiple reserves together for same account
+                  if (!p[deposit.accountId]) {
+                    p[deposit.accountId] = {
+                      accountId: deposit.accountId,
+                      reserved: {
+                        [ReserveType.DemocracyDeposit]: 0n,
+                      },
+                    };
+                  }
+                  p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
+                  return p;
                 },
-              };
-            }
-            p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-            return p;
-          }, {})
-      )
-      .forEach((deposit: any) => {
-        updateReserveMap(deposit.accountId, deposit.reserved);
-      });
+                {} as {
+                  [accountId: string]: { accountId: string; reserved: { [key: string]: bigint } };
+                }
+              )
+          ).forEach((deposit: any) => {
+            updateReserveMap(deposit.accountId, deposit.reserved);
+          });
 
-    Object.values(
-      democracyDeposits
-        .map((depositOf) =>
-          depositOf[1].unwrap()[0].map((deposit) => ({
-            accountId: deposit.toHex(),
-            reserved: depositOf[1].unwrap()[1].toBigInt(),
-          }))
-        )
-        .flat()
-        .reduce(
-          (p, deposit) => {
-            // We merge multiple reserves together for same account
-            if (!p[deposit.accountId]) {
-              p[deposit.accountId] = {
-                accountId: deposit.accountId,
-                reserved: {
-                  [ReserveType.DemocracyDeposit]: 0n,
-                },
-              };
-            }
-            p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-            return p;
-          },
-          {} as {
-            [accountId: string]: { accountId: string; reserved: { [key: string]: bigint } };
-          }
-        )
-    ).forEach((deposit: any) => {
-      updateReserveMap(deposit.accountId, deposit.reserved);
-    });
-
-    democracyPreimages
-      .filter((preimg: any) => preimg[1].unwrap().isAvailable)
-      .forEach((preimage: any) => {
-        updateReserveMap(preimage[1].unwrap().asAvailable.provider.toHex(), {
-          [ReserveType.Preimage]: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
+          resolve("democracy deposits scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching democracy deposits:", error);
+          reject(error); // Reject the outer promise with the error
         });
-      });
+    });
 
-    preimageStatuses
-      .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
-      .map((status) => {
-        const deposit = extractPreimageDeposit(
-          status[1].unwrap().isUnrequested
-            ? status[1].unwrap().asUnrequested
-            : status[1].unwrap().asRequested
-        );
-        return { accountId: deposit.accountId, deposit: deposit.amount };
-      })
-      .forEach(({ deposit, accountId }) => {
-        updateReserveMap(accountId, {
-          [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
+    // democracyPreimages
+    //   .filter((preimg: any) => preimg[1].unwrap().isAvailable)
+    //   .forEach((preimage: any) => {
+    //     updateReserveMap(preimage[1].unwrap().asAvailable.provider.toHex(), {
+    //       [ReserveType.Preimage]: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
+    //     });
+    //   });
+
+    await new Promise((resolve, reject) => {
+      if (specVersion < 2000) {
+        apiAt.query.democracy.preimages
+          .entries()
+          .then((democracyPreimages) => {
+            democracyPreimages
+              .filter((preimg: any) => preimg[1].unwrap().isAvailable)
+              .forEach((preimage: any) => {
+                updateReserveMap(preimage[1].unwrap().asAvailable.provider.toHex(), {
+                  [ReserveType.Preimage]: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
+                });
+              });
+          })
+          .catch((error) => {
+            console.error("Error fetching democracyPreimages:", error);
+            reject(error); // Reject the outer promise with the error
+          });
+      }
+      resolve("democracyPreimages scraped");
+    });
+
+    // preimageStatuses
+    // .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
+    // .map((status) => {
+    //   const deposit = extractPreimageDeposit(
+    //     status[1].unwrap().isUnrequested
+    //       ? status[1].unwrap().asUnrequested
+    //       : status[1].unwrap().asRequested
+    //   );
+    //   return { accountId: deposit.accountId, deposit: deposit.amount };
+    // })
+    // .forEach(({ deposit, accountId }) => {
+    //   updateReserveMap(accountId, {
+    //     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
+    //   });
+    // });
+
+    // (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
+    // ? apiAt.query.preimage.statusFor.entries()
+    // : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
+
+    await new Promise((resolve, reject) => {
+      if ((specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000) {
+        apiAt.query.preimage.statusFor
+          .entries()
+          .then((preimageStatuses) => {
+            preimageStatuses
+              .filter(
+                (status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested
+              )
+              .map((status) => {
+                const deposit = extractPreimageDeposit(
+                  status[1].unwrap().isUnrequested
+                    ? status[1].unwrap().asUnrequested
+                    : status[1].unwrap().asRequested
+                );
+                return { accountId: deposit.accountId, deposit: deposit.amount };
+              })
+              .forEach(({ deposit, accountId }) => {
+                updateReserveMap(accountId, {
+                  [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
+                });
+              });
+            resolve("proxies scraped");
+          })
+          .catch((error) => {
+            console.error("Error fetching proxies:", error);
+            reject(error); // Reject the outer promise with the error
+          });
+      }
+    });
+
+    // referendumInfoFor.forEach((info) => {
+    //   const deposits = (
+    //     info[1].unwrap().isApproved
+    //       ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
+    //       : info[1].unwrap().isRejected
+    //       ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
+    //       : info[1].unwrap().isCancelled
+    //       ? [info[1].unwrap().asCancelled[1], info[1].unwrap().asCancelled[2].unwrapOr(null)]
+    //       : info[1].unwrap().isTimedOut
+    //       ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
+    //       : info[1].unwrap().isOngoing
+    //       ? [
+    //           info[1].unwrap().asOngoing.submissionDeposit,
+    //           info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+    //         ]
+    //       : ([] as PalletReferendaDeposit[])
+    //   ).filter((value) => !!value && !value.isNone);
+
+    //   deposits.forEach((deposit) => {
+    //     // Support for https://github.com/paritytech/substrate/pull/12788
+    //     // which make deposit optional.
+    //     // TODO: better handle unwrapping
+
+    //     updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
+    //       [ReserveType.ReferendumInfo]: (deposit.unwrap
+    //         ? deposit.unwrap()
+    //         : deposit
+    //       ).amount.toBigInt(),
+    //     });
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      if (
+        (specVersion >= 1900 && runtimeName == "moonbase") ||
+        (specVersion >= 2100 && runtimeName == "moonriver")
+      ) {
+        apiAt.query.referenda.referendumInfoFor
+          .entries()
+          .then((referendumInfoFor) => {
+            referendumInfoFor.forEach((info) => {
+              const deposits = (
+                info[1].unwrap().isApproved
+                  ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
+                  : info[1].unwrap().isRejected
+                  ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
+                  : info[1].unwrap().isCancelled
+                  ? [
+                      info[1].unwrap().asCancelled[1],
+                      info[1].unwrap().asCancelled[2].unwrapOr(null),
+                    ]
+                  : info[1].unwrap().isTimedOut
+                  ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
+                  : info[1].unwrap().isOngoing
+                  ? [
+                      info[1].unwrap().asOngoing.submissionDeposit,
+                      info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+                    ]
+                  : ([] as PalletReferendaDeposit[])
+              ).filter((value) => !!value && !value.isNone);
+
+              deposits.forEach((deposit) => {
+                // Support for https://github.com/paritytech/substrate/pull/12788
+                // which make deposit optional.
+                // TODO: better handle unwrapping
+
+                updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
+                  [ReserveType.ReferendumInfo]: (deposit.unwrap
+                    ? deposit.unwrap()
+                    : deposit
+                  ).amount.toBigInt(),
+                });
+              });
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching referendumInfoFor:", error);
+            reject(error); // Reject the outer promise with the error
+          });
+      }
+      resolve("referendumInfoFor scraped");
+    });
+
+    // assets.forEach((asset) => {
+    //   updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
+    //     [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.assets.asset
+        .entries()
+        .then(async (assets) => {
+          assets.forEach((asset) => {
+            updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
+              [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
+            });
+          });
+
+          await new Promise((resolve, reject) => {
+            apiAt.query.assets.metadata
+              .entries()
+              .then((assetsMetadata) => {
+                assetsMetadata.forEach((assetMetadata) => {
+                  updateReserveMap(
+                    assets
+                      .find(
+                        (asset) =>
+                          asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64)
+                      )[1]
+                      .unwrap()
+                      .owner.toHex()
+                      .slice(-40),
+                    {
+                      [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
+                    }
+                  );
+                });
+                resolve("assetsMetadata scraped");
+              })
+              .catch((error) => {
+                console.error("Error fetching assetsMetadata:", error);
+                reject(error); // Reject the outer promise with the error
+              });
+          });
+
+          resolve("assets scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching assets :", error);
+          reject(error); // Reject the outer promise with the error
         });
-      });
+    });
 
-    referendumInfoFor.forEach((info) => {
-      const deposits = (
-        info[1].unwrap().isApproved
-          ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
-          : info[1].unwrap().isRejected
-          ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
-          : info[1].unwrap().isCancelled
-          ? [info[1].unwrap().asCancelled[1], info[1].unwrap().asCancelled[2].unwrapOr(null)]
-          : info[1].unwrap().isTimedOut
-          ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
-          : info[1].unwrap().isOngoing
-          ? [
-              info[1].unwrap().asOngoing.submissionDeposit,
-              info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
-            ]
-          : ([] as PalletReferendaDeposit[])
-      ).filter((value) => !!value && !value.isNone);
+    // assetsMetadata.forEach((assetMetadata) => {
+    //   updateReserveMap(
+    //     assets
+    //       .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
+    //       .unwrap()
+    //       .owner.toHex()
+    //       .slice(-40),
+    //     {
+    //       [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
+    //     }
+    //   );
+    // });
 
-      deposits.forEach((deposit) => {
-        // Support for https://github.com/paritytech/substrate/pull/12788
-        // which make deposit optional.
-        // TODO: better handle unwrapping
+    // localAssets.forEach((localAsset) => {
+    //   updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
+    //     [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
+    //   });
+    // });
 
-        updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
-          [ReserveType.ReferendumInfo]: (deposit.unwrap
-            ? deposit.unwrap()
-            : deposit
-          ).amount.toBigInt(),
+    // localAssetsMetadata.forEach((localAssetMetadata) => {
+    //   updateReserveMap(
+    //     localAssets
+    //       .find(
+    //         (localAsset) =>
+    //           localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
+    //       )[1]
+    //       .unwrap()
+    //       .owner.toHex()
+    //       .slice(-40),
+    //     {
+    //       [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
+    //     }
+    //   );
+    // });
+
+    // apiAt.query.localAssets.asset.entries(),
+    // apiAt.query.localAssets.metadata.entries(),
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.localAssets.asset
+        .entries()
+        .then(async (localAssets) => {
+          localAssets.forEach((localAsset) => {
+            updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
+              [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
+            });
+          });
+
+          await new Promise((resolve, reject) => {
+            apiAt.query.localAssets.metadata
+              .entries()
+              .then((localAssetMetadata) => {
+                localAssetMetadata.forEach((localAssetMetadata) => {
+                  updateReserveMap(
+                    localAssets
+                      .find(
+                        (localAsset) =>
+                          localAsset[0].toHex().slice(-64) ==
+                          localAssetMetadata[0].toHex().slice(-64)
+                      )[1]
+                      .unwrap()
+                      .owner.toHex()
+                      .slice(-40),
+                    {
+                      [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
+                    }
+                  );
+                });
+                resolve("localAssetsMetadata scraped");
+              })
+              .catch((error) => {
+                console.error("Error fetching localAssetsMetadata:", error);
+                reject(error); // Reject the outer promise with the error
+              });
+          });
+
+          resolve("localAssets scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching localAssets :", error);
+          reject(error); // Reject the outer promise with the error
         });
-      });
     });
 
-    assets.forEach((asset) => {
-      updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
-        [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
-      });
+    // localAssetDeposits.forEach((assetDeposit) => {
+    //   updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
+    //     [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.assetManager.localAssetDeposit
+        .entries()
+        .then((localAssetDeposits) => {
+          localAssetDeposits.forEach((assetDeposit) => {
+            updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
+              [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
+            });
+          });
+          resolve("localAssetDeposits scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching localAssetDeposits:", error);
+          reject(error); // Reject the outer promise with the error
+        });
+    });
+    
+    // apiAt.query.balances.reserves.entries(),
+
+    // namedReserves.forEach((namedReservesOf) => {
+    //   updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
+    //     [ReserveType.Named]: namedReservesOf[1]
+    //       .map((namedDeposit) => namedDeposit.amount.toBigInt())
+    //       .reduce((accumulator, curr) => accumulator + curr),
+    //   });
+    // });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.balances.reserves
+      .entries()
+        .then((namedReserves) => {
+          namedReserves.forEach((namedReservesOf) => {
+            updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
+              [ReserveType.Named]: namedReservesOf[1]
+                .map((namedDeposit) => namedDeposit.amount.toBigInt())
+                .reduce((accumulator, curr) => accumulator + curr),
+            });
+          });
+          resolve("namedReserves scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching namedReserves:", error);
+          reject(error); // Reject the outer promise with the error
+        });
     });
 
-    assetsMetadata.forEach((assetMetadata) => {
-      updateReserveMap(
-        assets
-          .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
-          .unwrap()
-          .owner.toHex()
-          .slice(-40),
-        {
-          [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
-        }
-      );
-    });
 
-    localAssets.forEach((localAsset) => {
-      updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
-        [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
-      });
-    });
-
-    localAssetsMetadata.forEach((localAssetMetadata) => {
-      updateReserveMap(
-        localAssets
-          .find(
-            (localAsset) =>
-              localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
-          )[1]
-          .unwrap()
-          .owner.toHex()
-          .slice(-40),
-        {
-          [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
-        }
-      );
-    });
-
-    localAssetDeposits.forEach((assetDeposit) => {
-      updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
-        [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
-      });
-    });
-
-    namedReserves.forEach((namedReservesOf) => {
-      updateReserveMap(namedReservesOf[0].toHex().slice(-40), {
-        [ReserveType.Named]: namedReservesOf[1]
-          .map((namedDeposit) => namedDeposit.amount.toBigInt())
-          .reduce((accumulator, curr) => accumulator + curr),
-      });
-    });
 
     debug(`Retrieved ${expectedReserveMap.size} deposits`);
 
@@ -491,29 +939,18 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     //1b) Build Expected Results - Locks Map
     let locks = await apiAt.query.balances.locks.entries();
-    const updateExpectedLocksMap = (account: string, lock: { [key: string]: bigint }) => {
-      const account64 = hexToBase64(account);
-      const value = expectedLocksMap.get(account64);
-      if (value === undefined) {
-        expectedLocksMap.set(account64, { total: 0n, locks: lock });
-        return;
-      }
-      const updatedLocks = { ...value.locks, ...lock };
-      const newTotal = value.total;
-      expectedLocksMap.set(account64, { total: newTotal, locks: updatedLocks });
-    };
 
-    candidateInfo.forEach((candidate) => {
-      // Support the case of the migration in 1700
-      if (
-        specVersion >= 1800 ||
-        collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-      ) {
-        updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-          ColStake: candidate[1].unwrap().bond.toBigInt(),
-        });
-      }
-    });
+    // candidateInfo.forEach((candidate) => {
+    //   // Support the case of the migration in 1700
+    //   if (
+    //     specVersion >= 1800 ||
+    //     collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
+    //   ) {
+    //     updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
+    //       ColStake: candidate[1].unwrap().bond.toBigInt(),
+    //     });
+    //   }
+    // });
 
     delegatorState.forEach((delegator) => {
       // Support the case of the migration in 1700
@@ -578,6 +1015,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
               .join(` - `)})`
         );
       }
+      expectedReserveMap.delete(key);
     };
 
     if (process.env.ACCOUNT_ID) {
@@ -701,7 +1139,15 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     debug(`Verified ${totalAccounts} total reserve balances (at #${atBlockNumber})`);
 
-    //TODO: Check that expectedAcconts hasn't got remaining locks in it
+    const failuresExpectedReserveMap = []
+    if  (expectedReserveMap.size > 0) {
+      debug(`expectedReserveMap size: ${expectedReserveMap.size}`)
+      expectedReserveMap.forEach((value, key) => {
+        failuresExpectedReserveMap.push(`${base64ToHex(key)}`)
+      })
+    }
+
+    expect(expectedReserveMap.size, `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(`, `)}`).to.equal(0);
   });
 
   testIt("C200", "should match total locks", async function () {
