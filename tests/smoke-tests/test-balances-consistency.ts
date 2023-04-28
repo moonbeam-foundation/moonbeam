@@ -1,19 +1,14 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
-import { H256 } from "@polkadot/types/interfaces/runtime";
-import { u32, u16 } from "@polkadot/types";
+import {  u16 } from "@polkadot/types";
 import { AccountId20 } from "@polkadot/types/interfaces";
-import { u8aToBigInt } from "@polkadot/util";
 import type {
-  FrameSystemAccountInfo,
   PalletReferendaDeposit,
   PalletConvictionVotingVoteVoting,
-  PalletPreimageRequestStatus,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
@@ -57,7 +52,6 @@ type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 // https://github.com/polkadot-js/api/issues/5615
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
-  // const accountMap = new Map<string, FrameSystemAccountInfo>();
   const expectedReserveMap = new Map<string, ReservedInfo>();
   const expectedLocksMap = new Map<string, LocksInfo>();
   const locksMap = new Map<string, { total: bigint }>();
@@ -876,9 +870,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     if (!process.env.ACCOUNT_ID) {
       expect(
         expectedReserveMap.size,
-        `❌  There are accounts with expected reserve amounts not accounted for: ${failuresExpectedReserveMap.join(
-          `, `
-        )}`
+        `❌  There are accounts with expected reserve amounts not accounted for: ` +
+          `${failuresExpectedReserveMap.join(`, `)}`
       ).to.equal(0);
     }
   });
