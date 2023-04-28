@@ -16,7 +16,7 @@
 
 use super::*;
 use frame_benchmarking::{benchmarks, BenchmarkError, BenchmarkResult};
-use frame_support::{dispatch::Weight, traits::Get};
+use frame_support::dispatch::Weight;
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
 use sp_std::vec;
 use sp_std::vec::Vec;
@@ -45,51 +45,37 @@ benchmarks! {
 
 	exchange_asset {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	export_message {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	lock_asset {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	unlock_asset {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	note_unlockable {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	request_unlock {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	universal_origin {
 	} : {
-		Err(BenchmarkError::Override(
-			BenchmarkResult::from_weight(T::BlockWeights::get().max_block)
-		))?;
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
 	}
 
 	impl_benchmark_test_suite!(
