@@ -50,7 +50,7 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
     expect(block.result.successful).to.be.true;
   });
 
-  it("Should be able to aprove multisig operation with approveAsMulti", async function () {
+  it("Should be able to approve multisig operation with approveAsMulti", async function () {
     // change signatories and put them sorted
     otherSignatories = [CHARLETH_ADDRESS, ALITH_ADDRESS];
     const block = await context.createBlock(
