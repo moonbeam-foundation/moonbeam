@@ -180,7 +180,7 @@ jobs:
             --timeout 180000 \
             --parallel -j $((CPUS / 2)) \
             --exit \
-            'build/tests/**/test-*.js'  | true
+            'build/tests/**/test-*.js'  || true
           # We force it to pass to get the coverage report
       - name: Retrieve coverage
         run: |
