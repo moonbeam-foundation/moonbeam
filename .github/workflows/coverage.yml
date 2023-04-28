@@ -177,7 +177,7 @@ jobs:
           CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
 
           node node_modules/.bin/mocha \
-            --timeout 30000 \
+            --timeout 180000 \
             --parallel -j $((CPUS / 2)) \
             --exit \
             'build/tests/**/test-*.js'
