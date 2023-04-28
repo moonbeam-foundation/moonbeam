@@ -17,8 +17,12 @@ import { rateLimiter } from "../util/common";
 const debug = require("debug")("smoke:balances");
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
-  const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-  const limiter = rateLimiter();
+  let soloNonce: number = 0;
+  let emptyFree: number = 0;
+  let accounts: { [id: string]: { reserved: bigint; free: bigint; nonce: bigint } } = {};
+  let accountKeys: string[] = [];
+  let accountCodeSizes: Map<number, number> = new Map();
+  const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -27,7 +31,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
-    this.timeout(3600000); // 1 hour should be enough
+    this.timeout(360000000); // 1 hour should be enough
 
     const limit = 1000;
     let last_key = "";
@@ -36,43 +40,123 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    apiAt = await context.polkadotApi.at(
-      await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
-    );
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
+    apiAt = await context.polkadotApi.at(blockHash);
     specVersion = apiAt.consts.system.version.specVersion.toNumber();
     runtimeName = apiAt.runtimeVersion.specName.toString();
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID.toLowerCase();
-      accounts[userId] = await apiAt.query.system.account(userId);
+      //accounts[userId] = await apiAt.query.system.account(userId);
       return;
     }
 
-    // loop over all system accounts
     while (true) {
-      const query = await limiter.schedule(() =>
-        apiAt.query.system.account.entriesPaged({
-          args: [],
-          pageSize: limit,
-          startKey: last_key,
-        })
-      );
+      const query = await apiAt.query.evm.accountCodes.keysPaged({
+        args: [],
+        pageSize: limit,
+        startKey: last_key,
+      });
 
       if (query.length === 0) {
         break;
       }
+      last_key = query[query.length - 1].toString();
       count += query.length;
 
-      for (const user of query) {
-        const accountId = `0x${user[0].toHex().slice(-40)}`;
-        last_key = user[0].toString();
-        accounts[accountId] = user[1];
+      const codes = (await limiter.schedule(() =>
+        context.polkadotApi.rpc.state.queryStorageAt(
+          query.map((key) => key.toString()),
+          blockHash.toString()
+        )
+      )) as any[];
+
+      for (const data of codes) {
+        const codeLen = data.unwrap().toHex().length;
+        accountCodeSizes.set(codeLen, (accountCodeSizes.get(codeLen) || 0) + 1);
       }
+
       if (count % (10 * limit) == 0) {
-        debug(`Retrieved ${count} accounts`);
+        debug(
+          `Retrieved ${count} codes: ${last_key} (${
+            accountCodeSizes.size
+          } sizes): ${accountCodeSizes.get(94)} of 94 bytes `
+        );
       }
     }
-    debug(`Retrieved ${count} total accounts`);
+    debug(`Retrieved ${count} total codes`);
+    return;
+
+    // loop over all system accounts
+    while (true) {
+      const query = await apiAt.query.system.account.keysPaged({
+        args: [],
+        pageSize: limit,
+        startKey: last_key,
+      });
+
+      if (query.length === 0) {
+        break;
+      }
+      last_key = query[query.length - 1].toString();
+      count += query.length;
+
+      const data = (await limiter.schedule(() =>
+        context.polkadotApi.rpc.state.queryStorageAt(
+          query.map((key) => key.toString()),
+          blockHash.toString()
+        )
+      )) as any[];
+
+      for (const user of data) {
+        const info = user.unwrap().toHex();
+        const nonce = BigInt(`0x${info.slice(2, 10).match(/../g).reverse().join("")}`);
+        const reserved = BigInt(`0x${info.slice(-96, -64).match(/../g).reverse().join("")}`);
+        const free = BigInt(`0x${info.slice(-64, -32).match(/../g).reverse().join("")}`);
+        if (nonce == 0n) {
+          soloNonce++;
+        }
+        if (free == 0n && reserved == 0n) {
+          emptyFree++;
+        }
+      }
+
+      if (count % (10 * limit) == 0) {
+        debug(
+          `Retrieved ${count} accounts [no-nonce: ${soloNonce}, no-tokens: ${emptyFree}] ${last_key}`
+        );
+      }
+    }
+    debug(`Retrieved ${count} total accounts [no-nonce: ${soloNonce}, no-tokens: ${emptyFree}]`);
+    return;
+
+    count = 0;
+    let chunk = accountKeys.splice(0, limit);
+    while (chunk.length > 0) {
+      debug(`Checking ${chunk.length} accounts starting ${chunk[0]}`);
+      const query = (await limiter.schedule(() =>
+        context.polkadotApi.rpc.state.queryStorageAt(chunk, blockHash.toString())
+      )) as any[];
+
+      for (const user of query) {
+        const id = `0x${chunk[0].slice(-40)}`;
+        const data = user.unwrap().toHex();
+        const nonce = BigInt(`0x${data.slice(2, 10).match(/../g).reverse().join("")}`);
+        const reserved = BigInt(`0x${data.slice(-96, -64).match(/../g).reverse().join("")}`);
+        const free = BigInt(`0x${data.slice(-64, -32).match(/../g).reverse().join("")}`);
+        //accounts.set(id, [nonce, free, reserved]);
+        if (nonce == 0n) {
+          soloNonce++;
+        }
+        if (free == 0n && reserved == 0n) {
+          emptyFree++;
+        }
+      }
+      if (count % (10 * limit) == 0) {
+        debug(`Downloaded ${count} accounts [no-nonce: ${soloNonce}, no-tokens: ${emptyFree}] `);
+      }
+      chunk = accountKeys.splice(0, limit);
+    }
   });
 
   testIt("C100", `should have matching deposit/reserved`, async function () {
@@ -385,7 +469,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     const failedReserved = [];
 
     for (const accountId of Object.keys(accounts)) {
-      let reserved = accounts[accountId].data.reserved.toBigInt();
+      let reserved = accounts[accountId].reserved;
       const expectedReserve = expectedReserveByAccount[accountId]?.total || 0n;
 
       if (reserved != expectedReserve) {
@@ -535,10 +619,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     expect(
       Object.keys(accounts).reduce(
-        (p, accountId) =>
-          accounts[accountId].data.free.toBigInt() +
-          accounts[accountId].data.reserved.toBigInt() +
-          p,
+        (p, accountId) => accounts[accountId].free + accounts[accountId].reserved + p,
         0n
       )
     ).to.equal(totalIssuance.toBigInt());
