@@ -21,7 +21,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
-      dev_mode: false
+      dev_mode: ${{ steps.set-dev-mode.outputs.dev_mode }}
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
@@ -32,6 +32,10 @@ jobs:
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
     steps:
+      - name: Set dev mode
+        id: set-dev-mode
+        run: |
+          echo "dev_mode=false" >> $GITHUB_OUTPUT
       - name: Check git ref
         id: check-git-ref
         # if PR
