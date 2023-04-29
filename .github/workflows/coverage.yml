@@ -199,9 +199,8 @@ jobs:
 
 
           echo "Checking for invalid files"
-          // 
-          // llvm-profdata merge can fail for some reports (not sure why)
-          // so we remove them and retry
+          # llvm-profdata merge can fail for some reports (not sure why)
+          # so we remove them and retry
 
           INVALID="$(grep invalid grcov.log | \
             grep -o '[^\ /]*raw' | \
