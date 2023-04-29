@@ -82,6 +82,7 @@ jobs:
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+          echo dev_mode: ${{ steps.get-sha.outputs.dev_mode }}
 
   build-and-coverage:
     runs-on:
