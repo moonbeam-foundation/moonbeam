@@ -86,7 +86,7 @@ jobs:
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
-          echo dev_mode: ${{ steps.get-sha.outputs.dev_mode }}
+          echo dev_mode: ${{ steps.set-dev-mode.outputs.dev_mode }}
 
   build-and-coverage:
     runs-on:
@@ -161,7 +161,7 @@ jobs:
         with:
           node-version: 20.x
       - name: Typescript integration tests (against dev service)
-        if: ${{ ! needs.set-tags.outputs.dev_mode }}
+        if: ${{ needs.set-tags.outputs.dev_mode == "false" }}
         run: |
           chmod uog+x build/moonbeam
 
@@ -192,7 +192,7 @@ jobs:
             'build/tests/**/test-*.js'  || true
           # We force it to pass to get the coverage report
       - name: (Dev Mode) Download coverage files
-        if: ${{ needs.set-tags.outputs.dev_mode  }}
+        if: ${{ needs.set-tags.outputs.dev_mode == "true"  }}
         run: |
           # Download already computed files make CI faster for dev
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_15206.profraw -O default_7850956015135578830_0_15206.profraw
