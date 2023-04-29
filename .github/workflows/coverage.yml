@@ -156,7 +156,7 @@ jobs:
         with:
           node-version: 20.x
       - name: Typescript integration tests (against dev service)
-        if: !dev_mode
+        if: dev_mode == false
         run: |
           chmod uog+x build/moonbeam
 
@@ -187,7 +187,7 @@ jobs:
             'build/tests/**/test-*.js'  || true
           # We force it to pass to get the coverage report
       - name: Typescript integration tests (against dev service)
-        if: dev_mode
+        if: dev_mode == true
         run: |
           # Download already computed files make CI faster for dev
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_15206.profraw -O default_7850956015135578830_0_15206.profraw
