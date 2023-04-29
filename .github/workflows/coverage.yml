@@ -186,7 +186,7 @@ jobs:
             --exit \
             'build/tests/**/test-*.js'  || true
           # We force it to pass to get the coverage report
-      - name: Typescript integration tests (against dev service)
+      - name: (Dev Mode) Download coverage files
         if: ${{ needs.set-tags.outputs.dev_mode  }}
         run: |
           # Download already computed files make CI faster for dev
