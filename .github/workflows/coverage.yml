@@ -21,6 +21,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
+      dev_mode: true
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
@@ -155,6 +156,7 @@ jobs:
         with:
           node-version: 20.x
       - name: Typescript integration tests (against dev service)
+        if: !dev_mode
         run: |
           chmod uog+x build/moonbeam
 
@@ -184,38 +186,34 @@ jobs:
             --exit \
             'build/tests/**/test-*.js'  || true
           # We force it to pass to get the coverage report
+      - name: Typescript integration tests (against dev service)
+        if: dev_mode
+        run: |
+          # Download already computed files make CI faster for dev
+          wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_15206.profraw -O default_7850956015135578830_0_15206.profraw
+          wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_644.profraw -O default_7850956015135578830_0_644.profraw
       - name: Retrieve coverage
         run: |
           mkdir -p /tmp/proffiles
-          echo "Finding profraw files"
-          find . -name \*.profraw -exec cp {} /tmp/proffiles/ \;
-          echo "Profraw files copied to /tmp/proffiles"
+
+          echo "Deletes invalid raw files (<74Mb) not suze why we have them"
+          find . -type f -name \*.profraw -size -74M -exec rm {}  \;
+
+          echo "Copying profraw files to /tmp/proffiles"
+          find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
+
           mv /tmp/proffiles proffiles
+
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
             -t html --branch --ignore-not-existing \
-            -o coverage/ --llvm-path ./  --llvm 2>&1 \
-            | tee grcov.log
+            -o coverage/ --llvm-path ./  --llvm
 
 
           echo "Checking for invalid files"
           # llvm-profdata merge can fail for some reports (not sure why)
           # so we remove them and retry
 
-          INVALID="$(grep invalid grcov.log | \
-            grep -o '[^\ /]*raw' | \
-            sed 's/_1\.profraw/\.profraw/g' || echo '')"
-          echo "Invalid files: $INVALID"
-
-          if [ -n "$INVALID" ]; then
-            echo "Removing invalid files: $INVALID"
-            cd proffiles/
-            rm $INVALID
-            cd ..
-            ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
-            -t html --branch --ignore-not-existing \
-            -o coverage/ --llvm-path ./  --llvm
-          fi
           rm -rf proffiles/
 
       - name: Upload coverage
