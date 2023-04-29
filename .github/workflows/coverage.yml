@@ -21,7 +21,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
-      dev_mode: true
+      dev_mode: ${{ steps.check-git-ref.outputs.dev_mode }}
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
@@ -38,6 +38,7 @@ jobs:
         # else if manual PR
         # else (push)
         run: |
+          echo "dev_mode=true" >> $GITHUB_OUTPUT
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
