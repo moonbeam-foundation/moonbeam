@@ -21,7 +21,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
-      dev_mode: true
+      dev_mode: false
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
