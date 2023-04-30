@@ -35,7 +35,7 @@ jobs:
       - name: Set dev mode
         id: set-dev-mode
         run: |
-          echo "dev_mode=false" >> $GITHUB_OUTPUT
+          echo "dev_mode=true" >> $GITHUB_OUTPUT
       - name: Check git ref
         id: check-git-ref
         # if PR
@@ -195,6 +195,7 @@ jobs:
         if: ${{ needs.set-tags.outputs.dev_mode == 'true'  }}
         run: |
           # Download already computed files make CI faster for dev
+          cd tests
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_15206.profraw -O default_7850956015135578830_0_15206.profraw
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_644.profraw -O default_7850956015135578830_0_644.profraw
       - name: Retrieve coverage
