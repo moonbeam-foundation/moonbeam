@@ -766,7 +766,10 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       expectedLocksMap.set(key, { locks, total });
     });
 
+    ///
     //2) Build Actual Results - System Accounts
+    ///
+
     const limit = 1000;
     let last_key = "";
     let count = 0;
@@ -802,7 +805,11 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       checkReservedBalance(userId, user.data.reserved.toBigInt());
     } else {
       // Loop over ALL System accounts
+
+      //  TODO: check to see WS turning off and on
+      //  TODO: Manually do paged key query and manually decode storage
       while (true) {
+        const t0 = performance.now();
         const query = await limiter.schedule(() =>
           apiAt.query.system.account.entriesPaged({
             args: [],
@@ -825,7 +832,11 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           checkReservedBalance(accountId, user[1].data.reserved.toBigInt());
         }
         if (count % (10 * limit) == 0) {
-          debug(`Checked ${count} accounts`);
+          const t1 = performance.now();
+          const duration = t1 - t0;
+          const qps = (10 * limit) / (duration / 1000);
+          const used = process.memoryUsage().heapUsed / 1024 / 1024;
+          debug(`Checked ${count} accounts, ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`);
         }
       }
       debug(`Checked ${totalAccounts} total accounts`);
