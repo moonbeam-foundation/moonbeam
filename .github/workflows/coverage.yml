@@ -204,7 +204,6 @@ jobs:
 
           echo "Deletes invalid raw files (<74Mb) not suze why we have them"
           find . -type f -name \*.profraw -exec ls -l {}  \;
-          find . -type f -name \*.profraw -size -70M -exec rm {}  \;
 
           echo "Copying profraw files to /tmp/proffiles"
           find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
@@ -214,7 +213,22 @@ jobs:
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
             -t html --branch --ignore-not-existing \
+            -o coverage/ --llvm-path ./  --llvm 2>&1 \
+            | tee grcov.log
+
+          INVALID="$(grep invalid grcov.log | \
+            grep -o '[^\ /]*raw' | \
+            sed 's/_1\.profraw/\.profraw/g' || echo '')"
+          echo "Invalid files: $INVALID"
+          if [ -n "$INVALID" ]; then
+            echo "Removing invalid files: $INVALID"
+            cd proffiles/
+            rm $INVALID
+            cd ..
+            ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
+            -t html --branch --ignore-not-existing \
             -o coverage/ --llvm-path ./  --llvm
+          fi
 
 
           echo "Checking for invalid files"
