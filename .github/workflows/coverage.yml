@@ -35,7 +35,7 @@ jobs:
       - name: Set dev mode
         id: set-dev-mode
         run: |
-          echo "dev_mode=true" >> $GITHUB_OUTPUT
+          echo "dev_mode=false" >> $GITHUB_OUTPUT
       - name: Check git ref
         id: check-git-ref
         # if PR
@@ -203,7 +203,8 @@ jobs:
           mkdir -p /tmp/proffiles
 
           echo "Deletes invalid raw files (<74Mb) not suze why we have them"
-          find . -type f -name \*.profraw -size -74M -exec rm {}  \;
+          find . -type f -name \*.profraw -exec ls -l {}  \;
+          find . -type f -name \*.profraw -size -70M -exec rm {}  \;
 
           echo "Copying profraw files to /tmp/proffiles"
           find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
