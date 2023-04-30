@@ -13,6 +13,7 @@ import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
 import { ONE_HOURS } from "../util/constants";
+import { ApiPromise, WsProvider } from "@polkadot/api";
 
 const debug = require("debug")("smoke:balances");
 
@@ -145,9 +146,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    apiAt = await context.polkadotApi.at(
-      await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
-    );
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
+    apiAt = await context.polkadotApi.at(blockHash);
     specVersion = apiAt.consts.system.version.specVersion.toNumber();
     runtimeName = apiAt.runtimeVersion.specName.toString();
     symbol = (await context.polkadotApi.rpc.system.properties()).tokenSymbol.unwrap()[0].toString();
@@ -806,8 +806,8 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     } else {
       // Loop over ALL System accounts
 
-      //  TODO: check to see WS turning off and on
       //  TODO: Manually do paged key query and manually decode storage
+      // TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
       while (true) {
         const t0 = performance.now();
         const query = await limiter.schedule(() =>
@@ -836,7 +836,9 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           const duration = t1 - t0;
           const qps = (10 * limit) / (duration / 1000);
           const used = process.memoryUsage().heapUsed / 1024 / 1024;
-          debug(`Checked ${count} accounts, ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`);
+          debug(
+            `Checked ${count} accounts, ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
+          );
         }
       }
       debug(`Checked ${totalAccounts} total accounts`);
