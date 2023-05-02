@@ -22,9 +22,8 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
   // multisig accountId
   let encodedMultisigId: Uint8Array;
   let multisigId: string;
-  let multisigInfo: any;
 
-  before("Should create a multisig operation with asMulti", async function () {
+  before("Should create a multisigId and set call values", async function () {
     // set threshold and create multisig accountId
     threshold = 2;
     encodedMultisigId = createKeyMulti([ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS], 2);
@@ -34,7 +33,9 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
     call = context.polkadotApi.tx.balances.transferKeepAlive(DOROTHY_ADDRESS, 20);
     encodedCall = call.method.toHex();
     encodedCallHash = blake2AsHex(encodedCall);
+  });
 
+  it("Should create a multisig operation with asMulti", async () => {
     // set signatories
     const otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
     const block = await context.createBlock(
@@ -42,9 +43,6 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
         .asMulti(threshold, otherSignatories, null, encodedCall, {})
         .signAsync(alith)
     );
-
-    // take the info of the new multisig operation saved in storage
-    multisigInfo = await context.polkadotApi.query.multisig.multisigs(multisigId, encodedCallHash);
 
     // check the event 'NewMultisig' was emitted
     const records = (await context.polkadotApi.query.system.events()) as any;
@@ -55,9 +53,21 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
     expect(block.result.successful).to.be.true;
   });
 
-  it("Should be able to approve the multisig operation with approveAsMulti", async function () {
+  it("Should be able to approve a multisig operation with approveAsMulti", async function () {
     // signatories (sorted)
     const otherSignatories = [CHARLETH_ADDRESS, ALITH_ADDRESS];
+    // create a new multisig operation
+    await context.createBlock(
+      context.polkadotApi.tx.multisig
+        .asMulti(threshold, otherSignatories, null, encodedCall, {})
+        .signAsync(alith)
+    );
+
+    // take the info of the new multisig operation saved in storage
+    const multisigInfo = await context.polkadotApi.query.multisig.multisigs(
+      multisigId,
+      encodedCallHash
+    );
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .approveAsMulti(
@@ -79,9 +89,21 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
     expect(block.result.successful).to.be.true;
   });
 
-  it("Should be able to cancel the multisig operation", async () => {
+  it("Should be able to cancel a multisig operation", async () => {
     // signatories (sorted)
     const otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
+    // create a new multisig operation
+    await context.createBlock(
+      context.polkadotApi.tx.multisig
+        .asMulti(threshold, otherSignatories, null, encodedCall, {})
+        .signAsync(alith)
+    );
+
+    // take the info of the new multisig operation saved in storage
+    const multisigInfo = await context.polkadotApi.query.multisig.multisigs(
+      multisigId,
+      encodedCallHash
+    );
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .cancelAsMulti(threshold, otherSignatories, multisigInfo.toHuman()["when"], encodedCallHash)
