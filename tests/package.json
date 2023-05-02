@@ -92,6 +92,8 @@
     "polkadot-launch": "^2.3.0",
     "randchacha": "^1.0.2",
     "rimraf": "^3.0.2",
+    "scale-codec": "^0.11.2",
+    "scale-ts": "^0.2.11",
     "semver": "^7.3.8",
     "solc": "^0.8.19",
     "tcp-port-used": "^1.0.2",
