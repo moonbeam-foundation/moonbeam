@@ -801,8 +801,29 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       expectedReserveMap.delete(key);
     };
     // Loop over ALL System accounts
-    //  TODO: Manually do paged key query and manually decode storage
-    //  TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
+    // TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
+
+    // Example Manual Decode
+    // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
+    //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
+    //        - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
+    //
+    // Value: 0x000000000000000001000000000000000000dc0958f8871e00000000000000000000000000
+    // 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+    // AccountInfo = Struct({
+    //   nonce: u32,                    (00000000)
+    //   consumers: u32,                (00000000)
+    //   providers: u32,                (01000000)
+    //   sufficients: u32,              (00000000)
+    //   data: Struct({
+    //     free: u128,                  (0000dc0958f8871e0000000000000000)
+    //     reserved: u128,              (00000000000000000000000000000000)
+    //     miscFrozen: u128,            (00000000000000000000000000000000)
+    //     feeFrozen: u128,             (00000000000000000000000000000000)
+    //   }),
+    // });
+
     const limit = 1000;
     const keyPrefix = u8aToHex(u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("Account", 128)));
     let last_key = keyPrefix;
@@ -815,17 +836,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     } else {
       while (true) {
         const t0 = performance.now();
-        // const query = await limiter.schedule(() =>
-        // const query = await apiAt.query.system.account.entriesPaged({
-        //   args: [],
-        //   pageSize: limit,
-        //   startKey: last_key,
-        // });
-
-        // if (query.length === 0) {
-        //   break;
-        // }
-
         const pagedKeys = await context.polkadotApi.rpc.state.getKeysPaged(
           keyPrefix,
           limit,
@@ -855,58 +865,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         count += formattedKeys.length;
         last_key = formattedKeys[formattedKeys.length - 1];
 
-        // Example Manual Decode
-        // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
-        //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
-        //        - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
-        //
-        // Value: 0x000000000000000001000000000000000000dc0958f8871e00000000000000000000000000
-        // 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-
-        // AccountInfo = Struct({
-        //   nonce: u32,                    (00000000)
-        //   consumers: u32,                (00000000)
-        //   providers: u32,                (01000000)
-        //   sufficients: u32,              (00000000)
-        //   data: Struct({
-        //     free: u128,                  (0000dc0958f8871e0000000000000000)
-        //     reserved: u128,              (00000000000000000000000000000000)
-        //     miscFrozen: u128,            (00000000000000000000000000000000)
-        //     feeFrozen: u128,             (00000000000000000000000000000000)
-        //   }),
-        // });
-
-        // const $tuple = //$.sizedArray(
-        //   // $.tuple(
-        //     // $.sizedUint8Array(32),
-        //     $.object(
-        //       $.field("nonce", $.u32),
-        //       $.field("consumers", $.u32),
-        //       $.field("providers", $.u32),
-        //       $.field("sufficients", $.u32),
-        //       $.field(
-        //         "data",
-        //         $.object(
-        //           $.field("free", $.u128),
-        //           $.field("reserved", $.u128),
-        //           $.field("miscFrozen", $.u128),
-        //           $.field("feeFrozen", $.u128)
-        //         )
-        //       )
-        //     )
-        //   // )
-        //   // 10
-        // // );
-
-        // count += query.length;
-
-        // for (const user of query) {
-        //   last_key = user[0].toString();
-        //   const accountId = user[0].toHex().slice(-40);
-        //   totalIssuance += user[1].data.free.toBigInt() + user[1].data.reserved.toBigInt();
-        //   totalAccounts++;
-        //   checkReservedBalance(accountId, user[1].data.reserved.toBigInt());
-        // }
         if (count % (10 * limit) == 0) {
           const t1 = performance.now();
           const duration = t1 - t0;
