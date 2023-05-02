@@ -773,6 +773,30 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     //2) Build Actual Results - System Accounts
     ///
 
+    // TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
+    // TODO: Check this works for single blocks
+
+    // Example Manual Decode
+    // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
+    //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
+    //   - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
+    //
+    // Value: 0x000000000000000001000000000000000000dc0958f8871e00000000000000000000000000
+    // 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+    // AccountInfo = Struct({
+    //   nonce: u32,                    (00000000)
+    //   consumers: u32,                (00000000)
+    //   providers: u32,                (01000000)
+    //   sufficients: u32,              (00000000)
+    //   data: Struct({
+    //     free: u128,                  (0000dc0958f8871e0000000000000000)
+    //     reserved: u128,              (00000000000000000000000000000000)
+    //     miscFrozen: u128,            (00000000000000000000000000000000)
+    //     feeFrozen: u128,             (00000000000000000000000000000000)
+    //   }),
+    // });
+
     const checkReservedBalance = (userId: string, reservedBalance: bigint) => {
       const key = hexToBase64(userId);
       const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key).total : 0n;
@@ -797,34 +821,13 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       }
       expectedReserveMap.delete(key);
     };
-    // Loop over ALL System accounts
-    // TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
-
-    // Example Manual Decode
-    // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
-    //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
-    //   - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
-    //
-    // Value: 0x000000000000000001000000000000000000dc0958f8871e00000000000000000000000000
-    // 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-
-    // AccountInfo = Struct({
-    //   nonce: u32,                    (00000000)
-    //   consumers: u32,                (00000000)
-    //   providers: u32,                (01000000)
-    //   sufficients: u32,              (00000000)
-    //   data: Struct({
-    //     free: u128,                  (0000dc0958f8871e0000000000000000)
-    //     reserved: u128,              (00000000000000000000000000000000)
-    //     miscFrozen: u128,            (00000000000000000000000000000000)
-    //     feeFrozen: u128,             (00000000000000000000000000000000)
-    //   }),
-    // });
 
     const limit = 1000;
     const keyPrefix = u8aToHex(u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("Account", 128)));
     let last_key = keyPrefix;
     let count = 0;
+    let loggingFrequency = 10;
+    let loopCount = 0;
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID;
@@ -847,30 +850,35 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         if (queryResults.length === 0) {
           break keys;
         }
-
         last_key = queryResults[queryResults.length - 1];
 
-        if (count % (10 * limit) == 0) {
+        if (count % (limit * loggingFrequency) == 0) {
+          loopCount++;
           const t2 = performance.now();
           const duration = t2 - t1;
-          const qps = (10 * limit) / (duration / 1000);
+          const qps = (limit * loggingFrequency) / (duration / 1000);
           const used = process.memoryUsage().heapUsed / 1024 / 1024;
           debug(
             `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
           );
+          if (loopCount % loggingFrequency === 0) {
+            loggingFrequency *= 2
+          }
         }
       }
       let t3 = performance.now();
       const keyQueryTime = (t3 - t0) / 1000;
-      debug(
-        `Finished querying ${
-          pagedKeys.length
-        } System.Account storage keys in ${keyQueryTime.toFixed(1)} seconds ✅`
-      );
+      const keyText =
+        keyQueryTime > 60
+          ? `${(keyQueryTime / 60).toFixed(1)} minutes`
+          : `${keyQueryTime.toFixed(1)} seconds`;
+      debug(`Finished querying ${pagedKeys.length} System.Account storage keys in ${keyText} ✅`);
 
       count = 0;
       t0 = performance.now();
       let t1 = t0;
+
+      // TODO: Populate a promise array of batches and await them all
       for (let i = 0; i < pagedKeys.length; i += limit) {
         const batch = pagedKeys.slice(i, i + limit);
         ((await context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)) as any).forEach(
