@@ -14,24 +14,29 @@ import {
 } from "../../util/accounts";
 
 describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
-  const threshold = 2;
-  let otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
-
+  let threshold: number;
   let call: any;
-  let encodedCall: any;
-  let encodedCallHash: any;
+  let encodedCall: string;
+  let encodedCallHash: string;
 
-  // create multisig accountId
-  let encodedMultisigId = createKeyMulti([ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS], 2);
-  let multisigId = u8aToHex(encodedMultisigId.slice(0, 20));
+  // multisig accountId
+  let encodedMultisigId: Uint8Array;
+  let multisigId: string;
   let multisigInfo: any;
 
-  it("Should create a multisig operation with asMulti", async function () {
+  before("Should create a multisig operation with asMulti", async function () {
+    // set threshold and create multisig accountId
+    threshold = 2;
+    encodedMultisigId = createKeyMulti([ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS], 2);
+    multisigId = u8aToHex(encodedMultisigId.slice(0, 20));
+
     // encode and hash the call we want to dispatch as a multisig operation
     call = context.polkadotApi.tx.balances.transferKeepAlive(DOROTHY_ADDRESS, 20);
     encodedCall = call.method.toHex();
     encodedCallHash = blake2AsHex(encodedCall);
 
+    // set signatories
+    const otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .asMulti(threshold, otherSignatories, null, encodedCall, {})
@@ -51,8 +56,8 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
   });
 
   it("Should be able to approve the multisig operation with approveAsMulti", async function () {
-    // change signatories and put them sorted
-    otherSignatories = [CHARLETH_ADDRESS, ALITH_ADDRESS];
+    // signatories (sorted)
+    const otherSignatories = [CHARLETH_ADDRESS, ALITH_ADDRESS];
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .approveAsMulti(
@@ -75,8 +80,8 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
   });
 
   it("Should be able to cancel the multisig operation", async () => {
-    // change signatories and put them sorted
-    otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
+    // signatories (sorted)
+    const otherSignatories = [BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .cancelAsMulti(threshold, otherSignatories, multisigInfo.toHuman()["when"], encodedCallHash)
@@ -93,8 +98,8 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
   });
 
   it("Should fail if signatories are out of order", async () => {
-    // change signatories (they are not sorted)
-    otherSignatories = [CHARLETH_ADDRESS, BALTATHAR_ADDRESS];
+    // signatories (they are not sorted)
+    const otherSignatories = [CHARLETH_ADDRESS, BALTATHAR_ADDRESS];
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .asMulti(threshold, otherSignatories, null, encodedCall, {})
@@ -105,8 +110,8 @@ describeDevMoonbeam("Multisigs - perform multisigs operations", (context) => {
   });
 
   it("Should fail if sender is present in signatories", async () => {
-    // change signatories
-    otherSignatories = [ALITH_ADDRESS, BALTATHAR_ADDRESS];
+    // signatories (with sender in signatories)
+    const otherSignatories = [ALITH_ADDRESS, BALTATHAR_ADDRESS];
     const block = await context.createBlock(
       context.polkadotApi.tx.multisig
         .asMulti(threshold, otherSignatories, null, encodedCall, {})
