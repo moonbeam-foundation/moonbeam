@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
-import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { hexToBigInt, u8aConcat, u8aToHex } from "@polkadot/util";
 import { u16 } from "@polkadot/types";
 import { AccountId20 } from "@polkadot/types/interfaces";
@@ -15,9 +15,6 @@ import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
 import { ONE_HOURS } from "../util/constants";
-import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
-import * as $ from "scale-codec";
-import { bool, _void, str, u32, Enum, Struct, Vector, u128 } from "scale-ts";
 
 const debug = require("debug")("smoke:balances");
 
@@ -806,7 +803,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     // Example Manual Decode
     // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
     //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
-    //        - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
+    //   - last 20 bytes is the account id (11e743c2fe35f30d4c7dda982109376fc6d76410)
     //
     // Value: 0x000000000000000001000000000000000000dc0958f8871e00000000000000000000000000
     // 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -834,48 +831,90 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       const user = await apiAt.query.system.account(userId);
       checkReservedBalance(userId, user.data.reserved.toBigInt());
     } else {
-      while (true) {
-        const t0 = performance.now();
-        const pagedKeys = await context.polkadotApi.rpc.state.getKeysPaged(
-          keyPrefix,
-          limit,
-          last_key,
-          blockHash
-        );
+      let pagedKeys = [];
 
-        if (pagedKeys.length === 0) {
-          break;
-        }
-
-        const formattedKeys = pagedKeys
+      let t0 = performance.now();
+      keys: while (true) {
+        const t1 = performance.now();
+        const queryResults = (
+          await context.polkadotApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
+        )
           .map((key) => key.toHex())
           .filter((key) => key.includes(keyPrefix));
+        pagedKeys.push(...queryResults);
+        count += queryResults.length;
 
-        (
-          (await context.polkadotApi.rpc.state.queryStorageAt(formattedKeys, blockHash)) as any
-        ).forEach((value, index) => {
-          const accountId = formattedKeys[index].slice(-40);
-          const accountInfo = value.toHex();
-          const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
-          const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
-          totalIssuance += freeBal + reservedBalance;
-          totalAccounts++;
-          checkReservedBalance(accountId, reservedBalance);
-        });
-        count += formattedKeys.length;
-        last_key = formattedKeys[formattedKeys.length - 1];
+        if (queryResults.length === 0) {
+          break keys;
+        }
+
+        last_key = queryResults[queryResults.length - 1];
 
         if (count % (10 * limit) == 0) {
-          const t1 = performance.now();
-          const duration = t1 - t0;
+          const t2 = performance.now();
+          const duration = t2 - t1;
           const qps = (10 * limit) / (duration / 1000);
           const used = process.memoryUsage().heapUsed / 1024 / 1024;
           debug(
-            `Checked ${count} accounts, ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
+            `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
           );
         }
       }
-      debug(`Checked ${totalAccounts} total accounts`);
+      let t3 = performance.now();
+      const keyQueryTime = (t3 - t0) / 1000;
+      debug(
+        `Finished querying ${
+          pagedKeys.length
+        } System.Account storage keys in ${keyQueryTime.toFixed(1)} seconds ✅`
+      );
+
+      count = 0;
+      t0 = performance.now();
+      let t1 = t0;
+      for (let i = 0; i < pagedKeys.length; i += limit) {
+        const batch = pagedKeys.slice(i, i + limit);
+        ((await context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)) as any).forEach(
+          (value, index) => {
+            const accountId = batch[index].slice(-40);
+            const accountInfo = value.toHex();
+            const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
+            const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
+            totalIssuance += freeBal + reservedBalance;
+            totalAccounts++;
+            checkReservedBalance(accountId, reservedBalance);
+          }
+        );
+        count += batch.length;
+
+        if (count % (10 * limit) === 0) {
+          const t2 = performance.now();
+          const used = process.memoryUsage().heapUsed / 1024 / 1024;
+          const duration = t2 - t1;
+          const qps = (10 * limit) / (duration / 1000);
+          debug(
+            `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
+              0
+            )} MB heap used`
+          );
+          t1 = t2;
+
+          if (count % (100 * limit) === 0) {
+            const timeLeft = (pagedKeys.length - count) / qps;
+            const text =
+              timeLeft < 60
+                ? `${timeLeft.toFixed(0)} seconds`
+                : `${(timeLeft / 60).toFixed(0)} minutes`;
+            debug(`⏲️  Estimated time left: ${text}`);
+          }
+        }
+      }
+      t3 = performance.now();
+      const checkTime = (t3 - t0) / 1000;
+      const text =
+        checkTime < 60
+          ? `${checkTime.toFixed(1)} seconds`
+          : `${(checkTime / 60).toFixed(1)} minutes`;
+      debug(`Finished checking ${totalAccounts} System.Account storage values in ${text} ✅`);
     }
 
     //3) Collect and process locks failures
@@ -933,7 +972,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   });
 
   testIt("C300", `should match total supply`, async function () {
-    this.skip();
     if (!!process.env.ACCOUNT_ID) {
       debug(`Env var ACCOUNT_ID set, skipping total supply check`);
       this.skip();
