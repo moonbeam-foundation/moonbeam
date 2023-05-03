@@ -656,6 +656,8 @@ pub mod pallet {
 			call: Vec<u8>,
 			// weight information to be used
 			weight_info: TransactWeights,
+
+			refund: bool,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -684,6 +686,15 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sender
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
+				let sender = T::AccountIdToMultiLocation::convert(who.clone());
+				let deposit_appendix = Self::deposit_instruction(sender, &dest)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
 				dest.clone(),
@@ -693,7 +704,7 @@ pub mod pallet {
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
@@ -891,7 +902,7 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			total_weight: Weight,
 			transact_required_weight_at_most: Weight,
-			_with_appendix: Option<Vec<Instruction<()>>>,
+			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -909,7 +920,7 @@ pub mod pallet {
 				call,
 				transact_required_weight_at_most,
 				origin_kind,
-				None,
+				with_appendix,
 			)?;
 
 			// We append DescendOrigin as the first instruction in the message

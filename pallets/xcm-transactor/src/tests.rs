@@ -19,6 +19,7 @@ use crate::*;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use frame_support::dispatch::{DispatchError, Weight};
 use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
+use sp_runtime::traits::Convert;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
@@ -213,7 +214,8 @@ fn test_transact_through_signed_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
@@ -242,7 +244,8 @@ fn test_transact_through_signed_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::SignedTransactNotAllowedForDestination
 			);
@@ -271,7 +274,8 @@ fn test_transact_through_signed_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::FeePerSecondNotSet
 			);
@@ -304,7 +308,8 @@ fn test_transact_through_signed_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
@@ -655,7 +660,8 @@ fn test_transact_through_signed_fails_if_transact_info_not_set_at_all() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
@@ -690,7 +696,8 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::SignedTransactNotAllowedForDestination
 			);
@@ -725,7 +732,8 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 					TransactWeights {
 						transact_required_weight_at_most: 10064u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::WeightOverflow
 			);
@@ -760,7 +768,8 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 					TransactWeights {
 						transact_required_weight_at_most: 100000u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::MaxWeightTransactReached
 			);
@@ -795,7 +804,8 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::FeePerSecondNotSet
 			);
@@ -837,7 +847,8 @@ fn test_transact_through_signed_works() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: None
-				}
+				},
+				false
 			));
 
 			let expected = vec![
@@ -860,6 +871,99 @@ fn test_transact_through_signed_works() {
 				},
 			];
 			assert_eq!(events(), expected);
+		})
+}
+
+#[test]
+fn test_transact_through_signed_with_refund() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				0.into(),
+				10000.into(),
+				Some(1.into())
+			));
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				1
+			));
+
+			// transact info and fee per second set
+			// this time it should work
+			assert_ok!(XcmTransactor::transact_through_signed(
+				RuntimeOrigin::signed(1u64),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+					fee_amount: None
+				},
+				vec![1u8],
+				TransactWeights {
+					transact_required_weight_at_most: 100u64.into(),
+					overall_weight: None
+				},
+				true
+			));
+
+			let expected = vec![
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
+						transact_extra_weight: 0.into(),
+						max_weight: 10000.into(),
+						transact_extra_weight_signed: Some(1.into()),
+					},
+				},
+				crate::Event::DestFeePerSecondChanged {
+					location: MultiLocation::parent(),
+					fee_per_second: 1,
+				},
+				crate::Event::TransactedSigned {
+					fee_payer: 1u64,
+					dest: MultiLocation::parent(),
+					call: vec![1u8],
+				},
+			];
+			assert_eq!(events(), expected);
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+
+			assert_eq!(
+				AccountIdToMultiLocation::convert(1),
+				MultiLocation {
+					parents: 0,
+					interior: X1(AccountKey20 {
+						network: None,
+						key: [170; 20]
+					})
+				}
+			);
+
+			// Lets make sure the message is as expected
+			assert!(sent_message.0.contains(&SetAppendix(Xcm(vec![
+				RefundSurplus,
+				DepositAsset {
+					assets: Wild(All),
+					beneficiary: MultiLocation {
+						parents: 0,
+						interior: X2(
+							GlobalConsensus(Polkadot),
+							AccountKey20 {
+								network: None,
+								key: [170; 20]
+							}
+						)
+					}
+				}
+			]))));
 		})
 }
 
@@ -1027,7 +1131,8 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
-				}
+				},
+				false
 			));
 
 			let expected = vec![crate::Event::TransactedSigned {
