@@ -180,7 +180,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	}
 
 	fn destroy_asset_dispatch_info_weight(_asset: u32) -> Weight {
-		Weight::from_ref_time(0)
+		Weight::from_parts(0, 0)
 	}
 }
 

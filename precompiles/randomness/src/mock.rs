@@ -57,7 +57,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
+	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -120,7 +120,7 @@ pub type PCall = RandomnessPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 1);
 }
 
 impl pallet_evm::Config for Runtime {

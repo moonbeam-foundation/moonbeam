@@ -134,7 +134,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 

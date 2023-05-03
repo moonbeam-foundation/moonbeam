@@ -55,7 +55,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
+	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -104,7 +104,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		return Weight::from_ref_time(1);
+		return Weight::from_parts(1, 1);
 	}
 }
 
@@ -164,7 +164,7 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnInitialize,
 		);
-		Weight::from_ref_time(1)
+		Weight::from_parts(1, 1)
 	}
 }
 
@@ -173,7 +173,7 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnIdle,
 		);
-		Weight::from_ref_time(1)
+		Weight::from_parts(1, 1)
 	}
 }
 
@@ -182,7 +182,7 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnRuntimeUpgrade,
 		);
-		Weight::from_ref_time(1)
+		Weight::from_parts(1, 1)
 	}
 }
 

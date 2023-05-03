@@ -1383,7 +1383,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				12_500_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 1)
 			)
 		);
 	});
@@ -1405,7 +1405,7 @@ fn min_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				1_250_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 1)
 			)
 		);
 	});
@@ -3065,7 +3065,7 @@ mod fee_tests {
 			.base_extrinsic;
 		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
 		let extrinsic_len = 100u32;
-		let extrinsic_weight = Weight::from_ref_time(5_000u64);
+		let extrinsic_weight = Weight::from_parts(5_000u64, 1);
 		let tip = 42u128;
 		type WeightToFeeImpl = ConstantMultiplier<u128, ConstU128<{ currency::WEIGHT_FEE }>>;
 		type LengthToFeeImpl = LengthToFee;
@@ -3073,7 +3073,7 @@ mod fee_tests {
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
 		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
 			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&extrinsic_weight))
-			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_ref_time(extrinsic_len as u64)))
+			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_parts(extrinsic_len as u64, 1)))
 			+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()

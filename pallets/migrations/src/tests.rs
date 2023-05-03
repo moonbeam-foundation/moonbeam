@@ -113,7 +113,7 @@ fn on_runtime_upgrade_emits_events() {
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
 			Event::RuntimeUpgradeCompleted {
-				weight: Weight::from_ref_time(100000000u64),
+				weight: Weight::from_parts(100000000u64, 1),
 			},
 		];
 		assert_eq!(events(), expected);
@@ -139,7 +139,7 @@ fn migration_should_only_be_invoked_once() {
 				move |_| -> Weight {
 					let mut num_step_fn_calls = num_step_fn_calls.lock().unwrap();
 					*num_step_fn_calls += 1;
-					Weight::from_ref_time(1)
+					Weight::from_parts(1, 1)
 				},
 			);
 		},
@@ -170,10 +170,10 @@ fn migration_should_only_be_invoked_once() {
 						},
 						Event::MigrationCompleted {
 							migration_name: "migration1".into(),
-							consumed_weight: Weight::from_ref_time(1),
+							consumed_weight: Weight::from_parts(1, 1),
 						},
 						Event::RuntimeUpgradeCompleted {
-							weight: Weight::from_ref_time(100000001u64),
+							weight: Weight::from_parts(100000001u64, 1),
 						}, // includes reads/writes
 					];
 					assert_eq!(events(), expected);
@@ -197,7 +197,7 @@ fn migration_should_only_be_invoked_once() {
 					expected.append(&mut vec![
 						Event::RuntimeUpgradeStarted(),
 						Event::RuntimeUpgradeCompleted {
-							weight: Weight::from_ref_time(100000000u64),
+							weight: Weight::from_parts(100000000u64, 1),
 						},
 					]);
 					assert_eq!(events(), expected);
@@ -258,7 +258,7 @@ fn overweight_migrations_tolerated() {
 					*num_migration1_calls.lock().unwrap() += 1;
 					// TODO: this is brittle because it assumes it is larger than the value used at
 					// the top of process_runtime_upgrades()
-					Weight::from_ref_time(1_000_000_000_000u64)
+					Weight::from_parts(1_000_000_000_000u64, 1)
 				},
 			);
 
@@ -266,7 +266,7 @@ fn overweight_migrations_tolerated() {
 				move || "migration2",
 				move |_| -> Weight {
 					*num_migration2_calls.lock().unwrap() += 1;
-					Weight::from_ref_time(1_000_000_000_000u64)
+					Weight::from_parts(1_000_000_000_000u64, 1)
 				},
 			);
 
@@ -274,7 +274,7 @@ fn overweight_migrations_tolerated() {
 				move || "migration3",
 				move |_| -> Weight {
 					*num_migration3_calls.lock().unwrap() += 1;
-					Weight::from_ref_time(1_000_000_000_000u64)
+					Weight::from_parts(1_000_000_000_000u64, 1)
 				},
 			);
 		},

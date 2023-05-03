@@ -1581,7 +1581,7 @@ pub mod pallet {
 
 			// don't underflow uint
 			if now < delay {
-				return Weight::from_ref_time(0u64);
+				return Weight::from_parts(0u64, 0);
 			}
 
 			let paid_for_round = now.saturating_sub(delay);
@@ -1596,7 +1596,7 @@ pub mod pallet {
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {
-				Weight::from_ref_time(0u64)
+				Weight::from_parts(0u64, 0)
 			}
 		}
 
@@ -1711,7 +1711,7 @@ pub mod pallet {
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				(RewardPayment::Finished, Weight::from_ref_time(0u64.into()))
+				(RewardPayment::Finished, Weight::from_parts(0u64, 0))
 			}
 		}
 

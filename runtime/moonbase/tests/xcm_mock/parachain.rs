@@ -917,7 +917,7 @@ use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 1);
 }
 
 impl pallet_evm::Config for Runtime {
