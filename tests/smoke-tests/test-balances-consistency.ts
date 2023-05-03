@@ -14,7 +14,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
-import { ONE_HOURS } from "../util/constants";
+import { TWO_HOURS } from "../util/constants";
 
 const debug = require("debug")("smoke:balances");
 
@@ -48,10 +48,6 @@ type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 // In order to not exhaust memory, the expected results are calculated first and then
 // All system accounts are iterated over, without storing them, to ensure memory
 // is not exhausted.
-
-// This test is limited by Polkadot{Js}.api 's DecodeStruct functionality,
-// and works best for networks < 2million accounts.
-// https://github.com/polkadot-js/api/issues/5615
 
 describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) => {
   const expectedReserveMap = new Map<string, ReservedInfo>();
@@ -143,7 +139,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   };
 
   before("Retrieve all balances", async function () {
-    this.timeout(ONE_HOURS); // 1 hour timeout
+    this.timeout(TWO_HOURS);
     const blockHash = process.env.BLOCK_NUMBER
       ? (
           await context.polkadotApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))
@@ -172,7 +168,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching proxies:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -201,7 +197,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching treasury props:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
     const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
@@ -237,7 +233,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching proxy announcement:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -254,7 +250,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching author mapping:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -299,7 +295,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching candidate info:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -325,7 +321,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching identities:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -342,7 +338,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching subIdentities:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -412,7 +408,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching democracy deposits:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -431,7 +427,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           })
           .catch((error) => {
             console.error("Error fetching democracyPreimages:", error);
-            reject(error); // Reject the outer promise with the error
+            reject(error);
           });
       }
       resolve("democracyPreimages scraped");
@@ -463,7 +459,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           })
           .catch((error) => {
             console.error("Error fetching proxies:", error);
-            reject(error); // Reject the outer promise with the error
+            reject(error);
           });
       }
     });
@@ -512,7 +508,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           })
           .catch((error) => {
             console.error("Error fetching referendumInfoFor:", error);
-            reject(error); // Reject the outer promise with the error
+            reject(error);
           });
       }
       resolve("referendumInfoFor scraped");
@@ -551,7 +547,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
               })
               .catch((error) => {
                 console.error("Error fetching assetsMetadata:", error);
-                reject(error); // Reject the outer promise with the error
+                reject(error);
               });
           });
 
@@ -559,7 +555,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching assets :", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -597,7 +593,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
               })
               .catch((error) => {
                 console.error("Error fetching localAssetsMetadata:", error);
-                reject(error); // Reject the outer promise with the error
+                reject(error);
               });
           });
 
@@ -605,7 +601,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching localAssets :", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -622,7 +618,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching localAssetDeposits:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -641,7 +637,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching namedReserves:", error);
-          reject(error); // Reject the outer promise with the error
+          reject(error);
         });
     });
 
@@ -773,7 +769,16 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     //2) Build Actual Results - System Accounts
     ///
 
-    // TODO: read: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management
+    // This code block queries and processes storage keys and values for System.Accounts in the
+    // Polkadot API. It uses pagination to efficiently query keys, measures performance and memory
+    // usage, and estimates the remaining time. Once all keys are fetched, it processes the account
+    // information, updating total issuance and total accounts. It also checks the reserved balance
+    // for each account and logs memory usage and performance metrics. The code is organized into
+    // two main sections:
+    //  -  Querying and storing System.Account storage keys.
+    //  -  Processing the account information by querying storage values for each key,
+    //     calculating total issuance, total accounts, and checking reserved balances.
+
     // TODO: Check this works for single blocks
 
     // Example Manual Decode
@@ -824,6 +829,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
     const limit = 1000;
     const keyPrefix = u8aToHex(u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("Account", 128)));
+    const growthFactor = 1.5;
     let last_key = keyPrefix;
     let count = 0;
     let loggingFrequency = 10;
@@ -837,10 +843,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       let pagedKeys = [];
 
       let t0 = performance.now();
+      let t1 = t0;
       keys: while (true) {
-        const t1 = performance.now();
         const queryResults = (
-          await context.polkadotApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
+          await limiter.schedule(() =>
+            context.polkadotApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
+          )
         )
           .map((key) => key.toHex())
           .filter((key) => key.includes(keyPrefix));
@@ -861,8 +869,11 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
           debug(
             `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
           );
-          if (loopCount % loggingFrequency === 0) {
-            loggingFrequency *= 2
+
+          // Increase logging threshold after 5 prints
+          if (loopCount % 5 === 0) {
+            loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
+            debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
           }
         }
       }
@@ -876,37 +887,48 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
 
       count = 0;
       t0 = performance.now();
-      let t1 = t0;
+      loggingFrequency = 10;
+      t1 = t0;
+      loopCount = 0;
 
-      // TODO: Populate a promise array of batches and await them all
       for (let i = 0; i < pagedKeys.length; i += limit) {
         const batch = pagedKeys.slice(i, i + limit);
-        ((await context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)) as any).forEach(
-          (value, index) => {
-            const accountId = batch[index].slice(-40);
-            const accountInfo = value.toHex();
-            const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
-            const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
-            totalIssuance += freeBal + reservedBalance;
-            totalAccounts++;
-            checkReservedBalance(accountId, reservedBalance);
-          }
-        );
+        (
+          (await limiter.schedule(() =>
+            context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
+          )) as any
+        ).forEach((value, index) => {
+          const accountId = batch[index].slice(-40);
+          const accountInfo = value.toHex();
+          const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
+          const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
+          totalIssuance += freeBal + reservedBalance;
+          totalAccounts++;
+          checkReservedBalance(accountId, reservedBalance);
+        });
         count += batch.length;
 
-        if (count % (10 * limit) === 0) {
+        if (count % (loggingFrequency * limit) === 0) {
           const t2 = performance.now();
           const used = process.memoryUsage().heapUsed / 1024 / 1024;
           const duration = t2 - t1;
-          const qps = (10 * limit) / (duration / 1000);
+          const qps = (loggingFrequency * limit) / (duration / 1000);
           debug(
             `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
               0
-            )} MB heap used`
+            )} MB heap used, ${((count * 100) / pagedKeys.length).toFixed(1)}% complete`
           );
+          loopCount++;
           t1 = t2;
 
-          if (count % (100 * limit) === 0) {
+          // Increase logging threshold after 5 prints
+          if (loopCount % 5 === 0) {
+            loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
+            debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
+          }
+
+          // Print estimated time left every 10 prints
+          if (loopCount % 10 === 0) {
             const timeLeft = (pagedKeys.length - count) / qps;
             const text =
               timeLeft < 60
