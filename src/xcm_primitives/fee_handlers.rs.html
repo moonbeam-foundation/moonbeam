@@ -570,7 +570,9 @@
 {
 	<span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>((id, amount, <span class="kw">_</span>)) = <span class="self">self</span>.<span class="number">1</span>.clone() {
-			R::take_revenue((id, amount).into());
+			<span class="kw">if </span>amount &gt; <span class="number">0 </span>{
+				R::take_revenue((id, amount).into());
+			}
 		}
 	}
 }
@@ -591,10 +593,8 @@
 	<span class="kw">fn </span>take_revenue(revenue: MultiAsset) {
 		<span class="kw">match </span>Matcher::matches_fungibles(<span class="kw-2">&amp;</span>revenue) {
 			<span class="prelude-val">Ok</span>((asset_id, amount)) =&gt; {
-				<span class="kw">if </span>!amount.is_zero() {
-					<span class="kw">let </span>ok = Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>ReceiverAccount::get(), amount).is_ok();
-					<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
-				}
+				<span class="kw">let </span>ok = Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>ReceiverAccount::get(), amount).is_ok();
+				<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
 			}
 			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::debug!</span>(
 				target: <span class="string">&quot;xcm&quot;</span>,
