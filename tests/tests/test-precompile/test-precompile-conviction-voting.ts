@@ -14,6 +14,7 @@ import { DevTestContext, describeDevMoonbeam } from "../../util/setup-dev-tests"
 import { createContractExecution } from "../../util/transactions";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { jumpBlocks } from "../../util/block";
+import { web3EthCall } from "../../util/providers";
 const debug = Debug("test:precompile-conviction-voting");
 
 const CONVICTION_VOTING_CONTRACT = getCompiled("precompiles/conviction-voting/ConvictionVoting");
@@ -373,5 +374,143 @@ describeDevMoonbeam("Precompiles - Ended proposal", (context) => {
       })
     );
     expectEVMResult(block.result.events, "Succeed");
+  });
+});
+
+// Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
+// Be careful to not reach the maximum number of proposals.
+describeDevMoonbeam("Precompiles - ClassLocksFor & VotingFor", (context) => {
+  let proposalIndex: number;
+  before("create a proposal", async function () {
+    proposalIndex = await createProposal(context);
+
+    const blockAlith_1 = await context.createBlock(
+      createContractExecution(context, {
+        contract: convictionVotingContract,
+        contractCall: convictionVotingContract.methods.voteYes(proposalIndex, 1n * 10n ** 18n, 1n),
+      })
+    );
+    expectEVMResult(blockAlith_1.result.events, "Succeed");
+
+    const blockAlith_2 = await context.createBlock(
+      createContractExecution(context, {
+        contract: convictionVotingContract,
+        contractCall: convictionVotingContract.methods.voteYes(proposalIndex, 2n * 10n ** 18n, 2n),
+      })
+    );
+    expectEVMResult(blockAlith_2.result.events, "Succeed");
+
+    const blockBaltathar = await context.createBlock(
+      createContractExecution(
+        context,
+        {
+          contract: convictionVotingContract,
+          contractCall: convictionVotingContract.methods.voteYes(
+            proposalIndex,
+            3n * 10n ** 18n,
+            3n
+          ),
+        },
+        {
+          from: baltathar.address,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        }
+      )
+    );
+    expectEVMResult(blockBaltathar.result.events, "Succeed");
+  });
+
+  it("should return classLocksFor alith", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
+      data: CONVICTION_VOTING_INTERFACE.encodeFunctionData("classLocksFor", [alith.address]),
+    });
+
+    const classLocksFor = CONVICTION_VOTING_INTERFACE.decodeFunctionResult(
+      "classLocksFor(address)",
+      result
+    )[0];
+
+    expect(classLocksFor.length).to.equal(1);
+    expect(classLocksFor[0].trackId).to.equal(0);
+    expect(classLocksFor[0].amount.toString()).to.equal((2n * 10n ** 18n).toString());
+  });
+
+  it("should return classLocksFor baltathar", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
+      data: CONVICTION_VOTING_INTERFACE.encodeFunctionData("classLocksFor", [baltathar.address]),
+    });
+
+    const classLocksFor = CONVICTION_VOTING_INTERFACE.decodeFunctionResult(
+      "classLocksFor(address)",
+      result
+    )[0];
+
+    expect(classLocksFor.length).to.equal(1);
+    expect(classLocksFor[0].trackId).to.equal(0);
+    expect(classLocksFor[0].amount.toString()).to.equal((3n * 10n ** 18n).toString());
+  });
+
+  it("should return votingFor alith", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
+      data: CONVICTION_VOTING_INTERFACE.encodeFunctionData("votingFor", [
+        alith.address,
+        proposalIndex,
+      ]),
+    });
+
+    const votingFor = CONVICTION_VOTING_INTERFACE.decodeFunctionResult(
+      "votingFor(address,uint16)",
+      result
+    )[0];
+
+    expect(votingFor.casting.votes).to.have.lengthOf(1);
+    expect(votingFor.casting.votes[0].pollIndex.toString()).to.equal("0");
+    expect(votingFor.casting.votes[0].accountVote.isStandard).to.be.true;
+    expect(votingFor.casting.votes[0].accountVote.isSplit).to.be.false;
+    expect(votingFor.casting.votes[0].accountVote.isSplitAbstain).to.be.false;
+    expect(votingFor.casting.votes[0].accountVote.standard.vote.aye).to.be.true;
+    expect(votingFor.casting.votes[0].accountVote.standard.vote.conviction).to.equal(2);
+    expect(votingFor.casting.votes[0].accountVote.standard.balance.toString()).to.equal(
+      (2n * 10n ** 18n).toString()
+    );
+    expect(votingFor.casting.prior.balance.toString()).to.equal("0");
+    expect(votingFor.casting.delegations.votes.toString()).to.equal("0");
+    expect(votingFor.casting.delegations.capital.toString()).to.equal("0");
+    expect(votingFor.isCasting).to.be.true;
+    expect(votingFor.isDelegating).to.be.false;
+  });
+
+  it("should return votingFor baltathar", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
+      data: CONVICTION_VOTING_INTERFACE.encodeFunctionData("votingFor", [
+        baltathar.address,
+        proposalIndex,
+      ]),
+    });
+
+    const votingFor = CONVICTION_VOTING_INTERFACE.decodeFunctionResult(
+      "votingFor(address,uint16)",
+      result
+    )[0];
+
+    expect(votingFor.casting.votes).to.have.lengthOf(1);
+    expect(votingFor.casting.votes[0].pollIndex.toString()).to.equal("0");
+    expect(votingFor.casting.votes[0].accountVote.isStandard).to.be.true;
+    expect(votingFor.casting.votes[0].accountVote.isSplit).to.be.false;
+    expect(votingFor.casting.votes[0].accountVote.isSplitAbstain).to.be.false;
+    expect(votingFor.casting.votes[0].accountVote.standard.vote.aye).to.be.true;
+    expect(votingFor.casting.votes[0].accountVote.standard.vote.conviction).to.equal(3);
+    expect(votingFor.casting.votes[0].accountVote.standard.balance.toString()).to.equal(
+      (3n * 10n ** 18n).toString()
+    );
+    expect(votingFor.casting.prior.balance.toString()).to.equal("0");
+    expect(votingFor.casting.delegations.votes.toString()).to.equal("0");
+    expect(votingFor.casting.delegations.capital.toString()).to.equal("0");
+    expect(votingFor.isCasting).to.be.true;
+    expect(votingFor.isDelegating).to.be.false;
   });
 });
