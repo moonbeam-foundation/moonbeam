@@ -45,9 +45,9 @@ benchmarks! {
 	}
 
 	set_transact_info {
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let fee_per_second = 1;
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, 0);
 		let location = MultiLocation::parent();
 	}: _(
 		RawOrigin::Root,
@@ -65,8 +65,8 @@ benchmarks! {
 	}
 
 	remove_transact_info {
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = MultiLocation::parent();
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
@@ -96,11 +96,11 @@ benchmarks! {
 	// Worst Case: transacInfo db reads
 	transact_through_derivative {
 		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = MultiLocation::parent();
 		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_ref_time(100u64);
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let currency: T::CurrencyId = location.clone().into();
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
@@ -152,12 +152,12 @@ benchmarks! {
 
 	transact_through_sovereign {
 		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = MultiLocation::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_ref_time(100u64);
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
@@ -204,12 +204,12 @@ benchmarks! {
 
 	transact_through_signed {
 		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = MultiLocation::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_ref_time(100u64);
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
@@ -242,12 +242,12 @@ benchmarks! {
 
 	hrmp_manage {
 		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_ref_time(300000000u64);
-		let max_weight: Weight = Weight::from_ref_time(20000000000u64);
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = MultiLocation::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_ref_time(100u64);
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),

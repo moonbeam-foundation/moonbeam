@@ -1043,7 +1043,7 @@ impl pallet_ethereum::Config for Runtime {
 	type PostLogContent = PostBlockAndTxnHashes;
 }
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 0);
 }
 
 #[derive(
