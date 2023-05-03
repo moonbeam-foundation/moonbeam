@@ -1706,12 +1706,6 @@
 <a href="#1706" id="1706">1706</a>
 <a href="#1707" id="1707">1707</a>
 <a href="#1708" id="1708">1708</a>
-<a href="#1709" id="1709">1709</a>
-<a href="#1710" id="1710">1710</a>
-<a href="#1711" id="1711">1711</a>
-<a href="#1712" id="1712">1712</a>
-<a href="#1713" id="1713">1713</a>
-<a href="#1714" id="1714">1714</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2479,8 +2473,6 @@
 	</span><span class="kw">type </span>MaxBottomDelegationsPerCandidate = ConstU32&lt;<span class="number">50</span>&gt;;
 	<span class="doccomment">/// Maximum delegations per delegator
 	</span><span class="kw">type </span>MaxDelegationsPerDelegator = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="doccomment">/// Minimum stake required to become a collator
-	</span><span class="kw">type </span>MinCollatorStk = ConstU128&lt;{ <span class="number">20_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate
 	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">20_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
@@ -3351,10 +3343,6 @@
 
 		<span class="comment">// staking minimums
 		</span><span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(<span class="number">2_000_000 </span>* GLMR)
-		);
-		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinCandidateStk, u128),
 			Balance::from(<span class="number">2_000_000 </span>* GLMR)
 		);

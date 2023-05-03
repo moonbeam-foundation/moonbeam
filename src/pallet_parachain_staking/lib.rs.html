@@ -2001,11 +2001,6 @@
 <a href="#2001" id="2001">2001</a>
 <a href="#2002" id="2002">2002</a>
 <a href="#2003" id="2003">2003</a>
-<a href="#2004" id="2004">2004</a>
-<a href="#2005" id="2005">2005</a>
-<a href="#2006" id="2006">2006</a>
-<a href="#2007" id="2007">2007</a>
-<a href="#2008" id="2008">2008</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2159,9 +2154,6 @@
 		<span class="doccomment">/// Maximum delegations per delegator
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MaxDelegationsPerDelegator: Get&lt;u32&gt;;
-		<span class="doccomment">/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
-		</span><span class="attr">#[pallet::constant]
-		</span><span class="kw">type </span>MinCollatorStk: Get&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
 		<span class="doccomment">/// Minimum stake required for any account to be a collator candidate
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MinCandidateStk: Get&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
@@ -3752,7 +3744,6 @@
 				<span class="kw">let </span><span class="kw-2">mut </span>collators = candidates
 					.into_iter()
 					.take(top_n)
-					.filter(|x| x.amount &gt;= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::&lt;Vec&lt;T::AccountId&gt;&gt;();
 
@@ -3765,7 +3756,6 @@
 				// The candidates are already sorted by AccountId, so no need to sort again
 				</span>candidates
 					.into_iter()
-					.filter(|x| x.amount &gt;= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::&lt;Vec&lt;T::AccountId&gt;&gt;()
 			}
