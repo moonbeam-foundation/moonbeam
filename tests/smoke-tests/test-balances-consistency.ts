@@ -779,8 +779,6 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
     //  -  Processing the account information by querying storage values for each key,
     //     calculating total issuance, total accounts, and checking reserved balances.
 
-    // TODO: Check this works for single blocks
-
     // Example Manual Decode
     // Key: 0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9
     //        00e8c90d5df372b81979d8930f4586f511e743c2fe35f30d4c7dda982109376fc6d76410
@@ -839,6 +837,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       const userId = process.env.ACCOUNT_ID;
       const user = await apiAt.query.system.account(userId);
       checkReservedBalance(userId, user.data.reserved.toBigInt());
+      totalAccounts++;
     } else {
       let pagedKeys = [];
 
