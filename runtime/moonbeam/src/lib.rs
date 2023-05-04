@@ -771,8 +771,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 20_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
 	type MinCandidateStk = ConstU128<{ 20_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -1642,10 +1640,6 @@ mod tests {
 		);
 
 		// staking minimums
-		assert_eq!(
-			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(2_000_000 * GLMR)
-		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
 			Balance::from(2_000_000 * GLMR)

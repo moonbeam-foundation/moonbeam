@@ -437,6 +437,12 @@ incremental = false
 inherits = "release"
 lto = true
 
+[profile.testnet]
+inherits = "release"
+debug = 1 # debug symbols are useful for profilers
+debug-assertions = true
+overflow-checks = true
+
 [profile.release]
 # Moonbeam runtime requires unwinding.
 opt-level = 3
