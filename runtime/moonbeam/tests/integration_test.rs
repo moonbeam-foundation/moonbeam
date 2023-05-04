@@ -1320,7 +1320,7 @@ fn min_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_parts(25_000_000u64, 1)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
