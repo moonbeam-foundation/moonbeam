@@ -36,6 +36,7 @@
     "yargs": "^17.7.1"
   },
   "dependencies": {
+    "@acala-network/chopsticks": "^0.6.4",
     "@zombienet/utils": "^0.0.19",
     "bfj": "^7.0.2",
     "chalk": "^5.2.0",
