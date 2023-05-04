@@ -268,21 +268,6 @@ export class XcmFragment {
     return this;
   }
 
-  // Add a `BurnAsset` instruction
-  burn_asset(amount: bigint = 0n): this {
-    this.instructions.push({
-      BurnAsset: this.config.assets.map(({ multilocation, fungible }) => {
-        return {
-          id: {
-            Concrete: multilocation,
-          },
-          fun: { Fungible: amount == 0n ? fungible : amount },
-        };
-      }, this),
-    });
-    return this;
-  }
-
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
   buy_execution(fee_index: number = 0, repeat: bigint = 1n): this {
@@ -430,11 +415,80 @@ export class XcmFragment {
     };
   }
 
+  /// XCM V3 calls
   as_v3(): any {
     return {
       V3: replaceNetworkAny(this.instructions),
     };
   }
+
+  // Add a `BurnAsset` instruction
+  burn_asset(amount: bigint = 0n): this {
+    this.instructions.push({
+      BurnAsset: this.config.assets.map(({ multilocation, fungible }) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: amount == 0n ? fungible : amount },
+        };
+      }, this),
+    });
+    return this;
+  }
+
+  // Add a `ReportHolding` instruction
+  report_holding(
+    destination: number,
+    query_id: number = Math.floor(Math.random() * 1000),
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
+    }
+  ): this {
+    this.instructions.push({
+      ReportHolding: {
+        response_info: {
+          destination: { parents: 1, interior: { X1: { Parachain: destination } } },
+          query_id,
+          max_weight,
+        },
+        assets: { Wild: "All" },
+      },
+    });
+    return this;
+  }
+
+    // Add a `ExpectAsset` instruction
+    expect_asset(): this {
+      this.instructions.push({
+        ExpectAsset: this.config.assets.map(({ multilocation, fungible }) => {
+          return {
+            id: {
+              Concrete: multilocation,
+            },
+            fun: { Fungible: fungible },
+          };
+        }, this),
+      });
+      return this;
+    }
+
+     // Add a `ExpectOrigin` instruction
+     expect_origin(): this {
+      this.instructions.push({
+        ExpectOrigin: this.config.assets.map(({ multilocation, fungible }) => {
+          return {
+            id: {
+              Concrete: multilocation,
+            },
+            fun: { Fungible: fungible },
+          };
+        }, this),
+      });
+      return this;
+    }
+  
 
   // Overrides the weight limit of the first buyExeuction encountered
   // with the measured weight
