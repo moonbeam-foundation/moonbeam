@@ -34,9 +34,7 @@ interface XcmTransactorV2 {
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
     /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
-    function transactInfoWithSigned(
-        Multilocation memory multilocation
-    )
+    function transactInfoWithSigned(Multilocation memory multilocation)
         external
         view
         returns (
@@ -50,9 +48,10 @@ interface XcmTransactorV2 {
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     ///
-    function feePerSecond(
-        Multilocation memory multilocation
-    ) external view returns (uint256 feePerSecond);
+    function feePerSecond(Multilocation memory multilocation)
+        external
+        view
+        returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
     /// @custom:selector fe430475
@@ -120,7 +119,7 @@ interface XcmTransactorV2 {
 
     /// Transact through XCM using fee based on its multilocation through signed origins
     /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
-    /// @custom:selector d7ab340c
+    /// @custom:selector 8196d04f
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call
@@ -163,7 +162,7 @@ interface XcmTransactorV2 {
 
     /// Transact through XCM using fee based on its erc20 address through signed origins
     /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
-    /// @custom:selector b648f3fe
+    /// @custom:selector 7207ddc4
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call

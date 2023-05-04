@@ -1148,6 +1148,8 @@ pub mod pallet {
 			dest_weight: Weight,
 			refund: bool,
 		) -> Result<Weight, DispatchError> {
+			// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure 'refund' is false
 			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)

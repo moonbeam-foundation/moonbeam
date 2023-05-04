@@ -46,6 +46,10 @@ fn selectors() {
 	assert!(PCallV2::transact_through_derivative_selectors().contains(&0x185de2ae));
 	assert!(PCallV2::transact_through_signed_multilocation_selectors().contains(&0xd7ab340c));
 	assert!(PCallV2::transact_through_signed_selectors().contains(&0xb648f3fe));
+	assert!(PCallV2::transact_through_signed_refund_selectors().contains(&0x7207ddc4));
+	assert!(
+		PCallV2::transact_through_signed_multilocation_refund_selectors().contains(&0x8196d04f)
+	);
 }
 
 #[test]
@@ -73,6 +77,10 @@ fn modifiers() {
 		tester.test_default_modifier(PCallV2::transact_through_derivative_selectors());
 		tester.test_default_modifier(PCallV2::transact_through_signed_multilocation_selectors());
 		tester.test_default_modifier(PCallV2::transact_through_signed_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_signed_refund_selectors());
+		tester.test_default_modifier(
+			PCallV2::transact_through_signed_multilocation_refund_selectors(),
+		);
 	});
 }
 
@@ -477,6 +485,39 @@ fn test_transact_signed_v2() {
 					Alice,
 					TransactorV2,
 					PCallV2::transact_through_signed {
+						dest,
+						fee_asset: Address(AssetAddress(0).into()),
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(476974001)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
+fn test_transact_signed_refund_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV2,
+					PCallV2::transact_through_signed_refund {
 						dest,
 						fee_asset: Address(AssetAddress(0).into()),
 						weight: 4_000_000,

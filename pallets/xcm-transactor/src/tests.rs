@@ -875,7 +875,7 @@ fn test_transact_through_signed_works() {
 }
 
 #[test]
-fn test_transact_through_signed_with_refund() {
+fn test_transact_through_signed_with_refund_works() {
 	ExtBuilder::default()
 		.with_balances(vec![])
 		.build()
@@ -896,6 +896,8 @@ fn test_transact_through_signed_with_refund() {
 				1
 			));
 
+			// Overall weight to use
+			let total_weight: Weight = 10_100u64.into();
 			assert_ok!(XcmTransactor::transact_through_signed(
 				RuntimeOrigin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
@@ -906,7 +908,7 @@ fn test_transact_through_signed_with_refund() {
 				vec![1u8],
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
-					overall_weight: None
+					overall_weight: Some(total_weight)
 				},
 				true
 			));
@@ -951,6 +953,49 @@ fn test_transact_through_signed_with_refund() {
 					}
 				}
 			]))));
+		})
+}
+
+#[test]
+fn test_transact_through_signed_with_refund_fails_overall_weight_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				0.into(),
+				10000.into(),
+				Some(1.into())
+			));
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				1
+			));
+
+			// We don't set any overall_weight, it fails
+			assert_noop!(
+				XcmTransactor::transact_through_signed(
+					RuntimeOrigin::signed(1u64),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
+					vec![1u8],
+					TransactWeights {
+						transact_required_weight_at_most: 100u64.into(),
+						overall_weight: None
+					},
+					true
+				),
+				Error::<Test>::RefundNotSupportedWithTransactInfo
+			);
 		})
 }
 
