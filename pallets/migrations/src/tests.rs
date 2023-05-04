@@ -139,7 +139,7 @@ fn migration_should_only_be_invoked_once() {
 				move |_| -> Weight {
 					let mut num_step_fn_calls = num_step_fn_calls.lock().unwrap();
 					*num_step_fn_calls += 1;
-					Weight::from_parts(1, 1)
+					Weight::from_parts(1, 0)
 				},
 			);
 		},
@@ -170,7 +170,7 @@ fn migration_should_only_be_invoked_once() {
 						},
 						Event::MigrationCompleted {
 							migration_name: "migration1".into(),
-							consumed_weight: Weight::from_parts(1, 1),
+							consumed_weight: Weight::from_parts(1, 0),
 						},
 						Event::RuntimeUpgradeCompleted {
 							weight: Weight::from_parts(100000001u64, 1),

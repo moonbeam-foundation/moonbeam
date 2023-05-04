@@ -112,7 +112,7 @@ pub type PCall = PrecompileRegistryCall<Runtime>;
 
 parameter_types! {
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {

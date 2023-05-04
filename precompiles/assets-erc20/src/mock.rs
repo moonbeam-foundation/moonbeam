@@ -178,7 +178,7 @@ pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_as
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub WeightPerGas: Weight = Weight::from_parts(1, 1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {

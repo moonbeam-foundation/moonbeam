@@ -146,7 +146,7 @@ parameter_types! {
 	pub const ChainId: u64 = 42;
 	pub const EVMModuleId: PalletId = PalletId(*b"py/evmpa");
 	pub const BlockGasLimit: U256 = U256::MAX;
-	pub WeightPerGas: Weight = Weight::from_parts(1, 1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 pub struct HashedAddressMapping;

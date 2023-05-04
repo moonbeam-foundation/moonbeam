@@ -133,7 +133,7 @@ fn normal_dmp_in_non_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_parts(1, 1)),
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_parts(1, 0)),
 				Weight::zero()
 			);
 		})
@@ -147,8 +147,8 @@ fn maintenance_dmp_in_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_parts(1, 1)),
-				Weight::from_parts(1, 1)
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_parts(1, 0)),
+				Weight::from_parts(1, 0)
 			);
 		})
 }
@@ -189,15 +189,15 @@ fn maintenance_hooks_in_maintenance() {
 		.execute_with(|| {
 			assert_eq!(
 				ExecutiveHooks::<Test>::on_idle(0, Weight::zero()),
-				Weight::from_parts(1, 1)
+				Weight::from_parts(1, 0)
 			);
 			assert_eq!(
 				ExecutiveHooks::<Test>::on_initialize(0),
-				Weight::from_parts(1, 1)
+				Weight::from_parts(1, 0)
 			);
 			assert_eq!(
 				ExecutiveHooks::<Test>::on_runtime_upgrade(),
-				Weight::from_parts(1, 1)
+				Weight::from_parts(1, 0)
 			);
 
 			ExecutiveHooks::<Test>::on_finalize(0);

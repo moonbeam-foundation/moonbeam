@@ -311,30 +311,30 @@ pub struct TestHrmpWeightInfo;
 
 impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	fn hrmp_accept_open_channel() -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn force_clean_hrmp(_: u32, _: u32) -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_close(_: u32) -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_open(_: u32) -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_cancel_open_request(_: u32) -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_close_channel() -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_init_open_channel() -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn clean_open_channel_requests(_: u32) -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 	fn force_open_hrmp_channel() -> Weight {
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 }

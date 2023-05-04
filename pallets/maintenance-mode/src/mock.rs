@@ -104,7 +104,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		return Weight::from_parts(1, 1);
+		return Weight::from_parts(1, 0);
 	}
 }
 
@@ -164,7 +164,7 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnInitialize,
 		);
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 }
 
@@ -173,7 +173,7 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnIdle,
 		);
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 }
 
@@ -182,7 +182,7 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnRuntimeUpgrade,
 		);
-		Weight::from_parts(1, 1)
+		Weight::from_parts(1, 0)
 	}
 }
 

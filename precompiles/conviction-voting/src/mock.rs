@@ -104,7 +104,7 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 pub type Precompiles<R> =
