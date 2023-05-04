@@ -1033,14 +1033,9 @@ pub mod pallet {
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
-			println!("Universal {:#?} ", universal_location);
-			println!("Beneficiary Before{:#?} ", beneficiary);
-			println!("AT {:#?} ", at);
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
-			println!("Beneficiary After{:#?} ", beneficiary);
-
 			Ok(DepositAsset {
 				assets: Wild(All),
 				beneficiary,

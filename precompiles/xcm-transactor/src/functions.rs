@@ -358,6 +358,7 @@ where
 		call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
 		overall_weight: u64,
+		refund: bool,
 	) -> EvmResult {
 		let call: Vec<_> = call.into();
 
@@ -380,7 +381,7 @@ where
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
-			refund: false,
+			refund,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

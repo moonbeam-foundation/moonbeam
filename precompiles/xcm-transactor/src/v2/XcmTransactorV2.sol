@@ -34,7 +34,9 @@ interface XcmTransactorV2 {
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
     /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
-    function transactInfoWithSigned(Multilocation memory multilocation)
+    function transactInfoWithSigned(
+        Multilocation memory multilocation
+    )
         external
         view
         returns (
@@ -48,10 +50,9 @@ interface XcmTransactorV2 {
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     ///
-    function feePerSecond(Multilocation memory multilocation)
-        external
-        view
-        returns (uint256 feePerSecond);
+    function feePerSecond(
+        Multilocation memory multilocation
+    ) external view returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
     /// @custom:selector fe430475
@@ -117,6 +118,28 @@ interface XcmTransactorV2 {
         uint64 overallWeight
     ) external;
 
+    /// Transact through XCM using fee based on its multilocation through signed origins
+    /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
+    /// @custom:selector d7ab340c
+    /// @dev No token is burnt before sending the message. The caller must ensure the destination
+    /// is able to undertand the DescendOrigin message, and create a unique account from which
+    /// dispatch the call
+    /// @param dest The destination chain (as multilocation) where to send the message
+    /// @param feeLocation The asset multilocation that indentifies the fee payment currency
+    /// It has to be a reserve of the destination chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
+    /// @param call The call to be executed in the destination chain
+    /// @param feeAmount Amount to be used as fee.
+    /// @param overallWeight Overall weight to be used for the xcm message.
+    function transactThroughSignedMultilocationRefund(
+        Multilocation memory dest,
+        Multilocation memory feeLocation,
+        uint64 transactRequiredWeightAtMost,
+        bytes memory call,
+        uint256 feeAmount,
+        uint64 overallWeight
+    ) external;
+
     /// Transact through XCM using fee based on its erc20 address through signed origins
     /// @custom:selector b648f3fe
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
@@ -138,14 +161,37 @@ interface XcmTransactorV2 {
         uint64 overallWeight
     ) external;
 
+    /// Transact through XCM using fee based on its erc20 address through signed origins
+    /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
+    /// @custom:selector b648f3fe
+    /// @dev No token is burnt before sending the message. The caller must ensure the destination
+    /// is able to undertand the DescendOrigin message, and create a unique account from which
+    /// dispatch the call
+    /// @param dest The destination chain (as multilocation) where to send the message
+    /// @param feeLocationAddress The ERC20 address of the token we want to use to pay for fees
+    /// only callable if such an asset has been BRIDGED to our chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
+    /// @param call The call to be executed in the destination chain
+    /// @param feeAmount Amount to be used as fee.
+    /// @param overallWeight Overall weight to be used for the xcm message.
+    function transactThroughSignedRefund(
+        Multilocation memory dest,
+        address feeLocationAddress,
+        uint64 transactRequiredWeightAtMost,
+        bytes memory call,
+        uint256 feeAmount,
+        uint64 overallWeight
+    ) external;
+
     /// @dev Encode 'utility.as_derivative' relay call
     /// @custom:selector ff86378d
     /// @param transactor The transactor to be used
     /// @param index: The derivative index to use
     /// @param innerCall: The inner call to be executed from the derivated address
     /// @return result The bytes associated with the encoded call
-    function encodeUtilityAsDerivative(uint8 transactor, uint16 index, bytes memory innerCall)
-        external
-        pure
-        returns (bytes memory result);
+    function encodeUtilityAsDerivative(
+        uint8 transactor,
+        uint16 index,
+        bytes memory innerCall
+    ) external pure returns (bytes memory result);
 }

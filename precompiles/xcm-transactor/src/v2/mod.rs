@@ -152,6 +152,37 @@ where
 			call,
 			fee_amount.converted(),
 			overall_weight,
+			false,
+		)
+	}
+
+	#[precompile::public(
+		"transactThroughSignedMultilocationRefund(\
+		(uint8,bytes[]),\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes,\
+		uint256,\
+		uint64)"
+	)]
+	fn transact_through_signed_multilocation_refund(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		fee_asset: MultiLocation,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: Convert<U256, u128>,
+		overall_weight: u64,
+	) -> EvmResult {
+		XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation_fee_weight(
+			handle,
+			dest,
+			fee_asset,
+			weight,
+			call,
+			fee_amount.converted(),
+			overall_weight,
+			true,
 		)
 	}
 
@@ -176,6 +207,30 @@ where
 			fee_amount.converted(),
 			overall_weight,
 			false,
+		)
+	}
+
+	#[precompile::public(
+		"transactThroughSignedRefund((uint8,bytes[]),address,uint64,bytes,uint256,uint64)"
+	)]
+	fn transact_through_signed_refund(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		fee_asset: Address,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: Convert<U256, u128>,
+		overall_weight: u64,
+	) -> EvmResult {
+		XcmTransactorWrapper::<Runtime>::transact_through_signed_fee_weight(
+			handle,
+			dest,
+			fee_asset,
+			weight,
+			call,
+			fee_amount.converted(),
+			overall_weight,
+			true,
 		)
 	}
 
