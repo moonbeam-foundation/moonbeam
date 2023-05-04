@@ -621,7 +621,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "prepare-polkadot"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
