@@ -1,5 +1,7 @@
 root = true
 
+
+
 [*.rs]
 indent_style=tab
 indent_size=tab
@@ -27,6 +29,16 @@ indent_size=2
 trim_trailing_whitespace=false
 
 [*.expanded.rs]
+indent_style=off
+indent_size=off
+max_line_length=off
+
+[weights.rs]
+indent_style=off
+indent_size=off
+max_line_length=off
+
+[**/weights/*.rs]
 indent_style=off
 indent_size=off
 max_line_length=off
