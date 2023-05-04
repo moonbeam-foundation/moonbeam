@@ -328,6 +328,7 @@ pub mod pallet {
 		HrmpHandlerNotImplemented,
 		TooMuchFeeUsed,
 		ErrorValidating,
+		RefundNotSupportedWithTransactInfo,
 	}
 
 	#[pallet::event]
@@ -656,7 +657,7 @@ pub mod pallet {
 			call: Vec<u8>,
 			// weight information to be used
 			weight_info: TransactWeights,
-
+			// add RefundSurplus and DepositAsset appendix
 			refund: bool,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -673,6 +674,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info_signed(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| Ok(v),
@@ -1031,9 +1033,14 @@ pub mod pallet {
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
+			println!("Universal {:#?} ", universal_location);
+			println!("Beneficiary Before{:#?} ", beneficiary);
+			println!("AT {:#?} ", at);
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
+			println!("Beneficiary After{:#?} ", beneficiary);
+
 			Ok(DepositAsset {
 				assets: Wild(All),
 				beneficiary,
@@ -1144,7 +1151,9 @@ pub mod pallet {
 		pub fn take_weight_from_transact_info_signed(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -> Result<Weight, DispatchError> {
+			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;

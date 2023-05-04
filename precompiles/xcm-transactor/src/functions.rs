@@ -342,6 +342,7 @@ where
 				overall_weight: None,
 			},
 			call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -379,6 +380,7 @@ where
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -422,6 +424,7 @@ where
 				overall_weight: None,
 			},
 			call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -437,6 +440,7 @@ where
 		call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
 		overall_weight: u64,
+		refund: bool,
 	) -> EvmResult {
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
@@ -467,6 +471,7 @@ where
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			call,
+			refund,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

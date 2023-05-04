@@ -896,8 +896,6 @@ fn test_transact_through_signed_with_refund() {
 				1
 			));
 
-			// transact info and fee per second set
-			// this time it should work
 			assert_ok!(XcmTransactor::transact_through_signed(
 				RuntimeOrigin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
@@ -936,18 +934,7 @@ fn test_transact_through_signed_with_refund() {
 			let sent_messages = mock::sent_xcm();
 			let (_, sent_message) = sent_messages.first().unwrap();
 
-			assert_eq!(
-				AccountIdToMultiLocation::convert(1),
-				MultiLocation {
-					parents: 0,
-					interior: X1(AccountKey20 {
-						network: None,
-						key: [170; 20]
-					})
-				}
-			);
-
-			// Lets make sure the message is as expected
+			// Check message contains the new appendix
 			assert!(sent_message.0.contains(&SetAppendix(Xcm(vec![
 				RefundSurplus,
 				DepositAsset {
@@ -955,11 +942,11 @@ fn test_transact_through_signed_with_refund() {
 					beneficiary: MultiLocation {
 						parents: 0,
 						interior: X2(
-							GlobalConsensus(Polkadot),
-							AccountKey20 {
-								network: None,
-								key: [170; 20]
-							}
+							Junction::Parachain(100),
+							AccountIdToMultiLocation::convert(1)
+								.interior
+								.take_first()
+								.unwrap()
 						)
 					}
 				}
