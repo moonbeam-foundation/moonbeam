@@ -26,7 +26,7 @@ mod tests {
 	use pallet_evm::AddressMapping;
 	use sp_core::H160;
 
-	use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
+	use moonbeam_rpc_primitives_debug::runtime_decl_for_debug_runtime_api::DebugRuntimeApi;
 	use std::str::FromStr;
 
 	#[test]
