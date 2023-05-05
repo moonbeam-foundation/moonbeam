@@ -160,7 +160,7 @@ parameter_types! {
 	pub const MaxTopDelegationsPerCandidate: u32 = 2;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
-	pub const MinCollatorStk: u128 = 10;
+	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
 	pub BlockAuthor: AccountId = Alice.into();
@@ -180,8 +180,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
-	type MinCollatorStk = MinCollatorStk;
-	type MinCandidateStk = MinCollatorStk;
+	type MinCandidateStk = MinCandidateStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
