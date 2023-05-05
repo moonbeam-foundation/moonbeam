@@ -126,100 +126,100 @@ moonbeam-runtime = { path = "runtime/moonbeam" }
 moonriver-runtime = { path = "runtime/moonriver" }
 
 # Substrate (wasm)
-frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-executive = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-frame-try-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-assets = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-collective = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-conviction-voting = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-identity = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-multisig = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-root-testing = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-society = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-staking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-treasury = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-utility = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-pallet-whitelist = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-executive = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+frame-try-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-assets = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-conviction-voting = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-identity = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-multisig = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-root-testing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-society = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-staking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-treasury = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-whitelist = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 parity-scale-codec = { version = "3.2.2", default-features = false, features = [
 	"derive",
 ] }
 scale-info = { version = "2.0", default-features = false, features = [
 	"derive",
 ] }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-debug-derive = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-externalities = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-inherents = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-keystore = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-offchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-session = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
-sp-version = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-debug-derive = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-offchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-session = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+sp-version = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
 
 # Substrate (client)
-frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-client-db = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-consensus-grandpa = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-executor = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-informant = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-network = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-network-common = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-network-sync = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-rpc-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-tracing = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sc-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-storage = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-trie = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-test-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
-try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-consensus-grandpa = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-informant = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-network = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-network-common = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-network-sync = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-rpc-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sc-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-storage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-trie = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-test-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
+try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.40" }
 
 # Frontier (wasm)
 ethereum = { version = "0.14.0", default-features = false, features = [
@@ -365,6 +365,97 @@ evm = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a31
 evm-core = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
 evm-gasometer = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
 evm-runtime = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
+
+# Substrate (wasm)
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-executive = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+frame-try-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-assets = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-collective = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-conviction-voting = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-identity = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-multisig = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-root-testing = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-society = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-staking = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-treasury = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-utility = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+pallet-whitelist = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-debug-derive = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-externalities = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-keystore = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-offchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-session = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+sp-version = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix", default-features = false }
+substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
+
+# Substrate (client)
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-consensus-grandpa = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-informant = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-network = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-network-common = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-network-sync = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-rpc-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sc-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-consensus = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-storage = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-trie = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+sp-wasm-interface = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-test-runtime = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+substrate-wasm-builder = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "crystalin-polkadot-v0.9.40-slow-block-fix" }
+
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of
