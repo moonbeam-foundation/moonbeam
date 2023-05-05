@@ -39,7 +39,7 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "testing" ] }
+precompile-utils = { workspace = true, features = [ "testing", "codec-xcm"] }
 xcm-primitives = { workspace = true }
 
 # Substrate
