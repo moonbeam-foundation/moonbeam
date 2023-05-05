@@ -13,33 +13,42 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@moonbeam-network/api-augment": "^0.2201.0",
-    "@moonwall/cli": "^0.4.12",
-    "@moonwall/util": "^0.4.12",
-    "@polkadot/api": "^10.2.1",
-    "@polkadot/api-augment": "^10.2.1",
-    "@polkadot/types": "^10.2.1",
-    "@polkadot/types-codec": "^10.2.1",
-    "@polkadot/util": "^11.1.2",
+    "@moonbeam-network/api-augment": "^0.2301.0",
+    "@moonwall/cli": "^0.5.9",
+    "@moonwall/util": "^0.5.9",
+    "@polkadot/api": "^10.5.1",
+    "@polkadot/api-augment": "^10.5.1",
+    "@polkadot/types": "^10.5.1",
+    "@polkadot/types-codec": "^10.5.1",
+    "@polkadot/util": "^12.1.2",
     "@types/debug": "^4.1.7",
-    "@types/node": "^18.16.0",
+    "@types/node": "^18.16.3",
     "bottleneck": "^2.19.5",
     "debug": "^4.3.4",
     "ethers": "^6.3.0",
-    "pnpm": "^8.3.1",
+    "pnpm": "^8.4.0",
     "prettier": "^2.8.8",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.5",
-    "web3": "4.0.1-rc.1",
-    "web3-eth": "4.0.1-rc.1",
-    "web3-providers-ws": "4.0.1-rc.1",
-    "yargs": "^17.7.1"
+    "typescript": "^5.0.4",
+    "web3": "4.0.1-rc.0",
+    "web3-eth": "1.9.0",
+    "web3-providers-ws": "4.0.1-rc.0",
+    "yargs": "^17.7.2"
   },
   "dependencies": {
-    "@zombienet/utils": "^0.0.18",
+    "@acala-network/chopsticks": "^0.6.4",
+    "@polkadot/apps-config": "^0.129.1",
+    "@zombienet/utils": "^0.0.19",
     "bfj": "^7.0.2",
     "chalk": "^5.2.0",
     "json-bigint": "^1.0.0",
-    "json-stable-stringify": "^1.0.2"
+    "json-stable-stringify": "^1.0.2",
+    "semver": "^7.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@polkadot/api": "^10.5.1",
+      "@polkadot/types": "^10.5.1"
+    }
   }
 }

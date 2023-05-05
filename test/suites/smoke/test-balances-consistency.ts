@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import "@polkadot/api-augment"
+import "@polkadot/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { extractPreimageDeposit, printTokens } from "@moonwall/util";
 import { ApiDecoration } from "@polkadot/api/types";
@@ -11,10 +11,9 @@ import { Option } from "@polkadot/types-codec";
 
 // TODO: FIX MOONWALL CONFIG
 
-
 // This test involves checking the balances for all accounts on chain, so care needs to be taken
 // with regards to both network load but also memory consumption. We do batched queries for reading
-// system balances, and make use of KVP maps in order to reduce local load. 
+// system balances, and make use of KVP maps in order to reduce local load.
 
 // For the individual storage queries, we still use standard objects, as the methods available
 // are richer and allow cleaner operations on the data. However we still use a KVP Map to store
