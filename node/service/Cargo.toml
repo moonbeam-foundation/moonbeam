@@ -104,7 +104,10 @@ fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
 fp-rpc = { workspace = true, features = [ "std" ] }
 fp-storage = { workspace = true, features = [ "std" ] }
-pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
+pallet-ethereum = { workspace = true, features = [
+	"forbid-evm-reentrancy",
+	"std",
+] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
@@ -141,6 +144,7 @@ nix = { workspace = true }
 prometheus = { workspace = true }
 rand = { workspace = true }
 sc-block-builder = { workspace = true }
+tempfile = { workspace = true }
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { workspace = true }
@@ -164,8 +168,14 @@ default = [
 	"westend-native",
 ]
 
-kusama-native = [ "polkadot-cli/kusama-native", "polkadot-service/kusama-native" ]
-rococo-native = [ "polkadot-cli/rococo-native", "polkadot-service/rococo-native" ]
+kusama-native = [
+	"polkadot-cli/kusama-native",
+	"polkadot-service/kusama-native",
+]
+rococo-native = [
+	"polkadot-cli/rococo-native",
+	"polkadot-service/rococo-native",
+]
 westend-native = [
 	"polkadot-cli/westend-native",
 	"polkadot-service/westend-native",
@@ -175,7 +185,7 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = []
+test-spec = [  ]
 
 runtime-benchmarks = [
 	"moonbase-native",

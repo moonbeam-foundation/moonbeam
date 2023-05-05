@@ -1225,7 +1225,6 @@ mod tests {
 		config::{BasePath, DatabaseSource, KeystoreConfig},
 		Configuration, Role,
 	};
-	use sp_core::H256;
 	use std::path::Path;
 	use std::str::FromStr;
 
@@ -1300,13 +1299,13 @@ mod tests {
 	fn dalek_does_not_panic() {
 		use futures::executor::block_on;
 		use sc_block_builder::BlockBuilderProvider;
+		use sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
 		use sp_api::ProvideRuntimeApi;
 		use sp_consensus::BlockOrigin;
 		use substrate_test_runtime::TestAPI;
 		use substrate_test_runtime_client::runtime::Block;
 		use substrate_test_runtime_client::{
-			ClientBlockImportExt, DefaultTestClientBuilderExt, TestClientBuilder,
-			TestClientBuilderExt,
+			ClientBlockImportExt, TestClientBuilder, TestClientBuilderExt,
 		};
 
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
@@ -1324,7 +1323,23 @@ mod tests {
 			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
 		}
 
-		let mut client = TestClientBuilder::new().build();
+		let tmp = tempfile::tempdir().unwrap();
+		let backend = Arc::new(
+			Backend::new(
+				DatabaseSettings {
+					trie_cache_maximum_size: Some(1 << 20),
+					state_pruning: Some(PruningMode::ArchiveAll),
+					blocks_pruning: BlocksPruning::KeepAll,
+					source: DatabaseSource::RocksDb {
+						path: tmp.path().into(),
+						cache_size: 1024,
+					},
+				},
+				u64::MAX,
+			)
+			.unwrap(),
+		);
+		let mut client = TestClientBuilder::with_backend(backend).build();
 
 		client
 			.execution_extensions()
@@ -1334,7 +1349,7 @@ mod tests {
 		>::new(1));
 
 		let a1 = client
-			.new_block_at(H256::default(), Default::default(), false)
+			.new_block_at(client.chain_info().genesis_hash, Default::default(), false)
 			.unwrap()
 			.build()
 			.unwrap()
@@ -1345,7 +1360,12 @@ mod tests {
 		// shouldnt panic on importing invalid sig
 		assert!(!client
 			.runtime_api()
-			.verify_ed25519(H256::default(), invalid_sig(), zero_ed_pub(), vec![])
+			.verify_ed25519(
+				client.chain_info().genesis_hash,
+				invalid_sig(),
+				zero_ed_pub(),
+				vec![]
+			)
 			.unwrap());
 	}
 

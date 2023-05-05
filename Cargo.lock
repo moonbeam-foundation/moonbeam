@@ -6122,6 +6122,7 @@ dependencies = [
  "substrate-test-client",
  "substrate-test-runtime",
  "substrate-test-runtime-client",
+ "tempfile",
  "tiny-bip39 0.8.2",
  "tokio",
  "trie-root 0.15.2",
