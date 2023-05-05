@@ -151,9 +151,6 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
-		/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
-		#[pallet::constant]
-		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCandidateStk: Get<BalanceOf<Self>>;
@@ -1744,7 +1741,6 @@ pub mod pallet {
 				let mut collators = candidates
 					.into_iter()
 					.take(top_n)
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>();
 
@@ -1757,7 +1753,6 @@ pub mod pallet {
 				// The candidates are already sorted by AccountId, so no need to sort again
 				candidates
 					.into_iter()
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>()
 			}
