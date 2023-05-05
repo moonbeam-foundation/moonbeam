@@ -669,7 +669,7 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "Run zombie test"
+      - name: "Run zombie upgrade test"
         run: |
           cd test
           pnpm i
