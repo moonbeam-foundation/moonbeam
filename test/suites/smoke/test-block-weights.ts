@@ -9,11 +9,12 @@ import {
   getBlockTime,
   getBlockArray,
   fetchHistoricBlockNum,
+  THIRTY_MINS,
 } from "@moonwall/util";
 import { describeSuite, beforeAll, expect, Signer } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
-const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = rateLimiter();
 

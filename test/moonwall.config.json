@@ -75,9 +75,14 @@
           "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://frag-stagenet-relay-rpc-ws.g.moondev.network"]
         }
       ]
     },
@@ -94,9 +99,14 @@
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://kusama-rpc.polkadot.io"]
         }
       ]
     },
@@ -113,10 +123,16 @@
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.api.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://rpc.polkadot.io"]
         }
+        
       ]
     },
     {
@@ -132,9 +148,14 @@
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network"]
         }
       ]
     },

@@ -1,0 +1,128 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "contractCode", "type": "bytes" },
+          {
+            "internalType": "bytes",
+            "name": "contractStorageKey",
+            "type": "bytes"
+          }
+        ],
+        "name": "autoUpgrade",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "rootTrackId",
+        "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "setStorageCallIndex",
+        "outputs": [{ "internalType": "bytes2", "name": "", "type": "bytes2" }],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "autoUpgrade(bytes,bytes)": {
+          "params": {
+            "contractCode": "The code as deployed of the new contract",
+            "contractStorageKey": "The storage key associated with the current smart contract"
+          }
+        }
+      },
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "autoUpgrade(bytes,bytes)": "79688e99",
+        "rootTrackId()": "6d72ffb6",
+        "setStorageCallIndex()": "920e0c03"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"contractCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"contractStorageKey\",\"type\":\"bytes\"}],\"name\":\"autoUpgrade\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rootTrackId\",\"outputs\":[{\"internalType\":\"uint16\",\"name\":\"\",\"type\":\"uint16\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"setStorageCallIndex\",\"outputs\":[{\"internalType\":\"bytes2\",\"name\":\"\",\"type\":\"bytes2\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"autoUpgrade(bytes,bytes)\":{\"params\":{\"contractCode\":\"The code as deployed of the new contract\",\"contractStorageKey\":\"The storage key associated with the current smart contract\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"autoUpgrade(bytes,bytes)\":{\"notice\":\"submits to upgrade contract for given storage key\"},\"constructor\":{\"notice\":\"construct the smart contract with the track id to send the proposal to\"},\"rootTrackId()\":{\"notice\":\"The id of the track used for root execution\"},\"setStorageCallIndex()\":{\"notice\":\"SetStorageCall index (pallet Index concatenated with call index, usually \\\"\\\\x00\\\\x04\\\")\"}},\"notice\":\"Smart contract to demonstrate how to use Referenda Precompile to self-upgrade\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"ReferendaAutoUpgradeDemo.sol\":\"ReferendaAutoUpgradeDemo\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"ReferendaAutoUpgradeDemo.sol\":{\"keccak256\":\"0x952cd5c14bbd014c37b67fda6f4b52dae7aaf888fe3476d9575fd5ea76fa15a0\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://550273857d8f5f99a118fe8686cb69e92d16a03f9209ff8b841b0fb9a341ccba\",\"dweb:/ipfs/QmRWX8vaQjKhcgrHP2YcpJV7fGqnDmLP2Roj8ehYHYXD4T\"]},\"SubstrateTools.sol\":{\"keccak256\":\"0xb79c6a9b3a694dfa362268f87e5598b95c048c5e8f1a053a5c5e9dd81e6345a1\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ecbf04ed9eaca008ec155d5041ce28cab434f8f15368a4db7a5d3ad653f12e1b\",\"dweb:/ipfs/QmPuCTURp9BwkyR6otvbs2mQhiToSheANZiTpw7AvXAdnR\"]},\"precompiles/conviction-voting/ConvictionVoting.sol\":{\"keccak256\":\"0x792ed63d767cc168bd810adbc54f89958d6cfed6ce92c7adcfea5567c31c8f89\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://26c0a267d2e4516b9f21ea61cb70809a1518eac5e0e40452c16fa98d5779f905\",\"dweb:/ipfs/QmfWBRAAZxwzTSzVhpGxo3oG83tRaHkkqkv5tjGjMU7zk1\"]},\"precompiles/preimage/Preimage.sol\":{\"keccak256\":\"0x8b0a12d239d2226ae5d5d79761b0e66c3aa9bdbe2fb41d512478bbd8b5d516ec\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://8405c679cdc5ecc4725e1869c620910ed303dfdab74a617af60e6b4c6df6ca3e\",\"dweb:/ipfs/QmPsXz13YLPKX2FjaLTZTW1cEBeVL1cKt4GoJewtiHjv2P\"]},\"precompiles/referenda/Referenda.sol\":{\"keccak256\":\"0x1775aed3f3772a4e943ee08c12f42ff5ce2bf528466f33efc36a6447cfbfb594\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://22c54fd60c34e50acf3554a32b11b7e5207f2ad2c16b37cd3c4e607d5ce7827a\",\"dweb:/ipfs/QmSmFZPJ7MH6PjfYKMoLbY2QzhhREvuQyNTztQQ683utC9\"]}},\"version\":1}",
+    "storageLayout": {
+      "storage": [
+        {
+          "astId": 9,
+          "contract": "ReferendaAutoUpgradeDemo.sol:ReferendaAutoUpgradeDemo",
+          "label": "rootTrackId",
+          "offset": 0,
+          "slot": "0",
+          "type": "t_uint16"
+        },
+        {
+          "astId": 12,
+          "contract": "ReferendaAutoUpgradeDemo.sol:ReferendaAutoUpgradeDemo",
+          "label": "setStorageCallIndex",
+          "offset": 2,
+          "slot": "0",
+          "type": "t_bytes2"
+        }
+      ],
+      "types": {
+        "t_bytes2": {
+          "encoding": "inplace",
+          "label": "bytes2",
+          "numberOfBytes": "2"
+        },
+        "t_uint16": {
+          "encoding": "inplace",
+          "label": "uint16",
+          "numberOfBytes": "2"
+        }
+      }
+    },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "autoUpgrade(bytes,bytes)": {
+          "notice": "submits to upgrade contract for given storage key"
+        },
+        "constructor": {
+          "notice": "construct the smart contract with the track id to send the proposal to"
+        },
+        "rootTrackId()": {
+          "notice": "The id of the track used for root execution"
+        },
+        "setStorageCallIndex()": {
+          "notice": "SetStorageCall index (pallet Index concatenated with call index, usually \"\\x00\\x04\")"
+        }
+      },
+      "notice": "Smart contract to demonstrate how to use Referenda Precompile to self-upgrade",
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\nimport \"../../../precompiles/referenda/Referenda.sol\";\nimport \"../../../precompiles/preimage/Preimage.sol\";\nimport \"../../../precompiles/conviction-voting/ConvictionVoting.sol\";\nimport \"./SubstrateTools.sol\";\n\n/// @notice Smart contract to demonstrate how to use Referenda Precompile to self-upgrade\nabstract contract ReferendaAutoUpgradeDemo {\n    /// @notice The id of the track used for root execution\n    uint16 public rootTrackId;\n\n    /// @notice SetStorageCall index (pallet Index concatenated with call index, usually \"\\x00\\x04\")\n    bytes2 public setStorageCallIndex;\n\n    /// @notice construct the smart contract with the track id to send the proposal to\n    constructor(string memory trackName, bytes2 pSetStorageCallIndex) {\n        setStorageCallIndex = pSetStorageCallIndex;\n\n        // This is obviously NOT THE RIGHT WAY to find/store the track id.\n        // The track id should be passed as an argument of the constructor instead of the\n        // track name.\n        // In this demo, it is using the track name to show how to loop through the trackIds.\n        rootTrackId = getTrackId(trackName);\n    }\n\n    /// @notice retrieves the track id matching the track name\n    /// @notice this is ineficient and only used for a demo.\n    function getTrackId(string memory trackName)\n        internal\n        view\n        returns (uint16)\n    {\n        uint16[] memory trackIds = REFERENDA_CONTRACT.trackIds();\n        for (uint256 i = 0; i < trackIds.length; i++) {\n            Referenda.TrackInfo memory info = REFERENDA_CONTRACT.trackInfo(\n                trackIds[i]\n            );\n\n            if (\n                keccak256(abi.encodePacked((info.name))) ==\n                keccak256(abi.encodePacked((trackName))) // Compare the 2 strings\n            ) {\n                return trackIds[i];\n            }\n        }\n        revert(\"Couldn't find track\");\n    }\n\n    /// @notice submits to upgrade contract for given storage key\n    /// @param contractCode The code as deployed of the new contract\n    /// @param contractStorageKey The storage key associated with the current smart contract\n    function autoUpgrade(\n        bytes memory contractCode,\n        bytes memory contractStorageKey\n    ) public {\n        bytes memory setStorageCall = SubstrateTools.buildSetStorageProposal(\n            contractStorageKey,\n            contractCode\n        );\n        bytes32 preimageHash = PREIMAGE_CONTRACT.notePreimage(setStorageCall);\n\n        // /// If the block count is lower than the minimum allowed, it will pick the minimum\n        // /// allowed automatically.\n        uint32 blockCount = 1;\n        uint32 referendumId = REFERENDA_CONTRACT.submitAfter(\n            rootTrackId,\n            preimageHash,\n            uint32(setStorageCall.length),\n            blockCount\n        );\n\n        /// Directly place the deposit\n        REFERENDA_CONTRACT.placeDecisionDeposit(referendumId);\n\n        /// Vote for the referendum\n        CONVICTION_VOTING_CONTRACT.voteYes(\n            referendumId,\n            address(this).balance, // Uses all the contract available balance\n            ConvictionVoting.Conviction.Locked1x\n        );\n    }\n}\n\n/// @notice First version of the contract\ncontract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {\n    constructor(string memory trackName, bytes2 pSetStorageCallIndex)\n        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)\n    {}\n\n    function version() external pure returns (uint256) {\n        return 1;\n    }\n}\n\n/// @notice Second version of the contract\ncontract ReferendaAutoUpgradeDemoV2 is ReferendaAutoUpgradeDemo {\n    constructor(string memory trackName, bytes2 pSetStorageCallIndex)\n        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)\n    {}\n\n    function version() external pure returns (uint256) {\n        return 2;\n    }\n}\n"
+}

@@ -17,3 +17,10 @@ export async function checkTimeSliceForUpgrades(
   const onChainRt = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion;
   return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
 }
+
+// Sort dict by key
+export function sortObjectByKeys(o) {
+  return Object.keys(o)
+    .sort()
+    .reduce((r, k) => ((r[k] = o[k]), r), {});
+}
