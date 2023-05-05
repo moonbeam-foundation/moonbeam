@@ -13,7 +13,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use ethereum_types::H256;
+use ethereum::AccessListItem;
+use ethereum_types::{H160, H256, U256};
+use fc_rpc_core::types::Bytes;
 use futures::future::BoxFuture;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
@@ -34,6 +36,29 @@ pub struct TraceParams {
 	pub timeout: Option<String>,
 }
 
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallParams {
+	/// Sender
+	pub from: Option<H160>,
+	/// Recipient
+	pub to: H160,
+	/// Gas Price, legacy.
+	pub gas_price: Option<U256>,
+	/// Max BaseFeePerGas the user is willing to pay.
+	pub max_fee_per_gas: Option<U256>,
+	/// The miner's tip.
+	pub max_priority_fee_per_gas: Option<U256>,
+	/// Gas
+	pub gas: Option<U256>,
+	/// Value of transaction in wei
+	pub value: Option<U256>,
+	/// Additional data sent with transaction
+	pub data: Option<Bytes>,
+	/// EIP-2930 access list
+	pub access_list: Option<Vec<AccessListItem>>,
+}
+
 #[rpc(server)]
 pub trait Debug {
 	#[rpc(name = "debug_traceTransaction")]
@@ -48,4 +73,11 @@ pub trait Debug {
 		id: RequestBlockId,
 		params: Option<TraceParams>,
 	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>>;
+	#[rpc(name = "debug_traceCall")]
+	fn trace_call(
+		&self,
+		call_params: TraceCallParams,
+		id: RequestBlockId,
+		trace_params: Option<TraceParams>,
+	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>>;
 }
