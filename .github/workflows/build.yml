@@ -59,7 +59,7 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
@@ -71,8 +71,9 @@ jobs:
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
-          echo "$(curl -s "https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}" | jq -r '.object.sha' | cut -c 1-8)"
-          echo "latest_rt_sha8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
+          LATEST_RT_SHA8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
+          echo $LATEST_RT_SHA8
+          echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -269,7 +270,7 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup show
       - name: Clippy
-        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks
 
   build:
     runs-on:
@@ -401,7 +402,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
+          cargo test --profile testnet --all --features=evm-tracing
       - name: Run sccache stat for check pre test
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
