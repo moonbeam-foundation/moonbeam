@@ -65,7 +65,7 @@
     {
       "name": "smoke_stagenet",
       "testFileDir": ["/suites/smoke"],
-      "reporters": ["default"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -90,6 +90,7 @@
     {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -114,6 +115,7 @@
     {
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -138,6 +140,7 @@
     {
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
