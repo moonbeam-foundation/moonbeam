@@ -38,12 +38,14 @@
   "dependencies": {
     "@acala-network/chopsticks": "^0.6.4",
     "@polkadot/apps-config": "^0.129.1",
+    "@vitest/ui": "^0.31.0",
     "@zombienet/utils": "^0.0.19",
     "bfj": "^7.0.2",
     "chalk": "^5.2.0",
     "json-bigint": "^1.0.0",
     "json-stable-stringify": "^1.0.2",
-    "semver": "^7.5.0"
+    "semver": "^7.5.0",
+    "vitest": "^0.31.0"
   },
   "pnpm": {
     "overrides": {
