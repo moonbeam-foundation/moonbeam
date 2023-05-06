@@ -40,12 +40,11 @@ describeSuite({
       title: "should have non default field values",
       timeout: THIRTY_MINS,
       test: async function () {
-        const lastBlockNumber = (
-          await context.polkadotJs().rpc.chain.getHeader()
-        ).number.toNumber();
-        const roundLength = (
-          await context.polkadotJs().query.parachainStaking.round()
-        ).length.toNumber();
+        const paraApi = context.polkadotJs({ apiName: "para" });
+
+        const lastBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
+        const roundLength = (await paraApi.query.parachainStaking.round()).length.toNumber();
+
         const blocksToWait = process.env.BATCH_OF
           ? parseInt(process.env.BATCH_OF)
           : process.env.ROUNDS_TO_WAIT
@@ -54,9 +53,7 @@ describeSuite({
         const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
         for (let blockNumber of range(firstBlockNumber, lastBlockNumber)) {
-          let api = await context
-            .polkadotJs()
-            .at(await context.polkadotJs().rpc.chain.getBlockHash(blockNumber));
+          let api = await paraApi.at(await paraApi.rpc.chain.getBlockHash(blockNumber));
 
           const block = (await api.query.ethereum.currentBlock()).unwrap();
           const receipts = (await api.query.ethereum.currentReceipts()).unwrap().toArray();

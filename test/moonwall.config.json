@@ -65,6 +65,7 @@
     {
       "name": "smoke_stagenet",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["default"],
       "foundation": {
         "type": "read_only"
       },
@@ -132,7 +133,6 @@
           "type": "polkadotJs",
           "endpoints": ["wss://rpc.polkadot.io"]
         }
-        
       ]
     },
     {
@@ -155,7 +155,9 @@
         {
           "name": "relay",
           "type": "polkadotJs",
-          "endpoints": ["wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network"]
+          "endpoints": [
+            "wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network"
+          ]
         }
       ]
     },

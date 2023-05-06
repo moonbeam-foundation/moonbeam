@@ -20,6 +20,7 @@ import type { u128 } from "@polkadot/types-codec";
 import { RUNTIME_CONSTANTS } from "../../../tests/util/constants.js"; // TODO: Remove on next mw ver
 import { TARGET_FILL_PERMILL, WEIGHT_FEE } from "@moonwall/util";
 import { BN_MILLION } from "@polkadot/util";
+import { ApiPromise } from "@polkadot/api";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = rateLimiter();
@@ -54,6 +55,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let blockData: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
+    let paraApi: ApiPromise;
 
     const checkMultiplier = (prevBlock: BlockFilteredRecord, curr: u128) => {
       if (!prevBlock) {
@@ -96,7 +98,8 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      const { specVersion, specName } = context.polkadotJs().consts.system.version;
+      paraApi = context.polkadotJs({ apiName: "para" });
+      const { specVersion, specName } = paraApi.consts.system.version;
       runtime = specName.toUpperCase() as any;
 
       if (
@@ -118,15 +121,14 @@ describeSuite({
         this.skip();
       }
 
-      const blockNumArray =
-        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotJs(), timePeriod);
+      const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
 
       log(`Collecting ${hours} hours worth of block data`);
 
       const getBlockData = async (blockNum: number) => {
-        const blockHash = await context.polkadotJs().rpc.chain.getBlockHash(blockNum);
-        const signedBlock = await context.polkadotJs().rpc.chain.getBlock(blockHash);
-        const apiAt = await context.polkadotJs().at(blockHash);
+        const blockHash = await paraApi.rpc.chain.getBlockHash(blockNum);
+        const signedBlock = await paraApi.rpc.chain.getBlock(blockHash);
+        const apiAt = await paraApi.at(blockHash);
         const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrapOrDefault();
         const ethersBlock = await context.ethersSigner().provider.getBlock(blockNum);
         const transactionStatuses = (
@@ -159,7 +161,7 @@ describeSuite({
 
       // Determine if the block range intersects with an upgrade event
       const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
-        context.polkadotJs(),
+        paraApi,
         blockNumArray,
         specVersion
       );
@@ -178,7 +180,7 @@ describeSuite({
       title: "Block utilization by weight corresponds to fee multiplier",
       timeout: 30000,
       test: function () {
-        const maxWeights = context.polkadotJs().consts.system.blockWeights;
+        const maxWeights = paraApi.consts.system.blockWeights;
         const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
           const fillPermill = weights.normal.refTime
             .toBn()
@@ -225,10 +227,7 @@ describeSuite({
             .toBn()
             .mul(BN_MILLION)
             .div(
-              context
-                .polkadotJs()
-                .consts.system.blockWeights.perClass.normal.maxTotal.unwrap()
-                .refTime.toBn()
+              paraApi.consts.system.blockWeights.perClass.normal.maxTotal.unwrap().refTime.toBn()
             );
 
           const change = checkMultiplier(
@@ -289,7 +288,7 @@ describeSuite({
       timeout: 30000,
       test: function () {
         const supplyFactor =
-          context.polkadotJs().consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
+          paraApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
 
         const failures = blockData
           .map(({ blockNum, nextFeeMultiplier, baseFeePerGasInGwei }) => {
@@ -349,11 +348,11 @@ describeSuite({
         const filteredEvents = blockData
           .map(({ blockNum, events, receipts, transactionStatuses }) => {
             const matchedEvents = events.filter((emittedEvent) =>
-              context.polkadotJs().events.system.ExtrinsicSuccess.is(emittedEvent.event)
+              paraApi.events.system.ExtrinsicSuccess.is(emittedEvent.event)
             );
 
             const filteredTxnEvents = events.filter((emittedEvent) => {
-              return context.polkadotJs().events.ethereum.Executed.is(emittedEvent.event);
+              return paraApi.events.ethereum.Executed.is(emittedEvent.event);
             });
 
             return { blockNum, matchedEvents, filteredTxnEvents, receipts, transactionStatuses };

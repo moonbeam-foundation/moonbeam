@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { getBlockArray } from "@moonwall/util";
+import { ApiPromise } from "@polkadot/api";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
@@ -25,15 +26,17 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let blockData: BlockFilteredRecord[];
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      const blockNumArray = await getBlockArray(context.polkadotJs(), timePeriod);
+      paraApi = context.polkadotJs({ apiName: "para" });
+      const blockNumArray = await getBlockArray(paraApi, timePeriod);
       log(`Collecting ${hours} hours worth of events`);
 
       const getBlockData = async (blockNum: number) => {
-        const blockHash = await context.polkadotJs().rpc.chain.getBlockHash(blockNum);
-        const signedBlock = await context.polkadotJs().rpc.chain.getBlock(blockHash);
-        const apiAt = await context.polkadotJs().at(blockHash);
+        const blockHash = await paraApi.rpc.chain.getBlockHash(blockNum);
+        const signedBlock = await paraApi.rpc.chain.getBlock(blockHash);
+        const apiAt = await paraApi.at(blockHash);
         return {
           blockNum: blockNum,
           extrinsics: signedBlock.block.extrinsics,
@@ -45,9 +48,9 @@ describeSuite({
 
       // Determine if the block range intersects with an upgrade event
       const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
-        context.polkadotJs(),
+        paraApi,
         blockNumArray,
-        context.polkadotJs().consts.system.version.specVersion
+        paraApi.consts.system.version.specVersion
       );
       if (result) {
         log(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
@@ -69,7 +72,7 @@ describeSuite({
         const filteredEvents = blockData
           .map(({ blockNum, events }) => {
             const matchedEvents = events
-              .filter(({ event }) => context.polkadotJs().events.system.ExtrinsicSuccess.is(event))
+              .filter(({ event }) => paraApi.events.system.ExtrinsicSuccess.is(event))
               .filter(({ event }) => {
                 const info = event.data[0] as DispatchInfo;
                 return info.class.isNormal && info.paysFee.isYes;
@@ -136,7 +139,7 @@ describeSuite({
                       ({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index)
                     )
                     .find(({ event, phase }) => {
-                      if (context.polkadotJs().events.system.ExtrinsicFailed.is(event)) {
+                      if (paraApi.events.system.ExtrinsicFailed.is(event)) {
                         log(
                           `ethereum.transact has ExtrinsicFailed event - Block: ${blockNum}` +
                             " extrinsic: " +
@@ -144,7 +147,7 @@ describeSuite({
                             `.`
                         );
                       }
-                      return context.polkadotJs().events.system.ExtrinsicSuccess.is(event);
+                      return paraApi.events.system.ExtrinsicSuccess.is(event);
                     });
 
                   if (success) {
@@ -175,7 +178,7 @@ describeSuite({
       test: function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
-            context.polkadotJs().events.ethereum.Executed.is(event)
+            paraApi.events.ethereum.Executed.is(event)
           );
           return { blockNum, ethEvents: successes.length, ethTxns: ethTxns.length };
         });
@@ -205,7 +208,7 @@ describeSuite({
       test: function () {
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
-            context.polkadotJs().events.ethereum.Executed.is(event)
+            paraApi.events.ethereum.Executed.is(event)
           );
           return { blockNum, ethEvents: successes.length, ethReceipts: ethTxns.length };
         });

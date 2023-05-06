@@ -9,6 +9,7 @@ import type { AccountId20 } from "@polkadot/types/interfaces";
 import { sortObjectByKeys } from "../../helpers/common.js";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { StorageKey } from "@polkadot/types";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S1400",
@@ -27,15 +28,15 @@ describeSuite({
     let orbiterPerRound: [StorageKey<[u32, AccountId20]>, Option<AccountId20>][] = null;
     let events: FrameSystemEventRecord[] = null;
     let specVersion: number = 0;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      const runtimeVersion = context.polkadotJs().runtimeVersion.specVersion.toNumber();
+      paraApi = context.polkadotJs({ apiName: "para" });
+      const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context.polkadotJs().at(
-        await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber)
-      );
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       collatorsPools = await apiAt.query.moonbeamOrbiters.collatorsPool.entries();
       registeredOrbiters =
         runtimeVersion >= 1605

@@ -18,7 +18,11 @@ export function getAllContracts(): string[] {
 
 const contracts: { [name: string]: Compiled } = {};
 export function getCompiled(name: string): Compiled {
-  if (!fs.existsSync(path.join(__dirname,"..","..", "helpers", "compiled-contracts",`${name}.json`))) {
+  if (
+    !fs.existsSync(
+      path.join(__dirname, "..", "..", "helpers", "compiled-contracts", `${name}.json`)
+    )
+  ) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   }
   if (!contracts[name]) {

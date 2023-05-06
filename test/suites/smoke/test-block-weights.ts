@@ -1,20 +1,12 @@
-import { BN } from "@polkadot/util";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import {
-  WEIGHT_PER_GAS,
-  checkBlockFinalized,
-  extractWeight,
-  getBlockTime,
-  getBlockArray,
-  fetchHistoricBlockNum,
-  THIRTY_MINS,
-} from "@moonwall/util";
+import { BN } from "@polkadot/util";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { WEIGHT_PER_GAS, extractWeight, getBlockArray, THIRTY_MINS } from "@moonwall/util";
 import { describeSuite, beforeAll, expect, Signer } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
-const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = rateLimiter();
 
@@ -45,19 +37,19 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
-    let api: ApiPromise;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      const blockNumArray = await getBlockArray(api, timePeriod);
-      const limits = api.consts.system.blockWeights;
-      api = context.polkadotJs() as any as ApiPromise;
+      paraApi = context.polkadotJs({ apiName: "para" }) as any as ApiPromise;
+      const blockNumArray = await getBlockArray(paraApi, timePeriod);
+      const limits = paraApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {
-        const blockHash = await api.rpc.chain.getBlockHash(blockNum);
-        const apiAt = await api.at(blockHash);
+        const blockHash = await paraApi.rpc.chain.getBlockHash(blockNum);
+        const apiAt = await paraApi.at(blockHash);
         const {
           block: { extrinsics },
-        } = await api.rpc.chain.getBlock(blockHash);
+        } = await paraApi.rpc.chain.getBlock(blockHash);
         const specVersion = apiAt.consts.system.version.specVersion.toNumber();
         const events = await apiAt.query.system.events();
         if (specVersion >= 1700) {
@@ -155,7 +147,7 @@ describeSuite({
       timeout,
       test: async function () {
         // Waiting for bugfixes
-        if (api.consts.system.version.specVersion.toNumber() < 2000) {
+        if (paraApi.consts.system.version.specVersion.toNumber() < 2000) {
           return; // TODO: replace this with skip() when added to vitest
         }
 
@@ -166,7 +158,7 @@ describeSuite({
         );
 
         const checkBlockWeight = async (blockInfo: BlockInfo) => {
-          const apiAt = await api.at(blockInfo.hash);
+          const apiAt = await paraApi.at(blockInfo.hash);
 
           const normalWeight = Number(blockInfo.weights.normal);
           const maxWeight = blockLimits.normal;
@@ -211,11 +203,11 @@ describeSuite({
       timeout,
       test: async function () {
         // Waiting for bugfixes
-        if (api.consts.system.version.specVersion.toNumber() < 2000) {
+        if (paraApi.consts.system.version.specVersion.toNumber() < 2000) {
           return; // TODO: replace this with skip() when added to vitest
         }
 
-        const apiAt = await api.at(blockInfoArray[0].hash);
+        const apiAt = await paraApi.at(blockInfoArray[0].hash);
         if (apiAt.consts.system.version.specVersion.toNumber() < 2000) {
           this.skip();
         }
@@ -283,7 +275,7 @@ describeSuite({
       timeout,
       test: async function () {
         // Waiting for bugfixes
-        if (api.consts.system.version.specVersion.toNumber() < 2000) {
+        if (paraApi.consts.system.version.specVersion.toNumber() < 2000) {
           this.skip();
         }
 
@@ -294,8 +286,8 @@ describeSuite({
         );
 
         const compareGasToWeight = async (blockInfo: BlockInfo) => {
-          const apiAt = await api.at(blockInfo.hash);
-          const signedBlock = await api.rpc.chain.getBlock(blockInfo.hash);
+          const apiAt = await paraApi.at(blockInfo.hash);
+          const signedBlock = await paraApi.rpc.chain.getBlock(blockInfo.hash);
           const gasUsed = (await apiAt.query.ethereum.currentBlock())
             .unwrap()
             .header.gasUsed.toNumber();

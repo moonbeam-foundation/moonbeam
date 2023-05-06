@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { BN, hexToBigInt } from "@polkadot/util";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { ApiPromise } from "@polkadot/api";
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
 describeSuite({
@@ -11,16 +12,16 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
-
     const requestStates: { id: number; state: any }[] = [];
     let numRequests: number = 0; // our own count
     let requestCount: number = 0; // from pallet storage
-
     let isRandomnessAvailable = true;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      const runtimeVersion = context.polkadotJs().runtimeVersion.specVersion.toNumber();
-      const runtimeName = context.polkadotJs().runtimeVersion.specName.toString();
+      paraApi = context.polkadotJs({ apiName: "para" });
+      const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
+      const runtimeName = paraApi.runtimeVersion.specName.toString();
       isRandomnessAvailable =
         (runtimeVersion >= 1700 && runtimeName == "moonbase") || runtimeVersion >= 1900;
 
@@ -35,10 +36,8 @@ describeSuite({
 
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
       while (true) {
         let query = await apiAt.query.randomness.requests.entriesPaged({
@@ -121,9 +120,10 @@ describeSuite({
           // the remaining substr after offset is the concat part, which we can decode with createType
           const offset = 2 + 32 + 32 + 16;
           const requestTypeEncoded = key.toHex().slice(offset);
-          const requestType = context
-            .polkadotJs()
-            .registry.createType(`PalletRandomnessRequestType`, "0x" + requestTypeEncoded);
+          const requestType = paraApi.registry.createType(
+            `PalletRandomnessRequestType`,
+            "0x" + requestTypeEncoded
+          );
 
           // sanity check
           expect(
@@ -135,18 +135,18 @@ describeSuite({
             let epoch = (requestType as any).asBabeEpoch;
             let found = requestStates.find((request) => {
               // TODO: can we traverse this hierarchy of types without creating each?
-              const requestState = context
-                .polkadotJs()
-                .registry.createType("PalletRandomnessRequestState", request.state.toHex());
-              const requestRequest = context
-                .polkadotJs()
-                .registry.createType(
-                  "PalletRandomnessRequest",
-                  (requestState as any).request.toHex()
-                );
-              const requestInfo = context
-                .polkadotJs()
-                .registry.createType("PalletRandomnessRequestInfo", (requestRequest as any).info);
+              const requestState = paraApi.registry.createType(
+                "PalletRandomnessRequestState",
+                request.state.toHex()
+              );
+              const requestRequest = paraApi.registry.createType(
+                "PalletRandomnessRequest",
+                (requestState as any).request.toHex()
+              );
+              const requestInfo = paraApi.registry.createType(
+                "PalletRandomnessRequestInfo",
+                (requestRequest as any).info
+              );
               if ((requestInfo as any).isBabeEpoch) {
                 const babe = (requestInfo as any).asBabeEpoch;
                 const requestEpoch = babe[0];
@@ -160,18 +160,18 @@ describeSuite({
             let block = (requestType as any).asLocal;
             let found = requestStates.find((request) => {
               // TODO: can we traverse this hierarchy of types without creating each?
-              const requestState = context
-                .polkadotJs()
-                .registry.createType("PalletRandomnessRequestState", request.state.toHex());
-              const requestRequest = context
-                .polkadotJs()
-                .registry.createType(
-                  "PalletRandomnessRequest",
-                  (requestState as any).request.toHex()
-                );
-              const requestInfo = context
-                .polkadotJs()
-                .registry.createType("PalletRandomnessRequestInfo", (requestRequest as any).info);
+              const requestState = paraApi.registry.createType(
+                "PalletRandomnessRequestState",
+                request.state.toHex()
+              );
+              const requestRequest = paraApi.registry.createType(
+                "PalletRandomnessRequest",
+                (requestState as any).request.toHex()
+              );
+              const requestInfo = paraApi.registry.createType(
+                "PalletRandomnessRequestInfo",
+                (requestRequest as any).info
+              );
               if ((requestInfo as any).isLocal) {
                 const local = (requestInfo as any).asLocal;
                 const requestBlock = local[0];
@@ -197,15 +197,18 @@ describeSuite({
         // Local count for request types
         const requestCounts = {};
         requestStates.forEach((request) => {
-          const requestState = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRequestState", request.state.toHex());
-          const requestRequest = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRequest", (requestState as any).request.toHex());
-          const requestInfo = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRequestInfo", (requestRequest as any).info);
+          const requestState = paraApi.registry.createType(
+            "PalletRandomnessRequestState",
+            request.state.toHex()
+          );
+          const requestRequest = paraApi.registry.createType(
+            "PalletRandomnessRequest",
+            (requestState as any).request.toHex()
+          );
+          const requestInfo = paraApi.registry.createType(
+            "PalletRandomnessRequestInfo",
+            (requestRequest as any).info
+          );
           if ((requestInfo as any).isBabeEpoch) {
             const babe = (requestInfo as any).asBabeEpoch;
             requestCounts[babe[0]] = (requestCounts[babe[0]] || new BN(0)).add(new BN(1));
@@ -224,12 +227,14 @@ describeSuite({
           // the remaining substr after offset is the concat part, which we can decode with createType
           const offset = 2 + 32 + 32 + 16;
           const requestTypeEncoded = key.toHex().slice(offset);
-          const requestType = context
-            .polkadotJs()
-            .registry.createType(`PalletRandomnessRequestType`, "0x" + requestTypeEncoded);
-          const result = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRandomnessResult", results.toHex());
+          const requestType = paraApi.registry.createType(
+            `PalletRandomnessRequestType`,
+            "0x" + requestTypeEncoded
+          );
+          const result = paraApi.registry.createType(
+            "PalletRandomnessRandomnessResult",
+            results.toHex()
+          );
           const resultRequestCount = (result as any).requestCount;
           if ((requestType as any).isBabeEpoch) {
             let epoch = (requestType as any).asBabeEpoch;
@@ -263,18 +268,20 @@ describeSuite({
         const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
         if (notFirstBlock) {
           expect(atBlockNumber).to.be.greaterThan(0); // should be true if notFirstBlock
-          const apiAtPrev = await context
-            .polkadotJs()
-            .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber - 1));
+          const apiAtPrev = await paraApi.at(
+            await paraApi.rpc.chain.getBlockHash(atBlockNumber - 1)
+          );
 
           const currentOutput = await apiAt.query.randomness.localVrfOutput();
           const previousOutput = await apiAtPrev.query.randomness.localVrfOutput();
-          const currentVrfOutput = context
-            .polkadotJs()
-            .registry.createType("Option<H256>", (currentOutput as any).toHex());
-          const previousVrfOutput = context
-            .polkadotJs()
-            .registry.createType("Option<H256>", (previousOutput as any).toHex());
+          const currentVrfOutput = paraApi.registry.createType(
+            "Option<H256>",
+            (currentOutput as any).toHex()
+          );
+          const previousVrfOutput = paraApi.registry.createType(
+            "Option<H256>",
+            (previousOutput as any).toHex()
+          );
           expect(previousVrfOutput.isSome).to.equal(
             true,
             `Previous local VRF output must always be inserted into storage but isNone`
@@ -305,12 +312,14 @@ describeSuite({
         let totalDeposits = 0n;
         for (const request of requestStates) {
           // TODO: copied from above -- this could use some DRY
-          const requestState = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRequestState", request.state.toHex());
-          const requestRequest = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRequest", (requestState as any).request.toHex());
+          const requestState = paraApi.registry.createType(
+            "PalletRandomnessRequestState",
+            request.state.toHex()
+          );
+          const requestRequest = paraApi.registry.createType(
+            "PalletRandomnessRequest",
+            (requestState as any).request.toHex()
+          );
 
           totalDeposits += BigInt((requestRequest as any).fee);
           totalDeposits += BigInt((requestState as any).deposit);
@@ -335,9 +344,10 @@ describeSuite({
 
         let query = await apiAt.query.randomness.randomnessResults.entries();
         await query.forEach(([key, results]) => {
-          const result = context
-            .polkadotJs()
-            .registry.createType("PalletRandomnessRandomnessResult", results.toHex());
+          const result = paraApi.registry.createType(
+            "PalletRandomnessRandomnessResult",
+            results.toHex()
+          );
           const randomnessResult = (result as any).randomness;
           if (randomnessResult.isSome) {
             isRandom(randomnessResult.unwrap());
@@ -358,75 +368,76 @@ describeSuite({
         const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
         if (notFirstBlock) {
           const currentOutput = await apiAt.query.randomness.localVrfOutput();
-          const currentRawOutput = context
-            .polkadotJs()
-            .registry.createType("H256", (currentOutput as any).toHex());
+          const currentRawOutput = paraApi.registry.createType(
+            "H256",
+            (currentOutput as any).toHex()
+          );
           isRandom(currentRawOutput);
         }
       },
     });
+
+    // Tests whether the input bytes appear to be random by measuring the distribution relative to
+    // what would be expected of a uniformly distributed [u8; 32]
+    function isRandom(bytes: Uint8Array) {
+      // test whether output bytes are statistically independent
+      chiSquareTest(bytes);
+      // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 81 < X < 175
+      averageByteWithinExpectedRange(bytes, 81, 175);
+      // expect fewer than 4 repeated values in output [u8; 32]
+      outputWithinExpectedRepetition(bytes, 3);
+    }
+
+    // Tests if byte output is independent
+    function chiSquareTest(bytes: Uint8Array) {
+      let chiSquared = 0.0;
+      let numOnes = 0;
+      // expected value of 256 coin flips:
+      const expectedValue = 256 / 2;
+      // degrees of freedom is 256 - 1 = 255, alpha is 0.05
+      // chi.pdf(250, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
+      // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
+
+      // count occurences of ones
+      const pValue = 286.882;
+      bytes.forEach((a) => {
+        // convert to a binary text string, e.g. "101101", then count the ones.
+        // note that this string excluded insignificant digits, which is why we count ones
+        numOnes += [...a.toString(2)].filter((x) => x === "1").length;
+      });
+
+      chiSquared += (numOnes - expectedValue) ** 2.0 / expectedValue;
+      let numZeroes = 256 - numOnes;
+      chiSquared += (numZeroes - expectedValue) ** 2.0 / expectedValue;
+
+      expect(numOnes + numZeroes).to.equal(256, "Data should produce exactly 256 bits");
+
+      expect(chiSquared < pValue).to.equal(
+        true,
+        `Chi square value greater than or equal to expected so bytes in output appear related` +
+          `chiSquared is ${chiSquared} >= ${pValue}`
+      );
+    }
+
+    // Tests uniform distribution of outputs bytes by checking if average byte is within expected range
+    function averageByteWithinExpectedRange(bytes: Uint8Array, min: number, max: number) {
+      const average = bytes.reduce((a, b) => a + b) / bytes.length;
+      expect(min <= average && average <= max).to.equal(true, `Average bytes is ${average}`);
+    }
+
+    // Tests uniform distribution of outputs bytes by checking if any repeated bytes
+    function outputWithinExpectedRepetition(bytes: Uint8Array, maxRepeats: number) {
+      const counts = {};
+      let fewerThanMaxRepeats = true;
+      bytes.forEach(function (x) {
+        let newCount: number = (counts[x] || 0) + 1;
+        counts[x] = newCount;
+        if (newCount > maxRepeats) {
+          log(`Count of ${x} > ${maxRepeats} maxRepeats\n` + `Bytes: ${bytes}`);
+          fewerThanMaxRepeats = false;
+        }
+      });
+      expect(fewerThanMaxRepeats).to.be.true;
+    }
   },
 });
-
-// Tests whether the input bytes appear to be random by measuring the distribution relative to
-// what would be expected of a uniformly distributed [u8; 32]
-function isRandom(bytes: Uint8Array) {
-  // test whether output bytes are statistically independent
-  chiSquareTest(bytes);
-  // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 81 < X < 175
-  averageByteWithinExpectedRange(bytes, 81, 175);
-  // expect fewer than 4 repeated values in output [u8; 32]
-  outputWithinExpectedRepetition(bytes, 3);
-}
-
-// Tests if byte output is independent
-function chiSquareTest(bytes: Uint8Array) {
-  let chiSquared = 0.0;
-  let numOnes = 0;
-  // expected value of 256 coin flips:
-  const expectedValue = 256 / 2;
-  // degrees of freedom is 256 - 1 = 255, alpha is 0.05
-  // chi.pdf(250, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
-  // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
-
-  // count occurences of ones
-  const pValue = 286.882;
-  bytes.forEach((a) => {
-    // convert to a binary text string, e.g. "101101", then count the ones.
-    // note that this string excluded insignificant digits, which is why we count ones
-    numOnes += [...a.toString(2)].filter((x) => x === "1").length;
-  });
-
-  chiSquared += (numOnes - expectedValue) ** 2.0 / expectedValue;
-  let numZeroes = 256 - numOnes;
-  chiSquared += (numZeroes - expectedValue) ** 2.0 / expectedValue;
-
-  expect(numOnes + numZeroes).to.equal(256, "Data should produce exactly 256 bits");
-
-  expect(chiSquared < pValue).to.equal(
-    true,
-    `Chi square value greater than or equal to expected so bytes in output appear related` +
-      `chiSquared is ${chiSquared} >= ${pValue}`
-  );
-}
-
-// Tests uniform distribution of outputs bytes by checking if average byte is within expected range
-function averageByteWithinExpectedRange(bytes: Uint8Array, min: number, max: number) {
-  const average = bytes.reduce((a, b) => a + b) / bytes.length;
-  expect(min <= average && average <= max).to.equal(true, `Average bytes is ${average}`);
-}
-
-// Tests uniform distribution of outputs bytes by checking if any repeated bytes
-function outputWithinExpectedRepetition(bytes: Uint8Array, maxRepeats: number) {
-  const counts = {};
-  let fewerThanMaxRepeats = true;
-  bytes.forEach(function (x) {
-    let newCount: number = (counts[x] || 0) + 1;
-    counts[x] = newCount;
-    if (newCount > maxRepeats) {
-      log(`Count of ${x} > ${maxRepeats} maxRepeats\n` + `Bytes: ${bytes}`);
-      fewerThanMaxRepeats = false;
-    }
-  });
-  expect(fewerThanMaxRepeats).to.be.true;
-}

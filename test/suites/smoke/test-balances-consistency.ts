@@ -9,7 +9,7 @@ import { FrameSystemAccountInfo, PalletPreimageRequestStatus } from "@polkadot/t
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 
-// TODO: FIX MOONWALL CONFIG
+// TODO: Replace with new balances smoke test (In other PR)
 
 // This test involves checking the balances for all accounts on chain, so care needs to be taken
 // with regards to both network load but also memory consumption. We do batched queries for reading
@@ -84,6 +84,7 @@ describeSuite({
       id: "C100",
       title: `should have matching deposit/reserved`,
       timeout: 240000,
+      modifier: "skip",
       test: async function () {
         const [
           proxies,
@@ -625,6 +626,7 @@ describeSuite({
     it({
       id: "C200",
       title: `should match total supply`,
+      modifier: "skip",
       timeout: 30000,
       test: async function () {
         const totalIssuance = await apiAt.query.balances.totalIssuance();

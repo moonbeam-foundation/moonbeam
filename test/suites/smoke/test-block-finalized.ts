@@ -20,11 +20,11 @@ describeSuite({
   title: "Parachain blocks should be finalized",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let api: ApiPromise;
+    let paraApi: ApiPromise;
     let ethers: Signer;
 
     beforeAll(() => {
-      api = context.polkadotJs();
+      paraApi = context.polkadotJs({ apiName: "para" });
       ethers = context.ethersSigner();
     });
 
@@ -32,8 +32,8 @@ describeSuite({
       id: "C100",
       title: "should have a recently finalized block",
       test: async function () {
-        const head = await context.polkadotJs().rpc.chain.getFinalizedHead();
-        const block = await context.polkadotJs().rpc.chain.getBlock(head);
+        const head = await paraApi.rpc.chain.getFinalizedHead();
+        const block = await paraApi.rpc.chain.getBlock(head);
 
         const diff = Date.now() - getBlockTime(block);
         log(`Last finalized block was ${diff / 1000} seconds ago`);
@@ -45,8 +45,8 @@ describeSuite({
       id: "C200",
       title: "should have a recently finalized eth block",
       test: async function () {
-        const specVersion = api.consts.system.version.specVersion.toNumber();
-        const clientVersion = (await api.rpc.system.version()).toString().split("-")[0];
+        const specVersion = paraApi.consts.system.version.specVersion.toNumber();
+        const clientVersion = (await paraApi.rpc.system.version()).toString().split("-")[0];
 
         if (specVersion < 1900 || semver.lt(clientVersion, "0.27.2")) {
           log(`ChainSpec ${specVersion}, client ${clientVersion} unsupported BlockTag, skipping.`);
@@ -67,7 +67,9 @@ describeSuite({
         ` ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours #C300`,
       timeout: timeout,
       test: async function () {
-        const signedBlock = await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead());
+        const signedBlock = await paraApi.rpc.chain.getBlock(
+          await paraApi.rpc.chain.getFinalizedHead()
+        );
         const lastBlockNumber = signedBlock.block.header.number.toNumber();
         const lastBlockTime = getBlockTime(signedBlock);
         const limiter = rateLimiter();
@@ -76,7 +78,7 @@ describeSuite({
         log(`Searching for the block at: ${new Date(firstBlockTime)}`);
 
         const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
-          api,
+          paraApi,
           lastBlockNumber,
           firstBlockTime
         )) as number;
@@ -86,7 +88,7 @@ describeSuite({
         const promises = (() => {
           const length = lastBlockNumber - firstBlockNumber;
           return Array.from({ length }, (_, i) => firstBlockNumber + i);
-        })().map((num) => limiter.schedule(() => checkBlockFinalized(api, num)));
+        })().map((num) => limiter.schedule(() => checkBlockFinalized(paraApi, num)));
 
         const results = await Promise.all(promises);
 

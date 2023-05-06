@@ -3,6 +3,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { THIRTY_MINS } from "@moonwall/util";
+import { ApiPromise } from "@polkadot/api";
 
 // TODO: Once balanceConsistency refactor PR merged, update this tc to use the new fast query logic
 describeSuite({
@@ -12,8 +13,8 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
-
     const accountCodeSizesByAddress: { [account: string]: number } = {};
+    let paraApi: ApiPromise;
 
     // returns the length in bytes of the byte array represented by the given hex string.
     // assumes a prefixed "0x".
@@ -22,6 +23,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
+      paraApi = context.polkadotJs({ apiName: "para" });
       const limit = 500;
       let last_key = "";
       let count = 0;
@@ -31,10 +33,8 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
       const doOneRequest = async () => {
         const query = await apiAt.query.evm.accountCodes.entriesPaged({

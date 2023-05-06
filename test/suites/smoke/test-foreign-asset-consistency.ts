@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S1000",
@@ -14,17 +15,17 @@ describeSuite({
     const foreignXcmAcceptedAssets: string[] = [];
     let liveForeignAssets: { [key: string]: boolean };
     let specVersion: number;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
+      paraApi = context.polkadotJs({ apiName: "para" });
       // Configure the api at a specific block
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
       let query = await apiAt.query.assetManager.assetIdType.entries();

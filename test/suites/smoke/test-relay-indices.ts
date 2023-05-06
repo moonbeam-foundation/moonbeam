@@ -15,11 +15,9 @@ describeSuite({
     let relayEncoder: Contract;
     let xcmTransactorV1: Contract;
     let xcmTransactorV2: Contract;
-    let rtVersion: number;
     let relayApi: ApiPromise;
 
     beforeAll(async function () {
-      rtVersion = context.polkadotJs().consts.system.version.specVersion.toNumber();
       relayApi = context.polkadotJs({ apiName: "relay" });
       const RELAY_ENCODER_PRECOMPILE = "0x0000000000000000000000000000000000000805";
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
@@ -81,14 +79,9 @@ describeSuite({
     it({
       id: "C100",
       title: "should have matching indices for HRMP.InitOpenChannel",
+      minRtVersion: 2100,
       test: async function () {
-        if (rtVersion < 2100) {
-          log(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
-          return; // TODO: replace with skip() when added to vitest
-        }
-        const callHex = relayApi
-          .tx.hrmp.hrmpInitOpenChannel(2000, 1000, 102400)
-          .method.toHex();
+        const callHex = relayApi.tx.hrmp.hrmpInitOpenChannel(2000, 1000, 102400).method.toHex();
         const resp = await relayEncoder.encodeHrmpInitOpenChannel(2000, 1000, 102400);
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
@@ -97,11 +90,8 @@ describeSuite({
     it({
       id: "C200",
       title: "should have matching indices for HRMP.AcceptOpenChannel",
+      minRtVersion: 2100,
       test: async function () {
-        if (rtVersion < 2100) {
-          log(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
-          return; // TODO: replace with skip() when added to vitest;
-        }
         const callHex = relayApi.tx.hrmp.hrmpAcceptOpenChannel(2001).method.toHex();
         const resp = await relayEncoder.encodeHrmpAcceptOpenChannel(2001);
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
@@ -111,11 +101,8 @@ describeSuite({
     it({
       id: "C300",
       title: "should have matching indices for HRMP.CloseChannel",
+      minRtVersion: 2100,
       test: async function () {
-        if (rtVersion < 2100) {
-          log(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
-          return; // TODO: replace with skip() when added to vitest;
-        }
         const callHex = relayApi.tx.hrmp
           .hrmpCloseChannel({ sender: 2000, recipient: 2001 })
           .method.toHex();
@@ -238,11 +225,8 @@ describeSuite({
     it({
       id: "C1400",
       title: "should have matching indices for Utility.asDerivative in V1",
+      minRtVersion: 2100,
       test: async function () {
-        if (rtVersion < 2100) {
-          log(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
-          return; // TODO: replace with skip() when added to vitest;
-        }
         const inputCall = relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
         const callHex = relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
         const resp = await xcmTransactorV1.encodeUtilityAsDerivative(
@@ -257,13 +241,11 @@ describeSuite({
     it({
       id: "C1500",
       title: "should have matching indices for Utility.asDerivative in V2",
+      minRtVersion: 2100,
       test: async function () {
-        if (rtVersion < 2100) {
-          log(`Runtime version is ${rtVersion}, which is less than 2100. Skipping test. `);
-          return; // TODO: replace with skip() when added to vitest;
-        }
-
-        const chainType = context.polkadotJs().consts.system.version.specName.toString();
+        const chainType = context
+          .polkadotJs({ apiName: "para" })
+          .consts.system.version.specName.toString();
         if (chainType !== "moonbase") {
           log(`Chain type ${chainType} does not support V2, skipping.`);
           return; // TODO: replace with skip() when added to vitest;

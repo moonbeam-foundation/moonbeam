@@ -31,9 +31,11 @@ describeSuite({
   notChainType: "moonbase",
   testCases: ({ context, it, log }) => {
     let networkBlockEvents: NetworkBlockEvents[];
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      const networkName = context.polkadotJs().runtimeChain.toString();
+      paraApi = context.polkadotJs({ apiName: "para" });
+      const networkName = paraApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName
       );

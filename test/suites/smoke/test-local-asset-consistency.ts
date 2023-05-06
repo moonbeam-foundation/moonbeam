@@ -21,10 +21,10 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
+        : (await context.polkadotJs({ apiName: "para" }).rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+        .polkadotJs({ apiName: "para" })
+        .at(await context.polkadotJs({ apiName: "para" }).rpc.chain.getBlockHash(atBlockNumber));
       localAssetDeposits = await apiAt.query.assetManager.localAssetDeposit.keys();
       localAssetCounter = await (await apiAt.query.assetManager.localAssetCounter()).toNumber();
       localAssetInfo = await apiAt.query.assetManager.localAssetDeposit.keys();

@@ -3,6 +3,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { expect, beforeAll, describeSuite } from "@moonwall/cli";
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S1600",
@@ -11,12 +12,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
     const proxyAccList = [];
-
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
-    let specVersion: number = 0;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
+      paraApi = context.polkadotJs({ apiName: "para" });
       const limit = 1000;
       let last_key = "";
       let count = 0;
@@ -26,11 +27,8 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context.polkadotJs().at(
-        await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber)
-      );
-      specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
       // TEMPLATE: query the data
       while (true) {
@@ -65,79 +63,88 @@ describeSuite({
     }, 30_000);
 
     // TEMPLATE: Give details about what you are testing
-    it({id:"C100",title: "should have no more than the maximum allowed proxies",timeout: 240000, test: async function () {
-      const maxProxies = (await context.polkadotJs().consts.proxy.maxProxies).toNumber();
-      const failedProxies: { accountId: string; proxiesCount: number }[] = [];
+    it({
+      id: "C100",
+      title: "should have no more than the maximum allowed proxies",
+      timeout: 240000,
+      test: async function () {
+        const maxProxies = (await paraApi.consts.proxy.maxProxies).toNumber();
+        const failedProxies: { accountId: string; proxiesCount: number }[] = [];
 
-      for (const accountId of Object.keys(proxiesPerAccount)) {
-        const proxiesCount = proxiesPerAccount[accountId].length;
-        if (proxiesCount > maxProxies) {
-          failedProxies.push({ accountId, proxiesCount });
+        for (const accountId of Object.keys(proxiesPerAccount)) {
+          const proxiesCount = proxiesPerAccount[accountId].length;
+          if (proxiesCount > maxProxies) {
+            failedProxies.push({ accountId, proxiesCount });
+          }
         }
-      }
 
-      if (failedProxies.length > 0) {
-        log("Failed accounts with too many proxies:");
+        if (failedProxies.length > 0) {
+          log("Failed accounts with too many proxies:");
+          log(
+            failedProxies
+              .map(({ accountId, proxiesCount }) => {
+                return `accountId: ${accountId} - ${chalk.red(
+                  proxiesCount.toString().padStart(4, " ")
+                )} proxies (expected max: ${maxProxies})`;
+              })
+              .join(`\n`)
+          );
+        }
+
+        expect(failedProxies.length, "Failed max proxies").to.equal(0);
+
         log(
-          failedProxies
-            .map(({ accountId, proxiesCount }) => {
-              return `accountId: ${accountId} - ${chalk.red(
-                proxiesCount.toString().padStart(4, " ")
-              )} proxies (expected max: ${maxProxies})`;
-            })
-            .join(`\n`)
+          `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
         );
-      }
-
-      expect(failedProxies.length, "Failed max proxies").to.equal(0);
-
-      log(
-        `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
-      );
-    }});
-
-    it({id:"C200",title: "should have a maximum allowed proxies of 32",test: async function () {
-      const runtimeName = context.polkadotJs().runtimeVersion.specName.toString();
-      const networkName = context.polkadotJs().runtimeChain.toString();
-      const maxProxies = (await context.polkadotJs().consts.proxy.maxProxies).toNumber();
-
-      switch (runtimeName) {
-        case "moonbase":
-          expect(maxProxies).to.equal(32);
-          break;
-        case "moonriver":
-          expect(maxProxies).to.equal(32);
-          break;
-        case "moonbeam":
-          expect(maxProxies).to.equal(32);
-          break;
-        default:
-          expect(maxProxies).to.equal(32);
-          break;
-      }
-
-      // TEMPLATE: This is redundant but is used to show how to check based on the network
-      switch (networkName) {
-        case "Moonbase Alpha":
-          expect(maxProxies).to.equal(32);
-          break;
-        case "Moonbeam":
-          expect(maxProxies).to.equal(32);
-          break;
-        default:
-          expect(maxProxies).to.equal(32);
-          break;
-      }
-
-      // TEMPLATE: Updates the log line
-      log(`Verified maximum allowed proxies constant`);
-    }});
+      },
+    });
 
     it({
-      id:"C300",
-      title:"should only be possible for proxies of non-smart contract accounts",
-      timeout:60000,
-      test:async function () {
+      id: "C200",
+      title: "should have a maximum allowed proxies of 32",
+      test: async function () {
+        const runtimeName = paraApi.runtimeVersion.specName.toString();
+        const networkName = paraApi.runtimeChain.toString();
+        const maxProxies = (await paraApi.consts.proxy.maxProxies).toNumber();
+
+        switch (runtimeName) {
+          case "moonbase":
+            expect(maxProxies).to.equal(32);
+            break;
+          case "moonriver":
+            expect(maxProxies).to.equal(32);
+            break;
+          case "moonbeam":
+            expect(maxProxies).to.equal(32);
+            break;
+          default:
+            expect(maxProxies).to.equal(32);
+            break;
+        }
+
+        // TEMPLATE: This is redundant but is used to show how to check based on the network
+        switch (networkName) {
+          case "Moonbase Alpha":
+            expect(maxProxies).to.equal(32);
+            break;
+          case "Moonbeam":
+            expect(maxProxies).to.equal(32);
+            break;
+          default:
+            expect(maxProxies).to.equal(32);
+            break;
+        }
+
+        // TEMPLATE: Updates the log line
+        log(`Verified maximum allowed proxies constant`);
+      },
+    });
+
+    it({
+      id: "C300",
+      title: "should only be possible for proxies of non-smart contract accounts",
+      timeout: 60000,
+      test: async function () {
         // For each account with a registered proxy, check whether it is a non-SC address
         const results = await Promise.all(
           proxyAccList.map(async (address) => {
@@ -151,7 +158,7 @@ describeSuite({
             log(`Proxy account for non-external address detected: ${item.address} `);
         });
         expect(results.every((item) => item.contract == false)).to.be.true;
-      }
+      },
     });
   },
 });

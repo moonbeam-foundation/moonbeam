@@ -12,7 +12,7 @@ describeSuite({
     it({
       id: "C100",
       title: `should get the same response payload on byNumber and byHash requests`,
-      timeout: 60_000, // 1 minute
+      timeout: 60_000,
       test: async function () {
         // As we are testing rpc-level functionality the height at which we access secondary db data
         // is irrelevant. We can just select some arbitrary block numbers to verify block hashes.
