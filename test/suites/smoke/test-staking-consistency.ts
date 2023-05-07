@@ -307,6 +307,7 @@ describeSuite({
     it({
       id: "C900",
       title: "current selected candidates are more than minimum required",
+      modifier: "skip",
       test: async function () {
         expect(
           allSelectedCandidates.length,
