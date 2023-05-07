@@ -622,7 +622,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "prepare-polkadot"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
@@ -670,7 +670,7 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "Run zombie test"
+      - name: "Run zombie upgrade test"
         run: |
           cd test
           pnpm i
