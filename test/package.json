@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "pnpm prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
+    "lint": "pnpm prettier --write --ignore-path .gitignore '**/*.(yml|js|ts)'",
     "start": "pnpm moonwall",
     "typecheck": "pnpm exec tsc --noEmit"
   },

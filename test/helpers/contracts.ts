@@ -18,16 +18,14 @@ export function getAllContracts(): string[] {
 
 const contracts: { [name: string]: Compiled } = {};
 export function getCompiled(name: string): Compiled {
-  if (
-    !fs.existsSync(
-      path.join(__dirname, "..", "..", "helpers", "compiled-contracts", `${name}.json`)
-    )
-  ) {
+  const filePath = path.join(process.cwd(), "helpers", `${name}.json`);
+  if (!fs.existsSync(filePath)) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   }
   if (!contracts[name]) {
     try {
-      contracts[name] = require(`../contracts/compiled/${name}.json`);
+      const json = fs.readFileSync(filePath, "utf8");
+      contracts[name] = JSON.parse(json);
     } catch (e) {
       throw new Error(
         `Contract name ${name} is not compiled. Please run 'npm run pre-build-contracts`

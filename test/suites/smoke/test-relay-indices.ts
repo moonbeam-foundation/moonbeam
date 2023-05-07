@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll, ApiPromise } from "@moonwall/cli";
-import { Contract, ethers } from "ethers";
+import { Contract, ethers, WebSocketProvider } from "ethers";
 import { ALITH_ADDRESS, ALITH_SESSION_ADDRESS, BALTATHAR_ADDRESS } from "@moonwall/util";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { getCompiled } from "../../helpers/contracts.js";
@@ -23,56 +23,37 @@ describeSuite({
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
       const XCM_TRANSACTOR_V2_PRECOMPILE = "0x000000000000000000000000000000000000080D";
 
-      let file = await fs.readFile(
-        path.join(
-          process.cwd(),
-          "helpers/compiled-contracts/precompiles/relay-encoder/RelayEncoder.json"
-        ),
-        "utf8"
+      const RELAY_ENCODER_CONTRACT_JSON = getCompiled(
+        "compiled/precompiles/relay-encoder/RelayEncoder"
       );
-      const RELAY_ENCODER_CONTRACT_JSON = JSON.parse(file);
-
       const RELAY_ENCODER_INTERFACE = RELAY_ENCODER_CONTRACT_JSON.contract.abi;
 
-      file = await fs.readFile(
-        path.join(
-          process.cwd(),
-          "helpers/compiled-contracts/precompiles/xcm-transactor/src/v1/XcmTransactorV1.json"
-        ),
-        "utf8"
+      const XCM_TRANSACTOR_V1_JSON = getCompiled(
+        "compiled/precompiles/xcm-transactor/src/v1/XcmTransactorV1"
       );
-
-      const XCM_TRANSACTOR_V1_JSON = JSON.parse(file);
-
       const XCM_TRANSACTOR_V1_INTERFACE = XCM_TRANSACTOR_V1_JSON.contract.abi;
 
-      file = await fs.readFile(
-        path.join(
-          process.cwd(),
-          "helpers/compiled-contracts/precompiles/xcm-transactor/src/v2/XcmTransactorV2.json"
-        ),
-        "utf8"
+      const XCM_TRANSACTOR_V2_JSON = getCompiled(
+        "compiled/precompiles/xcm-transactor/src/v2/XcmTransactorV2"
       );
-
-      const XCM_TRANSACTOR_V2_JSON = JSON.parse(file);
       const XCM_TRANSACTOR_V2_INTERFACE = XCM_TRANSACTOR_V2_JSON.contract.abi;
 
       relayEncoder = new ethers.Contract(
         RELAY_ENCODER_PRECOMPILE,
         RELAY_ENCODER_INTERFACE,
-        context.ethersSigner()
+        context.ethersSigner().provider as WebSocketProvider
       );
 
       xcmTransactorV1 = new ethers.Contract(
         XCM_TRANSACTOR_V1_PRECOMPILE,
         XCM_TRANSACTOR_V1_INTERFACE,
-        context.ethersSigner()
+        context.ethersSigner().provider as WebSocketProvider
       );
 
       xcmTransactorV2 = new ethers.Contract(
         XCM_TRANSACTOR_V2_PRECOMPILE,
         XCM_TRANSACTOR_V2_INTERFACE,
-        context.ethersSigner()
+        context.ethersSigner().provider as WebSocketProvider
       );
     });
 

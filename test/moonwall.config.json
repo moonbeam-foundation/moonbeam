@@ -73,12 +73,12 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "para",
           "type": "moon",
-          "endpoints": ["wss://frag-moonsama-rpc-ws.g.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "relay",
