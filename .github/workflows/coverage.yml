@@ -31,7 +31,7 @@ jobs:
       - name: Set dev mode
         id: set-dev-mode
         run: |
-          echo "dev_mode=true" >> $GITHUB_OUTPUT
+          echo "dev_mode=false" >> $GITHUB_OUTPUT
       - name: Check git ref
         id: check-git-ref
         # if PR
@@ -227,7 +227,7 @@ jobs:
             -o coverage/ --llvm-path ./  --llvm
           fi
 
-          echo "total_percent=$(grep '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
+          echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverage s3
         uses: shallwefootball/s3-upload-action@master
