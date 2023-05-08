@@ -20,14 +20,13 @@ use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_std::vec::Vec;
-use xcm::latest::MultiLocation;
 
 // A user action which will attempt to route the transferred assets to the account/chain specified
 // by the given MultiLocation. Recall that a MultiLocation can contain both a chain and an account
 // on that chain, as this one should.
 #[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserAction {
-	pub destination: MultiLocation,
+	pub destination: xcm::v3::MultiLocation,
 }
 
 // A simple versioning wrapper around the initial XcmRoutingUserAction use-case. This should make
