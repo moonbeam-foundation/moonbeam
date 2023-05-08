@@ -126,6 +126,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
+	// is_pallet_prefix::<moonbeam_runtime::OpenTechCommitteeCollective>(
+	// 	"OpenTechCommitteeCollective",
+	// );
 	is_pallet_prefix::<moonbeam_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbeam_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
@@ -261,6 +264,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
 	}
+
+	// for StorageInfo { pallet_name, .. } in
+	// 	<moonbeam_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	// {
+	// 	assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	// }
 }
 
 #[test]
@@ -287,6 +296,96 @@ fn collective_set_members_root_origin_works() {
 			Some(AccountId::from(ALICE)),
 			2
 		));
+		// OpenTechCommitteeCollective
+		// assert_ok!(OpenTechCommitteeCollective::set_members(
+		// 	<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+		// 	vec![AccountId::from(ALICE), AccountId::from(BOB)],
+		// 	Some(AccountId::from(ALICE)),
+		// 	2
+		// ));
+	});
+}
+
+#[test]
+fn collective_set_members_general_admin_origin_works() {
+	use moonbeam_runtime::{
+		governance::custom_origins::Origin as CustomOrigin, OriginCaller, Utility,
+	};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let root_caller = <Runtime as frame_system::Config>::RuntimeOrigin::root();
+		let alice = AccountId::from(ALICE);
+
+		// CouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance1>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance2>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TreasuryCouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// OpenTechCommitteeCollective
+		// let _ = Utility::dispatch_as(
+		// 	root_caller,
+		// 	Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+		// 	Box::new(
+		// 		pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+		// 			new_members: vec![alice, AccountId::from(BOB)],
+		// 			prime: Some(alice),
+		// 			old_count: 2,
+		// 		}
+		// 		.into(),
+		// 	),
+		// );
+
+		// assert_eq!(
+		// 	System::events()
+		// 		.into_iter()
+		// 		.filter_map(|r| {
+		// 			match r.event {
+		// 				RuntimeEvent::Utility(pallet_utility::Event::DispatchedAs { result })
+		// 					if result.is_ok() =>
+		// 				{
+		// 					Some(true)
+		// 				}
+		// 				_ => None,
+		// 			}
+		// 		})
+		// 		.collect::<Vec<_>>()
+		// 		.len(),
+		// 	4
+		// )
 	});
 }
 
@@ -318,6 +417,14 @@ fn collective_set_members_signed_origin_does_not_work() {
 			2
 		)
 		.is_err());
+		// OpenTechCommitteeCollective
+		// assert!(OpenTechCommitteeCollective::set_members(
+		// 	<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+		// 	vec![AccountId::from(ALICE), AccountId::from(BOB)],
+		// 	Some(AccountId::from(ALICE)),
+		// 	2
+		// )
+		// .is_err());
 	});
 }
 
