@@ -3,13 +3,15 @@
 while IFS= read -r path
 do
     echo "$path"
-    # 
+
+    # Detect single or multiline declarations of pallet-evm and pallet-ethereum to
+    # contain the "forbid-evm-reentrancy" feature.
     matches=$(awk 'flag{
-      if (buf ~ /}/ && buf !~ /reentrancy/) { 
-        printf "(line %d) %s", line, buf; flag=0; buf=""        # single line declaration
+      if (buf ~ /}/ && buf !~ /forbid-evm-reentrancy/) { 
+        printf "(line %d) %s", line, buf; flag=0; buf=""              # single line declaration
       } else  {
           buf = buf $0 ORS;
-          if (flag && /}/ && buf !~ /reentrancy/) {             # multiline declaration
+          if (flag && /}/ && buf !~ /forbid-evm-reentrancy/) {        # multiline declaration
             printf "(line %d) %s", line, buf; flag=0; buf="" 
           }
       }
