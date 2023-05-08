@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use futures::{SinkExt, StreamExt};
 use jsonrpsee::core::{async_trait, RpcResult};
-pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams};
+pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams, TraceCallParams};
 
 use tokio::{
 	self,
@@ -23,7 +23,7 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
+use fc_rpc::{fee_details, frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
@@ -41,6 +41,7 @@ use std::{future::Future, marker::PhantomData, sync::Arc};
 pub enum RequesterInput {
 	Transaction(H256),
 	Block(RequestBlockId),
+	Call((RequestBlockId, TraceCallParams))
 }
 
 pub enum Response {
@@ -118,6 +119,36 @@ impl DebugServer for Debug {
 			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
 			.map(|res| match res {
 				Response::Block(res) => res,
+				_ => unreachable!(),
+			})
+	}
+
+	async fn trace_call(
+		&self,
+		call_params: TraceCallParams,
+		id: RequestBlockId,
+		trace_params: Option<TraceParams>,
+	) -> RpcResult<single::TransactionTrace> {
+		let mut requester = self.requester.clone();
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.send(((RequesterInput::Call((id, call_params)), trace_params), tx))
+			.await
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
+
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| {
+				internal_err(format!("debug service dropped the channel : {:?}", err))
+			})?
+			.map(|res| match res {
+				Response::Single(res) => res,
 				_ => unreachable!(),
 			})
 	}
@@ -212,6 +243,43 @@ where
 											request_block_id,
 											params,
 											overrides.clone(),
+										)
+									})
+									.await
+									.map_err(|e| {
+										internal_err(format!(
+											"Internal error on spawned task : {:?}",
+											e
+										))
+									})?
+								}
+								.await,
+							);
+						});
+					}
+					Some((
+						(RequesterInput::Call((request_block_id, call_params)), trace_params),
+						response_tx,
+					)) => {
+						let client = client.clone();
+						let backend = backend.clone();
+						let frontier_backend = frontier_backend.clone();
+						let permit_pool = permit_pool.clone();
+						let overrides = overrides.clone();
+
+						tokio::task::spawn(async move {
+							let _ = response_tx.send(
+								async {
+									let _permit = permit_pool.acquire().await;
+									tokio::task::spawn_blocking(move || {
+										Self::handle_call_request(
+											client.clone(),
+											backend.clone(),
+											frontier_backend.clone(),
+											request_block_id,
+											call_params,
+											trace_params,
+											raw_max_memory_usage,
 										)
 									})
 									.await
@@ -594,5 +662,187 @@ where
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))
+	}
+
+	fn handle_call_request(
+		client: Arc<C>,
+		backend: Arc<BE>,
+		frontier_backend: Arc<fc_db::Backend<B>>,
+		request_block_id: RequestBlockId,
+		call_params: TraceCallParams,
+		trace_params: Option<TraceParams>,
+		raw_max_memory_usage: usize,
+	) -> RpcResult<Response> {
+		let (tracer_input, trace_type) = Self::handle_params(trace_params)?;
+
+		let reference_id: BlockId<B> = match request_block_id {
+			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
+			RequestBlockId::Tag(RequestBlockTag::Latest) => {
+				Ok(BlockId::Number(client.info().best_number))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Earliest) => {
+				Ok(BlockId::Number(0u32.unique_saturated_into()))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Pending) => {
+				Err(internal_err("'pending' blocks are not supported"))
+			}
+			RequestBlockId::Hash(eth_hash) => {
+				match frontier_backend_client::load_hash::<B, C>(&client, frontier_backend.as_ref(), eth_hash) {
+					Ok(Some(id)) => Ok(BlockId::Hash(id)),
+					Ok(_) => Err(internal_err("Block hash not found".to_string())),
+					Err(e) => Err(e),
+				}
+			}
+		}?;
+
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		let api = client.runtime_api();
+		// Get Blockchain backend
+		let blockchain = backend.blockchain();
+		// Get the header I want to work with.
+		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
+			return Err(internal_err("Block header not found"))
+		};
+		let header = client.header(hash).unwrap().unwrap();
+		// Get parent blockid.
+		let parent_block_id = BlockId::Hash(*header.parent_hash());
+
+		// Get the extrinsics.
+		let ext = blockchain.body(hash).unwrap().unwrap();
+
+		let api_version =
+			if let Ok(Some(api_version)) = api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&parent_block_id) {
+				api_version
+			} else {
+				return Err(internal_err(format!(
+					"failed to retrieve Runtime Api version"
+				)));
+			};
+
+		let TraceCallParams {
+			from,
+			to,
+			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
+			gas,
+			value,
+			data,
+			access_list,
+		} = call_params;
+
+		let (max_fee_per_gas, max_priority_fee_per_gas) = {
+			let details = fee_details(gas_price, max_fee_per_gas, max_priority_fee_per_gas)?;
+			(
+				details.max_fee_per_gas,
+				details.max_priority_fee_per_gas,
+			)
+		};
+
+		let gas_limit = match gas {
+			Some(amount) => amount,
+			None => {
+				let block = if api_version > 1 {
+					api.current_block(&parent_block_id)
+						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
+				} else {
+					#[allow(deprecated)]
+					let legacy_block = api.current_block_before_version_2(&parent_block_id)
+						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+					if let Some(block) = legacy_block {
+						Some(block.into())
+					} else {
+						None
+					}
+				};
+
+				if let Some(block) = block {
+					block.header.gas_limit
+				} else {
+					return Err(internal_err(format!(
+						"block unavailable, cannot query gas limit"
+					)));
+				}
+			}
+		};
+		let data = data.map(|d| d.0).unwrap_or_default();
+
+		let access_list = access_list.unwrap_or_default();
+
+		let f = || -> RpcResult<_> {
+			api.initialize_block(&parent_block_id, &header)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
+			let _result = api
+				.trace_call(
+					&parent_block_id,
+					ext,
+					from.unwrap_or_default(),
+					to,
+					data,
+					value.unwrap_or_default(),
+					gas_limit,
+					max_fee_per_gas,
+					max_priority_fee_per_gas,
+					Some(
+						access_list
+							.into_iter()
+							.map(|item| (item.address, item.storage_keys))
+							.collect(),
+					)
+				)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+			Ok(moonbeam_rpc_primitives_debug::Response::Single)
+		};
+
+		return match trace_type {
+			single::TraceType::Raw {
+				disable_storage,
+				disable_memory,
+				disable_stack,
+			} => {
+				let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
+					disable_storage,
+					disable_memory,
+					disable_stack,
+					raw_max_memory_usage,
+				);
+				proxy.using(f)?;
+				Ok(Response::Single(
+					moonbeam_client_evm_tracing::formatters::Raw::format(proxy).unwrap(),
+				))
+			}
+			single::TraceType::CallList => {
+				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.using(f)?;
+				proxy.finish_transaction();
+				let response = match tracer_input {
+					TracerInput::Blockscout => {
+						moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))
+					}
+					TracerInput::CallTracer => {
+						let mut res =
+							moonbeam_client_evm_tracing::formatters::CallTracer::format(
+								proxy,
+							)
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))?;
+						Ok(res.pop().unwrap())
+					}
+					_ => Err(internal_err(format!(
+						"Bug: failed to resolve the tracer format."
+					))),
+				}?;
+				Ok(Response::Single(response))
+			}
+			not_supported => Err(internal_err(format!(
+				"Bug: `handle_transaction_request` does not support {:?}.",
+				not_supported
+			))),
+		};
 	}
 }
