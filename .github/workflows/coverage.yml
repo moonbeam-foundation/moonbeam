@@ -150,8 +150,7 @@ jobs:
           path: build
       - name: Unit tests
         run: |
-          echo SKIPPED FOR NOW
-          # cargo test --release --all --features=evm-tracing
+          cargo test --release --all --features=evm-tracing
       - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
@@ -227,6 +226,7 @@ jobs:
             -o coverage/ --llvm-path ./  --llvm
           fi
 
+          echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverage s3
@@ -253,7 +253,7 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Coverage generated:
+            Coverage generated ${{ steps.coverage.outputs.coverage_date }}:
             https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/html/index.html
 
             Total coverage: ${{ steps.coverage.outputs.total_percent }}
