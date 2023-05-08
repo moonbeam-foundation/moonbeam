@@ -11,6 +11,9 @@ dependencies:
   '@polkadot/apps-config':
     specifier: ^0.129.1
     version: 0.129.1(@polkadot/util-crypto@12.1.2)
+  '@polkadot/util-crypto':
+    specifier: ^12.1.2
+    version: 12.1.2(@polkadot/util@12.1.2)
   '@vitest/ui':
     specifier: ^0.31.0
     version: 0.31.0(vitest@0.31.0)
@@ -4104,6 +4107,7 @@ packages:
     dependencies:
       chalk: 2.4.2
       diff-match-patch: 1.0.5
+    bundledDependencies: []
 
   /jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}

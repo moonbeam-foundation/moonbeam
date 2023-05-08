@@ -38,6 +38,7 @@
   "dependencies": {
     "@acala-network/chopsticks": "^0.6.4",
     "@polkadot/apps-config": "^0.129.1",
+    "@polkadot/util-crypto": "^12.1.2",
     "@vitest/ui": "^0.31.0",
     "@zombienet/utils": "^0.0.19",
     "bfj": "^7.0.2",
