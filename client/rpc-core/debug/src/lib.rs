@@ -51,8 +51,13 @@ pub struct TraceCallParams {
 	pub value: Option<U256>,
 	/// Additional data sent with transaction
 	pub data: Option<Bytes>,
+	/// Nonce
+	pub nonce: Option<U256>,
 	/// EIP-2930 access list
 	pub access_list: Option<Vec<AccessListItem>>,
+	/// EIP-2718 type
+	#[serde(rename = "type")]
+	pub transaction_type: Option<U256>,
 }
 
 #[rpc(server)]

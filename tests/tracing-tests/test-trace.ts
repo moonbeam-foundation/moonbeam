@@ -75,7 +75,6 @@ async function nestedSingle(context: DevTestContext) {
   );
 }
 
-// TODO: Refactor dependent tests
 describeDevMoonbeam(
   "Trace",
   (context) => {
@@ -742,3 +741,23 @@ try disabling memory or storage?",
     });
   });
 });
+
+describeDevMoonbeam(
+  "TraceCall",
+  (context) => {
+    it("debug_traceCall returns meaningful response", async function () {
+      const send = await nestedSingle(context);
+      await context.createBlock();
+      let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
+      let trace = traceTx.result.structLogs;
+
+      let traceCallTx = await customWeb3Request(context.web3, "debug_traceCall", [{}, 0]);
+      let traceCall = traceTx.result.structLogs;
+
+      
+    });
+  },
+  "Legacy",
+  "moonbase",
+  true
+);

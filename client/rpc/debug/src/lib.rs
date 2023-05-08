@@ -265,7 +265,6 @@ where
 						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
-						let overrides = overrides.clone();
 
 						tokio::task::spawn(async move {
 							let _ = response_tx.send(
@@ -728,7 +727,9 @@ where
 			gas,
 			value,
 			data,
+			nonce,
 			access_list,
+			..
 		} = call_params;
 
 		let (max_fee_per_gas, max_priority_fee_per_gas) = {
@@ -784,6 +785,7 @@ where
 					gas_limit,
 					max_fee_per_gas,
 					max_priority_fee_per_gas,
+					nonce,
 					Some(
 						access_list
 							.into_iter()
