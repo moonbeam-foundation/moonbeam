@@ -233,7 +233,7 @@ jobs:
 
           rm -rf proffiles/
       - name: Upload coverage s3
-      - uses: shallwefootball/s3-upload-action@master
+        uses: shallwefootball/s3-upload-action@master
         with:
           aws_key_id: ${{ secrets.S3_MOONBEAM_COVERAGE_ID }}
           aws_secret_access_key: ${{ secrets.S3_MOONBEAM_COVERAGE_KEY }}
