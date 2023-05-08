@@ -208,7 +208,7 @@ jobs:
 
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
-            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/* \
+            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/ \
             -o coverage/ --llvm-path ./  --llvm 2>&1 \
             | tee grcov.log
 
@@ -222,7 +222,7 @@ jobs:
             rm $INVALID
             cd ..
             ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
-            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/* \
+            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/ \
             -o coverage/ --llvm-path ./  --llvm
           fi
 
