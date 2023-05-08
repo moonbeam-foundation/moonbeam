@@ -226,8 +226,8 @@ export const verifyBlockFees = async (
                 console.log(`    weight refTime: ${(fee.weight as any).refTime}`);
                 console.log(`wtf, event: ${event}`);
                 const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                txFees = fee.partialFee.toBigInt();
-                txBurnt += feePortions.burnt;
+                txFees += fee.partialFee.toBigInt();
+                txBurnt += feePortions.burnt + extrinsic.tip.toBigInt();
 
                 // verify entire substrate txn fee
                 const apiAt = await context.polkadotApi.at(previousBlockHash);
@@ -256,23 +256,7 @@ export const verifyBlockFees = async (
                 ).toBigInt();
 
                 const tip = extrinsic.tip.toBigInt();
-
-                const expectedPartialFee = lengthFee + weightFee + baseFee + tip;
-
-                console.log(`fee calc:
-                    expected fee:            ${fee.partialFee}
-                    calculated fee:          ${expectedPartialFee}
-                        lengthFee:           ${lengthFee}
-                        weightFee:           ${weightFee}
-                        baseFee:             ${baseFee}
-                        tip:                 ${tip}
-                    other:
-                        unadjustedWeightFee: ${unadjustedWeightFee}
-                        multiplier:          ${multiplier}
-                        denominator:         ${denominator}
-                        weight (dispatch):   ${dispatchInfo.weight}
-                        weight (fee):        ${fee.weight}
-                    `);
+                const expectedPartialFee = lengthFee + weightFee + baseFee;
 
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
@@ -292,7 +276,7 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin)) as any;
 
-              expect(txFees.toString()).to.eq(
+              expect((txFees + extrinsic.tip.toBigInt()).toString()).to.eq(
                 (
                   (((fromBalance.data.free.toBigInt() as any) -
                     toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
@@ -315,7 +299,7 @@ export const verifyBlockFees = async (
           .reduce((p, v) => p + v, 0n);
 
         expect(
-          txFees - txBurnt,
+          txFees + extrinsic.tip.toBigInt() - txBurnt,
           `Desposit Amount Discrepancy!\n` +
             `    Block: #${blockDetails.block.header.number.toString()}\n` +
             `Extrinsic: ${extrinsic.method.section}.${extrinsic.method.method}\n` +
