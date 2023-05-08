@@ -479,6 +479,12 @@ pub mod pallet {
 			// Grab the destination
 			let dest = dest.destination();
 
+			// Indicates if overall_weight has been set.
+			// If so, we add RefundSurplus appendix.
+			// We do this because within 'take_weight_from_transact_info' we don't account
+			// for how much weight will RefundSurplus cost.
+			let mut set_appendix: bool = false;
+
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
@@ -488,7 +494,10 @@ pub mod pallet {
 						weight_info.transact_required_weight_at_most,
 					)
 				},
-				|v| Ok(v),
+				|v| {
+					set_appendix = true;
+					Ok(v)
+				},
 			)?;
 
 			// Calculate fee based on FeePerSecond
@@ -499,6 +508,14 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			let appendix: Option<Vec<Instruction<()>>> = if set_appendix {
+				let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &dest)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
 				Some(who.clone()),
@@ -507,7 +524,7 @@ pub mod pallet {
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
@@ -552,6 +569,12 @@ pub mod pallet {
 
 			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 
+			// Indicates if overall_weight has been set.
+			// If so, we add RefundSurplus appendix.
+			// We do this because within 'take_weight_from_transact_info' we don't account
+			// for how much weight will RefundSurplus cost.
+			let mut set_appendix: bool = false;
+
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
@@ -561,7 +584,10 @@ pub mod pallet {
 						weight_info.transact_required_weight_at_most,
 					)
 				},
-				|v| Ok(v),
+				|v| {
+					set_appendix = true;
+					Ok(v)
+				},
 			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
@@ -572,6 +598,14 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			let appendix: Option<Vec<Instruction<()>>> = if set_appendix {
+				let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &dest)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
@@ -581,7 +615,7 @@ pub mod pallet {
 				origin_kind,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
