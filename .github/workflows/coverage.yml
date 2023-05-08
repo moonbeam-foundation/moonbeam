@@ -229,6 +229,11 @@ jobs:
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
+      - name: Upload coverate to gha
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: coverage
+          path: coverage
       - name: Upload coverage s3
         uses: shallwefootball/s3-upload-action@master
         id: S3
