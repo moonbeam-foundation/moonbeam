@@ -195,6 +195,7 @@ jobs:
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_15206.profraw -O default_7850956015135578830_0_15206.profraw
           wget https://alan-stuff.s3.amazonaws.com/default_7850956015135578830_0_644.profraw -O default_7850956015135578830_0_644.profraw
       - name: Retrieve coverage
+        id: coverage
         run: |
           mkdir -p /tmp/proffiles
 
@@ -226,11 +227,7 @@ jobs:
             -o coverage/ --llvm-path ./  --llvm
           fi
 
-
-          echo "Checking for invalid files"
-          # llvm-profdata merge can fail for some reports (not sure why)
-          # so we remove them and retry
-
+          echo "total_percent=$(grep '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverage s3
         uses: shallwefootball/s3-upload-action@master
@@ -242,14 +239,14 @@ jobs:
           destination_dir: "pulls/${{ github.event.pull_request.number }}"
           source_dir: "coverage"
       - name: Link To Report
-        run: echo "https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/index.html"
+        run: echo "https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/html/index.html"
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: "github-actions[bot]"
-          body-includes: Build output
+          body-includes: Coverage generated
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v3
         with:
@@ -257,5 +254,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             Coverage generated:
-            "https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/index.html"
+            https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/html/index.html
+
+            Total coverage: ${{ steps.coverage.outputs.total_percent }}
           edit-mode: replace
