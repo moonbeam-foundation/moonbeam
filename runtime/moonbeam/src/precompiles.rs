@@ -17,7 +17,7 @@
 use crate::{
 	asset_config::{ForeignAssetInstance, LocalAssetInstance},
 	xcm_config::XcmExecutorConfig,
-	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
@@ -218,12 +218,11 @@ type MoonbeamPrecompilesAt<R> = (
 		PreimagePrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	// (Not in Moonbeam)
-	// PrecompileAt<
-	// 	AddressU64<2068>,
-	// 	CollectivePrecompile<R, OpenTechCommitteeInstance>,
-	// 	(CallableByContract, CallableByPrecompile),
-	// >,
+	PrecompileAt<
+		AddressU64<2068>,
+		CollectivePrecompile<R, OpenTechCommitteeInstance>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	PrecompileAt<
 		AddressU64<2069>,
 		PrecompileRegistry<R>,

@@ -18,7 +18,7 @@
 //!
 
 use super::{
-	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
+	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
 	CouncilInstance, LocalAssets, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -71,7 +71,10 @@ parameter_types! {
 /// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 // Foreign assets
@@ -259,6 +262,21 @@ pub struct AssetRegistrarMetadata {
 	pub is_frozen: bool,
 }
 
+pub type ForeignAssetModifierOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+pub type LocalAssetModifierOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -266,8 +284,8 @@ impl pallet_asset_manager::Config for Runtime {
 	type AssetRegistrarMetadata = AssetRegistrarMetadata;
 	type ForeignAssetType = xcm_config::AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = ForeignAssetModifierOrigin;
+	type LocalAssetModifierOrigin = LocalAssetModifierOrigin;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type Currency = Balances;
 	type LocalAssetDeposit = AssetDeposit;
