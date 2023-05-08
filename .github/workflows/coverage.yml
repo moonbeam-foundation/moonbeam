@@ -7,10 +7,6 @@ name: Coverage
 
 on:
   pull_request:
-  push:
-    branches:
-      - master
-      - perm-*
 env:
   SCCACHE_CACHE_SIZE: "100GB"
   CARGO_INCREMENTAL: "0"
@@ -35,7 +31,7 @@ jobs:
       - name: Set dev mode
         id: set-dev-mode
         run: |
-          echo "dev_mode=false" >> $GITHUB_OUTPUT
+          echo "dev_mode=true" >> $GITHUB_OUTPUT
       - name: Check git ref
         id: check-git-ref
         # if PR
@@ -236,9 +232,11 @@ jobs:
           # so we remove them and retry
 
           rm -rf proffiles/
-
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3.1.2
+      - name: Upload coverage s3
+      - uses: shallwefootball/s3-upload-action@master
         with:
-          name: coverage
-          path: coverage
+          aws_key_id: ${{ secrets.S3_MOONBEAM_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_MOONBEAM_COVERAGE_KEY }}
+          aws_bucket: "moonbeam-coverage"
+          destination_dir: "pulls/${{ github.event.inputs.pull_request }}"
+          source_dir: "coverage"
