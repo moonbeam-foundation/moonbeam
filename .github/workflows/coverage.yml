@@ -7,6 +7,9 @@ name: Coverage
 
 on:
   pull_request:
+  push:
+    branches:
+      - master
 env:
   SCCACHE_CACHE_SIZE: "100GB"
   CARGO_INCREMENTAL: "0"
@@ -27,6 +30,8 @@ jobs:
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+      coverage_dir: ${{ steps.get-sha.outputs.coverage_dir }}
+      coverage_report: ${{ steps.get-sha.outputs.coverage_report }}
     steps:
       - name: Set dev mode
         id: set-dev-mode
@@ -41,12 +46,13 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-          elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
-            echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
-            echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
+            echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "coverage_report=false" >> $GITHUB_OUTPUT
           else
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
+            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
+            echo "coverage_report=true" >> $GITHUB_OUTPUT
           fi
 
       - uses: actions/checkout@v3
@@ -228,6 +234,9 @@ jobs:
 
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
+          wget https://moonbeam-coverage.s3.amazonaws.com/branches/master/html/coverage.json \
+            -O coverage-master.json
+          echo "master_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage-master.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverate to gha
         uses: actions/upload-artifact@v3.1.2
@@ -241,11 +250,12 @@ jobs:
           aws_key_id: ${{ secrets.S3_MOONBEAM_COVERAGE_ID }}
           aws_secret_access_key: ${{ secrets.S3_MOONBEAM_COVERAGE_KEY }}
           aws_bucket: "moonbeam-coverage"
-          destination_dir: "pulls/${{ github.event.pull_request.number }}"
+          destination_dir: "${{ needs.set-tags.outputs.coverage_dir }}"
           source_dir: "coverage"
       - name: Link To Report
         run: echo "https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/html/index.html"
       - name: Find Comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         uses: peter-evans/find-comment@v2
         id: fc
         with:
@@ -253,6 +263,7 @@ jobs:
           comment-author: "github-actions[bot]"
           body-includes: Coverage generated
       - name: Create or update comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         uses: peter-evans/create-or-update-comment@v3
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -261,5 +272,6 @@ jobs:
             Coverage generated ${{ steps.coverage.outputs.coverage_date }}:
             https://s3.amazonaws.com/moonbeam-coverage/${{steps.S3.outputs.object_key}}/html/index.html
 
-            Total coverage: ${{ steps.coverage.outputs.total_percent }}
+            Master coverage: ${{ steps.coverage.outputs.master_percent }}
+            Pull coverage: ${{ steps.coverage.outputs.total_percent }}
           edit-mode: replace
