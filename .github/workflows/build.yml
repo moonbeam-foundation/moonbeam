@@ -215,20 +215,22 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Login to DockerHub
         # The if must stay on this step (because this job must not be skipped)
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        if: |
+          needs.set-tags.outputs.git_branch != master ||
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: docker/login-action@v2.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Check & build polkadot docker image
-        if: ${{ needs.set-tags.outputs.git_branch != master }}
         run: |
+          MASTER_BRANCH=${{ needs.set-tags.outputs.git_branch != master }}
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
-          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+          if [[ "$POLKADOT_EXISTS" == "false" && MASTER_BRANCH == "false" ]]; then
             # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
