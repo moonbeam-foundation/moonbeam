@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
-import chalk from "chalk";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { THIRTY_MINS } from "../util/constants";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
@@ -13,7 +13,7 @@ describeSmokeSuite("S570", `RPC Eth ParentHash`, async function (context, testIt
   let apiAtPrevious: ApiDecoration<"promise"> = null;
 
   before("configure api at block", async function () {
-    this.timeout(6_000_000); // 30 minutes
+    this.timeout(THIRTY_MINS);
 
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     previousBlockNumber = atBlockNumber - 1;
@@ -44,7 +44,7 @@ describeSmokeSuite("S570", `RPC Eth ParentHash`, async function (context, testIt
     );
   });
 
-  testIt("C100", `should return correct parent hash via rpc for block #1648995`, async function () {
+  testIt("C200", `should return correct parent hash via rpc for block #1648995`, async function () {
     const badBlockNumber = 1648995;
     const apiAtBadBlock = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(badBlockNumber)
