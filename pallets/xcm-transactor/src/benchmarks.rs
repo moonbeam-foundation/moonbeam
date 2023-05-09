@@ -137,7 +137,8 @@ benchmarks! {
 				transact_required_weight_at_most: dest_weight,
 				// This involves a db Read, hence the None is worst case
 				overall_weight: None
-			}
+			},
+			false
 		);
 
 		// It's expected that the error comes from the fact that the asset is not known
@@ -189,7 +190,8 @@ benchmarks! {
 				transact_required_weight_at_most: dest_weight,
 				// This involves a db Read, hence the None is worst case
 				overall_weight: None
-			}
+			},
+			false
 		);
 
 		// It's expected that the error comes from the fact that the asset is not known
