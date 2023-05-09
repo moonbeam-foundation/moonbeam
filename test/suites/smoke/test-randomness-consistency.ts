@@ -117,7 +117,8 @@ describeSuite({
           // * 32 for module
           // * 32 for method
           // * 16 for the hashed part of the key: the twox64(someRequestType) part
-          // the remaining substr after offset is the concat part, which we can decode with createType
+          // the remaining substr after offset is the concat part,
+          // which we can decode with createType
           const offset = 2 + 32 + 32 + 16;
           const requestTypeEncoded = key.toHex().slice(offset);
           const requestType = paraApi.registry.createType(
@@ -224,7 +225,8 @@ describeSuite({
           // * 32 for module
           // * 32 for method
           // * 16 for the hashed part of the key: the twox64(someRequestType) part
-          // the remaining substr after offset is the concat part, which we can decode with createType
+          // the remaining substr after offset is the concat part,
+          // which we can decode with createType
           const offset = 2 + 32 + 32 + 16;
           const requestTypeEncoded = key.toHex().slice(offset);
           const requestType = paraApi.registry.createType(
@@ -240,14 +242,16 @@ describeSuite({
             let epoch = (requestType as any).asBabeEpoch;
             expect(requestCounts[epoch].toString()).to.equal(
               resultRequestCount.toString(),
-              `Counted request count ${requestCounts[epoch]} != ${resultRequestCount} for result:\n` +
+              "Counted request count" +
+                `${requestCounts[epoch]} != ${resultRequestCount} for result:\n` +
                 `${result}`
             );
           } else {
             let local = (requestType as any).asLocal;
             expect(requestCounts[local].toString()).to.equal(
               resultRequestCount.toString(),
-              `Counted request count ${requestCounts[local]} != ${resultRequestCount} for result:\n` +
+              "Counted request count" +
+                `${requestCounts[local]} != ${resultRequestCount} for result:\n` +
                 `${result}`
             );
           }
@@ -419,7 +423,7 @@ describeSuite({
       );
     }
 
-    // Tests uniform distribution of outputs bytes by checking if average byte is within expected range
+    // Tests uniform distribution of outputs bytes by checking if average byte is in expected range
     function averageByteWithinExpectedRange(bytes: Uint8Array, min: number, max: number) {
       const average = bytes.reduce((a, b) => a + b) / bytes.length;
       expect(min <= average && average <= max).to.equal(true, `Average bytes is ${average}`);

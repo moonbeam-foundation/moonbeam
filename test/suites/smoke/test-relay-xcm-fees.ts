@@ -96,7 +96,8 @@ describeSuite({
         }
         expect(
           feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
-          `failed check: feePerSecond: ${feePerSecondValueForRelay} > expected ${expectedFeePerSecond}`
+          "failed check: feePerSecond: " +
+            `${feePerSecondValueForRelay} > expected ${expectedFeePerSecond}`
         ).to.be.true;
         expect(
           // Conservative approach to allow up to 2 time the fees

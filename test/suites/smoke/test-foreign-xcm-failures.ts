@@ -505,7 +505,8 @@ describeSuite({
         failures.forEach(({ filtered, networkName }) =>
           filtered.forEach(({ blockNum }) =>
             log(
-              `FailedToDecode XCM error xcmpQueue.Fail in network ${networkName} block #${blockNum}.`
+              "FailedToDecode XCM error xcmpQueue." +
+                `Fail in network ${networkName} block #${blockNum}.`
             )
           )
         );

@@ -236,7 +236,6 @@ describeSuite({
       title: "should snapshot delegate autocompound preferences correctly",
       timeout: ONE_HOURS,
       test: async function () {
-        // This test is slow due to rate limiting, this should be off until a better solution appears
         if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
           log("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
           return; // Replace this with skip() when added to vitest
@@ -375,23 +374,25 @@ describeSuite({
           break;
         }
 
-        // go previous round
+        // Go to previous round
         iterOriginalRoundBlock = iterOriginalRoundBlock.sub(round.length);
       }
-      // we go to the last block of the (original round - 1) since data is snapshotted at round start.
+      // Go to the last block of the (original round - 1) since data is snapshotted at round start.
       const originalRoundPriorBlock = iterOriginalRoundBlock.subn(1);
       const originalRoundPriorBlockHash = await api.rpc.chain.getBlockHash(originalRoundPriorBlock);
       const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
-      log(`
-      latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
+      log(
+      `latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
       now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
       round   ${originalRoundNumber.toString()} (prior round last block \
       ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
       paid in ${nowRoundNumber.toString()} (first block \
       ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
       ${priorRewardedBlockHash.toHex()})
-      first rewarded ${nowRoundFirstRewardBlock.toNumber()} / ${nowRoundFirstRewardBlockHash.toHex()}`);
+      first rewarded ${nowRoundFirstRewardBlock.toNumber()} / ` +
+          nowRoundFirstRewardBlockHash.toHex()
+      );
 
       // collect info about staked value from collators and delegators
       const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -471,7 +472,8 @@ describeSuite({
         for (const delegator of Object.keys(collatorInfo.delegators)) {
           if (!topDelegations.has(delegator as any)) {
             throw new Error(
-              `${delegator} is missing from topDelegations for round ${originalRoundNumber.toString()}`
+              `${delegator} is missing from topDelegations for round` +
+                ` ${originalRoundNumber.toString()}`
             );
           }
         }
@@ -838,8 +840,8 @@ describeSuite({
           // to the collator
           if (apiAtBlock.events.moonbeamOrbiters.OrbiterRewarded.is(event)) {
             rewardCount++;
-            // The orbiter is removed from the list at the block of the reward so we query the previous
-            // block instead.
+            // The orbiter is removed from the list at the block of the reward so we query the
+            // previous block instead.
             // The round rewarded is 2 rounds before the current one.
             let collators = await apiAtPreviousBlock.query.moonbeamOrbiters.orbiterPerRound.entries(
               round.current.toNumber() - 2
@@ -980,14 +982,14 @@ describeSuite({
       }
 
       if (specVersion >= 1800) {
-        // we calculate the share loss since adding all percentages will usually not yield a full 100%
+        // we calculate the share loss since adding all percentages will usually not yield a 100%
         const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
           bondReward
         );
         const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
 
-        // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
-        // and the collator itself to compute the max deviation per billion
+        // Perbill arithmetic can deviate at most ±1 per operation so we use the number of
+        // delegators and the collator itself to compute the max deviation per billion
         const maxDifference = rewarded.delegators.size + 1;
         const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
         expect(
