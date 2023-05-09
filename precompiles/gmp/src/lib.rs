@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle};
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -78,11 +78,13 @@ where
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
 		// tally up gas cost:
+		// 1 read for enabled flag
 		// 2 reads for contract addresses
 		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
-		let initial_gas = 2500 + 2 * RuntimeHelper::<Runtime>::db_read_gas_cost();
-		log::warn!("initial_gas: {:?}", initial_gas);
+		let initial_gas = 2500 + 3 * RuntimeHelper::<Runtime>::db_read_gas_cost();
 		handle.record_cost(initial_gas)?;
+
+		ensure_enabled()?;
 
 		let wormhole = storage::CoreAddress::get()
 			.ok_or(RevertReason::custom("invalid wormhole core address"))?;
@@ -242,11 +244,30 @@ fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()
 	}
 }
 
+pub fn is_enabled() -> bool {
+	match storage::PrecompileEnabled::get() {
+		Some(enabled) => enabled,
+		_ => false,
+	}
+}
+
+fn ensure_enabled() -> EvmResult<()> {
+	if is_enabled() {
+		Ok(())
+	} else {
+		Err(PrecompileFailure::Revert {
+			exit_status: ExitRevert::Reverted,
+			output: b"GMP Precompile is not enabled".to_vec(),
+		})
+	}
+}
+
 /// We use pallet storage in our precompile by implementing a StorageInstance for each item we need
 /// to store.
 /// twox_128("gmp") => 0xb7f047395bba5df0367b45771c00de50
 /// twox_128("CoreAddress") => 0x59ff23ff65cc809711800d9d04e4b14c
 /// twox_128("BridgeAddress") => 0xc1586bde54b249fb7f521faf831ade45
+/// twox_128("PrecompileEnabled") => 0x2551bba17abb82ef3498bab688e470b8
 mod storage {
 	use super::*;
 	use frame_support::{
@@ -273,4 +294,15 @@ mod storage {
 		}
 	}
 	pub type BridgeAddress = StorageValue<BridgeAddressStorageInstance, H160, OptionQuery>;
+
+	// storage for precompile enabled
+	// None or Some(false) both mean that the precompile is disabled; only Some(true) means enabled.
+	pub struct PrecompileEnabledStorageInstance;
+	impl StorageInstance for PrecompileEnabledStorageInstance {
+		const STORAGE_PREFIX: &'static str = "PrecompileEnabled";
+		fn pallet_prefix() -> &'static str {
+			"gmp"
+		}
+	}
+	pub type PrecompileEnabled = StorageValue<PrecompileEnabledStorageInstance, bool, OptionQuery>;
 }
