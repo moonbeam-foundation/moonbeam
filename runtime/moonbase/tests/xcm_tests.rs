@@ -1310,6 +1310,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			PARAALICE.into(),
 			0,
 		));
+		println!("PARA EVENTS: {:#?}", parachain::para_events());
 	});
 
 	// Send to registered address

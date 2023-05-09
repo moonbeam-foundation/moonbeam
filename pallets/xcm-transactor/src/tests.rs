@@ -562,6 +562,53 @@ fn test_transact_through_derivative_with_refund_works() {
 }
 
 #[test]
+fn test_transact_through_derivative_with_refund_fails_overall_weight_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				0.into(),
+				10000.into(),
+				None
+			));
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				1
+			));
+
+			// fee as destination are the same, this time it should work
+			assert_noop!(
+				XcmTransactor::transact_through_derivative(
+					RuntimeOrigin::signed(1u64),
+					Transactors::Relay,
+					1,
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
+					vec![1u8],
+					TransactWeights {
+						transact_required_weight_at_most: 100u64.into(),
+						overall_weight: None
+					},
+					true
+				),
+				Error::<Test>::RefundNotSupportedWithTransactInfo
+			);
+		})
+}
+
+#[test]
 fn test_root_can_transact_through_sovereign() {
 	ExtBuilder::default()
 		.with_balances(vec![])
@@ -739,6 +786,53 @@ fn test_transact_through_sovereign_with_refund_works() {
 					}
 				}
 			]))));
+		})
+}
+
+#[test]
+fn test_transact_through_sovereign_with_refund_fails_overall_weight_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				0.into(),
+				10000.into(),
+				None
+			));
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				1
+			));
+
+			// fee as destination are the same, this time it should work
+			assert_noop!(
+				XcmTransactor::transact_through_sovereign(
+					RuntimeOrigin::root(),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+					1u64,
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
+					vec![1u8],
+					OriginKind::SovereignAccount,
+					TransactWeights {
+						transact_required_weight_at_most: 100u64.into(),
+						overall_weight: None
+					},
+					true
+				),
+				Error::<Test>::RefundNotSupportedWithTransactInfo
+			);
 		})
 }
 
