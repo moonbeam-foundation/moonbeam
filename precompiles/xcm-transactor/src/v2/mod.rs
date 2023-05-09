@@ -91,6 +91,39 @@ where
 			inner_call,
 			fee_amount.converted(),
 			overall_weight,
+			false,
+		)
+	}
+
+	#[precompile::public(
+		"transactThroughDerivativeMultilocationRefund(\
+		uint8,\
+		uint16,\
+		(uint8,bytes[]),\
+		uint64,bytes,\
+		uint256,\
+		uint64)"
+	)]
+	fn transact_through_derivative_multilocation_refund(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		fee_asset: MultiLocation,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: Convert<U256, u128>,
+		overall_weight: u64,
+	) -> EvmResult {
+		XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation_fee_weight(
+			handle,
+			transactor,
+			index,
+			fee_asset,
+			weight,
+			inner_call,
+			fee_amount.converted(),
+			overall_weight,
+			true,
 		)
 	}
 
@@ -123,6 +156,40 @@ where
 			inner_call,
 			fee_amount.converted(),
 			overall_weight,
+			false,
+		)
+	}
+
+	#[precompile::public(
+		"transactThroughDerivativeRefund(\
+		uint8,\
+		uint16,\
+		address,\
+		uint64,\
+		bytes,\
+		uint256,\
+		uint64)"
+	)]
+	fn transact_through_derivative_refund(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		fee_asset: Address,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: Convert<U256, u128>,
+		overall_weight: u64,
+	) -> EvmResult {
+		XcmTransactorWrapper::<Runtime>::transact_through_derivative_fee_weight(
+			handle,
+			transactor,
+			index,
+			fee_asset,
+			weight,
+			inner_call,
+			fee_amount.converted(),
+			overall_weight,
+			true,
 		)
 	}
 

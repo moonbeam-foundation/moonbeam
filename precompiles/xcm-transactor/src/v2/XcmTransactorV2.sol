@@ -75,6 +75,29 @@ interface XcmTransactorV2 {
         uint64 overallWeight
     ) external;
 
+    /// Transact through XCM using fee based on its multilocation
+    /// Add an appendix with RefundSurplus for assets not to be trapped in the destination
+    /// @custom:selector 2413ed42
+    /// @dev The token transfer burns/transfers the corresponding amount before sending
+    /// @param transactor The transactor to be used
+    /// @param index The index to be used
+    /// @param feeAsset The asset in which we want to pay fees.
+    /// It has to be a reserve of the destination chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
+    /// @param innerCall The inner call to be executed in the destination chain
+    /// @param feeAmount Amount to be used as fee.
+    /// @param overallWeight Overall weight to be used for the xcm message.
+    ///
+    function transactThroughDerivativeMultilocationRefund(
+        uint8 transactor,
+        uint16 index,
+        Multilocation memory feeAsset,
+        uint64 transactRequiredWeightAtMost,
+        bytes memory innerCall,
+        uint256 feeAmount,
+        uint64 overallWeight
+    ) external;
+
     /// Transact through XCM using fee based on its currency_id
     /// @custom:selector 185de2ae
     /// @dev The token transfer burns/transfers the corresponding amount before sending
@@ -87,6 +110,28 @@ interface XcmTransactorV2 {
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
     function transactThroughDerivative(
+        uint8 transactor,
+        uint16 index,
+        address currencyId,
+        uint64 transactRequiredWeightAtMost,
+        bytes memory innerCall,
+        uint256 feeAmount,
+        uint64 overallWeight
+    ) external;
+
+    /// Transact through XCM using fee based on its currency_id
+    /// Add an appendix with RefundSurplus for assets not to be trapped in the destination
+    /// @custom:selector e6119388
+    /// @dev The token transfer burns/transfers the corresponding amount before sending
+    /// @param transactor The transactor to be used
+    /// @param index The index to be used
+    /// @param currencyId Address of the currencyId of the asset to be used for fees
+    /// It has to be a reserve of the destination chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
+    /// @param innerCall The inner call to be executed in the destination chain
+    /// @param feeAmount Amount to be used as fee.
+    /// @param overallWeight Overall weight to be used for the xcm message.
+    function transactThroughDerivativeRefund(
         uint8 transactor,
         uint16 index,
         address currencyId,
@@ -118,7 +163,7 @@ interface XcmTransactorV2 {
     ) external;
 
     /// Transact through XCM using fee based on its multilocation through signed origins
-    /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
+    /// Add an appendix with RefundSurplus for assets not to be trapped in the destination
     /// @custom:selector 8196d04f
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
@@ -161,7 +206,7 @@ interface XcmTransactorV2 {
     ) external;
 
     /// Transact through XCM using fee based on its erc20 address through signed origins
-    /// Add an appendix with RefundSurplus for assets not to be trappeds in the destination
+    /// Add an appendix with RefundSurplus for assets not to be trapped in the destination
     /// @custom:selector 7207ddc4
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which

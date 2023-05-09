@@ -167,6 +167,7 @@ where
 				),
 				overall_weight: None,
 			},
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -183,6 +184,7 @@ where
 		inner_call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
 		overall_weight: u64,
+		refund: bool,
 	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
@@ -210,6 +212,7 @@ where
 				),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
+			refund,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -257,6 +260,7 @@ where
 				overall_weight: None,
 			},
 			inner_call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -273,6 +277,7 @@ where
 		inner_call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
 		overall_weight: u64,
+		refund: bool,
 	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
@@ -307,6 +312,7 @@ where
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
+			refund,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

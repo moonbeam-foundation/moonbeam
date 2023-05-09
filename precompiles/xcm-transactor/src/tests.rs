@@ -281,6 +281,46 @@ fn test_transact_derivative_multilocation_v2() {
 }
 
 #[test]
+fn test_transact_derivative_multilocation_refund_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
+
+			// we pay with our current self reserve.
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV2,
+					PCallV2::transact_through_derivative_multilocation_refund {
+						transactor: 0,
+						index: 0,
+						fee_asset: fee_payer_asset,
+						weight: 4000000,
+						inner_call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(196892000)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
 fn test_transact_derivative_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])
@@ -406,6 +446,44 @@ fn test_transact_derivative_v2() {
 					Alice,
 					TransactorV2,
 					PCallV2::transact_through_derivative {
+						transactor: 0,
+						index: 0,
+						fee_asset: Address(AssetAddress(0).into()),
+						weight: 4_000_000,
+						inner_call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(196892001)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
+fn test_transact_derivative_refund_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV2,
+					PCallV2::transact_through_derivative_refund {
 						transactor: 0,
 						index: 0,
 						fee_asset: Address(AssetAddress(0).into()),

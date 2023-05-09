@@ -459,6 +459,8 @@ pub mod pallet {
 			inner_call: Vec<u8>,
 			// weight information to be used
 			weight_info: TransactWeights,
+			// add RefundSurplus and DepositAsset appendix
+			refund: bool,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -479,12 +481,6 @@ pub mod pallet {
 			// Grab the destination
 			let dest = dest.destination();
 
-			// Indicates if overall_weight has been set.
-			// If so, we add RefundSurplus appendix.
-			// We do this because within 'take_weight_from_transact_info' we don't account
-			// for how much weight will RefundSurplus cost.
-			let mut set_appendix: bool = false;
-
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
@@ -492,12 +488,10 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
-				|v| {
-					set_appendix = true;
-					Ok(v)
-				},
+				|v| Ok(v),
 			)?;
 
 			// Calculate fee based on FeePerSecond
@@ -509,7 +503,7 @@ pub mod pallet {
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
-			let appendix: Option<Vec<Instruction<()>>> = if set_appendix {
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
 				let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &dest)?;
 				Some(vec![RefundSurplus, deposit_appendix])
 			} else {
@@ -561,6 +555,8 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			// weight information to be used
 			weight_info: TransactWeights,
+			// add RefundSurplus and DepositAsset appendix
+			refund: bool,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -569,12 +565,6 @@ pub mod pallet {
 
 			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 
-			// Indicates if overall_weight has been set.
-			// If so, we add RefundSurplus appendix.
-			// We do this because within 'take_weight_from_transact_info' we don't account
-			// for how much weight will RefundSurplus cost.
-			let mut set_appendix: bool = false;
-
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
@@ -582,12 +572,10 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
-				|v| {
-					set_appendix = true;
-					Ok(v)
-				},
+				|v| Ok(v),
 			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
@@ -599,7 +587,7 @@ pub mod pallet {
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
-			let appendix: Option<Vec<Instruction<()>>> = if set_appendix {
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
 				let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &dest)?;
 				Some(vec![RefundSurplus, deposit_appendix])
 			} else {
@@ -847,6 +835,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						destination.clone(),
 						weight_info.transact_required_weight_at_most,
+						false,
 					)
 				},
 				|v| Ok(v),
@@ -1159,7 +1148,11 @@ pub mod pallet {
 		pub fn take_weight_from_transact_info(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -> Result<Weight, DispatchError> {
+			// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure 'refund' is false
+			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;

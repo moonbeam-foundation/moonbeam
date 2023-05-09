@@ -70,7 +70,8 @@ fn test_transact_through_derivative_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::UnclaimedIndex
 			);
@@ -94,7 +95,8 @@ fn test_transact_through_derivative_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
@@ -124,7 +126,8 @@ fn test_transact_through_derivative_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::FeePerSecondNotSet
 			);
@@ -158,7 +161,8 @@ fn test_transact_through_derivative_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
@@ -186,7 +190,8 @@ fn test_transact_through_derivative_errors() {
 					TransactWeights {
 						transact_required_weight_at_most: 10001u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				Error::<Test>::MaxWeightTransactReached
 			);
@@ -356,7 +361,8 @@ fn test_transact_through_derivative_multilocation_success() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: None
-				}
+				},
+				false
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -425,7 +431,8 @@ fn test_transact_through_derivative_success() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: None
-				}
+				},
+				false
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -508,7 +515,8 @@ fn test_transact_through_derivative_with_refund_works() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: Some(1000.into())
-				}
+				},
+				true
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -576,7 +584,8 @@ fn test_root_can_transact_through_sovereign() {
 					TransactWeights {
 						transact_required_weight_at_most: 100u64.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				DispatchError::BadOrigin
 			);
@@ -613,7 +622,8 @@ fn test_root_can_transact_through_sovereign() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: None
-				}
+				},
+				false
 			));
 
 			let expected = vec![
@@ -691,7 +701,8 @@ fn test_transact_through_sovereign_with_refund_works() {
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
 					overall_weight: Some(1000.into())
-				}
+				},
+				true
 			));
 
 			let expected = vec![
@@ -1411,7 +1422,8 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
-				}
+				},
+				false
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -1482,7 +1494,8 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
-				}
+				},
+				false
 			));
 
 			let expected = vec![
