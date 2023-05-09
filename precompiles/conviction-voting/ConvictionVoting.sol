@@ -156,12 +156,14 @@ interface ConvictionVoting {
     function votingFor(
         address who,
         uint16 trackId
-    ) external view returns (ClassLock[] memory);
+    ) external view returns (VotingFor memory);
 
     /// @dev Retrieve class locks for a given account.
     /// @custom:selector 7ae8ac92
     /// @param who The requested account
-    function classLocksFor(address who) external view returns (uint256);
+    function classLocksFor(
+        address who
+    ) external view returns (ClassLock[] memory);
 
     /// @dev Vote yes in a poll.
     /// @custom:selector da9df518

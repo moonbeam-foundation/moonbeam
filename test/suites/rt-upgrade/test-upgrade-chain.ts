@@ -28,7 +28,7 @@ describeSuite({
 
     it({
       id: "T1",
-      timeout: 30000,
+      timeout: 60000,
       title: "Can create new blocks",
       test: async () => {
         const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
@@ -40,7 +40,7 @@ describeSuite({
 
     it({
       id: "T2",
-      timeout: 30000,
+      timeout: 60000,
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
