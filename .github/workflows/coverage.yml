@@ -30,8 +30,8 @@ jobs:
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
-      coverage_dir: ${{ steps.get-sha.outputs.coverage_dir }}
-      coverage_report: ${{ steps.get-sha.outputs.coverage_report }}
+      coverage_dir: ${{ steps.check-git-ref.outputs.coverage_dir }}
+      coverage_report: ${{ steps.check-git-ref.outputs.coverage_report }}
     steps:
       - name: Set dev mode
         id: set-dev-mode
@@ -46,7 +46,7 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
             echo "coverage_report=true" >> $GITHUB_OUTPUT
           else
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
