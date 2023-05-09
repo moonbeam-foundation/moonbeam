@@ -7,6 +7,8 @@ import { u32 } from "@polkadot/types";
 import type { AccountId20 } from "@polkadot/types/interfaces";
 import { ApiPromise } from "@polkadot/api";
 import { TEN_MINS } from "@moonwall/util";
+import { rateLimiter } from "../../helpers/common.js";
+const limiter = rateLimiter();
 
 type InvalidRounds = { [round: number]: number };
 
@@ -16,12 +18,13 @@ async function getKeysBeforeRound<
   const invalidRounds: InvalidRounds = {};
   let startKey = "";
   while (true) {
-    const result = await storage.keysPaged({
-      pageSize: 1000,
-      startKey,
-      args: [],
-    });
-
+    const result = await limiter.schedule(() =>
+      storage.keysPaged({
+        pageSize: 1000,
+        startKey,
+        args: [],
+      })
+    );
     if (result.length === 0) {
       break;
     }

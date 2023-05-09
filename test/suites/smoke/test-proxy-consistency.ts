@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { expect, beforeAll, describeSuite } from "@moonwall/cli";
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 import { ApiPromise } from "@polkadot/api";
+import { rateLimiter } from "../../helpers/common.js";
 
 describeSuite({
   id: "S1600",
@@ -12,6 +13,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
     const proxyAccList = [];
+    const limiter = rateLimiter();
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
     let paraApi: ApiPromise;
@@ -68,7 +70,7 @@ describeSuite({
       title: "should have no more than the maximum allowed proxies",
       timeout: 240000,
       test: async function () {
-        const maxProxies = (await paraApi.consts.proxy.maxProxies).toNumber();
+        const maxProxies = paraApi.consts.proxy.maxProxies.toNumber();
         const failedProxies: { accountId: string; proxiesCount: number }[] = [];
 
         for (const accountId of Object.keys(proxiesPerAccount)) {
@@ -122,7 +124,6 @@ describeSuite({
             break;
         }
 
-        // TEMPLATE: This is redundant but is used to show how to check based on the network
         switch (networkName) {
           case "Moonbase Alpha":
             expect(maxProxies).to.equal(32);
@@ -135,7 +136,6 @@ describeSuite({
             break;
         }
 
-        // TEMPLATE: Updates the log line
         log(`Verified maximum allowed proxies constant`);
       },
     });
@@ -146,13 +146,13 @@ describeSuite({
       timeout: 60000,
       test: async function () {
         // For each account with a registered proxy, check whether it is a non-SC address
-        const results = await Promise.all(
-          proxyAccList.map(async (address) => {
-            const resp = await apiAt.query.evm.accountCodes(address);
-            const contract = resp.toJSON() == "0x" ? false : true;
-            return { address, contract };
-          })
-        );
+        const promises = proxyAccList.map(async (address) => {
+          const resp = await limiter.schedule(() => apiAt.query.evm.accountCodes(address));
+          const contract = resp.toJSON() == "0x" ? false : true;
+          return { address, contract };
+        });
+
+        const results = await Promise.all(promises);
         results.forEach((item) => {
           if (item.contract)
             log(`Proxy account for non-external address detected: ${item.address} `);
