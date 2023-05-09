@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll, ApiPromise } from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { Contract, ethers, WebSocketProvider } from "ethers";
-import { ALITH_ADDRESS, ALITH_SESSION_ADDRESS, BALTATHAR_ADDRESS } from "@moonwall/util";
-import { hexToU8a, u8aToHex } from "@polkadot/util";
+import { ALITH_SESSION_ADDRESS } from "@moonwall/util";
+import { hexToU8a } from "@polkadot/util";
+import { ApiPromise } from "@polkadot/api";
 import { getCompiled } from "../../helpers/contracts.js";
-import fs from "fs/promises";
-import path from "path";
 
 describeSuite({
   id: "S1750",

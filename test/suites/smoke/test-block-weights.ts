@@ -3,7 +3,7 @@ import "@moonbeam-network/api-augment/moonbase";
 import { BN } from "@polkadot/util";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { WEIGHT_PER_GAS, extractWeight, getBlockArray, THIRTY_MINS } from "@moonwall/util";
-import { describeSuite, beforeAll, expect, Signer } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS;

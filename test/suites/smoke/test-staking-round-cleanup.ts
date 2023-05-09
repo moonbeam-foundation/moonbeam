@@ -5,6 +5,7 @@ import { BN } from "@polkadot/util";
 import { QueryableStorageEntry } from "@polkadot/api/types";
 import { u32 } from "@polkadot/types";
 import type { AccountId20 } from "@polkadot/types/interfaces";
+import { ApiPromise } from "@polkadot/api";
 import { TEN_MINS } from "@moonwall/util";
 
 type InvalidRounds = { [round: number]: number };
