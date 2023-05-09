@@ -49,7 +49,8 @@ describeSuite({
       test: async function () {
         if (skipTest.skip) {
           log(
-            `No test data available for ${skipTest.networkName} #${skipTest.chainId} , skipping test.`
+            "No test data available for " +
+              `${skipTest.networkName} #${skipTest.chainId} , skipping test.`
           );
           return; // TODO: replace this with this.skip() when added to vitest
         }

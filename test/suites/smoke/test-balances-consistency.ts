@@ -778,10 +778,10 @@ describeSuite({
       //2) Build Actual Results - System Accounts
       ///
 
-      // This code block queries and processes storage keys and values for System.Accounts via 
-      // manual RPC methods. It uses pagination to efficiently query keys, measures performance and 
-      // memory usage, and estimates the remaining time. Once all keys are fetched, it processes the
-      // account information, updating total issuance and total accounts. It also checks the
+      // This code block queries and processes storage keys and values for System.Accounts via
+      // manual RPC methods. It uses pagination to efficiently query keys, measures performance and
+      // memory usage, and estimates the remaining time. Once all keys are fetched, it processes 
+      // the account information, updating total issuance and total accounts. It also checks the
       // reserved balance for each account and logs memory usage and performance metrics. The code
       // is organized into two main sections:
       //  -  Querying and storing System.Account storage keys.
