@@ -368,12 +368,6 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -399,6 +393,7 @@
 	},
 	alloc::string::String,
 	frame_support::{ensure, traits::ConstU32},
+	sp_core::H256,
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
 };
@@ -606,20 +601,13 @@
 				<span class="prelude-val">Ok</span>(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
 			<span class="number">6 </span>=&gt; {
-				<span class="kw">let </span><span class="kw-2">mut </span>length: [u8; <span class="number">1</span>] = Default::default();
-				length.copy_from_slice(
-					encoded_junction
-						.read_raw_bytes(<span class="number">1</span>)
-						.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;General Key length&quot;</span>))<span class="question-mark">?</span>,
-				);
+				<span class="kw">let </span>length = encoded_junction
+					.read_raw_bytes(<span class="number">1</span>)
+					.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;General Key length&quot;</span>))<span class="question-mark">?</span>[<span class="number">0</span>];
 
-				<span class="kw">let </span><span class="kw-2">mut </span>data: [u8; <span class="number">32</span>] = Default::default();
-				data.copy_from_slice(<span class="kw-2">&amp;</span>encoded_junction.read_till_end()<span class="question-mark">?</span>);
+				<span class="kw">let </span>data = encoded_junction.read::&lt;H256&gt;().in_field(<span class="string">&quot;data&quot;</span>)<span class="question-mark">?</span>.into();
 
-				<span class="prelude-val">Ok</span>(Junction::GeneralKey {
-					length: u8::from_be_bytes(length),
-					data,
-				})
+				<span class="prelude-val">Ok</span>(Junction::GeneralKey { length, data })
 			}
 			<span class="number">7 </span>=&gt; <span class="prelude-val">Ok</span>(Junction::OnlyChild),
 			<span class="number">8 </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Junction::Plurality not supported yet&quot;</span>).into()),
