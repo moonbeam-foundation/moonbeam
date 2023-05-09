@@ -46,13 +46,12 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-            echo "coverage_report=false" >> $GITHUB_OUTPUT
+            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
+            echo "coverage_report=true" >> $GITHUB_OUTPUT
           else
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
-            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
-            echo "coverage_report=true" >> $GITHUB_OUTPUT
+            echo "coverage_report=false" >> $GITHUB_OUTPUT
           fi
 
       - uses: actions/checkout@v3
@@ -234,9 +233,6 @@ jobs:
 
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
-          wget https://moonbeam-coverage.s3.amazonaws.com/branches/master/html/coverage.json \
-            -O coverage-master.json
-          echo "master_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage-master.json)" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverate to gha
         uses: actions/upload-artifact@v3.1.2
