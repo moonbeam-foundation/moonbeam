@@ -46,7 +46,7 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-            echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
             echo "coverage_report=true" >> $GITHUB_OUTPUT
           else
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
