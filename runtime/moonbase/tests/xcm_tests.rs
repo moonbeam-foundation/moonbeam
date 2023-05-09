@@ -1252,6 +1252,159 @@ fn transact_through_derivative_with_custom_fee_weight() {
 }
 
 #[test]
+fn transact_through_derivative_with_custom_fee_weight_refund() {
+	MockNet::reset();
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::RuntimeOrigin::root(),
+			source_location,
+			1u128,
+			0
+		));
+	});
+
+	// Let's construct the call to know how much weight it is going to require
+
+	let dest: MultiLocation = AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+	Relay::execute_with(|| {
+		// 5000000000 transact + 9000 correspond to 5000009000 tokens. 100 more for the transfer call
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1).into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new((Here, 5000009100u128).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 5000009100);
+	});
+
+	// Register address
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::register(
+			parachain::RuntimeOrigin::root(),
+			PARAALICE.into(),
+			0,
+		));
+	});
+
+	// Send to registered address
+
+	let registered_address = derivative_account_id(para_a_account(), 0);
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X1(AccountId32 {
+			network: None,
+			id: registered_address.clone().into(),
+		}),
+	};
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			parachain::CurrencyId::ForeignAsset(source_id),
+			100,
+			Box::new(VersionedMultiLocation::V3(dest)),
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 5000009000);
+	});
+
+	// What we will do now is transfer this relay tokens from the derived account to the sovereign
+	// again
+	Relay::execute_with(|| {
+		// free execution,x	 full amount received
+		assert!(RelayBalances::free_balance(&para_a_account()) == 5000009000);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+		dest: para_a_account(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	let overall_weight = 5000009000u64;
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_derivative(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			parachain::MockTransactors::Relay,
+			0,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					MultiLocation::parent()
+				))),
+				// 1-1 fee weight mapping
+				fee_amount: Some(overall_weight as u128)
+			},
+			encoded,
+			TransactWeights {
+				transact_required_weight_at_most: 5000000000.into(),
+				overall_weight: Some(overall_weight.into())
+			},
+			true
+		));
+		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
+			.iter()
+			.find_map(|event| match event.clone() {
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
+					Some(event.clone())
+				}
+				_ => None,
+			});
+		// Assert that the events do not contain the assets being trapped
+		assert!(event_found.is_none());
+	});
+
+	Relay::execute_with(|| {
+		// free execution,x	 full amount received
+		// 5000004232 refunded + 100 transfered = 5000004332
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 5000004332);
+		assert_eq!(RelayBalances::free_balance(&registered_address), 0);
+	});
+}
+
+#[test]
 fn transact_through_sovereign() {
 	MockNet::reset();
 
