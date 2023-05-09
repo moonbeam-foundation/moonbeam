@@ -1245,7 +1245,7 @@ parameter_types! {
 	// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
 	pub const DepositBase: Balance = currency::deposit(1, 76);
 	// Additional storage item size of 32 bytes.
-	pub const DepositFactor: Balance = currency::deposit(0, 20);
+	pub const DepositFactor: Balance = currency::deposit(0, 32);
 	pub const MaxSignatories: u32 = 100;
 }
 
@@ -1291,6 +1291,7 @@ construct_runtime! {
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 
 		// Sudo was previously index 40
 
@@ -1337,9 +1338,6 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
-
-		// Multisig
-		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 130,
 	}
 }
 
