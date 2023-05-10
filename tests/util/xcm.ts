@@ -459,36 +459,262 @@ export class XcmFragment {
     return this;
   }
 
-    // Add a `ExpectAsset` instruction
-    expect_asset(): this {
-      this.instructions.push({
-        ExpectAsset: this.config.assets.map(({ multilocation, fungible }) => {
-          return {
-            id: {
-              Concrete: multilocation,
-            },
-            fun: { Fungible: fungible },
-          };
-        }, this),
-      });
-      return this;
-    }
+  // Add a `ExpectAsset` instruction
+  expect_asset(): this {
+    this.instructions.push({
+      ExpectAsset: this.config.assets.map(({ multilocation, fungible }) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: fungible },
+        };
+      }, this),
+    });
+    return this;
+  }
 
-     // Add a `ExpectOrigin` instruction
-     expect_origin(): this {
-      this.instructions.push({
-        ExpectOrigin: this.config.assets.map(({ multilocation, fungible }) => {
-          return {
-            id: {
-              Concrete: multilocation,
-            },
-            fun: { Fungible: fungible },
-          };
-        }, this),
-      });
-      return this;
+  // Add a `ExpectOrigin` instruction
+  expect_origin(index: number = 0): this {
+    this.instructions.push({
+      ExpectOrigin: this.config.assets[index].multilocation,
+    });
+    return this;
+  }
+
+  // Add a `ExpectError` instruction
+  expect_error(index: number = 0, error: string = "Unimplemented"): this {
+    this.instructions.push({
+      ExpectError: { index, error },
+    });
+    return this;
+  }
+
+  // Add a `ExpectTransactStatus` instruction
+  expect_transact_status(status: any = "Success"): this {
+    this.instructions.push({
+      ExpectTransactStatus: status,
+    });
+    return this;
+  }
+
+  // Add a `QueryPallet` instruction
+  query_pallet(
+    destination: number,
+    query_id: number = Math.floor(Math.random() * 1000),
+    module_name: number[] = [1, 2, 3],
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
     }
-  
+  ): this {
+    this.instructions.push({
+      QueryPallet: {
+        module_name: module_name,
+        response_info: {
+          detination: { parents: 1, interior: { X1: { Parachain: destination } } },
+          query_id,
+          max_weight,
+        },
+      },
+    });
+    return this;
+  }
+
+  // Add a `ExpectPallet` instruction
+  expect_pallet(
+    index: number = 0,
+    name: number[] = [1, 2, 3],
+    module_name: number[] = [1, 2, 3],
+    crate_major: number = 4,
+    min_crate_minor: number = 0
+  ): this {
+    this.instructions.push({
+      ExpectPallet: {
+        index,
+        name,
+        module_name,
+        crate_major,
+        min_crate_minor,
+      },
+    });
+    return this;
+  }
+
+  // Add a `ReportTransactStatus` instruction
+  report_transact_status(
+    destination: number,
+    query_id: number = Math.floor(Math.random() * 1000),
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
+    }
+  ): this {
+    this.instructions.push({
+      ReportTransactStatus: {
+        destination: { parents: 1, interior: { X1: { Parachain: destination } } },
+        query_id,
+        max_weight,
+      },
+    });
+    return this;
+  }
+
+  // Add a `ClearTransactStatus` instruction
+  clear_transact_status(): this {
+    this.instructions.push({
+      ClearTransactStatus: null as any,
+    });
+    return this;
+  }
+
+  // Add a `UniversalOrigin` instruction
+  universal_origin(junction: any): this {
+    this.instructions.push({
+      UniversalOrigin: { junction },
+    });
+    return this;
+  }
+
+  // Add a `ExportMessage` instruction
+  export_message(
+    network: "Any" | XcmV3JunctionNetworkId["type"] = "Any",
+    destination: any,
+    xcm: Function[]
+  ): this {
+    let exported_instructions = [];
+    xcm.forEach((cb) => {
+      cb.call(this);
+      // As each method in the class pushes to the instruction stack, we pop
+      exported_instructions.push(this.instructions.pop());
+    });
+    this.instructions.push({
+      ExportMessage: {
+        network,
+        destination,
+        xcm: exported_instructions,
+      },
+    });
+    return this;
+  }
+
+  // Add a `LockAsset` instruction
+  lock_asset(index: number = 0, destination: number): this {
+    this.instructions.push({
+      LockAsset: {
+        asset: {
+          id: {
+            Concrete: this.config.assets[index].multilocation,
+          },
+          fun: {
+            Fungible: this.config.assets[index].fungible,
+          },
+        },
+        unlocker: { parents: 1, interior: { X1: { Parachain: destination } } },
+      },
+    });
+    return this;
+  }
+
+  // Add a `UnlockAsset` instruction
+  unlock_asset(index: number = 0): this {
+    this.instructions.push({
+      UnlockAsset: {
+        asset: {
+          id: {
+            Concrete: this.config.assets[index].multilocation,
+          },
+          fun: {
+            Fungible: this.config.assets[index].fungible,
+          },
+        },
+        target: this.config.assets[index].multilocation,
+      },
+    });
+    return this;
+  }
+
+  // Add a `NoteUnlockable` instruction
+  note_unlockable(index: number = 0): this {
+    this.instructions.push({
+      NoteUnlockable: {
+        asset: {
+          id: {
+            Concrete: this.config.assets[index].multilocation,
+          },
+          fun: {
+            Fungible: this.config.assets[index].fungible,
+          },
+        },
+        owner: this.config.assets[index].multilocation,
+      },
+    });
+    return this;
+  }
+
+  // Add a `RequestUnlock` instruction
+  request_unlock(index: number = 0): this {
+    this.instructions.push({
+      RequestUnlock: {
+        asset: {
+          id: {
+            Concrete: this.config.assets[index].multilocation,
+          },
+          fun: {
+            Fungible: this.config.assets[index].fungible,
+          },
+        },
+        locker: this.config.assets[index].multilocation,
+      },
+    });
+    return this;
+  }
+
+  // Add a `SetFeesMode` instruction
+  set_fees_mode(jit_withdraw: boolean = true): this {
+    this.instructions.push({
+      SetFeesMode: { jit_withdraw },
+    });
+    return this;
+  }
+
+  // Add a `SetTopic` instruction
+  set_topic(topic: number[]): this {
+    this.instructions.push({
+      SetTopic: { topic },
+    });
+    return this;
+  }
+
+  // Add a `ClearTopic` instruction
+  clear_topic(): this {
+    this.instructions.push({
+      ClearTopic: null as any,
+    });
+    return this;
+  }
+
+  // Add a `AliasOrigin` instruction
+  alias_origin(destination: number): this {
+    this.instructions.push({
+      AliasOrigin: {
+        parents: 1,
+        interior: { X1: { Parachain: destination } },
+      },
+    });
+    return this;
+  }
+
+  // Add a `UnpaidExecution` instruction
+  unpaid_execution(weight_limit: any, destination: number): this {
+    this.instructions.push({
+      UnpaidExecution: {
+        weight_limit,
+        check_origin: { X1: { Parachain: destination } },
+      },
+    });
+    return this;
+  }
 
   // Overrides the weight limit of the first buyExeuction encountered
   // with the measured weight
