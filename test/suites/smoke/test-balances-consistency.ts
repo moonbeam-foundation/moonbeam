@@ -780,7 +780,7 @@ describeSuite({
 
       // This code block queries and processes storage keys and values for System.Accounts via
       // manual RPC methods. It uses pagination to efficiently query keys, measures performance and
-      // memory usage, and estimates the remaining time. Once all keys are fetched, it processes 
+      // memory usage, and estimates the remaining time. Once all keys are fetched, it processes
       // the account information, updating total issuance and total accounts. It also checks the
       // reserved balance for each account and logs memory usage and performance metrics. The code
       // is organized into two main sections:
@@ -816,7 +816,8 @@ describeSuite({
           log(`⚠️  Reserve balance mismatch for ${base64ToHex(key)}`);
           failedReserved.push(
             `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance} vs expected: ${expected})\n` +
-              `\tℹ️  Expected contains: (${Object.keys(
+              "\tℹ️  Expected contains: (" +
+              Object.keys(
                 (expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {}
               )
                 .map(
@@ -828,7 +829,8 @@ describeSuite({
                       5
                     )}`
                 )
-                .join(` - `)})`
+                .join(` - `) +
+              `)`
           );
         }
         expectedReserveMap.delete(key);

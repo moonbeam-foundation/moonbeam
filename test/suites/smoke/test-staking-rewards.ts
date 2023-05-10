@@ -383,9 +383,12 @@ describeSuite({
       const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
       log(
-        `latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
-      now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
-      round   ${originalRoundNumber.toString()} (prior round last block \
+        `latest  ${latestRound.current.toString()}` +
+          ` (${latestBlockNumber} / ` +
+          `${latestBlockHash.toHex()})
+      now     ` +
+          `${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})` +
+          `round   ${originalRoundNumber.toString()} (prior round last block \
       ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
       paid in ${nowRoundNumber.toString()} (first block \
       ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
@@ -722,7 +725,7 @@ describeSuite({
 
       // check reward amount with losses due to Perbill arithmetic
       if (specVersion >= 1800) {
-        // Perbill arithmetic can deviate at most ±1 per operation so we use the number of 
+        // Perbill arithmetic can deviate at most ±1 per operation so we use the number of
         // collators to compute the max deviation per billion
         const maxDifference = awardedCollatorCount;
 
