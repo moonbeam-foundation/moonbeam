@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{ExtBuilder, PCall};
+use crate::mock::*;
 use fp_evm::{ExitRevert, PrecompileFailure};
 use precompile_utils::testing::*;
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn contract_disabling_default_value_is_false() {
@@ -34,6 +38,16 @@ fn contract_disabling_default_value_is_false() {
 					output: b"GMP Precompile is not enabled".to_vec(),
 				})
 			);
+
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					Precompile1,
+					PCall::wormhole_transfer_erc20 {
+						wormhole_vaa: Vec::new().into(),
+					},
+				)
+				.execute_reverts(|output| output == b"GMP Precompile is not enabled");
 		})
 }
 
@@ -47,6 +61,17 @@ fn contract_enabling_works() {
 			assert_eq!(crate::storage::PrecompileEnabled::get(), Some(true));
 			assert_eq!(crate::is_enabled(), true);
 			assert_eq!(crate::ensure_enabled(), Ok(()));
+
+			// should fail at a later point since contract addresses are not set
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					Precompile1,
+					PCall::wormhole_transfer_erc20 {
+						wormhole_vaa: Vec::new().into(),
+					},
+				)
+				.execute_reverts(|output| output == b"invalid wormhole core address");
 		})
 }
 
@@ -66,6 +91,16 @@ fn contract_disabling_works() {
 					output: b"GMP Precompile is not enabled".to_vec(),
 				})
 			);
+
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					Precompile1,
+					PCall::wormhole_transfer_erc20 {
+						wormhole_vaa: Vec::new().into(),
+					},
+				)
+				.execute_reverts(|output| output == b"GMP Precompile is not enabled");
 		})
 }
 
