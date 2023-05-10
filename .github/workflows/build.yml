@@ -6,6 +6,7 @@ name: Build
 # 3. Artifacts are not available between workflows.
 
 on:
+  pull_request:
   push:
     branches:
       - master
