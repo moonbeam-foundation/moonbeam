@@ -12,7 +12,7 @@ import { MIN_GAS_PRICE } from "./constants";
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
-    (web3.currentProvider as any).send(
+    (web3.currentProvider as any).request(
       {
         jsonrpc: "2.0",
         id: 1,

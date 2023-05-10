@@ -18,5 +18,6 @@
     "port_p2p": 19931,
     "port_rpc": 19932,
     "port_ws": 19933
-  }
+  },
+  "audioCues.volume": 20
 }

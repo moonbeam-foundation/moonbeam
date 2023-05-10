@@ -189,15 +189,13 @@
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
       "multiThreads": true,
-      "html": false,
+      "reporters": ["default", "html"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
           {
             "name": "moonbeam",
-            "running": true,
-
-            "binPath": "./tmp/moonbeam"
+            "binPath": "../target/release/moonbeam"
           }
         ]
       }

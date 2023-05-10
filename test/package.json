@@ -31,7 +31,6 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
     "web3": "4.0.1-rc.0",
-    "web3-eth": "1.9.0",
     "web3-providers-ws": "4.0.1-rc.0",
     "yargs": "^17.7.2"
   },
@@ -45,7 +44,9 @@
     "chalk": "^5.2.0",
     "json-bigint": "^1.0.0",
     "json-stable-stringify": "^1.0.2",
+    "node-fetch": "^3.3.1",
     "semver": "^7.5.0",
-    "vitest": "^0.31.0"
+    "vitest": "^0.31.0",
+    "web": "^0.0.2"
   }
 }
