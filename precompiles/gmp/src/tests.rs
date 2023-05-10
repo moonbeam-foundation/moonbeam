@@ -47,7 +47,7 @@ fn contract_disabling_default_value_is_false() {
 						wormhole_vaa: Vec::new().into(),
 					},
 				)
-				.execute_reverts(|output| output == b"GMP Precompile is not enabled");
+				.execute_reverts_no_decode(|output| output == b"GMP Precompile is not enabled");
 		})
 }
 
@@ -100,7 +100,7 @@ fn contract_disabling_works() {
 						wormhole_vaa: Vec::new().into(),
 					},
 				)
-				.execute_reverts(|output| output == b"GMP Precompile is not enabled");
+				.execute_reverts_no_decode(|output| output == b"GMP Precompile is not enabled");
 		})
 }
 

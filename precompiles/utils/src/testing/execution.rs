@@ -222,6 +222,32 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self.assert_optionals();
 	}
 
+	/// Execute the precompile set and check if it reverts.
+	/// Take a closure allowing to perform custom matching on the output.
+	/// Output is not automatically decoded.
+	pub fn execute_reverts_no_decode(mut self, check: impl Fn(&[u8]) -> bool) {
+		let res = self.execute();
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				if !check(&output) {
+					eprintln!(
+						"Revert message (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&output)
+					);
+					eprintln!(
+						"Revert message (string): {:?}",
+						core::str::from_utf8(&output).ok()
+					);
+					panic!("Revert reason doesn't match !");
+				}
+			}
+			other => panic!("Didn't revert, instead returned {:?}", other),
+		}
+
+		self.assert_optionals();
+	}
+
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_error(mut self, error: ExitError) {
 		let res = self.execute();
