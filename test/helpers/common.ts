@@ -1,7 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
 import { u32 } from "@polkadot/types";
 import Bottleneck from "bottleneck";
-import { importJsonConfig, MoonwallContext } from "@moonwall/cli";
+import { DevModeContext, importJsonConfig, MoonwallContext } from "@moonwall/cli";
 import { ethers, Signer } from "ethers";
 import fetch from "node-fetch";
 export function rateLimiter() {
@@ -62,4 +62,20 @@ export async function customDevRpcRequest(method: string, params: any[]) {
   }
 
   return responseData.result;
+}
+
+export async function getMappingInfo(
+  context: DevModeContext,
+  authorId: string
+): Promise<{ account: string; deposit: BigInt }> {
+  const mapping = await context
+    .polkadotJs({ type: "moon" })
+    .query.authorMapping.mappingWithDeposit(authorId);
+  if (mapping.isSome) {
+    return {
+      account: mapping.unwrap().account.toString(),
+      deposit: mapping.unwrap().deposit.toBigInt(),
+    };
+  }
+  return null;
 }

@@ -7,7 +7,7 @@ import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 import { expectOk } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "AM6",
+  id: "D113",
   title: "XCM - asset manager - destroy local asset",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

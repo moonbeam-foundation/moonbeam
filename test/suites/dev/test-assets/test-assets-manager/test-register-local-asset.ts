@@ -5,7 +5,7 @@ import { BN } from "@polkadot/util";
 import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 
 describeSuite({
-  id: "AM2",
+  id: "D115",
   title: "XCM - asset manager - register local asset",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

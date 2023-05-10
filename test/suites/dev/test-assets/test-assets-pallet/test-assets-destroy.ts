@@ -10,7 +10,7 @@ import { expectOk } from "../../../../helpers/expect.js";
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "AP1",
+  id: "D121",
   title: "Pallet Assets - Destruction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -38,7 +38,7 @@ describeSuite({
       id: "T01",
       title: "should destroy asset Balance",
       test: async function () {
-        const metadataBefore = await api.query.assets.metadata(assetId.toU8a());
+        const metadataBefore = await context.polkadotJs({}).query.assets.metadata(assetId.toU8a());
 
         // Name is equal to "DOT" in hex
         expect(metadataBefore.name.toString()).to.eq("0x444f54");
@@ -48,22 +48,13 @@ describeSuite({
         expect(assetDetailsBefore.isNone).to.eq(false);
 
         // Destroy asset
-        await expectOk(
-          context.createBlock(
-            api.tx.sudo.sudo(api.tx.assets.startDestroy(assetId))
-          )
-        );
+        await expectOk(context.createBlock(api.tx.sudo.sudo(api.tx.assets.startDestroy(assetId))));
         await expectOk(context.createBlock(api.tx.assets.destroyAccounts(assetId)));
-        await expectOk(
-          context.createBlock(api.tx.assets.destroyApprovals(assetId))
-        );
+        await expectOk(context.createBlock(api.tx.assets.destroyApprovals(assetId)));
         await expectOk(context.createBlock(api.tx.assets.finishDestroy(assetId)));
 
         // Baltathar balance is None
-        const baltatharBalance = await api.query.assets.account(
-          assetId.toU8a(),
-          baltathar.address
-        );
+        const baltatharBalance = await api.query.assets.account(assetId.toU8a(), baltathar.address);
         expect(baltatharBalance.isNone).to.eq(true);
 
         // metadata is default

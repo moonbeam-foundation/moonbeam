@@ -190,7 +190,7 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "multiThreads": true,
-      "reporters": ["default", "html"],
+      "reporters": ["html", "dot"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

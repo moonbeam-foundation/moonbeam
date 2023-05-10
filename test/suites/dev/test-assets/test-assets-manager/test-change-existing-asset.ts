@@ -11,7 +11,7 @@ import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 describeSuite({
-  id: "AM3",
+  id: "D111",
   title: "XCM - asset manager - Change existing asset",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

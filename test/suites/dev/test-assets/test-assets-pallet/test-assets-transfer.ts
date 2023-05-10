@@ -9,7 +9,7 @@ import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkad
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "AP1",
+  id: "D122",
   title: "Pallet Assets - Transfer",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
