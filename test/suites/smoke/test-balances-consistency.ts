@@ -815,8 +815,10 @@ describeSuite({
         const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key).total : 0n;
         if (expected !== reservedBalance) {
           log(`⚠️  Reserve balance mismatch for ${base64ToHex(key)}`);
+          // Editor Config doesn't like this string hence the insane fragmentation
           const errorString =
-            `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance} vs expected: ${expected})\n` +
+            `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance}` +
+            ` vs expected: ${expected})\n` +
             "\tℹ️  Expected contains: (" +
             Object.keys((expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {})
               .map(
