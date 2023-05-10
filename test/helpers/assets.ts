@@ -10,6 +10,7 @@ import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
 
 export const DUMMY_REVERT_BYTECODE = "0x60006000fd";
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
+export const RELAY_SOURCE_LOCATION2 = { Xcm: { parents: 2, interior: "Here" } };
 export const RELAY_V3_SOURCE_LOCATION = { V3: { parents: 1, interior: "Here" } } as any;
 export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
@@ -44,7 +45,7 @@ export async function mockAssetBalance(
   account: string | AccountId20,
   is_sufficient = false
 ) {
-  const api = context.polkadotJs({type: "moon"})
+  const api = context.polkadotJs({ type: "moon" });
   // Register the asset
   await context.createBlock(
     api.tx.sudo
@@ -85,9 +86,7 @@ export async function mockAssetBalance(
   // Get keys to modify total supply & dummyCode (TODO: remove once dummy code inserted by node)
   let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-  let evmCodeAssetKey = api.query.evm.accountCodes.key(
-    "0xFfFFfFff" + assetId.toHex().slice(2)
-  );
+  let evmCodeAssetKey = api.query.evm.accountCodes.key("0xFfFFfFff" + assetId.toHex().slice(2));
 
   await context.createBlock(
     api.tx.sudo
@@ -127,7 +126,7 @@ export async function registerLocalAssetWithMeta(
     mints = [],
   }: RegisterLocalAssetOptions
 ): Promise<{ assetId: string; assetAddress: string }> {
-  const api = context.polkadotJs({type: "moon"})
+  const api = context.polkadotJs({ type: "moon" });
   const {
     result: { events: eventsRegister },
   } = await context.createBlock(

@@ -18,7 +18,8 @@ export function getAllContracts(): string[] {
 
 const contracts: { [name: string]: Compiled } = {};
 export function getCompiled(name: string): Compiled {
-  const filePath = path.join(process.cwd(), "helpers", `${name}.json`);
+  const filePath = path.join(process.cwd(), "helpers", "compiled", `${name}.json`);
+  console.log(filePath);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   }

@@ -188,6 +188,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
+      "include": ["**/*test*"],
       "multiThreads": true,
       "reporters": ["default", "html"],
       "foundation": {

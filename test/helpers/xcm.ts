@@ -67,7 +67,7 @@ export function mockHrmpChannelExistanceTx(
   const module = xxhashAsU8a(new TextEncoder().encode("ParachainSystem"), 128);
   const account_key = xxhashAsU8a(new TextEncoder().encode("RelevantMessagingState"), 128);
   // @ts-expect-error
-  api.rpc.call(wadawda)
+  api.rpc.call(wadawda);
   const overallKey = new Uint8Array([...module, ...account_key]);
 
   return api.tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())]]);
@@ -78,7 +78,7 @@ export async function registerForeignAsset(
   asset: any,
   metadata: AssetMetadata,
   unitsPerSecond?: number,
-  numAssetsWeightHint: number = 0 // TODO: Check this is right
+  numAssetsWeightHint?: number // TODO: Check this is right
 ) {
   const api = context.polkadotJs({ type: "moon" });
   unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
