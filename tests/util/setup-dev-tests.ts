@@ -84,6 +84,9 @@ export function describeDevMoonbeam(
   forkedMode?: boolean
 ) {
   describe(title, function () {
+    // Set timeout to 5000 for all tests.
+    this.timeout(5000);
+
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
     let context: InternalDevTestContext = { ethTransactionType } as InternalDevTestContext;
