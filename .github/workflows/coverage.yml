@@ -213,8 +213,8 @@ jobs:
           mv /tmp/proffiles proffiles
 
           echo "Executing grcov"
-          ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
-            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/** \
+          ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore target/release/build/* \
             -o coverage/ --llvm-path ./  --llvm 2>&1 \
             | tee grcov.log
 
@@ -227,8 +227,8 @@ jobs:
             cd proffiles/
             rm $INVALID
             cd ..
-            ./grcov proffiles/ -s ./ --binary-path ./$CARGO_TARGET_DIR/release/ \
-            -t html --branch --ignore-not-existing --ignore $CARGO_TARGET_DIR/release/build/** \
+            ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore target/release/build/* \
             -o coverage/ --llvm-path ./  --llvm
           fi
 
@@ -238,16 +238,6 @@ jobs:
             -O coverage-master.json || true
           echo "master_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
           rm -rf proffiles/
-      - name: Cleanup previous coverage
-        uses: vitorsgomes/s3-rm-action@master
-        with:
-          args: --recursive
-        env:
-          AWS_S3_BUCKET: "moonbeam-coverage"
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_MOONBEAM_COVERAGE_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_MOONBEAM_COVERAGE_KEY }}
-          AWS_REGION: us-east-1
-          PATH_TO_DELETE: ${{ needs.set-tags.outputs.coverage_dir }}
       - name: Upload coverate to gha
         uses: actions/upload-artifact@v3.1.2
         with:
