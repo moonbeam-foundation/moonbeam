@@ -1,4 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
+import "@polkadot/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { hexToBigInt, u8aConcat, u8aToHex } from "@polkadot/util";
@@ -814,24 +815,19 @@ describeSuite({
         const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key).total : 0n;
         if (expected !== reservedBalance) {
           log(`⚠️  Reserve balance mismatch for ${base64ToHex(key)}`);
-          failedReserved.push(
+          const errorString =
             `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance} vs expected: ${expected})\n` +
-              "\tℹ️  Expected contains: (" +
-              Object.keys(
-                (expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {}
+            "\tℹ️  Expected contains: (" +
+            Object.keys((expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {})
+              .map(
+                (reserveType) =>
+                  getReserveTypeByValue(reserveType) +
+                  ":" +
+                  printTokens(paraApi, expectedReserveMap.get(key).reserved[reserveType], 1, 5)
               )
-                .map(
-                  (reserveType) =>
-                    `${getReserveTypeByValue(reserveType)}:${printTokens(
-                      paraApi,
-                      expectedReserveMap.get(key).reserved[reserveType],
-                      1,
-                      5
-                    )}`
-                )
-                .join(` - `) +
-              `)`
-          );
+              .join(` - `) +
+            `)`;
+          failedReserved.push(errorString);
         }
         expectedReserveMap.delete(key);
       };
