@@ -105,7 +105,7 @@ jobs:
           wget https://alan-stuff.s3.amazonaws.com/llvm-cov -O llvm-cov 
           chmod +x llvm-profdata
           chmod +x llvm-cov
-      - uses: "../workflow-templates/build"
+      - uses: ./.github/workflow-templates/build
         with:
           features: evm-tracing
       - name: Upload runtimes
