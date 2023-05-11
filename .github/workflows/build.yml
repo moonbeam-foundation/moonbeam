@@ -717,6 +717,7 @@ jobs:
           path: target/release
       - name: "Install and run upgrade test"
         run: |
+          chmod uog+x target/release/moonbeam
           cd test
           pnpm i
           pnpm moonwall test dev_${{ matrix.chain }}
