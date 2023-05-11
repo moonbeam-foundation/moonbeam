@@ -695,6 +695,7 @@ jobs:
         chain: ["moonbase"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -715,7 +716,7 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: "Install and run upgrade test"
+      - name: "Install and run dev test"
         run: |
           chmod uog+x target/release/moonbeam
           cd test
