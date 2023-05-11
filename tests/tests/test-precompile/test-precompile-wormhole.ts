@@ -209,6 +209,21 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
+    const ENABLED_FLAG_STORAGE_ADDRESS =
+      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8";
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [
+            ENABLED_FLAG_STORAGE_ADDRESS,
+            context.polkadotApi.registry.createType("Option<bool>", true).toHex()
+          ]
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
