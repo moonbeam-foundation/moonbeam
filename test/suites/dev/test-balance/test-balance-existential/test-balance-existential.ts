@@ -4,7 +4,7 @@ import {alith, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util"
 import { AddressLike} from "ethers"
 import { Account } from "web3-core";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createTransfer } from "../../util/transactions";
+import { createTransfer } from "../../../../helpers/transactions.js";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   let randomWeb3Account: AddressLike;

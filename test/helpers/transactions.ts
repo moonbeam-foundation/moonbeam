@@ -1,5 +1,5 @@
 import { AccessListish } from "@ethersproject/transactions";
-import { ethers } from "ethers";
+import { RlpStructuredData, ethers } from "ethers";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
 
@@ -185,7 +185,7 @@ export const createTransaction = async (
     rawTransaction = await newSigner.signTransaction(data);
   } else {
     // const signer = new ethers.Wallet(privateKey, context.ethers);
-    const chainId = (await provider.getNetwork()).chainId
+    const chainId = (await provider.getNetwork()).chainId;
     if (isEip2930) {
       data = {
         from,
@@ -216,7 +216,7 @@ export const createTransaction = async (
     }
     rawTransaction = await newSigner.signTransaction(data);
   }
-(await provider.getNetwork()).name
+  (await provider.getNetwork()).name;
   debug(
     `Tx [TODO: Put port number and host in here] ` +
       `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
@@ -261,45 +261,58 @@ export const createTransfer = async (
 // Will create the transaction to deploy a contract.
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
-export async function createContract(
-  context: DevModeContext,
-  contractName: string,
-  options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
-  contractArguments: any[] = []
-): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
-  const contractCompiled = getCompiled(contractName);
-  const from = options.from !== undefined ? options.from : alith.address;
-  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from));
+// export async function createContract(
+//   context: DevModeContext,
+//   contractName: string,
+//   options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
+//   contractArguments: any[] = []
+// ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
+//   const contractCompiled = getCompiled(contractName);
+//   const from = options.from !== undefined ? options.from : alith.address;
+//   const nonce = options.nonce || (await context.ethersSigner().getNonce());
+//   // const contractAddress =
+//   //   "0x" +
+//   //   ethers
+//   //     .keccak256(RLP.encode([from, nonce]))
+//   //     .slice(12)
+//   //     .substring(14);
 
-  const contractAddress =
-    "0x" +
-    context.web3.utils
-      .sha3(RLP.encode([from, nonce]) as any)
-      .slice(12)
-      .substring(14);
+//   // const contract = new ethers.Contract(
+//   //   contractAddress,
+//   //   contractCompiled.contract.abi,
+//   //   context.ethersSigner()
+//   // );
+//     // const data = contract.de
 
-  const contract = new context.web3.eth.Contract(contractCompiled.contract.abi, contractAddress);
-  const data = contract
-    .deploy({
-      data: contractCompiled.byteCode,
-      arguments: contractArguments,
-    })
-    .encodeABI();
+//     const factory = new ethers.ContractFactory(contractCompiled.contract.abi, contractCompiled.byteCode, context.ethersSigner());
+//     const contract = await factory.deploy(...contractArguments);
+//     // const contractAddress = contract;
+//     await contract.waitForDeployment()
+//   const rawTx = contract.getDeployedCode()
+//     const {con} =contract.deploymentTransaction()!.raw
 
-  const rawTx = await createTransaction(context, { ...options, from, nonce, data });
+//   // const contract = new (context.web3()).eth.Contract(contractCompiled.contract.abi, contractAddress);
+//   // const data = contract
+//   //   .deploy({
+//   //     data: contractCompiled.byteCode,
+//   //     arguments: contractArguments,
+//   //   })
+//   //   .encodeABI();
 
-  return {
-    rawTx,
-    contract,
-    contractAddress,
-  };
-}
+//   // const rawTx = await createTransaction(context, { ...options, from, nonce, data });
+
+//   return {
+//     rawTx,
+//     contract,
+//     contractAddress,
+//   };
+// }
 
 // Will create the transaction to execute a contract function.
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
 export async function createContractExecution(
-  context: DevTestContext,
+  context: DevModeContext,
   execution: {
     contract: Contract;
     contractCall: any;
@@ -348,7 +361,7 @@ export function rpcToLocalNode(rpcPort: number, method: string, params: any[] = 
 }
 // The parameters passed to the function are assumed to have all been converted to hexadecimal
 export async function sendPrecompileTx(
-  context: DevTestContext,
+  context: DevModeContext,
   precompileContractAddress: string,
   selectors: { [key: string]: string },
   from: string,
@@ -381,7 +394,7 @@ export async function sendPrecompileTx(
 
 const GAS_PRICE = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
 export async function callPrecompile(
-  context: DevTestContext,
+  context: DevModeContext,
   precompileContractAddress: string,
   selectors: { [key: string]: string },
   selector: string,
@@ -397,7 +410,7 @@ export async function callPrecompile(
     data += para.slice(2).padStart(64, "0");
   });
 
-  return await customDevRpcRequest(context.web3, "eth_call", [
+  return await customDevRpcRequest( "eth_call", [
     {
       from: alith.address,
       value: "0x0",
@@ -418,7 +431,7 @@ export const sendAllStreamAndWaitLast = async (
     timeout: 120000,
   }
 ) => {
-  let promises = [];
+  let promises: any[] = [];
   while (extrinsics.length > 0) {
     const pending = await api.rpc.author.pendingExtrinsics();
     if (pending.length < threshold) {
@@ -457,17 +470,17 @@ export const sendAllStreamAndWaitLast = async (
 };
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
-export const setupErc20Contract = async (context: DevTestContext, name: string, symbol: string) => {
-  const { contract, contractAddress, rawTx } = await createContract(
-    context,
-    "ERC20WithInitialSupply",
-    {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      gas: 5_000_000,
-    },
-    [name, symbol, ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
-  );
-  const { result } = await context.createBlock(rawTx);
-  expectEVMResult(result.events, "Succeed");
-  return { contract, contractAddress };
-};
+// export const setupErc20Contract = async (context: DevModeContext, name: string, symbol: string) => {
+//   const { contract, contractAddress, rawTx } = await createContract(
+//     context,
+//     "ERC20WithInitialSupply",
+//     {
+//       ...ALITH_TRANSACTION_TEMPLATE,
+//       gas: 5_000_000,
+//     },
+//     [name, symbol, ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
+//   );
+//   const { result } = await context.createBlock(rawTx);
+//   expectEVMResult(result.events, "Succeed");
+//   return { contract, contractAddress };
+// };

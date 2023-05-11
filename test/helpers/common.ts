@@ -36,7 +36,6 @@ interface JsonRpcResponse {
 }
 
 export async function customDevRpcRequest(method: string, params: any[]) {
-  ApiPromise.create({});
   const globalConfig = await importJsonConfig();
   const env = globalConfig.environments.find(({ name }) => name == process.env.MOON_TEST_ENV)!;
   const endpoint = env.connections
