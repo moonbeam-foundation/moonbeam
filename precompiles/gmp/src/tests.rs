@@ -16,7 +16,7 @@
 
 use crate::mock::*;
 use fp_evm::{ExitRevert, PrecompileFailure};
-use precompile_utils::testing::*;
+use precompile_utils::{solidity::revert::revert_as_bytes, testing::*};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -35,7 +35,7 @@ fn contract_disabling_default_value_is_false() {
 				crate::ensure_enabled(),
 				Err(PrecompileFailure::Revert {
 					exit_status: ExitRevert::Reverted,
-					output: b"GMP Precompile is not enabled".to_vec(),
+					output: revert_as_bytes("GMP Precompile is not enabled"),
 				})
 			);
 
@@ -88,7 +88,7 @@ fn contract_disabling_works() {
 				crate::ensure_enabled(),
 				Err(PrecompileFailure::Revert {
 					exit_status: ExitRevert::Reverted,
-					output: b"GMP Precompile is not enabled".to_vec(),
+					output: revert_as_bytes("GMP Precompile is not enabled"),
 				})
 			);
 
