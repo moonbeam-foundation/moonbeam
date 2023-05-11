@@ -217,8 +217,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         context.polkadotApi.tx.system.setStorage([
           [
             ENABLED_FLAG_STORAGE_ADDRESS,
-            context.polkadotApi.registry.createType("Option<bool>", true).toHex()
-          ]
+            context.polkadotApi.registry.createType("Option<bool>", true).toHex(),
+          ],
         ])
       )
       .signAndSend(alith);
