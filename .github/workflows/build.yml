@@ -282,9 +282,11 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
     steps:
-      - uses: "../workflow-templates/build"
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: "../workflow-templates/build"
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -303,9 +305,12 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
     steps:
-      - uses: "../workflow-templates/build"
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: "../workflow-templates/build"
+        with:
           features: "try-runtime,runtime-benchmarks"
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2

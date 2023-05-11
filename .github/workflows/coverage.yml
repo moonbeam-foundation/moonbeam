@@ -91,6 +91,10 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings -C instrument-coverage"
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup grcov
         run: |
           wget https://alan-stuff.s3.amazonaws.com/grcov -O grcov
@@ -103,7 +107,6 @@ jobs:
           chmod +x llvm-cov
       - uses: "../workflow-templates/build"
         with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
           features: evm-tracing
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2

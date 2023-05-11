@@ -4,9 +4,6 @@ description: |
   Stores the result in "build/moonbeam" and the runtimes in "runtimes/"
 
 inputs:
-  git_ref:
-    description: git reference for the checkout
-    required: true
   features:
     description: features to include in the build (comma separated)
     required: false
@@ -19,10 +16,6 @@ runs:
     CARGO_INCREMENTAL: "0"
     SCCACHE_CACHE_SIZE: "100GB"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.inputs.git_ref }}
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
     # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
