@@ -13,6 +13,7 @@ on:
 env:
   SCCACHE_CACHE_SIZE: "100GB"
   CARGO_INCREMENTAL: "0"
+  NODE_OPTIONS: "--max-old-space-size=12288"
 
 jobs:
   ####### Check files and formatting #######
