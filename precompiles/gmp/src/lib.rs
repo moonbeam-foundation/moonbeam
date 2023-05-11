@@ -27,7 +27,7 @@ use frame_support::{
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
-use precompile_utils::prelude::*;
+use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
@@ -257,7 +257,7 @@ fn ensure_enabled() -> EvmResult<()> {
 	} else {
 		Err(PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
-			output: b"GMP Precompile is not enabled".to_vec(),
+			output: revert_as_bytes("GMP Precompile is not enabled"),
 		})
 	}
 }
