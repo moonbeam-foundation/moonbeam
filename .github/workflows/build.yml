@@ -722,3 +722,9 @@ jobs:
           cd test
           pnpm i
           pnpm moonwall test dev_${{ matrix.chain }}
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: test-report
+          path: test/html
