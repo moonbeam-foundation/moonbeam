@@ -189,7 +189,7 @@ jobs:
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
           wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/html/coverage.json \
             -O coverage-master.json || true
-          echo "master_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
+          echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
           rm -rf proffiles/
       - name: Upload coverate to gha
         uses: actions/upload-artifact@v3.1.2
