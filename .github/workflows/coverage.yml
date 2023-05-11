@@ -10,9 +10,8 @@ on:
   push:
     branches:
       - master
+
 env:
-  SCCACHE_CACHE_SIZE: "100GB"
-  CARGO_INCREMENTAL: "0"
   NODE_OPTIONS: "--max-old-space-size=12288"
 
 jobs:
@@ -91,23 +90,7 @@ jobs:
     needs: ["set-tags"]
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings -C instrument-coverage"
-      RUSTC_WRAPPER: "sccache"
-      CARGO_TARGET_DIR: "target"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.3
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: |
-          if ! which "rustup" > /dev/null; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          fi
-          rustup show
       - name: Setup grcov
         run: |
           wget https://alan-stuff.s3.amazonaws.com/grcov -O grcov
@@ -118,32 +101,15 @@ jobs:
           wget https://alan-stuff.s3.amazonaws.com/llvm-cov -O llvm-cov 
           chmod +x llvm-profdata
           chmod +x llvm-cov
-      - name: Build Node
-        run: |
-          env
-          cargo build --locked --release -p moonbeam
-      - name: Run sccache stat for check pre test
-        shell: bash
-        run: ${SCCACHE_PATH} --show-stats
-      - name: Verify node version
-        run: |
-          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-          MB_VERSION=`./$CARGO_TARGET_DIR/release/moonbeam --version`
-          echo "Checking $MB_VERSION contains $GIT_COMMIT"
-          echo "$MB_VERSION" | grep $GIT_COMMIT
-      - name: Save runtime wasm
-        run: |
-          mkdir -p runtimes
-          cp $CARGO_TARGET_DIR/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+      - uses: ../workflow-templates/build
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          features: evm-tracing
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
           name: runtimes
           path: runtimes
-      - name: Save moonbeam binary
-        run: |
-          mkdir -p build
-          cp $CARGO_TARGET_DIR/release/moonbeam build/moonbeam;
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:

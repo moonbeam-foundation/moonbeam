@@ -1,0 +1,60 @@
+name: build
+description: |
+  Builds moonbeam with given features.
+  Stores the result in "build/moonbeam" and the runtimes in "runtimes/"
+
+inputs:
+  git_ref:
+    description: git reference for the checkout
+    required: true
+  features:
+    description: features to include in the build (comma separated)
+    required: false
+
+runs:
+  using: "composite"
+  env:
+    RUSTFLAGS: "-C opt-level=3 -D warnings"
+    RUSTC_WRAPPER: "sccache"
+    CARGO_INCREMENTAL: "0"
+    SCCACHE_CACHE_SIZE: "100GB"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.git_ref }}
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.3
+    # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+    # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+    - name: Setup Rust toolchain
+      run: |
+        if ! which "rustup" > /dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        fi
+        rustup show
+    - name: Build Node
+      run: |
+        env
+        params=" --locked --release -p moonbeam"
+        if [ -n "${{ github.event.inputs.features }}" ]; then
+          params="$params --features ${{ github.event.inputs.features }}"
+        fi
+        cargo build $params
+    - name: Display sccache stats
+      shell: bash
+      run: ${SCCACHE_PATH} --show-stats
+    - name: Verify binary version
+      run: |
+        GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+        MB_VERSION=`./target/release/moonbeam --version`
+        echo "Checking $MB_VERSION contains $GIT_COMMIT"
+        echo "$MB_VERSION" | grep $GIT_COMMIT
+    - name: Save runtimes wasm
+      run: |
+        mkdir -p runtimes
+        cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+    - name: Save moonbeam binary
+      run: |
+        mkdir -p build
+        cp target/release/moonbeam build/moonbeam;
