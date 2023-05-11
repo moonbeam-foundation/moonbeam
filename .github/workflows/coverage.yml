@@ -105,7 +105,8 @@ jobs:
           wget https://alan-stuff.s3.amazonaws.com/llvm-cov -O llvm-cov 
           chmod +x llvm-profdata
           chmod +x llvm-cov
-      - uses: ./.github/workflow-templates/build
+      - name: Cargo build
+        uses: ./.github/workflow-templates/cargo-build
         with:
           features: evm-tracing
       - name: Upload runtimes

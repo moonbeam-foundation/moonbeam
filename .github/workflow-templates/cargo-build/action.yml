@@ -1,4 +1,4 @@
-name: build
+name: Cargo build
 description: |
   Builds moonbeam with given features.
   Stores the result in "build/moonbeam" and the runtimes in "runtimes/"
