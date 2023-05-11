@@ -21,7 +21,7 @@ RUN cargo build --profile production --locked
 
 # ===== SECOND STAGE ======
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 LABEL maintainer "alan@purestake.com"
 LABEL description="Polkadot for Moonbeam Relay Chains"
 COPY --from=builder /polkadot/target/production/polkadot /usr/local/bin
