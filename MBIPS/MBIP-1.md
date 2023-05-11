@@ -18,14 +18,11 @@ However such a control is not applied efficiently to the storage side of the cha
 However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
 
 Currently there are 3 ways using the EVM to impact the storage size:
-
 - **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
 - **[ISSUE-2]** Storing a Smart Contract
 - **[ISSUE-3]** Storing data in the Smart Contract
 
-Storage growth must be limited somehow, but we have to agree on what limit should be used.
-Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we
-could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
+Storage growth must be limited somehow, but we have to agree on what limit should be used. Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
 
 ## Goals
 
@@ -78,7 +75,7 @@ As this deposit is not visible through Ethereum RPC, it will not be directly vis
 A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 1](#addition-1-deposit-from-the-value) for a possible solution)
 
 
-## Addition 1: Deposit from the "Value"
+## Addition 1 - Deposit from the "Value"
 
 Additionally, in order to make the amount of deposit required visible to the user, this one could be taken from the "value" field. This requires dapps to increase the amount of the value of their transaction deploying or using CREATE operations.
 
