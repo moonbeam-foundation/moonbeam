@@ -8,13 +8,14 @@ inputs:
     description: features to include in the build (comma separated)
     required: false
 
+env:
+  RUSTFLAGS: "-C opt-level=3 -D warnings"
+  RUSTC_WRAPPER: "sccache"
+  CARGO_INCREMENTAL: "0"
+  SCCACHE_CACHE_SIZE: "100GB"
+
 runs:
   using: "composite"
-  env:
-    RUSTFLAGS: "-C opt-level=3 -D warnings"
-    RUSTC_WRAPPER: "sccache"
-    CARGO_INCREMENTAL: "0"
-    SCCACHE_CACHE_SIZE: "100GB"
   steps:
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
@@ -33,6 +34,7 @@ runs:
         if [ -n "${{ github.event.inputs.features }}" ]; then
           params="$params --features ${{ github.event.inputs.features }}"
         fi
+        echo "cargo build $params"
         cargo build $params
     - name: Display sccache stats
       shell: bash
