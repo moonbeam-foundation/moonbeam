@@ -2918,9 +2918,9 @@
 <span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {}
 
 <span class="macro">parameter_types! </span>{
-	<span class="comment">// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
-	</span><span class="kw">pub const </span>DepositBase: Balance = currency::deposit(<span class="number">1</span>, <span class="number">76</span>);
-	<span class="comment">// Additional storage item size of 32 bytes.
+	<span class="comment">// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
+	</span><span class="kw">pub const </span>DepositBase: Balance = currency::deposit(<span class="number">1</span>, <span class="number">96</span>);
+	<span class="comment">// Additional storage item size of 20 bytes.
 	</span><span class="kw">pub const </span>DepositFactor: Balance = currency::deposit(<span class="number">0</span>, <span class="number">20</span>);
 	<span class="kw">pub const </span>MaxSignatories: u32 = <span class="number">100</span>;
 }

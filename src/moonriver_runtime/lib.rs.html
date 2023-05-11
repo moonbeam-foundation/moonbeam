@@ -1634,6 +1634,25 @@
 <a href="#1634" id="1634">1634</a>
 <a href="#1635" id="1635">1635</a>
 <a href="#1636" id="1636">1636</a>
+<a href="#1637" id="1637">1637</a>
+<a href="#1638" id="1638">1638</a>
+<a href="#1639" id="1639">1639</a>
+<a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2875,6 +2894,24 @@
 
 <span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {}
 
+<span class="macro">parameter_types! </span>{
+	<span class="comment">// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
+	</span><span class="kw">pub const </span>DepositBase: Balance = currency::deposit(<span class="number">1</span>, <span class="number">96</span>);
+	<span class="comment">// Additional storage item size of 20 bytes.
+	</span><span class="kw">pub const </span>DepositFactor: Balance = currency::deposit(<span class="number">0</span>, <span class="number">20</span>);
+	<span class="kw">pub const </span>MaxSignatories: u32 = <span class="number">100</span>;
+}
+
+<span class="kw">impl </span>pallet_multisig::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>RuntimeCall = RuntimeCall;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>DepositBase = DepositBase;
+	<span class="kw">type </span>DepositFactor = DepositFactor;
+	<span class="kw">type </span>MaxSignatories = MaxSignatories;
+	<span class="kw">type </span>WeightInfo = pallet_multisig::weights::SubstrateWeight&lt;Runtime&gt;;
+}
+
 <span class="macro">construct_runtime! </span>{
 	<span class="kw">pub enum </span>Runtime <span class="kw">where
 		</span>Block = Block,
@@ -2907,6 +2944,7 @@
 		Identity: pallet_identity::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
 		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">34</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">35</span>,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
 
 		<span class="comment">// Sudo was previously index 40
 
