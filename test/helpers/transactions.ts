@@ -2,6 +2,7 @@ import { AccessListish } from "@ethersproject/transactions";
 import { ethers } from "ethers";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
+
 import {
   alith,
   ALITH_PRIVATE_KEY,
@@ -14,11 +15,12 @@ import {
   DOROTHY_PRIVATE_KEY,
   ethan,
   ETHAN_PRIVATE_KEY,
-} from "./accounts";
+} from "@moonwall/util";
 import { getCompiled } from "./contracts";
-import { customWeb3Request } from "./providers";
-import { DevTestContext } from "./setup-dev-tests";
-import { expectEVMResult } from "./eth-transactions";
+// import { customWeb3Request } from "./providers";
+import { customDevRpcRequest } from "./common.js";
+import { DevModeContext, MoonwallContext, EthTransactionType } from "@moonwall/cli";
+import { expectEVMResult } from "./eth-transactions.js";
 
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
@@ -42,7 +44,7 @@ export interface TransactionOptions {
 }
 
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
-  nonce: null,
+  // nonce: null,
   gas: 500_000,
   value: "0x00",
 };
@@ -77,24 +79,30 @@ export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
   privateKey: ETHAN_PRIVATE_KEY,
 };
 
-
-export type EthTransactionType = "Legacy" | "EIP2930" | "EIP1559";
-
-type isLegacy<T> = T extends "Legacy" ? true : false;
-
-function checkTxType(type: EthTransactionType){
-return
-}
-
 export const createTransaction = async (
-  context: DevTestContext,
+  context: DevModeContext,
   options: TransactionOptions,
   txType?: EthTransactionType
 ): Promise<string> => {
+  const defaultTxnStyle = MoonwallContext.getContext()!.defaultEthTxnStyle;
 
-  const isLegacy = txType? txType ==="Legacy": context.ethTransactionType === "Legacy";
-  const isEip2930 = context.ethTransactionType === "EIP2930";
-  const isEip1559 = context.ethTransactionType === "EIP1559";
+  const isLegacy = txType
+    ? txType === "Legacy"
+    : defaultTxnStyle
+    ? defaultTxnStyle === "Legacy"
+    : true;
+
+  const isEip2930 = txType
+    ? txType === "EIP2930"
+    : defaultTxnStyle
+    ? defaultTxnStyle === "EIP2930"
+    : true;
+
+  const isEip1559 = txType
+    ? txType === "EIP1559"
+    : defaultTxnStyle
+    ? defaultTxnStyle === "EIP1559"
+    : true;
 
   // a transaction shouldn't have both Legacy and EIP1559 fields
   if (options.gasPrice && options.maxFeePerGas) {
@@ -121,21 +129,23 @@ export const createTransaction = async (
     maxFeePerGas = options.gasPrice;
     maxPriorityFeePerGas = options.gasPrice;
   } else {
-    maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
+    maxFeePerGas =
+      options.maxFeePerGas || (await context.ethersSigner().provider?.getFeeData())!.gasPrice;
     maxPriorityFeePerGas = options.maxPriorityFeePerGas || 0;
   }
 
   const gasPrice =
     options.gasPrice !== undefined
       ? options.gasPrice
-      : "0x" + BigInt(await context.web3.eth.getGasPrice()).toString(16);
+      : "0x" + (await context.ethersSigner().provider?.getFeeData())!.gasPrice!.toString(16);
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
 
   // Allows to retrieve potential errors
-  let error = null;
-  const estimatedGas = await context.web3.eth
+  let error = "";
+  const estimatedGas = await context
+    .ethersSigner()
     .estimateGas({
       from: from,
       to: options.to,
@@ -157,9 +167,11 @@ export const createTransaction = async (
   const nonce =
     options.nonce != null
       ? options.nonce
-      : await context.web3.eth.getTransactionCount(from, "pending");
+      : await context.ethersSigner().provider!.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
+  const provider = context.ethersSigner().provider!;
+  const newSigner = new ethers.Wallet(privateKey, provider);
   if (isLegacy) {
     data = {
       from,
@@ -170,11 +182,10 @@ export const createTransaction = async (
       nonce: nonce,
       data: options.data,
     };
-    const tx = await context.web3.eth.accounts.signTransaction(data, privateKey);
-    rawTransaction = tx.rawTransaction;
+    rawTransaction = await newSigner.signTransaction(data);
   } else {
-    const signer = new ethers.Wallet(privateKey, context.ethers);
-    const chainId = await context.web3.eth.getChainId();
+    // const signer = new ethers.Wallet(privateKey, context.ethers);
+    const chainId = (await provider.getNetwork()).chainId
     if (isEip2930) {
       data = {
         from,
@@ -203,11 +214,11 @@ export const createTransaction = async (
         type: 2,
       };
     }
-    rawTransaction = await signer.signTransaction(data);
+    rawTransaction = await newSigner.signTransaction(data);
   }
-  context.web3.currentProvider 
+(await provider.getNetwork()).name
   debug(
-    `Tx [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] ` +
+    `Tx [TODO: Put port number and host in here] ` +
       `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
       (data.to
         ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
@@ -235,7 +246,7 @@ export const createTransaction = async (
 };
 
 export const createTransfer = async (
-  context: DevTestContext,
+  context: DevModeContext,
   to: string,
   value: number | string | BigInt,
   options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
@@ -251,7 +262,7 @@ export const createTransfer = async (
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
 export async function createContract(
-  context: DevTestContext,
+  context: DevModeContext,
   contractName: string,
   options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
@@ -386,7 +397,7 @@ export async function callPrecompile(
     data += para.slice(2).padStart(64, "0");
   });
 
-  return await customWeb3Request(context.web3, "eth_call", [
+  return await customDevRpcRequest(context.web3, "eth_call", [
     {
       from: alith.address,
       value: "0x0",
