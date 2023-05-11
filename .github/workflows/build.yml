@@ -347,7 +347,6 @@ jobs:
         run: |
           cargo test --profile testnet --all --features=evm-tracing
       - name: Run sccache stat for check pre test
-        shell: bash
         run: ${SCCACHE_PATH} --show-stats
 
   typescript-tests:

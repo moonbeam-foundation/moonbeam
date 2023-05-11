@@ -22,12 +22,14 @@ runs:
     # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
     # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
     - name: Setup Rust toolchain
+      shell: bash
       run: |
         if ! which "rustup" > /dev/null; then
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         fi
         rustup show
     - name: Build Node
+      shell: bash
       run: |
         env
         params=" --locked --release -p moonbeam"
@@ -40,16 +42,19 @@ runs:
       shell: bash
       run: ${SCCACHE_PATH} --show-stats
     - name: Verify binary version
+      shell: bash
       run: |
         GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
         MB_VERSION=`./target/release/moonbeam --version`
         echo "Checking $MB_VERSION contains $GIT_COMMIT"
         echo "$MB_VERSION" | grep $GIT_COMMIT
     - name: Save runtimes wasm
+      shell: bash
       run: |
         mkdir -p runtimes
         cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
     - name: Save moonbeam binary
+      shell: bash
       run: |
         mkdir -p build
         cp target/release/moonbeam build/moonbeam;
