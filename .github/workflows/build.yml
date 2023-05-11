@@ -282,7 +282,7 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
     steps:
-      - uses: ../workflow-templates/build
+      - uses: "../workflow-templates/build"
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Upload runtimes
@@ -303,7 +303,7 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
     steps:
-      - uses: ../workflow-templates/build
+      - uses: "../workflow-templates/build"
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           features: "try-runtime,runtime-benchmarks"

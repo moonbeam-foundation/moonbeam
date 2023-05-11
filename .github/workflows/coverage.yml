@@ -101,7 +101,7 @@ jobs:
           wget https://alan-stuff.s3.amazonaws.com/llvm-cov -O llvm-cov 
           chmod +x llvm-profdata
           chmod +x llvm-cov
-      - uses: ../workflow-templates/build
+      - uses: "../workflow-templates/build"
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
           features: evm-tracing
