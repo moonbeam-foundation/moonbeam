@@ -1,0 +1,661 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "index",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "depositedAmount",
+            "type": "uint256"
+          }
+        ],
+        "name": "DecisionDepositPlaced",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "index",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "refundedAmount",
+            "type": "uint256"
+          }
+        ],
+        "name": "DecisionDepositRefunded",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "index",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "caller",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "refundedAmount",
+            "type": "uint256"
+          }
+        ],
+        "name": "SubmissionDepositRefunded",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "SubmittedAfter",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint16",
+            "name": "trackId",
+            "type": "uint16"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "SubmittedAt",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "name": "closedReferendumInfo",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "enum Referenda.ReferendumStatus",
+                "name": "status",
+                "type": "uint8"
+              },
+              { "internalType": "uint256", "name": "end", "type": "uint256" },
+              {
+                "internalType": "address",
+                "name": "submissionDepositor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "submissionDeposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "decisionDepositor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decisionDeposit",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Referenda.ClosedReferendumInfo",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "decidingCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "name": "killedReferendumBlock",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "name": "ongoingReferendumInfo",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+              { "internalType": "bytes", "name": "origin", "type": "bytes" },
+              { "internalType": "bytes", "name": "proposal", "type": "bytes" },
+              {
+                "internalType": "bool",
+                "name": "enactmentType",
+                "type": "bool"
+              },
+              {
+                "internalType": "uint256",
+                "name": "enactmentTime",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "submissionTime",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "submissionDepositor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "submissionDeposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "decisionDepositor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decisionDeposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decidingSince",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decidingConfirmingEnd",
+                "type": "uint256"
+              },
+              { "internalType": "uint256", "name": "ayes", "type": "uint256" },
+              { "internalType": "uint32", "name": "support", "type": "uint32" },
+              {
+                "internalType": "uint32",
+                "name": "approval",
+                "type": "uint32"
+              },
+              { "internalType": "bool", "name": "inQueue", "type": "bool" },
+              {
+                "internalType": "uint256",
+                "name": "alarmTime",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "taskAddress",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct Referenda.OngoingReferendumInfo",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "name": "placeDecisionDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "referendumCount",
+        "outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "name": "referendumStatus",
+        "outputs": [
+          {
+            "internalType": "enum Referenda.ReferendumStatus",
+            "name": "",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "name": "refundDecisionDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "name": "refundSubmissionDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "submissionDeposit",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          { "internalType": "uint32", "name": "proposalLen", "type": "uint32" },
+          { "internalType": "uint32", "name": "block", "type": "uint32" }
+        ],
+        "name": "submitAfter",
+        "outputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" },
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          { "internalType": "uint32", "name": "proposalLen", "type": "uint32" },
+          { "internalType": "uint32", "name": "block", "type": "uint32" }
+        ],
+        "name": "submitAt",
+        "outputs": [
+          {
+            "internalType": "uint32",
+            "name": "referendumIndex",
+            "type": "uint32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "trackIds",
+        "outputs": [
+          { "internalType": "uint16[]", "name": "trackIds", "type": "uint16[]" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "trackId", "type": "uint16" }
+        ],
+        "name": "trackInfo",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "string", "name": "name", "type": "string" },
+              {
+                "internalType": "uint256",
+                "name": "maxDeciding",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decisionDeposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "preparePeriod",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decisionPeriod",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "confirmPeriod",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "minEnactmentPeriod",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "minApproval",
+                "type": "bytes"
+              },
+              { "internalType": "bytes", "name": "minSupport", "type": "bytes" }
+            ],
+            "internalType": "struct Referenda.TrackInfo",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000811",
+      "events": {
+        "DecisionDepositPlaced(uint32,address,uint256)": {
+          "custom:selector": "222ac3cb2f2e974dcbd2ac3d35e9fefb77e57f5dc4b9243afa9a926b1ff57f75",
+          "details": "Decision Deposit for a referendum has been placed",
+          "params": {
+            "caller": "address Address of the caller.",
+            "depositedAmount": "uint256 Amount being deposited.",
+            "index": "uint32 The index of the ongoing referendum that is not yet deciding."
+          }
+        },
+        "DecisionDepositRefunded(uint32,address,uint256)": {
+          "custom:selector": "86801df04afc1aa4cd2d673df29c5951bbb0bae2c965bb9d233909894aab55be",
+          "details": "Decision Deposit for a closed referendum has been refunded",
+          "params": {
+            "caller": "address Address of the caller.",
+            "index": "uint32 The index of the closed referendum",
+            "refundedAmount": "uint256 Amount being refunded."
+          }
+        },
+        "SubmissionDepositRefunded(uint32,address,uint256)": {
+          "custom:selector": "97a6d6297b296f1582fd202b983e51396e14aad8311725c1b61a4ede13242658",
+          "details": "Submission Deposit for a valid referendum has been refunded",
+          "params": {
+            "caller": "address Address of the caller.",
+            "index": "uint32 The index of the approved or cancelled referendum.",
+            "refundedAmount": "uint256 Amount being refunded."
+          }
+        },
+        "SubmittedAfter(uint16,uint32,bytes32)": {
+          "custom:selector": "a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf",
+          "details": "A referenda has been submitted after a given block",
+          "params": {
+            "hash": "bytes32 The hash of the proposal preimage",
+            "referendumIndex": "uint32 The index of the submitted referendum",
+            "trackId": "uint16 The trackId"
+          }
+        },
+        "SubmittedAt(uint16,uint32,bytes32)": {
+          "custom:selector": "e02a819ecfc92874b5016c6a0e26f56a5cb08771f32ab818bf548d84ca3ae94d",
+          "details": "A referenda has been submitted at a given block",
+          "params": {
+            "hash": "bytes32 The hash of the proposal preimage",
+            "referendumIndex": "uint32 The index of the submitted referendum",
+            "trackId": "uint16 The trackId"
+          }
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "closedReferendumInfo(uint32)": {
+          "custom:selector": "14febfbf",
+          "params": { "referendumIndex": "The index of the referendum" }
+        },
+        "decidingCount(uint16)": {
+          "custom:selector": "983d6425",
+          "params": { "trackId": "The track identifier" }
+        },
+        "killedReferendumBlock(uint32)": {
+          "custom:selector": "6414ddc5",
+          "params": { "referendumIndex": "The index of the referendum" }
+        },
+        "ongoingReferendumInfo(uint32)": {
+          "custom:selector": "f033b7cd",
+          "params": { "referendumIndex": "The index of the referendum" }
+        },
+        "placeDecisionDeposit(uint32)": {
+          "custom:selector": "245ce18d",
+          "details": "Post the Decision Deposit for a referendum",
+          "params": {
+            "index": "The index of the ongoing referendum that is not yet deciding"
+          }
+        },
+        "referendumCount()": { "custom:selector": "3a42ee31" },
+        "referendumStatus(uint32)": {
+          "custom:selector": "8d407c0b",
+          "params": { "referendumIndex": "The index of the referendum" }
+        },
+        "refundDecisionDeposit(uint32)": {
+          "custom:selector": "1325d528",
+          "details": "Refund the Decision Deposit for a closed referendum back to the depositor",
+          "params": {
+            "index": "The index of a closed referendum with decision deposit still locked"
+          }
+        },
+        "refundSubmissionDeposit(uint32)": {
+          "custom:selector": "c28307ca",
+          "details": "Refund the Submission Deposit for a closed referendum back to the depositor",
+          "params": {
+            "index": "The index of a closed referendum with submission deposit still locked"
+          }
+        },
+        "submissionDeposit()": { "custom:selector": "aa14c39a" },
+        "submitAfter(uint16,bytes32,uint32,uint32)": {
+          "custom:selector": "5b2479db",
+          "details": "Submit a referenda",
+          "params": {
+            "block": "Block number after which this will be executed",
+            "proposalHash": "The proposed runtime call hash stored in the preimage pallet",
+            "proposalLen": "The proposed runtime call length",
+            "trackId": "The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`"
+          },
+          "returns": { "referendumIndex": "Index of submitted referenda" }
+        },
+        "submitAt(uint16,bytes32,uint32,uint32)": {
+          "custom:selector": "131f3468",
+          "details": "Submit a referenda",
+          "params": {
+            "block": "Block number at which this will be executed",
+            "proposalHash": "The proposed runtime call hash stored in the preimage pallet",
+            "proposalLen": "The proposed runtime call length",
+            "trackId": "The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`"
+          },
+          "returns": { "referendumIndex": "Index of submitted referenda" }
+        },
+        "trackIds()": {
+          "custom:selector": "cc17da14",
+          "returns": { "trackIds": "Identifiers for all tracks (and origins)" }
+        },
+        "trackInfo(uint16)": {
+          "custom:selector": "34038146",
+          "params": { "trackId": "The track identifier" }
+        }
+      },
+      "title": "Pallet Referenda InterfaceThe interface through which solidity contracts will interact with the Referenda pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "closedReferendumInfo(uint32)": "14febfbf",
+        "decidingCount(uint16)": "983d6425",
+        "killedReferendumBlock(uint32)": "6414ddc5",
+        "ongoingReferendumInfo(uint32)": "f033b7cd",
+        "placeDecisionDeposit(uint32)": "245ce18d",
+        "referendumCount()": "3a42ee31",
+        "referendumStatus(uint32)": "8d407c0b",
+        "refundDecisionDeposit(uint32)": "1325d528",
+        "refundSubmissionDeposit(uint32)": "c28307ca",
+        "submissionDeposit()": "aa14c39a",
+        "submitAfter(uint16,bytes32,uint32,uint32)": "5b2479db",
+        "submitAt(uint16,bytes32,uint32,uint32)": "131f3468",
+        "trackIds()": "cc17da14",
+        "trackInfo(uint16)": "34038146"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"depositedAmount\",\"type\":\"uint256\"}],\"name\":\"DecisionDepositPlaced\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"refundedAmount\",\"type\":\"uint256\"}],\"name\":\"DecisionDepositRefunded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"refundedAmount\",\"type\":\"uint256\"}],\"name\":\"SubmissionDepositRefunded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"SubmittedAfter\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"SubmittedAt\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"name\":\"closedReferendumInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"enum Referenda.ReferendumStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"submissionDepositor\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"submissionDeposit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"decisionDepositor\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"decisionDeposit\",\"type\":\"uint256\"}],\"internalType\":\"struct Referenda.ClosedReferendumInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"decidingCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"name\":\"killedReferendumBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"name\":\"ongoingReferendumInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"origin\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"enactmentType\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"enactmentTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"submissionTime\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"submissionDepositor\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"submissionDeposit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"decisionDepositor\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"decisionDeposit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decidingSince\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decidingConfirmingEnd\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"ayes\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"support\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"approval\",\"type\":\"uint32\"},{\"internalType\":\"bool\",\"name\":\"inQueue\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"alarmTime\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"taskAddress\",\"type\":\"bytes\"}],\"internalType\":\"struct Referenda.OngoingReferendumInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"placeDecisionDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"referendumCount\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"name\":\"referendumStatus\",\"outputs\":[{\"internalType\":\"enum Referenda.ReferendumStatus\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"refundDecisionDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"name\":\"refundSubmissionDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submissionDeposit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalLen\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"block\",\"type\":\"uint32\"}],\"name\":\"submitAfter\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"},{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalLen\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"block\",\"type\":\"uint32\"}],\"name\":\"submitAt\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"referendumIndex\",\"type\":\"uint32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"trackIds\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"trackIds\",\"type\":\"uint16[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"trackId\",\"type\":\"uint16\"}],\"name\":\"trackInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"maxDeciding\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decisionDeposit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"preparePeriod\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decisionPeriod\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"confirmPeriod\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minEnactmentPeriod\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"minApproval\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"minSupport\",\"type\":\"bytes\"}],\"internalType\":\"struct Referenda.TrackInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000811\",\"events\":{\"DecisionDepositPlaced(uint32,address,uint256)\":{\"custom:selector\":\"222ac3cb2f2e974dcbd2ac3d35e9fefb77e57f5dc4b9243afa9a926b1ff57f75\",\"details\":\"Decision Deposit for a referendum has been placed\",\"params\":{\"caller\":\"address Address of the caller.\",\"depositedAmount\":\"uint256 Amount being deposited.\",\"index\":\"uint32 The index of the ongoing referendum that is not yet deciding.\"}},\"DecisionDepositRefunded(uint32,address,uint256)\":{\"custom:selector\":\"86801df04afc1aa4cd2d673df29c5951bbb0bae2c965bb9d233909894aab55be\",\"details\":\"Decision Deposit for a closed referendum has been refunded\",\"params\":{\"caller\":\"address Address of the caller.\",\"index\":\"uint32 The index of the closed referendum\",\"refundedAmount\":\"uint256 Amount being refunded.\"}},\"SubmissionDepositRefunded(uint32,address,uint256)\":{\"custom:selector\":\"97a6d6297b296f1582fd202b983e51396e14aad8311725c1b61a4ede13242658\",\"details\":\"Submission Deposit for a valid referendum has been refunded\",\"params\":{\"caller\":\"address Address of the caller.\",\"index\":\"uint32 The index of the approved or cancelled referendum.\",\"refundedAmount\":\"uint256 Amount being refunded.\"}},\"SubmittedAfter(uint16,uint32,bytes32)\":{\"custom:selector\":\"a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf\",\"details\":\"A referenda has been submitted after a given block\",\"params\":{\"hash\":\"bytes32 The hash of the proposal preimage\",\"referendumIndex\":\"uint32 The index of the submitted referendum\",\"trackId\":\"uint16 The trackId\"}},\"SubmittedAt(uint16,uint32,bytes32)\":{\"custom:selector\":\"e02a819ecfc92874b5016c6a0e26f56a5cb08771f32ab818bf548d84ca3ae94d\",\"details\":\"A referenda has been submitted at a given block\",\"params\":{\"hash\":\"bytes32 The hash of the proposal preimage\",\"referendumIndex\":\"uint32 The index of the submitted referendum\",\"trackId\":\"uint16 The trackId\"}}},\"kind\":\"dev\",\"methods\":{\"closedReferendumInfo(uint32)\":{\"custom:selector\":\"14febfbf\",\"params\":{\"referendumIndex\":\"The index of the referendum\"}},\"decidingCount(uint16)\":{\"custom:selector\":\"983d6425\",\"params\":{\"trackId\":\"The track identifier\"}},\"killedReferendumBlock(uint32)\":{\"custom:selector\":\"6414ddc5\",\"params\":{\"referendumIndex\":\"The index of the referendum\"}},\"ongoingReferendumInfo(uint32)\":{\"custom:selector\":\"f033b7cd\",\"params\":{\"referendumIndex\":\"The index of the referendum\"}},\"placeDecisionDeposit(uint32)\":{\"custom:selector\":\"245ce18d\",\"details\":\"Post the Decision Deposit for a referendum\",\"params\":{\"index\":\"The index of the ongoing referendum that is not yet deciding\"}},\"referendumCount()\":{\"custom:selector\":\"3a42ee31\"},\"referendumStatus(uint32)\":{\"custom:selector\":\"8d407c0b\",\"params\":{\"referendumIndex\":\"The index of the referendum\"}},\"refundDecisionDeposit(uint32)\":{\"custom:selector\":\"1325d528\",\"details\":\"Refund the Decision Deposit for a closed referendum back to the depositor\",\"params\":{\"index\":\"The index of a closed referendum with decision deposit still locked\"}},\"refundSubmissionDeposit(uint32)\":{\"custom:selector\":\"c28307ca\",\"details\":\"Refund the Submission Deposit for a closed referendum back to the depositor\",\"params\":{\"index\":\"The index of a closed referendum with submission deposit still locked\"}},\"submissionDeposit()\":{\"custom:selector\":\"aa14c39a\"},\"submitAfter(uint16,bytes32,uint32,uint32)\":{\"custom:selector\":\"5b2479db\",\"details\":\"Submit a referenda\",\"params\":{\"block\":\"Block number after which this will be executed\",\"proposalHash\":\"The proposed runtime call hash stored in the preimage pallet\",\"proposalLen\":\"The proposed runtime call length\",\"trackId\":\"The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\"},\"returns\":{\"referendumIndex\":\"Index of submitted referenda\"}},\"submitAt(uint16,bytes32,uint32,uint32)\":{\"custom:selector\":\"131f3468\",\"details\":\"Submit a referenda\",\"params\":{\"block\":\"Block number at which this will be executed\",\"proposalHash\":\"The proposed runtime call hash stored in the preimage pallet\",\"proposalLen\":\"The proposed runtime call length\",\"trackId\":\"The trackId corresponding to the origin from which the proposal is to be dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\"},\"returns\":{\"referendumIndex\":\"Index of submitted referenda\"}},\"trackIds()\":{\"custom:selector\":\"cc17da14\",\"returns\":{\"trackIds\":\"Identifiers for all tracks (and origins)\"}},\"trackInfo(uint16)\":{\"custom:selector\":\"34038146\",\"params\":{\"trackId\":\"The track identifier\"}}},\"title\":\"Pallet Referenda InterfaceThe interface through which solidity contracts will interact with the Referenda pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"closedReferendumInfo(uint32)\":{\"notice\":\"Return the referendumInfo for a closed referendum\"},\"decidingCount(uint16)\":{\"notice\":\"Return the total count of deciding referenda per track\"},\"killedReferendumBlock(uint32)\":{\"notice\":\"Return the block the referendum was killed\"},\"ongoingReferendumInfo(uint32)\":{\"notice\":\"Return the referendumInfo for an ongoing referendum\"},\"referendumCount()\":{\"notice\":\"Return the total referendum count\"},\"referendumStatus(uint32)\":{\"notice\":\"Return the ReferendumStatus for the input referendumIndex\"},\"submissionDeposit()\":{\"notice\":\"Return the submission deposit for all referenda\"},\"trackIds()\":{\"notice\":\"Return the trackIds\"},\"trackInfo(uint16)\":{\"notice\":\"Return the governance parameters configured for the input TrackId\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Referenda.sol\":\"Referenda\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Referenda.sol\":{\"keccak256\":\"0x1775aed3f3772a4e943ee08c12f42ff5ce2bf528466f33efc36a6447cfbfb594\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://22c54fd60c34e50acf3554a32b11b7e5207f2ad2c16b37cd3c4e607d5ce7827a\",\"dweb:/ipfs/QmSmFZPJ7MH6PjfYKMoLbY2QzhhREvuQyNTztQQ683utC9\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "closedReferendumInfo(uint32)": {
+          "notice": "Return the referendumInfo for a closed referendum"
+        },
+        "decidingCount(uint16)": {
+          "notice": "Return the total count of deciding referenda per track"
+        },
+        "killedReferendumBlock(uint32)": {
+          "notice": "Return the block the referendum was killed"
+        },
+        "ongoingReferendumInfo(uint32)": {
+          "notice": "Return the referendumInfo for an ongoing referendum"
+        },
+        "referendumCount()": { "notice": "Return the total referendum count" },
+        "referendumStatus(uint32)": {
+          "notice": "Return the ReferendumStatus for the input referendumIndex"
+        },
+        "submissionDeposit()": {
+          "notice": "Return the submission deposit for all referenda"
+        },
+        "trackIds()": { "notice": "Return the trackIds" },
+        "trackInfo(uint16)": {
+          "notice": "Return the governance parameters configured for the input TrackId"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Referenda contract's address.\naddress constant REFERENDA_ADDRESS = 0x0000000000000000000000000000000000000811;\n\n/// @dev The Referenda contract's instance.\nReferenda constant REFERENDA_CONTRACT = Referenda(REFERENDA_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Referenda Interface\n/// @title The interface through which solidity contracts will interact with the Referenda pallet\n/// @custom:address 0x0000000000000000000000000000000000000811\ninterface Referenda {\n    enum ReferendumStatus {\n        Ongoing,\n        Approved,\n        Rejected,\n        Cancelled,\n        TimedOut,\n        Killed\n    }\n    struct TrackInfo {\n        string name;\n        uint256 maxDeciding;\n        uint256 decisionDeposit;\n        uint256 preparePeriod;\n        uint256 decisionPeriod;\n        uint256 confirmPeriod;\n        uint256 minEnactmentPeriod;\n        bytes minApproval;\n        bytes minSupport;\n    }\n    struct OngoingReferendumInfo {\n        /// The track of this referendum.\n        uint16 trackId;\n        /// The origin for this referendum.\n        bytes origin;\n        /// The hash of the proposal up for referendum.\n        bytes proposal;\n        /// Whether proposal is scheduled for enactment at or after `enactment_time`. True if\n        /// DispatchTime::At and false if DispatchTime::After\n        bool enactmentType;\n        /// The time the proposal should be scheduled for enactment.\n        uint256 enactmentTime;\n        /// The time of submission. Once `UndecidingTimeout` passes, it may be closed by anyone if\n        /// `deciding` is `None`.\n        uint256 submissionTime;\n        address submissionDepositor;\n        uint256 submissionDeposit;\n        address decisionDepositor;\n        uint256 decisionDeposit;\n        /// When this referendum began being \"decided\". If confirming, then the\n        /// end will actually be delayed until the end of the confirmation period.\n        uint256 decidingSince;\n        /// If nonzero, then the referendum has entered confirmation stage and will end at\n        /// the block number as long as it doesn't lose its approval in the meantime.\n        uint256 decidingConfirmingEnd;\n        /// The number of aye votes, expressed in terms of post-conviction lock-vote.\n        uint256 ayes;\n        /// Percent of aye votes, expressed pre-conviction, over total votes in the class.\n        uint32 support;\n        /// Percent of aye votes over aye + nay votes.\n        uint32 approval;\n        /// Whether we have been placed in the queue for being decided or not.\n        bool inQueue;\n        /// The next scheduled wake-up\n        uint256 alarmTime;\n        /// Scheduler task address if scheduled\n        bytes taskAddress;\n    }\n    struct ClosedReferendumInfo {\n        ReferendumStatus status;\n        uint256 end;\n        address submissionDepositor;\n        uint256 submissionDeposit;\n        address decisionDepositor;\n        uint256 decisionDeposit;\n    }\n\n    /// Return the total referendum count\n    /// @custom:selector 3a42ee31\n    function referendumCount() external view returns (uint32);\n\n    /// Return the submission deposit for all referenda\n    /// @custom:selector aa14c39a\n    function submissionDeposit() external view returns (uint256);\n\n    /// Return the total count of deciding referenda per track\n    /// @param trackId The track identifier\n    /// @custom:selector 983d6425\n    function decidingCount(uint16 trackId) external view returns (uint256);\n\n    /// Return the trackIds\n    /// @return trackIds Identifiers for all tracks (and origins)\n    /// @custom:selector cc17da14\n    function trackIds() external view returns (uint16[] memory trackIds);\n\n    /// Return the governance parameters configured for the input TrackId\n    /// @param trackId The track identifier\n    /// @custom:selector 34038146\n    function trackInfo(uint16 trackId) external view returns (TrackInfo memory);\n\n    /// Return the ReferendumStatus for the input referendumIndex\n    /// @param referendumIndex The index of the referendum\n    /// @custom:selector 8d407c0b\n    function referendumStatus(uint32 referendumIndex)\n        external\n        view\n        returns (ReferendumStatus);\n\n    /// Return the referendumInfo for an ongoing referendum\n    /// @param referendumIndex The index of the referendum\n    /// @custom:selector f033b7cd\n    function ongoingReferendumInfo(uint32 referendumIndex)\n        external\n        view\n        returns (OngoingReferendumInfo memory);\n\n    /// Return the referendumInfo for a closed referendum\n    /// @param referendumIndex The index of the referendum\n    /// @custom:selector 14febfbf\n    function closedReferendumInfo(uint32 referendumIndex)\n        external\n        view\n        returns (ClosedReferendumInfo memory);\n\n    /// Return the block the referendum was killed\n    /// @param referendumIndex The index of the referendum\n    /// @custom:selector 6414ddc5\n    function killedReferendumBlock(uint32 referendumIndex)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Submit a referenda\n    /// @custom:selector 131f3468\n    /// @param trackId The trackId corresponding to the origin from which the proposal is to be\n    /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\n    /// @param proposalHash The proposed runtime call hash stored in the preimage pallet\n    /// @param proposalLen The proposed runtime call length\n    /// @param block Block number at which this will be executed\n    /// @return referendumIndex Index of submitted referenda\n    function submitAt(\n        uint16 trackId,\n        bytes32 proposalHash,\n        uint32 proposalLen,\n        uint32 block\n    ) external returns (uint32 referendumIndex);\n\n    /// @dev Submit a referenda\n    /// @custom:selector 5b2479db\n    /// @param trackId The trackId corresponding to the origin from which the proposal is to be\n    /// dispatched. The trackId => origin mapping lives in `runtime/governance/tracks.rs`\n    /// @param proposalHash The proposed runtime call hash stored in the preimage pallet\n    /// @param proposalLen The proposed runtime call length\n    /// @param block Block number after which this will be executed\n    /// @return referendumIndex Index of submitted referenda\n    function submitAfter(\n        uint16 trackId,\n        bytes32 proposalHash,\n        uint32 proposalLen,\n        uint32 block\n    ) external returns (uint32 referendumIndex);\n\n    /// @dev Post the Decision Deposit for a referendum\n    /// @custom:selector 245ce18d\n    /// @param index The index of the ongoing referendum that is not yet deciding\n    function placeDecisionDeposit(uint32 index) external;\n\n    /// @dev Refund the Decision Deposit for a closed referendum back to the depositor\n    /// @custom:selector 1325d528\n    /// @param  index The index of a closed referendum with decision deposit still locked\n    function refundDecisionDeposit(uint32 index) external;\n\n    /// @dev Refund the Submission Deposit for a closed referendum back to the depositor\n    /// @custom:selector c28307ca\n    /// @param  index The index of a closed referendum with submission deposit still locked\n    function refundSubmissionDeposit(uint32 index) external;\n\n    /// @dev A referenda has been submitted at a given block\n    /// @custom:selector e02a819ecfc92874b5016c6a0e26f56a5cb08771f32ab818bf548d84ca3ae94d\n    /// @param trackId uint16 The trackId\n    /// @param referendumIndex uint32 The index of the submitted referendum\n    /// @param hash bytes32 The hash of the proposal preimage\n    event SubmittedAt(\n        uint16 indexed trackId,\n        uint32 referendumIndex,\n        bytes32 hash\n    );\n\n    /// @dev A referenda has been submitted after a given block\n    /// @custom:selector a5117efbf0f4aa9e08dd135e69aa8ee4978f99fca86fc5154b5bd1b363eafdcf\n    /// @param trackId uint16 The trackId\n    /// @param referendumIndex uint32 The index of the submitted referendum\n    /// @param hash bytes32 The hash of the proposal preimage\n    event SubmittedAfter(\n        uint16 indexed trackId,\n        uint32 referendumIndex,\n        bytes32 hash\n    );\n\n    /// @dev Decision Deposit for a referendum has been placed\n    /// @custom:selector 222ac3cb2f2e974dcbd2ac3d35e9fefb77e57f5dc4b9243afa9a926b1ff57f75\n    /// @param index uint32 The index of the ongoing referendum that is not yet deciding.\n    /// @param caller address Address of the caller.\n    /// @param depositedAmount uint256 Amount being deposited.\n    event DecisionDepositPlaced(\n        uint32 index,\n        address caller,\n        uint256 depositedAmount\n    );\n\n    /// @dev Decision Deposit for a closed referendum has been refunded\n    /// @custom:selector 86801df04afc1aa4cd2d673df29c5951bbb0bae2c965bb9d233909894aab55be\n    /// @param index uint32 The index of the closed referendum\n    /// @param caller address Address of the caller.\n    /// @param refundedAmount uint256 Amount being refunded.\n    event DecisionDepositRefunded(\n        uint32 index,\n        address caller,\n        uint256 refundedAmount\n    );\n\n    /// @dev Submission Deposit for a valid referendum has been refunded\n    /// @custom:selector 97a6d6297b296f1582fd202b983e51396e14aad8311725c1b61a4ede13242658\n    /// @param index uint32 The index of the approved or cancelled referendum.\n    /// @param caller address Address of the caller.\n    /// @param refundedAmount uint256 Amount being refunded.\n    event SubmissionDepositRefunded(\n        uint32 index,\n        address caller,\n        uint256 refundedAmount\n    );\n}\n"
+}
