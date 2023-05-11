@@ -519,6 +519,7 @@ import type {
   MetadataV12,
   MetadataV13,
   MetadataV14,
+  MetadataV15,
   MetadataV9,
   ModuleConstantMetadataV10,
   ModuleConstantMetadataV11,
@@ -541,10 +542,15 @@ import type {
   PalletEventMetadataV14,
   PalletMetadataLatest,
   PalletMetadataV14,
+  PalletMetadataV15,
   PalletStorageMetadataLatest,
   PalletStorageMetadataV14,
   PortableType,
   PortableTypeV14,
+  RuntimeApiMetadataLatest,
+  RuntimeApiMetadataV15,
+  RuntimeApiMethodMetadataV15,
+  RuntimeApiMethodParamMetadataV15,
   SignedExtensionMetadataLatest,
   SignedExtensionMetadataV14,
   StorageEntryMetadataLatest,
@@ -1790,6 +1796,7 @@ declare module "@polkadot/types/types/registry" {
     MetadataV12: MetadataV12;
     MetadataV13: MetadataV13;
     MetadataV14: MetadataV14;
+    MetadataV15: MetadataV15;
     MetadataV9: MetadataV9;
     MigrationStatusResult: MigrationStatusResult;
     MmrBatchProof: MmrBatchProof;
@@ -1901,6 +1908,7 @@ declare module "@polkadot/types/types/registry" {
     PalletId: PalletId;
     PalletMetadataLatest: PalletMetadataLatest;
     PalletMetadataV14: PalletMetadataV14;
+    PalletMetadataV15: PalletMetadataV15;
     PalletsOrigin: PalletsOrigin;
     PalletStorageMetadataLatest: PalletStorageMetadataLatest;
     PalletStorageMetadataV14: PalletStorageMetadataV14;
@@ -2033,6 +2041,10 @@ declare module "@polkadot/types/types/registry" {
     RoundSnapshot: RoundSnapshot;
     RoundState: RoundState;
     RpcMethods: RpcMethods;
+    RuntimeApiMetadataLatest: RuntimeApiMetadataLatest;
+    RuntimeApiMetadataV15: RuntimeApiMetadataV15;
+    RuntimeApiMethodMetadataV15: RuntimeApiMethodMetadataV15;
+    RuntimeApiMethodParamMetadataV15: RuntimeApiMethodParamMetadataV15;
     RuntimeCall: RuntimeCall;
     RuntimeDbWeight: RuntimeDbWeight;
     RuntimeDispatchInfo: RuntimeDispatchInfo;
