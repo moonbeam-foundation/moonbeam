@@ -214,8 +214,12 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Login to DockerHub
-        # The if must stay on this step (because this job must not be skipped)
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        # We should make sure that external PRs can't login to docker,
+        # but the check to detect if a PR is "external" not work when
+        # this workflow is trigerred by a push.
+        if: |
+          github.event_name == 'push' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: docker/login-action@v2.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -622,7 +626,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "prepare-polkadot"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
@@ -670,7 +674,7 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "Run zombie test"
+      - name: "Run zombie upgrade test"
         run: |
           cd test
           pnpm i
