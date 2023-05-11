@@ -2932,7 +2932,8 @@ fn removed_precompiles() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonbase_runtime::{DealWithFees, Treasury};
+	use moonriver_runtime::{DealWithFees, Treasury};
+	use pallet_balances::NegativeImbalance;
 
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 10_000)])
@@ -2946,8 +2947,8 @@ fn deal_with_fees_handles_tip() {
 			assert_eq!(total_supply_before, 10_000);
 
 			let fees_then_tips = vec![
-				NegativeImbalance::<moonbase_runtime::Runtime>::new(100),
-				NegativeImbalance::<moonbase_runtime::Runtime>::new(1_000),
+				NegativeImbalance::<moonriver_runtime::Runtime>::new(100),
+				NegativeImbalance::<moonriver_runtime::Runtime>::new(1_000),
 			];
 			DealWithFees::on_unbalanceds(fees_then_tips.into_iter());
 
