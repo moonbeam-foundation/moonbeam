@@ -57,9 +57,7 @@ This proposal does NOT provide a solution for [ISSUE-1] and [ISSUE-3]
 
 ### Example:
 
-- Using the suggested ratio of 0.01 GLMR per byte, deploying the Wormhole bridge
-  contract (24400 Bytes) would set a deposit of `(24.400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, and deploying a fast proxy (97 Bytes) would set a deposit of `(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
-
+Using the suggested ratio of 0.01 GLMR per byte, deploying the Wormhole bridge contract (24400 Bytes) would set a deposit of `(24.400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, and deploying a fast proxy (97 Bytes) would set a deposit of `(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
 
 ## Impact
 

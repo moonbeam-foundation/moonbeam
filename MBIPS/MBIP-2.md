@@ -54,7 +54,7 @@ This proposal does NOT provide a solution for **[ISSUE-1] Creating a new account
 
 ### Example
 
-- Using the suggested ratio of 0.001 GLMR per byte, Minting an NFT that requires 3 storage items (116 bytes key * 32 bytes value) would induce a deposit of `(116 + 32) * 3 * 0.001 => 0.444 GLMR`
+Using the suggested ratio of 0.001 GLMR per byte, Minting an NFT that requires 3 storage items (116 bytes key * 32 bytes value) would induce a deposit of `(116 + 32) * 3 * 0.001 => 0.444 GLMR`
 
 ## Impact
 
