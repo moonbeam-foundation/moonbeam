@@ -77,6 +77,8 @@ runs:
         cd ./tests
         # Log npm version to make sure it maches with local version
         npm -v
+        git status
+        git diff-index --name-only HEAD
         # Make sure git is working, and if not abort early. When git is not working it looks like:
         # $ git diff-index --name-only HEAD
         # fatal: not a git repository (or any of the parent directories): .git
