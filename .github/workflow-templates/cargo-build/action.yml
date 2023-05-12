@@ -19,6 +19,10 @@ runs:
   steps:
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
+    - uses: rui314/setup-mold@v1
+      with:
+        mold-version: 1.1.1
+        make-default: true
     # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
     # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
     - name: Setup Rust toolchain
