@@ -327,8 +327,6 @@ jobs:
     env:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       RUSTC_WRAPPER: "sccache"
-      TMP_TARGET: "/tmp/target-test"
-      CARGO_TARGET_DIR: "target-test"
     steps:
       - name: Checkout
         uses: actions/checkout@v3

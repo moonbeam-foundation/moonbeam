@@ -170,8 +170,8 @@ jobs:
           mv /tmp/proffiles proffiles
 
           echo "Executing grcov"
-          ./grcov proffiles/ -s ./ --binary-path ./${CARGO_TARGET_DIR}/release/ \
-            -t html --branch --ignore-not-existing --ignore ${CARGO_TARGET_DIR}/release/build/* \
+          ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore target/release/build/* \
             -o coverage/ --llvm-path ./  --llvm 2>&1 \
             | tee grcov.log
 
@@ -184,8 +184,8 @@ jobs:
             cd proffiles/
             rm $INVALID
             cd ..
-            ./grcov proffiles/ -s ./ --binary-path ./${CARGO_TARGET_DIR}/release/ \
-            -t html --branch --ignore-not-existing --ignore ${CARGO_TARGET_DIR}/release/build/* \
+            ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore target/release/build/* \
             -o coverage/ --llvm-path ./  --llvm
           fi
 
