@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Precompile Registry contract's address.
+address constant PRECOMPILE_REGISTRY_ADDRESS = 0x0000000000000000000000000000000000000815;
+
+/// @dev The Precompile Registry contract's instance.
+PrecompileRegistry constant PRECOMPILE_REGISTRY_CONTRACT = PrecompileRegistry(PRECOMPILE_REGISTRY_ADDRESS);
+
 /// @author The Moonbeam Team
 /// @title Precompile Registry
 /// @dev Interface to the set of available precompiles.
