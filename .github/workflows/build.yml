@@ -321,7 +321,7 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     env:
-      RUSTFLAGS: "-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=mold/bin/mold"
+      RUSTFLAGS: "-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=./mold/bin/mold"
       RUSTC_WRAPPER: "sccache"
     steps:
       - name: Checkout
