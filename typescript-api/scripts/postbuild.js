@@ -1,5 +1,10 @@
 import { writeFileSync, copyFileSync } from "fs";
-const pck = require("../package.json");
+import { readFile } from 'fs/promises';
+const pck = JSON.parse(
+  await readFile(
+    new URL('../package.json', import.meta.url)
+  )
+);
 
 const buildPath = `${process.env.PWD}/build`;
 
