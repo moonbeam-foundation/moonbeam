@@ -515,6 +515,19 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
+	pub struct AddGet<T, R> {
+		_phantom: PhantomData<(T, R)>,
+	}
+	impl<T, R> Get<u32> for AddGet<T, R>
+	where
+		T: Get<u32>,
+		R: Get<u32>,
+	{
+		fn get() -> u32 {
+			T::get() + R::get()
+		}
+	}
+
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn auto_compounding_delegations)]
@@ -522,7 +535,10 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec<AutoCompoundConfig<T::AccountId>>,
+		BoundedVec<
+			AutoCompoundConfig<T::AccountId>,
+			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+		>,
 		ValueQuery,
 	>;
 
