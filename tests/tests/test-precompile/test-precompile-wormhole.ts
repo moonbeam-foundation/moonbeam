@@ -17,6 +17,7 @@ import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
 import { expectEVMResult } from "../../util/eth-transactions";
+import { TypeRegistry, Enum, Struct } from '@polkadot/types';
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -209,6 +210,27 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    // create payload
+    const versionedMultiLocation = {
+      v2: {
+        parents: 1,
+        interior: {
+          X2: [
+            { Parachain: 1001 },
+            { AccountId32: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
+          ]
+        }
+      }
+    };
+
+    const destination = context.polkadotApi.registry.createType("VersionedMultiLocation", versionedMultiLocation);
+
+    const userAction = new XcmRoutingUserAction({ destination });
+    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    console.log("Versioned User Action JSON:", versionedUserAction.toJSON());
+    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
+    const payload = versionedUserAction.toHex();
+
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
@@ -222,7 +244,9 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       PRECOMPILE_GMP_ADDRESS,
       "0x" + evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "0x0003010200ed0101000000000000000000000000000000000000000000000000000000000000000000"
+      // "0x0003010200ed0101000000000000000000000000000000000000000000000000000000000000000000"
+      // "0x00030102000401000000000000000000000000000000000000000000000000000000000000000000"
+      ""+payload,
     );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
@@ -239,3 +263,16 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
   });
 });
+
+const registry = new TypeRegistry();
+
+class VersionedUserAction extends Enum {
+  constructor(value?: any) {
+    super(registry, { V1: XcmRoutingUserAction }, value);
+  }
+}
+class XcmRoutingUserAction extends Struct {
+  constructor(value?: any) {
+    super(registry, { destination: 'VersionedMultiLocation' }, value);
+  }
+}
