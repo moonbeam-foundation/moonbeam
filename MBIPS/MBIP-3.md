@@ -8,7 +8,7 @@ created: 2023-05-11
 
 ## Abstract
 
-
+Creating a Smart Contract (including CREATE/CREATE2) would require specifying a certain deposit, and executing a transaction, a certain amount of that deposit would get burnt based on how long since the last time it was used.
 
 ## Motivation
 
@@ -34,10 +34,8 @@ This proposal does NOT provide a solution for **[ISSUE-1] Creating a new account
 
 ### Logic
 
-- Creating a Smart Contract (including CREATE/CREATE2) would require specifying a certain deposit.
-   There would be a minimum deposit value defined by the community.
-- When executing a transaction, a certain amount of that smart contract deposit 
-   would get burnt based on how long since the last time it was used.
+- Creating a Smart Contract (including CREATE/CREATE2) would require specifying a certain deposit. There would be a minimum deposit value defined by the community.
+- When executing a transaction, a certain amount of that smart contract deposit would get burnt based on how long since the last time it was used.
 - When executing a transaction, if the deposit of the Smart Contract is under the required amount to pay the rent, the transaction gets reverted.
 - Any address can deposit GLMR to a Smart Contract to extend the rent.
 
