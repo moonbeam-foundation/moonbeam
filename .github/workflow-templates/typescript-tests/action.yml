@@ -21,7 +21,6 @@ runs:
       shell: bash
       run: |
         #### Ensure the moonbeam binary is executable
-        echo "moonbeam-binary: ${{ inputs.moonbeam-binary }}"
         chmod uog+x ${{ inputs.moonbeam-binary }}
 
         #### Set the binary path (absolute path to avoid subfolder working directories issues)
@@ -29,6 +28,9 @@ runs:
 
         #### Set the number of CPUs to use for parallel tests.
         echo "CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')" >> $GITHUB_ENV
+
+        echo "BINARY_PATH: $BINARY_PATH"
+        echo "CPUS: $CPUS"
 
     - name: Setup Moonbeam PolkadotJS types
       shell: bash
@@ -72,6 +74,7 @@ runs:
     - name: Check package-lock.json
       shell: bash
       run: |
+        cd ./tests
         # Log npm version to make sure it maches with local version
         npm -v
         # Make sure git is working, and if not abort early. When git is not working it looks like:
