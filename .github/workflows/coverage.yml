@@ -122,40 +122,10 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --release --all --features=evm-tracing
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v3
+      - name: Typescript Tests (Dev Service)
+        uses: ./.github/workflow-templates/typescript-tests
         with:
-          node-version: 20.x
-      - name: Typescript integration tests (against dev service)
-        run: |
-          chmod uog+x build/moonbeam
-
-          ####  Preparing the repository
-          cd moonbeam-types-bundle
-          npm ci
-          npm run build
-
-          ####  Preparing the typescript api
-          cd ../typescript-api
-          npm ci
-
-          cd ../tests
-          npm ci
-          #### Prepares and copies the typescript generated API to include in the tests
-          npm run setup-typescript-api 
-
-          #### Compile typescript tests into javascript (more stable for Mocha)
-          #### This also better display typescript issues
-          npm run build
-
-          CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
-
-          node node_modules/.bin/mocha \
-            --timeout 180000 \
-            --parallel -j $((CPUS / 2)) \
-            --exit \
-            'build/tests/**/test-*.js'  || true
-          # We force it to pass to get the coverage report
+          moonbeam-binary: build/moonbeam
       - name: Retrieve coverage
         id: coverage
         run: |
