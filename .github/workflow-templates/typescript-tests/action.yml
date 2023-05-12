@@ -77,29 +77,23 @@ runs:
         cd ./tests
         # Log npm version to make sure it maches with local version
         npm -v
-        git status
-        git diff-index --name-only HEAD
         # Make sure git is working, and if not abort early. When git is not working it looks like:
         # $ git diff-index --name-only HEAD
         # fatal: not a git repository (or any of the parent directories): .git
-        echo "checking diff-index"
         DIFF_INDEX="$(git diff-index --name-only HEAD)"
-        echo $DIFF_INDEX
-        echo ${DIFF_INDEX:0:5}
-        if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
-          echo "There was an error with the git checkout. Can't check package-lock.json file."
-          false
-        fi
-        echo $DIFF_INDEX
-        echo $DIFF_INDEX | grep package-lock.json
-        echo $DIFF_INDEX | grep package-lock.json | wc -l
-        FILECOUNT=$(echo $DIFF_INDEX | grep package-lock.json | wc -l)
-        echo $FILECOUNT
-        if [[ $FILECOUNT -eq 0 ]]; then
-          echo "All package-lock.json files are valid"
-        else
-          git diff --cached
-          echo "The following package-lock.json files have uncommitted changes"
-          echo $DIFF_INDEX | grep package-lock.json
-          false
+        if [[ -z "$DIFF_INDEX" ]]; then
+          if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
+            echo "There was an error with the git checkout. Can't check package-lock.json file."
+            false
+          fi
+          FILECOUNT=$(echo $DIFF_INDEX | grep package-lock.json | wc -l)
+          echo $FILECOUNT
+          if [[ $FILECOUNT -eq 0 ]]; then
+            echo "All package-lock.json files are valid"
+          else
+            git diff --cached
+            echo "The following package-lock.json files have uncommitted changes"
+            echo $DIFF_INDEX | grep package-lock.json
+            false
+          fi
         fi
