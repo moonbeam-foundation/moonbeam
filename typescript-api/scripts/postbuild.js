@@ -1,5 +1,5 @@
 import { writeFileSync, copyFileSync } from "fs";
-import pck from "../package.json" assert { type: "json" };
+const pck = require("../package.json");
 
 const buildPath = `${process.env.PWD}/build`;
 
