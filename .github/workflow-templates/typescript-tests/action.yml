@@ -82,7 +82,8 @@ runs:
         # Make sure git is working, and if not abort early. When git is not working it looks like:
         # $ git diff-index --name-only HEAD
         # fatal: not a git repository (or any of the parent directories): .git
-        DIFF_INDEX=$(git diff-index --name-only HEAD)
+        echo "checking diff-index"
+        DIFF_INDEX="$(git diff-index --name-only HEAD)"
         echo $DIFF_INDEX
         echo ${DIFF_INDEX:0:5}
         if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
