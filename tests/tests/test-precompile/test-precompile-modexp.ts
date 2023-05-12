@@ -711,7 +711,8 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
     await context.createBlock();
     const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     expect(receipt.status).to.be.true;
-    const modExpGas = receipt.gasUsed - numNonZeroBytes * 16 - numZeroBytes * 4 - 21000;
+    // we multiply by a factor of 20 for an even mod. See https://github.com/paritytech/frontier/pull/1017
+    const modExpGas = (receipt.gasUsed - numNonZeroBytes * 16 - numZeroBytes * 4 - 21000) * 20;
     expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
   });
 
