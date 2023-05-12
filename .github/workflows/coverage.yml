@@ -89,7 +89,7 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     env:
-      RUSTFLAGS: "-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=mold/bin/mold"
+      RUSTFLAGS: "-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=./mold/bin/mold"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
