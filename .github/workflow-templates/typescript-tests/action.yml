@@ -63,7 +63,7 @@ runs:
       run: |
         cd ./tests
         node node_modules/.bin/mocha \
-          --parallel -j $((CPUS / 2)) \
+          --parallel -j $((CPUS / 4)) \
           --exit \
           'build/tests/**/test-*.js'
 
