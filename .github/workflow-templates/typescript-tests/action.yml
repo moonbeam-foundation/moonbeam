@@ -6,6 +6,9 @@ inputs:
   moonbeam-binary:
     description: path to the moonbeam binary
     required: true
+  timeout:
+    description: default timeout for the tests
+    default: 5000
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
@@ -63,7 +66,8 @@ runs:
       run: |
         cd ./tests
         node node_modules/.bin/mocha \
-          --parallel -j 4 \
+          --timeout ${{ inputs.timeout }} \
+          --parallel -j $((CPUS / 2)) \
           --exit \
           'build/tests/**/test-*.js'
 
