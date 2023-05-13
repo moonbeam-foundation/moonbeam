@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Polkadot version to bump from"
+        description: "Polkadot version to bump from (ex: v0.9.40)"
         required: true
       to:
-        description: "Polkadot version to bump to"
+        description: "Polkadot version to bump to (ex: v0.9.42)"
         required: true
 
 jobs:
