@@ -134,6 +134,7 @@ jobs:
           timeout: 1200000
           moonbeam-binary: build/moonbeam
       - name: Retrieve coverage
+        if: always()
         id: coverage
         run: |
           mkdir -p /tmp/proffiles
