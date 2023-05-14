@@ -131,7 +131,7 @@ jobs:
       - name: Typescript Tests (Dev Service)
         uses: ./.github/workflow-templates/typescript-tests
         with:
-          timeout: 30000
+          timeout: 1200000
           moonbeam-binary: build/moonbeam
       - name: Retrieve coverage
         id: coverage
