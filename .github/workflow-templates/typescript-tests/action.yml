@@ -9,6 +9,9 @@ inputs:
   timeout:
     description: default timeout for the tests
     default: 5000
+  force-pass:
+    description: If the tests should pass even if there are failures
+    default: false
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
@@ -69,7 +72,7 @@ runs:
           --timeout ${{ inputs.timeout }} \
           --parallel -j $((CPUS / 8)) \
           --exit \
-          'build/tests/**/test-*.js'
+          'build/tests/**/test-*.js' || ${{ inputs.force-pass }}
 
     # We determine whether there are unmodified package-lock.json files by:
     # 1. Asking git for a list of all modified files
