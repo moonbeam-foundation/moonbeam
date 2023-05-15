@@ -115,6 +115,9 @@ jobs:
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: evm-tracing
+      - name: Clean-up possible coverage generated during builds
+        run: |
+          rm default_*.profraw
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
