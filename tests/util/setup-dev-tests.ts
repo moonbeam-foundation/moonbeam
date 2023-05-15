@@ -284,7 +284,7 @@ export function describeDevMoonbeam(
       };
 
       debug(
-        `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).url)}] for ${
+        `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] for ${
           this.currentTest.title
         }`
       );

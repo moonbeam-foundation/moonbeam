@@ -197,7 +197,7 @@ export const createTransaction = async (
   }
 
   debug(
-    `Tx [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).url)}] ` +
+    `Tx [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] ` +
       `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
       (data.to
         ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
