@@ -212,7 +212,8 @@ export function describeDevMoonbeam(
               // unsubscribes the subscription once we get the right block
               if (blockHeader.number != expectedBlockNumber) {
                 debug(
-                  `Received unexpected block: ${blockHeader.number} (expected: ${expectedBlockNumber})`
+                  `Received unexpected block: ${blockHeader.number} ` +
+                    `(expected: ${expectedBlockNumber})`
                 );
                 return;
               }
