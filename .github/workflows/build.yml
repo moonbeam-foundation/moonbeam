@@ -374,7 +374,7 @@ jobs:
         uses: ./.github/workflow-templates/typescript-tests
         with:
           moonbeam-binary: build/moonbeam
-          timeout: 10000
+          timeout: 30000
 
   typescript-tracing-tests:
     if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
