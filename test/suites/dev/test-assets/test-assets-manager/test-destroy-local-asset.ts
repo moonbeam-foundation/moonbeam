@@ -5,6 +5,7 @@ import { alith, GLMR } from "@moonwall/util";
 import { BN } from "@polkadot/util";
 import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 import { expectOk } from "../../../../helpers/expect.js";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "D113",
@@ -12,7 +13,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
-    let api;
+    let api: ApiPromise;
     beforeAll(async function () {
       api = context.polkadotJs();
       // Check ALITH has amount reserved

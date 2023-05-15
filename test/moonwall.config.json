@@ -187,9 +187,10 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/test-balance/test-balance-existential"],
       "include": ["**/*test*"],
       "multiThreads": true,
+      "envVars":["DEBUG_COLORS=1"],
       "reporters": ["html", "dot"],
       "foundation": {
         "type": "dev",

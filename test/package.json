@@ -14,12 +14,12 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2302.0",
-    "@moonwall/cli": "link:../../moonwall/packages/cli",
-    "@moonwall/util": "^0.5.14",
-    "@polkadot/api": "^10.6.1",
-    "@polkadot/api-augment": "^10.6.1",
-    "@polkadot/types": "^10.6.1",
-    "@polkadot/types-codec": "^10.6.1",
+    "@moonwall/cli": "^0.5.19",
+    "@moonwall/util": "^0.5.19",
+    "@polkadot/api": "^10.7.1",
+    "@polkadot/api-augment": "^10.7.1",
+    "@polkadot/types": "^10.7.1",
+    "@polkadot/types-codec": "^10.7.1",
     "@polkadot/util": "^12.1.2",
     "@types/debug": "^4.1.7",
     "@types/node": "^18.16.3",
@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "@acala-network/chopsticks": "^0.6.4",
-    "@polkadot/apps-config": "^0.129.1",
+    "@polkadot/apps-config": "^0.130.1",
+    "@polkadot/keyring": "^12.1.2",
     "@polkadot/util-crypto": "^12.1.2",
     "@vitest/ui": "^0.31.0",
     "@zombienet/utils": "^0.0.19",
@@ -47,6 +48,7 @@
     "node-fetch": "^3.3.1",
     "semver": "^7.5.0",
     "tsconfig-paths": "^4.2.0",
+    "viem": "^0.3.24",
     "vitest": "^0.31.0",
     "web": "^0.0.2"
   }

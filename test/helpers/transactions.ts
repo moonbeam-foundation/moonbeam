@@ -1,5 +1,5 @@
 import { AccessListish } from "@ethersproject/transactions";
-import { RlpStructuredData, ethers } from "ethers";
+import { RlpStructuredData, TransactionRequest, ethers } from "ethers";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
 
@@ -16,7 +16,7 @@ import {
   ethan,
   ETHAN_PRIVATE_KEY,
 } from "@moonwall/util";
-import { getCompiled } from "./contracts";
+import { getCompiled } from "./contracts.js";
 // import { customWeb3Request } from "./providers";
 import { customDevRpcRequest } from "./common.js";
 import { DevModeContext, MoonwallContext, EthTransactionType } from "@moonwall/cli";
@@ -141,7 +141,8 @@ export const createTransaction = async (
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
-
+console.log("remove me")
+  console.log(from)
   // Allows to retrieve potential errors
   let error = "";
   const estimatedGas = await context
@@ -199,7 +200,11 @@ export const createTransaction = async (
         chainId,
         type: 1,
       };
-    } else if (isEip1559) {
+    } else  {
+      if (!isEip1559){
+        throw new Error("Unknown transaction type!");
+      }
+
       data = {
         from,
         to: options.to,
@@ -214,12 +219,11 @@ export const createTransaction = async (
         type: 2,
       };
     }
-    rawTransaction = await newSigner.signTransaction(data);
+    rawTransaction = await newSigner.signTransaction(data as TransactionRequest);
   }
   (await provider.getNetwork()).name;
   debug(
-    `Tx [TODO: Put port number and host in here] ` +
-      `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
+    `TransactionDetails` +
       (data.to
         ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
         : "") +

@@ -4,6 +4,7 @@ import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../../helpers/a
 import { registerForeignAsset } from "../../../../helpers/xcm.js";
 import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 import { expectOk } from "../../../../helpers/expect.js";
+import { ApiPromise } from "@polkadot/api";
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
@@ -12,7 +13,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
-    let api;
+    let api: ApiPromise;
     beforeAll(async function () {
       api = context.polkadotJs();
       // registerForeignAsset
