@@ -139,13 +139,13 @@ jobs:
         run: |
           mkdir -p /tmp/proffiles
 
-          echo "Deletes invalid raw files (<74Mb) not suze why we have them"
           find . -type f -name \*.profraw -exec ls -l {}  \;
 
           echo "Copying profraw files to /tmp/proffiles"
           find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
 
           mv /tmp/proffiles proffiles
+          du -sh proffiles
 
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
