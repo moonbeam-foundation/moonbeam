@@ -419,7 +419,6 @@ export class XcmFragment {
   as_v3(): any {
     return {
       V3: replaceNetworkAny(this.instructions),
-      //V3: this.instructions
     };
   }
 
@@ -594,72 +593,88 @@ export class XcmFragment {
   }
 
   // Add a `LockAsset` instruction
-  lock_asset(index: number = 0, destination: number): this {
+  lock_asset(
+    multilocation: any = this.config.assets[0].multilocation,
+    fungible: any = this.config.assets[0].fungible,
+    unlocker: any = this.config.assets[0].multilocation
+  ): this {
     this.instructions.push({
       LockAsset: {
         asset: {
           id: {
-            Concrete: this.config.assets[index].multilocation,
+            Concrete: multilocation,
           },
           fun: {
-            Fungible: this.config.assets[index].fungible,
+            Fungible: fungible,
           },
         },
-        unlocker: { parents: 1, interior: { X1: { Parachain: destination } } },
+        unlocker,
       },
     });
     return this;
   }
 
   // Add a `UnlockAsset` instruction
-  unlock_asset(index: number = 0): this {
+  unlock_asset(
+    multilocation: any = this.config.assets[0].multilocation,
+    fungible: any = this.config.assets[0].fungible,
+    target: any = this.config.assets[0].multilocation
+  ): this {
     this.instructions.push({
       UnlockAsset: {
         asset: {
           id: {
-            Concrete: this.config.assets[index].multilocation,
+            Concrete: multilocation,
           },
           fun: {
-            Fungible: this.config.assets[index].fungible,
+            Fungible: fungible,
           },
         },
-        target: this.config.assets[index].multilocation,
+        target,
       },
     });
     return this;
   }
 
   // Add a `NoteUnlockable` instruction
-  note_unlockable(index: number = 0): this {
+  note_unlockable(
+    multilocation: any = this.config.assets[0].multilocation,
+    fungible: any = this.config.assets[0].fungible,
+    owner: any = this.config.assets[0].multilocation
+  ): this {
     this.instructions.push({
       NoteUnlockable: {
         asset: {
           id: {
-            Concrete: this.config.assets[index].multilocation,
+            Concrete: multilocation,
           },
           fun: {
-            Fungible: this.config.assets[index].fungible,
+            Fungible: fungible,
           },
         },
-        owner: this.config.assets[index].multilocation,
+        owner,
       },
     });
     return this;
   }
 
   // Add a `RequestUnlock` instruction
-  request_unlock(index: number = 0): this {
+  request_unlock(
+    multilocation: any = this.config.assets[0].multilocation,
+    fungible: any = this.config.assets[0].fungible,
+    locker: any = this.config.assets[0].multilocation
+  ): this {
     this.instructions.push({
       RequestUnlock: {
         asset: {
           id: {
-            Concrete: this.config.assets[index].multilocation,
+            Concrete: multilocation,
           },
           fun: {
-            Fungible: this.config.assets[index].fungible,
+            Fungible: fungible,
           },
         },
-        locker: this.config.assets[index].multilocation,
+        locker,
       },
     });
     return this;
@@ -674,9 +689,9 @@ export class XcmFragment {
   }
 
   // Add a `SetTopic` instruction
-  set_topic(topic: Uint8Array): this {
+  set_topic(topic: number[]): this {
     this.instructions.push({
-      SetTopic: topic ,
+      SetTopic: topic,
     });
     return this;
   }
@@ -703,9 +718,9 @@ export class XcmFragment {
   // Add a `UnpaidExecution` instruction
   unpaid_execution(destination: number): this {
     const weight_limit =
-    this.config.weight_limit != null
-      ? { Limited: this.config.weight_limit }
-      : { Unlimited: null };
+      this.config.weight_limit != null
+        ? { Limited: this.config.weight_limit }
+        : { Unlimited: null };
     this.instructions.push({
       UnpaidExecution: {
         weight_limit,
