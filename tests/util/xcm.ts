@@ -419,6 +419,7 @@ export class XcmFragment {
   as_v3(): any {
     return {
       V3: replaceNetworkAny(this.instructions),
+      //V3: this.instructions
     };
   }
 
@@ -475,9 +476,9 @@ export class XcmFragment {
   }
 
   // Add a `ExpectOrigin` instruction
-  expect_origin(index: number = 0): this {
+  expect_origin(multilocation: any = { parents: 1, interior: { X1: { Parachain: 1000 } } }): this {
     this.instructions.push({
-      ExpectOrigin: this.config.assets[index].multilocation,
+      ExpectOrigin: multilocation,
     });
     return this;
   }
@@ -485,7 +486,7 @@ export class XcmFragment {
   // Add a `ExpectError` instruction
   expect_error(index: number = 0, error: string = "Unimplemented"): this {
     this.instructions.push({
-      ExpectError: { index, error },
+      ExpectError: [index, error],
     });
     return this;
   }
@@ -571,7 +572,7 @@ export class XcmFragment {
   // Add a `UniversalOrigin` instruction
   universal_origin(junction: any): this {
     this.instructions.push({
-      UniversalOrigin: { junction },
+      UniversalOrigin: junction,
     });
     return this;
   }
@@ -579,20 +580,14 @@ export class XcmFragment {
   // Add a `ExportMessage` instruction
   export_message(
     network: "Any" | XcmV3JunctionNetworkId["type"] = "Any",
-    destination: any,
-    xcm: Function[]
+    destination: number,
+    xcm: any
   ): this {
-    let exported_instructions = [];
-    xcm.forEach((cb) => {
-      cb.call(this);
-      // As each method in the class pushes to the instruction stack, we pop
-      exported_instructions.push(this.instructions.pop());
-    });
     this.instructions.push({
       ExportMessage: {
         network,
-        destination,
-        xcm: exported_instructions,
+        destination: { X1: { Parachain: destination } },
+        xcm,
       },
     });
     return this;
@@ -679,9 +674,9 @@ export class XcmFragment {
   }
 
   // Add a `SetTopic` instruction
-  set_topic(topic: number[]): this {
+  set_topic(topic: Uint8Array): this {
     this.instructions.push({
-      SetTopic: { topic },
+      SetTopic: topic ,
     });
     return this;
   }
@@ -706,7 +701,11 @@ export class XcmFragment {
   }
 
   // Add a `UnpaidExecution` instruction
-  unpaid_execution(weight_limit: any, destination: number): this {
+  unpaid_execution(destination: number): this {
+    const weight_limit =
+    this.config.weight_limit != null
+      ? { Limited: this.config.weight_limit }
+      : { Unlimited: null };
     this.instructions.push({
       UnpaidExecution: {
         weight_limit,
