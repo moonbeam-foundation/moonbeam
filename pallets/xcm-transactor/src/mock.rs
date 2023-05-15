@@ -33,9 +33,7 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
-use xcm::IntoVersion;
-use xcm::VersionedXcm;
-use xcm::WrapVersion;
+use xcm::{IntoVersion, VersionedXcm, WrapVersion};
 use xcm_primitives::{
 	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
