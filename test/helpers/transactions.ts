@@ -25,6 +25,7 @@ import { expectEVMResult } from "./eth-transactions.js";
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { FMT_BYTES, FMT_NUMBER } from "web3";
 const debug = require("debug")("test:transaction");
 
 export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
@@ -137,16 +138,15 @@ export const createTransaction = async (
   const gasPrice =
     options.gasPrice !== undefined
       ? options.gasPrice
-      : "0x" + (await context.ethersSigner().provider?.getFeeData())!.gasPrice!.toString(16);
+      : "0x" + (await context.web3().eth.getGasPrice({number: FMT_NUMBER.HEX, bytes: FMT_BYTES.HEX}));
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
-console.log("remove me")
-  console.log(from)
+
   // Allows to retrieve potential errors
   let error = "";
   const estimatedGas = await context
-    .ethersSigner()
+    .web3().eth
     .estimateGas({
       from: from,
       to: options.to,
@@ -168,11 +168,13 @@ console.log("remove me")
   const nonce =
     options.nonce != null
       ? options.nonce
-      : await context.ethersSigner().provider!.getTransactionCount(from, "pending");
+      : await context.web3().eth.getTransactionCount(from, "pending")
+      // : await context.ethersSigner().provider!.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
   const provider = context.ethersSigner().provider!;
-  const newSigner = new ethers.Wallet(privateKey, provider);
+  // const provider = context.web3().provider
+  // const newSigner = new ethers.Wallet(privateKey, provider);
   if (isLegacy) {
     data = {
       from,
@@ -183,10 +185,14 @@ console.log("remove me")
       nonce: nonce,
       data: options.data,
     };
-    rawTransaction = await newSigner.signTransaction(data);
+    // rawTransaction = await newSigner.signTransaction(data);
+    // rawTransaction = await context.web3().eth.signTransaction(data);
+    const tx = await context.web3().eth.accounts.signTransaction(data as any, privateKey);
+    rawTransaction = tx.rawTransaction;
   } else {
-    // const signer = new ethers.Wallet(privateKey, context.ethers);
+    const signer = new ethers.Wallet(privateKey, context.ethersSigner().provider!);
     const chainId = (await provider.getNetwork()).chainId;
+    // const chainId = await context.web3().eth.getChainId()
     if (isEip2930) {
       data = {
         from,
@@ -219,9 +225,10 @@ console.log("remove me")
         type: 2,
       };
     }
-    rawTransaction = await newSigner.signTransaction(data as TransactionRequest);
+    // rawTransaction = await newSigner.signTransaction(data as TransactionRequest);
+    rawTransaction = await signer.signTransaction(data as any);
   }
-  (await provider.getNetwork()).name;
+
   debug(
     `TransactionDetails` +
       (data.to
