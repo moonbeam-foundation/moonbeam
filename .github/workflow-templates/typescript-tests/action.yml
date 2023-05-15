@@ -70,7 +70,7 @@ runs:
         cd ./tests
         node node_modules/.bin/mocha \
           --timeout ${{ inputs.timeout }} \
-          --parallel -j $((CPUS / 8)) \
+          --parallel -j $((CPUS / 4)) \
           --exit \
           'build/tests/**/test-*.js' || ${{ inputs.force-pass }}
 
