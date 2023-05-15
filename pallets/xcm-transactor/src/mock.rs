@@ -33,6 +33,9 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
+use xcm::IntoVersion;
+use xcm::VersionedXcm;
+use xcm::WrapVersion;
 use xcm_primitives::{
 	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
@@ -123,14 +126,34 @@ impl pallet_timestamp::Config for Test {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-pub struct DoNothingRouter;
-impl SendXcm for DoNothingRouter {
+
+const XCM_VERSION_ROOT_KEY: &'static [u8] = b"XCM_VERSION_ROOT_KEY";
+
+// two options:
+// 1 - use the default WrapVersion
+// 2 - use the CustomVersionWrapper
+pub trait CustomVersionWrapper {
+	fn wrap_version(xcm: impl Into<VersionedXcm<RuntimeCall>>) -> Result<(), ()> {
+		let xcm_version: u32 = frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY)
+			.expect("version should be set by mock");
+		xcm.into().into_version(xcm_version)?;
+		Ok(())
+	}
+}
+
+pub struct DoNothingRouter<W>(PhantomData<W>);
+impl<W> SendXcm for DoNothingRouter<W>
+where
+	W: CustomVersionWrapper,
+{
 	type Ticket = ();
 
 	fn validate(
 		_destination: &mut Option<MultiLocation>,
-		_message: &mut Option<opaque::Xcm>,
+		message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
+		let xcm = message.take().ok_or(SendError::MissingArgument)?;
+		W::wrap_version(xcm.into()).map_err(|()| SendError::DestinationUnsupported)?;
 		Ok(((), MultiAssets::new()))
 	}
 
