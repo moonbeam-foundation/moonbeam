@@ -557,8 +557,8 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
       await expectOk(
         context.createBlock(
           [...topDelegatorsChunk].map((account, i) => {
-            // add a tip such that the delegation ordering will be preserved, e.g. the first txns sent
-            // will have the highest tip
+            // add a tip such that the delegation ordering will be preserved,
+            // e.g. the first txns sent will have the highest tip
             let tip = BigInt(tipOrdering--) * MILLIGLMR;
             return context.polkadotApi.tx.parachainStaking
               .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, numDelegations++, 1)
@@ -603,8 +603,8 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
       await expectOk(
         context.createBlock(
           [...bottomDelegatorsChunk].map((account) => {
-            // add a tip such that the delegation ordering will be preserved, e.g. the first txns sent
-            // will have the highest tip
+            // add a tip such that the delegation ordering will be preserved,
+            // e.g. the first txns sent will have the highest tip
             let tip = BigInt(tipOrdering--) * MILLIGLMR;
             return context.polkadotApi.tx.parachainStaking
               .delegate(alith.address, MIN_GLMR_DELEGATOR, numDelegations++, 1)

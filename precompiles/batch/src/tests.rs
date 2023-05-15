@@ -68,7 +68,7 @@ fn selectors() {
 	);
 	assert_eq!(
 		LOG_SUBCALL_SUCCEEDED,
-		hex_literal::hex!("bf856234633929c3d6688eb3caf8eff910fb4bef030a8d7dbc9390d26759714d")
+		hex_literal::hex!("bf855484633929c3d6688eb3caf8eff910fb4bef030a8d7dbc9390d26759714d")
 	);
 }
 
