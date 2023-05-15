@@ -171,7 +171,8 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
     //
     // conclusion: the LengthToFee modifier is NOT involved
 
-    const expected = 33908;
+    // was 33908 before Wei added the extra gas modexp cost to solve slow computation
+    const expected = 37708;
     expect(receipt.gasUsed).to.equal(expected);
 
     // furthermore, we can account for the entire fee:
