@@ -137,9 +137,13 @@ export function describeDevMoonbeam(
         return apiPromise;
       };
 
-      context.polkadotApi = await context.createPolkadotApi();
-      context.web3 = await context.createWeb3("ws");
-      context.ethers = await context.createEthers();
+      let subProvider: EnhancedWeb3;
+      [context.polkadotApi, context.web3, context.ethers, subProvider] = await Promise.all([
+        context.createPolkadotApi(),
+        context.createWeb3(),
+        context.createEthers(),
+        context.createWeb3("ws"),
+      ]);
 
       context.createBlock = async <
         ApiType extends ApiTypes,
@@ -199,9 +203,9 @@ export function describeDevMoonbeam(
         // ingestion in Frontier is asynchronous, and can sometime be slightly delayed. This
         // generates some race condition if we don't wait for it.
 
-        let expectedBlockNumber: number = (await context.web3.eth.getBlockNumber()) + 1;
+        let expectedBlockNumber: number = (await subProvider.eth.getBlockNumber()) + 1;
         const ethCheckPromise = new Promise<void>((resolve) => {
-          const ethBlockSub = context.web3.eth
+          const ethBlockSub = subProvider.eth
             .subscribe("newBlockHeaders", function (error, result) {
               if (!error) {
                 return;
