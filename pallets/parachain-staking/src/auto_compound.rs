@@ -127,13 +127,23 @@ where
 
 	/// Returns a reference to the inner vector.
 	#[cfg(test)]
-	pub fn inner(&self) -> &Vec<AutoCompoundConfig<T::AccountId>> {
+	pub fn inner(
+		&self,
+	) -> &BoundedVec<
+		AutoCompoundConfig<T::AccountId>,
+		AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+	> {
 		&self.0
 	}
 
 	/// Converts the [AutoCompoundDelegations] into the inner vector.
 	#[cfg(test)]
-	pub fn into_inner(self) -> Vec<AutoCompoundConfig<T::AccountId>> {
+	pub fn into_inner(
+		self,
+	) -> BoundedVec<
+		AutoCompoundConfig<T::AccountId>,
+		AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+	> {
 		self.0
 	}
 
@@ -320,7 +330,8 @@ mod tests {
 
 	#[test]
 	fn test_set_for_delegator_inserts_config_and_returns_true_if_entry_missing() {
-		let mut delegations_config = AutoCompoundDelegations::<Test>::new(vec![]);
+		let mut delegations_config =
+			AutoCompoundDelegations::<Test>::new(vec![].try_into().expect("must succeed"));
 		assert_eq!(
 			true,
 			delegations_config
@@ -332,17 +343,20 @@ mod tests {
 				delegator: 1,
 				value: Percent::from_percent(50),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	#[test]
 	fn test_set_for_delegator_updates_config_and_returns_true_if_entry_changed() {
-		let mut delegations_config =
-			AutoCompoundDelegations::<Test>::new(vec![AutoCompoundConfig {
+		let mut delegations_config = AutoCompoundDelegations::<Test>::new(
+			vec![AutoCompoundConfig {
 				delegator: 1,
 				value: Percent::from_percent(10),
-			}]);
+			}]
+			.try_into()
+			.expect("must succeed"),
+		);
 		assert_eq!(
 			true,
 			delegations_config
@@ -354,17 +368,20 @@ mod tests {
 				delegator: 1,
 				value: Percent::from_percent(50),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	#[test]
 	fn test_set_for_delegator_updates_config_and_returns_false_if_entry_unchanged() {
-		let mut delegations_config =
-			AutoCompoundDelegations::<Test>::new(vec![AutoCompoundConfig {
+		let mut delegations_config = AutoCompoundDelegations::<Test>::new(
+			vec![AutoCompoundConfig {
 				delegator: 1,
 				value: Percent::from_percent(10),
-			}]);
+			}]
+			.try_into()
+			.expect("must succeed"),
+		);
 		assert_eq!(
 			false,
 			delegations_config
@@ -376,23 +393,27 @@ mod tests {
 				delegator: 1,
 				value: Percent::from_percent(10),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	#[test]
 	fn test_remove_for_delegator_returns_false_if_entry_was_missing() {
-		let mut delegations_config = AutoCompoundDelegations::<Test>::new(vec![]);
+		let mut delegations_config =
+			AutoCompoundDelegations::<Test>::new(vec![].try_into().expect("must succeed"));
 		assert_eq!(false, delegations_config.remove_for_delegator(&1),);
 	}
 
 	#[test]
 	fn test_remove_delegation_config_returns_true_if_entry_existed() {
-		let mut delegations_config =
-			AutoCompoundDelegations::<Test>::new(vec![AutoCompoundConfig {
+		let mut delegations_config = AutoCompoundDelegations::<Test>::new(
+			vec![AutoCompoundConfig {
 				delegator: 1,
 				value: Percent::from_percent(10),
-			}]);
+			}]
+			.try_into()
+			.expect("must succeed"),
+		);
 		assert_eq!(true, delegations_config.remove_for_delegator(&1));
 	}
 }

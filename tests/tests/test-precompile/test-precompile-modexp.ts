@@ -666,7 +666,9 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
   });
 
   it("Exponent > 32", async function () {
-    const expectedModExpGasCost = 7104;
+    // We multiply by a factor of 20 for an even mod.
+    // See https://github.com/paritytech/frontier/pull/1017
+    const expectedModExpGasCost = 7104 * 20;
     const byteArray = new Uint8Array([
       0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
       0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
@@ -711,8 +713,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
     await context.createBlock();
     const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     expect(receipt.status).to.be.true;
-    // we multiply by a factor of 20 for an even mod. See https://github.com/paritytech/frontier/pull/1017
-    const modExpGas = (receipt.gasUsed - numNonZeroBytes * 16 - numZeroBytes * 4 - 21000) * 20;
+    const modExpGas = receipt.gasUsed - numNonZeroBytes * 16 - numZeroBytes * 4 - 21000;
     expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
   });
 

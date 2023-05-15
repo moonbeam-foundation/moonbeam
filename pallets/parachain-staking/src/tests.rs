@@ -7944,10 +7944,14 @@ fn test_set_auto_compound_fails_if_invalid_candidate_auto_compounding_hint() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
-				delegator: 2,
-				value: Percent::from_percent(10),
-			}])
+			<AutoCompoundDelegations<Test>>::new(
+				vec![AutoCompoundConfig {
+					delegator: 2,
+					value: Percent::from_percent(10),
+				}]
+				.try_into()
+				.expect("must succeed"),
+			)
 			.set_storage(&1);
 			let candidate_auto_compounding_delegation_count_hint = 0; // is however, 1
 			let delegation_hint = 1;
@@ -7990,7 +7994,7 @@ fn test_set_auto_compound_inserts_if_not_exists() {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
-				ParachainStaking::auto_compounding_delegations(&1),
+				ParachainStaking::auto_compounding_delegations(&1).into_inner(),
 			);
 		});
 }
@@ -8003,10 +8007,14 @@ fn test_set_auto_compound_updates_if_existing() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
-				delegator: 2,
-				value: Percent::from_percent(10),
-			}])
+			<AutoCompoundDelegations<Test>>::new(
+				vec![AutoCompoundConfig {
+					delegator: 2,
+					value: Percent::from_percent(10),
+				}]
+				.try_into()
+				.expect("must succeed"),
+			)
 			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
@@ -8026,7 +8034,7 @@ fn test_set_auto_compound_updates_if_existing() {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
-				ParachainStaking::auto_compounding_delegations(&1),
+				ParachainStaking::auto_compounding_delegations(&1).into_inner(),
 			);
 		});
 }
@@ -8039,10 +8047,14 @@ fn test_set_auto_compound_removes_if_auto_compound_zero_percent() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
-				delegator: 2,
-				value: Percent::from_percent(10),
-			}])
+			<AutoCompoundDelegations<Test>>::new(
+				vec![AutoCompoundConfig {
+					delegator: 2,
+					value: Percent::from_percent(10),
+				}]
+				.try_into()
+				.expect("must succeed"),
+			)
 			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
@@ -8578,7 +8590,7 @@ fn test_delegate_with_auto_compound_sets_auto_compound_config() {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
-				ParachainStaking::auto_compounding_delegations(&1),
+				ParachainStaking::auto_compounding_delegations(&1).into_inner(),
 			);
 		});
 }
@@ -8984,7 +8996,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(285_890_000, 1), weight);
+			assert_eq!(Weight::from_parts(277065000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
@@ -8998,8 +9010,8 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2_537_230_483;
-			assert_eq!(Weight::from_parts(expected_on_init, 1), weight);
+			let expected_on_init = 2479994997;
+			assert_eq!(Weight::from_parts(expected_on_init, 186592), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
@@ -9019,7 +9031,7 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 1), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 186592), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
