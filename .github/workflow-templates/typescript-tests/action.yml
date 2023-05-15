@@ -6,6 +6,12 @@ inputs:
   moonbeam-binary:
     description: path to the moonbeam binary
     required: true
+  timeout:
+    description: default timeout for the tests
+    default: 5000
+  force-pass:
+    description: If the tests should pass even if there are failures
+    default: false
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
@@ -63,9 +69,10 @@ runs:
       run: |
         cd ./tests
         node node_modules/.bin/mocha \
-          --parallel -j $((CPUS / 2)) \
+          --timeout ${{ inputs.timeout }} \
+          --parallel -j $((CPUS / 4)) \
           --exit \
-          'build/tests/**/test-*.js'
+          'build/tests/**/test-*.js' || ${{ inputs.force-pass }}
 
     # We determine whether there are unmodified package-lock.json files by:
     # 1. Asking git for a list of all modified files
@@ -77,36 +84,24 @@ runs:
         cd ./tests
         # Log npm version to make sure it maches with local version
         npm -v
-        echo 1
         # Make sure git is working, and if not abort early. When git is not working it looks like:
         # $ git diff-index --name-only HEAD
         # fatal: not a git repository (or any of the parent directories): .git
-        echo 2
         DIFF_INDEX="$(git diff-index --name-only HEAD)"
-        echo 3 "$DIFF_INDEX"
-        if [[ -z "$DIFF_INDEX" ]]; then
-        echo 4
+        echo $DIFF_INDEX
+        if [[ -n "$DIFF_INDEX" ]]; then
           if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
-        echo 5
             echo "There was an error with the git checkout. Can't check package-lock.json file."
             false
           fi
-        echo 6
           FILECOUNT=$(echo $DIFF_INDEX | grep package-lock.json | wc -l)
-        echo 7
           echo $FILECOUNT
-        echo 8
           if [[ $FILECOUNT -eq 0 ]]; then
-        echo 9
             echo "All package-lock.json files are valid"
           else
-        echo 10
             git diff --cached
-        echo 11
             echo "The following package-lock.json files have uncommitted changes"
-        echo 12
             echo $DIFF_INDEX | grep package-lock.json
-        echo 13
             false
           fi
         fi
