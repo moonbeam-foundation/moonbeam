@@ -67,7 +67,7 @@ runs:
         cd ./tests
         node node_modules/.bin/mocha \
           --timeout ${{ inputs.timeout }} \
-          --parallel -j $((CPUS / 4)) \
+          --parallel -j $((CPUS * 2 / 3)) \
           --exit \
           'build/tests/**/test-*.js'
 
