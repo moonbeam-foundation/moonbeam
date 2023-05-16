@@ -1725,6 +1725,13 @@
 <a href="#1725" id="1725">1725</a>
 <a href="#1726" id="1726">1726</a>
 <a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2032,6 +2039,13 @@
 			<span class="comment">// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
 			</span>&lt;pallet_treasury::Pallet&lt;R&gt; <span class="kw">as </span>OnUnbalanced&lt;<span class="kw">_</span>&gt;&gt;::on_unbalanced(to_treasury);
+
+			<span class="comment">// handle tip if there is one
+			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(tip) = fees_then_tips.next() {
+				<span class="comment">// for now we use the same burn/treasury strategy used for regular fees
+				</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = tip.ration(<span class="number">80</span>, <span class="number">20</span>);
+				&lt;pallet_treasury::Pallet&lt;R&gt; <span class="kw">as </span>OnUnbalanced&lt;<span class="kw">_</span>&gt;&gt;::on_unbalanced(to_treasury);
+			}
 		}
 	}
 
