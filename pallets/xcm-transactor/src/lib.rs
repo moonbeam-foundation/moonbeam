@@ -1019,14 +1019,14 @@ pub mod pallet {
 		fn deposit_instruction(
 			mut beneficiary: MultiLocation,
 			at: &MultiLocation,
-			asset_amount: u32,
+			max_assets: u32,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 			Ok(DepositAsset {
-				assets: Wild(AllCounted(asset_amount)),
+				assets: Wild(AllCounted(max_assets)),
 				beneficiary,
 			})
 		}
