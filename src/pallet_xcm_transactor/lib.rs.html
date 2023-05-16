@@ -1184,6 +1184,8 @@
 <a href="#1184" id="1184">1184</a>
 <a href="#1185" id="1185">1185</a>
 <a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2004,7 +2006,8 @@
 			);
 
 			<span class="comment">// The appendix instruction will be a deposit back to a self location
-			</span><span class="kw">let </span>deposit_appendix = <span class="self">Self</span>::deposit_instruction(T::SelfLocation::get(), <span class="kw-2">&amp;</span>destination)<span class="question-mark">?</span>;
+			</span><span class="kw">let </span>deposit_appendix =
+				<span class="self">Self</span>::deposit_instruction(T::SelfLocation::get(), <span class="kw-2">&amp;</span>destination, <span class="number">1u32</span>)<span class="question-mark">?</span>;
 
 			<span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
 				destination,
@@ -2204,13 +2207,14 @@
 		</span><span class="kw">fn </span>deposit_instruction(
 			<span class="kw-2">mut </span>beneficiary: MultiLocation,
 			at: <span class="kw-2">&amp;</span>MultiLocation,
+			max_assets: u32,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
 			<span class="kw">let </span>universal_location = T::UniversalLocation::get();
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 			<span class="prelude-val">Ok</span>(DepositAsset {
-				assets: Wild(All),
+				assets: Wild(AllCounted(max_assets)),
 				beneficiary,
 			})
 		}
