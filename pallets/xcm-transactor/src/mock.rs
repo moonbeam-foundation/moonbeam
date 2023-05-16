@@ -127,31 +127,33 @@ impl pallet_timestamp::Config for Test {
 
 const XCM_VERSION_ROOT_KEY: &'static [u8] = b"XCM_VERSION_ROOT_KEY";
 
-// two options:
-// 1 - use the default WrapVersion
-// 2 - use the CustomVersionWrapper
-pub trait CustomVersionWrapper {
-	fn wrap_version(xcm: impl Into<VersionedXcm<RuntimeCall>>) -> Result<(), ()> {
-		let xcm_version: u32 = frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY)
-			.expect("version should be set by mock");
-		xcm.into().into_version(xcm_version)?;
-		Ok(())
+pub struct CustomVersionWrapper;
+impl WrapVersion for CustomVersionWrapper {
+	fn wrap_version<RuntimeCall>(
+		_dest: &xcm::latest::MultiLocation,
+		xcm: impl Into<VersionedXcm<RuntimeCall>>,
+	) -> Result<VersionedXcm<RuntimeCall>, ()> {
+		let xcm_version: u32 =
+			frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY).unwrap_or(2);
+		let xcm_converted = xcm.into().into_version(xcm_version)?;
+		Ok(xcm_converted)
 	}
 }
 
-pub struct DoNothingRouter<W>(PhantomData<W>);
-impl<W> SendXcm for DoNothingRouter<W>
-where
-	W: CustomVersionWrapper,
-{
+impl CustomVersionWrapper {
+	pub fn set_version(version: u32) {
+		frame_support::storage::unhashed::put(XCM_VERSION_ROOT_KEY, &version);
+	}
+}
+
+pub struct DoNothingRouter;
+impl SendXcm for DoNothingRouter {
 	type Ticket = ();
 
 	fn validate(
 		_destination: &mut Option<MultiLocation>,
-		message: &mut Option<opaque::Xcm>,
+		_message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
-		let xcm = message.take().ok_or(SendError::MissingArgument)?;
-		W::wrap_version(xcm.into()).map_err(|()| SendError::DestinationUnsupported)?;
 		Ok(((), MultiAssets::new()))
 	}
 
@@ -377,6 +379,8 @@ impl SendXcm for TestSendXcm {
 			q.borrow_mut()
 				.push((destination.clone().unwrap(), message.clone().unwrap()))
 		});
+		CustomVersionWrapper::wrap_version(&destination.unwrap(), message.clone().unwrap())
+			.map_err(|()| SendError::DestinationUnsupported)?;
 		Ok(((), MultiAssets::new()))
 	}
 
