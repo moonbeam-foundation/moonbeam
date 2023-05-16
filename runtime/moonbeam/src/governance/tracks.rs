@@ -74,7 +74,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 		pallet_referenda::TrackInfo {
 			name: "general_admin",
 			max_deciding: 10,
-			decision_deposit: 10 * KILOGLMR * SUPPLY_FACTOR,
+			decision_deposit: 100 * GLMR * SUPPLY_FACTOR,
 			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
 			confirm_period: 1 * DAYS,
