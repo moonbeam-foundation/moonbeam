@@ -102,7 +102,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 		pallet_referenda::TrackInfo {
 			name: "referendum_killer",
 			max_deciding: 100,
-			decision_deposit: 400 * KILOGLMR * SUPPLY_FACTOR,
+			decision_deposit: 4 * KILOGLMR * SUPPLY_FACTOR,
 			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
 			confirm_period: 3 * HOURS,
