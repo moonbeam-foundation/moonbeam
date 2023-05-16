@@ -2,7 +2,7 @@
 
 import { DevModeContext } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
-import { TransactionSerializable } from "viem";
+import { BlockTag, TransactionSerializable } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 type InputAmountFormats = number | bigint | string | `0x${string}`;
@@ -123,7 +123,7 @@ export async function createRawTransaction<TOptions extends DeepPartial<Transact
 
 /**
  * checkBalance function checks the balance of a given account.
- * 
+ *
  * @export
  * @param {DevModeContext} context - the DevModeContext instance
  * @param {`0x${string}`} [account=ALITH_ADDRESS] - the account address whose balance is to be checked. If no account is provided, it defaults to ALITH_ADDRESS
@@ -131,7 +131,14 @@ export async function createRawTransaction<TOptions extends DeepPartial<Transact
  */
 export async function checkBalance(
   context: DevModeContext,
-  account: `0x${string}` = ALITH_ADDRESS
+  account: `0x${string}` = ALITH_ADDRESS,
+  tag: BlockTag = "latest"
 ): Promise<bigint> {
-  return await context.viemClient("public").getBalance({ address: account });
+  return await context.viemClient("public").getBalance({ address: account, blockTag: tag });
+}
+
+export async function sendRawTransaction(context: DevModeContext, rawTx: `0x${string}`) {
+  return await context
+    .viemClient("public")
+    .request({ method: "eth_sendRawTransaction", params: [rawTx] });
 }

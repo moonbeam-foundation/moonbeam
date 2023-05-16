@@ -1,96 +1,91 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeEach, beforeAll } from "@moonwall/cli";
+import { KeyringPair } from "@polkadot/keyring/types";
 import {
   alith,
+  ALITH_ADDRESS,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
+  generateKeyringPair,
   GLMR,
   mapExtrinsics,
+  MIN_GAS_PRICE,
 } from "@moonwall/util";
 import { PrivateKeyAccount } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { TransactionTypes, createRawTransfer } from "../../../../helpers/viem.js";
+import {
+  TransactionTypes,
+  checkBalance,
+  createRawTransfer,
+  sendRawTransaction,
+} from "../../../../helpers/viem.js";
 
 describeSuite({
   id: "D030501",
-  title: "Balance - Extrinsic",
+  title: "Balance Transfers",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
-    let randomAccount: PrivateKeyAccount;
+    let randomAddress: `0x${string}`;
 
-    beforeAll(async function () {
-      // To create the treasury account
-      await context.createBlock(createRawTransfer(context, BALTATHAR_ADDRESS, 1337));
-    });
+    // beforeAll(async function () {
+    //   // To create the treasury account
+    //   await context.createBlock(createRawTransfer(context, BALTATHAR_ADDRESS, 1337));
+    // });
 
     beforeEach(async function () {
-      const privateKey = generatePrivateKey();
-      randomAccount = privateKeyToAccount(privateKey);
+      const randomAccount = generateKeyringPair();
+      randomAddress = randomAccount.address as `0x${string}`;
     });
 
-    for (const txnType of TransactionTypes) {
-      it({
-        id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
-        title: `should emit events for ${txnType} ethereum/transfers`,
-        test: async function () {
-          await context.createBlock(
-            createRawTransfer(context, randomAccount.address, 1n * GLMR, {
-              type: txnType,
-              gas: 500000n,
-            })
-          );
+    it({
+      id: "T01",
+      title: "should cost 21000 gas for a transfer",
+      test: async function () {
+        const estimatedGas = await context.viemClient("public").estimateGas({
+          account: ALITH_ADDRESS,
+          value: 0n * GLMR,
+          to: randomAddress,
+        });
+        expect(estimatedGas, "Estimated bal transfer incorrect").toBe(21000n);
 
-          const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
-          const allRecords = await context.polkadotJs().query.system.events();
-          const txsWithEvents = mapExtrinsics(signedBlock.block.extrinsics, allRecords);
+        await context.createBlock(createRawTransfer(context, randomAddress, 0n));
+        expect(await checkBalance(context)).toBe(
+          ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n
+        );
+      },
+    });
 
-          const ethTx = txsWithEvents.find(
-            ({ extrinsic: { method } }) => method.section == "ethereum"
-          )!;
-
-          expect(ethTx.events.length).to.eq(9);
-          expect(context.polkadotJs().events.system.NewAccount.is(ethTx.events[1])).to.be.true;
-          expect(context.polkadotJs().events.balances.Endowed.is(ethTx.events[2])).to.be.true;
-          expect(context.polkadotJs().events.balances.Transfer.is(ethTx.events[3])).to.be.true;
-          expect(ethTx.events[3].data[0].toString()).to.eq(alith.address);
-          expect(ethTx.events[3].data[1].toString()).to.eq(randomAccount.address);
-          expect(context.polkadotJs().events.treasury.Deposit.is(ethTx.events[6])).to.be.true;
-          expect(context.polkadotJs().events.ethereum.Executed.is(ethTx.events[7])).to.be.true;
-          expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(ethTx.events[8])).to.be
-            .true;
-        },
-      });
-    }
+    it({
+      id: "T02",
+      title: "unsent txns should be in pending",
+      test: async function () {
+        // await context.createBlock(context.polkadotJs().tx.balances.transfer(randomAddress, 512n));
+        await context.createBlock()
+        const balanceBefore = await checkBalance(context, ALITH_ADDRESS, "pending");
+        const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
+          gasPrice: MIN_GAS_PRICE,
+          gas: 21000n,
+          type: "legacy"
+        })) as `0x${string}`;
+        await sendRawTransaction(context, rawTx);
+        const pendingBalance = balanceBefore - 512n - 21000n * MIN_GAS_PRICE;
+        const fees = 21000n * MIN_GAS_PRICE;
+        log(pendingBalance)
+        log(balanceBefore)
+        const balanceAfter = await checkBalance(context, ALITH_ADDRESS, "pending");
+        expect(await checkBalance(context, randomAddress, "pending")).toBe(512n);
+        expect(balanceAfter - balanceBefore - fees).toBe(512n);
+        
+      },
+    });
   },
 });
 
-
-// import {
-//   alith,
-//   ALITH_GENESIS_LOCK_BALANCE,
-//   ALITH_GENESIS_TRANSFERABLE_BALANCE,
-//   baltathar,
-//   generateKeyringPair,
-// } from "../../util/accounts";
-// import { verifyLatestBlockFees } from "../../util/block";
-// import { customWeb3Request } from "../../util/providers";
-// import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-// import {
-//   ALITH_TRANSACTION_TEMPLATE,
-//   createTransaction,
-//   createTransfer,
-// } from "../../util/transactions";
-// import { MIN_GAS_PRICE } from "../../util/constants";
-
-// describeDevMoonbeam("Balance transfer cost", (context) => {
-//   const randomAccount = generateKeyringPair();
-//   it("should cost 21000 * 10_000_000_000", async function () {
-//     await context.createBlock(createTransfer(context, randomAccount.address, 0));
-
-//     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-//       (ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n).toString()
-//     );
-//   });
-// });
+// privateKey,
+// type: txnType,
+// gasPrice: MIN_GAS_PRICE,
+// gas: 21000n,
+// maxFeePerGas: MIN_GAS_PRICE,
 
 // describeDevMoonbeam("Balance transfer", (context) => {
 //   const randomAccount = generateKeyringPair();
