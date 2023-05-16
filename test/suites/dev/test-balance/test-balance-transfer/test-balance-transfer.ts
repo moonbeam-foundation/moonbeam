@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeEach, beforeAll } from "@moonwall/cli";
-import { KeyringPair } from "@polkadot/keyring/types";
 import {
   alith,
   ALITH_ADDRESS,
@@ -10,20 +9,15 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  ExtrinsicCreation,
   generateKeyringPair,
   GERALD_PRIVATE_KEY,
   GLMR,
-  GOLIATH_ADDRESS,
-  GOLIATH_PRIVATE_KEY,
-  mapExtrinsics,
   MIN_GAS_PRICE,
 } from "@moonwall/util";
-import { PrivateKeyAccount, formatGwei, parseGwei } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { parseGwei } from "viem";
 import {
-  TransactionTypes,
   checkBalance,
+  createRawTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "../../../../helpers/viem.js";
@@ -35,11 +29,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
     let randomAddress: `0x${string}`;
-
-    // beforeAll(async function () {
-    //   // To create the treasury account
-    //   await context.createBlock(createRawTransfer(context, BALTATHAR_ADDRESS, 1337));
-    // });
 
     beforeEach(async function () {
       const randomAccount = generateKeyringPair();
@@ -223,13 +212,16 @@ describeSuite({
       test: async function () {
         // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
         // is 2GWEI and the base fee is 1GWEI.
-        const accountData = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)).data
+        const accountData = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS))
+          .data;
         const freeBal = accountData.free.toBigInt() - accountData.reserved.toBigInt();
-        const maxFeePerGas = parseGwei("2");
+        const maxFeePerGas = 10_000_000_000n * 2n;
         await context.createBlock(
-          await createRawTransfer(context, randomAddress, 0n, {
+          await createRawTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             gas: 21000n,
+            to: randomAddress,
+            data: "0x",
             maxFeePerGas,
             maxPriorityFeePerGas: maxFeePerGas,
             type: "eip1559",
@@ -242,63 +234,3 @@ describeSuite({
     });
   },
 });
-
-// describeDevMoonbeam(
-//   "Balance transfer - EIP1559 fees",
-//   (context) => {
-//     it("should handle max_fee_per_gas", async function () {
-//       const randomAccount = generateKeyringPair();
-//       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
-//       // With this configuration no priority fee will be used, as the max_fee_per_gas is exactly the
-//       // base fee. Expect the balances to reflect this case.
-//       const maxFeePerGas = 10_000_000_000;
-
-//       await context.createBlock(
-//         createTransaction(context, {
-//           ...ALITH_TRANSACTION_TEMPLATE,
-//           gas: "0x5208",
-//           maxFeePerGas: maxFeePerGas,
-//           maxPriorityFeePerGas: "0xBEBC200", // 0.2GWEI
-//           to: randomAccount.address,
-//           data: "0x",
-//         })
-//       );
-//       const postBalance = BigInt(await context.web3.eth.getBalance(alith.address));
-//       const fee = BigInt(21_000 * maxFeePerGas);
-//       const expectedPostBalance = preBalance - fee;
-
-//       expect(postBalance).to.be.eq(expectedPostBalance);
-//     });
-//   },
-//   "EIP1559"
-// );
-
-// describeDevMoonbeam(
-//   "Balance transfer - EIP1559 fees",
-//   (context) => {
-//     it("should use partial max_priority_fee_per_gas", async function () {
-//       const randomAccount = generateKeyringPair();
-//       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
-//       // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
-//       // is 2GWEI and the base fee is 1GWEI.
-//       const maxFeePerGas = 10_000_000_000 * 2;
-
-//       await context.createBlock(
-//         createTransaction(context, {
-//           ...ALITH_TRANSACTION_TEMPLATE,
-//           gas: "0x5208",
-//           maxFeePerGas: maxFeePerGas,
-//           maxPriorityFeePerGas: maxFeePerGas,
-//           to: randomAccount.address,
-//           data: "0x",
-//         })
-//       );
-//       const postBalance = BigInt(await context.web3.eth.getBalance(alith.address));
-//       const fee = BigInt(21_000 * maxFeePerGas);
-//       const expectedPostBalance = preBalance - fee;
-
-//       expect(postBalance).to.be.eq(expectedPostBalance);
-//     });
-//   },
-//   "EIP1559"
-// );
