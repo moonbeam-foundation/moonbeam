@@ -4,14 +4,22 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import {
   alith,
   ALITH_ADDRESS,
+  ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
+  ExtrinsicCreation,
   generateKeyringPair,
+  GERALD_PRIVATE_KEY,
   GLMR,
+  GOLIATH_ADDRESS,
+  GOLIATH_PRIVATE_KEY,
   mapExtrinsics,
   MIN_GAS_PRICE,
 } from "@moonwall/util";
-import { PrivateKeyAccount } from "viem";
+import { PrivateKeyAccount, formatGwei, parseGwei } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import {
   TransactionTypes,
@@ -19,6 +27,7 @@ import {
   createRawTransfer,
   sendRawTransaction,
 } from "../../../../helpers/viem.js";
+import { verifyLatestBlockFees } from "../../../../helpers/block.js";
 
 describeSuite({
   id: "D030501",
@@ -59,93 +68,180 @@ describeSuite({
       id: "T02",
       title: "unsent txns should be in pending",
       test: async function () {
-        // await context.createBlock(context.polkadotJs().tx.balances.transfer(randomAddress, 512n));
-        await context.createBlock()
-        const balanceBefore = await checkBalance(context, ALITH_ADDRESS, "pending");
+        await context.createBlock();
+        const balanceBefore = await checkBalance(context, CHARLETH_ADDRESS, "pending");
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
+          privateKey: CHARLETH_PRIVATE_KEY,
           gasPrice: MIN_GAS_PRICE,
           gas: 21000n,
-          type: "legacy"
+          type: "legacy",
         })) as `0x${string}`;
         await sendRawTransaction(context, rawTx);
-        const pendingBalance = balanceBefore - 512n - 21000n * MIN_GAS_PRICE;
         const fees = 21000n * MIN_GAS_PRICE;
-        log(pendingBalance)
-        log(balanceBefore)
-        const balanceAfter = await checkBalance(context, ALITH_ADDRESS, "pending");
+        const balanceAfter = await checkBalance(context, CHARLETH_ADDRESS, "pending");
         expect(await checkBalance(context, randomAddress, "pending")).toBe(512n);
-        expect(balanceAfter - balanceBefore - fees).toBe(512n);
-        
+        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+      },
+    });
+
+    it({
+      id: "T03",
+      title: "should decrease from account",
+      test: async function () {
+        const balanceBefore = await checkBalance(context);
+        const fees = 21000n * MIN_GAS_PRICE;
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 512n, {
+            gas: 21000n,
+            gasPrice: MIN_GAS_PRICE,
+            type: "legacy",
+          })
+        );
+        const balanceAfter = await checkBalance(context);
+        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+      },
+    });
+
+    it({
+      id: "T04",
+      title: "should increase to account",
+      test: async function () {
+        const balanceBefore = await checkBalance(context, randomAddress);
+
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 512n, {
+            gas: 21000n,
+            gasPrice: MIN_GAS_PRICE,
+            type: "legacy",
+          })
+        );
+        const balanceAfter = await checkBalance(context, randomAddress);
+        expect(balanceBefore).toBe(0n);
+        expect(balanceAfter).toBe(512n);
+      },
+    });
+
+    it({
+      id: "T05",
+      title: "should reflect balance identically on polkadot/web3",
+      test: async function () {
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 512n, {
+            gas: 21000n,
+            gasPrice: MIN_GAS_PRICE,
+            type: "legacy",
+          })
+        );
+
+        const blockNumber = (
+          await context.polkadotJs().rpc.chain.getBlock()
+        ).block.header.number.toBigInt();
+
+        const block1Hash = await context.polkadotJs().rpc.chain.getBlockHash(blockNumber);
+
+        expect(await checkBalance(context, ALITH_ADDRESS, blockNumber)).to.equal(
+          (
+            (await (
+              await context.polkadotJs().at(block1Hash)
+            ).query.system.account(alith.address)) as any
+          ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+        );
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "should check latest block fees",
+      test: async function () {
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 512n, {
+            gas: 21000n,
+            gasPrice: MIN_GAS_PRICE,
+            type: "legacy",
+          })
+        );
+
+        await verifyLatestBlockFees(context, BigInt(512));
+      },
+    });
+
+    it({
+      id: "T07",
+      title: "multiple transfer should be successful",
+      test: async function () {
+        const { result } = await context.createBlock([
+          await createRawTransfer(context, randomAddress, 10n * GLMR, {
+            privateKey: GERALD_PRIVATE_KEY,
+            nonce: 0,
+          }),
+          await createRawTransfer(context, randomAddress, 10n * GLMR, {
+            privateKey: GERALD_PRIVATE_KEY,
+            nonce: 1,
+          }),
+          await createRawTransfer(context, randomAddress, 10n * GLMR, {
+            privateKey: GERALD_PRIVATE_KEY,
+            nonce: 2,
+          }),
+          await createRawTransfer(context, randomAddress, 10n * GLMR, {
+            privateKey: GERALD_PRIVATE_KEY,
+            nonce: 3,
+          }),
+          await createRawTransfer(context, randomAddress, 10n * GLMR, {
+            privateKey: GERALD_PRIVATE_KEY,
+            nonce: 4,
+          }),
+        ]);
+
+        expect((result as any).filter((r: any) => r.successful)).to.be.length(5);
+      },
+    });
+
+    it({
+      id: "T08",
+      title: "should handle max_fee_per_gas",
+      test: async function () {
+        const balanceBefore = await checkBalance(context);
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 1n * GLMR, {
+            gas: 21000n,
+            maxFeePerGas: MIN_GAS_PRICE,
+            maxPriorityFeePerGas: parseGwei("0.2"),
+            gasPrice: MIN_GAS_PRICE,
+            type: "eip1559",
+          })
+        );
+        const balanceAfter = await checkBalance(context);
+        const fee = 21000n * MIN_GAS_PRICE;
+
+        expect(balanceAfter + fee + 1n * GLMR).toBe(balanceBefore);
+      },
+    });
+
+    it({
+      id: "T09",
+      title: "should use partial max_priority_fee_per_gas",
+      test: async function () {
+        // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
+        // is 2GWEI and the base fee is 1GWEI.
+        const accountData = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)).data
+        const freeBal = accountData.free.toBigInt() - accountData.reserved.toBigInt();
+        const maxFeePerGas = parseGwei("2");
+        await context.createBlock(
+          await createRawTransfer(context, randomAddress, 0n, {
+            privateKey: BALTATHAR_PRIVATE_KEY,
+            gas: 21000n,
+            maxFeePerGas,
+            maxPriorityFeePerGas: maxFeePerGas,
+            type: "eip1559",
+          })
+        );
+        const balanceAfter = await checkBalance(context, BALTATHAR_ADDRESS);
+        const fee = 21_000n * maxFeePerGas;
+        expect(freeBal - balanceAfter - fee).toBe(0n);
       },
     });
   },
 });
-
-// privateKey,
-// type: txnType,
-// gasPrice: MIN_GAS_PRICE,
-// gas: 21000n,
-// maxFeePerGas: MIN_GAS_PRICE,
-
-// describeDevMoonbeam("Balance transfer", (context) => {
-//   const randomAccount = generateKeyringPair();
-//   before("Create block with transfer to test account of 512", async () => {
-//     await context.createBlock();
-//     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-//       await createTransfer(context, randomAccount.address, 512, { gasPrice: MIN_GAS_PRICE }),
-//     ]);
-//     expect(await context.web3.eth.getBalance(alith.address, "pending")).to.equal(
-//       (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 10_000_000_000n).toString()
-//     );
-//     expect(await context.web3.eth.getBalance(randomAccount.address, "pending")).to.equal("512");
-//     await context.createBlock();
-//   });
-
-//   it("should decrease from account", async function () {
-//     // 21000 covers the cost of the transaction
-//     expect(await context.web3.eth.getBalance(alith.address, 2)).to.equal(
-//       (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 10_000_000_000n).toString()
-//     );
-//   });
-
-//   it("should increase to account", async function () {
-//     expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal("0");
-//     expect(await context.web3.eth.getBalance(randomAccount.address, 2)).to.equal("512");
-//   });
-
-//   it("should reflect balance identically on polkadot/web3", async function () {
-//     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
-//     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-//       (
-//         (
-//           await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
-//         ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
-//       ).toString()
-//     );
-//   });
-// });
-
-// describeDevMoonbeam("Balance transfer - fees", (context) => {
-//   const randomAccount = generateKeyringPair();
-//   before("Create block with transfer to test account of 512", async () => {
-//     await context.createBlock(createTransfer(context, randomAccount.address, 512));
-//   });
-//   it("should check latest block fees", async function () {
-//     await verifyLatestBlockFees(context, BigInt(512));
-//   });
-// });
-
-// describeDevMoonbeam("Balance transfer - Multiple transfers", (context) => {
-//   it("should be successful", async function () {
-//     const { result } = await context.createBlock([
-//       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 0 }),
-//       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 1 }),
-//       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 2 }),
-//       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 3 }),
-//     ]);
-//     expect(result.filter((r) => r.successful)).to.be.length(4);
-//   });
-// });
 
 // describeDevMoonbeam(
 //   "Balance transfer - EIP1559 fees",

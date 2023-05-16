@@ -132,9 +132,11 @@ export async function createRawTransaction<TOptions extends DeepPartial<Transact
 export async function checkBalance(
   context: DevModeContext,
   account: `0x${string}` = ALITH_ADDRESS,
-  tag: BlockTag = "latest"
+  block: BlockTag | bigint = "latest"
 ): Promise<bigint> {
-  return await context.viemClient("public").getBalance({ address: account, blockTag: tag });
+  return typeof block == "string"
+    ? await context.viemClient("public").getBalance({ address: account, blockTag: block })
+    : await context.viemClient("public").getBalance({ address: account, blockNumber: block });
 }
 
 export async function sendRawTransaction(context: DevModeContext, rawTx: `0x${string}`) {
