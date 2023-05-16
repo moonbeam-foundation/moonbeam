@@ -22,6 +22,11 @@ describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
 
     const ethTx = txsWithEvents.find(({ extrinsic: { method } }) => method.section == "ethereum");
 
+     
+    ethTx.events.forEach((event) => {
+     console. log(event.toHuman())
+  })
+
     expect(ethTx.events.length).to.eq(11);
     expect(context.polkadotApi.events.system.NewAccount.is(ethTx.events[1])).to.be.true;
     expect(context.polkadotApi.events.balances.Endowed.is(ethTx.events[2])).to.be.true;

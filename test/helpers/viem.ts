@@ -17,13 +17,13 @@ type DeepPartial<T> = {
 
 type TransferOptions =
   | (Omit<TransactionSerializable, "to" | "value"> & {
-      privateKey: `0x${string}`;
+      privateKey?: `0x${string}`;
     })
   | undefined;
 
 type TransactionOptions =
   | TransactionSerializable & {
-      privateKey: `0x${string}`;
+      privateKey?: `0x${string}`;
     };
 
 export const TransactionTypes = ["eip1559", "eip2930", "legacy"] as const;
