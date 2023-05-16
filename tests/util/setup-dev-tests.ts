@@ -84,9 +84,6 @@ export function describeDevMoonbeam(
   forkedMode?: boolean
 ) {
   describe(title, function () {
-    // Set timeout to 5000 for all tests.
-    this.timeout(5000);
-
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
     let context: InternalDevTestContext = { ethTransactionType } as InternalDevTestContext;
@@ -140,9 +137,13 @@ export function describeDevMoonbeam(
         return apiPromise;
       };
 
-      context.polkadotApi = await context.createPolkadotApi();
-      context.web3 = await context.createWeb3();
-      context.ethers = await context.createEthers();
+      let subProvider: EnhancedWeb3;
+      [context.polkadotApi, context.web3, context.ethers, subProvider] = await Promise.all([
+        context.createPolkadotApi(),
+        context.createWeb3(),
+        context.createEthers(),
+        context.createWeb3("ws"),
+      ]);
 
       context.createBlock = async <
         ApiType extends ApiTypes,
@@ -197,6 +198,35 @@ export function describeDevMoonbeam(
         }
 
         const { parentHash, finalize } = options;
+
+        // We are now listening to the eth block too. The main reason is because the Ethereum
+        // ingestion in Frontier is asynchronous, and can sometime be slightly delayed. This
+        // generates some race condition if we don't wait for it.
+
+        let expectedBlockNumber: number = (await subProvider.eth.getBlockNumber()) + 1;
+        const ethCheckPromise = new Promise<void>((resolve) => {
+          const ethBlockSub = subProvider.eth
+            .subscribe("newBlockHeaders", function (error, result) {
+              if (!error) {
+                return;
+              }
+              console.error(error);
+            })
+            .on("data", function (blockHeader) {
+              // unsubscribes the subscription once we get the right block
+              if (blockHeader.number != expectedBlockNumber) {
+                debug(
+                  `Received unexpected block: ${blockHeader.number} ` +
+                    `(expected: ${expectedBlockNumber})`
+                );
+                return;
+              }
+              ethBlockSub.unsubscribe();
+              resolve();
+            })
+            .on("error", console.error);
+        });
+
         const blockResult = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
 
         // No need to extract events if no transactions
@@ -244,11 +274,9 @@ export function describeDevMoonbeam(
             hash: result.hash,
           };
         });
+        // Ensure Ethereum block is also ready
+        await ethCheckPromise;
 
-        // Adds extra time to avoid empty transaction when querying it
-        if (results.find((r) => r.type == "eth")) {
-          await new Promise((resolve) => setTimeout(resolve, 2));
-        }
         return {
           block: blockResult,
           result: Array.isArray(transactions) ? result : (result[0] as any),
