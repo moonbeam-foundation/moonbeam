@@ -75,6 +75,7 @@ pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-root-testing = { workspace = true }
@@ -216,6 +217,7 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
+	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
