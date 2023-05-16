@@ -739,7 +739,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(8_u64))
 			.saturating_add(Weight::from_parts(0, 145).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(0, 132).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 873144491150315).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(0, 307).saturating_mul(z.into()))
 	}
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
