@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { CHARLETH_ADDRESS } from "../../util/accounts";
-import { XcmV3TraitsOutcome } from "@polkadot/types/lookup";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { expectSubstrateEvent, expectSuccessfulXCM } from "../../util/expect";
 import {
   XcmFragment,
   injectHrmpMessage,
@@ -13,11 +11,9 @@ import {
 import { expectEVMResult } from "../../util/eth-transactions";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
-const MAX_WEIGHT = {
-  refTime: 20_000_000_000,
-  proofSize: 10000,
-};
-
+// Here we are testing each allowed instruction to be executed. Even if some of them throw an error,
+// the important thing (and what we are testing) is that they are
+// executed and are not blocked with 'WeightNotComputable' due to using max weight.
 describeDevMoonbeam(
   "XCM V3 Instructions",
   (context) => {
