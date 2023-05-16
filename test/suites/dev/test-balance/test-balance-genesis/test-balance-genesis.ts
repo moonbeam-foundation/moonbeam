@@ -1,28 +1,40 @@
-// import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment";
+import "@polkadot/api-augment";
+import { expect, describeSuite } from "@moonwall/cli";
+import {
+  alith,
+  ALITH_ADDRESS,
+  ALITH_GENESIS_FREE_BALANCE,
+  ALITH_GENESIS_RESERVE_BALANCE,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+} from "@moonwall/util";
 
-// import { expect } from "chai";
+describeSuite({
+  id: "D030301",
+  title: "Balance genesis",
+  foundationMethods: "dev",
+  testCases: ({ context, it }) => {
+    it({
+      id: "T01",
+      title: "should be accessible through web3",
+      test: async function () {
+        expect(await context.viemClient("public").getBalance({ address: ALITH_ADDRESS })).toBe(
+          ALITH_GENESIS_TRANSFERABLE_BALANCE
+        );
+      },
+    });
 
-// import {
-//   alith,
-//   ALITH_GENESIS_FREE_BALANCE,
-//   ALITH_GENESIS_RESERVE_BALANCE,
-//   ALITH_GENESIS_TRANSFERABLE_BALANCE,
-// } from "../../util/accounts";
-// import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-
-// describeDevMoonbeam("Balance genesis", (context) => {
-//   it("should be accessible through web3", async function () {
-//     expect(await context.web3.eth.getBalance(alith.address, 0)).to.equal(
-//       ALITH_GENESIS_TRANSFERABLE_BALANCE.toString()
-//     );
-//   });
-
-//   it("should be accessible through polkadotJs", async function () {
-//     const genesisHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
-//     const account = await (
-//       await context.polkadotApi.at(genesisHash)
-//     ).query.system.account(alith.address);
-//     expect(account.data.free.toString()).to.equal(ALITH_GENESIS_FREE_BALANCE.toString());
-//     expect(account.data.reserved.toString()).to.equal(ALITH_GENESIS_RESERVE_BALANCE.toString());
-//   });
-// });
+    it({
+      id: "T02",
+      title: "should be accessible through polkadotJs",
+      test: async function () {
+        const genesisHash = await context.polkadotJs().rpc.chain.getBlockHash(0);
+        const account = await (
+          await context.polkadotJs({ type: "moon" }).at(genesisHash)
+        ).query.system.account(alith.address);
+        expect(account.data.free.toBigInt()).toBe(ALITH_GENESIS_FREE_BALANCE);
+        expect(account.data.reserved.toBigInt()).toBe(ALITH_GENESIS_RESERVE_BALANCE);
+      },
+    });
+  },
+});

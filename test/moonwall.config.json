@@ -187,11 +187,11 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-balance/test-balance-extrinsic"],
+      "testFileDir": ["suites/dev/test-balance/test-balance-reducible"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
-      "reporters": ["html", "default"],
+      "reporters": ["html", "verbose"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

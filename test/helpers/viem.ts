@@ -1,7 +1,7 @@
 // TODO: Refactor these into moonwall util once they have matured
 
 import { DevModeContext } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
 import { TransactionSerializable } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -29,6 +29,17 @@ type TransactionOptions =
 export const TransactionTypes = ["eip1559", "eip2930", "legacy"] as const;
 export type TransactionType = (typeof TransactionTypes)[number];
 
+/**
+ * createRawTransfer function creates and signs a transfer, as a hex string, that can be submitted to the network via public client."
+ *
+ * @export
+ * @template TOptions - Optional parameters of Viem's TransferOptions
+ * @param {DevModeContext} context - the DevModeContext instance
+ * @param {`0x${string}`} to - the destination address of the transfer
+ * @param {InputAmountFormats} value - the amount to transfer. It accepts different formats including number, bigint, string or hexadecimal strings
+ * @param {TOptions} [options] - (optional) additional transaction options
+ * @returns {Promise<string>} - the signed raw transaction in hexadecimal string format
+ */
 export async function createRawTransfer<TOptions extends TransferOptions>(
   context: DevModeContext,
   to: `0x${string}`,
@@ -39,6 +50,15 @@ export async function createRawTransfer<TOptions extends TransferOptions>(
   return await createRawTransaction(context, { ...options, to, value: transferAmount });
 }
 
+/**
+ * createRawTransaction function creates and signs a raw transaction, as a hex string, that can be submitted to the network via public client."
+ *
+ * @export
+ * @template TOptions - Optional parameters of Viem's TransactionOptions
+ * @param {DevModeContext} context - the DevModeContext instance
+ * @param {TOptions} options - transaction options including type, privateKey, value, to, chainId, gasPrice, estimatedGas, accessList, data
+ * @returns {Promise<string>} - the signed raw transaction in hexadecimal string format
+ */
 export async function createRawTransaction<TOptions extends DeepPartial<TransactionOptions>>(
   context: DevModeContext,
   options: TOptions
@@ -93,10 +113,25 @@ export async function createRawTransaction<TOptions extends DeepPartial<Transact
         }
       : {};
 
-      if (type !== "legacy" && accessList.length > 0) {
-        // @ts-expect-error
-        txnBlob["accessList"] = accessList
-      }
+  if (type !== "legacy" && accessList.length > 0) {
+    // @ts-expect-error
+    txnBlob["accessList"] = accessList;
+  }
 
   return await account.signTransaction(txnBlob);
+}
+
+/**
+ * checkBalance function checks the balance of a given account.
+ * 
+ * @export
+ * @param {DevModeContext} context - the DevModeContext instance
+ * @param {`0x${string}`} [account=ALITH_ADDRESS] - the account address whose balance is to be checked. If no account is provided, it defaults to ALITH_ADDRESS
+ * @returns {Promise<bigint>} - returns a Promise that resolves to the account's balance as a BigInt
+ */
+export async function checkBalance(
+  context: DevModeContext,
+  account: `0x${string}` = ALITH_ADDRESS
+): Promise<bigint> {
+  return await context.viemClient("public").getBalance({ address: account });
 }
