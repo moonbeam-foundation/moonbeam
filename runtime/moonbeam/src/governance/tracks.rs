@@ -88,7 +88,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 		pallet_referenda::TrackInfo {
 			name: "referendum_canceller",
 			max_deciding: 20,
-			decision_deposit: 200 * KILOGLMR * SUPPLY_FACTOR,
+			decision_deposit: 2 * KILOGLMR * SUPPLY_FACTOR,
 			prepare_period: 1 * HOURS,
 			decision_period: 14 * DAYS,
 			confirm_period: 3 * HOURS,
