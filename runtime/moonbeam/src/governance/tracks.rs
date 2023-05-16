@@ -38,7 +38,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 			// For Root origin this should generally be just one.
 			max_deciding: 5,
 			// Amount that must be placed on deposit before a decision can be made.
-			decision_deposit: 2_000 * KILOGLMR * SUPPLY_FACTOR,
+			decision_deposit: 20 * KILOGLMR * SUPPLY_FACTOR,
 			// Amount of time this must be submitted for before a decision can be made.
 			prepare_period: 1 * DAYS,
 			// Amount of time that a decision may take to be approved prior to cancellation.
