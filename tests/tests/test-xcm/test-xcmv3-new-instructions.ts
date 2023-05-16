@@ -62,7 +62,143 @@ describeDevMoonbeam(
       };
     });
 
-    it("Should execute ReportHolding (Transport)", async function () {
+    it("Should execute BurnAsset", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        .burn_asset()
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for Success
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute ClearTopic", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        .clear_topic()
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for Success
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute ExpectTransactStatus", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        .expect_transact_status()
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for Success
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute ClearTransactStatus", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        .clear_transact_status()
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for Transport error
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute SetFeesMode", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        .set_fees_mode()
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for Success
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute SetTopic", async function () {
+      const xcmMessage = new XcmFragment(dotAsset)
+        .withdraw_asset()
+        .buy_execution()
+        // SetTopic expects an array of 32 bytes
+        .set_topic([
+          122, 22, 113, 160, 34, 76, 137, 39, 176, 143, 151, 128, 39, 213, 134, 171, 104, 104, 222,
+          13, 49, 187, 91, 201, 86, 182, 37, 206, 210, 171, 24, 196,
+        ])
+        .as_v3();
+
+      // Mock the reception of the xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+      await context.createBlock();
+
+      // Search for UnknownClaim error
+      const records = (await context.polkadotApi.query.system.events()) as any;
+      const events = records.filter(
+        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      );
+      expect(events).to.have.lengthOf(1);
+    });
+
+    it("Should execute ReportHolding (Transport error)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
@@ -153,28 +289,6 @@ describeDevMoonbeam(
       expect(events[0].toHuman().event.data.error).equals("ExpectationFalse");
     });
 
-    it("Should execute ExpectTransactStatus", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        .expect_transact_status()
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
-    });
-
     it("Should execute QueryPallet (Unroutable)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
@@ -221,7 +335,7 @@ describeDevMoonbeam(
       expect(events[0].toHuman().event.data.error).equals("NameMismatch");
     });
 
-    it("Should execute ReportTransactStatus (Transport)", async function () {
+    it("Should execute ReportTransactStatus (Transport error)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
@@ -242,105 +356,6 @@ describeDevMoonbeam(
       );
       expect(events).to.have.lengthOf(1);
       expect(events[0].toHuman().event.data.error).equals("Transport");
-    });
-
-    it("Should execute ClearTransactStatus", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        .clear_transact_status()
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for Transport error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
-    });
-
-    it("Should execute SetFeesMode", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        .set_fees_mode()
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
-    });
-
-    it("Should execute SetTopic", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        // SetTopic expects an array of 32 bytes
-        .set_topic([
-          122, 22, 113, 160, 34, 76, 137, 39, 176, 143, 151, 128, 39, 213, 134, 171, 104, 104, 222,
-          13, 49, 187, 91, 201, 86, 182, 37, 206, 210, 171, 24, 196,
-        ])
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for UnknownClaim error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
-
-      /*   const blockResponse = await context.createBlock(
-        context.polkadotApi.tx.polkadotXcm.execute(xcmMessage, MAX_WEIGHT)
-      ); */
-
-      /* const { data } = expectSubstrateEvent(blockResponse, "polkadotXcm", "Attempted");
-      expectSuccessfulXCM(data[0] as XcmV3TraitsOutcome); */
-    });
-
-    it("Should execute ClearTopic", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        .clear_topic()
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
     });
 
     it("Should execute UnpaidExecution (BadOrigin)", async function () {
@@ -364,28 +379,6 @@ describeDevMoonbeam(
       );
       expect(events).to.have.lengthOf(1);
       expect(events[0].toHuman().event.data.error).equals("BadOrigin");
-    });
-
-    it("Should execute BurnAsset", async function () {
-      const xcmMessage = new XcmFragment(dotAsset)
-        .withdraw_asset()
-        .buy_execution()
-        .burn_asset()
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-      await context.createBlock();
-
-      // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
-      );
-      expect(events).to.have.lengthOf(1);
     });
   },
   "Legacy",

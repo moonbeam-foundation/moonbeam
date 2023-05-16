@@ -46,7 +46,7 @@ export async function expectOk<
   return block;
 }
 
-export function expectSuccessfulXCM(outcome: XcmV3TraitsOutcome){
+export function expectSuccessfulXCM(outcome: XcmV3TraitsOutcome) {
   let error = "";
   switch (true) {
     case outcome.isError:
