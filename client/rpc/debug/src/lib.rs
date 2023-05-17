@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use futures::{SinkExt, StreamExt};
 use jsonrpsee::core::{async_trait, RpcResult};
-pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams, TraceCallParams};
+pub use moonbeam_rpc_core_debug::{DebugServer, TraceCallParams, TraceParams};
 
 use tokio::{
 	self,
@@ -23,7 +23,7 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{fee_details, frontier_backend_client, internal_err, OverrideHandle};
+use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
@@ -41,7 +41,7 @@ use std::{future::Future, marker::PhantomData, sync::Arc};
 pub enum RequesterInput {
 	Transaction(H256),
 	Block(RequestBlockId),
-	Call((RequestBlockId, TraceCallParams))
+	Call((RequestBlockId, TraceCallParams)),
 }
 
 pub enum Response {
@@ -144,9 +144,7 @@ impl DebugServer for Debug {
 
 		// Receive a message from the service level task and send the rpc response.
 		rx.await
-			.map_err(|err| {
-				internal_err(format!("debug service dropped the channel : {:?}", err))
-			})?
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
 			.map(|res| match res {
 				Response::Single(res) => res,
 				_ => unreachable!(),
@@ -262,7 +260,6 @@ where
 						response_tx,
 					)) => {
 						let client = client.clone();
-						let backend = backend.clone();
 						let frontier_backend = frontier_backend.clone();
 						let permit_pool = permit_pool.clone();
 
@@ -273,7 +270,6 @@ where
 									tokio::task::spawn_blocking(move || {
 										Self::handle_call_request(
 											client.clone(),
-											backend.clone(),
 											frontier_backend.clone(),
 											request_block_id,
 											call_params,
@@ -665,7 +661,6 @@ where
 
 	fn handle_call_request(
 		client: Arc<C>,
-		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		request_block_id: RequestBlockId,
 		call_params: TraceCallParams,
@@ -686,7 +681,11 @@ where
 				Err(internal_err("'pending' blocks are not supported"))
 			}
 			RequestBlockId::Hash(eth_hash) => {
-				match frontier_backend_client::load_hash::<B, C>(&client, frontier_backend.as_ref(), eth_hash) {
+				match frontier_backend_client::load_hash::<B, C>(
+					&client,
+					frontier_backend.as_ref(),
+					eth_hash,
+				) {
 					Ok(Some(id)) => Ok(BlockId::Hash(id)),
 					Ok(_) => Err(internal_err("Block hash not found".to_string())),
 					Err(e) => Err(e),
@@ -696,8 +695,6 @@ where
 
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
-		// Get Blockchain backend
-		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
 		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
 			return Err(internal_err("Block header not found"))
@@ -706,17 +703,15 @@ where
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		// Get the extrinsics.
-		let ext = blockchain.body(hash).unwrap().unwrap();
-
-		let api_version =
-			if let Ok(Some(api_version)) = api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&parent_block_id) {
-				api_version
-			} else {
-				return Err(internal_err(format!(
-					"failed to retrieve Runtime Api version"
-				)));
-			};
+		let api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&parent_block_id)
+		{
+			api_version
+		} else {
+			return Err(internal_err(format!(
+				"failed to retrieve Runtime Api version"
+			)));
+		};
 
 		let TraceCallParams {
 			from,
@@ -732,13 +727,38 @@ where
 			..
 		} = call_params;
 
-		let (max_fee_per_gas, max_priority_fee_per_gas) = {
-			let details = fee_details(gas_price, max_fee_per_gas, max_priority_fee_per_gas)?;
-			(
-				details.max_fee_per_gas,
-				details.max_priority_fee_per_gas,
-			)
-		};
+		let (max_fee_per_gas, max_priority_fee_per_gas) =
+			match (gas_price, max_fee_per_gas, max_priority_fee_per_gas) {
+				(gas_price, None, None) => {
+					// Legacy request, all default to gas price.
+					// A zero-set gas price is None.
+					let gas_price = if gas_price.unwrap_or_default().is_zero() {
+						None
+					} else {
+						gas_price
+					};
+					(gas_price, gas_price)
+				}
+				(_, max_fee, max_priority) => {
+					// eip-1559
+					// A zero-set max fee is None.
+					let max_fee = if max_fee.unwrap_or_default().is_zero() {
+						None
+					} else {
+						max_fee
+					};
+					// Ensure `max_priority_fee_per_gas` is less or equal to `max_fee_per_gas`.
+					if let Some(max_priority) = max_priority {
+						let max_fee = max_fee.unwrap_or_default();
+						if max_priority > max_fee {
+							return Err(internal_err(
+							"Invalid input: `max_priority_fee_per_gas` greater than `max_fee_per_gas`",
+						));
+						}
+					}
+					(max_fee, max_priority)
+				}
+			};
 
 		let gas_limit = match gas {
 			Some(amount) => amount,
@@ -777,7 +797,6 @@ where
 			let _result = api
 				.trace_call(
 					&parent_block_id,
-					ext,
 					from.unwrap_or_default(),
 					to,
 					data,
@@ -791,7 +810,7 @@ where
 							.into_iter()
 							.map(|item| (item.address, item.storage_keys))
 							.collect(),
-					)
+					),
 				)
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
@@ -828,11 +847,9 @@ where
 					}
 					TracerInput::CallTracer => {
 						let mut res =
-							moonbeam_client_evm_tracing::formatters::CallTracer::format(
-								proxy,
-							)
-							.ok_or("Trace result is empty.")
-							.map_err(|e| internal_err(format!("{:?}", e)))?;
+							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))?;
 						Ok(res.pop().unwrap())
 					}
 					_ => Err(internal_err(format!(

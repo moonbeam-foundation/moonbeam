@@ -185,7 +185,6 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn trace_call(
-					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					from: H160,
 					to: H160,
 					data: Vec<u8>,
@@ -199,7 +198,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
-			
+
 						EvmTracer::new().trace(|| {
 							let is_transactional = false;
 							let validate = true;

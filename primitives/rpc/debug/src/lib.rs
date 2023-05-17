@@ -49,7 +49,6 @@ sp_api::decl_runtime_apis! {
 		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_call(
-			extrinsics: Vec<Block::Extrinsic>,
 			from: H160,
 			to: H160,
 			data: Vec<u8>,
