@@ -221,10 +221,6 @@ export const verifyBlockFees = async (
                 txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                console.log(`evaluating substrate fee: ${fee}`);
-                console.log(`    weight: ${fee.weight}`);
-                console.log(`    weight refTime: ${(fee.weight as any).refTime}`);
-                console.log(`wtf, event: ${event}`);
                 const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
                 txFees += fee.partialFee.toBigInt();
                 txBurnt += feePortions.burnt + extrinsic.tip.toBigInt();
@@ -244,7 +240,6 @@ export const verifyBlockFees = async (
                   })) as any
                 ).toBigInt();
                 const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
-                console.log(`multiplier: ${multiplier}`);
                 const denominator = 1_000_000_000_000_000_000n;
                 const weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
 
@@ -256,7 +251,12 @@ export const verifyBlockFees = async (
                 ).toBigInt();
 
                 const tip = extrinsic.tip.toBigInt();
+<<<<<<< Updated upstream
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
+=======
+
+                const expectedPartialFee = lengthFee + weightFee + baseFee + tip;
+>>>>>>> Stashed changes
 
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
