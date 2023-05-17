@@ -1,21 +1,53 @@
 ---
 mbip: 1
 title: Smart Contract Creation Deposit
-author(s):
+author: Alan Sapede (@crystalin)
 status: Draft
+category: Core
 created: 2023-05-11
 ---
+---
+
+## Simple Summary
+A deposit mechanism for smart contracts to deal with storage congestion. 
 
 ## Abstract
 
-When deploying a Smart Contract a constant deposit will automatically be taken from the account sending the transaction. This deposit will be proportional to the full storage size.
+Introduce a deposit assigned to a smart contract when being deployed. The deposit is "reserved" from the account sending the transaction and proportional to the storage size of the deployed
+smart contract.
 
 ## Motivation
 
-Moonbeam is a Smart Contract chain, offering execution metered by gas.
-This gas is associated with a dynamic price that allows control of the resources being used.
-However such a control is not applied efficiently to the storage side of the chain. In order to stay compatible with ethereum and to allow simpler onboarding for projects, such control was kept as originally planned by Ethereum.
-However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
+Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
+free mechanism, it doesn't account sufficiently for new storage data being added.
+
+In order to avoid impacting the current gas price, a separate mechanism is proposed. 
+
+## Specification
+
+Deploying a smart contract (including using CREATE/CREATE2 operations) **MUST** reserve a
+deposit from the sender.
+
+Destroying a smart contract **MUST** restore the deposit to the original depositor.
+
+Formula for deposit amount:
+
+```
+deposit = bytes of AccountCodes storage key (68) +
+          bytes of stored contract code (variable) +
+          bytes of SystemAccount storage key (68) +
+          bytes of SystemAccount value (80) +
+```
+
+
+### Logic
+
+- When deploying a Smart Contract (including using CREATE/CREATE2 operations), a constant deposit will automatically be taken from the account sending the transaction. This deposit will be proportional to the full storage size, which covers:
+  1. The size of the stored contract. (number of bytes after calling the constructor)
+  2. The overhead of storing a smart contract:
+      - AccountCodes key (68 bytes)
+      - System.Account: key (68 bytes) + value (80 bytes)
+
 
 Currently there are 3 ways using the EVM to impact the storage size:
 - **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
