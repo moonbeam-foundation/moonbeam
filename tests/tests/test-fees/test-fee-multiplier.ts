@@ -431,7 +431,7 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
   it("should be able to query length fee", async function () {
     const adjusted_length_fee =
       await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(1n);
-    expect((adjusted_length_fee as any).toBigInt()).to.eq(1_000_000_001n);
+    expect(adjusted_length_fee.toBigInt()).to.eq(1_000_000_001n);
   });
 
   it("should be able to query weight fee", async function () {
@@ -440,7 +440,7 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
         refTime: 1,
         proofSize: 1,
       });
-    expect((adjusted_weight_fee as any).toBigInt()).to.eq(WEIGHT_FEE);
+    expect(adjusted_weight_fee.toBigInt()).to.eq(WEIGHT_FEE);
   });
 
   it("should be able to calculate entire fee", async function () {
