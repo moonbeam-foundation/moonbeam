@@ -752,26 +752,27 @@ describeDevMoonbeam(
       let target_block = (await context.web3.eth.getBlock("latest")).number;
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
 
-      let call_data = "0x398f7223000000000000000000000000c01ee7f10ea4af4673cfff62710e1d77" +
-      "92aba8f30000000000000000000000000000000000000000000000000000000000000006";
+      let call_data =
+        "0x398f7223000000000000000000000000c01ee7f10ea4af4673cfff62710e1d77" +
+        "92aba8f30000000000000000000000000000000000000000000000000000000000000006";
       let call_params = {
-        from: '0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac',
-        to: '0x970951a12F975E6762482ACA81E57D5A2A4e73F4',
-        gas: '0x100000',
-        value: '0x00',
+        from: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
+        to: "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
+        gas: "0x100000",
+        value: "0x00",
         data: call_data,
       };
 
       // we create an additional block with a transaction call to this contract.
       // this will change the state of this contract for `latest`, thus producing a different trace.
       let tx_call_params = call_params;
-      tx_call_params
+      tx_call_params;
       let noise = await context.web3.eth.accounts.signTransaction(
         {
-          from: '0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac',
-          to: '0x970951a12F975E6762482ACA81E57D5A2A4e73F4',
-          gas: '0x100000',
-          value: '0x00',
+          from: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
+          to: "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
+          gas: "0x100000",
+          value: "0x00",
           data: call_data,
           nonce: 2,
         },
@@ -780,25 +781,31 @@ describeDevMoonbeam(
       await customWeb3Request(context.web3, "eth_sendRawTransaction", [noise.rawTransaction]);
       await context.createBlock();
       // assert that a traceCall for `latest` does not match
-      let traceCallFails = await customWeb3Request(context.web3, "debug_traceCall", [{
-        from: '0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac',
-        to: '0x970951a12F975E6762482ACA81E57D5A2A4e73F4',
-        gas: '0x100000',
-        value: '0x00',
-        data: call_data,
-      }, "latest"]);
+      let traceCallFails = await customWeb3Request(context.web3, "debug_traceCall", [
+        {
+          from: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
+          to: "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
+          gas: "0x100000",
+          value: "0x00",
+          data: call_data,
+        },
+        "latest",
+      ]);
       // expect a transaction trace to return a different payload than the original transaction
       // trace.
       expect(traceTx.result.structLogs).to.not.be.deep.equal(traceCallFails.result.structLogs);
 
       // assert that a traceCall at the same height as the original transaction matches
-      let traceCallSucceeds = await customWeb3Request(context.web3, "debug_traceCall", [{
-        from: '0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac',
-        to: '0x970951a12F975E6762482ACA81E57D5A2A4e73F4',
-        gas: '0x100000',
-        value: '0x00',
-        data: call_data,
-      }, context.web3.utils.numberToHex(target_block)]);
+      let traceCallSucceeds = await customWeb3Request(context.web3, "debug_traceCall", [
+        {
+          from: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
+          to: "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
+          gas: "0x100000",
+          value: "0x00",
+          data: call_data,
+        },
+        context.web3.utils.numberToHex(target_block),
+      ]);
       // expect a transaction trace to return the same payload as a call with the same parameters
       // at the same height.
       expect(traceTx.result.structLogs).to.be.deep.equal(traceCallSucceeds.result.structLogs);
