@@ -17,7 +17,7 @@
 //! Track configurations for governance.
 
 use super::*;
-use crate::currency::{KILOGLMR, SUPPLY_FACTOR};
+use crate::currency::{GLMR, KILOGLMR, SUPPLY_FACTOR};
 use sp_std::str::FromStr;
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
