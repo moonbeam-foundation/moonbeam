@@ -251,12 +251,7 @@ export const verifyBlockFees = async (
                 ).toBigInt();
 
                 const tip = extrinsic.tip.toBigInt();
-<<<<<<< Updated upstream
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
-=======
-
-                const expectedPartialFee = lengthFee + weightFee + baseFee + tip;
->>>>>>> Stashed changes
 
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
