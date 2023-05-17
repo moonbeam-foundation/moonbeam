@@ -20,8 +20,8 @@ import {
   createRawTransaction,
   createRawTransfer,
   sendRawTransaction,
-} from "../../../../helpers/viem.js";
-import { verifyLatestBlockFees } from "../../../../helpers/block.js";
+} from "../../../helpers/viem.js";
+import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
   id: "D030501",

@@ -3,7 +3,7 @@ import { expect, describeSuite, beforeEach } from "@moonwall/cli";
 import { alith, ALITH_ADDRESS, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util";
 import { PrivateKeyAccount } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { TransactionTypes, createRawTransfer } from "../../../../helpers/viem.js";
+import { TransactionTypes, createRawTransfer } from "../../../helpers/viem.js";
 
 describeSuite({
   id: "D030101",

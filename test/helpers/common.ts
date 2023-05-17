@@ -1,5 +1,13 @@
 import { ApiPromise } from "@polkadot/api";
 import { u32 } from "@polkadot/types";
+import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
+import {
+  createMetadata,
+  getSpecTypes,
+  KeyringPair,
+  OptionsWithMeta,
+  TypeRegistry,
+} from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
 import { DevModeContext, importJsonConfig, MoonwallContext } from "@moonwall/cli";
 import { ethers, Signer } from "ethers";
@@ -21,11 +29,21 @@ export async function checkTimeSliceForUpgrades(
   return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
 }
 
-// Sort dict by key
-export function sortObjectByKeys(o) {
-  return Object.keys(o)
+/**
+ * Sorts the keys of an object and returns a new object with the same values,
+ * but with keys in lexicographical order.
+ *
+ * @export
+ * @param {Record<string, any>} unsortedObject - The object with unsorted keys.
+ * @returns {Record<string, any>} - The new object with keys sorted.
+ */
+export function sortObjectByKeys(unsortedObject: Record<string, any>): Record<string, any> {
+  return Object.keys(unsortedObject)
     .sort()
-    .reduce((r, k) => ((r[k] = o[k]), r), {});
+    .reduce((sortedObject: Record<string, any>, currentKey: string) => {
+      sortedObject[currentKey] = unsortedObject[currentKey];
+      return sortedObject;
+    }, {});
 }
 
 interface JsonRpcResponse {
@@ -36,7 +54,7 @@ interface JsonRpcResponse {
   };
 }
 
-export async function customDevRpcRequest(method: string, params: any[]) {
+export async function customDevRpcRequest(method: string, params: any[] = []) {
   const globalConfig = await importJsonConfig();
   const env = globalConfig.environments.find(({ name }) => name == process.env.MOON_TEST_ENV)!;
   const endpoint = env.connections
@@ -55,7 +73,7 @@ export async function customDevRpcRequest(method: string, params: any[]) {
     headers: { "Content-Type": "application/json" },
   });
 
-  const responseData: JsonRpcResponse = await response.json();
+  const responseData = (await response.json()) as JsonRpcResponse;
 
   if (responseData.error) {
     throw new Error(responseData.error.message);
@@ -67,7 +85,7 @@ export async function customDevRpcRequest(method: string, params: any[]) {
 export async function getMappingInfo(
   context: DevModeContext,
   authorId: string
-): Promise<{ account: string; deposit: BigInt }> {
+): Promise<{ account: string; deposit: BigInt } | null> {
   const mapping = await context
     .polkadotJs({ type: "moon" })
     .query.authorMapping.mappingWithDeposit(authorId);
@@ -92,7 +110,7 @@ export async function localViemNetworkDetails(api: ApiPromise) {
   const id = (await api.rpc.eth.chainId()).toNumber();
   const name = (await api.rpc.system.chain()).toString();
   const network = api.consts.system.version.specName.toString();
-  const symbol = (await api.rpc.system.properties()).tokenSymbol[0].toString();
+  const symbol = (await api.rpc.system.properties()).tokenSymbol.unwrapOr("UNIT")[0].toString();
   const endpoint = await getProviderPath();
   return {
     id,
@@ -114,4 +132,29 @@ export async function localViemNetworkDetails(api: ApiPromise) {
     //   },
     // },
   };
+}
+
+/**
+ * Signing function. Implement this on the OFFLINE signing device.
+ *
+ * @param pair - The signing pair.
+ * @param signingPayload - Payload to sign.
+ */
+export function signWith(
+  pair: KeyringPair,
+  signingPayload: string,
+  options: OptionsWithMeta
+): `0x${string}` {
+  const { registry, metadataRpc } = options;
+  // Important! The registry needs to be updated with latest metadata, so make
+  // sure to run `registry.setMetadata(metadata)` before signing.
+  registry.setMetadata(createMetadata(registry, metadataRpc));
+
+  const { signature } = registry
+    .createType("ExtrinsicPayload", signingPayload, {
+      version: EXTRINSIC_VERSION,
+    })
+    .sign(pair);
+
+  return signature as `0x${string}`; //TODO: fix this when type problem is fixed
 }

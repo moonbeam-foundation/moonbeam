@@ -187,11 +187,11 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-balance/test-balance-transfer"],
+      "testFileDir": ["suites/dev/test-balance"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
-      "reporters": ["html", "verbose"],
+      "reporters": ["html", "default"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

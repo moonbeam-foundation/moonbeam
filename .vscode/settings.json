@@ -19,5 +19,6 @@
     "port_rpc": 19932,
     "port_ws": 19933
   },
-  "audioCues.volume": 20
+  "audioCues.volume": 20,
+  "typescript.tsdk": "test/node_modules/.pnpm/typescript@5.0.4/node_modules/typescript/lib"
 }

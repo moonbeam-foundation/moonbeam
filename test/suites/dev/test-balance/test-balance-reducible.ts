@@ -6,7 +6,7 @@ import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   generateKeyringPair,
 } from "@moonwall/util";
-import { checkBalance } from "../../../../helpers/viem.js";
+import { checkBalance } from "../../../helpers/viem.js";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({

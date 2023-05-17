@@ -73,7 +73,9 @@ export async function createRawTransaction<TOptions extends DeepPartial<Transact
     .viemClient("public")
     .getTransactionCount({ address: account.address });
   const gasPrice = await context.viemClient("public").getGasPrice();
-  const estimatedGas = await context.viemClient("public").estimateGas({ account, to, value });
+  const estimatedGas = await context
+    .viemClient("public")
+    .estimateGas({ account: account.address, to, value });
   const accessList = options && options.accessList ? options.accessList : [];
   const data = options && options.data ? options.data : "0x";
 
@@ -136,7 +138,9 @@ export async function checkBalance(
 ): Promise<bigint> {
   return typeof block == "string"
     ? await context.viemClient("public").getBalance({ address: account, blockTag: block })
-    : await context.viemClient("public").getBalance({ address: account, blockNumber: block });
+    : typeof block == "bigint"
+    ? await context.viemClient("public").getBalance({ address: account, blockNumber: block })
+    : await context.viemClient("public").getBalance({ address: account });
 }
 
 export async function sendRawTransaction(context: DevModeContext, rawTx: `0x${string}`) {
