@@ -78,7 +78,7 @@ export async function createRawTransfer<TOptions extends TransferOptions>(
 export async function createRawTransaction<TOptions extends DeepPartial<TransactionOptions>>(
   context: DevModeContext,
   options: TOptions
-): Promise<string> {
+): Promise<`0x${string}`> {
   const type = !!options && !!options.type ? options.type : "eip1559";
   const privateKey = !!options && !!options.privateKey ? options.privateKey : ALITH_PRIVATE_KEY;
   const account = privateKeyToAccount(privateKey);
@@ -168,7 +168,10 @@ export async function checkBalance(
  * @param {`0x${string}`} rawTx - The signed and serialized hexadecimal transaction string.
  * @returns {Promise<any>} A Promise resolving when the transaction is sent or rejecting with an error.
  */
-export async function sendRawTransaction(context: DevModeContext, rawTx: `0x${string}`) {
+export async function sendRawTransaction(
+  context: DevModeContext,
+  rawTx: `0x${string}`
+): Promise<any> {
   return await context
     .viemClient("public")
     .request({ method: "eth_sendRawTransaction", params: [rawTx] });
@@ -196,7 +199,7 @@ export async function deployCompiledContract<TOptions extends ContractDeployment
     blob
   );
 
-  const pubClient = context.viemClient("public") as PublicClient
+  const pubClient = context.viemClient("public") as PublicClient;
   const contract = getContract({
     address: contractAddress!,
     abi: contractCompiled.contract.abi,

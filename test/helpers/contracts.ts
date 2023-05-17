@@ -2,9 +2,19 @@ import fs from "fs";
 import path from "path";
 
 export interface Compiled {
-  byteCode: string;
-  contract: any;
+  byteCode: `0x${string}`;
+  contract: ContractObject;
   sourceCode: string;
+}
+
+export interface ContractObject {
+  abi: any[]
+  devdoc: any
+  evm: any
+  ewasm: any
+  metadata: any
+  storageLayout: any
+  userdoc: any
 }
 
 export function getAllContracts(): string[] {

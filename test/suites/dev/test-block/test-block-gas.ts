@@ -19,7 +19,7 @@ import {
 import { getCompiled } from "../../../helpers/contracts.js";
 
 describeSuite({
-  id: "D0402",
+  id: "D0403",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
