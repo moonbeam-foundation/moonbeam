@@ -1,13 +1,29 @@
 // TODO: Refactor these into moonwall util once they have matured
 
-import { DevModeContext } from "@moonwall/cli";
+import {
+  ContractDeploymentOptions,
+  DevModeContext,
+  PublicViem,
+  deployViemContract,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
-import { BlockTag, TransactionSerializable } from "viem";
+import {
+  BlockTag,
+  DeployContractParameters,
+  PublicClient,
+  TransactionSerializable,
+  getContract,
+  keccak256,
+  numberToHex,
+  toRlp,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { getCompiled } from "./contracts.js";
+import { V } from "node_modules/@moonwall/cli/dist/runner-860c7de5.js";
 
-type InputAmountFormats = number | bigint | string | `0x${string}`;
+export type InputAmountFormats = number | bigint | string | `0x${string}`;
 
-type DeepPartial<T> = {
+export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? DeepPartial<U>[]
     : T[P] extends ReadonlyArray<infer U>
@@ -15,13 +31,13 @@ type DeepPartial<T> = {
     : DeepPartial<T[P]>;
 };
 
-type TransferOptions =
+export type TransferOptions =
   | (Omit<TransactionSerializable, "to" | "value"> & {
       privateKey?: `0x${string}`;
     })
   | undefined;
 
-type TransactionOptions =
+export type TransactionOptions =
   | TransactionSerializable & {
       privateKey?: `0x${string}`;
     };
@@ -143,8 +159,49 @@ export async function checkBalance(
     : await context.viemClient("public").getBalance({ address: account });
 }
 
+/**
+ * Sends a raw signed transaction on to RPC node for execution.
+ *
+ * @async
+ * @function
+ * @param {DevModeContext} context - The DevModeContext for the Ethereum client interaction.
+ * @param {`0x${string}`} rawTx - The signed and serialized hexadecimal transaction string.
+ * @returns {Promise<any>} A Promise resolving when the transaction is sent or rejecting with an error.
+ */
 export async function sendRawTransaction(context: DevModeContext, rawTx: `0x${string}`) {
   return await context
     .viemClient("public")
     .request({ method: "eth_sendRawTransaction", params: [rawTx] });
+}
+
+export async function deployCompiledContract<TOptions extends ContractDeploymentOptions>(
+  context: DevModeContext,
+  contractName: string,
+  options?: TOptions
+) {
+  const contractCompiled = getCompiled(contractName);
+
+  const { privateKey = ALITH_PRIVATE_KEY, args = [], ...rest } = options || {};
+
+  const blob: ContractDeploymentOptions = {
+    ...rest,
+    privateKey,
+    args,
+  };
+
+  const { contractAddress, logs, status, hash } = await deployViemContract(
+    context,
+    contractCompiled.contract.abi,
+    contractCompiled.byteCode as `0x${string}`,
+    blob
+  );
+
+  const pubClient = context.viemClient("public") as PublicClient
+  const contract = getContract({
+    address: contractAddress!,
+    abi: contractCompiled.contract.abi,
+    publicClient: pubClient,
+  });
+
+  return { contractAddress, contract, logs, hash, status };
 }
