@@ -99,3 +99,11 @@ given "value" in the deploying transaction. This would make it visible to the us
 require the application to compute the required value. It might also conflict with contract using 
 the value of the transaction for other matters.
 
+## Follow-up
+
+A purge mechanism could be implemented after enough time to destroy the smart contract that don't
+have a deposit associated (those created before this proposal is enacted).
+This would allow to reduce the state storage size significantly.
+
+It would require a new precompile function allowing anyone to deposit for any smart contract. This
+would allow to keep smart contracts already deployed that are considered useful.
