@@ -699,7 +699,10 @@ where
 		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
 			return Err(internal_err("Block header not found"))
 		};
-		let header = client.header(hash).unwrap().unwrap();
+		let header = match client.header(hash) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
@@ -708,9 +711,9 @@ where
 		{
 			api_version
 		} else {
-			return Err(internal_err(format!(
-				"failed to retrieve Runtime Api version"
-			)));
+			return Err(internal_err(
+				"failed to retrieve Runtime Api version".to_string(),
+			));
 		};
 
 		let TraceCallParams {
@@ -780,9 +783,9 @@ where
 				if let Some(block) = block {
 					block.header.gas_limit
 				} else {
-					return Err(internal_err(format!(
-						"block unavailable, cannot query gas limit"
-					)));
+					return Err(internal_err(
+						"block unavailable, cannot query gas limit".to_string(),
+					));
 				}
 			}
 		};
@@ -832,7 +835,12 @@ where
 				);
 				proxy.using(f)?;
 				Ok(Response::Single(
-					moonbeam_client_evm_tracing::formatters::Raw::format(proxy).unwrap(),
+					moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
+						internal_err(
+							"replayed transaction generated too much data. \
+						try disabling memory or storage?",
+						),
+					)?,
 				))
 			}
 			single::TraceType::CallList => {
@@ -850,11 +858,11 @@ where
 							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?;
-						Ok(res.pop().unwrap())
+						Ok(res.pop().expect("Trace result is empty."))
 					}
-					_ => Err(internal_err(format!(
-						"Bug: failed to resolve the tracer format."
-					))),
+					_ => Err(internal_err(
+						"Bug: failed to resolve the tracer format.".to_string(),
+					)),
 				}?;
 				Ok(Response::Single(response))
 			}
