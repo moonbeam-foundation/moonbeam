@@ -229,18 +229,6 @@ benchmarks! {
 		result.request_count = 2u64;
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 
-		// let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		// fund_user::<T>(H160::default(), more);
-		// Pallet::<T>::request_randomness(Request {
-		// 	refund_address: H160::default(),
-		// 	contract_address: H160::default(),
-		// 	fee: BalanceOf::<T>::zero(),
-		// 	gas_limit: 100u64,
-		// 	num_words: 100u8,
-		// 	salt: H256::default(),
-		// 	info: RequestType::Local(9u32.into())
-		// }).expect("must exist");
-
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
 		let result = Pallet::<T>::prepare_fulfillment(0u64);
 		assert!(result.is_ok(), "Prepare Fulfillment Failed");
@@ -303,19 +291,6 @@ benchmarks! {
 		result.randomness = Some(Default::default());
 		result.request_count = 2u64;
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
-
-		// let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		// fund_user::<T>(H160::default(), more);
-		// Pallet::<T>::request_randomness(Request {
-		// 	refund_address: H160::default(),
-		// 	contract_address: H160::default(),
-		// 	fee: BalanceOf::<T>::zero(),
-		// 	gas_limit: 100u64,
-		// 	num_words: 100u8,
-		// 	salt: H256::default(),
-		// 	info: RequestType::Local(9u32.into())
-		// }).expect("second request failed");
-
 
 		frame_system::Pallet::<T>::set_block_number(10_001u32.into());
 	}: {
