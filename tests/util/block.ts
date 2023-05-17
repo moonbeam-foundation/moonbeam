@@ -221,8 +221,9 @@ export const verifyBlockFees = async (
               } else {
                 // For a regular substrate tx, we use the partialFee
                 const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                txFees += fee.partialFee.toBigInt();
-                txBurnt += feePortions.burnt + extrinsic.tip.toBigInt();
+                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
+                txBurnt += feePortions.burnt + tipPortions.burnt;
 
                 // verify entire substrate txn fee
                 const apiAt = await context.polkadotApi.at(previousBlockHash);
@@ -270,7 +271,7 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin)) as any;
 
-              expect((txFees + extrinsic.tip.toBigInt()).toString()).to.eq(
+              expect((txFees).toString()).to.eq(
                 (
                   (((fromBalance.data.free.toBigInt() as any) -
                     toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
@@ -293,7 +294,7 @@ export const verifyBlockFees = async (
           .reduce((p, v) => p + v, 0n);
 
         expect(
-          txFees + extrinsic.tip.toBigInt() - txBurnt,
+          txFees - txBurnt,
           `Desposit Amount Discrepancy!\n` +
             `    Block: #${blockDetails.block.header.number.toString()}\n` +
             `Extrinsic: ${extrinsic.method.section}.${extrinsic.method.method}\n` +
