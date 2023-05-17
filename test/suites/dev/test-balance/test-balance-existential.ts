@@ -6,7 +6,7 @@ import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { TransactionTypes, createRawTransfer } from "../../../helpers/viem.js";
 
 describeSuite({
-  id: "D030101",
+  id: "D0301",
   title: "Existential Deposit disabled",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

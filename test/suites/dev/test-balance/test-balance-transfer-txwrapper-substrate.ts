@@ -13,7 +13,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
-  id: "D030401",
+  id: "D0305",
   title: "Balance transfer - TxWrapper",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

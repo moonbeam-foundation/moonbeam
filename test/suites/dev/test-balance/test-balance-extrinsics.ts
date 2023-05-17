@@ -11,7 +11,7 @@ import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { TransactionTypes, createRawTransfer } from "../../../helpers/viem.js";
 
 describeSuite({
-  id: "D030201",
+  id: "D0302",
   title: "Balance - Extrinsic",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

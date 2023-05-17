@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D030301",
+  id: "D0303",
   title: "Balance genesis",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

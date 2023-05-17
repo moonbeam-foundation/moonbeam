@@ -10,7 +10,7 @@ import { checkBalance } from "../../../helpers/viem.js";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({
-  id: "D030401",
+  id: "D0304",
   title: "Reducible Balance",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

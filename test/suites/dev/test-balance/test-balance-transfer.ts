@@ -24,7 +24,7 @@ import {
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
-  id: "D030501",
+  id: "D0306",
   title: "Balance Transfers",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
