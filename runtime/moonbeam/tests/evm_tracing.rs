@@ -99,7 +99,7 @@ mod tests {
 		let alith_account_id =
 			<Runtime as pallet_evm::Config>::AddressMapping::into_account_id(alith);
 		ExtBuilder::default()
-			.with_balances(vec![(alith_account_id, 100 * UNIT)])
+			.with_balances(vec![(alith_account_id, 100 * GLMR)])
 			.build()
 			.execute_with(|| {
 				assert!(Runtime::trace_call(
