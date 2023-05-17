@@ -13,7 +13,7 @@ import {
 } from "../../util/xcm";
 import { expectOk } from "../../util/expect";
 import { KeyringPair } from "@substrate/txwrapper-core";
-import { GLMR, TARGET_FILL_AMOUNT } from "../../util/constants";
+import { GLMR, TARGET_FILL_AMOUNT, WEIGHT_FEE } from "../../util/constants";
 import { verifyLatestBlockFees } from "../../util/block";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
@@ -440,7 +440,7 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
         refTime: 1,
         proofSize: 1,
       });
-    expect((adjusted_weight_fee as any).toBigInt()).to.eq(50_000n);
+    expect((adjusted_weight_fee as any).toBigInt()).to.eq(WEIGHT_FEE);
   });
 
   it("should be able to calculate entire fee", async function () {
