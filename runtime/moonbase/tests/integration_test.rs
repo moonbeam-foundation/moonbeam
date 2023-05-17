@@ -19,6 +19,7 @@
 mod common;
 use common::*;
 
+use pallet_balances::NegativeImbalance;
 use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
 
 use fp_evm::Context;
@@ -3196,6 +3197,37 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 			EXTRINSIC_BASE_WEIGHT.ref_time() as u128 * currency::WEIGHT_FEE,
 		);
 	});
+}
+
+#[test]
+fn deal_with_fees_handles_tip() {
+	use frame_support::traits::OnUnbalanced;
+	use moonbase_runtime::{DealWithFees, Treasury};
+
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 10_000)])
+		.build()
+		.execute_with(|| {
+			// Alice has 10_000, which makes inital supply 10_000.
+			// drop()ing the NegativeImbalance below will cause the total_supply to be decreased
+			// incorrectly (since there was never a withdraw to begin with), which in this case has
+			// the desired effect of showing that currency was burned.
+			let total_supply_before = Balances::total_issuance();
+			assert_eq!(total_supply_before, 10_000);
+
+			let fees_then_tips = vec![
+				NegativeImbalance::<moonbase_runtime::Runtime>::new(100),
+				NegativeImbalance::<moonbase_runtime::Runtime>::new(1_000),
+			];
+			DealWithFees::on_unbalanceds(fees_then_tips.into_iter());
+
+			// treasury should have received 20%
+			assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+
+			// verify 80% burned
+			let total_supply_after = Balances::total_issuance();
+			assert_eq!(total_supply_before - total_supply_after, 880);
+		});
 }
 
 #[test]
