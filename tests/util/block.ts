@@ -271,7 +271,7 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin)) as any;
 
-              expect((txFees).toString()).to.eq(
+              expect(txFees.toString()).to.eq(
                 (
                   (((fromBalance.data.free.toBigInt() as any) -
                     toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
