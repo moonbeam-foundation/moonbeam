@@ -13,7 +13,8 @@ import {
 } from "../../util/xcm";
 import { expectOk } from "../../util/expect";
 import { KeyringPair } from "@substrate/txwrapper-core";
-import { TARGET_FILL_AMOUNT } from "../../util/constants";
+import { GLMR, TARGET_FILL_AMOUNT, WEIGHT_FEE } from "../../util/constants";
+import { verifyLatestBlockFees } from "../../util/block";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -423,5 +424,44 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
     expect(initialHeight).to.equal(postHeight - 1);
     expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
     expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
+  });
+});
+
+describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
+  it("should be able to query length fee", async function () {
+    // this test is really meant to show that `queryLengthToFee()` works, but for the inquisitive,
+    // this is how our length fee is calculated:
+    // fee = N**3 + N * 1_000_000_000 (where N: size_in_bytes):
+    const numBytes = 1n;
+    const coefficient = 1_000_000_000n;
+    const exponent = 3n;
+    const expected = numBytes ** exponent + numBytes * coefficient;
+
+    const adjusted_length_fee =
+      await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(numBytes);
+    expect(adjusted_length_fee.toBigInt()).to.eq(expected);
+  });
+
+  it("should be able to query weight fee", async function () {
+    const adjusted_weight_fee =
+      await context.polkadotApi.call.transactionPaymentApi.queryWeightToFee({
+        refTime: 1,
+        proofSize: 1,
+      });
+    expect(adjusted_weight_fee.toBigInt()).to.eq(WEIGHT_FEE);
+  });
+
+  it("should be able to calculate entire fee", async function () {
+    const tx = await context.polkadotApi.tx.balances.transfer(alith.address, GLMR).signAsync(alith);
+    const result = await context.createBlock(tx);
+    await verifyLatestBlockFees(context);
+  });
+
+  it("should be able to calculate entire fee including tip", async function () {
+    const tx = await context.polkadotApi.tx.balances
+      .transfer(alith.address, GLMR)
+      .signAsync(alith, { tip: 123 });
+    const result = await context.createBlock(tx);
+    await verifyLatestBlockFees(context);
   });
 });
