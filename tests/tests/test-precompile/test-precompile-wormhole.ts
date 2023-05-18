@@ -254,7 +254,9 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expectEVMResult(result.result.events, "Succeed", "Returned");
     expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
   });
+});
 
+describeDevMoonbeam(`Test GMP Killswitch`, (context) => {
   it("should fail with killswitch enabled by default", async function () {
     // payload should be irrelevant since the precompile will fail before attempting to decode
     const transferVAA = "deadbeef";
