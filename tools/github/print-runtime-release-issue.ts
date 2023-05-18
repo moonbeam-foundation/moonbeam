@@ -63,6 +63,7 @@ with ${lastClientVersion} and master
 ${commonTemplate}
 
 ## Post Release
+- [ ] Publish the docker runtime image (trigger the github action "Publish Docker runtime")
 - [ ] Create a PR that increment spec version (like #1051)
     `;
     console.log(template);
@@ -75,6 +76,9 @@ ${commonTemplate}
 - [ ] Bump spec version to ${newVersion}
 
 ${commonTemplate}
+
+## Post Release
+- [ ] Publish the docker runtime image (trigger the github action "Publish Docker runtime")
     `;
     console.log(template);
   }

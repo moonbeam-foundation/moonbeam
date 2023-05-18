@@ -276,7 +276,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<1>;
+	type MinimumPeriod = ConstU64<6000>;
 	type WeightInfo = pallet_timestamp::weights::SubstrateWeight<Runtime>;
 }
 
@@ -308,6 +308,13 @@ where
 			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
 			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+
+			// handle tip if there is one
+			if let Some(tip) = fees_then_tips.next() {
+				// for now we use the same burn/treasury strategy used for regular fees
+				let (_, to_treasury) = tip.ration(80, 20);
+				<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			}
 		}
 	}
 
@@ -670,8 +677,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	/// Minimum stake required to become a collator
-	type MinCollatorStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
 	type MinCandidateStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
@@ -1241,6 +1246,24 @@ impl pallet_randomness::Config for Runtime {
 
 impl pallet_root_testing::Config for Runtime {}
 
+parameter_types! {
+	// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
+	pub const DepositBase: Balance = currency::deposit(1, 96);
+	// Additional storage item size of 20 bytes.
+	pub const DepositFactor: Balance = currency::deposit(0, 20);
+	pub const MaxSignatories: u32 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1273,6 +1296,7 @@ construct_runtime! {
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 
 		// Sudo was previously index 40
 
@@ -1564,10 +1588,6 @@ mod tests {
 		);
 
 		// staking minimums
-		assert_eq!(
-			get!(pallet_parachain_staking, MinCollatorStk, u128),
-			Balance::from(10 * KILOMOVR)
-		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
 			Balance::from(10 * KILOMOVR)

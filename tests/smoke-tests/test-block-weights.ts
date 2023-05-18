@@ -2,15 +2,15 @@ import "@moonbeam-network/api-augment";
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
 import { extractWeight, getBlockArray } from "../util/block";
 import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { rateLimiter } from "../util/common";
 
 const debug = require("debug")("smoke:weights");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 
 interface BlockInfo {
   blockNum: number;
@@ -40,7 +40,7 @@ describeSmokeSuite(
 
     before("Retrieve all weight limits and usage", async function () {
       this.timeout(timeout);
-      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
+      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod);
       const limits = context.polkadotApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {

@@ -420,10 +420,17 @@ macro_rules! impl_runtime_apis_plus_common {
 							// return false if author mapping not registered like in can_author impl
 							return false
 						};
+						let candidates = pallet_parachain_staking::Pallet::<Self>::compute_top_candidates();
+						if candidates.is_empty() {
+							// If there are zero selected candidates, we use the same eligibility
+							// as the previous round
+							return AuthorInherent::can_author(&author, &slot);
+						}
+
 						// predict eligibility post-selection by computing selection results now
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
-								pallet_parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								candidates,
 								&slot
 							);
 						eligible.contains(&author_account_id)

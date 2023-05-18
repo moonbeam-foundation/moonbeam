@@ -151,9 +151,6 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
-		/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
-		#[pallet::constant]
-		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCandidateStk: Get<BalanceOf<Self>>;
@@ -1716,7 +1713,9 @@ pub mod pallet {
 		}
 
 		/// Compute the top `TotalSelected` candidates in the CandidatePool and return
-		/// a vec of their AccountIds (sorted by AccountId)
+		/// a vec of their AccountIds (sorted by AccountId).
+		///
+		/// If the returned vec is empty, the previous candidates should be used.
 		pub fn compute_top_candidates() -> Vec<T::AccountId> {
 			let top_n = <TotalSelected<T>>::get() as usize;
 			if top_n == 0 {
@@ -1742,7 +1741,6 @@ pub mod pallet {
 				let mut collators = candidates
 					.into_iter()
 					.take(top_n)
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>();
 
@@ -1755,7 +1753,6 @@ pub mod pallet {
 				// The candidates are already sorted by AccountId, so no need to sort again
 				candidates
 					.into_iter()
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>()
 			}

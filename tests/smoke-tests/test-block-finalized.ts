@@ -2,8 +2,8 @@ import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
 import { checkBlockFinalized, getBlockTime, fetchHistoricBlockNum } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
 import semverLt from "semver/functions/lt";
+import { rateLimiter } from "../util/common";
 const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
@@ -44,7 +44,7 @@ describeSmokeSuite("S400", `Parachain blocks should be finalized`, (context, tes
 
       const lastBlockNumber = signedBlock.block.header.number.toNumber();
       const lastBlockTime = getBlockTime(signedBlock);
-      const limiter = new Bottleneck({ maxConcurrent: 5 });
+      const limiter = rateLimiter();
 
       const firstBlockTime = lastBlockTime - timePeriod;
       debug(`Searching for the block at: ${new Date(firstBlockTime)}`);

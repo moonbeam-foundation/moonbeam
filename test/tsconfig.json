@@ -15,6 +15,8 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
+  "typeRoots": ["node_modules/@types"],
+  "types": ["node"],
   "include": ["*suites/**/*.ts"],
   "exclude": ["node_modules/"]
 }

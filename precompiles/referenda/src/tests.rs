@@ -26,6 +26,10 @@ use pallet_referenda::Call as ReferendaCall;
 
 use sp_core::{Hasher, H256, U256};
 
+fn precompiles() -> TestPrecompiles<Runtime> {
+	PrecompilesValue::get()
+}
+
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
@@ -277,5 +281,32 @@ fn place_and_refund_decision_deposit_logs_work() {
 			]
 			.iter()
 			.all(|log| events().contains(log)));
+		});
+}
+
+#[test]
+fn submit_track_id_oob_fails() {
+	use pallet_referenda::TracksInfo;
+
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			let proposal = vec![1, 2, 3];
+			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
+			let oob_track_id =
+				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().len();
+
+			// submit with an invalid track_id
+			let input = PCall::submit_at {
+				track_id: oob_track_id as u16,
+				proposal_hash: proposal_hash,
+				proposal_len: proposal.len() as u32,
+				block_number: 0u32,
+			};
+
+			precompiles()
+				.prepare_test(Alice, Precompile1, input)
+				.execute_reverts(|output| output == b"trackId: No such track");
 		});
 }

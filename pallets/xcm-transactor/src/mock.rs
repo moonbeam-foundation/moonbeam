@@ -33,6 +33,7 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
+use xcm::{IntoVersion, VersionedXcm, WrapVersion};
 use xcm_primitives::{
 	HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
@@ -123,6 +124,28 @@ impl pallet_timestamp::Config for Test {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
+
+const XCM_VERSION_ROOT_KEY: &'static [u8] = b"XCM_VERSION_ROOT_KEY";
+
+pub struct CustomVersionWrapper;
+impl WrapVersion for CustomVersionWrapper {
+	fn wrap_version<RuntimeCall>(
+		_dest: &xcm::latest::MultiLocation,
+		xcm: impl Into<VersionedXcm<RuntimeCall>>,
+	) -> Result<VersionedXcm<RuntimeCall>, ()> {
+		let xcm_version: u32 =
+			frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY).unwrap_or(2);
+		let xcm_converted = xcm.into().into_version(xcm_version)?;
+		Ok(xcm_converted)
+	}
+}
+
+impl CustomVersionWrapper {
+	pub fn set_version(version: u32) {
+		frame_support::storage::unhashed::put(XCM_VERSION_ROOT_KEY, &version);
+	}
+}
+
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
 	type Ticket = ();
@@ -356,6 +379,8 @@ impl SendXcm for TestSendXcm {
 			q.borrow_mut()
 				.push((destination.clone().unwrap(), message.clone().unwrap()))
 		});
+		CustomVersionWrapper::wrap_version(&destination.unwrap(), message.clone().unwrap())
+			.map_err(|()| SendError::DestinationUnsupported)?;
 		Ok(((), MultiAssets::new()))
 	}
 
