@@ -429,9 +429,17 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
 
 describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
   it("should be able to query length fee", async function () {
+    // this test is really meant to show that `queryLengthToFee()` works, but for the inquisitive,
+    // this is how our length fee is calculated:
+    // fee = N**3 + N * 1_000_000_000 (where N: size_in_bytes):
+    const numBytes = 1n;
+    const coefficient = 1_000_000_000n;
+    const exponent = 3n;
+    const expected = numBytes ** exponent + numBytes * coefficient;
+
     const adjusted_length_fee =
       await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(1n);
-    expect(adjusted_length_fee.toBigInt()).to.eq(1_000_000_001n);
+    expect(adjusted_length_fee.toBigInt()).to.eq(expected);
   });
 
   it("should be able to query weight fee", async function () {
