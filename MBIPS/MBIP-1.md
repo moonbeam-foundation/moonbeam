@@ -42,6 +42,19 @@ deposit = (bytes of AccountCodes storage key (68) +
            bytes of SystemAccount value (80)) * DEPOSIT_RATIO
 ```
 
+### Comments
+
+A deposit ratio of 0.01 GLMR / Byte would lead to:  
+`1GB => 1_000_000_000 * 0.01 GLMR => 10_000_000 GLMR`
+
+### Example:
+
+Deploying the complex contract (24400 Bytes) would require a deposit of:  
+`(24_400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, 
+
+Deploying a fast proxy (97 Bytes) would require a deposit of:  
+`(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
+
 ## Storage changes
 
 A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount 
@@ -67,23 +80,12 @@ interface CodeDeposit {
 }
 ```
 
-### Comments
-
-A deposit ratio of 0.01 GLMR / Byte would lead to:  
-`1GB => 1_000_000_000 * 0.01 GLMR => 10_000_000 GLMR`
-
-## Example:
-
-Deploying the complex contract (24400 Bytes) would require a deposit of:  
-`(24_400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, 
-
-Deploying a fast proxy (97 Bytes) would require a deposit of:  
-`(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
-
 
 ## Impact
 
-The deposit will not be visible in the transaction fields. So it will break the assumption that a transaction cannot remove more than the “gasLimit * gasPrice” (or their EIP-1559 equivalent).  
+The deposit will not be visible in the transaction fields. 
+This will break the assumption that a transaction cannot remove more than 
+the "gasLimit * gasPrice" (or their EIP-1559 equivalent).  
 _(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
 
 

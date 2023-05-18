@@ -43,28 +43,10 @@ DEPOSIT_RATIO = 0.001 GLMR / Bytes
 deposit = (post_tx_storage_size - pre_tx_storage_size) * DEPOSIT_RATIO
 ```
 
-## Storage changes
-
-A new "[named reserve](https://paritytech.github.io/substrate/master/pallet_balances/struct.ReserveData.html)"
-is associated to EOA when they need to deposit tokens for storage data.
-
-## Functions
-
-This proposal also adds the RPC endpoint `moon_getStorageDeposit` which accepts a given
-`address` (AccountId20) and optionally a given block number or 
-the string "latest", "earliest" or "pending" and returns a `CodeDeposit` or null:
-
-```
-interface StorageDeposit {
-  amount: U256;
-}
-```
-
 ### Comments
 
 A deposit ratio of 0.001 GLMR / Byte would lead to:  
 `1GB => 1,000,000,000 * 0.001 GLMR => 1,000,000 GLMR`
-
 
 ### Example
 
@@ -74,47 +56,42 @@ Minting an NFT that requires 3 storage items (116 bytes key + 32 bytes value) wo
 Deploying an heavy contract (24_000 bytes code + 68 bytes overhead) would lead to:  
 `(24_000 + 68) * 0.001 => 24.068 GLMR`
 
+## Storage changes
 
+A new "[named reserve](https://paritytech.github.io/substrate/master/pallet_balances/struct.ReserveData.html)"
+is associated to EOA when they need to deposit tokens for storage data.
 
+## Functions
 
+This proposal also adds the RPC endpoint `moon_getStorageDeposit` which accepts a given
+`address` (AccountId20) and optionally a given block number or 
+the string "latest", "earliest" or "pending" and returns a `StorageDeposit` or null:
 
-
-
-
+```
+interface StorageDeposit {
+  amount: U256;
+}
+```
 
 ## Impact
 
-Introducing a mandatory deposit when increasing the storage might surprise a user when 
-sending a transaction as this deposit would not appear in the Ethereum wallets nor in the
-Ethereum block. (see [Addition 3](#addition-3---deposit-from-the-value) for a possible solution)
+The deposit will not be visible in the transaction fields. This will break the assumption that a transaction cannot remove more than the "gasLimit * gasPrice" (or their EIP-1559 equivalent).  
+_(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
 
-This deposit would break the assumption that a transaction cannot remove more than the “gasLimit * gasPrice” (or their EIP-1559 equivalent). In this proposal also the deposit could be “taken” (it would be reserved, but invisible in the Ethereum RPC) from the account.
-(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)
+(see [Addition 3](#addition-3---deposit-from-the-value) for a possible solution)
 
-This impacts most projects and users that interacts with smart contracts.
+This proposal impacts mostly the users as each one might get a deposit if they 
+interact with a smart contract that is increasing the state storage size.
 
 ## Security Considerations
 
-- A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract. When checking the transaction, the user would see only X GLMRs being transferred but the smart contract could generate a huge amount of storage data and force the whole account into a deposit that the user cannot retrieve. (see [Addition 3](#addition-3---deposit-from-the-value) for a possible solution)
-- It can happen that a sender is able to free more space than he has deposited. In this case, the deposit of the sender is reduced to 0.
-- It is possible (and very likely) that a sender is putting a deposit for some storage that will be freed later by another user. If you think of it as a deposit for a specific storage data, it might seem "unfair", but the deposit should considered as storage that you "increased"
+A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 3](#addition-1---deposit-from-the-value) for a possible solution)
 
+Additionally some people might gamble that the deposit storage ratio (GLMR/bytes) will increase in the future and start to store more data on-chain in the hope to "resell" that storage in the future. However it is very unlikely for the storage to increase as the cost of storage becomes cheaper overtime.
 
+## Addition 1 - Deposit from the "Value"
 
-## Addition 1 - Including same mechanism for Smart Contract Code
-
-It is possible to apply the deposit when deploying a smart contract (including CREATE/CREATE2) which would also solve **[ISSUE-2] Storing a Smart Contract**.
-
-The deployer would see his GLMR deposited when performing the creation, at the same deposit ratio as the one for Storage Data.
-
-## Addition 2 - Making the deposit dynamic
-
-Additionally, this deposit could be dynamic, like the gas fee, requiring to deposit more when the storage growth fast and less when the growth slows down.
-To avoid people betting on the Storage price going up, reducing the refunded part to a percentage would be necessary (To be investigated if this would be enough)
-
-### Example
-With a target of 1GB/Year, this would be something around ~400 bytes/block. So if a block increases the storage by more than 400, it would increase it, otherwise it would decrease it to a given minimal value.
-
-## Addition 3 - Deposit from the "Value"
-
-Similar to [Addition 1](#addition-1---including-same-mechanism-for-smart-contract-code), in order to make the amount of deposit required visible to the user, this one could be taken from the "value" field. This requires dapps to increase the amount of the value of their transaction, which might be incompatible with some use cases (to be investigated)
+Instead of having the deposit taken from the user directly, the deposit could be taken from the
+given "value" in the deploying transaction. This would make it visible to the user but would
+require the application to compute the required value. It might also conflict with contract using 
+the value of the transaction for other matters.
