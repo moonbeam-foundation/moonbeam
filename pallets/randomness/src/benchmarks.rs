@@ -165,9 +165,7 @@ benchmarks! {
 		fund_user::<T>(H160::default(), more);
 
 		RequestCount::<T>::put(0u64);
-
-		let info_key: RequestType<T> = RequestType::Local(10u32.into());
-		RandomnessResults::<T>::insert(&info_key, RandomnessResult::new());
+		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), RandomnessResult::new());
 	}: {
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
@@ -176,7 +174,7 @@ benchmarks! {
 			gas_limit: 100u64,
 			num_words: 100u8,
 			salt: H256::default(),
-			info: info_key
+			info: RequestType::Local(10u32.into())
 		});
 		assert!(result.is_ok(), "Request Randomness Failed");
 	}
@@ -286,7 +284,6 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-
 		let mut result =
 			<RandomnessResults<T>>::get(RequestType::Local(10u32.into())).expect("must exist");
 		result.randomness = Some(Default::default());
