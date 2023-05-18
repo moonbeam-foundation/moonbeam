@@ -245,6 +245,5 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     // console.log(`substrate events: ${substrateEvents[0].data[1][0].fun.asFungible.unwrap()}`);
     // shield your eyes, i'm sorry!
     expect(substrateEvents[0].data[1][0].fun.asFungible.unwrap().toBigInt()).to.equal(amount);
-
   });
 });
