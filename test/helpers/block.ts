@@ -153,9 +153,11 @@ export const verifyBlockFees = async (
                 // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
                 // prioritization component: the EVM is not aware of it and thus not part of the
                 // weight cost of the extrinsic.
-                let baseFeePerGas = BigInt(
-                  (await context.web3().eth.getBlock(number - 1)).baseFeePerGas
-                );
+                let baseFeePerGas = //BigInt(
+                  (await context.viemClient("public").getBlock({ blockNumber: BigInt(number - 1) }))
+                    .baseFeePerGas!;
+                //   (await context.web3().eth.getBlock(number - 1)).baseFeePerGas
+                // );
                 let priorityFee;
 
                 // Transaction is an enum now with as many variants as supported transaction types.
@@ -199,18 +201,22 @@ export const verifyBlockFees = async (
                 : extrinsic.signer.toString();
 
               // Get balance of the origin account both before and after extrinsic execution
-              const fromBalance = (await (
+              const fromBalance = await (
                 await api.at(previousBlockHash)
-              ).query.system.account(origin)) as any;
-              const toBalance = (await (
+              ).query.system.account(origin);
+              const toBalance = await (
                 await api.at(blockDetails.block.hash)
-              ).query.system.account(origin)) as any;
+              ).query.system.account(origin);
 
-              expect(txFees.toString()).to.eq(
-                (
-                  (((fromBalance.data.free.toBigInt() as any) -
-                    toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
-                ).toString()
+              console.log("remove me")
+              console.log(fromBalance.data.free.toBigInt());
+              console.log(toBalance.data.free.toBigInt());
+              console.log(expectedBalanceDiff);
+
+              expect(txFees).toBe(
+                fromBalance.data.free.toBigInt() -
+                  toBalance.data.free.toBigInt() -
+                  expectedBalanceDiff
               );
             }
           }
@@ -333,12 +339,8 @@ export function extractPreimageDeposit(
     };
   }
 
-  if (deposit.isEmpty) {
-    return { accountId: "", amount: 0n };
-  }
-
   return {
-    accountId: deposit[0].toHex(),
-    amount: deposit[1],
+    accountId: deposit.isEmpty ? "" : deposit[0].toHex(),
+    amount: deposit.isEmpty ? 0n : deposit[1],
   };
 }

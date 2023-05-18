@@ -12,6 +12,7 @@ import {
   DeployContractParameters,
   PublicClient,
   TransactionSerializable,
+  encodeDeployData,
   getContract,
   keccak256,
   numberToHex,
@@ -19,7 +20,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { getCompiled } from "./contracts.js";
-import { V } from "node_modules/@moonwall/cli/dist/runner-860c7de5.js";
+import * as RLP from "rlp";
 
 export type InputAmountFormats = number | bigint | string | `0x${string}`;
 
@@ -177,7 +178,7 @@ export async function sendRawTransaction(
     .request({ method: "eth_sendRawTransaction", params: [rawTx] });
 }
 
-export async function deployCompiledContract<TOptions extends ContractDeploymentOptions>(
+export async function deployAndCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
   context: DevModeContext,
   contractName: string,
   options?: TOptions
@@ -207,4 +208,33 @@ export async function deployCompiledContract<TOptions extends ContractDeployment
   });
 
   return { contractAddress, contract, logs, hash, status };
+}
+
+export async function deployCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
+  context: DevModeContext,
+  contractName: string,
+  options?: TOptions
+) {
+
+  const compiled = getCompiled("MultiplyBy7");
+  const callData = encodeDeployData({
+    abi: compiled.contract.abi,
+    bytecode: compiled.byteCode,
+    args: [],
+  }) as `0x${string}`;
+
+  const nonce = await context
+    .viemClient("public")
+    .getTransactionCount({ address: ALITH_ADDRESS });
+
+  await context.viemClient("wallet").sendTransaction({ data: callData, nonce });
+
+  const contractAddress = ("0x" +
+    keccak256(RLP.encode([ALITH_ADDRESS, nonce]))
+      .slice(12)
+      .substring(14)) as `0x${string}`;
+
+
+      return { contractAddress, callData };
+
 }
