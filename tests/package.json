@@ -31,7 +31,7 @@
   },
   "scripts": {
     "test-with-logs": "mocha --printlogs -r ts-node/register 'tests/**/test-*.ts'",
-    "setup-typescript-api": "rm -rf node_modules/@moonbeam-network/api-augment && cd ../typescript-api && npm run build && cp -r build ../tests/node_modules/@moonbeam-network/api-augment",
+    "setup-typescript-api": "rm -rf node_modules/@moonbeam-network/api-augment && cd ../typescript-api && npm run build && cp -r build ../tests/node_modules/@moonbeam-network/api-augment && echo 'Typescript API Local installed!'",
     "pre-build-contracts": "ts-node tools/pre-build-contracts.ts && npx prettier --write ./contracts/compiled/",
     "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts' -- -j 4",
     "test-seq": "mocha -r ts-node/register 'tests/**/test-*.ts'",
