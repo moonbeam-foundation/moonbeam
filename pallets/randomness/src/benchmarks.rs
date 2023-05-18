@@ -186,8 +186,9 @@ benchmarks! {
 	}
 
 	prepare_fulfillment {
+		// This macro parameter range is inclusive on both sides, contrary to Rust standard .. ranges.
+		// https://paritytech.github.io/substrate/master/frame_benchmarking/v1/macro.benchmarks.html
 		let x in 1..T::MaxRandomWords::get().into();
-		// let x in 1..T::MaxRandomWords::get().saturating_add(1u8).into();
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
 		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
