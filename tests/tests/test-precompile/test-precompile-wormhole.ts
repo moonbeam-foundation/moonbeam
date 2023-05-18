@@ -16,7 +16,8 @@ import { alith, ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../.
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
-import { expectEVMResult } from "../../util/eth-transactions";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
+import { expect } from "chai";
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -269,5 +270,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     expectEVMResult(result.result.events, "Revert", "Reverted");
+    const revertReason = await extractRevertReason(result.result.hash, context.ethers);
+    expect(revertReason).to.contain("GMP Precompile is not enabled");
   });
 });
