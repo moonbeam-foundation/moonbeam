@@ -438,7 +438,7 @@ describeDevMoonbeam("TransactionPayment Runtime Queries", (context) => {
     const expected = numBytes ** exponent + numBytes * coefficient;
 
     const adjusted_length_fee =
-      await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(1n);
+      await context.polkadotApi.call.transactionPaymentApi.queryLengthToFee(numBytes);
     expect(adjusted_length_fee.toBigInt()).to.eq(expected);
   });
 
