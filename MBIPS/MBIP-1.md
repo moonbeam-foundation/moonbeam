@@ -31,16 +31,6 @@ Destroying a smart contract **MUST** restore the deposit to the original deposit
 
 A sender without enough token to provide the deposit will get its transaction reverted.
 
-A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount 
-and the owner of the deposit:
-
-```
-  deposit: {
-    owner: AccountId20,
-    amount: Balance
-  }
-```
-
 Formula to compute the deposit amount when deploying a smart contract:
 
 ```
@@ -50,6 +40,18 @@ deposit = (bytes of AccountCodes storage key (68) +
            bytes of stored contract code (variable) +
            bytes of SystemAccount storage key (68) +
            bytes of SystemAccount value (80)) * DEPOSIT_RATIO
+```
+
+## Storage changes
+
+A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount 
+and the owner of the deposit:
+
+```
+  deposit: {
+    owner: AccountId20,
+    amount: Balance
+  }
 ```
 
 ## Functions

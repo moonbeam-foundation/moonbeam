@@ -1,60 +1,86 @@
 ---
 mbip: 2
 title: Storage Data Deposit
-author(s):
+author: Alan Sapede (@crystalin)
 status: Draft
+category: Core
 created: 2023-05-11
 ---
 
+## Simple Summary
+
+A deposit mechanism associated to EOA to deal with storage growth
+
 ## Abstract
 
-When a transaction increases the storage size of the chain, a deposit will automatically be taken from the sender of the transaction proportionally to the increase of size. The opposite will happen when a transaction decreases the storage size.
+Introduce a deposit assigned to EOA when they increase the state storage. The deposit increases
+when the user sends a transaction storing additional data and decreases when the transaction
+destroys some storage.
 
 ## Motivation
 
-Moonbeam is a Smart Contract chain, offering execution metered by gas.
-This gas is associated with a dynamic price that allows control of the resources being used.
-However such a control is not applied efficiently to the storage side of the chain. In order to stay compatible with ethereum and to allow simpler onboarding for projects, such control was kept as originally planned by Ethereum.
-However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
+Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
+fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-Currently there are 3 ways using the EVM to impact the storage size:
-- **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
-- **[ISSUE-2]** Storing a Smart Contract
-- **[ISSUE-3]** Storing data in the Smart Contract
-
-Storage growth must be limited somehow, but we have to agree on what limit should be used. Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
-
-## Goals
-
-This proposal provides a solution for **[ISSUE-3] Storing data in a Smart Contract** and optionally (see [Addition 1](#addition-1---including-same-mechanism-for-smart-contract-code)) for **[ISSUE-2] Storing a Smart Contract**. It is also compatible with [MBIP-1](MBIP-1.md).
-
-This proposal does NOT provide a solution for **[ISSUE-1] Creating a new account**.
+In order to avoid impacting the gas price, a distinct mechanism is proposed. 
 
 ## Specification
 
-### Logic
+Sending a transaction which stores additional state data (deploying a contract, adding an item in
+a smart contract storage) **MUST** reserve additional tokens from the sender.
 
-- When a transaction increases the storage size of the chain, a deposit will automatically be taken from the sender of the transaction proportionally to the increase of size
+Sending a transaction which reduces the state data (destroying a contract, removing an item in
+a smart contract storage) **MUST** unreserve additional tokens from the sender. 
+If the unreserve decreases the deposit amount to 0 or under, the deposit **MUST** be removed.
 
-- When a transaction decreases the storage size, a part of the sender's current deposit is restored, proportionally to the decrease.
+A sender without enough token to provide the deposit will get its transaction reverted.
 
-- When the sender does not have enough tokens to do the deposit, the transaction is reverted.
+Formula to compute the deposit amount:
 
+```
+DEPOSIT_RATIO = 0.001 GLMR / Bytes
 
-### Storage Items
+deposit = (post_tx_storage_size - pre_tx_storage_size) * DEPOSIT_RATIO
+```
 
-- Add a named reserve to each account.
+## Storage changes
 
-### Parameters
+A new "[named reserve](https://paritytech.github.io/substrate/master/pallet_balances/struct.ReserveData.html)"
+is associated to EOA when they need to deposit tokens for storage data.
 
-- **Deposit ratio**:
-  - Suggested initial value: **0.001 GLMR / Bytes**
-  - Target growth cost: 1GB => `1,000,000,000 * 0.001 GLMR => 1,000,000 GLMR`. In order to go over the acceptable target, an attacker would need to spend 1M GLMR
+## Functions
+
+This proposal also adds the RPC endpoint `moon_getStorageDeposit` which accepts a given
+`address` (AccountId20) and optionally a given block number or 
+the string "latest", "earliest" or "pending" and returns a `CodeDeposit` or null:
+
+```
+interface StorageDeposit {
+  amount: U256;
+}
+```
+
+### Comments
+
+A deposit ratio of 0.001 GLMR / Byte would lead to:  
+`1GB => 1,000,000,000 * 0.001 GLMR => 1,000,000 GLMR`
 
 
 ### Example
 
-Using the suggested ratio of 0.001 GLMR per byte, Minting an NFT that requires 3 storage items (116 bytes key * 32 bytes value) would induce a deposit of `(116 + 32) * 3 * 0.001 => 0.444 GLMR`
+Minting an NFT that requires 3 storage items (116 bytes key + 32 bytes value) would lead to:  
+`(116 + 32) * 3 * 0.001 => 0.444 GLMR`
+
+Deploying an heavy contract (24_000 bytes code + 68 bytes overhead) would lead to:  
+`(24_000 + 68) * 0.001 => 24.068 GLMR`
+
+
+
+
+
+
+
+
 
 ## Impact
 
