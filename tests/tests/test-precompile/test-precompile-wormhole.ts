@@ -217,7 +217,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         interior: {
           X2: [
             { Parachain: 1001 },
-            { AccountId32: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
+            { AccountKey20: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
           ]
         }
       }
@@ -227,9 +227,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const userAction = new XcmRoutingUserAction({ destination });
     const versionedUserAction = new VersionedUserAction({ V1: userAction });
-    console.log("Versioned User Action JSON:", versionedUserAction.toJSON());
+    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
-    const payload = versionedUserAction.toHex();
+    let payload = ""+versionedUserAction.toHex();
+
+    // TODO: very ugly hack
+    // replace byte 5 with 0x03. This seems to replace "v2" above with 3. Not sure what the issue is
+    payload = payload.substring(0, 5) + '3' + payload.substring(6);
 
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
