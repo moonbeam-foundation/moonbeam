@@ -253,4 +253,21 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expectEVMResult(result.result.events, "Succeed", "Returned");
     expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
   });
+
+  it("should fail with killswitch enabled by default", async function () {
+    // payload should be irrelevant since the precompile will fail before attempting to decode
+    const transferVAA = "deadbeef";
+
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 500_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Revert", "Reverted");
+  });
 });
