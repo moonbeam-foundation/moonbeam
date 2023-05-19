@@ -15,6 +15,8 @@ import { ethers } from "ethers";
 import { alith, ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
+import { u8aConcat, u8aToHex } from "@polkadot/util";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
 
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { expect } from "chai";
@@ -188,8 +190,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     // before interacting with the precompile, we need to set some contract addresses from our
     // our deployments above
-    const CORE_CONTRACT_STORAGE_ADDRESS =
-      "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c";
+    const CORE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("CoreAddress", 128))
+    );
+    expect(CORE_CONTRACT_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c"
+    );
+
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
@@ -199,8 +206,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-    const BRIDGE_CONTRACT_STORAGE_ADDRESS =
-      "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45";
+    const BRIDGE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("BridgeAddress", 128))
+    );
+    expect(BRIDGE_CONTRACT_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45"
+    );
+
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
@@ -211,8 +223,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     await context.createBlock();
 
     // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
-    const ENABLED_FLAG_STORAGE_ADDRESS =
-      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8";
+    const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
+    );
+    expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
+    );
+
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
