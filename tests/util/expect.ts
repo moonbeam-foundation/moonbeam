@@ -60,6 +60,9 @@ export function expectSuccessfulXCM(outcome: XcmV3TraitsOutcome) {
     case outcome.isNone || outcome.isEmpty:
       error = "Empty XCM";
       break;
+
+    default:
+      error = "Default XCM error";
   }
   expect(outcome.isComplete, error).to.be.true;
 }
