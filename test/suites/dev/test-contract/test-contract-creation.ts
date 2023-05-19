@@ -20,7 +20,7 @@ import {
 } from "../../../helpers/viem.js";
 import { getCompiled } from "../../../helpers/contracts.js";
 import { call } from "node_modules/viem/dist/types/actions/public/call.js";
-import { hexToU8a, numberToHex, numberToU8a, u8aToHex } from "@polkadot/util";
+import { hexToU8a, numberToHex, numberToU8a, u8aToHex, u8aToString } from "@polkadot/util";
 import { stringToU8a } from "@polkadot/util";
 import { sendTransaction } from "viem/wallet";
 import * as RLP from "rlp";
@@ -30,7 +30,7 @@ import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
-  id: "D0403",
+  id: "D0601",
   title: "Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -128,9 +128,10 @@ describeSuite({
 
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 5}`,
-        title: `${txnType} should check latest block fees`,
+        title: `should check latest block fees for ${txnType}`,
         test: async function () {
-          await deployAndCreateCompiledContract(context, "MultiplyBy7");
+          await context.createBlock();
+          await deployAndCreateCompiledContract(context, "Fibonacci", {maxPriorityFeePerGas: 0n});
           await verifyLatestBlockFees(context);
         },
       });

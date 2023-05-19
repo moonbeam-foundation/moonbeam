@@ -335,6 +335,50 @@ describeDevMoonbeam(
       ).index;
 
       // The rest should be going to the deposit account
+
+    
+
+      type MultiLocationSimple = {
+        parents: number,
+        interior: {
+          X1: { PalletInstance: number };
+        }
+      } | {
+        parents: 1,
+        interior: {
+          X3: [
+            { Parachain: number },
+            { PalletInstance: number },
+            { GeneralIndex: number },
+          ],
+        },
+      }
+
+
+      interface Junction {
+        Parachain?: number,
+        AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"], id: Uint8Array },
+        AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"], index: number },
+        AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"], key: Uint8Array },
+        PalletInstance?: number,
+        GeneralIndex?: bigint,
+        GeneralKey?: { length: number, data: Uint8Array },
+        OnlyChild?: null,
+        Plurality?: {id: any, part: any},
+        GlobalConsensus?: "Any" | XcmV3JunctionNetworkId["type"]
+      }
+
+      const timbo: MultiLocationSimple = {
+        parents: 1,
+        interior: {
+          
+        }
+
+      }
+
+
+
+
       const xcmMessage = new XcmFragment({
         assets: [
           {

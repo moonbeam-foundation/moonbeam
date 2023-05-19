@@ -1,8 +1,7 @@
 import { AccessListish } from "@ethersproject/transactions";
 import { RlpStructuredData, TransactionRequest, ethers } from "ethers";
 import * as RLP from "rlp";
-import { Contract } from "web3-eth-contract";
-
+import {Contract} from "web3"
 import {
   alith,
   ALITH_PRIVATE_KEY,
@@ -26,6 +25,7 @@ import { expectEVMResult } from "./eth-transactions.js";
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { FMT_BYTES, FMT_NUMBER } from "web3";
+import { keccak256 } from "viem";
 const debug = require("debug")("test:transaction");
 
 export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
@@ -138,7 +138,8 @@ export const createTransaction = async (
   const gasPrice =
     options.gasPrice !== undefined
       ? options.gasPrice
-      : "0x" + (await context.web3().eth.getGasPrice({number: FMT_NUMBER.HEX, bytes: FMT_BYTES.HEX}));
+      : "0x" +
+        (await context.web3().eth.getGasPrice({ number: FMT_NUMBER.HEX, bytes: FMT_BYTES.HEX }));
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
@@ -146,8 +147,8 @@ export const createTransaction = async (
   // Allows to retrieve potential errors
   let error = "";
   const estimatedGas = await context
-    .web3().eth
-    .estimateGas({
+    .web3()
+    .eth.estimateGas({
       from: from,
       to: options.to,
       data: options.data,
@@ -168,8 +169,8 @@ export const createTransaction = async (
   const nonce =
     options.nonce != null
       ? options.nonce
-      : await context.web3().eth.getTransactionCount(from, "pending")
-      // : await context.ethersSigner().provider!.getTransactionCount(from, "pending");
+      : await context.web3().eth.getTransactionCount(from, "pending");
+  // : await context.ethersSigner().provider!.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
   const provider = context.ethersSigner().provider!;
@@ -206,8 +207,8 @@ export const createTransaction = async (
         chainId,
         type: 1,
       };
-    } else  {
-      if (!isEip1559){
+    } else {
+      if (!isEip1559) {
         throw new Error("Unknown transaction type!");
       }
 
@@ -272,52 +273,38 @@ export const createTransfer = async (
 // Will create the transaction to deploy a contract.
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
 // same from
-// export async function createContract(
-//   context: DevModeContext,
-//   contractName: string,
-//   options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
-//   contractArguments: any[] = []
-// ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
-//   const contractCompiled = getCompiled(contractName);
-//   const from = options.from !== undefined ? options.from : alith.address;
-//   const nonce = options.nonce || (await context.ethersSigner().getNonce());
-//   // const contractAddress =
-//   //   "0x" +
-//   //   ethers
-//   //     .keccak256(RLP.encode([from, nonce]))
-//   //     .slice(12)
-//   //     .substring(14);
+export async function createContract(
+  context: DevModeContext,
+  contractName: string,
+  options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
+  contractArguments: any[] = []
+): Promise<{ rawTx: string; contract: Contract<any[]>; contractAddress: string }> {
+  const contractCompiled = getCompiled(contractName);
+  const from = options.from !== undefined ? options.from : alith.address;
+  const nonce =
+    options.nonce || (await context.viemClient("public").getTransactionCount({ address: from }));
+  const contractAddress =
+    "0x" +
+    keccak256(RLP.encode([from, nonce]))
+      .slice(12)
+      .substring(14);
 
-//   // const contract = new ethers.Contract(
-//   //   contractAddress,
-//   //   contractCompiled.contract.abi,
-//   //   context.ethersSigner()
-//   // );
-//     // const data = contract.de
+  const contract = new Contract(contractCompiled.contract.abi, contractAddress);
+  const data = contract
+    .deploy({
+      data: contractCompiled.byteCode,
+      arguments: contractArguments as any,
+    })
+    .encodeABI();
 
-//     const factory = new ethers.ContractFactory(contractCompiled.contract.abi, contractCompiled.byteCode, context.ethersSigner());
-//     const contract = await factory.deploy(...contractArguments);
-//     // const contractAddress = contract;
-//     await contract.waitForDeployment()
-//   const rawTx = contract.getDeployedCode()
-//     const {con} =contract.deploymentTransaction()!.raw
+  const rawTx = await createTransaction(context, { ...options, from, nonce, data });
 
-//   // const contract = new (context.web3()).eth.Contract(contractCompiled.contract.abi, contractAddress);
-//   // const data = contract
-//   //   .deploy({
-//   //     data: contractCompiled.byteCode,
-//   //     arguments: contractArguments,
-//   //   })
-//   //   .encodeABI();
-
-//   // const rawTx = await createTransaction(context, { ...options, from, nonce, data });
-
-//   return {
-//     rawTx,
-//     contract,
-//     contractAddress,
-//   };
-// }
+  return {
+    rawTx,
+    contract,
+    contractAddress,
+  };
+}
 
 // Will create the transaction to execute a contract function.
 // This requires to compute the nonce. It can't be used multiple times in the same block from the
@@ -325,7 +312,7 @@ export const createTransfer = async (
 export async function createContractExecution(
   context: DevModeContext,
   execution: {
-    contract: Contract;
+    contract: Contract<any[]>;
     contractCall: any;
   },
   options: TransactionOptions = {
@@ -421,7 +408,7 @@ export async function callPrecompile(
     data += para.slice(2).padStart(64, "0");
   });
 
-  return await customDevRpcRequest( "eth_call", [
+  return await customDevRpcRequest("eth_call", [
     {
       from: alith.address,
       value: "0x0",

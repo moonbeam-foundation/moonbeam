@@ -8,6 +8,7 @@ import {
   mapExtrinsics,
   BlockRangeOption,
   calculateFeePortions,
+  EXTRINSIC_BASE_WEIGHT,
 } from "@moonwall/util";
 import { DevModeContext } from "@moonwall/cli";
 import { expect } from "@moonwall/cli";
@@ -82,7 +83,7 @@ export const verifyBlockFees = async (
   toBlockNumber: number,
   expectedBalanceDiff: bigint
 ) => {
-  const api = context.polkadotJs({ type: "moon" });
+  const api = context.polkadotJs();
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
   let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
@@ -107,7 +108,9 @@ export const verifyBlockFees = async (
       let blockBurnt = 0n;
 
       // iterate over every extrinsic
-      for (const { events, extrinsic, fee } of blockDetails.txWithEvents) {
+      for (const txWithEvents of blockDetails.txWithEvents) {
+        let { events, extrinsic, fee } = txWithEvents;
+
         // This hash will only exist if the transaction was executed through ethereum.
         let ethereumAddress = "";
 
@@ -153,11 +156,10 @@ export const verifyBlockFees = async (
                 // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
                 // prioritization component: the EVM is not aware of it and thus not part of the
                 // weight cost of the extrinsic.
-                let baseFeePerGas = //BigInt(
-                  (await context.viemClient("public").getBlock({ blockNumber: BigInt(number - 1) }))
-                    .baseFeePerGas!;
-                //   (await context.web3().eth.getBlock(number - 1)).baseFeePerGas
-                // );
+                let baseFeePerGas = BigInt(
+                  (await context.web3().eth.getBlock(number - 1)).baseFeePerGas!
+                );
+                // const baseFeePerGas  = (await context.viemClient("public").getBlock({blockNumber: BigInt(number - 1)})).baseFeePerGas!
                 let priorityFee;
 
                 // Transaction is an enum now with as many variants as supported transaction types.
@@ -188,9 +190,40 @@ export const verifyBlockFees = async (
                 txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                txFees = fee.partialFee.toBigInt();
-                txBurnt += feePortions.burnt;
+                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
+                txBurnt += feePortions.burnt + tipPortions.burnt;
+
+                // verify entire substrate txn fee
+                const apiAt = await context.polkadotJs().at(previousBlockHash);
+                const lengthFee = (
+                  (await apiAt.call.transactionPaymentApi.queryLengthToFee(
+                    extrinsic.encodedLength
+                  )) as any
+                ).toBigInt();
+
+                const unadjustedWeightFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: fee.weight,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+                const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
+                const denominator = 1_000_000_000_000_000_000n;
+                const weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
+
+                const baseFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: EXTRINSIC_BASE_WEIGHT,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+
+                const tip = extrinsic.tip.toBigInt();
+                const expectedPartialFee = lengthFee + weightFee + baseFee;
+
+                expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 
               blockFees += txFees;
@@ -201,22 +234,18 @@ export const verifyBlockFees = async (
                 : extrinsic.signer.toString();
 
               // Get balance of the origin account both before and after extrinsic execution
-              const fromBalance = await (
+              const fromBalance = (await (
                 await api.at(previousBlockHash)
-              ).query.system.account(origin);
-              const toBalance = await (
+              ).query.system.account(origin)) as any;
+              const toBalance = (await (
                 await api.at(blockDetails.block.hash)
-              ).query.system.account(origin);
+              ).query.system.account(origin)) as any;
 
-              console.log("remove me")
-              console.log(fromBalance.data.free.toBigInt());
-              console.log(toBalance.data.free.toBigInt());
-              console.log(expectedBalanceDiff);
-
-              expect(txFees).toBe(
-                fromBalance.data.free.toBigInt() -
-                  toBalance.data.free.toBigInt() -
-                  expectedBalanceDiff
+              expect(txFees.toString()).to.eq(
+                (
+                  (((fromBalance.data.free.toBigInt() as any) -
+                    toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
+                ).toString()
               );
             }
           }

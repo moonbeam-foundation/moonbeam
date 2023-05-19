@@ -186,6 +186,7 @@ describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
     const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
       .clear_origin()
+      .burn_asset()
       .buy_execution()
       .deposit_asset(2n)
       .as_v2();

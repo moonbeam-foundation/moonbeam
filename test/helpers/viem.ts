@@ -12,6 +12,7 @@ import {
   DeployContractParameters,
   PublicClient,
   TransactionSerializable,
+  WalletClient,
   encodeDeployData,
   getContract,
   keccak256,
@@ -178,6 +179,15 @@ export async function sendRawTransaction(
     .request({ method: "eth_sendRawTransaction", params: [rawTx] });
 }
 
+// export async function callRawTransaction(
+//   context: DevModeContext,
+//   txnArgs: {}
+// ): Promise<any> {
+//   return await context
+//     .viemClient("public")
+//     .request({ method: "eth_call", params: [txnArgs] });
+// }
+
 export async function deployAndCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
   context: DevModeContext,
   contractName: string,
@@ -200,14 +210,22 @@ export async function deployAndCreateCompiledContract<TOptions extends ContractD
     blob
   );
 
-  const pubClient = context.viemClient("public") as PublicClient;
   const contract = getContract({
     address: contractAddress!,
     abi: contractCompiled.contract.abi,
-    publicClient: pubClient,
+    publicClient: context.viemClient("public") as PublicClient,
+    walletClient: context.viemClient("wallet") as WalletClient,
   });
 
-  return { contractAddress, contract, logs, hash, status };
+  return {
+    contractAddress: contractAddress as `0x${string}`,
+    contract,
+    logs,
+    hash,
+    status,
+    abi: contractCompiled.contract.abi,
+    bytecode: contractCompiled.byteCode,
+  };
 }
 
 export async function deployCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
@@ -215,7 +233,6 @@ export async function deployCreateCompiledContract<TOptions extends ContractDepl
   contractName: string,
   options?: TOptions
 ) {
-
   const compiled = getCompiled("MultiplyBy7");
   const callData = encodeDeployData({
     abi: compiled.contract.abi,
@@ -223,9 +240,7 @@ export async function deployCreateCompiledContract<TOptions extends ContractDepl
     args: [],
   }) as `0x${string}`;
 
-  const nonce = await context
-    .viemClient("public")
-    .getTransactionCount({ address: ALITH_ADDRESS });
+  const nonce = await context.viemClient("public").getTransactionCount({ address: ALITH_ADDRESS });
 
   await context.viemClient("wallet").sendTransaction({ data: callData, nonce });
 
@@ -234,7 +249,5 @@ export async function deployCreateCompiledContract<TOptions extends ContractDepl
       .slice(12)
       .substring(14)) as `0x${string}`;
 
-
-      return { contractAddress, callData };
-
+  return { contractAddress, callData, abi: compiled.contract.abi, bytecode: compiled.byteCode };
 }
