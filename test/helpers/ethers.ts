@@ -2,6 +2,7 @@ import { DevModeContext } from "@moonwall/cli";
 import { TransactionRequest } from "ethers";
 
 import { TransactionType } from "./viem.js";
+import { ALITH_ADDRESS } from "@moonwall/util";
 
 export async function createEthersTxn<
   TOptions extends TransactionRequest & { txnType?: TransactionType }
@@ -13,8 +14,9 @@ export async function createEthersTxn<
   const isEIP155 = params.type == 1;
   const isEIP1559 = params.txnType == "eip1559" || params.type == 2;
   const isEIP2930 = params.txnType == "eip2930";
-
-  const blob: any = { ...params };
+  // for some reason ethers messes up the nonce
+  const nonce = await context.viemClient("public").getTransactionCount({ address: ALITH_ADDRESS });
+  const blob: any = { nonce, ...params };
 
   switch (true) {
     case isLegacy:
