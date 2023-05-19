@@ -1,4 +1,4 @@
-import { u8aToHex, BN } from "@polkadot/util";
+import { u8aToHex, BN, stringToU8a, numberToU8a } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { customWeb3Request } from "./providers";
 
@@ -216,12 +216,39 @@ export async function injectHrmpMessageAndSeal(
   await context.createBlock();
 }
 
-interface XcmFragmentConfig {
+interface Junction {
+  Parachain?: number;
+  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"]; id: Uint8Array | string };
+  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"]; index: number };
+  AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"]; key: Uint8Array | string };
+  PalletInstance?: number;
+  GeneralIndex?: bigint;
+  GeneralKey?: { length: number; data: Uint8Array };
+  OnlyChild?: null;
+  Plurality?: { id: any; part: any };
+  GlobalConsensus?: "Any" | XcmV3JunctionNetworkId["type"];
+}
+
+interface Junctions {
+  Here?: null;
+  X1?: Junction;
+  X2?: [Junction, Junction];
+  X3?: [Junction, Junction, Junction];
+  X4?: [Junction, Junction, Junction, Junction];
+  X5?: [Junction, Junction, Junction, Junction, Junction];
+  X6?: [Junction, Junction, Junction, Junction, Junction, Junction];
+  X7?: [Junction, Junction, Junction, Junction, Junction, Junction, Junction];
+  X8?: [Junction, Junction, Junction, Junction, Junction, Junction, Junction, Junction];
+}
+
+export interface MultiLocation {
+  parents: number;
+  interior: Junctions;
+}
+
+export interface XcmFragmentConfig {
   assets: {
-    multilocation: {
-      parents: number;
-      interior: any;
-    };
+    multilocation: MultiLocation;
     fungible: bigint;
   }[];
   weight_limit?: BN;
@@ -439,7 +466,7 @@ export class XcmFragment {
 
   // Add a `ReportHolding` instruction
   report_holding(
-    destination: number,
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
     query_id: number = Math.floor(Math.random() * 1000),
     max_weight: { refTime: bigint; proofSize: bigint } = {
       refTime: 1_000_000_000n,
@@ -449,7 +476,7 @@ export class XcmFragment {
     this.instructions.push({
       ReportHolding: {
         response_info: {
-          destination: { parents: 1, interior: { X1: { Parachain: destination } } },
+          destination,
           query_id,
           max_weight,
         },
@@ -475,7 +502,9 @@ export class XcmFragment {
   }
 
   // Add a `ExpectOrigin` instruction
-  expect_origin(multilocation: any = { parents: 1, interior: { X1: { Parachain: 1000 } } }): this {
+  expect_origin(
+    multilocation: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } }
+  ): this {
     this.instructions.push({
       ExpectOrigin: multilocation,
     });
@@ -491,7 +520,7 @@ export class XcmFragment {
   }
 
   // Add a `ExpectTransactStatus` instruction
-  expect_transact_status(status: any = "Success"): this {
+  expect_transact_status(status: string = "Success"): this {
     this.instructions.push({
       ExpectTransactStatus: status,
     });
@@ -500,9 +529,9 @@ export class XcmFragment {
 
   // Add a `QueryPallet` instruction
   query_pallet(
-    destination: number,
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
     query_id: number = Math.floor(Math.random() * 1000),
-    module_name: number[] = [1, 2, 3],
+    module_name: string = "pallet_balances",
     max_weight: { refTime: bigint; proofSize: bigint } = {
       refTime: 1_000_000_000n,
       proofSize: 1_000_000_000n,
@@ -510,9 +539,9 @@ export class XcmFragment {
   ): this {
     this.instructions.push({
       QueryPallet: {
-        module_name: module_name,
+        module_name: stringToU8a(module_name),
         response_info: {
-          detination: { parents: 1, interior: { X1: { Parachain: destination } } },
+          destination,
           query_id,
           max_weight,
         },
@@ -524,16 +553,16 @@ export class XcmFragment {
   // Add a `ExpectPallet` instruction
   expect_pallet(
     index: number = 0,
-    name: number[] = [1, 2, 3],
-    module_name: number[] = [1, 2, 3],
+    name: string = "Balances",
+    module_name: string = "pallet_balances",
     crate_major: number = 4,
     min_crate_minor: number = 0
   ): this {
     this.instructions.push({
       ExpectPallet: {
         index,
-        name,
-        module_name,
+        name: stringToU8a(name),
+        module_name: stringToU8a(module_name),
         crate_major,
         min_crate_minor,
       },
@@ -543,7 +572,7 @@ export class XcmFragment {
 
   // Add a `ReportTransactStatus` instruction
   report_transact_status(
-    destination: number,
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
     query_id: number = Math.floor(Math.random() * 1000),
     max_weight: { refTime: bigint; proofSize: bigint } = {
       refTime: 1_000_000_000n,
@@ -552,7 +581,7 @@ export class XcmFragment {
   ): this {
     this.instructions.push({
       ReportTransactStatus: {
-        destination: { parents: 1, interior: { X1: { Parachain: destination } } },
+        destination,
         query_id,
         max_weight,
       },
@@ -569,7 +598,7 @@ export class XcmFragment {
   }
 
   // Add a `UniversalOrigin` instruction
-  universal_origin(junction: any): this {
+  universal_origin(junction: Junction): this {
     this.instructions.push({
       UniversalOrigin: junction,
     });
@@ -578,14 +607,16 @@ export class XcmFragment {
 
   // Add a `ExportMessage` instruction
   export_message(
-    network: "Any" | XcmV3JunctionNetworkId["type"] = "Any",
-    destination: number,
-    xcm: any
+    xcm_hex: string = "",
+    network: "Any" | XcmV3JunctionNetworkId["type"] = "Ethereum",
+    destination: Junctions = { X1: { Parachain: 1000 } }
   ): this {
+    const callVec = stringToU8a(xcm_hex);
+    let xcm = Array.from(callVec);
     this.instructions.push({
       ExportMessage: {
         network,
-        destination: { X1: { Parachain: destination } },
+        destination,
         xcm,
       },
     });
@@ -594,9 +625,9 @@ export class XcmFragment {
 
   // Add a `LockAsset` instruction
   lock_asset(
-    multilocation: any = this.config.assets[0].multilocation,
-    fungible: any = this.config.assets[0].fungible,
-    unlocker: any = this.config.assets[0].multilocation
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    unlocker: MultiLocation = this.config.assets[0].multilocation
   ): this {
     this.instructions.push({
       LockAsset: {
@@ -616,9 +647,9 @@ export class XcmFragment {
 
   // Add a `UnlockAsset` instruction
   unlock_asset(
-    multilocation: any = this.config.assets[0].multilocation,
-    fungible: any = this.config.assets[0].fungible,
-    target: any = this.config.assets[0].multilocation
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    target: MultiLocation = this.config.assets[0].multilocation
   ): this {
     this.instructions.push({
       UnlockAsset: {
@@ -638,9 +669,9 @@ export class XcmFragment {
 
   // Add a `NoteUnlockable` instruction
   note_unlockable(
-    multilocation: any = this.config.assets[0].multilocation,
-    fungible: any = this.config.assets[0].fungible,
-    owner: any = this.config.assets[0].multilocation
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    owner: MultiLocation = this.config.assets[0].multilocation
   ): this {
     this.instructions.push({
       NoteUnlockable: {
@@ -660,9 +691,9 @@ export class XcmFragment {
 
   // Add a `RequestUnlock` instruction
   request_unlock(
-    multilocation: any = this.config.assets[0].multilocation,
-    fungible: any = this.config.assets[0].fungible,
-    locker: any = this.config.assets[0].multilocation
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    locker: MultiLocation = this.config.assets[0].multilocation
   ): this {
     this.instructions.push({
       RequestUnlock: {
@@ -689,9 +720,9 @@ export class XcmFragment {
   }
 
   // Add a `SetTopic` instruction
-  set_topic(topic: number[]): this {
+  set_topic(topic: string = "0xk89103a9CF04c71Dbc94D0b566f7A2"): this {
     this.instructions.push({
-      SetTopic: topic,
+      SetTopic: Array.from(stringToU8a(topic)),
     });
     return this;
   }
@@ -705,18 +736,25 @@ export class XcmFragment {
   }
 
   // Add a `AliasOrigin` instruction
-  alias_origin(destination: number): this {
+  alias_origin(
+    destination: MultiLocation = {
+      parents: 1,
+      interior: { X1: { Parachain: 1000 } },
+    }
+  ): this {
     this.instructions.push({
-      AliasOrigin: {
-        parents: 1,
-        interior: { X1: { Parachain: destination } },
-      },
+      AliasOrigin: destination,
     });
     return this;
   }
 
   // Add a `UnpaidExecution` instruction
-  unpaid_execution(destination: number): this {
+  unpaid_execution(
+    destination: MultiLocation = {
+      parents: 1,
+      interior: { X1: { Parachain: 1000 } },
+    }
+  ): this {
     const weight_limit =
       this.config.weight_limit != null
         ? { Limited: this.config.weight_limit }
@@ -724,7 +762,7 @@ export class XcmFragment {
     this.instructions.push({
       UnpaidExecution: {
         weight_limit,
-        check_origin: { X1: { Parachain: destination } },
+        check_origin: destination,
       },
     });
     return this;

@@ -19,15 +19,14 @@ describeDevMoonbeam(
   (context) => {
     let dotAsset: any;
     let amount: bigint;
-    let paraId: number;
+    const paraId: number = 888;
 
     before("Set up initial constants", async function () {
-      paraId = 888;
       const paraSovereign = sovereignAccountOfSibling(context, paraId);
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
-      const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-        (pallet) => pallet.name === "Balances"
-      ).index;
+      const balancesPalletIndex = metadata.asLatest.pallets
+        .find(({ name }) => name.toString() === "Balances")!
+        .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
       const { result } = await context.createBlock(
@@ -73,9 +72,8 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -95,9 +93,8 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -117,9 +114,8 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -138,10 +134,9 @@ describeDevMoonbeam(
       } as RawXcmMessage);
       await context.createBlock();
 
-      // Search for Transport error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      // Search for Success
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -161,9 +156,8 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for Success
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -173,10 +167,7 @@ describeDevMoonbeam(
         .withdraw_asset()
         .buy_execution()
         // SetTopic expects an array of 32 bytes
-        .set_topic([
-          122, 22, 113, 160, 34, 76, 137, 39, 176, 143, 151, 128, 39, 213, 134, 171, 104, 104, 222,
-          13, 49, 187, 91, 201, 86, 182, 37, 206, 210, 171, 24, 196,
-        ])
+        .set_topic()
         .as_v3();
 
       // Mock the reception of the xcm message
@@ -186,10 +177,9 @@ describeDevMoonbeam(
       } as RawXcmMessage);
       await context.createBlock();
 
-      // Search for UnknownClaim error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+      // Search for Success
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Success.is(event)
       );
       expect(events).to.have.lengthOf(1);
     });
@@ -198,7 +188,7 @@ describeDevMoonbeam(
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
-        .report_holding(1000)
+        .report_holding()
         .as_v3();
 
       // Mock the reception of the xcm message
@@ -208,12 +198,12 @@ describeDevMoonbeam(
       } as RawXcmMessage);
       await context.createBlock();
 
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      // Search for Transport error
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("Transport");
+      expect(events[0].toHuman().event["data"]["error"]).equals("Transport");
     });
 
     it("Should execute ExpectAsset (ExpectationFalse)", async function () {
@@ -231,12 +221,11 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for ExpectationFalse error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("ExpectationFalse");
+      expect(events[0].toHuman().event["data"]["error"]).equals("ExpectationFalse");
     });
 
     it("Should execute ExpectOrigin (ExpectationFalse)", async function () {
@@ -254,12 +243,11 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for ExpectationFalse error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("ExpectationFalse");
+      expect(events[0].toHuman().event["data"]["error"]).equals("ExpectationFalse");
     });
 
     it("Should execute ExpectError (ExpectationFalse)", async function () {
@@ -277,19 +265,18 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for ExpectationFalse error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("ExpectationFalse");
+      expect(events[0].toHuman().event["data"]["error"]).equals("ExpectationFalse");
     });
 
-    it("Should execute QueryPallet (Unroutable)", async function () {
+    it("Should execute QueryPallet (Transport)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
-        .query_pallet(1002)
+        .query_pallet()
         .as_v3();
 
       // Mock the reception of the xcm message
@@ -299,13 +286,12 @@ describeDevMoonbeam(
       } as RawXcmMessage);
       await context.createBlock();
 
-      // Search for Unroutable error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      // Search for Transport error
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("Unroutable");
+      expect(events[0].toHuman().event["data"]["error"]).equals("Transport");
     });
 
     it("Should execute ExpectPallet (NameMismatch)", async function () {
@@ -323,19 +309,18 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for NameMismatch error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("NameMismatch");
+      expect(events[0].toHuman().event["data"]["error"]).equals("NameMismatch");
     });
 
     it("Should execute ReportTransactStatus (Transport error)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
-        .report_transact_status(1000)
+        .report_transact_status()
         .as_v3();
 
       // Mock the reception of the xcm message
@@ -346,19 +331,18 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for Transport error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("Transport");
+      expect(events[0].toHuman().event["data"]["error"]).equals("Transport");
     });
 
     it("Should execute UnpaidExecution (BadOrigin)", async function () {
       const xcmMessage = new XcmFragment(dotAsset)
         .withdraw_asset()
         .buy_execution()
-        .unpaid_execution(1)
+        .unpaid_execution()
         .as_v3();
 
       // Mock the reception of the xcm message
@@ -369,12 +353,11 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Search for BadOrigin error
-      const records = (await context.polkadotApi.query.system.events()) as any;
-      const events = records.filter(
-        ({ event }) => event.section == "xcmpQueue" && event.method == "Fail"
+      const events = (await context.polkadotApi.query.system.events()).filter(({ event }) =>
+        context.polkadotApi.events.xcmpQueue.Fail.is(event)
       );
       expect(events).to.have.lengthOf(1);
-      expect(events[0].toHuman().event.data.error).equals("BadOrigin");
+      expect(events[0].toHuman().event["data"]["error"]).equals("BadOrigin");
     });
   },
   "Legacy",
