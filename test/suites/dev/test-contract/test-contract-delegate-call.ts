@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { deployAndCreateCompiledContract } from "../../../helpers/viem.js";
+import { deployCreateCompiledContract } from "../../../helpers/viem.js";
 import { Abi } from "abitype";
 
 const PRECOMPILE_PREFIXES = [
@@ -36,7 +36,7 @@ describeSuite({
     let forwardAbi: Abi;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployAndCreateCompiledContract(
+      const { contractAddress, abi } = await deployCreateCompiledContract(
         context,
         "CallForwarder"
       );
@@ -50,7 +50,7 @@ describeSuite({
       title: "should work for normal smart contract",
       test: async function () {
         const { contractAddress: dummyAddress, abi: dummyAbi } =
-          await deployAndCreateCompiledContract(context, "MultiplyBy7");
+          await deployCreateCompiledContract(context, "MultiplyBy7");
 
         const txCall = await context.viemClient("public").call({
           account: ALITH_ADDRESS as `0x${string}`,

@@ -5,7 +5,7 @@ import RLP from "rlp";
 import { encodeDeployData, keccak256 } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { getCompiled } from "../../../helpers/contracts.js";
-import { TransactionTypes, deployAndCreateCompiledContract } from "../../../helpers/viem.js";
+import { TransactionTypes, deployCreateCompiledContract } from "../../../helpers/viem.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -18,7 +18,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: `should return the ${txnType} transaction hash`,
         test: async function () {
-          const { hash } = await deployAndCreateCompiledContract(context, "MultiplyBy7");
+          const { hash } = await deployCreateCompiledContract(context, "MultiplyBy7");
           expect(hash).toBeTruthy();
         },
       });
@@ -31,7 +31,7 @@ describeSuite({
           const callCode = (
             await context.viemClient("public").call({ data: contractData.byteCode })
           ).data;
-          const { contractAddress } = await deployAndCreateCompiledContract(context, "MultiplyBy7");
+          const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           const deployedCode = await context
             .viemClient("public")
             .getBytecode({ address: contractAddress! });
@@ -43,7 +43,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 3}`,
         title: `should not contain ${txnType}  contract at genesis`,
         test: async function () {
-          const { contractAddress } = await deployAndCreateCompiledContract(context, "MultiplyBy7");
+          const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           expect(
             await context
               .viemClient("public")
@@ -110,7 +110,7 @@ describeSuite({
         title: `should check latest block fees for ${txnType}`,
         test: async function () {
           await context.createBlock();
-          await deployAndCreateCompiledContract(context, "Fibonacci", { maxPriorityFeePerGas: 0n });
+          await deployCreateCompiledContract(context, "Fibonacci", { maxPriorityFeePerGas: 0n });
           await verifyLatestBlockFees(context);
         },
       });

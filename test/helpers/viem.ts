@@ -22,6 +22,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { getCompiled } from "./contracts.js";
 import * as RLP from "rlp";
+import { Abi } from "abitype";
 
 export type InputAmountFormats = number | bigint | string | `0x${string}`;
 
@@ -188,7 +189,7 @@ export async function sendRawTransaction(
 //     .request({ method: "eth_call", params: [txnArgs] });
 // }
 
-export async function deployAndCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
+export async function deployCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
   context: DevModeContext,
   contractName: string,
   options?: TOptions
@@ -205,7 +206,7 @@ export async function deployAndCreateCompiledContract<TOptions extends ContractD
 
   const { contractAddress, logs, status, hash } = await deployViemContract(
     context,
-    contractCompiled.contract.abi,
+    contractCompiled.contract.abi as Abi,
     contractCompiled.byteCode as `0x${string}`,
     blob
   );
@@ -228,7 +229,7 @@ export async function deployAndCreateCompiledContract<TOptions extends ContractD
   };
 }
 
-export async function deployCreateCompiledContract<TOptions extends ContractDeploymentOptions>(
+export async function prepareToDeployCompiledContract<TOptions extends ContractDeploymentOptions>(
   context: DevModeContext,
   contractName: string,
   options?: TOptions

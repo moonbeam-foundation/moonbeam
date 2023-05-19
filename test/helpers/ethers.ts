@@ -21,24 +21,29 @@ export async function createEthersTxn<
   switch (true) {
     case isLegacy:
       blob["gasPrice"] = params.gasPrice || 10_000_000_000;
-      blob["gasLimit"] = params.gasLimit || 22318;
+      blob["gasLimit"] = params.gasLimit || 25000;
+      blob["type"] = 0;
       break;
     case isEIP155:
       blob["chainId"] = 1281; // TODO: get chainId from context
       blob["gasPrice"] = params.gasPrice || 10_000_000_000;
-      blob["gasLimit"] = params.gasLimit || 22318;
+      blob["gasLimit"] = params.gasLimit || 25000;
+      blob["type"] = 1;
+      break;
+    case isEIP2930:
+      blob["gasPrice"] = params.gasPrice || 10_000_000_000;
+      blob["gasLimit"] = params.gasLimit || 25000;
+      blob["accessList"] = params.accessList || [];
+      blob["type"] = 1;
       break;
     case isEIP1559:
       blob["accessList"] = params.accessList || [];
       blob["maxFeePerGas"] = params.maxFeePerGas || 10_000_000_000;
       blob["maxPriorityFeePerGas"] = params.maxPriorityFeePerGas || 0;
-      blob["gasLimit"] = params.gasLimit || 22318;
+      blob["gasLimit"] = params.gasLimit || 25000;
+      blob["type"] = 2;
       break;
-    case isEIP2930:
-      blob["gasPrice"] = params.gasPrice || 10_000_000_000;
-      blob["gasLimit"] = params.gasLimit || 22318;
-      blob["accessList"] = params.accessList || [];
-      break;
+
     default:
       throw new Error("Unknown transaction type, update createRawEthersTxn fn");
   }

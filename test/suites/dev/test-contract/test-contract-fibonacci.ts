@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { createEthersTxn } from "../../../helpers/ethers.js";
-import { TransactionTypes, deployAndCreateCompiledContract } from "../../../helpers/viem.js";
+import { TransactionTypes, deployCreateCompiledContract } from "../../../helpers/viem.js";
 import { PublicClient, getContract } from "viem";
 
 describeSuite({
@@ -16,7 +16,7 @@ describeSuite({
         title: "should be able to call fibonacci",
         test: async function () {
           //TODO: replace this with txnType deploy fn when available
-          const { contract } = await deployAndCreateCompiledContract(context, "Fibonacci");
+          const { contract } = await deployCreateCompiledContract(context, "Fibonacci");
 
           expect(await contract.read.fib2([0])).toBe(0n);
           expect(await contract.read.fib2([1])).toBe(1n);
@@ -38,7 +38,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: "should be able to call fibonacci[370] in txn",
         test: async function () {
-          const { abi, contractAddress } = await deployAndCreateCompiledContract(
+          const { abi, contractAddress } = await deployCreateCompiledContract(
             context,
             "Fibonacci"
           );

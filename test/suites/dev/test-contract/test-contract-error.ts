@@ -9,7 +9,7 @@ import {
 } from "viem";
 import {
   TransactionTypes,
-  deployAndCreateCompiledContract,
+  deployCreateCompiledContract,
 } from "../../../helpers/viem.js";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { createEthersTxn } from "../../../helpers/ethers.js";
@@ -25,7 +25,7 @@ describeSuite({
     let looperAbi: Abi;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployAndCreateCompiledContract(context, "Looper");
+      const { contractAddress, abi } = await deployCreateCompiledContract(context, "Looper");
 
       looperAddress = contractAddress;
       looperAbi = abi;
