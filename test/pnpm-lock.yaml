@@ -87,6 +87,9 @@ devDependencies:
   '@types/node':
     specifier: ^18.16.3
     version: 18.16.3
+  abitype:
+    specifier: ^0.8.4
+    version: 0.8.4(typescript@5.0.4)
   bottleneck:
     specifier: ^2.19.5
     version: 2.19.5
@@ -2714,6 +2717,18 @@ packages:
     dependencies:
       typescript: 5.0.4
     dev: false
+
+  /abitype@0.8.4(typescript@5.0.4):
+    resolution: {integrity: sha512-W6Yxm7Ln1n0H/ghI/Yror0P45/+UCQohCCtSzj7/H5Htj48jJmX9KBym/+OiFl58TvuD9y9plRTsbxdCBdBAog==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.19.1
+    peerDependenciesMeta:
+      zod:
+        optional: true
+    dependencies:
+      typescript: 5.0.4
+    dev: true
 
   /abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}

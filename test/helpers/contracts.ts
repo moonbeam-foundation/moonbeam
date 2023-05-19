@@ -1,21 +1,38 @@
 import fs from "fs";
 import path from "path";
+import type { Abi, AbiParameter, Address, Narrow } from "abitype";
+import { type } from "os";
 
-export interface Compiled {
+// export interface Compiled {
+//   byteCode: `0x${string}`;
+//   contract: ContractObject;
+//   sourceCode: string;
+// }
+
+export type CompiledContract<TAbi extends Abi> = {
   byteCode: `0x${string}`;
-  contract: ContractObject;
+  contract: ContractObject<TAbi>;
   sourceCode: string;
-}
+};
 
-export interface ContractObject {
-  abi: any[]
-  devdoc: any
-  evm: any
-  ewasm: any
-  metadata: any
-  storageLayout: any
-  userdoc: any
-}
+// export interface ContractObject {
+//   abi: AbiItem[];
+//   devdoc: any;
+//   evm: any;
+//   ewasm: any;
+//   metadata: any;
+//   storageLayout: any;
+//   userdoc: any;
+// }
+export type ContractObject<TAbi extends Abi> = {
+  abi: TAbi;
+  devdoc: any;
+  evm: any;
+  ewasm: any;
+  metadata: any;
+  storageLayout: any;
+  userdoc: any;
+};
 
 export function getAllContracts(): string[] {
   const contractsPath = path.join(__dirname, `../contracts/compiled/`);
@@ -25,10 +42,10 @@ export function getAllContracts(): string[] {
     .filter((dirent) => dirent.isFile())
     .map((contract) => path.basename(contract.name, ".json"));
 }
+type Contracts<T extends Abi> = { [name: string]: CompiledContract<T> };
+const contracts: Contracts<Abi> = {};
 
-const contracts: { [name: string]: Compiled } = {};
-
-export function getCompiled(name: string): Compiled {
+export function getCompiled<TAbi extends Abi>(name: string): CompiledContract<TAbi> {
   const filePath = path.join(process.cwd(), "helpers", "compiled", `${name}.json`);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
@@ -43,6 +60,6 @@ export function getCompiled(name: string): Compiled {
       );
     }
   }
-
+  // @ts-expect-error
   return contracts[name];
 }

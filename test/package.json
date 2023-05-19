@@ -25,6 +25,7 @@
     "@substrate/txwrapper-substrate": "^6.0.0",
     "@types/debug": "^4.1.7",
     "@types/node": "^18.16.3",
+    "abitype": "^0.8.4",
     "bottleneck": "^2.19.5",
     "debug": "^4.3.4",
     "ethers": "^6.3.0",

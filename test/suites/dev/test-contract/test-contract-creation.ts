@@ -1,32 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import {
-  alith,
-  ALITH_ADDRESS,
-  ALITH_PRIVATE_KEY,
-  baltathar,
-  EXTRINSIC_GAS_LIMIT,
-  GLMR,
-  MIN_GAS_PRICE,
-} from "@moonwall/util";
-import { expectTypeOf } from "vitest";
-import { PrivateKeyAccount, WalletClient, encodeDeployData, keccak256, toRlp } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import {
-  TransactionTypes,
-  deployAndCreateCompiledContract,
-  sendRawTransaction,
-  createRawTransaction,
-} from "../../../helpers/viem.js";
-import { getCompiled } from "../../../helpers/contracts.js";
-import { call } from "node_modules/viem/dist/types/actions/public/call.js";
-import { hexToU8a, numberToHex, numberToU8a, u8aToHex, u8aToString } from "@polkadot/util";
-import { stringToU8a } from "@polkadot/util";
-import { sendTransaction } from "viem/wallet";
-import * as RLP from "rlp";
-import { keccakAsHex } from "@polkadot/util-crypto";
-import { ethers } from "ethers";
+import { describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
+import RLP from "rlp";
+import { encodeDeployData, keccak256 } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { getCompiled } from "../../../helpers/contracts.js";
+import { TransactionTypes, deployAndCreateCompiledContract } from "../../../helpers/viem.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -131,7 +110,7 @@ describeSuite({
         title: `should check latest block fees for ${txnType}`,
         test: async function () {
           await context.createBlock();
-          await deployAndCreateCompiledContract(context, "Fibonacci", {maxPriorityFeePerGas: 0n});
+          await deployAndCreateCompiledContract(context, "Fibonacci", { maxPriorityFeePerGas: 0n });
           await verifyLatestBlockFees(context);
         },
       });

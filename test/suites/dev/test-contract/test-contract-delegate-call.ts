@@ -1,42 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import {
-  alith,
-  ALITH_ADDRESS,
-  ALITH_PRIVATE_KEY,
-  baltathar,
-  EXTRINSIC_GAS_LIMIT,
-  GLMR,
-  MIN_GAS_PRICE,
-} from "@moonwall/util";
-import { expectTypeOf } from "vitest";
-import {
-  PrivateKeyAccount,
-  WalletClient,
-  encodeAbiParameters,
-  encodeDeployData,
-  encodeFunctionData,
-  getAbiItem,
-  keccak256,
-  parseAbi,
-  toRlp,
-} from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import {
-  TransactionTypes,
-  deployAndCreateCompiledContract,
-  sendRawTransaction,
-  createRawTransaction,
-} from "../../../helpers/viem.js";
-import { getCompiled } from "../../../helpers/contracts.js";
-import { call } from "node_modules/viem/dist/types/actions/public/call.js";
-import { hexToU8a, numberToHex, numberToU8a, u8aToHex, u8aToString } from "@polkadot/util";
-import { stringToU8a } from "@polkadot/util";
-import { sendTransaction } from "viem/wallet";
-import * as RLP from "rlp";
-import { keccakAsHex } from "@polkadot/util-crypto";
-import { ethers } from "ethers";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { ALITH_ADDRESS } from "@moonwall/util";
+import { encodeFunctionData } from "viem";
+import { deployAndCreateCompiledContract } from "../../../helpers/viem.js";
+import { Abi } from "abitype";
 
 const PRECOMPILE_PREFIXES = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055, 2056, 2057,
@@ -66,10 +33,13 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let forwardAddress: `0x${string}`;
-    let forwardAbi: any[];
+    let forwardAbi: Abi;
 
     beforeAll(async () => {
-      const {contractAddress, abi} = await deployAndCreateCompiledContract(context, "CallForwarder");
+      const { contractAddress, abi } = await deployAndCreateCompiledContract(
+        context,
+        "CallForwarder"
+      );
       forwardAddress = contractAddress;
       forwardAbi = abi;
     });

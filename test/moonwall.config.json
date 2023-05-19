@@ -191,7 +191,7 @@
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
-      "reporters": ["html", "basic"],
+      "reporters": ["html", "default"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

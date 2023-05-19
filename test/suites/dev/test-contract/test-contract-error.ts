@@ -13,6 +13,7 @@ import {
 } from "../../../helpers/viem.js";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { createEthersTxn } from "../../../helpers/ethers.js";
+import { Abi } from "abitype";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -21,7 +22,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let looperAddress: `0x${string}`;
-    let looperAbi: any[];
+    let looperAbi: Abi;
 
     beforeAll(async () => {
       const { contractAddress, abi } = await deployAndCreateCompiledContract(context, "Looper");
