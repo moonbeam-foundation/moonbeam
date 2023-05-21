@@ -8,11 +8,8 @@ import {
   RawXcmMessage,
   sovereignAccountOfSibling,
 } from "../../util/xcm";
-import { expectSuccessfulXCM, expectSubstrateEvent } from "../../util/expect";
-import { XcmV3TraitsOutcome, XcmV3TraitsError } from "@polkadot/types/lookup";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
-import { stringToU8a } from "@polkadot/util";
 
 describeDevMoonbeam(
   "XCM V3 - Max Weight Instructions",
