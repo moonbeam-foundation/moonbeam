@@ -38,17 +38,29 @@ A transaction with not enough `gasPrice` to compensate for the gas and storage w
 
 ### `storageBaseFee`
 
-The storage base fee is the cost of storing 1 byte of data in the chain state.
+The storage base fee is the cost of storing 1 byte of data in the chain state. One straightforward
+approach to dynamically adjusting this would be to use the same formula used in
+[Substrate's pallet-transaction-payment](https://github.com/paritytech/substrate/blob/master/frame/transaction-payment/src/lib.rs#L95),
+which has been developed to achieve long-term average targets. We use this for our `base-fee`
+implementation based on block weight, but it would serve well here as well.
 
-Formula to compute the new block `storageBaseFee`: 
+Since we are more interested in very long-term targets in the case of storage growth as
+opposed to short term congestion relief in the case of the base-fee, we can use different
+parameters to smooth it out:
 
 ```
-storageBlockExpectation = 50_000 bytes
-minStorageBaseFee = 0.0005 GLMR / byte
-storageBaseFee = previousBlockStateIncrease > (25% storageBlockExpectation) ?
-                   // TODO Stephen to include multiplier formulas
-                   storageBaseFee * 0.001
-                   max(storageBaseFee / 0.001, minStorageBaseFee)
+given:
+    s = previous block growth
+    s' = ideal block growth = 0.1
+    m = max block growth
+        diff = (s - s') / m
+        v = 0.00001
+        t1 = (v * diff)
+        t2 = (v * diff)^2 / 2
+    then:
+    next_multiplier = prev_multiplier * (1 + t1 + t2)
+
+(note that "growth" is bounded between [0-100%]; a block that reduces storage will not be negative)
 ```
 
 ### `gasBaseFee`
