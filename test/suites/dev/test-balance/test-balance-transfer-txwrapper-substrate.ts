@@ -8,7 +8,7 @@ import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
 import { getSpecTypes, TypeRegistry } from "@substrate/txwrapper-core";
 import { customDevRpcRequest, signWith } from "../../../helpers/common.js";
-import { checkBalance } from "../../../helpers/viem.js";
+import { checkBalance } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 

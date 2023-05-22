@@ -1,10 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util";
-import { expectTypeOf} from "vitest"
-import { PrivateKeyAccount } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { TransactionTypes, createRawTransfer } from "../../../helpers/viem.js";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith } from "@moonwall/util";
 
 describeSuite({
   id: "D0401",
@@ -30,7 +26,7 @@ describeSuite({
         // Originally ,this test required the timestamp be in the last finve minutes.
         // This requirement doesn't make sense when we forge timestamps in manual seal.
         const block = await context.viemClient("public").getBlock({ blockTag: "latest" });
-        const next5Minutes = BigInt(Math.floor(Date.now() / 1000 + 300))
+        const next5Minutes = BigInt(Math.floor(Date.now() / 1000 + 300));
         expect(block.timestamp).toBeGreaterThan(0n);
         expect(block.timestamp).toBeLessThan(next5Minutes);
       },
@@ -42,13 +38,13 @@ describeSuite({
       test: async function () {
         const block = await context.viemClient("public").getBlock({ blockTag: "latest" });
         expect(block).to.include({
-          author: alith.address.toLocaleLowerCase(), 
+          author: alith.address.toLocaleLowerCase(),
           difficulty: 0n,
           extraData: "0x",
           gasLimit: 15000000n,
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
-          miner: alith.address.toLocaleLowerCase(), 
+          miner: alith.address.toLocaleLowerCase(),
           number: 1n,
           receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
           sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
@@ -80,7 +76,7 @@ describeSuite({
       title: "should be accessible by number",
       test: async function () {
         const latestBlock = await context.viemClient("public").getBlock({ blockTag: "latest" });
-        const block = await context.viemClient("public").getBlock({blockNumber: 1n})
+        const block = await context.viemClient("public").getBlock({ blockNumber: 1n });
         expect(block.hash).toBe(latestBlock.hash);
       },
     });

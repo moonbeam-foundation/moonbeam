@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { TransactionTypes, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTxn, deployCreateCompiledContract } from "@moonwall/util";
 import { Abi } from "abitype";
 import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { createEthersTxn } from "../../../helpers/ethers.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({

@@ -20,7 +20,7 @@ import {
   createRawTransaction,
   createRawTransfer,
   sendRawTransaction,
-} from "../../../helpers/viem.js";
+} from "@moonwall/util";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({

@@ -1,21 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
+import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
-  ALITH_ADDRESS,
-  baltathar,
   EXTRINSIC_GAS_LIMIT,
-  GLMR,
-  MIN_GAS_PRICE,
+  deployCreateCompiledContract
 } from "@moonwall/util";
-import { expectTypeOf } from "vitest";
-import { PrivateKeyAccount } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import {
-  TransactionTypes,
-  deployCompiledContract,
-  createRawTransfer,
-} from "../../../helpers/viem.js";
 import { getCompiled } from "../../../helpers/contracts.js";
 
 describeSuite({
@@ -28,7 +16,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: `${txnType} should be allowed to the max block gas`,
         test: async function () {
-          const { hash, status } = await deployCompiledContract(context, "MultiplyBy7", {
+          const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
             gas: BigInt(EXTRINSIC_GAS_LIMIT),
           });
           expect(status).toBe("success");
@@ -43,7 +31,7 @@ describeSuite({
         test: async function () {
           expect(
             async () =>
-              await deployCompiledContract(context, "MultiplyBy7", {
+              await deployCreateCompiledContract(context, "MultiplyBy7", {
                 gas: BigInt(EXTRINSIC_GAS_LIMIT + 1),
               }),
             "Transaction should be reverted but instead contract deployed"
@@ -56,7 +44,7 @@ describeSuite({
       id: "T07",
       title: "should be accessible within a contract",
       test: async function () {
-        const { contract, contractAddress } = await deployCompiledContract(
+        const { contract, contractAddress } = await deployCreateCompiledContract(
           context,
           "BlockVariables"
         );

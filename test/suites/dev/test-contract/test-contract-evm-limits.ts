@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
-import { createEthersTxn } from "../../../helpers/ethers.js";
+import { describeSuite, expect } from "@moonwall/cli";
+import { alith, createEthersTxn } from "@moonwall/util";
 
 describeSuite({
   id: "D0605",

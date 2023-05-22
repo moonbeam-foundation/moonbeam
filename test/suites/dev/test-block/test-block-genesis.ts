@@ -1,10 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util";
-import { expectTypeOf } from "vitest";
-import { PrivateKeyAccount } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { TransactionTypes, createRawTransfer } from "../../../helpers/viem.js";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
   id: "D0404",

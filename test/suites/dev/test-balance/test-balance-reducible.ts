@@ -1,12 +1,8 @@
 import "@moonbeam-network/api-augment";
 import "@polkadot/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
-import {
-  alith,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
-  generateKeyringPair,
-} from "@moonwall/util";
-import { checkBalance } from "../../../helpers/viem.js";
+import { alith, ALITH_GENESIS_TRANSFERABLE_BALANCE, generateKeyringPair } from "@moonwall/util";
+import { checkBalance } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({
