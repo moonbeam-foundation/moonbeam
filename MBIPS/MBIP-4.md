@@ -40,32 +40,29 @@ A transaction with not enough `gasPrice` to compensate for the gas and storage w
 
 The storage base fee is the cost of storing 1 byte of data in the chain state. One straightforward
 approach to dynamically adjusting this would be to use the same formula used in
-[Substrate's pallet-transaction-payment](https://github.com/paritytech/substrate/blob/master/frame/transaction-payment/src/lib.rs#L95),
-which has been developed to achieve long-term average targets. We use this for our `base-fee`
-implementation based on block weight, but it would serve well here as well.
+[Substrate's pallet-transaction-payment](https://github.com/paritytech/substrate/blob/0046337664b221ff1072fb8f872f13a170babca9/frame/transaction-payment/src/lib.rs#L95)
+which has been developed to achieve long-term average targets. Moonbeam uses this for its `base-fee`
+implementation based on block weight, but it would be useful here as well.
 
-Since we are more interested in very long-term targets in the case of storage growth as
-opposed to short term congestion relief in the case of the base-fee, we can use different
-parameters to smooth it out:
+Since the goal for storage is very long-term growth targets as opposed to short term congestion
+relief in the case of the base-fee, different parameters could be used to smooth it out:
 
 ```
 given:
-    s = previous block growth
-    s' = ideal block growth = 0.1
-    m = max block growth
+    s = previous block growth (cannot be negative)
+    s' = ideal block growth = 5_000
+    m = max block growth = 50_000
         diff = (s - s') / m
         v = 0.00001
         t1 = (v * diff)
         t2 = (v * diff)^2 / 2
     then:
     next_multiplier = prev_multiplier * (1 + t1 + t2)
-
-(note that "growth" is bounded between [0-100%]; a block that reduces storage will not be negative)
 ```
 
 ### `gasBaseFee`
 
-The `gasBaseFee` is the same as the `baseFee` defined before this EIP. It simply represent the cost
+The `gasBaseFee` is the same as the `baseFee` defined before this MBIP. It simply represent the cost
 of executing 1 gas.
 
 ### Transaction payment
