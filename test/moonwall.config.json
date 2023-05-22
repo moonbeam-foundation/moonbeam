@@ -187,7 +187,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/test-contract"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
