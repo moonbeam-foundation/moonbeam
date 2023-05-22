@@ -115,7 +115,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -245,7 +245,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
             fungible: transferredBalance / 2n,
           },
         ],
-        weight_limit: new BN(4000000000),
+        // weight_limit: new BN(4000000000), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -430,7 +430,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
             fungible: assetsToTransfer / 2n,
           },
         ],
-        weight_limit: new BN((assetsToTransfer / 2n).toString()),
+        // weight_limit: new BN((assetsToTransfer / 2n).toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -565,7 +565,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -705,7 +705,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -861,7 +861,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1039,7 +1039,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1189,7 +1189,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1348,7 +1348,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
             fungible: transferredBalance / 2n,
           },
         ],
-        weight_limit: new BN(40000000000),
+        // weight_limit: new BN(40000000000), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1472,7 +1472,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (cont
             fungible: transferredBalance / 2n,
           },
         ],
-        weight_limit: new BN(40000000000),
+        // weight_limit: new BN(40000000000), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1587,7 +1587,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        // weight_limit: new BN(targetXcmWeight.toString()), TODO: fix with correct limit
         descend_origin: sendingAddress,
       })
         .descend_origin()

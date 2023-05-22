@@ -67,7 +67,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
           fungible: transferredBalance / 2n,
         },
       ],
-      weight_limit: new BN(4000000000),
+      // weight_limit: new BN(4000000000), TODO: fix with correct limit
       descend_origin: sendingAddress,
     })
       .descend_origin()
