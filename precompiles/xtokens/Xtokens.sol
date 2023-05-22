@@ -36,7 +36,8 @@ interface Xtokens {
     /// @param currencyAddress The ERC20 address of the currency we want to transfer
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param destination The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector b9f813ff
     function transfer(
         address currencyAddress,
@@ -51,7 +52,8 @@ interface Xtokens {
     /// @param currencyAddress The ERC20 address of the currency we want to transfer
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param destination The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector 3e506ef0
     function transferWithFee(
         address currencyAddress,
@@ -68,7 +70,8 @@ interface Xtokens {
     /// Currently only Concrete Fungible assets
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param destination The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector b4f76f96
     function transferMultiasset(
         Multilocation memory asset,
@@ -84,7 +87,8 @@ interface Xtokens {
     /// Currently only Concrete Fungible assets
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param destination The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector 150c016a
     function transferMultiassetWithFee(
         Multilocation memory asset,
@@ -100,7 +104,8 @@ interface Xtokens {
     /// @param currencies The currencies we want to transfer, defined by their address and amount.
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector ab946323
     function transferMultiCurrencies(
         Currency[] memory currencies,
@@ -115,7 +120,8 @@ interface Xtokens {
     /// @param assets The assets we want to transfer, defined by their location and amount.
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain
+    /// @param weight The weight we want to buy in the destination chain 
+    /// (uint64::MAX means Unlimited weight)
     /// @custom:selector 797b45fd
     function transferMultiAssets(
         MultiAsset[] memory assets,
