@@ -1,7 +1,7 @@
 ---
 mbip: 1
 title: Smart Contract Creation Deposit
-author: Alan Sapede (@crystalin)
+author: Alan Sapède (@crystalin)
 status: Draft
 category: Core
 created: 2023-05-11

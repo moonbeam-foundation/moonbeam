@@ -1,76 +1,144 @@
 ---
 mbip: 3
 title: Rent mechanism
-author(s):
+author: Alan Sapède (@crystalin)
 status: Draft
+category: Core
 created: 2023-05-11
 ---
 
+## Simple Summary
+A renting mechanism using a deposit for smart contracts to deal with storage congestion.
+
 ## Abstract
 
-Creating a Smart Contract (including CREATE/CREATE2) would require specifying a certain deposit, and executing a transaction, a certain amount of that deposit would get burnt based on how long since the last time it was used.
+Introduce a deposit assigned to a smart contract when being deployed. The deposit is consumed every
+time the smart contract executes, proportionally to the elapsed time since it was executed.
 
 ## Motivation
 
-Moonbeam is a Smart Contract chain, offering execution metered by gas.
-This gas is associated with a dynamic price that allows control of the resources being used.
-However such a control is not applied efficiently to the storage side of the chain. In order to stay compatible with ethereum and to allow simpler onboarding for projects, such control was kept as originally planned by Ethereum.
-However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
+Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
+fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-Currently there are 3 ways using the EVM to impact the storage size:
-- **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
-- **[ISSUE-2]** Storing a Smart Contract
-- **[ISSUE-3]** Storing data in the Smart Contract
-
-Storage growth must be limited somehow, but we have to agree on what limit should be used. Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
-
-## Goals
-
-This proposal provides a solution for **[ISSUE-2] Storing a Smart Contract** and **[ISSUE-3] Storing data in a Smart Contract**.
-
-This proposal does NOT provide a solution for **[ISSUE-1] Creating a new account**.
+In order to avoid impacting the gas price, a distinct mechanism is proposed. 
 
 ## Specification
 
-### Logic
+Users **CAN** send tokens to any address "rent deposit".
 
-- Creating a Smart Contract (including CREATE/CREATE2) would require specifying a certain deposit. There would be a minimum deposit value defined by the community.
-- When executing a transaction, a certain amount of that smart contract deposit would get burnt based on how long since the last time it was used.
-- When executing a transaction, if the deposit of the Smart Contract is under the required amount to pay the rent, the transaction gets reverted.
-- Any address can deposit GLMR to a Smart Contract to extend the rent.
+The destination address **MUST** have sufficient "rent deposit"
+for a Smart Contract to be deployed. The sufficient amount correspond to 1 year of rent 
+based on the size of the contract plus initial storage data.
 
-### Storage Items
+Executing a transaction **MUST** burn part of the "rent deposit"
+based on the elapsed number of blocks since the last time it was executed.
 
-- Add fields `last_used_block_number` and `deposit` to `AccountCodeMetadata` to keep track of the amount.
+Executing a smart contract with not enough "rent deposit" **MUST** get reverted.
 
-### Parameters
+Formula to compute the "rent deposit" amount when deploying a smart contract:
 
-- **Burn rate**:
-  - Suggested value: **0.001 GLMR / Bytes / Year**
-  - Target growth cost: 1GB => `1,000,000,000 * 0.001 GLMR => 1,000,000 GLMR`. In order to go over the acceptable target, an attacker would need to spend 1M GLMR
+```
+YEAR = 5 * 60 * 24 * 365
+BURN_RATIO = 0.0001 GLMR / Bytes / YEAR
 
-### Example
+token_burnt = (bytes of AccountCodes storage key (68) +
+                 bytes of stored contract code (variable) +
+                 (bytes of SystemAccount storage key (68) +
+                  bytes of stored contract code (32)) 
+                  * number of storage item accessed)
+                * (current block number - last time used block number) * BURN_RATIO
+```
 
-With a rent fee of 0.01 GLMR / Byte / Year, and a minimal deposit of 25kB for 1 year, deploying a contract of 14kB would induce a deposit of `0.01 * 14000 => 140 GLMR`.
-When this same contract gets used for the first time 1 month, it would burn `1/12 * 0.01 * 14000 => 11.6 GLMR` from the smart contract deposit.
+### Comments
 
-### New Precompiled Smart Contract
+A deposit ratio of 0.00001 GLMR / Byte / Year would lead to:  
+`1GB => 1_000_000_000 * 0.0001 GLMR => 100_000 GLMR / Year`
+
+Executing a Smart contract within the same block would trigger the "rent deposit" to be burnt only
+at the first execution.
+
+The "rent deposit" can be refilled by anyone include the chain treasury through Governance.
+
+### Example:
+
+Deploying the complex contract (24_400 Bytes and 5 storage data) would require a deposit of:
+
+```
+bytes = 24_400 + 5 * (68 + 32) 
+      = 24_900
+deposit_required = bytes * 0.0001 GLMR
+                 = 2.49 GLMR
+burn_rate = bytes * 0.0001 GLMR * elapsed_blocks / YEAR
+          = 2.49 GLMR / year
+          = 947 Gwei / block
+```
+
+
+Deploying small contract  with many storage data (1_000 bytes + 100 storage data) would require a deposit of:  
+
+```
+bytes = 1_000 + 100 * (68 + 32)
+      = 11_000
+deposit_required = bytes * 0.0001 GLMR
+                 = 1.1 GLMR
+burn_rate = bytes * 0.0001 GLMR * elapsed_blocks / YEAR
+          = 1.1 GLMR / year
+          = 418.5 Gwei / block
+```
+
+Using a heavily used contract (10_000 bytes code size) using 10_000 storage data would burn:
+
+```
+bytes = 10_000 + 10_000 * (68 + 32)
+      = 1_010_000
+burn_rate = bytes * 0.0001 GLMR * elapsed_blocks / YEAR 
+          = 101 GLMR / year
+          = 38432 Gwei / block
+```
+
+## Storage changes
+
+New fields `last_used_block_number` and `rent_deposit` to `AccountCodeMetadata` structure
+to keep track of the last block the smart contract was used and the amount of "rent deposit":
+
+
+```
+  last_used_block_number: u32
+  rent_deposit: Balance
+```
+
+
+## Functions
+
+This proposal also adds the RPC endpoint `moon_getRentDeposit` which accepts a given
+`address` (AccountId20) and optionally a given block number or 
+the string "latest", "earliest" or "pending" and returns a `U256` or null
+
+
+## New Precompiled Smart Contract
 
 1. `SmartContractManager`
 	- `addDeposit(address, amount)` - Adds deposit of given amount to the given Smart Contract.
+	- `lastBlockUsed(address) view returns (U256)` - Returns the last used block by the given Smart Contract.
 
 ## Impact
 
-Interacting with smart contracts will require additional steps to check (and possibly increase the deposit) if there's enough deposit for executing the transaction. This will affect most users and projects that interacts with smart contracts, and deviates from the Ethereum behavior.
+Smart contract "rent deposit" will need to be "refilled" after some time, depending on their growth
+and previous deposit.
 
 ## Security Considerations
 
-- An attacker could spam storage of a smart contract making it unusable until someone else
-increases the deposit
+An attacker could spam storage of a smart contract making it unusable until someone else
+increases the deposit. This is not sustainable in the long term because of the gas cost but can
+be used when a contract has only a small "rent deposit" left, in order to burn it before maintainers
+refill it. This would make the contract unusable until the "rent deposit" is refilled.
 
-## Addition 1 - Destroy unused contract after some time
+## Follow-up
 
-Additionally a clean-up process could be put in place when a contract doesn't have a deposit to pay for storage for a given amount of time (ex: 5 years), it can be destroyed. 
-
-**This is dangerous and requires a lot of careful consideration. Questions like “what happens to the Tokens held by the contract?” need to be answered. Impacts of bridge contracts being destroyed and then rebuilt with a nonce of 0 (allowing replay attack) could be catastrophic.**
+A purge mechanism could be put in place when a contract doesn't have a deposit to pay for storage
+for a given amount of time (ex: 5 years). The contract and the "rent deposit" would get destroyed.
+This would require a lot of careful consideration. Questions like “what happens to the Tokens 
+held by the contract?” need to be answered. 
+Impacts of bridge contracts being destroyed and then rebuilt with a nonce of 0 
+(allowing replay attack) could be catastrophic.
 
