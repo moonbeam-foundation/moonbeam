@@ -31,7 +31,7 @@ use sp_std::vec::Vec;
 // Rationale behind the value: e.g. staking unbond will go above 32kb and thus
 // required_weight_at_most must be below overall weight but still above whatever value we decide to
 // set. For this reason we set here a value that makes sense for the overall weight.
-pub const DEFAULT_PROOF_SIZE: u64 = 128 * 1024;
+pub const DEFAULT_PROOF_SIZE: u64 = 256 * 1024;
 
 /// Max. allowed size of 65_536 bytes.
 pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
