@@ -1,19 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-} from "@moonwall/util";
-import { expectTypeOf } from "vitest";
-import {
-  encodeFunctionData,
-} from "viem";
-import {
-  TransactionTypes,
-  deployCreateCompiledContract,
-} from "../../../helpers/viem.js";
+import { TransactionTypes, beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
+import { Abi } from "abitype";
+import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { createEthersTxn } from "../../../helpers/ethers.js";
-import { Abi } from "abitype";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -53,7 +44,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) * 2 + 1}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction`,
         test: async function () {
-          const {rawSigned} = await createEthersTxn(context, {
+          const { rawSigned } = await createEthersTxn(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
@@ -71,8 +62,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) * 3 + 1}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction - check fees`,
         test: async function () {
-          
-          const {rawSigned} = await createEthersTxn(context, {
+          const { rawSigned } = await createEthersTxn(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
@@ -85,4 +75,3 @@ describeSuite({
     }
   },
 });
-

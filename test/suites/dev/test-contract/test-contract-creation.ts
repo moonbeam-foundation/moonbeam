@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
 import RLP from "rlp";
 import { encodeDeployData, keccak256 } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { getCompiled } from "../../../helpers/contracts.js";
-import { TransactionTypes, deployCreateCompiledContract } from "../../../helpers/viem.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
