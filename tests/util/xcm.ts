@@ -388,6 +388,23 @@ export class XcmFragment {
     return this;
   }
 
+  // Add a `DepositAsset` instruction for xcm v3
+  deposit_asset_v3(max_assets: bigint = 1n, network: XcmV3JunctionNetworkId["type"] = null): this {
+    if (this.config.beneficiary == null) {
+      console.warn("!Building a DepositAsset instruction without a configured beneficiary");
+    }
+    this.instructions.push({
+      DepositAsset: {
+        assets: { Wild: { AllCounted: max_assets } },
+        beneficiary: {
+          parents: 0,
+          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
+        },
+      },
+    });
+    return this;
+  }
+
   // Add a `SetErrorHandler` instruction, appending all the nested instructions
   set_error_handler_with(callbacks: Function[]): this {
     let error_instructions = [];
@@ -800,7 +817,7 @@ function replaceNetworkAny(obj: AnyObject | Array<AnyObject>) {
     const newObj: AnyObject = {};
     for (const key in obj) {
       if (key === "network" && obj[key] === "Any") {
-        newObj[key] = "Ethereum";
+        newObj[key] = null;
       } else {
         newObj[key] = replaceNetworkAny(obj[key]);
       }
