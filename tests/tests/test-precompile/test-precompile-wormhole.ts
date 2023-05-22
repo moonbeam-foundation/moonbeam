@@ -215,10 +215,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       v2: {
         parents: 1,
         interior: {
-          X2: [
-            { Parachain: 1001 },
-            { AccountKey20: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
-          ]
+          X1: { AccountKey20: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
         }
       }
     };
