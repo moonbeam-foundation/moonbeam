@@ -1,94 +1,142 @@
 ---
 mbip: 4
 title: Introduce a (hidden) storage base fee
-author(s):
+author: Alan Sapède (@crystalin)
 status: Draft
+category: Core
 created: 2023-05-11
 ---
 
+
+## Simple Summary
+A change in fee computation to deal with storage congestion. 
+
 ## Abstract
 
-A new Storage Base Fee is included and will increase/decrease based on previous block storage size and a given threshold.
+Introduce a hidden Storage Base Fee based on previous blocks storage growth and that is applied
+to the gas base fee.
 
 ## Motivation
 
-Moonbeam is a Smart Contract chain, offering execution metered by gas.
-This gas is associated with a dynamic price that allows control of the resources being used.
-However such a control is not applied efficiently to the storage side of the chain. In order to stay compatible with ethereum and to allow simpler onboarding for projects, such control was kept as originally planned by Ethereum.
-However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
+Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
+fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-Currently there are 3 ways using the EVM to impact the storage size:
-- **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
-- **[ISSUE-2]** Storing a Smart Contract
-- **[ISSUE-3]** Storing data in the Smart Contract
-
-Storage growth must be limited somehow, but we have to agree on what limit should be used. Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
-
-## Goals
-
-This proposal provides a solution for **[ISSUE-2] Storing a Smart Contract** and **[ISSUE-3] Storing data in a Smart Contract**.
-
-This proposal does NOT provide a solution for **[ISSUE-1] Creating a new account**.
+In order to reduce the impact on the gas price, an additional mechanism is proposed. 
 
 ## Specification
 
-### Logic
+A new `storageBaseFee` is included and increased/decreased based on previous block state increase
+and a given threshold.
 
-- A new Storage Base Fee is included and increase/decrease based on previous block storage size and a given threshold.
-- When computing the gas price for a transaction, in also include the storage fee into computation based on how much storage has been increased/decreased
+The notion of `baseFee` is split into 2:
+- `gasBaseFee` (hidden to the user) which represents the price per gas executed.
+- `baseFee` (visible to the user) which represents the total price paid per gas consumed and
+includes the storage base fee into consideration.
 
-#### Ethereum 
+A transaction with not enough `gasPrice` to compensate for the gas and storage will revert with
+`gasPrice too low`.
 
-To guarantee the user is not paying more than the gasPrice (or EIP-1559 equivalent) multiplied by the gasLimit, we need to ensure the gasPrice will cover the gas baseFee and also the storage baseFee.
+### `storageBaseFee`
 
-Solution 1:
- - Make the RPC return the baseFee as `gasBaseFee + storageBaseFee`. However, because the storageBaseFee is a lot higher than the gasBaseFee, it would make the return baseFee very high which might scare the user.
-- `baseFee == gasBaseFee + storageBaseFee`
+The storage base fee is the cost of storing 1 byte of data in the chain state.
 
-Solution 2:
-- Assume a transaction max storage target so that we can computed a ratio of the gas limit and the targeted max storage:
-- `baseFee == gasBaseFee + storageBaseFee * targetMaxTransactionStorage / maxTransactionGas`
-- This allows to reduce the final baseFee to be closer to the gasBaseFee
-- In the case of a transaction requiring more than the target, if the gasPrice given is not enough, the transaction would fail (“Gas price lower than required”) and would require the user to increase its gasPrice manually.
+Formula to compute the new block `storageBaseFee`: 
 
-### Parameters
+```
+storageBlockExpectation = 50_000 bytes
+minStorageBaseFee = 0.0005 GLMR / byte
+storageBaseFee = previousBlockStateIncrease > (25% storageBlockExpectation) ?
+                   // TODO Stephen to include multiplier formulas
+                   storageBaseFee * 0.001
+                   max(storageBaseFee / 0.001, minStorageBaseFee)
+```
 
-- **Storage Base Fee**:
-  - Suggested value: **0.0005 GLMR / bytes**
-  - Total cost of 1GB: 500,000 GLMR
+### `gasBaseFee`
 
-- **Targeted max transaction storage**:
-  - Remark: This is not a limit, a transaction can go over this storage value, but it will require setting the gasPrice manually over the suggested baseFee.
-  - Suggested value: **50,000 bytes**
-  - The higher the value, the more the baseFee is “visibly” high (the cost itself doesn’t change) but the less likely a small transaction is going to fail because of a high storage/gas ratio.
-  - This value impacts mostly small transactions, which might consume low amounts of gas but higher storage. Ex: A Tx using 200,000 gas would fail if it uses more than 666 Bytes
+The `gasBaseFee` is the same as the `baseFee` defined before this EIP. It simply represent the cost
+of executing 1 gas.
 
-### Example
+### Transaction payment
+
+Before this EIP, to compute the cost of a transaction (without tips), the [EIP-1559]
+used `gasUsed * baseFee` with the `baseFee` being the same for each transaction of a block.
+
+Using this EIP, the cost of the transaction is:
+```
+  txCost = (gasUsed * gasBaseFee) + (byteStored * storageBaseFee)
+```
+
+### `baseFee` (displayed)
+
+To guarantee the user is not paying more than the gasPrice (or EIP-1559 equivalent) multiplied
+by the gasLimit, we need to ensure the gasPrice will cover the gas baseFee
+and also the storageBaseFee.
+
+The gas being limited to 15_000_000 gas and the storage soft limit to 50_000 bytes, the final
+baseFee needs to be proportionally adapted to each value (otherwise the baseFee would be very high
+and would impact the user perception of the price paid)
+
+```
+blockStorageSoftLimit = 50_000 bytes
+blockGasLimit = 15_000_000 gas
+baseFee = gasBaseFee + (storageBaseFee * blockStorageSoftLimit / blockGasLimit)
+```
+
+/!\ A transaction requiring proportionally more storage than the provided gasLimit
+ will require to provide a higher gasPrice than the suggested baseFee.  
+ The `blockStorageSoftLimit` is a soft limit, but a transaction
+could go over that limit if it pays the correct gasPrice.
+
+## Comments
+
+A minimum storage fee of 0.0005 GLMR / Byte would lead to:  
+`1GB => 1_000_000_000 * 0.0005 GLMR => 500_000 GLMR`
+
+A `storageBlockExpectation` of `50_000 bytes` would be equivalent to:
+
+| Gas Limit   | Storage Soft Limit (bytes) |
+| ----------- | -------------------------- |
+| 40_000      | 133                        |
+| 200_000     | 666                        |
+| 1_000_000   | 3_333                      |
+| 5_000_000   | 16_666                     |
+| 12_500_000  | 41_666                     |
+
+
+## Examples 
 
 Using:
 * `gasBaseFee`: 200 Gwei
-* Max transaction gas: 15,000,000
-* `storageBaseFee`: 500,000 Gwei (per Byte)
-* Targeted max transaction storage: 50,000 (bytes)
+* `storageBaseFee`: 500_000 Gwei (per byte)
 
-The RPC would return a baseFee of `200 + (500,000 / 15,000,000 * 50,000) => 1,866 Gwei` 
+The RPC would return a baseFee of `200 + (500_000 / 15_000_000 * 50_000) => 1_866 Gwei` 
 
-Performing a transaction that uses 340,000 gas and increase the storage by 180 bytes would cost: `200 * 340,000 + 500,000 * 180  => 0.158 GLMR`
+### 1. Transaction under the storage soft limit
 
-By providing a baseFee of 1,866 Gwei in this example, the user is expected to pay `1866 * 340,000 => 0.634 GLMR` and will pay `0.158 GLMR`. 
+Performing a transaction that uses `340_000 gas`
+and increase the storage by `180 bytes` would cost: `200 * 340_000 + 500_000 * 180  => 0.158 GLMR`
 
-However a transaction with a gasLimit of 100,000 and using 500 bytes of storage would fail: User willing to pay: `gasLimit (100,000) * 1,866 (baseFee) => 0.186 GLMR`
+By providing a baseFee of 1,866 Gwei in this example, the user is expected to pay `1_866 * 340_000 => 0.634 GLMR` and will pay `0.158 GLMR`. 
 
-Cost of the tx: `gasUsed(100,000) * gasBaseFee (200) + storageUsed (500 bytes) * storageBaseFee (500,000) => 0.270 GLM
+
+### 2. Transaction over the storage soft limit
+
+A transaction with a gasLimit of 100,000 and using 500 bytes of storage would fail with a gasPrice
+== baseFee.
+User is expecting to pay: `gasLimit (100_000) * 1_866 Gwei (baseFee) => 0.186 GLMR`
+However the real cost of the transaction is: `gasUsed(100_000) * gasBaseFee (200) + storageUsed (500 bytes) * storageBaseFee (500_000) => 0.270 GLMR`
+
+The user would have to provide a higher gasPrice (`>= 2_700 Gwei`) in order to get the transaction
+included.
 
 ## Impact
 
-This increases the **displayed** `baseFee` to the users, which might scare them.
-It also **break** the assumption that: `paid fee == gas used * gasPrice`
+This EIP increases the **displayed** `baseFee` to the users, which might give a false impression of
+a higher price to pay.
 
-In the case of a transaction with a lot of storage increase, this will report `gasPrice too low` even if the gasPrice provided is over the baseFee. This would require manually increasing the gasPrice.
+It also **break** the assumption that: `paid fee == gas used * gas price`
+(or `paid fee == gas used * base fee` for EIP-1559)
 
-
-## Security Considerations
-
-No known security considerations
+In the case of a transaction with a lot of storage increase, this will report `gasPrice too low` 
+even if the gasPrice provided is over the baseFee. 
+This would require to manually increase the gasPrice.
