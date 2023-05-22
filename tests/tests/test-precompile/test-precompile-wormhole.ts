@@ -17,7 +17,7 @@ import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 
 import { expectEVMResult } from "../../util/eth-transactions";
-import { TypeRegistry, Enum, Struct } from '@polkadot/types';
+import { TypeRegistry, Enum, Struct } from "@polkadot/types";
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -215,22 +215,29 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       v2: {
         parents: 1,
         interior: {
-          X1: { AccountKey20: { id: "0x0000000000000000000000000000000000000000000000000000000000000000"}}
-        }
-      }
+          X1: {
+            AccountKey20: {
+              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            },
+          },
+        },
+      },
     };
 
-    const destination = context.polkadotApi.registry.createType("VersionedMultiLocation", versionedMultiLocation);
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
 
     const userAction = new XcmRoutingUserAction({ destination });
     const versionedUserAction = new VersionedUserAction({ V1: userAction });
     console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
-    let payload = ""+versionedUserAction.toHex();
+    let payload = "" + versionedUserAction.toHex();
 
     // TODO: very ugly hack
     // replace byte 5 with 0x03. This seems to replace "v2" above with 3. Not sure what the issue is
-    payload = payload.substring(0, 5) + '3' + payload.substring(6);
+    payload = payload.substring(0, 5) + "3" + payload.substring(6);
 
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
@@ -247,7 +254,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
       // "0x0003010200ed0101000000000000000000000000000000000000000000000000000000000000000000"
       // "0x00030102000401000000000000000000000000000000000000000000000000000000000000000000"
-      ""+payload,
+      "" + payload
     );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
@@ -274,6 +281,6 @@ class VersionedUserAction extends Enum {
 }
 class XcmRoutingUserAction extends Struct {
   constructor(value?: any) {
-    super(registry, { destination: 'VersionedMultiLocation' }, value);
+    super(registry, { destination: "VersionedMultiLocation" }, value);
   }
 }
