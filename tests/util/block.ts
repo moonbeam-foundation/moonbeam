@@ -11,7 +11,8 @@ import {
 import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
 import { u32, u64, u128, Option } from "@polkadot/types";
 import { expect } from "chai";
-import { WEIGHT_PER_GAS } from "./constants";
+
+import { EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 import { rateLimiter } from "./common";
 import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
@@ -138,7 +139,9 @@ export const verifyBlockFees = async (
       let blockBurnt = 0n;
 
       // iterate over every extrinsic
-      for (const { events, extrinsic, fee } of blockDetails.txWithEvents) {
+      for (const txWithEvents of blockDetails.txWithEvents) {
+        let { events, extrinsic, fee } = txWithEvents;
+
         // This hash will only exist if the transaction was executed through ethereum.
         let ethereumAddress = "";
 
@@ -217,9 +220,40 @@ export const verifyBlockFees = async (
                 txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                txFees = fee.partialFee.toBigInt();
-                txBurnt += feePortions.burnt;
+                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
+                txBurnt += feePortions.burnt + tipPortions.burnt;
+
+                // verify entire substrate txn fee
+                const apiAt = await context.polkadotApi.at(previousBlockHash);
+                const lengthFee = (
+                  (await apiAt.call.transactionPaymentApi.queryLengthToFee(
+                    extrinsic.encodedLength
+                  )) as any
+                ).toBigInt();
+
+                const unadjustedWeightFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: fee.weight,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+                const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
+                const denominator = 1_000_000_000_000_000_000n;
+                const weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
+
+                const baseFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: EXTRINSIC_BASE_WEIGHT,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+
+                const tip = extrinsic.tip.toBigInt();
+                const expectedPartialFee = lengthFee + weightFee + baseFee;
+
+                expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 
               blockFees += txFees;

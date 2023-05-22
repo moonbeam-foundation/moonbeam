@@ -317,6 +317,13 @@ where
 			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
 			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+
+			// handle tip if there is one
+			if let Some(tip) = fees_then_tips.next() {
+				// for now we use the same burn/treasury strategy used for regular fees
+				let (_, to_treasury) = tip.ration(80, 20);
+				<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			}
 		}
 	}
 
@@ -1253,9 +1260,9 @@ impl pallet_randomness::Config for Runtime {
 impl pallet_root_testing::Config for Runtime {}
 
 parameter_types! {
-	// One storage item; key size is 32; value is size 4+4+16+20 bytes = 44 bytes.
-	pub const DepositBase: Balance = currency::deposit(1, 76);
-	// Additional storage item size of 32 bytes.
+	// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
+	pub const DepositBase: Balance = currency::deposit(1, 96);
+	// Additional storage item size of 20 bytes.
 	pub const DepositFactor: Balance = currency::deposit(0, 20);
 	pub const MaxSignatories: u32 = 100;
 }
