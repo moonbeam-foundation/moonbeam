@@ -70,10 +70,10 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-     // How much does the refundSurplus weight?
-     // We use refund surplus because it has 0 pov
-     // it's easier to focus on reftime
-     const refundSurplusWeight = await weightMessage(
+    // How much does the refundSurplus weight?
+    // We use refund surplus because it has 0 pov
+    // it's easier to focus on reftime
+    const refundSurplusWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",
