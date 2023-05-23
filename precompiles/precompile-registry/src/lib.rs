@@ -22,8 +22,8 @@ mod mock;
 mod tests;
 
 use core::marker::PhantomData;
-use fp_evm::{ExitError, IsPrecompileResult, PrecompileFailure, PrecompileSet};
-use precompile_utils::{precompile_set::{is_precompile_or_fail, IsActivePrecompile}, prelude::*};
+use fp_evm::PrecompileSet;
+use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*};
 use sp_core::Get;
 
 const DUMMY_CODE: [u8; 5] = [0x60, 0x00, 0x60, 0x00, 0xfd];
@@ -41,7 +41,9 @@ where
 	fn is_precompile(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<bool> {
 		// We consider the precompile set is optimized to do at most one storage read.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		is_precompile_or_fail::<Runtime>(address.0, handle.remaining_gas())
+
+		let active = <Runtime::PrecompilesValue>::get().is_precompile(address.0);
+		Ok(active)
 	}
 
 	#[precompile::public("isActivePrecompile(address)")]
@@ -52,15 +54,9 @@ where
 	) -> EvmResult<bool> {
 		// We consider the precompile set is optimized to do at most one storage read.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		match <Runtime::PrecompilesValue>::get().is_active_precompile(address.0, handle.remaining_gas()) {
-			IsPrecompileResult::Answer {
-				is_precompile,
-				..
-			} => Ok(is_precompile),
-			IsPrecompileResult::OutOfGas => Err(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas
-			})
-		}
+
+		let active = <Runtime::PrecompilesValue>::get().is_active_precompile(address.0);
+		Ok(active)
 	}
 
 	#[precompile::public("updateAccountCode(address)")]
@@ -72,7 +68,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 
 		// Prevent touching addresses that are not precompiles.
-		if !is_precompile_or_fail::<Runtime>(address.0, handle.remaining_gas())? {
+		if !<Runtime::PrecompilesValue>::get().is_precompile(address.0) {
 			return Err(revert("provided address is not a precompile"));
 		}
 

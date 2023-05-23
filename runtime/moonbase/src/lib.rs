@@ -825,10 +825,9 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
 		recipient_has_code: bool,
-		gas: u64,
-	) -> precompile_utils::EvmResult<bool> {
+	) -> bool {
 		use pallet_evm::PrecompileSet as _;
-		Ok(match self {
+		match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
@@ -864,7 +863,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				// Allow only "simple" accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
-				!recipient_has_code && !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(call.to.0, gas)?
+				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
 			}
 			ProxyType::AuthorMapping => {
 				call.value == U256::zero()
@@ -875,7 +874,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			}
 			// There is no identity precompile
 			ProxyType::IdentityJudgement => false,
-		})
+		}
 	}
 }
 
