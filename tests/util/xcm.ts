@@ -290,6 +290,18 @@ export class XcmFragment {
     return this;
   }
 
+  // Add one or more `BuyExecution` instruction
+  // if weight_limit is not set in config, then we put unlimited
+  refund_surplus(repeat: bigint = 1n): this {
+    for (var i = 0; i < repeat; i++) {
+      this.instructions.push({
+        RefundSurplus: null,
+      });
+    }
+    return this;
+  }
+
+
   // Add a `ClaimAsset` instruction
   claim_asset(index: number = 0): this {
     this.instructions.push({
