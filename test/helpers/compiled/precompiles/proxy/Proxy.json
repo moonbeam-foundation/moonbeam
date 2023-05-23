@@ -1,0 +1,185 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "address", "name": "delegate", "type": "address" },
+          {
+            "internalType": "enum Proxy.ProxyType",
+            "name": "proxyType",
+            "type": "uint8"
+          },
+          { "internalType": "uint32", "name": "delay", "type": "uint32" }
+        ],
+        "name": "addProxy",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "real", "type": "address" },
+          { "internalType": "address", "name": "delegate", "type": "address" },
+          {
+            "internalType": "enum Proxy.ProxyType",
+            "name": "proxyType",
+            "type": "uint8"
+          },
+          { "internalType": "uint32", "name": "delay", "type": "uint32" }
+        ],
+        "name": "isProxy",
+        "outputs": [
+          { "internalType": "bool", "name": "exists", "type": "bool" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "real", "type": "address" },
+          { "internalType": "address", "name": "callTo", "type": "address" },
+          { "internalType": "bytes", "name": "callData", "type": "bytes" }
+        ],
+        "name": "proxy",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "real", "type": "address" },
+          {
+            "internalType": "enum Proxy.ProxyType",
+            "name": "forceProxyType",
+            "type": "uint8"
+          },
+          { "internalType": "address", "name": "callTo", "type": "address" },
+          { "internalType": "bytes", "name": "callData", "type": "bytes" }
+        ],
+        "name": "proxyForceType",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "removeProxies",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "delegate", "type": "address" },
+          {
+            "internalType": "enum Proxy.ProxyType",
+            "name": "proxyType",
+            "type": "uint8"
+          },
+          { "internalType": "uint32", "name": "delay", "type": "uint32" }
+        ],
+        "name": "removeProxy",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x000000000000000000000000000000000000080b",
+      "kind": "dev",
+      "methods": {
+        "addProxy(address,uint8,uint32)": {
+          "custom:selector": "74a34dd3",
+          "details": "Register a proxy account for the sender that is able to make calls on its behalf",
+          "params": {
+            "delay": "The announcement period required of the initial proxy, will generally be zero",
+            "delegate": "The account that the caller would like to make a proxy",
+            "proxyType": "The permissions allowed for this proxy account"
+          }
+        },
+        "isProxy(address,address,uint8,uint32)": {
+          "custom:selector": "e26d38ed",
+          "details": "Checks if the caller has an account proxied with a given proxy type",
+          "params": {
+            "delay": "The announcement period required of the initial proxy, will generally be zero",
+            "delegate": "The account that the caller has maybe proxied",
+            "proxyType": "The permissions allowed for the proxy",
+            "real": "The real account that maybe has a proxy"
+          },
+          "returns": { "exists": "True if a proxy exists, False otherwise" }
+        },
+        "proxy(address,address,bytes)": {
+          "custom:selector": "0d3cff86",
+          "details": "Dispatch the given subcall (`callTo`, `callData`) from an account that the sender is authorised for through `addProxy`",
+          "params": {
+            "callData": "Data of the call to be made by the `real` account",
+            "callTo": "Recipient of the call to be made by the `real` account",
+            "real": "The account that the proxy will make a call on behalf of"
+          }
+        },
+        "proxyForceType(address,uint8,address,bytes)": {
+          "custom:selector": "685b9d2f",
+          "details": "Dispatch the given subcall (`callTo`, `callData`) from an account that the sender is authorised for through `addProxy`",
+          "params": {
+            "callData": "Data of the call to be made by the `real` account",
+            "callTo": "Recipient of the call to be made by the `real` account",
+            "forceProxyType": "Specify the exact proxy type to be used and checked for this call",
+            "real": "The account that the proxy will make a call on behalf of"
+          }
+        },
+        "removeProxies()": {
+          "custom:selector": "14a5b5fa",
+          "details": "Unregister all proxy accounts for the sender"
+        },
+        "removeProxy(address,uint8,uint32)": {
+          "custom:selector": "fef3f708",
+          "details": "Removes a proxy account from the sender",
+          "params": {
+            "delay": "The announcement period required of the initial proxy, will generally be zero",
+            "delegate": "The account that the caller would like to remove as a proxy",
+            "proxyType": "The permissions currently enabled for the removed proxy account"
+          }
+        }
+      },
+      "title": "Pallet Proxy InterfaceThe interface through which solidity contracts will interact with the Proxy pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "addProxy(address,uint8,uint32)": "74a34dd3",
+        "isProxy(address,address,uint8,uint32)": "e26d38ed",
+        "proxy(address,address,bytes)": "0d3cff86",
+        "proxyForceType(address,uint8,address,bytes)": "685b9d2f",
+        "removeProxies()": "14a5b5fa",
+        "removeProxy(address,uint8,uint32)": "fef3f708"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegate\",\"type\":\"address\"},{\"internalType\":\"enum Proxy.ProxyType\",\"name\":\"proxyType\",\"type\":\"uint8\"},{\"internalType\":\"uint32\",\"name\":\"delay\",\"type\":\"uint32\"}],\"name\":\"addProxy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"real\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"delegate\",\"type\":\"address\"},{\"internalType\":\"enum Proxy.ProxyType\",\"name\":\"proxyType\",\"type\":\"uint8\"},{\"internalType\":\"uint32\",\"name\":\"delay\",\"type\":\"uint32\"}],\"name\":\"isProxy\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"exists\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"real\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"callTo\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"name\":\"proxy\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"real\",\"type\":\"address\"},{\"internalType\":\"enum Proxy.ProxyType\",\"name\":\"forceProxyType\",\"type\":\"uint8\"},{\"internalType\":\"address\",\"name\":\"callTo\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"}],\"name\":\"proxyForceType\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"removeProxies\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegate\",\"type\":\"address\"},{\"internalType\":\"enum Proxy.ProxyType\",\"name\":\"proxyType\",\"type\":\"uint8\"},{\"internalType\":\"uint32\",\"name\":\"delay\",\"type\":\"uint32\"}],\"name\":\"removeProxy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x000000000000000000000000000000000000080b\",\"kind\":\"dev\",\"methods\":{\"addProxy(address,uint8,uint32)\":{\"custom:selector\":\"74a34dd3\",\"details\":\"Register a proxy account for the sender that is able to make calls on its behalf\",\"params\":{\"delay\":\"The announcement period required of the initial proxy, will generally be zero\",\"delegate\":\"The account that the caller would like to make a proxy\",\"proxyType\":\"The permissions allowed for this proxy account\"}},\"isProxy(address,address,uint8,uint32)\":{\"custom:selector\":\"e26d38ed\",\"details\":\"Checks if the caller has an account proxied with a given proxy type\",\"params\":{\"delay\":\"The announcement period required of the initial proxy, will generally be zero\",\"delegate\":\"The account that the caller has maybe proxied\",\"proxyType\":\"The permissions allowed for the proxy\",\"real\":\"The real account that maybe has a proxy\"},\"returns\":{\"exists\":\"True if a proxy exists, False otherwise\"}},\"proxy(address,address,bytes)\":{\"custom:selector\":\"0d3cff86\",\"details\":\"Dispatch the given subcall (`callTo`, `callData`) from an account that the sender is authorised for through `addProxy`\",\"params\":{\"callData\":\"Data of the call to be made by the `real` account\",\"callTo\":\"Recipient of the call to be made by the `real` account\",\"real\":\"The account that the proxy will make a call on behalf of\"}},\"proxyForceType(address,uint8,address,bytes)\":{\"custom:selector\":\"685b9d2f\",\"details\":\"Dispatch the given subcall (`callTo`, `callData`) from an account that the sender is authorised for through `addProxy`\",\"params\":{\"callData\":\"Data of the call to be made by the `real` account\",\"callTo\":\"Recipient of the call to be made by the `real` account\",\"forceProxyType\":\"Specify the exact proxy type to be used and checked for this call\",\"real\":\"The account that the proxy will make a call on behalf of\"}},\"removeProxies()\":{\"custom:selector\":\"14a5b5fa\",\"details\":\"Unregister all proxy accounts for the sender\"},\"removeProxy(address,uint8,uint32)\":{\"custom:selector\":\"fef3f708\",\"details\":\"Removes a proxy account from the sender\",\"params\":{\"delay\":\"The announcement period required of the initial proxy, will generally be zero\",\"delegate\":\"The account that the caller would like to remove as a proxy\",\"proxyType\":\"The permissions currently enabled for the removed proxy account\"}}},\"title\":\"Pallet Proxy InterfaceThe interface through which solidity contracts will interact with the Proxy pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Proxy.sol\":\"Proxy\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Proxy.sol\":{\"keccak256\":\"0xbd86f789689e1332e08e3d2042abe1ebe99e447b07622c6592ee0655bf09ae67\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://7b418c8d3b90718db9d9c3ac4abd95b7750fc8ac634d220564a9584dd61cb6e6\",\"dweb:/ipfs/QmYxVymLSropp2u6kAmA6GbPyVvBky1LvBYpZr5aA8Ttvx\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Proxy contract's address.\naddress constant PROXY_ADDRESS = 0x000000000000000000000000000000000000080b;\n\n/// @dev The Proxy contract's instance.\nProxy constant PROXY_CONTRACT = Proxy(PROXY_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Proxy Interface\n/// @title The interface through which solidity contracts will interact with the Proxy pallet\n/// @custom:address 0x000000000000000000000000000000000000080b\ninterface Proxy {\n    /// @dev Defines the proxy permission types.\n    /// The values start at `0` (most permissive) and are represented as `uint8`\n    enum ProxyType {\n        Any,\n        NonTransfer,\n        Governance,\n        Staking,\n        CancelProxy,\n        Balances,\n        AuthorMapping,\n        IdentityJudgement\n    }\n\n    /// @dev Register a proxy account for the sender that is able to make calls on its behalf\n    /// @custom:selector 74a34dd3\n    /// @param delegate The account that the caller would like to make a proxy\n    /// @param proxyType The permissions allowed for this proxy account\n    /// @param delay The announcement period required of the initial proxy, will generally be zero\n    function addProxy(\n        address delegate,\n        ProxyType proxyType,\n        uint32 delay\n    ) external;\n\n    /// @dev Removes a proxy account from the sender\n    /// @custom:selector fef3f708\n    /// @param delegate The account that the caller would like to remove as a proxy\n    /// @param proxyType The permissions currently enabled for the removed proxy account\n    /// @param delay The announcement period required of the initial proxy, will generally be zero\n    function removeProxy(\n        address delegate,\n        ProxyType proxyType,\n        uint32 delay\n    ) external;\n\n    /// @dev Unregister all proxy accounts for the sender\n    /// @custom:selector 14a5b5fa\n    function removeProxies() external;\n\n    /// @dev Dispatch the given subcall (`callTo`, `callData`) from an account that the sender\n    /// is authorised for through `addProxy`\n    /// @custom:selector 0d3cff86\n    /// @param real The account that the proxy will make a call on behalf of\n    /// @param callTo Recipient of the call to be made by the `real` account\n    /// @param callData Data of the call to be made by the `real` account\n    function proxy(\n        address real,\n        address callTo,\n        bytes memory callData\n    ) external payable;\n\n    /// @dev Dispatch the given subcall (`callTo`, `callData`) from an account that the sender\n    /// is authorised for through `addProxy`\n    /// @custom:selector 685b9d2f\n    /// @param real The account that the proxy will make a call on behalf of\n    /// @param forceProxyType Specify the exact proxy type to be used and checked for this call\n    /// @param callTo Recipient of the call to be made by the `real` account\n    /// @param callData Data of the call to be made by the `real` account\n    function proxyForceType(\n        address real,\n        ProxyType forceProxyType,\n        address callTo,\n        bytes memory callData\n    ) external payable;\n\n    /// @dev Checks if the caller has an account proxied with a given proxy type\n    /// @custom:selector e26d38ed\n    /// @param real The real account that maybe has a proxy\n    /// @param delegate The account that the caller has maybe proxied\n    /// @param proxyType The permissions allowed for the proxy\n    /// @param delay The announcement period required of the initial proxy, will generally be zero\n    /// @return exists True if a proxy exists, False otherwise\n    function isProxy(\n        address real,\n        address delegate,\n        ProxyType proxyType,\n        uint32 delay\n    ) external view returns (bool exists);\n}\n"
+}
