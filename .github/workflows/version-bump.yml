@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Polkadot version to bump from"
+        description: "Polkadot version to bump from (ex: v0.9.40)"
         required: true
       to:
-        description: "Polkadot version to bump to"
+        description: "Polkadot version to bump to (ex: v0.9.42)"
         required: true
 
 jobs:
@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: Generate version bump issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -275,7 +275,7 @@ benchmarks! {
 			AccountLookupOverride::<T>::get(&collator), Some(None)
 		);
 		assert_eq!(
-			AccountLookupOverride::<T>::get(&new_orbiter).unwrap(), Some(collator)
+			AccountLookupOverride::<T>::get(&new_orbiter).expect("must exist"), Some(collator)
 		);
 
 	}

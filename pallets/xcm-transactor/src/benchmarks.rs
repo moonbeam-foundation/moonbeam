@@ -38,7 +38,7 @@ benchmarks! {
 	deregister {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		let index = 1u16;
-		Pallet::<T>::register(RawOrigin::Root.into(), user, index).unwrap();
+		Pallet::<T>::register(RawOrigin::Root.into(), user, index).expect("must succeed");
 	}: _(RawOrigin::Root, index)
 	verify {
 		assert!(Pallet::<T>::index_to_account(index).is_none());
@@ -74,7 +74,7 @@ benchmarks! {
 			extra_weight,
 			max_weight,
 			None
-		).unwrap();
+		).expect("must succeed");
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V3(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
@@ -109,17 +109,17 @@ benchmarks! {
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
-		).unwrap();
+		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
-		).unwrap();
+		).expect("must succeed");
 		Pallet::<T>::register(
 			RawOrigin::Root.into(),
 			user.clone(),
 			0
-		).unwrap();
+		).expect("must succeed");
 	}: {
 
 		let result = Pallet::<T>::transact_through_derivative(
@@ -165,12 +165,12 @@ benchmarks! {
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
-		).unwrap();
+		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
-		).unwrap();
+		).expect("must succeed");
 	}: {
 
 		let result = Pallet::<T>::transact_through_sovereign(
@@ -217,12 +217,12 @@ benchmarks! {
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
-		).unwrap();
+		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
-		).unwrap();
+		).expect("must succeed");
 	}: _(
 		RawOrigin::Signed(user.clone()),
 		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
@@ -255,12 +255,12 @@ benchmarks! {
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
-		).unwrap();
+		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			fee_per_second
-		).unwrap();
+		).expect("must succeed");
 	}: _(
 		RawOrigin::Root,
 		HrmpOperation::Accept{ para_id: 1000u32.into() },
