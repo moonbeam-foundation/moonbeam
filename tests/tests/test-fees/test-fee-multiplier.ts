@@ -299,7 +299,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
           fungible: transferredBalance / 3n,
         },
       ],
-      // weight_limit: new BN(4000000000), // TODO: restore once v3
+      weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
       .descend_origin()
@@ -392,7 +392,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
           fungible: transferredBalance / 3n,
         },
       ],
-      // weight_limit: new BN(4000000000), // TODO: restore once v3
+      weight_limit: new BN(4000000000),
       descend_origin: sendingAddress,
     })
       .descend_origin()
