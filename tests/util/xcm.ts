@@ -301,7 +301,6 @@ export class XcmFragment {
     return this;
   }
 
-
   // Add a `ClaimAsset` instruction
   claim_asset(index: number = 0): this {
     this.instructions.push({
