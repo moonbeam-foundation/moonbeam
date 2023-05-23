@@ -295,6 +295,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type AssetIsBurnable = Everything;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;

@@ -336,6 +336,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type AssetIsBurnable = Everything;
 }
 
 // Converts a Signed Local Origin into a MultiLocation

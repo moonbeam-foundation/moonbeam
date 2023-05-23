@@ -365,6 +365,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
