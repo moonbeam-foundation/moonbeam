@@ -273,7 +273,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
@@ -340,4 +339,3 @@ describeDevMoonbeam(`Test GMP Killswitch`, (context) => {
     expect(revertReason).to.contain("GMP Precompile is not enabled");
   });
 });
-
