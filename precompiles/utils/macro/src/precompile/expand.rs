@@ -416,8 +416,11 @@ impl Precompile {
 						)
 					}
 
-					fn is_precompile(&self, address: H160) -> bool {
-						<#impl_type>::#discriminant_fn(address).is_some()
+					fn is_precompile(&self, address: H160, _gas: u64) -> ::fp_evm::IsPrecompileResult {
+						fp_evm::IsPrecompileResult::Answer {
+							is_precompile: <#impl_type>::#discriminant_fn(address).is_some(),
+							extra_cost: 0,
+						}
 					}
 				}
 			)
