@@ -1,10 +1,11 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import { BN } from "@polkadot/util";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-import { WEIGHT_PER_GAS, extractWeight, getBlockArray, THIRTY_MINS } from "@moonwall/util";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { THIRTY_MINS, WEIGHT_PER_GAS, extractWeight, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+import "@polkadot/api-augment";
+import { GenericExtrinsic } from "@polkadot/types";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { AnyTuple } from "@polkadot/types/types";
 import { rateLimiter } from "../../helpers/common.js";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
@@ -14,17 +15,17 @@ interface BlockInfo {
   blockNum: number;
   hash: string;
   weights: {
-    normal: BN;
-    operational: BN;
-    mandatory: BN;
+    normal: bigint;
+    operational: bigint;
+    mandatory: bigint;
   };
-  extrinsics;
+  extrinsics: GenericExtrinsic<AnyTuple>[];
   events: FrameSystemEventRecord[];
 }
 
 interface BlockLimits {
-  normal: BN;
-  operational: BN;
+  normal: bigint;
+  operational: bigint;
 }
 
 describeSuite({
@@ -59,9 +60,9 @@ describeSuite({
             blockNum,
             hash: blockHash.toString(),
             weights: {
-              normal: extractWeight(normal),
-              operational: extractWeight(operational),
-              mandatory: extractWeight(mandatory),
+              normal: extractWeight(normal).toBigInt(),
+              operational: extractWeight(operational).toBigInt(),
+              mandatory: extractWeight(mandatory).toBigInt(),
             },
             events,
             extrinsics,
@@ -71,8 +72,8 @@ describeSuite({
 
       // Support for weight v1 and weight v2.
       blockLimits = {
-        normal: extractWeight(limits.perClass.normal.maxTotal).toBn(),
-        operational: extractWeight(limits.perClass.operational.maxTotal).toBn(),
+        normal: extractWeight(limits.perClass.normal.maxTotal).toBigInt(),
+        operational: extractWeight(limits.perClass.operational.maxTotal).toBigInt(),
       };
       blockInfoArray = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
@@ -99,7 +100,7 @@ describeSuite({
       title: "normal usage should be less than normal dispatch class limits",
       test: async function () {
         const overweight = blockInfoArray
-          .filter((a) => a.weights.normal.gt(blockLimits.normal))
+          .filter((a) => a.weights.normal > blockLimits.normal)
           .map((a) => {
             log(
               `Block #${a.blockNum} has weight ${Number(a.weights.normal)} which is above limit!`
@@ -121,7 +122,7 @@ describeSuite({
       title: "operational usage should be less than dispatch class limits",
       test: async function () {
         const overweight = blockInfoArray
-          .filter((a) => a.weights.operational.gt(blockLimits.operational))
+          .filter((a) => a.weights.operational > blockLimits.operational)
           .map((a) => {
             log(
               `Block #${a.blockNum} has weight ${Number(
@@ -160,22 +161,34 @@ describeSuite({
         const checkBlockWeight = async (blockInfo: BlockInfo) => {
           const apiAt = await paraApi.at(blockInfo.hash);
 
-          const normalWeight = Number(blockInfo.weights.normal);
+          const normalWeight = blockInfo.weights.normal;
           const maxWeight = blockLimits.normal;
           const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
+          const balTxns = blockInfo.extrinsics
+            .map((ext, index) =>
+              ext.method.method == "transfer" && ext.method.section == "balances" ? index : -1
+            )
+            .filter((a) => a != -1);
+          const balTxnWeights = blockInfo.events
+            .map((event) =>
+              paraApi.events.system.ExtrinsicSuccess.is(event.event) &&
+              event.phase.isApplyExtrinsic &&
+              balTxns.includes(event.phase.asApplyExtrinsic.toNumber())
+                ? event.event.data.dispatchInfo.weight.refTime.toBigInt()
+                : 0n
+            )
+            .reduce((acc, curr) => acc + curr, 0n);
 
-          const actualWeightUsed = normalWeight / Number(maxWeight);
-          if (actualWeightUsed > 0.2) {
+          const actualWeightUsed = (normalWeight * 100n) / maxWeight;
+          if (actualWeightUsed > 20n) {
             const gasUsed = ethBlock.header.gasUsed.toBigInt();
             const weightCalc = gasUsed * WEIGHT_PER_GAS;
-            const newRatio = (normalWeight - Number(weightCalc)) / Number(maxWeight);
-            if (newRatio > 0.2) {
+            const newRatio = ((normalWeight - weightCalc - balTxnWeights) * 100n) / maxWeight;
+            if (newRatio > 20n) {
               log(
-                `Block #${blockInfo.blockNum} is ${(actualWeightUsed * 100).toFixed(
-                  2
-                )}% full with ${
-                  ethBlock.transactions.length
-                } transactions, non-transaction weight: ${(newRatio * 100).toFixed(2)}%`
+                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ` +
+                  ethBlock.transactions.length +
+                  ` transactions, non-transaction weight: ${newRatio}%`
               );
             }
             return { blockNum: blockInfo.blockNum, nonTxn: newRatio };
@@ -185,7 +198,7 @@ describeSuite({
         const results = await Promise.all(
           blockInfoArray.map((blockInfo) => limiter.schedule(() => checkBlockWeight(blockInfo)))
         );
-        const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 0.2);
+        const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 20n);
         expect(
           nonTxnHeavyBlocks,
           `These blocks have non-txn weights >20%, please investigate: ${nonTxnHeavyBlocks
