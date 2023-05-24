@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { getBlockArray } from "@moonwall/util";
+import { TWO_MINS, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
@@ -120,7 +120,7 @@ describeSuite({
     it({
       id: "C200",
       title: `should have have ExtrinsicSuccess for all ethereum.transact`,
-      timeout: 30000,
+      timeout: TWO_MINS,
       test: function () {
         log(
           `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
