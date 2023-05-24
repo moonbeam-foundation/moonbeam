@@ -186,7 +186,9 @@ describeSuite({
             const newRatio = ((normalWeight - weightCalc - balTxnWeights) * 100n) / maxWeight;
             if (newRatio > 20n) {
               log(
-                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ${ethBlock.transactions.length} transactions, non-transaction weight: ${newRatio}%`
+                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ` +
+                  ethBlock.transactions.length +
+                  ` transactions, non-transaction weight: ${newRatio}%`
               );
             }
             return { blockNum: blockInfo.blockNum, nonTxn: newRatio };

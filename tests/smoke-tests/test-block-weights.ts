@@ -183,7 +183,9 @@ describeSmokeSuite(
 
             if (newRatio > 20n) {
               debug(
-                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ${ethBlock.transactions.length} transactions, non-transaction weight: ${newRatio}%`
+                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ` +
+                  ethBlock.transactions.length +
+                  ` transactions, non-transaction weight: ${newRatio}%`
               );
             }
             return { blockNum: blockInfo.blockNum, nonTxn: newRatio };
