@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D0902",
+  id: "D0802",
   title: "Democracy - genesis",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

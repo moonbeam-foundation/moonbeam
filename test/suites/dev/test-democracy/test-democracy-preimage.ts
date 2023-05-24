@@ -6,7 +6,7 @@ import { u8aToHex } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D0904",
+  id: "D0804",
   title: "Democracy - Preimage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

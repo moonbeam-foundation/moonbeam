@@ -16,7 +16,7 @@ import { ISubmittableResult } from "@polkadot/types/types";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D0901",
+  id: "D0801",
   title: "Democracy - FastTracking",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

@@ -58,7 +58,7 @@ devDependencies:
     specifier: link:../../moonwall/packages/cli
     version: 0.5.20(@moonbeam-network/api-augment@0.2302.0)(@moonwall/util@0.5.20)(@polkadot/api-augment@10.7.2)(@polkadot/api-derive@10.7.2)(@polkadot/api@10.7.2)(@polkadot/keyring@12.2.1)(@polkadot/types-codec@10.7.2)(@polkadot/types@10.7.2)(@polkadot/util@12.2.1)(@vitest/ui@0.31.0)(ethers@6.4.0)(typescript@5.0.4)(viem@0.3.31)(web3-providers-ws@4.0.1-rc.0)(web3@4.0.1-rc.0)
   '@moonwall/util':
-    specifier: ^0.5.20
+    specifier: link:../../moonwall/packages/util
     version: 0.5.20(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.7.2)(@polkadot/api-derive@10.7.2)(@polkadot/api@10.7.2)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.7.2)(@polkadot/types-codec@10.7.2)(@polkadot/types@10.7.2)(@polkadot/util@12.2.1)(@vitest/ui@0.31.0)(ethers@6.4.0)(typescript@5.0.4)(web3@4.0.1-rc.0)
   '@polkadot/api':
     specifier: ^10.7.2
