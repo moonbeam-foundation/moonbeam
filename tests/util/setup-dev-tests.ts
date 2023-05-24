@@ -206,28 +206,32 @@ export function describeDevMoonbeam(
         // the new block number not to be the expected one.
 
         let currentBlockHash = (await subProvider.eth.getBlock("latest")).hash;
-        const ethCheckPromise = new Promise<void>((resolve) => {
-          const ethBlockSub = subProvider.eth
-            .subscribe("newBlockHeaders", function (error, result) {
-              if (!error) {
-                return;
-              }
-              console.error(error);
-            })
-            .on("data", function (blockHeader) {
-              // unsubscribes the subscription once we get the right block
-              if (blockHeader.hash == currentBlockHash) {
-                debug(
-                  `Received same block [${blockHeader.number}] hash: ${blockHeader.hash} ` +
-                    `(previous: ${currentBlockHash})`
-                );
-                return;
-              }
-              ethBlockSub.unsubscribe();
-              resolve();
-            })
-            .on("error", console.error);
-        });
+
+        // TODO: Removes this empty promise once we fix the notifications on re-org. (cc @tgmichel)
+        const ethCheckPromise = parentHash
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              const ethBlockSub = subProvider.eth
+                .subscribe("newBlockHeaders", function (error, result) {
+                  if (!error) {
+                    return;
+                  }
+                  console.error(error);
+                })
+                .on("data", function (blockHeader) {
+                  // unsubscribes the subscription once we get the right block
+                  if (blockHeader.hash == currentBlockHash) {
+                    debug(
+                      `Received same block [${blockHeader.number}] hash: ${blockHeader.hash} ` +
+                        `(previous: ${currentBlockHash})`
+                    );
+                    return;
+                  }
+                  ethBlockSub.unsubscribe();
+                  resolve();
+                })
+                .on("error", console.error);
+            });
 
         const blockResult = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
 
