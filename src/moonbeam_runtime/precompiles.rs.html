@@ -245,6 +245,17 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -264,7 +275,7 @@
 </span><span class="kw">use crate</span>::{
 	asset_config::{ForeignAssetInstance, LocalAssetInstance},
 	xcm_config::XcmExecutorConfig,
-	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonbeam_relay_encoder::polkadot::PolkadotEncoder;
@@ -275,6 +286,7 @@
 <span class="kw">use </span>pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 <span class="kw">use </span>pallet_evm_precompile_call_permit::CallPermitPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_collective::CollectivePrecompile;
+<span class="kw">use </span>pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
@@ -282,6 +294,7 @@
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
 <span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_randomness::RandomnessPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_referenda::ReferendaPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_registry::PrecompileRegistry;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -449,17 +462,26 @@
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2065</span>&gt;,
+		ReferendaPrecompile&lt;R, <span class="kw">crate</span>::governance::custom_origins::Origin&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2066</span>&gt;,
+		ConvictionVotingPrecompile&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2067</span>&gt;,
 		PreimagePrecompile&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
-	<span class="comment">// (Not in Moonbeam)
-	// PrecompileAt&lt;
-	// 	AddressU64&lt;2068&gt;,
-	// 	CollectivePrecompile&lt;R, OpenTechCommitteeInstance&gt;,
-	// 	(CallableByContract, CallableByPrecompile),
-	// &gt;,
-	</span>PrecompileAt&lt;
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2068</span>&gt;,
+		CollectivePrecompile&lt;R, OpenTechCommitteeInstance&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2069</span>&gt;,
 		PrecompileRegistry&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),

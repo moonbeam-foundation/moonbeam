@@ -361,6 +361,19 @@
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -392,9 +405,10 @@
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
 	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
 	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig, TransactionPaymentConfig,
-	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
+	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
+	HOURS, WASM_BINARY,
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>pallet_transaction_payment::Multiplier;
@@ -429,6 +443,8 @@
 				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>]],
 				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
 				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
+				<span class="comment">// Open Tech committee members: Alith and Baltathar
+				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>]],
 				<span class="comment">// Collator Candidate: Alice -&gt; Alith
 				</span><span class="macro">vec!</span>[(
 					accounts[<span class="number">0</span>],
@@ -494,6 +510,11 @@
 					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
 					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+				],
+				<span class="comment">// Open Tech committee members: Alith and Baltathar
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 				],
 				<span class="comment">// Collator Candidates
 				</span><span class="macro">vec!</span>[
@@ -584,6 +605,7 @@
 	council_members: Vec&lt;AccountId&gt;,
 	tech_comittee_members: Vec&lt;AccountId&gt;,
 	treasury_council_members: Vec&lt;AccountId&gt;,
+	open_tech_committee_members: Vec&lt;AccountId&gt;,
 	candidates: Vec&lt;(AccountId, NimbusId, Balance)&gt;,
 	delegations: Vec&lt;(AccountId, AccountId, Balance, Percent)&gt;,
 	endowed_accounts: Vec&lt;AccountId&gt;,
@@ -660,6 +682,10 @@
 		treasury_council_collective: TreasuryCouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: treasury_council_members,
+		},
+		open_tech_committee_collective: OpenTechCommitteeCollectiveConfig {
+			phantom: Default::default(),
+			members: open_tech_committee_members,
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_count: EligibilityValue::new_unchecked(<span class="number">50</span>),

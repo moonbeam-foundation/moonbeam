@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Call","Origin"],"struct":["GeneralAdmin","Pallet","ReferendumCanceller","ReferendumKiller","WhitelistedCaller"],"trait":["Config"],"type":["Module"]};
