@@ -226,7 +226,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     // create payload
     const versionedMultiLocation = {
-      v2: {
+      v1: {
         parents: 1,
         interior: {
           X1: {
@@ -256,10 +256,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
-
-    // TODO: very ugly hack
-    // replace byte 5 with 0x03. This seems to replace "v2" above with 3. Not sure what the issue is
-    payload = payload.substring(0, 5) + "3" + payload.substring(6);
 
     await context.polkadotApi.tx.sudo
       .sudo(
