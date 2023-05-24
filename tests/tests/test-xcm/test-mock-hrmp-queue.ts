@@ -165,7 +165,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
             originType: "SovereignAccount",
             requireWeightAtMost: new BN(0),
             call: {
-              // Transacts do not fail
               encoded: "0x11",
             },
           },
@@ -193,7 +192,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         originType: "SovereignAccount",
         requireWeightAtMost: requireWeightAtMostParemeter,
         call: {
-          // Transacts do not fail
           encoded: "0x11",
         },
       },
@@ -245,8 +243,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
       .true;
     expect(shouldItExecute.indexOf(XcmpExecution.OnIdleExecutedPassingBarrier) > -1).to.be.true;
-
-    const events = context.polkadotApi.query.system.events();
 
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
