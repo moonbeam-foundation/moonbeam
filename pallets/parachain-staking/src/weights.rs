@@ -63,8 +63,8 @@ pub trait WeightInfo {
 	fn schedule_leave_candidates(x: u32, ) -> Weight;
 	fn execute_leave_candidates(x: u32, ) -> Weight;
 	fn cancel_leave_candidates(x: u32, ) -> Weight;
-	fn go_offline() -> Weight;
-	fn go_online() -> Weight;
+	fn go_offline(x: u32, ) -> Weight;
+	fn go_online(x: u32, ) -> Weight;
 	fn candidate_bond_more() -> Weight;
 	fn schedule_candidate_bond_less() -> Weight;
 	fn execute_candidate_bond_less() -> Weight;
@@ -272,27 +272,35 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
-	fn go_offline() -> Weight {
+	/// The range of component `x` is `[1, 1000]`.
+	fn go_offline(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `271`
-		//  Estimated: `5492`
-		// Minimum execution time: 27_523_000 picoseconds.
-		Weight::from_parts(27_792_000, 5492)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
+		//  Measured:  `899 + x * (36 ±0)`
+		//  Estimated: `6382 + x * (74 ±0)`
+		// Minimum execution time: 24_897_000 picoseconds.
+		Weight::from_parts(26_548_739, 6382)
+			// Standard Error: 4_197
+			.saturating_add(Weight::from_parts(42_485, 0).saturating_mul(x.into()))
+			.saturating_add(RocksDbWeight::get().reads(2_u64))
+			.saturating_add(RocksDbWeight::get().writes(2_u64))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
-	fn go_online() -> Weight {
+	/// The range of component `x` is `[1, 1000]`.
+	fn go_online(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `234`
-		//  Estimated: `5418`
-		// Minimum execution time: 27_667_000 picoseconds.
-		Weight::from_parts(27_972_000, 5418)
+		//  Measured:  `863 + x * (36 ±0)`
+		//  Estimated: `6308 + x * (74 ±0)`
+		// Minimum execution time: 24_486_000 picoseconds.
+		Weight::from_parts(24_873_868, 6308)
+			// Standard Error: 5_852
+			.saturating_add(Weight::from_parts(41_087, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
@@ -935,27 +943,35 @@ impl WeightInfo for () {
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
-	fn go_offline() -> Weight {
+	/// The range of component `x` is `[1, 1000]`.
+	fn go_offline(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `271`
-		//  Estimated: `5492`
-		// Minimum execution time: 27_523_000 picoseconds.
-		Weight::from_parts(27_792_000, 5492)
+		//  Measured:  `899 + x * (36 ±0)`
+		//  Estimated: `6382 + x * (74 ±0)`
+		// Minimum execution time: 24_897_000 picoseconds.
+		Weight::from_parts(26_548_739, 6382)
+			// Standard Error: 4_197
+			.saturating_add(Weight::from_parts(42_485, 0).saturating_mul(x.into()))
 			.saturating_add(RocksDbWeight::get().reads(2_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
-	fn go_online() -> Weight {
+	/// The range of component `x` is `[1, 1000]`.
+	fn go_online(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `234`
-		//  Estimated: `5418`
-		// Minimum execution time: 27_667_000 picoseconds.
-		Weight::from_parts(27_972_000, 5418)
+		//  Measured:  `863 + x * (36 ±0)`
+		//  Estimated: `6308 + x * (74 ±0)`
+		// Minimum execution time: 24_486_000 picoseconds.
+		Weight::from_parts(24_873_868, 6308)
+			// Standard Error: 5_852
+			.saturating_add(Weight::from_parts(41_087, 0).saturating_mul(x.into()))
 			.saturating_add(RocksDbWeight::get().reads(2_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
