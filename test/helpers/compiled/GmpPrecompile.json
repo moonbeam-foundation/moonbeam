@@ -1,0 +1,57 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [{ "internalType": "bytes", "name": "vaa", "type": "bytes" }],
+        "name": "wormholeTransferERC20",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "wormholeTransferERC20(bytes)": { "custom:selector": "f53774ab" }
+      },
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": { "wormholeTransferERC20(bytes)": "f53774ab" }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"vaa\",\"type\":\"bytes\"}],\"name\":\"wormholeTransferERC20\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"wormholeTransferERC20(bytes)\":{\"custom:selector\":\"f53774ab\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"wormholeTransferERC20(bytes)\":{\"notice\":\"Receive a wormhole VAA and process it\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Gmp.sol\":\"GmpPrecompile\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Gmp.sol\":{\"keccak256\":\"0x598e0ac10da8203fa740d77007bc4a7d9bfb8a117719e0d1c689d3ce91547931\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://a4dbf67fb61ae4f5e65fe54d17e4d93e6ca3011d8386fe32bbe29c63d2c51e2d\",\"dweb:/ipfs/QmR24C9TuTjhzRgg6tousXF2NfPnioykt73ptjwTFz3D1i\"]},\"precompiles/gmp/Gmp.sol\":{\"keccak256\":\"0x167a9fd48a1db52b606ace07955849d324d5ef1b36ecfa5c071c44b1adb0ffe2\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://b22ed42bdfba9ebd6682107e0e2725d8f848c137a57d54743a48da7430854b26\",\"dweb:/ipfs/QmeNPG5ttf4DBUWBnfjFxjEmvFDENbW5qrSRGYGN6cMyNH\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "wormholeTransferERC20(bytes)": {
+          "notice": "Receive a wormhole VAA and process it"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\nimport \"../../../precompiles/gmp/Gmp.sol\";\n\nabstract contract GmpPrecompile is Gmp {}\n"
+}

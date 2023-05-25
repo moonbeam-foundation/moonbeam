@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { bnToHex } from "@polkadot/util";
+import { bnToHex, stringToU8a } from "@polkadot/util";
 
 import { expect } from "chai";
 import { ethers } from "ethers";
@@ -22,6 +22,7 @@ import {
   RawXcmMessage,
   sovereignAccountOfSibling,
   XcmFragment,
+  XcmFragmentConfig,
 } from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
@@ -149,13 +150,13 @@ describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
     ).equals(bnToHex(amountTransferred, { bitLength: 256 }));
 
     // Create the incoming xcm message
-    const config = {
+    const config: XcmFragmentConfig = {
       assets: [
         {
           multilocation: {
             parents: 0,
             interior: {
-              X1: { PalletInstance: balancesPalletIndex },
+              X1: { PalletInstance: Number(balancesPalletIndex) },
             },
           },
           fungible: 1_000_000_000_000_000n,
