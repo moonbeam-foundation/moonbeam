@@ -420,7 +420,7 @@
 
 	<span class="macro">parameter_types! </span>{
 		<span class="kw">pub const </span>BlockHashCount: u32 = <span class="number">250</span>;
-		<span class="kw">pub const </span>MaximumBlockWeight: Weight = Weight::from_ref_time(<span class="number">1024</span>);
+		<span class="kw">pub const </span>MaximumBlockWeight: Weight = Weight::from_parts(<span class="number">1024</span>, <span class="number">1</span>);
 		<span class="kw">pub const </span>MaximumBlockLength: u32 = <span class="number">2 </span>* <span class="number">1024</span>;
 		<span class="kw">pub const </span>AvailableBlockRatio: Perbill = Perbill::one();
 		<span class="kw">pub const </span>SS58Prefix: u8 = <span class="number">42</span>;
@@ -519,7 +519,7 @@
 	<span class="macro">parameter_types! </span>{
 		<span class="kw">pub </span>BlockGasLimit: U256 = U256::max_value();
 		<span class="kw">pub </span>PrecompilesValue: Precompiles&lt;Runtime&gt; = Precompiles::new();
-		<span class="kw">pub const </span>WeightPerGas: Weight = Weight::from_ref_time(<span class="number">1</span>);
+		<span class="kw">pub const </span>WeightPerGas: Weight = Weight::from_parts(<span class="number">1</span>, <span class="number">0</span>);
 	}
 
 	<span class="kw">impl </span>pallet_evm::Config <span class="kw">for </span>Runtime {

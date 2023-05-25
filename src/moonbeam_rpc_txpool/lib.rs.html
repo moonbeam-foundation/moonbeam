@@ -181,7 +181,6 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -208,7 +207,7 @@
 <span class="kw">use </span>sc_transaction_pool_api::InPoolTransaction;
 <span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>sha3::{Digest, Keccak256};
-<span class="kw">use </span>sp_api::{ApiExt, BlockId, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{ApiExt, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::{Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata};
 <span class="kw">use </span>sp_runtime::traits::Block <span class="kw">as </span>BlockT;
 <span class="kw">use </span>std::collections::HashMap;
@@ -257,20 +256,19 @@
 			.collect();
 
 		<span class="comment">// Use the runtime to match the (here) opaque extrinsics against ethereum transactions.
-		</span><span class="kw">let </span>best_block: BlockId&lt;B&gt; = BlockId::Hash(<span class="self">self</span>.client.info().best_hash);
+		</span><span class="kw">let </span>best_block = <span class="self">self</span>.client.info().best_hash;
 		<span class="kw">let </span>api = <span class="self">self</span>.client.runtime_api();
-		<span class="kw">let </span>api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
-			api.api_version::&lt;<span class="kw">dyn </span>TxPoolRuntimeApi&lt;B&gt;&gt;(<span class="kw-2">&amp;</span>best_block)
-		{
-			api_version
-		} <span class="kw">else </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
-				<span class="string">&quot;failed to retrieve Runtime Api version&quot;</span>.to_string(),
-			));
-		};
+		<span class="kw">let </span>api_version =
+			<span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) = api.api_version::&lt;<span class="kw">dyn </span>TxPoolRuntimeApi&lt;B&gt;&gt;(best_block) {
+				api_version
+			} <span class="kw">else </span>{
+				<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+					<span class="string">&quot;failed to retrieve Runtime Api version&quot;</span>.to_string(),
+				));
+			};
 		<span class="kw">let </span>ethereum_txns: TxPoolResponse = <span class="kw">if </span>api_version == <span class="number">1 </span>{
 			<span class="attr">#[allow(deprecated)]
-			</span><span class="kw">let </span>res = api.extrinsic_filter_before_version_2(<span class="kw-2">&amp;</span>best_block, txs_ready, txs_future)
+			</span><span class="kw">let </span>res = api.extrinsic_filter_before_version_2(best_block, txs_ready, txs_future)
 				.map_err(|err| {
 					internal_err(<span class="macro">format!</span>(<span class="string">&quot;fetch runtime extrinsic filter failed: {:?}&quot;</span>, err))
 				})<span class="question-mark">?</span>;
@@ -287,7 +285,7 @@
 					.collect(),
 			}
 		} <span class="kw">else </span>{
-			api.extrinsic_filter(<span class="kw-2">&amp;</span>best_block, txs_ready, txs_future)
+			api.extrinsic_filter(best_block, txs_ready, txs_future)
 				.map_err(|err| {
 					internal_err(<span class="macro">format!</span>(<span class="string">&quot;fetch runtime extrinsic filter failed: {:?}&quot;</span>, err))
 				})<span class="question-mark">?

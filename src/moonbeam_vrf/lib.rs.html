@@ -72,7 +72,6 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -111,13 +110,12 @@
 	C: sp_api::ProvideRuntimeApi&lt;B&gt;,
 	C::Api: VrfApi&lt;B&gt;,
 {
-	<span class="kw">let </span>at = sp_api::BlockId::Hash(parent);
 	<span class="kw">let </span>runtime_api = client.runtime_api();
 
 	<span class="comment">// first ? for runtime API, second ? for if last vrf output is not available
-	</span><span class="kw">let </span>last_vrf_output = runtime_api.get_last_vrf_output(<span class="kw-2">&amp;</span>at).ok()<span class="question-mark">??</span>;
+	</span><span class="kw">let </span>last_vrf_output = runtime_api.get_last_vrf_output(parent).ok()<span class="question-mark">??</span>;
 	<span class="comment">// first ? for runtime API, second ? for not VRF key associated with NimbusId
-	</span><span class="kw">let </span>key: VrfId = runtime_api.vrf_key_lookup(<span class="kw-2">&amp;</span>at, nimbus_id).ok()<span class="question-mark">??</span>;
+	</span><span class="kw">let </span>key: VrfId = runtime_api.vrf_key_lookup(parent, nimbus_id).ok()<span class="question-mark">??</span>;
 	<span class="kw">let </span>vrf_pre_digest = sign_vrf(last_vrf_output, key, <span class="kw-2">&amp;</span>keystore)<span class="question-mark">?</span>;
 	<span class="prelude-val">Some</span>(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Call","Error","Event"],"struct":["GenesisConfig","Pallet"],"trait":["Config"],"type":["AccountLookupOverride","BalanceOf","CollatorsPool","MinOrbiterDeposit","Module","RegisteredOrbiter","ReserveIdentifierOf"]};
+window.SIDEBAR_ITEMS = {"enum":["Call","Error","Event"],"mod":["dispatchables","storage_types"],"struct":["GenesisConfig","Pallet"],"trait":["Config"],"type":["AccountLookupOverride","BalanceOf","CollatorsPool","MinOrbiterDeposit","Module","RegisteredOrbiter","ReserveIdentifierOf"]};

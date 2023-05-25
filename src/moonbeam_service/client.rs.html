@@ -375,20 +375,6 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -405,7 +391,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">pub use </span>moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
-<span class="kw">use </span>sc_client_api::{Backend <span class="kw">as </span>BackendT, BlockchainEvents, KeyIterator};
+<span class="kw">use </span>sc_client_api::{Backend <span class="kw">as </span>BackendT, BlockchainEvents, KeysIter, PairsIter};
 <span class="kw">use </span>sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_consensus::BlockStatus;
@@ -681,14 +667,6 @@
 		<span class="macro">match_client!</span>(<span class="self">self</span>, storage(hash, key))
 	}
 
-	<span class="kw">fn </span>storage_keys(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
-	) -&gt; sp_blockchain::Result&lt;Vec&lt;StorageKey&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys(hash, key_prefix))
-	}
-
 	<span class="kw">fn </span>storage_hash(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
@@ -697,23 +675,26 @@
 		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_hash(hash, key))
 	}
 
+	<span class="kw">fn </span>storage_keys(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
+		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
+	) -&gt; sp_blockchain::Result&lt;
+		KeysIter&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
+	&gt; {
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys(hash, prefix, start_key))
+	}
+
 	<span class="kw">fn </span>storage_pairs(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
-	) -&gt; sp_blockchain::Result&lt;Vec&lt;(StorageKey, StorageData)&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_pairs(hash, key_prefix))
-	}
-
-	<span class="kw">fn </span>storage_keys_iter&lt;<span class="lifetime">&#39;a</span>&gt;(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
+		key_prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 	) -&gt; sp_blockchain::Result&lt;
-		KeyIterator&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
+		PairsIter&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
 	&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys_iter(hash, prefix, start_key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_pairs(hash, key_prefix, start_key))
 	}
 
 	<span class="kw">fn </span>child_storage(
@@ -728,24 +709,15 @@
 	<span class="kw">fn </span>child_storage_keys(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-		child_info: <span class="kw-2">&amp;</span>ChildInfo,
-		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
-	) -&gt; sp_blockchain::Result&lt;Vec&lt;StorageKey&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_keys(hash, child_info, key_prefix))
-	}
-
-	<span class="kw">fn </span>child_storage_keys_iter&lt;<span class="lifetime">&#39;a</span>&gt;(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		child_info: ChildInfo,
-		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
+		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 	) -&gt; sp_blockchain::Result&lt;
-		KeyIterator&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
+		KeysIter&lt;&lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
 	&gt; {
 		<span class="macro">match_client!</span>(
 			<span class="self">self</span>,
-			child_storage_keys_iter(hash, child_info, prefix, start_key)
+			child_storage_keys(hash, child_info, prefix, start_key)
 		)
 	}
 

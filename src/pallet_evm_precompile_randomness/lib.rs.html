@@ -565,9 +565,9 @@
 <span class="kw">use </span>solidity_types::<span class="kw-2">*</span>;
 
 <span class="comment">// Tests to verify equal to weight_to_gas(weight) in runtime integration tests
-</span><span class="kw">pub const </span>REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = <span class="number">26561</span>;
-<span class="kw">pub const </span>INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = <span class="number">16999</span>;
-<span class="kw">pub const </span>EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = <span class="number">22300</span>;
+</span><span class="kw">pub const </span>REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = <span class="number">26289</span>;
+<span class="kw">pub const </span>INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = <span class="number">16618</span>;
+<span class="kw">pub const </span>EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = <span class="number">21830</span>;
 
 <span class="doccomment">/// Fulfillment overhead cost, which takes input weight hint -&gt; weight -&gt; return gas
 </span><span class="kw">pub fn </span>prepare_and_finish_fulfillment_gas_cost&lt;T: pallet_evm::Config&gt;(num_words: u8) -&gt; u64 {

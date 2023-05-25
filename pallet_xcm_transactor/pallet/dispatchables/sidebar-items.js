@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["deregister","hrmp_manage","register","remove_fee_per_second","remove_transact_info","set_fee_per_second","set_transact_info","transact_through_derivative","transact_through_signed","transact_through_sovereign"]};

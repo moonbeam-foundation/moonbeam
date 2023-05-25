@@ -997,6 +997,16 @@
 <a href="#997" id="997">997</a>
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1036,6 +1046,11 @@
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>sp_runtime::traits::{AccountIdConversion, Block <span class="kw">as _</span>};
 <span class="kw">use </span>std::{io::Write, net::SocketAddr};
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>try_runtime_cli::block_building_info::substrate_info;
+<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">const </span>SLOT_DURATION: u64 = <span class="number">12</span>;
 
 <span class="kw">fn </span>load_spec(
 	id: <span class="kw-2">&amp;</span>str,
@@ -1635,6 +1650,7 @@
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})<span class="question-mark">?</span>;
 
+					<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
 					<span class="prelude-val">Ok</span>((
 						cmd.run::&lt;
 							moonbeam_service::moonriver_runtime::Block,
@@ -1642,7 +1658,7 @@
 								sp_io::SubstrateHostFunctions,
 								&lt;moonbeam_service::MoonriverExecutor
 									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-						&gt;&gt;(),
+						&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
 						task_manager,
 					))
 				}),
@@ -1655,6 +1671,7 @@
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})<span class="question-mark">?</span>;
 
+					<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
 					<span class="prelude-val">Ok</span>((
 						cmd.run::&lt;
 							moonbeam_service::moonbeam_runtime::Block,
@@ -1662,7 +1679,7 @@
 								sp_io::SubstrateHostFunctions,
 								&lt;moonbeam_service::MoonbeamExecutor
 									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-						&gt;&gt;(),
+						&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
 						task_manager,
 					))
 				}),
@@ -1678,6 +1695,7 @@
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})<span class="question-mark">?</span>;
 
+						<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
 						<span class="prelude-val">Ok</span>((
 							cmd.run::&lt;
 								moonbeam_service::moonbase_runtime::Block,
@@ -1685,7 +1703,7 @@
 									sp_io::SubstrateHostFunctions,
 									&lt;moonbeam_service::MoonbaseExecutor
 										<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-							&gt;&gt;(),
+							&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
 							task_manager,
 						))
 					})
@@ -1742,7 +1760,6 @@
 					<span class="comment">// When running the dev service, just use Alice&#39;s author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
-
 					</span><span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;nimbus_primitives::NimbusId&gt;(
 						<span class="string">&quot;Alice&quot;</span>,
 					));
@@ -1753,19 +1770,22 @@
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverExecutor,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.map_err(Into::into),
+						.<span class="kw">await
+						</span>.map_err(Into::into),
 						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamExecutor,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.map_err(Into::into),
+						.<span class="kw">await
+						</span>.map_err(Into::into),
 						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 						</span><span class="kw">_ </span>=&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseExecutor,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.map_err(Into::into),
+						.<span class="kw">await
+						</span>.map_err(Into::into),
 						<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
 						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
 					};

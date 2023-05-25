@@ -1660,6 +1660,11 @@
 <a href="#1660" id="1660">1660</a>
 <a href="#1661" id="1661">1661</a>
 <a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1691,7 +1696,7 @@
 </span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/wasm_binary.rs&quot;</span>));
 
 <span class="kw">use </span>account::AccountId20;
-<span class="kw">use </span>cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+<span class="kw">use </span>cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
 <span class="kw">use </span>cumulus_primitives_core::relay_chain;
 <span class="kw">use </span>fp_rpc::TransactionStatus;
 
@@ -1724,7 +1729,7 @@
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
 <span class="kw">use </span>pallet_balances::NegativeImbalance;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
-<span class="kw">use </span>pallet_ethereum::Transaction <span class="kw">as </span>EthereumTransaction;
+<span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
 <span class="kw">use </span>pallet_evm::{
 	Account <span class="kw">as </span>EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction <span class="kw">as </span>OnChargeEVMTransactionT, Runner,
@@ -1800,7 +1805,7 @@
 }
 
 <span class="doccomment">/// Maximum weight per block
-</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
+</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(<span class="number">2</span>)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
 
@@ -1858,7 +1863,7 @@
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
 // TODO: we should use benchmarking&#39;s overhead feature to measure this
-</span><span class="kw">pub const </span>EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(<span class="number">10000 </span>* WEIGHT_PER_GAS);
+</span><span class="kw">pub const </span>EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(<span class="number">10000 </span>* WEIGHT_PER_GAS, <span class="number">0</span>);
 
 <span class="kw">pub struct </span>RuntimeBlockWeights;
 <span class="kw">impl </span>Get&lt;frame_system::limits::BlockWeights&gt; <span class="kw">for </span>RuntimeBlockWeights {
@@ -2052,7 +2057,7 @@
 	/// as a safety net.
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonriverPrecompiles&lt;Runtime&gt; = MoonriverPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
-	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
+	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, <span class="number">0</span>);
 }
 
 <span class="kw">pub struct </span>TransactionPaymentAsGasPrice;
@@ -2261,9 +2266,14 @@
 	}
 }
 
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
 <span class="kw">impl </span>pallet_ethereum::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>StateRoot = pallet_ethereum::IntermediateStateRoot&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>PostLogContent = PostBlockAndTxnHashes;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2353,7 +2363,7 @@
 }
 
 <span class="kw">impl </span>pallet_author_inherent::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>SlotBeacon = RelaychainBlockNumberProvider&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>SlotBeacon = RelaychainDataProvider&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>AccountLookup = MoonbeamOrbiters;
 	<span class="kw">type </span>CanAuthor = AuthorFilter;
 	<span class="kw">type </span>WeightInfo = pallet_author_inherent::weights::SubstrateWeight&lt;Runtime&gt;;
@@ -2386,7 +2396,7 @@
 	<span class="kw">type </span>RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	<span class="kw">type </span>SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	<span class="kw">type </span>VestingBlockNumber = relay_chain::BlockNumber;
-	<span class="kw">type </span>VestingBlockProvider = RelaychainBlockNumberProvider&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>VestingBlockProvider = RelaychainDataProvider&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 

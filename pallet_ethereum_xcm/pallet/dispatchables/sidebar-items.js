@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["resume_ethereum_xcm_execution","suspend_ethereum_xcm_execution","transact","transact_through_proxy"]};

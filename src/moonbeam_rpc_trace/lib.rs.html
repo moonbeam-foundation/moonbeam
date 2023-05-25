@@ -880,9 +880,6 @@
 <a href="#880" id="880">880</a>
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -909,7 +906,7 @@
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
 
-</span><span class="kw">use </span>futures::{select, stream::FuturesUnordered, FutureExt, SinkExt, StreamExt};
+</span><span class="kw">use </span>futures::{select, stream::FuturesUnordered, FutureExt, StreamExt};
 <span class="kw">use </span>std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
 <span class="kw">use </span>tokio::{
 	sync::{mpsc, oneshot, Semaphore},
@@ -919,7 +916,7 @@
 
 <span class="kw">use </span>sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 <span class="kw">use </span>sc_utils::mpsc::TracingUnboundedSender;
-<span class="kw">use </span>sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{ApiExt, Core, HeaderT, ProvideRuntimeApi};
 <span class="kw">use </span>sp_block_builder::BlockBuilder;
 <span class="kw">use </span>sp_blockchain::{
 	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
@@ -1167,15 +1164,14 @@
 	</span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
 	</span><span class="kw">pub async fn </span>start_batch(<span class="kw-2">&amp;</span><span class="self">self</span>, blocks: Vec&lt;H256&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;CacheBatchId, String&gt; {
 		<span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
-		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
+		<span class="kw">let </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
 		sender
-			.send(CacheRequest::StartBatch {
+			.unbounded_send(CacheRequest::StartBatch {
 				sender: response_tx,
 				blocks,
 			})
-			.<span class="kw">await
-			</span>.map_err(|e| {
+			.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
 					e
@@ -1197,15 +1193,14 @@
 	</span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
 	</span><span class="kw">pub async fn </span>get_traces(<span class="kw-2">&amp;</span><span class="self">self</span>, block: H256) -&gt; TxsTraceRes {
 		<span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
-		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
+		<span class="kw">let </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
 		sender
-			.send(CacheRequest::GetTraces {
+			.unbounded_send(CacheRequest::GetTraces {
 				sender: response_tx,
 				block,
 			})
-			.<span class="kw">await
-			</span>.map_err(|e| {
+			.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
 					e
@@ -1227,14 +1222,13 @@
 	/// this batch and still in the waiting pool will be discarded.
 	</span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
 	</span><span class="kw">pub async fn </span>stop_batch(<span class="kw-2">&amp;</span><span class="self">self</span>, batch_id: CacheBatchId) {
-		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
+		<span class="kw">let </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
 		<span class="comment">// Here we don&#39;t care if the request has been accepted or refused, the caller can&#39;t
 		// do anything with it.
 		</span><span class="kw">let _ </span>= sender
-			.send(CacheRequest::StopBatch { batch_id })
-			.<span class="kw">await
-			</span>.map_err(|e| {
+			.unbounded_send(CacheRequest::StopBatch { batch_id })
+			.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
 					e
@@ -1672,7 +1666,7 @@
 			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, substrate_hash))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>height = <span class="kw-2">*</span>block_header.number();
-		<span class="kw">let </span>substrate_parent_id = BlockId::&lt;B&gt;::Hash(<span class="kw-2">*</span>block_header.parent_hash());
+		<span class="kw">let </span>substrate_parent_hash = <span class="kw-2">*</span>block_header.parent_hash();
 
 		<span class="kw">let </span>schema =
 			fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), substrate_hash);
@@ -1714,11 +1708,11 @@
 
 		<span class="comment">// Trace the block.
 		</span><span class="kw">let </span>f = || -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, String&gt; {
-			api.initialize_block(<span class="kw-2">&amp;</span>substrate_parent_id, <span class="kw-2">&amp;</span>block_header)
+			api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
 				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>_result = api
-				.trace_block(<span class="kw-2">&amp;</span>substrate_parent_id, extrinsics, eth_tx_hashes)
+				.trace_block(substrate_parent_hash, extrinsics, eth_tx_hashes)
 				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>, height, e))<span class="question-mark">?
 				</span>.map_err(|e| {
 					<span class="macro">tracing::warn!</span>(

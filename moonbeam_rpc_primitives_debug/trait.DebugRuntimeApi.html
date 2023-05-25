@@ -2,73 +2,73 @@
     // Provided methods
     fn <a href="#method.trace_transaction_before_version_4" class="fn">trace_transaction_before_version_4</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         transaction: &amp;LegacyTransaction
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.trace_transaction_before_version_4_with_context" class="fn">trace_transaction_before_version_4_with_context</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         context: ExecutionContext,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         transaction: &amp;LegacyTransaction
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.trace_transaction" class="fn">trace_transaction</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         transaction: &amp;Transaction
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.trace_transaction_with_context" class="fn">trace_transaction_with_context</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         context: ExecutionContext,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         transaction: &amp;Transaction
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.trace_block" class="fn">trace_block</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         known_transactions: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.trace_block_with_context" class="fn">trace_block_with_context</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         context: ExecutionContext,
         extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
         known_transactions: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt; { ... }
 }</code></pre><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.trace_transaction_before_version_4" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_transaction_before_version_4" class="fn">trace_transaction_before_version_4</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     transaction: &amp;LegacyTransaction
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt;</h4></section></summary><span class="item-info"><div class="stab deprecated"><span class="emoji">👎</span><span>Deprecated</span></div></span></details><details class="toggle method-toggle" open><summary><section id="method.trace_transaction_before_version_4_with_context" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_transaction_before_version_4_with_context" class="fn">trace_transaction_before_version_4_with_context</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     context: ExecutionContext,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     transaction: &amp;LegacyTransaction
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt;</h4></section></summary><span class="item-info"><div class="stab deprecated"><span class="emoji">👎</span><span>Deprecated</span></div></span></details><section id="method.trace_transaction" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_transaction" class="fn">trace_transaction</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     transaction: &amp;Transaction
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt;</h4></section><section id="method.trace_transaction_with_context" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_transaction_with_context" class="fn">trace_transaction_with_context</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     context: ExecutionContext,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     transaction: &amp;Transaction
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt;</h4></section><section id="method.trace_block" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_block" class="fn">trace_block</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     known_transactions: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.unit.html">()</a>, DispatchError&gt;, ApiError&gt;</h4></section><section id="method.trace_block_with_context" class="method"><a class="srclink rightside" href="../src/moonbeam_rpc_primitives_debug/lib.rs.html#24-51">source</a><h4 class="code-header">fn <a href="#method.trace_block_with_context" class="fn">trace_block_with_context</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     context: ExecutionContext,
     extrinsics: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Block::Extrinsic&gt;,
     known_transactions: <a class="struct" href="https://doc.rust-lang.org/1.69.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AccountLookupOverride","CollatorsPool","CurrentRound","ForceRotation","MinOrbiterDeposit","OrbiterPerRound","RegisteredOrbiter"]};

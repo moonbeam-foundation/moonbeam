@@ -163,7 +163,7 @@
 	<span class="kw">fn </span>matches_fungibles(multiasset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Result</span>&lt;(H160, U256), MatchError&gt; {
 		<span class="kw">let </span>(amount, id) = <span class="kw">match </span>(<span class="kw-2">&amp;</span>multiasset.fun, <span class="kw-2">&amp;</span>multiasset.id) {
 			(Fungible(<span class="kw-2">ref </span>amount), Concrete(<span class="kw-2">ref </span>id)) =&gt; (amount, id),
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotFound),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotHandled),
 		};
 		<span class="kw">let </span>contract_address = <span class="self">Self</span>::matches_erc20_multilocation(id)
 			.map_err(|<span class="kw">_</span>| MatchError::AssetIdConversionFailed)<span class="question-mark">?</span>;

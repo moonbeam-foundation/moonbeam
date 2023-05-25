@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AtStake","AutoCompoundingDelegations","AwardedPts","BottomDelegations","CandidateInfo","CandidatePool","CollatorCommission","DelayedPayouts","DelegationScheduledRequests","DelegatorState","InflationConfig","ParachainBondInfo","Points","Round","SelectedCandidates","Staked","TopDelegations","Total","TotalSelected"]};

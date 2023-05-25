@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AssetIdType","AssetTypeId","AssetTypeUnitsPerSecond","LocalAssetCounter","LocalAssetDeposit","SupportedFeePaymentAssets"]};

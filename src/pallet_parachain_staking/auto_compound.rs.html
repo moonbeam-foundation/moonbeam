@@ -375,6 +375,48 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -394,8 +436,8 @@
 </span><span class="doccomment">//! Auto-compounding functionality for staking rewards
 
 </span><span class="kw">use </span><span class="kw">crate</span>::pallet::{
-	AutoCompoundingDelegations <span class="kw">as </span>AutoCompoundingDelegationsStorage, BalanceOf, CandidateInfo,
-	Config, DelegatorState, Error, Event, Pallet, Total,
+	AddGet, AutoCompoundingDelegations <span class="kw">as </span>AutoCompoundingDelegationsStorage, BalanceOf,
+	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Total,
 };
 <span class="kw">use </span><span class="kw">crate</span>::types::{Bond, BondAdjust, Delegator};
 <span class="kw">use </span>frame_support::ensure;
@@ -404,9 +446,9 @@
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::traits::Saturating;
+<span class="kw">use </span>sp_runtime::BoundedVec;
 <span class="kw">use </span>sp_runtime::Percent;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="doccomment">/// Represents the auto-compounding amount for a delegation.
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
@@ -417,7 +459,12 @@
 
 <span class="doccomment">/// Represents the auto-compounding [Delegations] for `T: Config`
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, RuntimeDebug)]
-</span><span class="kw">pub struct </span>AutoCompoundDelegations&lt;T: frame_system::Config&gt;(Vec&lt;AutoCompoundConfig&lt;T::AccountId&gt;&gt;);
+</span><span class="kw">pub struct </span>AutoCompoundDelegations&lt;T: Config&gt;(
+	BoundedVec&lt;
+		AutoCompoundConfig&lt;T::AccountId&gt;,
+		AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+	&gt;,
+);
 
 <span class="kw">impl</span>&lt;T&gt; AutoCompoundDelegations&lt;T&gt;
 <span class="kw">where
@@ -426,7 +473,12 @@
 	<span class="doccomment">/// Creates a new instance of [AutoCompoundingDelegations] from a vector of sorted_delegations.
 	/// This is used for testing purposes only.
 	</span><span class="attr">#[cfg(test)]
-	</span><span class="kw">pub fn </span>new(sorted_delegations: Vec&lt;AutoCompoundConfig&lt;T::AccountId&gt;&gt;) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(
+		sorted_delegations: BoundedVec&lt;
+			AutoCompoundConfig&lt;T::AccountId&gt;,
+			AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+		&gt;,
+	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>(sorted_delegations)
 	}
 
@@ -451,21 +503,26 @@
 
 	<span class="doccomment">/// Sets the auto-compounding value for a delegation. The `delegations_config` must be a sorted
 	/// vector for binary_search to work.
-	</span><span class="kw">pub fn </span>set_for_delegator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, delegator: T::AccountId, value: Percent) -&gt; bool {
+	</span><span class="kw">pub fn </span>set_for_delegator(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		delegator: T::AccountId,
+		value: Percent,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&lt;T&gt;&gt; {
 		<span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.binary_search_by(|d| d.delegator.cmp(<span class="kw-2">&amp;</span>delegator)) {
 			<span class="prelude-val">Ok</span>(index) =&gt; {
 				<span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>[index].value == value {
-					<span class="bool-val">false
-				</span>} <span class="kw">else </span>{
+					<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+				} <span class="kw">else </span>{
 					<span class="self">self</span>.<span class="number">0</span>[index].value = value;
-					<span class="bool-val">true
-				</span>}
+					<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+				}
 			}
 			<span class="prelude-val">Err</span>(index) =&gt; {
 				<span class="self">self</span>.<span class="number">0
-					</span>.insert(index, AutoCompoundConfig { delegator, value });
-				<span class="bool-val">true
-			</span>}
+					</span>.try_insert(index, AutoCompoundConfig { delegator, value })
+					.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator)<span class="question-mark">?</span>;
+				<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+			}
 		}
 	}
 
@@ -489,13 +546,23 @@
 
 	<span class="doccomment">/// Returns a reference to the inner vector.
 	</span><span class="attr">#[cfg(test)]
-	</span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;AutoCompoundConfig&lt;T::AccountId&gt;&gt; {
+	</span><span class="kw">pub fn </span>inner(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+	) -&gt; <span class="kw-2">&amp;</span>BoundedVec&lt;
+		AutoCompoundConfig&lt;T::AccountId&gt;,
+		AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+	&gt; {
 		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
 	</span>}
 
 	<span class="doccomment">/// Converts the [AutoCompoundDelegations] into the inner vector.
 	</span><span class="attr">#[cfg(test)]
-	</span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; Vec&lt;AutoCompoundConfig&lt;T::AccountId&gt;&gt; {
+	</span><span class="kw">pub fn </span>into_inner(
+		<span class="self">self</span>,
+	) -&gt; BoundedVec&lt;
+		AutoCompoundConfig&lt;T::AccountId&gt;,
+		AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+	&gt; {
 		<span class="self">self</span>.<span class="number">0
 	</span>}
 
@@ -593,7 +660,7 @@
 
 		<span class="comment">// maybe set auto-compound config, state is Some if the percent is non-zero
 		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>state) = auto_compounding_state {
-			state.set_for_delegator(delegator.clone(), auto_compound.clone());
+			state.set_for_delegator(delegator.clone(), auto_compound.clone())<span class="question-mark">?</span>;
 			state.set_storage(<span class="kw-2">&amp;</span>candidate);
 		}
 
@@ -642,8 +709,8 @@
 		<span class="kw">let </span>state_updated = <span class="kw">if </span>value.is_zero() {
 			auto_compounding_state.remove_for_delegator(<span class="kw-2">&amp;</span>delegator)
 		} <span class="kw">else </span>{
-			auto_compounding_state.set_for_delegator(delegator.clone(), value)
-		};
+			auto_compounding_state.set_for_delegator(delegator.clone(), value)<span class="question-mark">?
+		</span>};
 		<span class="kw">if </span>state_updated {
 			auto_compounding_state.set_storage(<span class="kw-2">&amp;</span>candidate);
 		}
@@ -682,73 +749,90 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_for_delegator_inserts_config_and_returns_true_if_entry_missing() {
-		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config = AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[]);
+		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config =
+			AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[].try_into().expect(<span class="string">&quot;must succeed&quot;</span>));
 		<span class="macro">assert_eq!</span>(
 			<span class="bool-val">true</span>,
-			delegations_config.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">50</span>))
+			delegations_config
+				.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">50</span>))
+				.expect(<span class="string">&quot;must succeed&quot;</span>)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">50</span>),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_for_delegator_updates_config_and_returns_true_if_entry_changed() {
-		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config =
-			AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[AutoCompoundConfig {
+		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config = AutoCompoundDelegations::&lt;Test&gt;::new(
+			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">10</span>),
-			}]);
+			}]
+			.try_into()
+			.expect(<span class="string">&quot;must succeed&quot;</span>),
+		);
 		<span class="macro">assert_eq!</span>(
 			<span class="bool-val">true</span>,
-			delegations_config.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">50</span>))
+			delegations_config
+				.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">50</span>))
+				.expect(<span class="string">&quot;must succeed&quot;</span>)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">50</span>),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_for_delegator_updates_config_and_returns_false_if_entry_unchanged() {
-		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config =
-			AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[AutoCompoundConfig {
+		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config = AutoCompoundDelegations::&lt;Test&gt;::new(
+			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">10</span>),
-			}]);
+			}]
+			.try_into()
+			.expect(<span class="string">&quot;must succeed&quot;</span>),
+		);
 		<span class="macro">assert_eq!</span>(
 			<span class="bool-val">false</span>,
-			delegations_config.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">10</span>))
+			delegations_config
+				.set_for_delegator(<span class="number">1</span>, Percent::from_percent(<span class="number">10</span>))
+				.expect(<span class="string">&quot;must succeed&quot;</span>)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">10</span>),
 			}],
-			delegations_config.into_inner(),
+			delegations_config.into_inner().into_inner(),
 		);
 	}
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_remove_for_delegator_returns_false_if_entry_was_missing() {
-		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config = AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[]);
+		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config =
+			AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[].try_into().expect(<span class="string">&quot;must succeed&quot;</span>));
 		<span class="macro">assert_eq!</span>(<span class="bool-val">false</span>, delegations_config.remove_for_delegator(<span class="kw-2">&amp;</span><span class="number">1</span>),);
 	}
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_remove_delegation_config_returns_true_if_entry_existed() {
-		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config =
-			AutoCompoundDelegations::&lt;Test&gt;::new(<span class="macro">vec!</span>[AutoCompoundConfig {
+		<span class="kw">let </span><span class="kw-2">mut </span>delegations_config = AutoCompoundDelegations::&lt;Test&gt;::new(
+			<span class="macro">vec!</span>[AutoCompoundConfig {
 				delegator: <span class="number">1</span>,
 				value: Percent::from_percent(<span class="number">10</span>),
-			}]);
+			}]
+			.try_into()
+			.expect(<span class="string">&quot;must succeed&quot;</span>),
+		);
 		<span class="macro">assert_eq!</span>(<span class="bool-val">true</span>, delegations_config.remove_for_delegator(<span class="kw-2">&amp;</span><span class="number">1</span>));
 	}
 }

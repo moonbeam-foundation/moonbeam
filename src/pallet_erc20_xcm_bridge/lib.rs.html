@@ -216,6 +216,7 @@
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -284,8 +285,9 @@
 			Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::is_erc20_asset(asset)
 		}
 		<span class="kw">pub fn </span>weight_of_erc20_transfer() -&gt; Weight {
-			Weight::from_ref_time(
+			Weight::from_parts(
 				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
+				<span class="number">0</span>,
 			)
 		}
 		<span class="kw">fn </span>erc20_transfer(

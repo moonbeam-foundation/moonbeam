@@ -400,6 +400,11 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -445,6 +450,7 @@
 };
 <span class="kw">use </span>sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 <span class="kw">use </span>sc_network::NetworkService;
+<span class="kw">use </span>sc_network_sync::SyncingService;
 <span class="kw">use </span>sc_rpc::SubscriptionTaskExecutor;
 <span class="kw">use </span>sc_rpc_api::DenyUnsafe;
 <span class="kw">use </span>sc_service::TaskManager;
@@ -506,6 +512,8 @@
 	</span><span class="kw">pub </span>is_authority: bool,
 	<span class="doccomment">/// Network service
 	</span><span class="kw">pub </span>network: Arc&lt;NetworkService&lt;Block, Hash&gt;&gt;,
+	<span class="doccomment">/// Chain syncing service
+	</span><span class="kw">pub </span>sync: Arc&lt;SyncingService&lt;Block&gt;&gt;,
 	<span class="doccomment">/// EthFilterApi pool.
 	</span><span class="kw">pub </span>filter_pool: <span class="prelude-ty">Option</span>&lt;FilterPool&gt;,
 	<span class="doccomment">/// The list of optional RPC extensions.
@@ -602,6 +610,7 @@
 		deny_unsafe,
 		is_authority,
 		network,
+		sync,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
@@ -638,7 +647,7 @@
 			Arc::clone(<span class="kw-2">&amp;</span>pool),
 			graph.clone(),
 			convert_transaction,
-			Arc::clone(<span class="kw-2">&amp;</span>network),
+			Arc::clone(<span class="kw-2">&amp;</span>sync),
 			signers,
 			Arc::clone(<span class="kw-2">&amp;</span>overrides),
 			Arc::clone(<span class="kw-2">&amp;</span>frontier_backend),
@@ -681,7 +690,7 @@
 		EthPubSub::new(
 			pool,
 			Arc::clone(<span class="kw-2">&amp;</span>client),
-			network,
+			sync.clone(),
 			subscription_task_executor,
 			overrides,
 		)
@@ -766,6 +775,7 @@
 			Duration::new(<span class="number">6</span>, <span class="number">0</span>),
 			params.client.clone(),
 			params.substrate_backend.clone(),
+			params.overrides.clone(),
 			params.frontier_backend.clone(),
 			<span class="number">3</span>,
 			<span class="number">0</span>,

@@ -2001,6 +2001,22 @@
 <a href="#2001" id="2001">2001</a>
 <a href="#2002" id="2002">2002</a>
 <a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2518,6 +2534,19 @@
 		ValueQuery,
 	&gt;;
 
+	<span class="kw">pub struct </span>AddGet&lt;T, R&gt; {
+		_phantom: PhantomData&lt;(T, R)&gt;,
+	}
+	<span class="kw">impl</span>&lt;T, R&gt; Get&lt;u32&gt; <span class="kw">for </span>AddGet&lt;T, R&gt;
+	<span class="kw">where
+		</span>T: Get&lt;u32&gt;,
+		R: Get&lt;u32&gt;,
+	{
+		<span class="kw">fn </span>get() -&gt; u32 {
+			T::get() + R::get()
+		}
+	}
+
 	<span class="doccomment">/// Stores auto-compounding configuration per collator.
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>auto_compounding_delegations)]
@@ -2525,7 +2554,10 @@
 		<span class="kw">_</span>,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec&lt;AutoCompoundConfig&lt;T::AccountId&gt;&gt;,
+		BoundedVec&lt;
+			AutoCompoundConfig&lt;T::AccountId&gt;,
+			AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+		&gt;,
 		ValueQuery,
 	&gt;;
 
@@ -3581,7 +3613,7 @@
 
 			<span class="comment">// don&#39;t underflow uint
 			</span><span class="kw">if </span>now &lt; delay {
-				<span class="kw">return </span>Weight::from_ref_time(<span class="number">0u64</span>);
+				<span class="kw">return </span>Weight::from_parts(<span class="number">0u64</span>, <span class="number">0</span>);
 			}
 
 			<span class="kw">let </span>paid_for_round = now.saturating_sub(delay);
@@ -3596,7 +3628,7 @@
 				}
 				result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
 			</span>} <span class="kw">else </span>{
-				Weight::from_ref_time(<span class="number">0u64</span>)
+				Weight::from_parts(<span class="number">0u64</span>, <span class="number">0</span>)
 			}
 		}
 
@@ -3711,7 +3743,7 @@
 			} <span class="kw">else </span>{
 				<span class="comment">// Note that we don&#39;t clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				</span>(RewardPayment::Finished, Weight::from_ref_time(<span class="number">0u64</span>.into()))
+				</span>(RewardPayment::Finished, Weight::from_parts(<span class="number">0u64</span>, <span class="number">0</span>))
 			}
 		}
 

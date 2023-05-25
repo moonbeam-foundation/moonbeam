@@ -62,6 +62,14 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -86,6 +94,11 @@
 <span class="kw">use </span>sp_std::marker::PhantomData;
 <span class="kw">use </span>xcm::latest::MultiAsset;
 
+<span class="comment">// Values copied from statemint benchmarks
+</span><span class="kw">const </span>ASSET_BURN_MAX_PROOF_SIZE: u64 = <span class="number">7242</span>;
+<span class="kw">const </span>ASSET_MINT_MAX_PROOF_SIZE: u64 = <span class="number">7242</span>;
+<span class="kw">const </span>ASSET_TRANSFER_MAX_PROOF_SIZE: u64 = <span class="number">13412</span>;
+
 <span class="doccomment">/// Weights for `pallet_xcm_benchmarks::fungible`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config + pallet_erc20_xcm_bridge::Config&gt; WeightInfo&lt;T&gt; {
@@ -93,37 +106,41 @@
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
 		} <span class="kw">else </span>{
-			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+			Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_BURN_MAX_PROOF_SIZE)
 		}
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
 		} <span class="kw">else </span>{
-			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+			Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_reserve_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer()
 		} <span class="kw">else </span>{
-			Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+			Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>receive_teleported_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		<span class="comment">// Instruction disabled
+		</span>Weight::MAX
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deposit_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_MINT_MAX_PROOF_SIZE)
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deposit_reserve_asset() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_MINT_MAX_PROOF_SIZE)
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initiate_teleport() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		<span class="comment">// Instruction disabled
+		</span>Weight::MAX
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reserve_asset_deposited() -&gt; Weight {
-		Weight::from_ref_time(<span class="number">200_000_000 </span><span class="kw">as </span>u64)
+		<span class="comment">// This instruction is a no-op for PoV (no storage access)
+		</span>Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, <span class="number">0</span>)
 	}
-}</code></pre></div>
+}
+</code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_xcm_benchmarks" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

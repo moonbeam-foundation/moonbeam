@@ -594,8 +594,6 @@
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -611,7 +609,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-</span><span class="kw">use </span>futures::{SinkExt, StreamExt};
+</span><span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>jsonrpsee::core::{async_trait, RpcResult};
 <span class="kw">pub use </span>moonbeam_rpc_core_debug::{DebugServer, TraceParams};
 
@@ -669,14 +667,13 @@
 		transaction_hash: H256,
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 	) -&gt; RpcResult&lt;single::TransactionTrace&gt; {
-		<span class="kw">let </span><span class="kw-2">mut </span>requester = <span class="self">self</span>.requester.clone();
+		<span class="kw">let </span>requester = <span class="self">self</span>.requester.clone();
 
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
 		<span class="comment">// Send a message from the rpc handler to the service level task.
 		</span>requester
-			.send(((RequesterInput::Transaction(transaction_hash), params), tx))
-			.<span class="kw">await
-			</span>.map_err(|err| {
+			.unbounded_send(((RequesterInput::Transaction(transaction_hash), params), tx))
+			.map_err(|err| {
 				internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;failed to send request to debug service : {:?}&quot;</span>,
 					err
@@ -697,14 +694,13 @@
 		id: RequestBlockId,
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 	) -&gt; RpcResult&lt;Vec&lt;single::TransactionTrace&gt;&gt; {
-		<span class="kw">let </span><span class="kw-2">mut </span>requester = <span class="self">self</span>.requester.clone();
+		<span class="kw">let </span>requester = <span class="self">self</span>.requester.clone();
 
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
 		<span class="comment">// Send a message from the rpc handler to the service level task.
 		</span>requester
-			.send(((RequesterInput::Block(id), params), tx))
-			.<span class="kw">await
-			</span>.map_err(|err| {
+			.unbounded_send(((RequesterInput::Block(id), params), tx))
+			.map_err(|err| {
 				internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;failed to send request to debug service : {:?}&quot;</span>,
 					err
@@ -927,7 +923,7 @@
 		};
 
 		<span class="comment">// Get parent blockid.
-		</span><span class="kw">let </span>parent_block_id = BlockId::Hash(<span class="kw-2">*</span>header.parent_hash());
+		</span><span class="kw">let </span>parent_block_hash = <span class="kw-2">*</span>header.parent_hash();
 
 		<span class="kw">let </span>schema = fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), hash);
 
@@ -961,11 +957,11 @@
 
 		<span class="comment">// Trace the block.
 		</span><span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
-			api.initialize_block(<span class="kw-2">&amp;</span>parent_block_id, <span class="kw-2">&amp;</span>header)
+			api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
 				.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>_result = api
-				.trace_block(<span class="kw-2">&amp;</span>parent_block_id, exts, eth_tx_hashes)
+				.trace_block(parent_block_hash, exts, eth_tx_hashes)
 				.map_err(|e| {
 					internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>,
@@ -1058,7 +1054,7 @@
 			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>)),
 		};
 		<span class="comment">// Get parent blockid.
-		</span><span class="kw">let </span>parent_block_id = BlockId::Hash(<span class="kw-2">*</span>header.parent_hash());
+		</span><span class="kw">let </span>parent_block_hash = <span class="kw-2">*</span>header.parent_hash();
 
 		<span class="comment">// Get block extrinsics.
 		</span><span class="kw">let </span>exts = blockchain
@@ -1068,7 +1064,7 @@
 
 		<span class="comment">// Get DebugRuntimeApi version
 		</span><span class="kw">let </span>trace_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
-			api.api_version::&lt;<span class="kw">dyn </span>DebugRuntimeApi&lt;B&gt;&gt;(<span class="kw-2">&amp;</span>parent_block_id)
+			api.api_version::&lt;<span class="kw">dyn </span>DebugRuntimeApi&lt;B&gt;&gt;(parent_block_hash)
 		{
 			api_version
 		} <span class="kw">else </span>{
@@ -1097,12 +1093,12 @@
 			<span class="kw">let </span>transactions = block.transactions;
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transactions.get(index) {
 				<span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
-					api.initialize_block(<span class="kw-2">&amp;</span>parent_block_id, <span class="kw-2">&amp;</span>header)
+					api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
 						.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
 					<span class="kw">if </span>trace_api_version &gt;= <span class="number">4 </span>{
 						<span class="kw">let </span>_result = api
-							.trace_transaction(<span class="kw-2">&amp;</span>parent_block_id, exts, <span class="kw-2">&amp;</span>transaction)
+							.trace_transaction(parent_block_hash, exts, <span class="kw-2">&amp;</span>transaction)
 							.map_err(|e| {
 								internal_err(<span class="macro">format!</span>(
 									<span class="string">&quot;Runtime api access error (version {:?}): {:?}&quot;</span>,
@@ -1116,7 +1112,7 @@
 							ethereum::TransactionV2::Legacy(tx) =&gt;
 							{
 								<span class="attr">#[allow(deprecated)]
-								</span>api.trace_transaction_before_version_4(<span class="kw-2">&amp;</span>parent_block_id, exts, <span class="kw-2">&amp;</span>tx)
+								</span>api.trace_transaction_before_version_4(parent_block_hash, exts, <span class="kw-2">&amp;</span>tx)
 									.map_err(|e| {
 										internal_err(<span class="macro">format!</span>(
 											<span class="string">&quot;Runtime api access error (legacy): {:?}&quot;</span>,

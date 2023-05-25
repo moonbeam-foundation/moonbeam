@@ -2,38 +2,38 @@
     // Provided methods
     fn <a href="#method.get_last_vrf_output" class="fn">get_last_vrf_output</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Block::Hash&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.get_last_vrf_output_with_context" class="fn">get_last_vrf_output_with_context</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         context: ExecutionContext
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Block::Hash&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.vrf_key_lookup" class="fn">vrf_key_lookup</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         nimbus_id: NimbusId
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="type.VrfId.html" title="type session_keys_primitives::vrf::VrfId">VrfId</a>&gt;, ApiError&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.vrf_key_lookup_with_context" class="fn">vrf_key_lookup_with_context</a>(
         &amp;self,
-        __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+        __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
         context: ExecutionContext,
         nimbus_id: NimbusId
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="type.VrfId.html" title="type session_keys_primitives::vrf::VrfId">VrfId</a>&gt;, ApiError&gt; { ... }
 }</code></pre><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><section id="method.get_last_vrf_output" class="method"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><h4 class="code-header">fn <a href="#method.get_last_vrf_output" class="fn">get_last_vrf_output</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Block::Hash&gt;, ApiError&gt;</h4></section><section id="method.get_last_vrf_output_with_context" class="method"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><h4 class="code-header">fn <a href="#method.get_last_vrf_output_with_context" class="fn">get_last_vrf_output_with_context</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     context: ExecutionContext
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Block::Hash&gt;, ApiError&gt;</h4></section><section id="method.vrf_key_lookup" class="method"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><h4 class="code-header">fn <a href="#method.vrf_key_lookup" class="fn">vrf_key_lookup</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     nimbus_id: NimbusId
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="type.VrfId.html" title="type session_keys_primitives::vrf::VrfId">VrfId</a>&gt;, ApiError&gt;</h4></section><section id="method.vrf_key_lookup_with_context" class="method"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><h4 class="code-header">fn <a href="#method.vrf_key_lookup_with_context" class="fn">vrf_key_lookup_with_context</a>(
     &amp;self,
-    __runtime_api_at_param__: &amp;BlockId&lt;Block&gt;,
+    __runtime_api_at_param__: &lt;Block as BlockT&gt;::Hash,
     context: ExecutionContext,
     nimbus_id: NimbusId
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.69.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.69.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="type.VrfId.html" title="type session_keys_primitives::vrf::VrfId">VrfId</a>&gt;, ApiError&gt;</h4></section></div><h2 id="trait-implementations" class="small-section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-RuntimeApiInfo-for-dyn+VrfApi%3CBlock%3E" class="impl"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><a href="#impl-RuntimeApiInfo-for-dyn+VrfApi%3CBlock%3E" class="anchor">§</a><h3 class="code-header">impl&lt;Block: BlockT&gt; RuntimeApiInfo for dyn <a class="trait" href="trait.VrfApi.html" title="trait session_keys_primitives::vrf::VrfApi">VrfApi</a>&lt;Block&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.ID" class="associatedconstant trait-impl"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><a href="#associatedconstant.ID" class="anchor">§</a><h4 class="code-header">const <a class="constant">ID</a>: [<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u8.html">u8</a>; <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.array.html">8</a>] = _</h4></section></summary><div class='docblock'>The identifier of the runtime api.</div></details><details class="toggle" open><summary><section id="associatedconstant.VERSION" class="associatedconstant trait-impl"><a class="srclink rightside" href="../../src/session_keys_primitives/vrf.rs.html#85-90">source</a><a href="#associatedconstant.VERSION" class="anchor">§</a><h4 class="code-header">const <a class="constant">VERSION</a>: <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.u32.html">u32</a> = 1u32</h4></section></summary><div class='docblock'>The version of the runtime api.</div></details></div></details></div><h2 id="implementors" class="small-section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../implementors/session_keys_primitives/vrf/trait.VrfApi.js" async></script></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="session_keys_primitives" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
