@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.31.0"
+version = "0.31.1"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -52,7 +52,9 @@ moonriver-runtime = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true, features = [ "std" ] }
 pallet-transaction-payment = { workspace = true, features = [ "std" ] }
 pallet-transaction-payment-rpc = { workspace = true }
-pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [ "std" ] }
+pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
+	"std",
+] }
 parity-scale-codec = { workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
@@ -60,12 +62,13 @@ sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
 sc-client-db = { workspace = true }
 sc-consensus = { workspace = true }
+sc-consensus-grandpa = { workspace = true }
 sc-consensus-manual-seal = { workspace = true }
 sc-executor = { workspace = true }
-sc-finality-grandpa = { workspace = true }
 sc-informant = { workspace = true }
 sc-network = { workspace = true }
 sc-network-common = { workspace = true }
+sc-network-sync = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
@@ -101,7 +104,10 @@ fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
 fp-rpc = { workspace = true, features = [ "std" ] }
 fp-storage = { workspace = true, features = [ "std" ] }
-pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
+pallet-ethereum = { workspace = true, features = [
+	"forbid-evm-reentrancy",
+	"std",
+] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
@@ -138,6 +144,7 @@ nix = { workspace = true }
 prometheus = { workspace = true }
 rand = { workspace = true }
 sc-block-builder = { workspace = true }
+tempfile = { workspace = true }
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { workspace = true }
@@ -161,15 +168,24 @@ default = [
 	"westend-native",
 ]
 
-kusama-native = [ "polkadot-cli/kusama-native", "polkadot-service/kusama-native" ]
-rococo-native = [ "polkadot-cli/rococo-native", "polkadot-service/rococo-native" ]
-westend-native = [ "polkadot-cli/westend-native", "polkadot-service/westend-native" ]
+kusama-native = [
+	"polkadot-cli/kusama-native",
+	"polkadot-service/kusama-native",
+]
+rococo-native = [
+	"polkadot-cli/rococo-native",
+	"polkadot-service/rococo-native",
+]
+westend-native = [
+	"polkadot-cli/westend-native",
+	"polkadot-service/westend-native",
+]
 
 moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = []
+test-spec = [  ]
 
 runtime-benchmarks = [
 	"moonbase-native",
@@ -181,10 +197,7 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 ]
 
-try-runtime = [
-	"moonbase-runtime",
-	"moonbase-runtime/try-runtime",
-]
+try-runtime = [ "moonbase-runtime", "moonbase-runtime/try-runtime" ]
 
 moonbase-runtime-benchmarks = [
 	"moonbase-native",

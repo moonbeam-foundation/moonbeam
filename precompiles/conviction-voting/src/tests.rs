@@ -18,7 +18,7 @@ use crate::{
 	SELECTOR_LOG_VOTED, SELECTOR_LOG_VOTE_REMOVED, SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 	SELECTOR_LOG_VOTE_REMOVED_OTHER, SELECTOR_LOG_VOTE_SPLIT, SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 };
-use precompile_utils::{prelude::*, testing::*, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -47,27 +47,10 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["ConvictionVoting.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(
+		&["ConvictionVoting.sol"],
+		PCall::supports_selector,
+	)
 }
 
 fn standard_vote(
@@ -139,12 +122,12 @@ fn standard_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.write::<bool>(true) // vote
-							.write::<U256>(100_000.into()) // amount
-							.write::<u8>(0) // conviction
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // caller,
+							true,                  // vote
+							U256::from(100_000),   // amount
+							0u8,                   // conviction
+						)),
 					),
 				}
 				.into(),
@@ -153,12 +136,12 @@ fn standard_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.write::<bool>(false) // vote
-							.write::<U256>(99_000.into()) // amount
-							.write::<u8>(1) // conviction
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // caller
+							false,                 // vote,
+							U256::from(99_000),    // amount
+							1u8,                   // conviction
+						)),
 					),
 				}
 				.into(),
@@ -197,11 +180,11 @@ fn split_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_SPLIT,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.write::<U256>(20_000.into()) // aye vote
-							.write::<U256>(30_000.into()) // nay vote
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // caller
+							U256::from(20_000),    // aye vote
+							U256::from(30_000),    // nay vote
+						)),
 					),
 				}
 				.into(),
@@ -210,12 +193,12 @@ fn split_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_SPLIT_ABSTAINED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.write::<U256>(20_000.into()) // aye vote
-							.write::<U256>(20_000.into()) // nay vote
-							.write::<U256>(10_000.into()) // abstain vote
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // caller,
+							U256::from(20_000),    // aye vote
+							U256::from(20_000),    // nay vote
+							U256::from(10_000),    // abstain vote
+						)),
 					),
 				}
 				.into(),
@@ -254,9 +237,7 @@ fn remove_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_REMOVED,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.build(),
+						solidity::encode_event_data(Address(Alice.into())) // caller
 					),
 				}
 				.into()
@@ -288,10 +269,10 @@ fn remove_vote_for_track_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<u16>(0u16)
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.build(),
+						solidity::encode_event_data((
+							0u16,
+							Address(Alice.into()) // caller
+						))
 					),
 				}
 				.into()
@@ -324,11 +305,11 @@ fn remove_other_vote_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_VOTE_REMOVED_OTHER,
 						H256::from_low_u64_be(ONGOING_POLL_INDEX as u64),
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.write::<Address>(H160::from(Alice).into()) // target
-							.write::<u16>(0u16) // track id
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // caller
+							Address(Alice.into()), // target
+							0u16,                  // track id
+						))
 					),
 				}
 				.into()
@@ -359,12 +340,12 @@ fn delegate_undelegate_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_DELEGATED,
 						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // from
-							.write::<Address>(H160::from(Bob).into()) // to
-							.write::<U256>(100_000.into()) // amount
-							.write::<u8>(0u8) // conviction
-							.build(),
+						solidity::encode_event_data((
+							Address(Alice.into()), // from
+							Address(Bob.into()),   // to
+							U256::from(100_000),   // amount
+							0u8                    // conviction
+						))
 					),
 				}
 				.into()
@@ -380,10 +361,8 @@ fn delegate_undelegate_logs_work() {
 					log: log2(
 						Precompile1,
 						SELECTOR_LOG_UNDELEGATED,
-						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.build(),
+						H256::from_low_u64_be(0 as u64),                    // track id
+						solidity::encode_event_data(Address(Alice.into()))  // caller
 					),
 				}
 				.into()
@@ -422,9 +401,7 @@ fn unlock_logs_work() {
 						Precompile1,
 						SELECTOR_LOG_UNLOCKED,
 						H256::from_low_u64_be(0 as u64), // track id
-						EvmDataWriter::new()
-							.write::<Address>(H160::from(Alice).into()) // caller
-							.build(),
+						solidity::encode_event_data(Address(Alice.into()))
 					),
 				}
 				.into()
@@ -451,7 +428,7 @@ fn test_voting_for_returns_correct_value_for_standard_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -498,7 +475,7 @@ fn test_voting_for_returns_correct_value_for_split_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -546,7 +523,7 @@ fn test_voting_for_returns_correct_value_for_split_abstain_vote() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(crate::OutputVotingFor {
+				.execute_returns(crate::OutputVotingFor {
 					is_casting: true,
 					casting: crate::OutputCasting {
 						votes: vec![crate::PollAccountVote {
@@ -590,7 +567,7 @@ fn test_class_locks_for_returns_correct_value() {
 					},
 				)
 				.expect_no_logs()
-				.execute_returns_encoded(vec![crate::OutputClassLock {
+				.execute_returns(vec![crate::OutputClassLock {
 					track: 0u16,
 					amount: U256::from(100_000),
 				}]);

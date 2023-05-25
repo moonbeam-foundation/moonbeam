@@ -98,7 +98,7 @@ fn transfer_self_reserve_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -145,7 +145,54 @@ fn transfer_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
+				sender: Alice.into(),
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
+				dest: destination,
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_to_reserve_with_unlimited_weight_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}),
+			);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::transfer {
+						currency_address: Address(AssetAccount(0u128).into()),
+						amount: 500.into(),
+						destination: destination.clone(),
+						weight: u64::MAX,
+					},
+				)
+				.expect_cost(3000)
+				.expect_no_logs()
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -194,7 +241,7 @@ fn transfer_to_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -249,7 +296,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -298,7 +345,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -353,7 +400,7 @@ fn transfer_multi_asset_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset),
@@ -401,7 +448,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve),
@@ -449,7 +496,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve.clone()),
@@ -503,7 +550,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location),
@@ -554,7 +601,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location.clone()),
@@ -608,7 +655,7 @@ fn transfer_multi_currencies() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected_asset_1: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -685,7 +732,7 @@ fn transfer_multi_assets() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.execute_returns(vec![]);
+				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice.into(),
@@ -841,27 +888,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Xtokens.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Xtokens.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -873,7 +900,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
 		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 	] {
-		let selector = solidity::compute_selector(deprecated_function);
+		let selector = compute_selector(deprecated_function);
 		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",

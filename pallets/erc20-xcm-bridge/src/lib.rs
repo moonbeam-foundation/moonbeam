@@ -66,8 +66,9 @@ pub mod pallet {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn weight_of_erc20_transfer() -> Weight {
-			Weight::from_ref_time(
+			Weight::from_parts(
 				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
+				0,
 			)
 		}
 		fn erc20_transfer(

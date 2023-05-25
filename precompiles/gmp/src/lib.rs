@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle};
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -27,7 +27,7 @@ use frame_support::{
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit;
-use precompile_utils::prelude::*;
+use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
@@ -68,7 +68,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -78,11 +78,13 @@ where
 		log::debug!(target: "gmp-precompile", "wormhole_vaa: {:?}", wormhole_vaa.clone());
 
 		// tally up gas cost:
+		// 1 read for enabled flag
 		// 2 reads for contract addresses
 		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
-		let initial_gas = 2500 + 2 * RuntimeHelper::<Runtime>::db_read_gas_cost();
-		log::warn!("initial_gas: {:?}", initial_gas);
+		let initial_gas = 2500 + 3 * RuntimeHelper::<Runtime>::db_read_gas_cost();
 		handle.record_cost(initial_gas)?;
+
+		ensure_enabled()?;
 
 		let wormhole = storage::CoreAddress::get()
 			.ok_or(RevertReason::custom("invalid wormhole core address"))?;
@@ -98,48 +100,45 @@ where
 		let output = Self::call(
 			handle,
 			wormhole,
-			EvmDataWriter::new_with_selector(PARSE_VM_SELECTOR)
-				.write(wormhole_vaa.clone())
-				.build(),
+			solidity::encode_with_selector(PARSE_VM_SELECTOR, wormhole_vaa.clone()),
 		)?;
-		let mut reader = EvmDataReader::new(&output[..]);
-		let wormhole_vm: WormholeVM = reader.read()?;
+		let wormhole_vm: WormholeVM = solidity::decode_return_value(&output[..])?;
 
 		// get the bridge transfer data from the wormhole VM payload
 		let output = Self::call(
 			handle,
 			wormhole_bridge,
-			EvmDataWriter::new_with_selector(PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR)
-				.write(wormhole_vm.payload)
-				.build(),
+			solidity::encode_with_selector(
+				PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR,
+				wormhole_vm.payload,
+			),
 		)?;
-		let mut reader = EvmDataReader::new(&output[..]);
-		let transfer_with_payload: WormholeTransferWithPayloadData = reader.read()?;
+		let transfer_with_payload: WormholeTransferWithPayloadData =
+			solidity::decode_return_value(&output[..])?;
 
 		// get the wrapper for this asset by calling wrappedAsset()
 		// TODO: this should only be done if needed (when token chain == our chain)
 		let output = Self::call(
 			handle,
 			wormhole_bridge,
-			EvmDataWriter::new_with_selector(WRAPPED_ASSET_SELECTOR)
-				.write(transfer_with_payload.token_chain)
-				.write(transfer_with_payload.token_address)
-				.build(),
+			solidity::encode_with_selector(
+				WRAPPED_ASSET_SELECTOR,
+				(
+					transfer_with_payload.token_chain,
+					transfer_with_payload.token_address,
+				),
+			),
 		)?;
-		let mut reader = EvmDataReader::new(&output[..]);
-		let wrapped_address: Address = reader.read()?;
+		let wrapped_address: Address = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_address);
 
 		// query our "before" balance (our being this precompile)
 		let output = Self::call(
 			handle,
 			wrapped_address.into(),
-			EvmDataWriter::new_with_selector(BALANCE_OF_SELECTOR)
-				.write(Address::from(handle.code_address()))
-				.build(),
+			solidity::encode_with_selector(BALANCE_OF_SELECTOR, Address(handle.code_address())),
 		)?;
-		let mut reader = EvmDataReader::new(&output[..]);
-		let before_amount: U256 = reader.read()?;
+		let before_amount: U256 = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "before balance: {}", before_amount);
 
 		// our inner-most payload should be a VersionedUserAction
@@ -162,26 +161,23 @@ where
 		Self::call(
 			handle,
 			wormhole_bridge,
-			EvmDataWriter::new_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR)
-				.write(wormhole_vaa)
-				.build(),
+			solidity::encode_with_selector(COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR, wormhole_vaa),
 		)?;
 
 		// query our "after" balance (our being this precompile)
 		let output = Self::call(
 			handle,
 			wrapped_address.into(),
-			EvmDataWriter::new_with_selector(BALANCE_OF_SELECTOR)
-				.write(Address::from(handle.code_address()))
-				.build(),
+			solidity::encode_with_selector(
+				BALANCE_OF_SELECTOR,
+				Address::from(handle.code_address()),
+			),
 		)?;
-		let mut reader = EvmDataReader::new(&output[..]);
-		let after_amount: U256 = reader.read()?;
+		let after_amount: U256 = solidity::decode_return_value(&output[..])?;
 		log::debug!(target: "gmp-precompile", "after balance: {}", after_amount);
 
 		let amount_transferred = after_amount.saturating_sub(before_amount);
 		let amount = amount_transferred
-			.min(transfer_with_payload.amount)
 			.try_into()
 			.map_err(|_| revert("Amount overflows balance"))?;
 
@@ -248,11 +244,30 @@ fn ensure_exit_reason_success(reason: ExitReason, output: &[u8]) -> EvmResult<()
 	}
 }
 
+pub fn is_enabled() -> bool {
+	match storage::PrecompileEnabled::get() {
+		Some(enabled) => enabled,
+		_ => false,
+	}
+}
+
+fn ensure_enabled() -> EvmResult<()> {
+	if is_enabled() {
+		Ok(())
+	} else {
+		Err(PrecompileFailure::Revert {
+			exit_status: ExitRevert::Reverted,
+			output: revert_as_bytes("GMP Precompile is not enabled"),
+		})
+	}
+}
+
 /// We use pallet storage in our precompile by implementing a StorageInstance for each item we need
 /// to store.
 /// twox_128("gmp") => 0xb7f047395bba5df0367b45771c00de50
 /// twox_128("CoreAddress") => 0x59ff23ff65cc809711800d9d04e4b14c
 /// twox_128("BridgeAddress") => 0xc1586bde54b249fb7f521faf831ade45
+/// twox_128("PrecompileEnabled") => 0x2551bba17abb82ef3498bab688e470b8
 mod storage {
 	use super::*;
 	use frame_support::{
@@ -279,4 +294,15 @@ mod storage {
 		}
 	}
 	pub type BridgeAddress = StorageValue<BridgeAddressStorageInstance, H160, OptionQuery>;
+
+	// storage for precompile enabled
+	// None or Some(false) both mean that the precompile is disabled; only Some(true) means enabled.
+	pub struct PrecompileEnabledStorageInstance;
+	impl StorageInstance for PrecompileEnabledStorageInstance {
+		const STORAGE_PREFIX: &'static str = "PrecompileEnabled";
+		fn pallet_prefix() -> &'static str {
+			"gmp"
+		}
+	}
+	pub type PrecompileEnabled = StorageValue<PrecompileEnabledStorageInstance, bool, OptionQuery>;
 }

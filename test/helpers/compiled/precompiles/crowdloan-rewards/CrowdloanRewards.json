@@ -1,0 +1,126 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [],
+        "name": "claim",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "contributor",
+            "type": "address"
+          }
+        ],
+        "name": "isContributor",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "contributor",
+            "type": "address"
+          }
+        ],
+        "name": "rewardInfo",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "newAddress", "type": "address" }
+        ],
+        "name": "updateRewardAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000801",
+      "details": "The interface through which solidity contracts will interact with Crowdloan Rewards. We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet",
+      "kind": "dev",
+      "methods": {
+        "claim()": {
+          "custom:selector": "4e71d92d",
+          "details": "Claim the vested amount from the crowdloan rewards"
+        },
+        "isContributor(address)": {
+          "custom:selector": "1d0d35f5",
+          "details": "Checks whether the address is a contributor",
+          "params": {
+            "contributor": "the address that we want to confirm is a contributor"
+          },
+          "returns": {
+            "_0": "A boolean confirming whether the address is a contributor"
+          }
+        },
+        "rewardInfo(address)": {
+          "custom:selector": "cbecf6b5",
+          "details": "Retrieve total reward and claimed reward for an address",
+          "params": {
+            "contributor": "the address for which we want to retrieve the information"
+          },
+          "returns": {
+            "_0": "A u256 tuple, reflecting (totalRewards, claimedRewards)"
+          }
+        },
+        "updateRewardAddress(address)": {
+          "custom:selector": "944dd5a2",
+          "details": "Update reward address to receive crowdloan rewards",
+          "params": {
+            "newAddress": ", the newAddress where to receive the rewards from now on"
+          }
+        }
+      },
+      "title": "Pallet Crowdloan Rewards Interface",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "claim()": "4e71d92d",
+        "isContributor(address)": "1d0d35f5",
+        "rewardInfo(address)": "cbecf6b5",
+        "updateRewardAddress(address)": "944dd5a2"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"claim\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contributor\",\"type\":\"address\"}],\"name\":\"isContributor\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contributor\",\"type\":\"address\"}],\"name\":\"rewardInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"updateRewardAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000801\",\"details\":\"The interface through which solidity contracts will interact with Crowdloan Rewards. We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet\",\"kind\":\"dev\",\"methods\":{\"claim()\":{\"custom:selector\":\"4e71d92d\",\"details\":\"Claim the vested amount from the crowdloan rewards\"},\"isContributor(address)\":{\"custom:selector\":\"1d0d35f5\",\"details\":\"Checks whether the address is a contributor\",\"params\":{\"contributor\":\"the address that we want to confirm is a contributor\"},\"returns\":{\"_0\":\"A boolean confirming whether the address is a contributor\"}},\"rewardInfo(address)\":{\"custom:selector\":\"cbecf6b5\",\"details\":\"Retrieve total reward and claimed reward for an address\",\"params\":{\"contributor\":\"the address for which we want to retrieve the information\"},\"returns\":{\"_0\":\"A u256 tuple, reflecting (totalRewards, claimedRewards)\"}},\"updateRewardAddress(address)\":{\"custom:selector\":\"944dd5a2\",\"details\":\"Update reward address to receive crowdloan rewards\",\"params\":{\"newAddress\":\", the newAddress where to receive the rewards from now on\"}}},\"title\":\"Pallet Crowdloan Rewards Interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"CrowdloanInterface.sol\":\"CrowdloanRewards\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"CrowdloanInterface.sol\":{\"keccak256\":\"0x130ad2f9fc3c7b0b84721f87daedcc47ba0e2d89c89648e624efcff49b460752\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://4673238ad5cfd685e8c83845a3791d14c15167785dae0b40b679a4f5d790a890\",\"dweb:/ipfs/QmZNz7rRtddD291RH5ddSBPYgTm7L9ctKHQkqQjT5twTCi\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The CrowdloanRewards contract's address.\naddress constant CROWDLOAN_REWARDS_ADDRESS = 0x0000000000000000000000000000000000000801;\n\n/// @dev The CrowdloanRewards contract's instance.\nCrowdloanRewards constant CROWDLOAN_REWARDS_CONTRACT = CrowdloanRewards(\n    CROWDLOAN_REWARDS_ADDRESS\n);\n\n/// @author The Moonbeam Team\n/// @title Pallet Crowdloan Rewards Interface\n/// @dev The interface through which solidity contracts will interact with Crowdloan Rewards. We\n/// follow this same interface including four-byte function selectors, in the precompile that\n/// wraps the pallet\n/// @custom:address 0x0000000000000000000000000000000000000801\ninterface CrowdloanRewards {\n    // First some simple accessors\n\n    /// @dev Checks whether the address is a contributor\n    /// @param contributor the address that we want to confirm is a contributor\n    /// @return A boolean confirming whether the address is a contributor\n    /// @custom:selector 1d0d35f5\n    function isContributor(address contributor) external view returns (bool);\n\n    /// @dev Retrieve total reward and claimed reward for an address\n    /// @param contributor the address for which we want to retrieve the information\n    /// @return A u256 tuple, reflecting (totalRewards, claimedRewards)\n    /// @custom:selector cbecf6b5\n    function rewardInfo(address contributor)\n        external\n        view\n        returns (uint256, uint256);\n\n    // Now the dispatchables\n\n    /// @dev Claim the vested amount from the crowdloan rewards\n    /// @custom:selector 4e71d92d\n    function claim() external;\n\n    /// @dev Update reward address to receive crowdloan rewards\n    /// @param newAddress, the newAddress where to receive the rewards from now on\n    /// @custom:selector 944dd5a2\n    function updateRewardAddress(address newAddress) external;\n}\n\n// These are the selectors generated by remix following this advice\n// https://ethereum.stackexchange.com/a/73405/9963\n// Eventually we will probably want a better way of generating these and copying them to Rust\n\n//{\n//    \"53440c90\": \"isContributor(address)\"\n//    \"76f70249\": \"rewardInfo(address)\"\n//    \"4e71d92d\": \"claim()\"\n//    \"aaac61d6\": \"updateRewardAddress(address)\"\n//}\n"
+}

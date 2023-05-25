@@ -16,6 +16,8 @@ rlp = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = [ "derive" ] }
 sha3 = { workspace = true, optional = true }
 smallvec = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
@@ -46,6 +48,7 @@ pallet-evm-precompile-balances-erc20 = { workspace = true }
 pallet-evm-precompile-batch = { workspace = true }
 pallet-evm-precompile-call-permit = { workspace = true }
 pallet-evm-precompile-collective = { workspace = true }
+pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
 pallet-evm-precompile-democracy = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
@@ -53,6 +56,7 @@ pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
 pallet-evm-precompile-randomness = { workspace = true }
 pallet-evm-precompile-registry = { workspace = true }
+pallet-evm-precompile-referenda = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
@@ -73,10 +77,13 @@ frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
+pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
+pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-society = { workspace = true }
@@ -85,6 +92,7 @@ pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
+pallet-whitelist = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive", "max-encoded-len" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-api = { workspace = true }
@@ -195,6 +203,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-base-fee/std",
 	"pallet-collective/std",
+	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
 	"pallet-ethereum-chain-id/std",
@@ -204,8 +213,11 @@ std = [
 	"pallet-evm-precompile-batch/std",
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
+	"pallet-evm-precompile-conviction-voting/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-preimage/std",
 	"pallet-evm-precompile-randomness/std",
+	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
@@ -216,11 +228,13 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
+	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness/std",
+	"pallet-referenda/std",
 	"pallet-root-testing/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
@@ -229,6 +243,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-utility/std",
+	"pallet-whitelist/std",
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
@@ -248,15 +263,16 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm/std",
- ]
+]
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = []
+runtime-wasm = [  ]
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
@@ -278,6 +294,7 @@ runtime-benchmarks = [
 	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
+	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
@@ -285,8 +302,10 @@ runtime-benchmarks = [
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
+	"pallet-referenda/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-whitelist/runtime-benchmarks",
 	"pallet-xcm-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
@@ -306,14 +325,17 @@ try-runtime = [
 	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
+	"pallet-conviction-voting/try-runtime",
 	"pallet-democracy/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
+	"pallet-referenda/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
+	"pallet-whitelist/try-runtime",
 ]

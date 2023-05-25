@@ -24,7 +24,7 @@ use frame_support::{
 	traits::Get,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::{data::String, prelude::*};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
@@ -70,7 +70,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
+	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	#[precompile::public("transfer(address,uint256,(uint8,bytes[]),uint64)")]
@@ -94,11 +94,17 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -137,12 +143,18 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer_with_fee {
 			currency_id,
 			amount,
 			fee,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -164,13 +176,19 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
 			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(to_balance),
 			})),
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -200,6 +218,12 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
 			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset.clone()),
@@ -210,7 +234,7 @@ where
 				fun: Fungibility::Fungible(fee),
 			})),
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -260,11 +284,17 @@ where
 			})
 			.collect::<EvmResult<_>>()?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
 			currencies,
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -309,11 +339,17 @@ where
 					.in_field("assets")
 			})?;
 
+		let dest_weight_limit = if weight == u64::MAX {
+			WeightLimit::Unlimited
+		} else {
+			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
+		};
+
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
 			assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V3(destination)),
-			dest_weight_limit: WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE)),
+			dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -323,7 +359,7 @@ where
 }
 
 // Currency
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct Currency {
 	address: Address,
 	amount: U256,
@@ -338,7 +374,7 @@ impl From<(Address, U256)> for Currency {
 	}
 }
 
-#[derive(EvmData)]
+#[derive(solidity::Codec)]
 pub struct EvmMultiAsset {
 	location: MultiLocation,
 	amount: U256,

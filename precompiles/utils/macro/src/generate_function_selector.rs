@@ -45,20 +45,20 @@ pub fn main(_: TokenStream, input: TokenStream) -> TokenStream {
 					variant_attrs.push(variant.attrs);
 				} else {
 					return quote_spanned! {
-						lit.span() => compile_error("Expected literal string");
+						lit.span() => compile_error!("Expected literal string");
 					}
 					.into();
 				}
 			}
 			Some((_eg, expr)) => {
 				return quote_spanned! {
-					expr.span() => compile_error("Expected literal");
+					expr.span() => compile_error!("Expected literal");
 				}
 				.into()
 			}
 			None => {
 				return quote_spanned! {
-					variant.span() => compile_error("Each variant must have a discriminant");
+					variant.span() => compile_error!("Each variant must have a discriminant");
 				}
 				.into()
 			}

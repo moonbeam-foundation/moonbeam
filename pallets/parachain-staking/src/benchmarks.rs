@@ -30,7 +30,7 @@ use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
 fn min_candidate_stk<T: Config>() -> BalanceOf<T> {
-	<<T as Config>::MinCollatorStk as Get<BalanceOf<T>>>::get()
+	<<T as Config>::MinCandidateStk as Get<BalanceOf<T>>>::get()
 }
 
 /// Minimum delegator stake
@@ -251,7 +251,7 @@ benchmarks! {
 		candidate_count += 1u32;
 	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
 	verify {
-		assert!(Pallet::<T>::candidate_info(&caller).unwrap().is_leaving());
+		assert!(Pallet::<T>::candidate_info(&caller).expect("must exist").is_leaving());
 	}
 
 	execute_leave_candidates {
@@ -343,7 +343,7 @@ benchmarks! {
 		candidate_count -= 1u32;
 	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
 	verify {
-		assert!(Pallet::<T>::candidate_info(&caller).unwrap().is_active());
+		assert!(Pallet::<T>::candidate_info(&caller).expect("must exist").is_active());
 	}
 
 	go_offline {
@@ -356,7 +356,7 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(!Pallet::<T>::candidate_info(&caller).unwrap().is_active());
+		assert!(!Pallet::<T>::candidate_info(&caller).expect("must exist").is_active());
 	}
 
 	go_online {
@@ -370,7 +370,7 @@ benchmarks! {
 		Pallet::<T>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(Pallet::<T>::candidate_info(&caller).unwrap().is_active());
+		assert!(Pallet::<T>::candidate_info(&caller).expect("must exist").is_active());
 	}
 
 	candidate_bond_more {
@@ -457,7 +457,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::candidate_info(&caller).unwrap().request.is_none()
+			Pallet::<T>::candidate_info(&caller).expect("must exist").request.is_none()
 		);
 	}
 
@@ -614,7 +614,7 @@ benchmarks! {
 		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into())?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_active());
+		assert!(Pallet::<T>::delegator_state(&caller).expect("must exist").is_active());
 	}
 
 	schedule_revoke_delegation {
@@ -957,7 +957,7 @@ benchmarks! {
 			}
 		}
 
-	}: { Some(Pallet::<T>::select_top_candidates(1)); }
+	}: { Pallet::<T>::select_top_candidates(1); }
 	verify {
 	}
 
@@ -1123,7 +1123,7 @@ benchmarks! {
 			auto_compounding_state.set_for_delegator(
 				delegator,
 				Percent::from_percent(100),
-			);
+			).expect("must succeed");
 		}
 		auto_compounding_state.set_storage(&prime_candidate);
 

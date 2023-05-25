@@ -4,8 +4,93 @@
   "defaultTestTimeout": 30000,
   "environments": [
     {
+      "name": "zombie_moonbeam_ci",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbeam*"],
+      "foundation": {
+        "rtUpgradePath": "./tmp/moonbeam_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeamCI.json"
+        }
+      }
+    },
+    {
+      "name": "zombie_moonbeam",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbeam*"],
+      "foundation": {
+        "rtUpgradePath": "tmp/moonbeam-runtime-latest.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeam.json"
+        }
+      }
+    },
+    {
+      "name": "zombie_moonbase_ci",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbase*"],
+      "foundation": {
+        "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanetCI.json"
+        }
+      }
+    },
+    {
+      "name": "zombie_moonbase",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanet.json"
+        }
+      }
+    },
+    {
+      "name": "zombie_common",
+      "testFileDir": ["suites/para"],
+      "include": ["**/*common*"],
+      "foundation": {
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeam.json"
+        }
+      }
+    },
+    {
+      "name": "smoke_stagenet",
+      "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
+      "foundation": {
+        "type": "read_only"
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["wss://wss.api.moondev.network"]
+        },
+        {
+          "name": "para",
+          "type": "moon",
+          "endpoints": ["wss://wss.api.moondev.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://frag-stagenet-relay-rpc-ws.g.moondev.network"]
+        }
+      ]
+    },
+    {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -16,15 +101,21 @@
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://kusama-rpc.polkadot.io"]
         }
       ]
     },
     {
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -35,15 +126,21 @@
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.api.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": ["wss://rpc.polkadot.io"]
         }
       ]
     },
     {
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
+      "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
       },
@@ -54,9 +151,16 @@
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
-          "name": "PolkadotJs",
+          "name": "para",
           "type": "moon",
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": [
+            "wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network"
+          ]
         }
       ]
     },

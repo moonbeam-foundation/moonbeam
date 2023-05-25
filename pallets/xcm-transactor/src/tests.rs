@@ -1104,6 +1104,173 @@ fn test_hrmp_manipulator_init() {
 }
 
 #[test]
+fn test_hrmp_manipulator_init_v2_convert_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight: Weight = 10_100u64.into();
+			let tx_weight: Weight = 100_u64.into();
+			let total_fee = 100u128;
+
+			// Change xcm version
+			CustomVersionWrapper::set_version(2);
+
+			assert_ok!(XcmTransactor::hrmp_manage(
+				RuntimeOrigin::root(),
+				HrmpOperation::InitOpen(HrmpInitParams {
+					para_id: 1u32.into(),
+					proposed_max_capacity: 1,
+					proposed_max_message_size: 1
+				}),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				TransactWeights {
+					transact_required_weight_at_most: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_kind: OriginKind::Native,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8, 0u8].into(),
+			}));
+
+			// Check message contains the new appendix
+			assert!(sent_message.0.contains(&SetAppendix(Xcm(vec![
+				RefundSurplus,
+				DepositAsset {
+					assets: Wild(AllCounted(1)),
+					beneficiary: MultiLocation {
+						parents: 0,
+						interior: X1(Junction::Parachain(100))
+					}
+				}
+			]))));
+		})
+}
+
+#[test]
+fn test_hrmp_manipulator_init_v3_convert_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight: Weight = 10_100u64.into();
+			let tx_weight: Weight = 100_u64.into();
+			let total_fee = 100u128;
+
+			// Change xcm version
+			CustomVersionWrapper::set_version(3);
+
+			assert_ok!(XcmTransactor::hrmp_manage(
+				RuntimeOrigin::root(),
+				HrmpOperation::InitOpen(HrmpInitParams {
+					para_id: 1u32.into(),
+					proposed_max_capacity: 1,
+					proposed_max_message_size: 1
+				}),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				TransactWeights {
+					transact_required_weight_at_most: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_kind: OriginKind::Native,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8, 0u8].into(),
+			}));
+
+			// Check message contains the new appendix
+			assert!(sent_message.0.contains(&SetAppendix(Xcm(vec![
+				RefundSurplus,
+				DepositAsset {
+					assets: Wild(AllCounted(1)),
+					beneficiary: MultiLocation {
+						parents: 0,
+						interior: X1(Junction::Parachain(100))
+					}
+				}
+			]))));
+		})
+}
+
+#[test]
+fn test_hrmp_manipulator_init_v4_convert_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight: Weight = 10_100u64.into();
+			let tx_weight: Weight = 100_u64.into();
+			let total_fee = 100u128;
+
+			// Change xcm version
+			CustomVersionWrapper::set_version(4);
+
+			assert_noop!(
+				XcmTransactor::hrmp_manage(
+					RuntimeOrigin::root(),
+					HrmpOperation::InitOpen(HrmpInitParams {
+						para_id: 1u32.into(),
+						proposed_max_capacity: 1,
+						proposed_max_message_size: 1
+					}),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
+						)),
+						fee_amount: Some(total_fee)
+					},
+					TransactWeights {
+						transact_required_weight_at_most: tx_weight,
+						overall_weight: Some(total_weight)
+					}
+				),
+				Error::<Test>::ErrorValidating
+			);
+		})
+}
+
+#[test]
 fn test_hrmp_max_fee_errors() {
 	ExtBuilder::default()
 		.with_balances(vec![])
@@ -1283,86 +1450,4 @@ fn test_hrmp_manipulator_close() {
 				call: vec![1u8, 2u8].into(),
 			}));
 		})
-}
-
-#[test]
-fn xcm_v2_to_v3_transact_info_with_weight_limit_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		use frame_support::{migration::put_storage_value, Blake2_128Concat, StorageHasher};
-		let pallet_prefix: &[u8] = b"XcmTransactor";
-		let storage_item_prefix: &[u8] = b"TransactInfoWithWeightLimit";
-		use frame_support::traits::OnRuntimeUpgrade;
-		use parity_scale_codec::Encode;
-
-		let para_id = mock::ParachainId::get();
-
-		let old_multilocation = xcm::v2::MultiLocation {
-			parents: 1,
-			interior: xcm::v2::Junctions::X2(
-				xcm::v2::Junction::Parachain(para_id.into()),
-				xcm::v2::Junction::GeneralIndex(1),
-			),
-		};
-
-		let old_value = crate::migrations::OldRemoteTransactInfoWithMaxWeight {
-			transact_extra_weight: 10u64,
-			max_weight: 10u64,
-			transact_extra_weight_signed: Some(10u64),
-		};
-
-		let expected_value: crate::RemoteTransactInfoWithMaxWeight = old_value.clone().into();
-
-		put_storage_value(
-			pallet_prefix,
-			storage_item_prefix,
-			&Blake2_128Concat::hash(&old_multilocation.encode()),
-			old_value,
-		);
-
-		crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
-
-		let new_expected_multilocation: MultiLocation = old_multilocation
-			.try_into()
-			.expect("convert xcm v2 into v3");
-		let new_value: crate::RemoteTransactInfoWithMaxWeight =
-			XcmTransactor::transact_info(new_expected_multilocation).expect("migrated to xcm v3");
-		assert!(new_value == expected_value);
-	});
-}
-
-#[test]
-fn xcm_v2_to_v3_destination_asset_fee_per_second_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		use frame_support::{migration::put_storage_value, StorageHasher, Twox64Concat};
-		let pallet_prefix: &[u8] = b"XcmTransactor";
-		let storage_item_prefix: &[u8] = b"DestinationAssetFeePerSecond";
-		use frame_support::traits::OnRuntimeUpgrade;
-		use parity_scale_codec::Encode;
-
-		let para_id = mock::ParachainId::get();
-
-		let old_multilocation = xcm::v2::MultiLocation {
-			parents: 1,
-			interior: xcm::v2::Junctions::X2(
-				xcm::v2::Junction::Parachain(para_id.into()),
-				xcm::v2::Junction::GeneralIndex(1),
-			),
-		};
-
-		put_storage_value(
-			pallet_prefix,
-			storage_item_prefix,
-			&Twox64Concat::hash(&old_multilocation.encode()),
-			7u128,
-		);
-
-		crate::migrations::XcmV2ToV3XcmTransactor::<Test>::on_runtime_upgrade();
-
-		let new_expected_multilocation: MultiLocation = old_multilocation
-			.try_into()
-			.expect("convert xcm v2 into v3");
-		let new_value: u128 = XcmTransactor::dest_asset_fee_per_second(new_expected_multilocation)
-			.expect("migrated to xcm v3");
-		assert!(new_value == 7u128);
-	});
 }

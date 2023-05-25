@@ -1,32 +1,33 @@
 import "@moonbeam-network/api-augment";
-import { BN } from "@polkadot/util";
-import { expect } from "chai";
-import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
-import { extractWeight, getBlockArray } from "../util/block";
-import { WEIGHT_PER_GAS } from "../util/constants";
+import { GenericExtrinsic } from "@polkadot/types";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { AnyTuple } from "@polkadot/types/types";
+import { expect } from "chai";
+import { extractWeight, getBlockArray } from "../util/block";
+import { rateLimiter } from "../util/common";
+import { WEIGHT_PER_GAS } from "../util/constants";
+import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:weights");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 
 interface BlockInfo {
   blockNum: number;
   hash: string;
   weights: {
-    normal: BN;
-    operational: BN;
-    mandatory: BN;
+    normal: bigint;
+    operational: bigint;
+    mandatory: bigint;
   };
-  extrinsics;
+  extrinsics: GenericExtrinsic<AnyTuple>[];
   events: FrameSystemEventRecord[];
 }
 
 interface BlockLimits {
-  normal: BN;
-  operational: BN;
+  normal: bigint;
+  operational: bigint;
 }
 
 describeSmokeSuite(
@@ -40,7 +41,7 @@ describeSmokeSuite(
 
     before("Retrieve all weight limits and usage", async function () {
       this.timeout(timeout);
-      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
+      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod);
       const limits = context.polkadotApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {
@@ -58,9 +59,9 @@ describeSmokeSuite(
             blockNum,
             hash: blockHash.toString(),
             weights: {
-              normal: extractWeight(normal),
-              operational: extractWeight(operational),
-              mandatory: extractWeight(mandatory),
+              normal: extractWeight(normal).toBigInt(),
+              operational: extractWeight(operational).toBigInt(),
+              mandatory: extractWeight(mandatory).toBigInt(),
             },
             events,
             extrinsics,
@@ -70,8 +71,8 @@ describeSmokeSuite(
 
       // Support for weight v1 and weight v2.
       blockLimits = {
-        normal: extractWeight(limits.perClass.normal.maxTotal).toBn(),
-        operational: extractWeight(limits.perClass.operational.maxTotal).toBn(),
+        normal: extractWeight(limits.perClass.normal.maxTotal).toBigInt(),
+        operational: extractWeight(limits.perClass.operational.maxTotal).toBigInt(),
       };
       blockInfoArray = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
@@ -94,7 +95,7 @@ describeSmokeSuite(
       `normal usage should be less than normal dispatch class limits`,
       async function () {
         const overweight = blockInfoArray
-          .filter((a) => a.weights.normal.gt(blockLimits.normal))
+          .filter((a) => a.weights.normal > blockLimits.normal)
           .map((a) => {
             debug(
               `Block #${a.blockNum} has weight ${Number(a.weights.normal)} which is above limit!`
@@ -116,7 +117,7 @@ describeSmokeSuite(
       `operational usage should be less than dispatch class limits`,
       async function () {
         const overweight = blockInfoArray
-          .filter((a) => a.weights.operational.gt(blockLimits.operational))
+          .filter((a) => a.weights.operational > blockLimits.operational)
           .map((a) => {
             debug(
               `Block #${a.blockNum} has weight ${Number(
@@ -156,22 +157,35 @@ describeSmokeSuite(
         const checkBlockWeight = async (blockInfo: BlockInfo) => {
           const apiAt = await context.polkadotApi.at(blockInfo.hash);
 
-          const normalWeight = Number(blockInfo.weights.normal);
+          const normalWeight = blockInfo.weights.normal;
           const maxWeight = blockLimits.normal;
           const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
+          const balTxns = blockInfo.extrinsics
+            .map((ext, index) =>
+              ext.method.method == "transfer" && ext.method.section == "balances" ? index : -1
+            )
+            .filter((a) => a != -1);
+          const balTxnWeights = blockInfo.events
+            .map((event) =>
+              context.polkadotApi.events.system.ExtrinsicSuccess.is(event.event) &&
+              event.phase.isApplyExtrinsic &&
+              balTxns.includes(event.phase.asApplyExtrinsic.toNumber())
+                ? event.event.data.dispatchInfo.weight.refTime.toBigInt()
+                : 0n
+            )
+            .reduce((acc, curr) => acc + curr, 0n);
+          const actualWeightUsed = (normalWeight * 100n) / maxWeight;
 
-          const actualWeightUsed = normalWeight / Number(maxWeight);
-          if (actualWeightUsed > 0.2) {
+          if (actualWeightUsed > 20n) {
             const gasUsed = ethBlock.header.gasUsed.toBigInt();
             const weightCalc = gasUsed * WEIGHT_PER_GAS;
-            const newRatio = (normalWeight - Number(weightCalc)) / Number(maxWeight);
-            if (newRatio > 0.2) {
+            const newRatio = ((normalWeight - weightCalc - balTxnWeights) * 100n) / maxWeight;
+
+            if (newRatio > 20n) {
               debug(
-                `Block #${blockInfo.blockNum} is ${(actualWeightUsed * 100).toFixed(
-                  2
-                )}% full with ${
-                  ethBlock.transactions.length
-                } transactions, non-transaction weight: ${(newRatio * 100).toFixed(2)}%`
+                `Block #${blockInfo.blockNum} is ${actualWeightUsed}% full with ` +
+                  ethBlock.transactions.length +
+                  ` transactions, non-transaction weight: ${newRatio}%`
               );
             }
             return { blockNum: blockInfo.blockNum, nonTxn: newRatio };
@@ -181,7 +195,7 @@ describeSmokeSuite(
         const results = await Promise.all(
           blockInfoArray.map((blockInfo) => limiter.schedule(() => checkBlockWeight(blockInfo)))
         );
-        const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 0.2);
+        const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 20n);
         expect(
           nonTxnHeavyBlocks,
           `These blocks have non-txn weights >20%, please investigate: ${nonTxnHeavyBlocks

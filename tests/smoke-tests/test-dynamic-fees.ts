@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
-import Bottleneck from "bottleneck";
+import { rateLimiter } from "../util/common";
 import { BigNumber, ethers } from "ethers";
 import { GenericExtrinsic, u256 } from "@polkadot/types";
 import {
@@ -27,7 +27,7 @@ import { BN_MILLION } from "@polkadot/util";
 const debug = require("debug")("smoke:dynamic-fees");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 const hours = (timePeriod / (1000 * 60 * 60)).toFixed(2);
 const atBlock = process.env.AT_BLOCK ? Number(process.env.AT_BLOCK) : -1;
 
@@ -125,7 +125,7 @@ describeSmokeSuite(
       }
 
       const blockNumArray =
-        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotApi, timePeriod, limiter);
+        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotApi, timePeriod);
 
       debug(`Collecting ${hours} hours worth of block data`);
 

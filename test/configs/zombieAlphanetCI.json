@@ -1,0 +1,51 @@
+{
+  "settings": {
+    "timeout": 1000,
+    "provider": "native"
+  },
+  "relaychain": {
+    "chain": "rococo-local",
+    "default_command": "tmp/polkadot",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb",
+      "--wasm-execution=interpreted-i-know-what-i-do"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "validator": true
+      },
+      {
+        "name": "bob",
+        "validator": true
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "chain": "moonbase-local",
+      "chain_spec_path": "tmp/moonbase-plain-spec.json",
+      "id": 1000,
+      "collator": {
+        "name": "alith",
+        "args": [
+          "--log=info,evm=trace,ethereum=trace,pallet_parachain_staking=error,cumulus-consensus=trace,cumulus-collator=trace,parachain::collator_protocol=trace,parachain::candidate-selection=trace,parachain::collation_generation=trace,parachain::filtering=trace",
+          "--state-pruning=archive",
+          "--execution=wasm",
+          "--no-hardware-benchmarks",
+          "--wasm-execution=interpreted-i-know-what-i-do"
+        ],
+        "command": "tmp/moonbeam"
+      }
+    }
+  ],
+  "types": {
+    "Header": {
+      "number": "u64",
+      "parent_hash": "Hash",
+      "post_state": "Hash"
+    }
+  }
+}

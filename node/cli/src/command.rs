@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cumulus_client_cli::generate_genesis_block;
+use cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
@@ -37,6 +37,11 @@ use sc_service::{
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
+
+#[cfg(feature = "try-runtime")]
+use try_runtime_cli::block_building_info::substrate_info;
+#[cfg(feature = "try-runtime")]
+const SLOT_DURATION: u64 = 12;
 
 fn load_spec(
 	id: &str,
@@ -195,16 +200,6 @@ impl SubstrateCli for RelayChainCli {
 	}
 }
 
-#[allow(clippy::borrowed_box)]
-fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<Vec<u8>> {
-	let mut storage = chain_spec.build_storage()?;
-
-	storage
-		.top
-		.remove(sp_core::storage::well_known_keys::CODE)
-		.ok_or_else(|| "Could not find wasm file in genesis state!".into())
-}
-
 fn validate_trace_environment(cli: &Cli) -> Result<()> {
 	if (cli.run.ethapi.contains(&EthApi::Debug) || cli.run.ethapi.contains(&EthApi::Trace))
 		&& cli
@@ -309,9 +304,8 @@ pub fn run() -> Result<()> {
 				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
 				// we need to extract it here to determine whether we are running the dev service.
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service =
-					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service");
 
 				// Remove Frontier offchain db
 				let frontier_database_config = match config.database {
@@ -401,7 +395,7 @@ pub fn run() -> Result<()> {
 
 			// Cumulus approach here, we directly call the generic load_spec func
 			let chain_spec = load_spec(
-				&params.chain.clone().unwrap_or_default(),
+				params.chain.as_deref().unwrap_or_default(),
 				params.parachain_id.unwrap_or(1000).into(),
 				&cli.run,
 			)?;
@@ -461,8 +455,9 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let raw_wasm_blob =
-				extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
+			let raw_wasm_blob = extract_genesis_wasm(
+				&*cli.load_spec(params.chain.as_deref().unwrap_or_default())?,
+			)?;
 			let output_buf = if params.raw {
 				raw_wasm_blob
 			} else {
@@ -646,6 +641,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonriver_runtime::Block,
@@ -653,7 +649,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonriverExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -666,6 +662,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonbeam_runtime::Block,
@@ -673,7 +670,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonbeamExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -689,6 +686,7 @@ pub fn run() -> Result<()> {
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})?;
 
+						let info_provider = substrate_info(SLOT_DURATION);
 						Ok((
 							cmd.run::<
 								moonbeam_service::moonbase_runtime::Block,
@@ -696,7 +694,7 @@ pub fn run() -> Result<()> {
 									sp_io::SubstrateHostFunctions,
 									<moonbeam_service::MoonbaseExecutor
 										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-							>>(),
+							>, _>(Some(info_provider)),
 							task_manager,
 						))
 					})
@@ -745,15 +743,14 @@ pub fn run() -> Result<()> {
 				// 1. by providing the --dev-service flag to the CLI
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
 				let dev_service =
-					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service".to_string());
+					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service");
 
 				if dev_service {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
-
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
 					));
@@ -764,18 +761,21 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
