@@ -106,8 +106,8 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
-pub mod relay_indices;
 pub mod governance;
+pub mod relay_indices;
 pub mod xcm_config;
 use governance::councils::*;
 
