@@ -114,7 +114,7 @@ pub type PCall = CollectivePrecompileCall<Runtime, pallet_collective::Instance1>
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -202,6 +202,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type SetMembersOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles

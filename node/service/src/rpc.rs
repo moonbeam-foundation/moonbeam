@@ -43,12 +43,13 @@ use sc_client_api::{
 };
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_network::NetworkService;
+use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
 use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::TransactionPool;
-use sp_api::{HeaderT, ProvideRuntimeApi};
+use sp_api::{CallApiAt, HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
@@ -78,6 +79,18 @@ impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
 	}
 }
 
+pub struct MoonbeamEthConfig<C, BE>(std::marker::PhantomData<(C, BE)>);
+
+impl<C, BE> fc_rpc::EthConfig<Block, C> for MoonbeamEthConfig<C, BE>
+where
+	C: sc_client_api::StorageProvider<Block, BE> + Sync + Send + 'static,
+	BE: Backend<Block> + 'static,
+{
+	type EstimateGasAdapter = MoonbeamEGA;
+	type RuntimeStorageOverride =
+		fc_rpc::frontier_backend_client::SystemAccountId20StorageOverride<Block, C, BE>;
+}
+
 /// Full client dependencies.
 pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The client instance to use.
@@ -92,6 +105,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub is_authority: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
+	/// Chain syncing service
+	pub sync: Arc<SyncingService<Block>>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
@@ -162,6 +177,7 @@ where
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
 	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+	C: CallApiAt<Block>,
 	C: Send + Sync + 'static,
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
@@ -187,6 +203,7 @@ where
 		deny_unsafe,
 		is_authority,
 		network,
+		sync,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
@@ -223,7 +240,7 @@ where
 			Arc::clone(&pool),
 			graph.clone(),
 			convert_transaction,
-			Arc::clone(&network),
+			Arc::clone(&sync),
 			signers,
 			Arc::clone(&overrides),
 			Arc::clone(&frontier_backend),
@@ -233,7 +250,7 @@ where
 			fee_history_limit,
 			10,
 		)
-		.with_estimate_gas_adapter::<MoonbeamEGA>()
+		.replace_config::<MoonbeamEthConfig<C, BE>>()
 		.into_rpc(),
 	)?;
 
@@ -266,7 +283,7 @@ where
 		EthPubSub::new(
 			pool,
 			Arc::clone(&client),
-			network,
+			sync.clone(),
 			subscription_task_executor,
 			overrides,
 		)
@@ -351,6 +368,7 @@ where
 			Duration::new(6, 0),
 			params.client.clone(),
 			params.substrate_backend.clone(),
+			params.overrides.clone(),
 			params.frontier_backend.clone(),
 			3,
 			0,

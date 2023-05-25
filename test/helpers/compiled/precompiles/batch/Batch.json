@@ -1,0 +1,151 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "SubcallFailed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "SubcallSucceeded",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address[]", "name": "to", "type": "address[]" },
+          { "internalType": "uint256[]", "name": "value", "type": "uint256[]" },
+          { "internalType": "bytes[]", "name": "callData", "type": "bytes[]" },
+          { "internalType": "uint64[]", "name": "gasLimit", "type": "uint64[]" }
+        ],
+        "name": "batchAll",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address[]", "name": "to", "type": "address[]" },
+          { "internalType": "uint256[]", "name": "value", "type": "uint256[]" },
+          { "internalType": "bytes[]", "name": "callData", "type": "bytes[]" },
+          { "internalType": "uint64[]", "name": "gasLimit", "type": "uint64[]" }
+        ],
+        "name": "batchSome",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address[]", "name": "to", "type": "address[]" },
+          { "internalType": "uint256[]", "name": "value", "type": "uint256[]" },
+          { "internalType": "bytes[]", "name": "callData", "type": "bytes[]" },
+          { "internalType": "uint64[]", "name": "gasLimit", "type": "uint64[]" }
+        ],
+        "name": "batchSomeUntilFailure",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000808",
+      "details": "Allows to perform multiple calls throught one call to the precompile. Can be used by EOA to do multiple calls in a single transaction.",
+      "kind": "dev",
+      "methods": {
+        "batchAll(address[],uint256[],bytes[],uint64[])": {
+          "custom:selector": "96e292b8",
+          "details": "Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting, the entire batch will revert.",
+          "params": {
+            "callData": "Call data for each `to` address. If array is shorter than \"to\" then additional calls will be performed with an empty call data.",
+            "gasLimit": "Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \"to\" then the remaining gas available will be used.",
+            "to": "List of addresses to call.",
+            "value": "List of values for each subcall. If array is shorter than \"to\" then additional calls will be performed with a value of 0."
+          }
+        },
+        "batchSome(address[],uint256[],bytes[],uint64[])": {
+          "custom:selector": "79df4b9c",
+          "details": "Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting following subcalls will still be attempted.",
+          "params": {
+            "callData": "Call data for each `to` address. If array is shorter than \"to\" then additional calls will be performed with an empty call data.",
+            "gasLimit": "Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \"to\" then the remaining gas available will be used.",
+            "to": "List of addresses to call.",
+            "value": "List of values for each subcall. If array is shorter than \"to\" then additional calls will be performed with a value of 0."
+          }
+        },
+        "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])": {
+          "custom:selector": "cf0491c7",
+          "details": "Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting, no more subcalls will be executed but the batch transaction will succeed. Use batchAll to revert on any subcall revert.",
+          "params": {
+            "callData": "Call data for each `to` address. If array is shorter than \"to\" then additional calls will be performed with an empty call data.",
+            "gasLimit": "Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \"to\" then the remaining gas available will be used.",
+            "to": "List of addresses to call.",
+            "value": "List of values for each subcall. If array is shorter than \"to\" then additional calls will be performed with a value of 0."
+          }
+        }
+      },
+      "title": "Batch precompile",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "batchAll(address[],uint256[],bytes[],uint64[])": "96e292b8",
+        "batchSome(address[],uint256[],bytes[],uint64[])": "79df4b9c",
+        "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])": "cf0491c7"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"SubcallFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"SubcallSucceeded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"value\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"callData\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64[]\",\"name\":\"gasLimit\",\"type\":\"uint64[]\"}],\"name\":\"batchAll\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"value\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"callData\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64[]\",\"name\":\"gasLimit\",\"type\":\"uint64[]\"}],\"name\":\"batchSome\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"to\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"value\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"callData\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64[]\",\"name\":\"gasLimit\",\"type\":\"uint64[]\"}],\"name\":\"batchSomeUntilFailure\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000808\",\"details\":\"Allows to perform multiple calls throught one call to the precompile. Can be used by EOA to do multiple calls in a single transaction.\",\"kind\":\"dev\",\"methods\":{\"batchAll(address[],uint256[],bytes[],uint64[])\":{\"custom:selector\":\"96e292b8\",\"details\":\"Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting, the entire batch will revert.\",\"params\":{\"callData\":\"Call data for each `to` address. If array is shorter than \\\"to\\\" then additional calls will be performed with an empty call data.\",\"gasLimit\":\"Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \\\"to\\\" then the remaining gas available will be used.\",\"to\":\"List of addresses to call.\",\"value\":\"List of values for each subcall. If array is shorter than \\\"to\\\" then additional calls will be performed with a value of 0.\"}},\"batchSome(address[],uint256[],bytes[],uint64[])\":{\"custom:selector\":\"79df4b9c\",\"details\":\"Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting following subcalls will still be attempted.\",\"params\":{\"callData\":\"Call data for each `to` address. If array is shorter than \\\"to\\\" then additional calls will be performed with an empty call data.\",\"gasLimit\":\"Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \\\"to\\\" then the remaining gas available will be used.\",\"to\":\"List of addresses to call.\",\"value\":\"List of values for each subcall. If array is shorter than \\\"to\\\" then additional calls will be performed with a value of 0.\"}},\"batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])\":{\"custom:selector\":\"cf0491c7\",\"details\":\"Batch multiple calls into a single transaction. All calls are performed from the address calling this precompile. In case of one subcall reverting, no more subcalls will be executed but the batch transaction will succeed. Use batchAll to revert on any subcall revert.\",\"params\":{\"callData\":\"Call data for each `to` address. If array is shorter than \\\"to\\\" then additional calls will be performed with an empty call data.\",\"gasLimit\":\"Gas limit for each `to` address. Use 0 to forward all the remaining gas. If array is shorter than \\\"to\\\" then the remaining gas available will be used.\",\"to\":\"List of addresses to call.\",\"value\":\"List of values for each subcall. If array is shorter than \\\"to\\\" then additional calls will be performed with a value of 0.\"}}},\"title\":\"Batch precompile\",\"version\":1},\"userdoc\":{\"events\":{\"SubcallFailed(uint256)\":{\"notice\":\"Emitted when a subcall fails.\"},\"SubcallSucceeded(uint256)\":{\"notice\":\"Emitted when a subcall succeeds.\"}},\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Batch.sol\":\"Batch\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Batch.sol\":{\"keccak256\":\"0x121d58f9b8e1788c58df4280eb7c7f030f4c77b05797091935b8e7d645ee9f21\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://eb041c547faf1abb531b35adbd72d965e2d97f4f060c726e40b383d9b077a7b2\",\"dweb:/ipfs/QmPmwXQPQ4qXLjUp5TMDzLxSAyiCuS28A3u1qBEPKQemw4\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "events": {
+        "SubcallFailed(uint256)": { "notice": "Emitted when a subcall fails." },
+        "SubcallSucceeded(uint256)": {
+          "notice": "Emitted when a subcall succeeds."
+        }
+      },
+      "kind": "user",
+      "methods": {},
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Batch contract's address.\naddress constant BATCH_ADDRESS = 0x0000000000000000000000000000000000000808;\n\n/// @dev The Batch contract's instance.\nBatch constant BATCH_CONTRACT = Batch(BATCH_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Batch precompile\n/// @dev Allows to perform multiple calls throught one call to the precompile.\n/// Can be used by EOA to do multiple calls in a single transaction.\n/// @custom:address 0x0000000000000000000000000000000000000808\ninterface Batch {\n    /// @dev Batch multiple calls into a single transaction.\n    /// All calls are performed from the address calling this precompile.\n    ///\n    /// In case of one subcall reverting following subcalls will still be attempted.\n    ///\n    /// @param to List of addresses to call.\n    /// @param value List of values for each subcall. If array is shorter than \"to\" then additional\n    /// calls will be performed with a value of 0.\n    /// @param callData Call data for each `to` address. If array is shorter than \"to\" then\n    /// additional calls will be performed with an empty call data.\n    /// @param gasLimit Gas limit for each `to` address. Use 0 to forward all the remaining gas.\n    /// If array is shorter than \"to\" then the remaining gas available will be used.\n    /// @custom:selector 79df4b9c\n    function batchSome(\n        address[] memory to,\n        uint256[] memory value,\n        bytes[] memory callData,\n        uint64[] memory gasLimit\n    ) external;\n\n    /// @dev Batch multiple calls into a single transaction.\n    /// All calls are performed from the address calling this precompile.\n    ///\n    /// In case of one subcall reverting, no more subcalls will be executed but\n    /// the batch transaction will succeed. Use batchAll to revert on any subcall revert.\n    ///\n    /// @param to List of addresses to call.\n    /// @param value List of values for each subcall. If array is shorter than \"to\" then additional\n    /// calls will be performed with a value of 0.\n    /// @param callData Call data for each `to` address. If array is shorter than \"to\" then\n    /// additional calls will be performed with an empty call data.\n    /// @param gasLimit Gas limit for each `to` address. Use 0 to forward all the remaining gas.\n    /// If array is shorter than \"to\" then the remaining gas available will be used.\n    /// @custom:selector cf0491c7\n    function batchSomeUntilFailure(\n        address[] memory to,\n        uint256[] memory value,\n        bytes[] memory callData,\n        uint64[] memory gasLimit\n    ) external;\n\n    /// @dev Batch multiple calls into a single transaction.\n    /// All calls are performed from the address calling this precompile.\n    ///\n    /// In case of one subcall reverting, the entire batch will revert.\n    ///\n    /// @param to List of addresses to call.\n    /// @param value List of values for each subcall. If array is shorter than \"to\" then additional\n    /// calls will be performed with a value of 0.\n    /// @param callData Call data for each `to` address. If array is shorter than \"to\" then\n    /// additional calls will be performed with an empty call data.\n    /// @param gasLimit Gas limit for each `to` address. Use 0 to forward all the remaining gas.\n    /// If array is shorter than \"to\" then the remaining gas available will be used.\n    /// @custom:selector 96e292b8\n    function batchAll(\n        address[] memory to,\n        uint256[] memory value,\n        bytes[] memory callData,\n        uint64[] memory gasLimit\n    ) external;\n\n    /// Emitted when a subcall succeeds.\n    event SubcallSucceeded(uint256 index);\n\n    /// Emitted when a subcall fails.\n    event SubcallFailed(uint256 index);\n}\n"
+}

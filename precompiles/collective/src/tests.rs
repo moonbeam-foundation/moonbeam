@@ -18,8 +18,8 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
-use frame_support::{assert_ok, dispatch::Encode};
-use precompile_utils::{data::Address, testing::*};
+use frame_support::{assert_ok, dispatch::Encode, instances::Instance1};
+use precompile_utils::{solidity::codec::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
 
@@ -29,27 +29,7 @@ fn precompiles() -> Precompiles<Runtime> {
 
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["Collective.sol"] {
-		for solidity_fn in solidity::get_selectors(file) {
-			assert_eq!(
-				solidity_fn.compute_selector_hex(),
-				solidity_fn.docs_selector,
-				"documented selector for '{}' did not match for file '{}'",
-				solidity_fn.signature(),
-				file,
-			);
-
-			let selector = solidity_fn.compute_selector();
-			if !PCall::supports_selector(selector) {
-				panic!(
-					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-					selector,
-					solidity_fn.signature(),
-					file,
-				)
-			}
-		}
-	}
+	check_precompile_implements_solidity_interfaces(&["Collective.sol"], PCall::supports_selector)
 }
 
 #[test]
@@ -229,7 +209,7 @@ fn member_can_make_instant_proposal() {
 				},
 			)
 			.expect_log(log_executed(Precompile1, proposal_hash))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Executed {
 			proposal_hash,
@@ -260,7 +240,7 @@ fn member_can_make_delayed_proposal() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Proposed {
 			account: Bob.into(),
@@ -293,7 +273,7 @@ fn member_can_vote_on_proposal() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -306,7 +286,7 @@ fn member_can_vote_on_proposal() {
 				},
 			)
 			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, true))
-			.execute_returns(vec![]);
+			.execute_returns(());
 
 		assert_event_emitted!(pallet_collective::Event::Voted {
 			account: Charlie.into(),
@@ -341,7 +321,7 @@ fn cannot_close_if_not_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -381,7 +361,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -394,7 +374,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_voted(Precompile1, Bob, proposal_hash, true))
-			.execute_returns(vec![]);
+			.execute_returns(());
 
 		precompiles()
 			.prepare_test(
@@ -407,7 +387,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, true))
-			.execute_returns(vec![]);
+			.execute_returns(());
 
 		precompiles()
 			.prepare_test(
@@ -421,7 +401,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_executed(Precompile1, proposal_hash))
-			.execute_returns_encoded(true);
+			.execute_returns(true);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -469,7 +449,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -482,7 +462,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_voted(Precompile1, Bob, proposal_hash, false))
-			.execute_returns(vec![]);
+			.execute_returns(());
 
 		precompiles()
 			.prepare_test(
@@ -495,7 +475,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_voted(Precompile1, Charlie, proposal_hash, false))
-			.execute_returns(vec![]);
+			.execute_returns(());
 
 		precompiles()
 			.prepare_test(
@@ -509,7 +489,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_closed(Precompile1, proposal_hash))
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -543,7 +523,7 @@ fn multiple_propose_increase_index() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
-			.execute_returns_encoded(0u32);
+			.execute_returns(0u32);
 
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 2,
@@ -563,7 +543,7 @@ fn multiple_propose_increase_index() {
 				},
 			)
 			.expect_log(log_proposed(Precompile1, Bob, 1, proposal_hash, 2))
-			.execute_returns_encoded(1u32);
+			.execute_returns(1u32);
 	});
 }
 
@@ -573,7 +553,7 @@ fn view_members() {
 		precompiles()
 			.prepare_test(Bob, Precompile1, PCall::members {})
 			.expect_no_logs()
-			.execute_returns_encoded(vec![Address(Bob.into()), Address(Charlie.into())]);
+			.execute_returns(vec![Address(Bob.into()), Address(Charlie.into())]);
 	});
 }
 
@@ -583,7 +563,7 @@ fn view_no_prime() {
 		precompiles()
 			.prepare_test(Bob, Precompile1, PCall::prime {})
 			.expect_no_logs()
-			.execute_returns_encoded(Address(H160::zero()));
+			.execute_returns(Address(H160::zero()));
 	});
 }
 
@@ -603,7 +583,7 @@ fn view_some_prime() {
 		precompiles()
 			.prepare_test(Bob, Precompile1, PCall::prime {})
 			.expect_no_logs()
-			.execute_returns_encoded(Address(Alice.into()));
+			.execute_returns(Address(Alice.into()));
 	});
 }
 
@@ -619,7 +599,7 @@ fn view_is_member() {
 				},
 			)
 			.expect_no_logs()
-			.execute_returns_encoded(true);
+			.execute_returns(true);
 
 		precompiles()
 			.prepare_test(
@@ -630,6 +610,75 @@ fn view_is_member() {
 				},
 			)
 			.expect_no_logs()
-			.execute_returns_encoded(false);
+			.execute_returns(false);
 	});
+}
+
+mod bounded_proposal_decode {
+	use super::*;
+	use crate::GetProposalLimit;
+	use precompile_utils::prelude::BoundedBytes;
+
+	fn scenario<F>(nesting: usize, call: F)
+	where
+		F: FnOnce(BoundedBytes<GetProposalLimit>) -> PCall,
+	{
+		ExtBuilder::default().build().execute_with(|| {
+			// Some random call.
+			let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
+				new_members: Vec::new(),
+				prime: None,
+				old_count: 0,
+			};
+
+			// Nest it.
+			for _ in 0..nesting {
+				proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
+					threshold: 10,
+					proposal: Box::new(proposal.into()),
+					length_bound: 1,
+				};
+			}
+
+			let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
+			let proposal = proposal.encode();
+
+			precompiles()
+				.prepare_test(Alice, Precompile1, call(proposal.into()))
+				.expect_no_logs()
+				.execute_reverts(|output| {
+					if nesting < 8 {
+						output.ends_with(b"NotMember\") })")
+					} else {
+						output == b"proposal: Failed to decode proposal"
+					}
+				});
+		});
+	}
+
+	#[test]
+	fn proposal_above_bound() {
+		scenario(8, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
+
+	#[test]
+	fn proposal_below_bound() {
+		scenario(7, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
+
+	#[test]
+	fn execute_above_bound() {
+		scenario(8, |proposal| PCall::execute { proposal });
+	}
+
+	#[test]
+	fn execute_below_bound() {
+		scenario(7, |proposal| PCall::execute { proposal });
+	}
 }

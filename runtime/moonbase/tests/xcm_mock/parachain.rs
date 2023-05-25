@@ -40,6 +40,7 @@ use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use orml_traits::parameter_type_with_key;
+use pallet_ethereum::PostLogContent;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
@@ -390,6 +391,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -512,7 +514,6 @@ pub mod mock_msg_queue {
 	impl<T: Config> Pallet<T> {}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -652,7 +653,6 @@ pub mod mock_version_changer {
 	impl<T: Config> Pallet<T> {}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -917,7 +917,7 @@ use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -1010,13 +1010,40 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
-impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+pub struct MockHrmpEncoder;
+impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
+	fn hrmp_encode_call(
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		match call {
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
+			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+			}
+			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
+			}
+		}
+	}
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
+impl pallet_ethereum::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
+}
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 0);
 }
 
 #[derive(

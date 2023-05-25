@@ -846,7 +846,8 @@ pub mod pallet {
 			);
 
 			// The appendix instruction will be a deposit back to a self location
-			let deposit_appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
+			let deposit_appendix =
+				Self::deposit_instruction(T::SelfLocation::get(), &destination, 1u32)?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				destination,
@@ -1246,13 +1247,14 @@ pub mod pallet {
 		fn deposit_instruction(
 			mut beneficiary: MultiLocation,
 			at: &MultiLocation,
+			max_assets: u32,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 			Ok(DepositAsset {
-				assets: Wild(All),
+				assets: Wild(AllCounted(max_assets)),
 				beneficiary,
 			})
 		}

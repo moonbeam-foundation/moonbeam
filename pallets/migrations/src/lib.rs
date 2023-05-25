@@ -248,10 +248,7 @@ pub mod pallet {
 				// left for us by pre_upgrade()
 
 				match state_map.get(&migration_name.to_string()) {
-					Some(value) => assert!(
-						true == value.clone(),
-						"our dummy value might as well be true"
-					),
+					Some(value) => assert!(value.clone(), "our dummy value might as well be true"),
 					None => continue,
 				}
 

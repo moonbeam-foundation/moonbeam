@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees, LocalAssets,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
+	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -29,7 +29,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	dispatch::Weight,
 	parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess},
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
 
 use frame_system::EnsureRoot;
@@ -51,7 +51,6 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	DEFAULT_PROOF_SIZE,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -63,6 +62,8 @@ use sp_std::{
 };
 
 use orml_traits::parameter_type_with_key;
+
+use crate::governance::referenda::GeneralAdminOrRoot;
 
 parameter_types! {
 	// The network Id of the relay
@@ -199,7 +200,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
+	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, 0);
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -250,7 +251,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
-	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
 pub struct XcmExecutorConfig;
@@ -296,6 +297,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type AssetIsBurnable = Everything;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -456,7 +458,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
+	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, 0);
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset
@@ -546,11 +548,14 @@ impl XcmTransact for Transactors {
 	}
 }
 
+pub type DerivativeAddressRegistrationOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
-	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
+	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
@@ -564,7 +569,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
-	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }
 

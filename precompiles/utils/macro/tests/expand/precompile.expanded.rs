@@ -12,14 +12,7 @@ where
 {
     fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(&["pre_check"], &[]),
-                    ),
-                ],
-            ),
+            format_args!("not yet implemented: {0}", format_args!("pre_check")),
         )
     }
     fn batch_some(
@@ -30,14 +23,7 @@ where
         gas_limit: BoundedVec<u64, GetArrayLimit>,
     ) -> EvmResult {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(&["batch_some"], &[]),
-                    ),
-                ],
-            ),
+            format_args!("not yet implemented: {0}", format_args!("batch_some")),
         )
     }
     fn batch_some_until_failure(
@@ -48,16 +34,8 @@ where
         gas_limit: BoundedVec<u64, GetArrayLimit>,
     ) -> EvmResult {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(
-                            &["batch_some_until_failure"],
-                            &[],
-                        ),
-                    ),
-                ],
+            format_args!(
+                "not yet implemented: {0}", format_args!("batch_some_until_failure")
             ),
         )
     }
@@ -69,26 +47,12 @@ where
         gas_limit: BoundedVec<u64, GetArrayLimit>,
     ) -> EvmResult {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(&["batch_all"], &[]),
-                    ),
-                ],
-            ),
+            format_args!("not yet implemented: {0}", format_args!("batch_all")),
         )
     }
     fn fallback(handle: &mut impl PrecompileHandle) -> EvmResult {
         ::core::panicking::panic_fmt(
-            ::core::fmt::Arguments::new_v1(
-                &["not yet implemented: "],
-                &[
-                    ::core::fmt::ArgumentV1::new_display(
-                        &::core::fmt::Arguments::new_v1(&["fallback"], &[]),
-                    ),
-                ],
-            ),
+            format_args!("not yet implemented: {0}", format_args!("fallback")),
         )
     }
 }
@@ -126,7 +90,7 @@ where
     pub fn parse_call_data(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::RevertReason;
+        use ::precompile_utils::solidity::revert::RevertReason;
         let input = handle.input();
         let selector = input
             .get(0..4)
@@ -145,9 +109,9 @@ where
     fn _parse_batch_all(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -161,9 +125,9 @@ where
     fn _parse_batch_some(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -177,9 +141,9 @@ where
     fn _parse_batch_some_until_failure(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         let mut input = handle.read_after_selector()?;
         input.expect_arguments(4usize)?;
@@ -193,9 +157,9 @@ where
     fn _parse_fallback(
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<Self> {
-        use ::precompile_utils::revert::InjectBacktrace;
-        use ::precompile_utils::modifier::FunctionModifier;
-        use ::precompile_utils::handle::PrecompileHandleExt;
+        use ::precompile_utils::solidity::revert::InjectBacktrace;
+        use ::precompile_utils::solidity::modifier::FunctionModifier;
+        use ::precompile_utils::evm::handle::PrecompileHandleExt;
         handle.check_function_modifier(FunctionModifier::NonPayable)?;
         Ok(Self::fallback {})
     }
@@ -203,41 +167,34 @@ where
         self,
         handle: &mut impl PrecompileHandle,
     ) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
-        use ::precompile_utils::data::EvmDataWriter;
+        use ::precompile_utils::solidity::codec::Writer;
         use ::fp_evm::{PrecompileOutput, ExitSucceed};
         let output = match self {
             Self::batch_all { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_all(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
-                use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<
                     Runtime,
                 >>::batch_some_until_failure(handle, to, value, call_data, gas_limit);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::fallback {} => {
-                use ::precompile_utils::EvmDataWriter;
                 let output = <BatchPrecompile<Runtime>>::fallback(handle);
-                ::precompile_utils::data::encode_as_function_return_value(output?)
+                ::precompile_utils::solidity::encode_return_value(output?)
             }
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
-                    ::core::fmt::Arguments::new_v1(
-                        &["__phantom variant should not be used"],
-                        &[],
-                    ),
+                    format_args!("__phantom variant should not be used"),
                 )
             }
         };
@@ -270,10 +227,10 @@ where
         &[]
     }
     pub fn encode(self) -> ::sp_std::vec::Vec<u8> {
-        use ::precompile_utils::EvmDataWriter;
+        use ::precompile_utils::solidity::codec::Writer;
         match self {
             Self::batch_all { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(2531431096u32)
+                Writer::new_with_selector(2531431096u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -281,7 +238,7 @@ where
                     .build()
             }
             Self::batch_some { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(2044677020u32)
+                Writer::new_with_selector(2044677020u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -289,7 +246,7 @@ where
                     .build()
             }
             Self::batch_some_until_failure { to, value, call_data, gas_limit } => {
-                EvmDataWriter::new_with_selector(3473183175u32)
+                Writer::new_with_selector(3473183175u32)
                     .write(to)
                     .write(value)
                     .write(call_data)
@@ -299,10 +256,7 @@ where
             Self::fallback {} => Default::default(),
             Self::__phantom(_, _) => {
                 ::core::panicking::panic_fmt(
-                    ::core::fmt::Arguments::new_v1(
-                        &["__phantom variant should not be used"],
-                        &[],
-                    ),
+                    format_args!("__phantom variant should not be used"),
                 )
             }
         }
@@ -329,7 +283,7 @@ where
 }
 #[allow(non_snake_case)]
 pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
-    use ::precompile_utils::data::EvmData;
+    use ::precompile_utils::solidity::Codec;
     match (
         &"(address[],uint256[],bytes[],uint64[])",
         &<(
@@ -337,7 +291,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -347,12 +301,9 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
                     &*left_val,
                     &*right_val,
                     ::core::option::Option::Some(
-                        ::core::fmt::Arguments::new_v1(
-                            &[
-                                "",
-                                " function signature doesn\'t match (left: attribute, right: computed from Rust types)",
-                            ],
-                            &[::core::fmt::ArgumentV1::new_display(&"batch_all")],
+                        format_args!(
+                            "{0} function signature doesn\'t match (left: attribute, right: computed from Rust types)",
+                            "batch_all"
                         ),
                     ),
                 );
@@ -366,7 +317,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -376,12 +327,9 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
                     &*left_val,
                     &*right_val,
                     ::core::option::Option::Some(
-                        ::core::fmt::Arguments::new_v1(
-                            &[
-                                "",
-                                " function signature doesn\'t match (left: attribute, right: computed from Rust types)",
-                            ],
-                            &[::core::fmt::ArgumentV1::new_display(&"batch_some")],
+                        format_args!(
+                            "{0} function signature doesn\'t match (left: attribute, right: computed from Rust types)",
+                            "batch_some"
                         ),
                     ),
                 );
@@ -395,7 +343,7 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
             BoundedVec<U256, GetArrayLimit>,
             BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
             BoundedVec<u64, GetArrayLimit>,
-        ) as EvmData>::solidity_type(),
+        ) as Codec>::signature(),
     ) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
@@ -405,23 +353,16 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
                     &*left_val,
                     &*right_val,
                     ::core::option::Option::Some(
-                        ::core::fmt::Arguments::new_v1(
-                            &[
-                                "",
-                                " function signature doesn\'t match (left: attribute, right: computed from Rust types)",
-                            ],
-                            &[
-                                ::core::fmt::ArgumentV1::new_display(
-                                    &"batch_some_until_failure",
-                                ),
-                            ],
+                        format_args!(
+                            "{0} function signature doesn\'t match (left: attribute, right: computed from Rust types)",
+                            "batch_some_until_failure"
                         ),
                     ),
                 );
             }
         }
     };
-    match (&"()", &<() as EvmData>::solidity_type()) {
+    match (&"()", &<() as Codec>::signature()) {
         (left_val, right_val) => {
             if !(*left_val == *right_val) {
                 let kind = ::core::panicking::AssertKind::Eq;
@@ -430,12 +371,9 @@ pub(crate) fn __BatchPrecompile_test_solidity_signatures_inner() {
                     &*left_val,
                     &*right_val,
                     ::core::option::Option::Some(
-                        ::core::fmt::Arguments::new_v1(
-                            &[
-                                "",
-                                " function signature doesn\'t match (left: attribute, right: computed from Rust types)",
-                            ],
-                            &[::core::fmt::ArgumentV1::new_display(&"fallback")],
+                        format_args!(
+                            "{0} function signature doesn\'t match (left: attribute, right: computed from Rust types)",
+                            "fallback"
                         ),
                     ),
                 );

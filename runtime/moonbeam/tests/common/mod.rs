@@ -28,9 +28,9 @@ pub use moonbeam_runtime::{
 	currency::{GIGAWEI, GLMR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, FixedGasPrice, InflationInfo, LocalAssets, ParachainStaking, Range,
-	Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter, UncheckedExtrinsic, HOURS,
-	WEEKS,
+	Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking, Range, Runtime,
+	RuntimeCall, RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice,
+	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
@@ -42,9 +42,9 @@ use fp_rpc::ConvertTransaction;
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
-	"f8648085174876e8008252089412cb274aad8251c875c0bf6872b67d9983e53fdd01801ba05deb036\
-	17e9c2d82e0f4e897ef8fbb01c91244abfc4bd9c3206bc87f9fc71a01a0719f146637fe2b462ccae80\
-	e462ecefa560635d933257ec117a1f7701b178c93";
+	"02f869820501808085e8d4a51000825208943cd0a705a2dc65e5b1e1205896baa2be8a07c6e00180c\
+	001a061087911e877a5802142a89a40d231d50913db399eb50839bb2d04e612b22ec8a01aa313efdf2\
+	793bea76da6813bda611444af16a6207a8cfef2d9c8aa8f8012f7";
 
 // An invalid signed Alice transfer with a gas limit artifically set to 0.
 pub const INVALID_ETH_TX: &str =
@@ -132,7 +132,7 @@ pub struct ExtBuilder {
 	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
-	// AuthorId -> AccoutId mappings
+	// AuthorId -> AccountId mappings
 	mappings: Vec<(NimbusId, AccountId)>,
 	// Crowdloan fund
 	crowdloan_fund: Balance,

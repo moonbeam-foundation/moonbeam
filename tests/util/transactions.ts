@@ -6,6 +6,7 @@ import { Contract } from "web3-eth-contract";
 import {
   alith,
   ALITH_PRIVATE_KEY,
+  ALITH_ADDRESS,
   baltathar,
   BALTATHAR_PRIVATE_KEY,
   charleth,
@@ -18,6 +19,7 @@ import {
 import { getCompiled } from "./contracts";
 import { customWeb3Request } from "./providers";
 import { DevTestContext } from "./setup-dev-tests";
+import { expectEVMResult } from "./eth-transactions";
 
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
@@ -131,9 +133,13 @@ export const createTransaction = async (
     })
     .catch((e) => {
       error = e;
-      return 0;
+      return options.gas || 12_500_000;
     });
 
+  let warning = "";
+  if (options.gas && options.gas < estimatedGas) {
+    warning = `Provided gas ${options.gas} is lower than estimated gas ${estimatedGas}`;
+  }
   // Instead of hardcoding the gas limit, we estimate the gas
   const gas = options.gas || estimatedGas;
 
@@ -212,7 +218,8 @@ export const createTransaction = async (
               ? data.data
               : data.data.substr(0, 5) + "..." + data.data.substr(data.data.length - 3)
           }, `) +
-      (error ? `ERROR: ${error.toString()}, ` : "")
+      (error ? `ERROR: ${error.toString()}, ` : "") +
+      (warning ? `WARN: ${warning.toString()}, ` : "")
   );
   return rawTransaction;
 };
@@ -276,7 +283,10 @@ export async function createContractExecution(
     contract: Contract;
     contractCall: any;
   },
-  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
+  options: TransactionOptions = {
+    from: alith.address,
+    privateKey: ALITH_PRIVATE_KEY,
+  }
 ) {
   const rawTx = await createTransaction(context, {
     ...options,
@@ -423,4 +433,20 @@ export const sendAllStreamAndWaitLast = async (
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   await Promise.all(promises);
+};
+
+export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
+export const setupErc20Contract = async (context: DevTestContext, name: string, symbol: string) => {
+  const { contract, contractAddress, rawTx } = await createContract(
+    context,
+    "ERC20WithInitialSupply",
+    {
+      ...ALITH_TRANSACTION_TEMPLATE,
+      gas: 5_000_000,
+    },
+    [name, symbol, ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
+  );
+  const { result } = await context.createBlock(rawTx);
+  expectEVMResult(result.events, "Succeed");
+  return { contract, contractAddress };
 };

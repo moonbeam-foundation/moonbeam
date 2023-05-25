@@ -3,8 +3,12 @@ import { expectEVMResult } from "../../util/eth-transactions";
 import { Contract } from "web3-eth-contract";
 import testInputs from "../../util/artefacts/modexp.json";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createContract, createContractExecution } from "../../util/transactions";
-import { ALITH_PRIVATE_KEY, alith } from "../../util/accounts";
+import {
+  createContract,
+  createContractExecution,
+  createTransaction,
+} from "../../util/transactions";
+import { ALITH_PRIVATE_KEY, alith, ALITH_ADDRESS } from "../../util/accounts";
 import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { expect } from "chai";
@@ -662,7 +666,9 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
   });
 
   it("Exponent > 32", async function () {
-    const expectedModExpGasCost = 7104;
+    // We multiply by a factor of 20 for an even mod.
+    // See https://github.com/paritytech/frontier/pull/1017
+    const expectedModExpGasCost = 7104 * 20;
     const byteArray = new Uint8Array([
       0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
       0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,

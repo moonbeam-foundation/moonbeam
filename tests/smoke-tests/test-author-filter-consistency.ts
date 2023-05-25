@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
-import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author");

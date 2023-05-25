@@ -4,3 +4,6 @@ tmp/*
 
 moonbeam
 polkadot
+
+*spec.json
+html

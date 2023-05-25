@@ -51,7 +51,6 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	DEFAULT_PROOF_SIZE,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -209,7 +208,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
+	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, 0);
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -260,7 +259,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
-	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
 pub struct XcmExecutorConfig;
@@ -306,6 +305,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type AssetIsBurnable = Everything;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -472,7 +472,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, DEFAULT_PROOF_SIZE);
+	pub const BaseXcmWeight: Weight = Weight::from_parts(200_000_000u64, 0);
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset

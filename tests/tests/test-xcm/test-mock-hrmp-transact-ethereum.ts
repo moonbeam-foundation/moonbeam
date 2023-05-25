@@ -14,6 +14,7 @@ import {
   RawXcmMessage,
   XcmFragment,
   weightMessage,
+  MultiLocation,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -104,17 +105,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -234,17 +235,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: transferredBalance / 2n,
-        },
+            fungible: transferredBalance / 2n,
+          },
+        ],
         weight_limit: new BN(4000000000),
         descend_origin: sendingAddress,
       })
@@ -284,13 +285,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
   const statemint_assets_pallet_instance = 50;
   const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
-  const ASSET_MULTILOCATION = {
+  const ASSET_MULTILOCATION: MultiLocation = {
     parents: 1,
     interior: {
       X3: [
         { Parachain: statemint_para_id },
         { PalletInstance: statemint_assets_pallet_instance },
-        { GeneralIndex: 0 },
+        { GeneralIndex: 0n },
       ],
     },
   };
@@ -332,10 +333,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
     let config = {
-      fees: {
-        multilocation: [ASSET_MULTILOCATION],
-        fungible: 0n,
-      },
+      assets: [
+        {
+          multilocation: ASSET_MULTILOCATION,
+          fungible: 0n,
+        },
+      ],
       beneficiary: descendOriginAddress,
     };
 
@@ -355,7 +358,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
     // we modify the config now:
     // we send assetsToTransfer plus whatever we will be charged in weight
-    config.fees.fungible = assetsToTransfer + chargedWeight;
+    config.assets[0].fungible = assetsToTransfer + chargedWeight;
 
     // Construct the real message
     const xcmMessage = new XcmFragment(config)
@@ -422,10 +425,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [ASSET_MULTILOCATION],
-          fungible: assetsToTransfer / 2n,
-        },
+        assets: [
+          {
+            multilocation: ASSET_MULTILOCATION,
+            fungible: assetsToTransfer / 2n,
+          },
+        ],
         weight_limit: new BN((assetsToTransfer / 2n).toString()),
         descend_origin: sendingAddress,
       })
@@ -550,17 +555,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -690,17 +695,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -846,17 +851,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -1024,17 +1029,17 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -1174,17 +1179,17 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })
@@ -1333,17 +1338,17 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: transferredBalance / 2n,
-        },
+            fungible: transferredBalance / 2n,
+          },
+        ],
         weight_limit: new BN(40000000000),
         descend_origin: sendingAddress,
       })
@@ -1457,17 +1462,17 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (cont
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: transferredBalance / 2n,
-        },
+            fungible: transferredBalance / 2n,
+          },
+        ],
         weight_limit: new BN(40000000000),
         descend_origin: sendingAddress,
       })
@@ -1572,17 +1577,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: targetXcmFee,
-        },
+            fungible: targetXcmFee,
+          },
+        ],
         weight_limit: new BN(targetXcmWeight.toString()),
         descend_origin: sendingAddress,
       })

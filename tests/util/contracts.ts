@@ -16,9 +16,11 @@ export interface Compiled {
 
 export function getAllContracts(): string[] {
   const contractsPath = path.join(__dirname, `../contracts/compiled/`);
-  const contracts = fs.readdirSync(contractsPath);
+  const contracts = fs.readdirSync(contractsPath, { withFileTypes: true });
   // Register all the contract code
-  return contracts.map((contract) => path.basename(contract, ".json"));
+  return contracts
+    .filter((dirent) => dirent.isFile())
+    .map((contract) => path.basename(contract.name, ".json"));
 }
 
 const contracts: { [name: string]: Compiled } = {};

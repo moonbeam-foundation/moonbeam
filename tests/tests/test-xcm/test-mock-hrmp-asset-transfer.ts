@@ -118,15 +118,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // Parachain(Statemint parachain)
     // GeneralIndex(assetId being transferred)
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
-            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0n }] },
           },
-        ],
-        fungible: 10000000000000n,
-      },
+          fungible: 10000000000000n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: alith.address,
     })
@@ -179,21 +179,21 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // PalletInstance(Statemint assets pallet instance)
     // GeneralIndex(assetId being transferred)
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 0 },
+                { GeneralIndex: 0n },
               ],
             },
           },
-        ],
-        fungible: 10000000000000n,
-      },
+          fungible: 10000000000000n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: alith.address,
     })
@@ -257,17 +257,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
             },
           },
-        ],
-        fungible: transferredBalance,
-      },
+          fungible: transferredBalance,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: random.address,
     })
@@ -336,17 +336,17 @@ describeDevMoonbeam(
 
       // The rest should be going to the deposit account
       const xcmMessage = new XcmFragment({
-        fees: {
-          multilocation: [
-            {
+        assets: [
+          {
+            multilocation: {
               parents: 0,
               interior: {
                 X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          ],
-          fungible: transferredBalance,
-        },
+            fungible: transferredBalance,
+          },
+        ],
         weight_limit: new BN(8000000000),
         beneficiary: random.address,
       })
@@ -462,23 +462,26 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 0,
             interior: {
               X1: { PalletInstance: balancesPalletIndex },
             },
           },
-          {
+          fungible: transferredBalance,
+        },
+        {
+          multilocation: {
             parents: 0,
             interior: {
-              X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: assetId }],
+              X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: BigInt(assetId) }],
             },
           },
-        ],
-        fungible: transferredBalance,
-      },
+          fungible: transferredBalance,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: alith.address,
     })
@@ -535,31 +538,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 0 },
+                { GeneralIndex: 0n },
               ],
             },
           },
-          {
+          fungible: 10000000000000n,
+        },
+        {
+          multilocation: {
             parents: 1,
             interior: {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 1 },
+                { GeneralIndex: 1n },
               ],
             },
           },
-        ],
-        fungible: 10000000000000n,
-      },
+          fungible: 10000000000000n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: alith.address,
     })
@@ -663,27 +669,26 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
             interior: {
               X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
             },
           },
-          {
+          fungible: transferredBalance,
+        },
+        {
+          multilocation: {
             parents: 1,
             interior: {
-              X3: [
-                { Parachain: ownParaId },
-                { PalletInstance: localAssetsPalletIndex },
-                { GeneralIndex: assetId },
-              ],
+              X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
             },
           },
-        ],
-        fungible: transferredBalance,
-      },
+          fungible: transferredBalance,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: baltathar.address,
     })
@@ -727,15 +732,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
     const xcmMessage = new XcmFragment({
-      fees: {
-        multilocation: [
-          {
+      assets: [
+        {
+          multilocation: {
             parents: 1,
-            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0n }] },
           },
-        ],
-        fungible: 10000000000000n,
-      },
+          fungible: 10000000000000n,
+        },
+      ],
       weight_limit: new BN(4000000000),
       beneficiary: alith.address,
     })

@@ -10,16 +10,15 @@ import {
 } from "@polkadot/types/interfaces";
 import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
 import { u32, u64, u128, Option } from "@polkadot/types";
-
 import { expect } from "chai";
 
-import { WEIGHT_PER_GAS } from "./constants";
+import { EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
-
+import { rateLimiter } from "./common";
 import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { ITuple } from "@polkadot/types-codec/types";
-import Bottleneck from "bottleneck";
+
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -140,7 +139,9 @@ export const verifyBlockFees = async (
       let blockBurnt = 0n;
 
       // iterate over every extrinsic
-      for (const { events, extrinsic, fee } of blockDetails.txWithEvents) {
+      for (const txWithEvents of blockDetails.txWithEvents) {
+        let { events, extrinsic, fee } = txWithEvents;
+
         // This hash will only exist if the transaction was executed through ethereum.
         let ethereumAddress = "";
 
@@ -219,9 +220,40 @@ export const verifyBlockFees = async (
                 txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                txFees = fee.partialFee.toBigInt();
-                txBurnt += feePortions.burnt;
+                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
+                txBurnt += feePortions.burnt + tipPortions.burnt;
+
+                // verify entire substrate txn fee
+                const apiAt = await context.polkadotApi.at(previousBlockHash);
+                const lengthFee = (
+                  (await apiAt.call.transactionPaymentApi.queryLengthToFee(
+                    extrinsic.encodedLength
+                  )) as any
+                ).toBigInt();
+
+                const unadjustedWeightFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: fee.weight,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+                const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
+                const denominator = 1_000_000_000_000_000_000n;
+                const weightFee = (unadjustedWeightFee * multiplier.toBigInt()) / denominator;
+
+                const baseFee = (
+                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
+                    refTime: EXTRINSIC_BASE_WEIGHT,
+                    proofSize: 0n,
+                  })) as any
+                ).toBigInt();
+
+                const tip = extrinsic.tip.toBigInt();
+                const expectedPartialFee = lengthFee + weightFee + baseFee;
+
+                expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 
               blockFees += txFees;
@@ -412,7 +444,7 @@ export const fetchHistoricBlockNum = async (
   );
 };
 
-export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter?: Bottleneck) => {
+export const getBlockArray = async (api: ApiPromise, timePeriod: number) => {
   /**  
   @brief Returns an sequential array of block numbers from a given period of time in the past
   @param api Connected ApiPromise to perform queries on
@@ -420,9 +452,7 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   @param limiter Bottleneck rate limiter to throttle requests
   */
 
-  if (limiter == null) {
-    limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
-  }
+  const limiter = rateLimiter();
   const finalizedHead = await limiter.schedule(() => api.rpc.chain.getFinalizedHead());
   const signedBlock = await limiter.schedule(() => api.rpc.chain.getBlock(finalizedHead));
 
@@ -471,12 +501,17 @@ export function extractPreimageDeposit(
       }
 ) {
   const deposit = "deposit" in request ? request.deposit : request;
-  if ("isSome" in deposit) {
+  if ("isSome" in deposit && deposit.isSome) {
     return {
       accountId: deposit.unwrap()[0].toHex(),
       amount: deposit.unwrap()[1],
     };
   }
+
+  if (deposit.isEmpty) {
+    return { accountId: "", amount: 0n };
+  }
+
   return {
     accountId: deposit[0].toHex(),
     amount: deposit[1],

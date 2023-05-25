@@ -22,6 +22,11 @@ use frame_support::{traits::Get, weights::Weight};
 use sp_std::marker::PhantomData;
 use xcm::latest::MultiAsset;
 
+// Values copied from statemint benchmarks
+const ASSET_BURN_MAX_PROOF_SIZE: u64 = 7242;
+const ASSET_MINT_MAX_PROOF_SIZE: u64 = 7242;
+const ASSET_TRANSFER_MAX_PROOF_SIZE: u64 = 13412;
+
 /// Weights for `pallet_xcm_benchmarks::fungible`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
@@ -29,36 +34,39 @@ impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
 		} else {
-			Weight::from_ref_time(200_000_000 as u64)
+			Weight::from_parts(200_000_000 as u64, ASSET_BURN_MAX_PROOF_SIZE)
 		}
 	}
 	pub(crate) fn transfer_asset(asset: &MultiAsset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
 		} else {
-			Weight::from_ref_time(200_000_000 as u64)
+			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
 	pub(crate) fn transfer_reserve_asset(asset: &MultiAsset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
 		} else {
-			Weight::from_ref_time(200_000_000 as u64)
+			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
 	pub(crate) fn receive_teleported_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+		// Instruction disabled
+		Weight::MAX
 	}
 	pub(crate) fn deposit_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+		Weight::from_parts(200_000_000 as u64, ASSET_MINT_MAX_PROOF_SIZE)
 	}
 	pub(crate) fn deposit_reserve_asset() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+		Weight::from_parts(200_000_000 as u64, ASSET_MINT_MAX_PROOF_SIZE)
 	}
 	pub(crate) fn initiate_teleport() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+		// Instruction disabled
+		Weight::MAX
 	}
 	pub(crate) fn reserve_asset_deposited() -> Weight {
-		Weight::from_ref_time(200_000_000 as u64)
+		// This instruction is a no-op for PoV (no storage access)
+		Weight::from_parts(200_000_000 as u64, 0)
 	}
 }

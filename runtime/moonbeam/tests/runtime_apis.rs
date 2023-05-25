@@ -20,12 +20,14 @@ mod common;
 use common::*;
 
 use fp_evm::GenesisAccount;
+use frame_support::assert_ok;
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
 use sp_core::{ByteArray, H160, H256, U256};
 
-use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
+use fp_rpc::runtime_decl_for_ethereum_runtime_rpc_api::EthereumRuntimeRPCApi;
+use moonbeam_rpc_primitives_txpool::runtime_decl_for_tx_pool_runtime_api::TxPoolRuntimeApi;
+use nimbus_primitives::runtime_decl_for_nimbus_api::NimbusApi;
 use std::{collections::BTreeMap, str::FromStr};
 
 #[test]
@@ -54,7 +56,10 @@ fn ethereum_runtime_rpc_api_account_basic() {
 #[test]
 fn ethereum_runtime_rpc_api_gas_price() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price().0);
+		assert_eq!(
+			Runtime::gas_price(),
+			TransactionPaymentAsGasPrice::min_gas_price().0
+		);
 	});
 }
 
@@ -186,7 +191,7 @@ fn ethereum_runtime_rpc_api_create() {
 #[test]
 fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
@@ -247,7 +252,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 #[test]
 fn ethereum_runtime_rpc_api_current_receipts() {
 	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+		H160::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
@@ -296,4 +301,93 @@ fn txpool_runtime_api_extrinsic_filter() {
 		assert_eq!(txpool.ready.len(), 1);
 		assert_eq!(txpool.future.len(), 1);
 	});
+}
+
+#[test]
+fn can_author_when_selected_is_empty() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 20_000_000 * GLMR),
+			(AccountId::from(BOB), 10_000_000 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 2_000_000 * GLMR)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 1);
+
+			let slot_number = 0;
+			let parent = Header {
+				digest: Default::default(),
+				extrinsics_root: Default::default(),
+				number: Default::default(),
+				parent_hash: Default::default(),
+				state_root: Default::default(),
+			};
+
+			// Base case: ALICE can author blocks when she is the only candidate
+			let can_author_block = Runtime::can_author(
+				NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
+				slot_number,
+				&parent,
+			);
+
+			assert!(can_author_block);
+
+			// Remove ALICE from candidate pool, leaving the candidate_pool empty
+			assert_ok!(ParachainStaking::go_offline(origin_of(AccountId::from(
+				ALICE
+			))));
+
+			// Need to fast forward to right before the next session, which is when selected candidates
+			// will be updated. We want to test the creation of the first block of the next session.
+			run_to_block(1799, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 0);
+
+			let slot_number = 0;
+			let parent = Header {
+				digest: Default::default(),
+				extrinsics_root: Default::default(),
+				number: 1799,
+				parent_hash: Default::default(),
+				state_root: Default::default(),
+			};
+
+			let can_author_block = Runtime::can_author(
+				NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
+				slot_number,
+				&parent,
+			);
+
+			assert!(can_author_block);
+
+			// Check that it works as expected after session update
+			run_to_block(1800, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
+			assert_eq!(ParachainStaking::candidate_pool().0.len(), 0);
+
+			let slot_number = 0;
+			let parent = Header {
+				digest: Default::default(),
+				extrinsics_root: Default::default(),
+				number: 1800,
+				parent_hash: Default::default(),
+				state_root: Default::default(),
+			};
+
+			let can_author_block = Runtime::can_author(
+				NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
+				slot_number,
+				&parent,
+			);
+
+			assert!(can_author_block);
+		});
 }

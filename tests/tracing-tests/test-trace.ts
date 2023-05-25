@@ -632,7 +632,9 @@ describeDevMoonbeam(
 
       const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
       const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
-      const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
+      const batchInterface = new ethers.utils.Interface(
+        getCompiled("precompiles/batch/Batch").contract.abi
+      );
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -734,9 +736,7 @@ describeDevMoonbeam("Raw trace limits", (context) => {
 
     expect(trace.error).to.deep.eq({
       code: -32603,
-      message:
-        "replayed transaction generated too much data. \
-try disabling memory or storage?",
+      message: "replayed transaction generated too much data. try disabling memory or storage?",
     });
   });
 });

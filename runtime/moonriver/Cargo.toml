@@ -55,6 +55,7 @@ pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
 pallet-evm-precompile-randomness = { workspace = true }
 pallet-evm-precompile-referenda = { workspace = true }
+pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
@@ -78,6 +79,7 @@ pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
@@ -224,6 +226,7 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
+	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",

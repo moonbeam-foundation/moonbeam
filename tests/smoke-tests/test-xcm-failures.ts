@@ -2,8 +2,8 @@ import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
 import { checkTimeSliceForUpgrades, getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck";
-import { FrameSystemEventRecord, XcmV1MultiLocation } from "@polkadot/types/lookup";
+import { rateLimiter } from "../util/common";
+import { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
 import { FIVE_MINS } from "../util/constants";
 import { isMuted } from "../util/foreign-chains";
 const debug = require("debug")("smoke:xcm-failures");
@@ -11,7 +11,7 @@ const debug = require("debug")("smoke:xcm-failures");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const atBlock = process.env.AT_BLOCK ? Number(process.env.AT_BLOCK) : -1;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const limiter = rateLimiter();
 
 type BlockEventsRecord = {
   blockNum: number;
@@ -34,7 +34,7 @@ describeSmokeSuite(
           events[Math.max(0, index - 1)].event
         )
       ) {
-        const { interior } = events[index - 1].event.data[1] as XcmV1MultiLocation;
+        const { interior } = events[index - 1].event.data[1] as XcmV3MultiLocation;
         if (interior.isX1) {
           muted = isMuted(chainName, interior.asX1.asParachain.toNumber());
         }
@@ -46,7 +46,7 @@ describeSmokeSuite(
       this.timeout(timeout);
 
       const blockNumArray =
-        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotApi, timePeriod, limiter);
+        atBlock > 0 ? [atBlock] : await getBlockArray(context.polkadotApi, timePeriod);
 
       // Determine if this block range intersects with an upgrade event
       const { result, specVersion: onChainRt } = await checkTimeSliceForUpgrades(
@@ -324,7 +324,7 @@ describeSmokeSuite(
       ).map((a) => a.toNumber());
       const channels = [...new Set([...inChannels, ...outChannels])];
 
-      const fiveMinutesOfBlocks = await getBlockArray(context.relayApi, FIVE_MINS, limiter);
+      const fiveMinutesOfBlocks = await getBlockArray(context.relayApi, FIVE_MINS);
 
       const getEvents = async (blockNum: number) => {
         const blockHash = await context.relayApi.rpc.chain.getBlockHash(blockNum);
