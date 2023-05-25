@@ -34,9 +34,7 @@ use xcm::latest::{
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
 use xcm::{IntoVersion, VersionedXcm, WrapVersion};
-use xcm_primitives::{
-	UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
