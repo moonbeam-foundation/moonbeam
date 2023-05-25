@@ -1,72 +1,95 @@
 ---
 mbip: 1
 title: Smart Contract Creation Deposit
-author(s):
+author: Alan Sapède (@crystalin)
 status: Draft
+category: Core
 created: 2023-05-11
 ---
 
+## Simple Summary
+A deposit mechanism for smart contracts to deal with storage congestion. 
+
 ## Abstract
 
-When deploying a Smart Contract a constant deposit will automatically be taken from the account sending the transaction. This deposit will be proportional to the full storage size.
+Introduce a deposit assigned to a smart contract when being deployed. The deposit is "reserved" from the account sending the transaction and proportional to the storage size of the deployed
+smart contract.
 
 ## Motivation
 
-Moonbeam is a Smart Contract chain, offering execution metered by gas.
-This gas is associated with a dynamic price that allows control of the resources being used.
-However such a control is not applied efficiently to the storage side of the chain. In order to stay compatible with ethereum and to allow simpler onboarding for projects, such control was kept as originally planned by Ethereum.
-However, the storage has recently been bloated by some smart contracts and is currently vulnerable to long term storage attacks.
+Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
+fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-Currently there are 3 ways using the EVM to impact the storage size:
-- **[ISSUE-1]** Creating a new account (this is also the case when deploying a new contract)
-- **[ISSUE-2]** Storing a Smart Contract
-- **[ISSUE-3]** Storing data in the Smart Contract
-
-Storage growth must be limited somehow, but we have to agree on what limit should be used. Instead of thinking of it as a limit, I think we should think of an **acceptable target** that we could sustain forever and from there implement algorithms favoring a usage of the chain toward that target.
-
-## Goals
-
-This proposal provides a solution for **[ISSUE-2] Storing a Smart Contract**, and is compatible with [MBIP-2](MBIP-2.md).
-
-This proposal does NOT provide a solution for [ISSUE-1] and [ISSUE-3]
+In order to avoid impacting the gas price, a distinct mechanism is proposed. 
 
 ## Specification
 
-### Logic
+Deploying a smart contract (including using CREATE/CREATE2 operations) **MUST** reserve a
+deposit from the sender.
 
-- When deploying a Smart Contract (including using CREATE/CREATE2 operations), a constant deposit will automatically be taken from the account sending the transaction. This deposit will be proportional to the full storage size, which covers:
-  1. The size of the stored contract. (number of bytes after calling the constructor)
-  2. The overhead of storing a smart contract:
-      - AccountCodes key (68 bytes)
-      - System.Account: key (68 bytes) + value (80 bytes)
+Destroying a smart contract **MUST** restore the deposit to the original depositor.
 
-- When the Smart Contract gets destroyed, the deposit is restored to the depositor.
+A sender without enough token to provide the deposit will get its transaction reverted.
 
-- When the sender doesn't have enough to provide for the deposit, the transaction gets reverted.
+Formula to compute the deposit amount when deploying a smart contract:
 
-### Storage Items
+```
+DEPOSIT_RATIO = 0.01 GLMR / Byte
 
-- Add field `deposit` to `AccountCodeMetadata` to keep track of the amount and deposit owner.
+deposit = (bytes of AccountCodes storage key (68) +
+           bytes of stored contract code (variable) +
+           bytes of SystemAccount storage key (68) +
+           bytes of SystemAccount value (80)) * DEPOSIT_RATIO
+```
 
-### Parameters
+### Comments
 
-- **Deposit ratio**:
-  - Suggested initial value: **0.01 GLMR / Byte**
-  - Would get re-evaluated by the community over time.
-  - Target growth cost: `1GB => 1,000,000,000 * 0.01 GLMR => 10,000,000 GLMR`. In order to go over the acceptable target, an attacker would need to spend 10M GLMR
+A deposit ratio of 0.01 GLMR / Byte would lead to:  
+`1GB => 1_000_000_000 * 0.01 GLMR => 10_000_000 GLMR`
 
 ### Example:
 
-Using the suggested ratio of 0.01 GLMR per byte, deploying the Wormhole bridge contract (24400 Bytes) would set a deposit of `(24.400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, and deploying a fast proxy (97 Bytes) would set a deposit of `(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
+Deploying the complex contract (24400 Bytes) would require a deposit of:  
+`(24_400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, 
+
+Deploying a fast proxy (97 Bytes) would require a deposit of:  
+`(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
+
+## Storage changes
+
+A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount 
+and the owner of the deposit:
+
+```
+  deposit: {
+    owner: AccountId20,
+    amount: Balance
+  }
+```
+
+## Functions
+
+This proposal also adds the RPC endpoint `moon_getCodeDeposit` which accepts a given
+`address` (AccountId20) and optionally a given block number or 
+the string "latest", "earliest" or "pending" and returns a `CodeDeposit` or null:
+
+```
+interface CodeDeposit {
+  owner: AccountId20;
+  amount: U256;
+}
+```
+
 
 ## Impact
 
-This deposit would break the assumption that a transaction cannot remove more than the “gasLimit * gasPrice” (or their EIP-1559 equivalent). In this proposal also the deposit could be “taken” (it would be reserved, but invisible in the Ethereum RPC) from the account.
-(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)
+The deposit will not be visible in the transaction fields. 
+This will break the assumption that a transaction cannot remove more than 
+the "gasLimit * gasPrice" (or their EIP-1559 equivalent).  
+_(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
 
-This impacts mostly projects deploying smart contracts. Users however can also be impacted by smart contract functions using CREATE/CREATE2 which would force the user to put a deposit on the new smart contract being created.
 
-As this deposit is not visible through Ethereum RPC, it will not be directly visible to the users who might think they paid a lot for the transaction.
+This proposal impacts mostly projects deploying smart contracts. Users however can also be impacted by smart contract functions using CREATE/CREATE2 which would force the user to put a deposit on the new smart contract being created.
 
 ## Security Considerations
 
@@ -75,5 +98,16 @@ A possible attack from a bad actor could be done by tricking a user to send a tr
 
 ## Addition 1 - Deposit from the "Value"
 
-Additionally, in order to make the amount of deposit required visible to the user, this one could be taken from the "value" field. This requires dapps to increase the amount of the value of their transaction deploying or using CREATE operations.
+Instead of having the deposit taken from the user directly, the deposit could be taken from the
+given "value" in the deploying transaction. This would make it visible to the user but would
+require the application to compute the required value. It might also conflict with contract using 
+the value of the transaction for other matters.
 
+## Follow-up
+
+A purge mechanism could be implemented after enough time to destroy the smart contract that don't
+have a deposit associated (those created before this proposal is enacted).
+This would allow to reduce the state storage size significantly.
+
+It would require a new precompile function allowing anyone to deposit for any smart contract. This
+would allow to keep smart contracts already deployed that are considered useful.
