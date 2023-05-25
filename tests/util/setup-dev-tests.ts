@@ -199,33 +199,39 @@ export function describeDevMoonbeam(
 
         const { parentHash, finalize } = options;
 
+        // TODO: Removes this whole check once Frontier support block import wait for
+        // create block. (cc @tgmichel)
+
         // We are now listening to the eth block too. The main reason is because the Ethereum
         // ingestion in Frontier is asynchronous, and can sometime be slightly delayed. This
         // generates some race condition if we don't wait for it.
-
-        let expectedBlockNumber: number = (await subProvider.eth.getBlockNumber()) + 1;
-        const ethCheckPromise = new Promise<void>((resolve) => {
-          const ethBlockSub = subProvider.eth
-            .subscribe("newBlockHeaders", function (error, result) {
-              if (!error) {
-                return;
-              }
-              console.error(error);
-            })
-            .on("data", function (blockHeader) {
-              // unsubscribes the subscription once we get the right block
-              if (blockHeader.number != expectedBlockNumber) {
-                debug(
-                  `Received unexpected block: ${blockHeader.number} ` +
-                    `(expected: ${expectedBlockNumber})`
-                );
-                return;
-              }
-              ethBlockSub.unsubscribe();
-              resolve();
-            })
-            .on("error", console.error);
-        });
+        // We don't use the blockNumber because some tests are doing "re-org" which would make
+        // the new block number not to be the expected one.
+        let currentBlockHash = (await subProvider.eth.getBlock("latest")).hash;
+        const ethCheckPromise = parentHash
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              const ethBlockSub = subProvider.eth
+                .subscribe("newBlockHeaders", function (error, result) {
+                  if (!error) {
+                    return;
+                  }
+                  console.error(error);
+                })
+                .on("data", function (blockHeader) {
+                  // unsubscribes the subscription once we get the right block
+                  if (blockHeader.hash == currentBlockHash) {
+                    debug(
+                      `Received same block [${blockHeader.number}] hash: ${blockHeader.hash} ` +
+                        `(previous: ${currentBlockHash})`
+                    );
+                    return;
+                  }
+                  ethBlockSub.unsubscribe();
+                  resolve();
+                })
+                .on("error", console.error);
+            });
 
         const blockResult = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
 
