@@ -834,7 +834,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		recipient_has_code: bool,
 		gas: u64,
 	) -> precompile_utils::EvmResult<bool> {
-		use pallet_evm::PrecompileSet as _;
 		Ok(match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => {
