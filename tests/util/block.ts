@@ -27,15 +27,34 @@ export async function createAndFinalizeBlock(
 ): Promise<{
   duration: number;
   hash: string;
+  proof_size?: number;
 }> {
   const startTime: number = Date.now();
-  const block = parentHash
-    ? await api.rpc.engine.createBlock(true, finalize, parentHash)
-    : await api.rpc.engine.createBlock(true, finalize);
+
+  // Faking block creation when running dev test against a real
+  // parachain network. (like with forked networks)
+  if (!api.rpc.engine?.createBlock) {
+    const startingBlock = await api.rpc.chain.getBlock();
+    let block = startingBlock;
+    while (block.hash.toString() == startingBlock.hash.toString()) {
+      block = await api.rpc.chain.getBlock();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return {
+      duration: Date.now() - startTime,
+      hash: block.hash.toString(),
+      proof_size: 0,
+    };
+  }
+
+  const block: any = parentHash
+    ? await api.rpc("engine_createBlock", true, finalize, parentHash)
+    : await api.rpc("engine_createBlock", true, finalize);
 
   return {
     duration: Date.now() - startTime,
-    hash: block.toJSON().hash as string, // toString doesn't work for block hashes
+    hash: block.hash as string,
+    proof_size: block.proof_size as number,
   };
 }
 

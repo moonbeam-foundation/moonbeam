@@ -14,6 +14,7 @@ import {
   RawXcmMessage,
   XcmFragment,
   weightMessage,
+  MultiLocation,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -284,13 +285,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
   const statemint_assets_pallet_instance = 50;
   const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
-  const ASSET_MULTILOCATION = {
+  const ASSET_MULTILOCATION: MultiLocation = {
     parents: 1,
     interior: {
       X3: [
         { Parachain: statemint_para_id },
         { PalletInstance: statemint_assets_pallet_instance },
-        { GeneralIndex: 0 },
+        { GeneralIndex: 0n },
       ],
     },
   };

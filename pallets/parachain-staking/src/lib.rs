@@ -515,6 +515,19 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
+	pub struct AddGet<T, R> {
+		_phantom: PhantomData<(T, R)>,
+	}
+	impl<T, R> Get<u32> for AddGet<T, R>
+	where
+		T: Get<u32>,
+		R: Get<u32>,
+	{
+		fn get() -> u32 {
+			T::get() + R::get()
+		}
+	}
+
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn auto_compounding_delegations)]
@@ -522,7 +535,10 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec<AutoCompoundConfig<T::AccountId>>,
+		BoundedVec<
+			AutoCompoundConfig<T::AccountId>,
+			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+		>,
 		ValueQuery,
 	>;
 
@@ -1578,7 +1594,7 @@ pub mod pallet {
 
 			// don't underflow uint
 			if now < delay {
-				return Weight::from_ref_time(0u64);
+				return Weight::from_parts(0u64, 0);
 			}
 
 			let paid_for_round = now.saturating_sub(delay);
@@ -1593,7 +1609,7 @@ pub mod pallet {
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {
-				Weight::from_ref_time(0u64)
+				Weight::from_parts(0u64, 0)
 			}
 		}
 
@@ -1708,7 +1724,7 @@ pub mod pallet {
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				(RewardPayment::Finished, Weight::from_ref_time(0u64.into()))
+				(RewardPayment::Finished, Weight::from_parts(0u64, 0))
 			}
 		}
 

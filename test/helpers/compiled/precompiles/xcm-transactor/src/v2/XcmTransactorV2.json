@@ -1,0 +1,396 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "uint8", "name": "transactor", "type": "uint8" },
+          { "internalType": "uint16", "name": "index", "type": "uint16" },
+          { "internalType": "bytes", "name": "innerCall", "type": "bytes" }
+        ],
+        "name": "encodeUtilityAsDerivative",
+        "outputs": [
+          { "internalType": "bytes", "name": "result", "type": "bytes" }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "multilocation",
+            "type": "tuple"
+          }
+        ],
+        "name": "feePerSecond",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "feePerSecond",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint16", "name": "index", "type": "uint16" }
+        ],
+        "name": "indexToAccount",
+        "outputs": [
+          { "internalType": "address", "name": "owner", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "multilocation",
+            "type": "tuple"
+          }
+        ],
+        "name": "transactInfoWithSigned",
+        "outputs": [
+          {
+            "internalType": "uint64",
+            "name": "transactExtraWeight",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "transactExtraWeightSigned",
+            "type": "uint64"
+          },
+          { "internalType": "uint64", "name": "maxWeight", "type": "uint64" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint8", "name": "transactor", "type": "uint8" },
+          { "internalType": "uint16", "name": "index", "type": "uint16" },
+          {
+            "internalType": "address",
+            "name": "currencyId",
+            "type": "address"
+          },
+          {
+            "internalType": "uint64",
+            "name": "transactRequiredWeightAtMost",
+            "type": "uint64"
+          },
+          { "internalType": "bytes", "name": "innerCall", "type": "bytes" },
+          { "internalType": "uint256", "name": "feeAmount", "type": "uint256" },
+          {
+            "internalType": "uint64",
+            "name": "overallWeight",
+            "type": "uint64"
+          }
+        ],
+        "name": "transactThroughDerivative",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint8", "name": "transactor", "type": "uint8" },
+          { "internalType": "uint16", "name": "index", "type": "uint16" },
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "feeAsset",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint64",
+            "name": "transactRequiredWeightAtMost",
+            "type": "uint64"
+          },
+          { "internalType": "bytes", "name": "innerCall", "type": "bytes" },
+          { "internalType": "uint256", "name": "feeAmount", "type": "uint256" },
+          {
+            "internalType": "uint64",
+            "name": "overallWeight",
+            "type": "uint64"
+          }
+        ],
+        "name": "transactThroughDerivativeMultilocation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "dest",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address",
+            "name": "feeLocationAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint64",
+            "name": "transactRequiredWeightAtMost",
+            "type": "uint64"
+          },
+          { "internalType": "bytes", "name": "call", "type": "bytes" },
+          { "internalType": "uint256", "name": "feeAmount", "type": "uint256" },
+          {
+            "internalType": "uint64",
+            "name": "overallWeight",
+            "type": "uint64"
+          }
+        ],
+        "name": "transactThroughSigned",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "dest",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmTransactorV2.Multilocation",
+            "name": "feeLocation",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint64",
+            "name": "transactRequiredWeightAtMost",
+            "type": "uint64"
+          },
+          { "internalType": "bytes", "name": "call", "type": "bytes" },
+          { "internalType": "uint256", "name": "feeAmount", "type": "uint256" },
+          {
+            "internalType": "uint64",
+            "name": "overallWeight",
+            "type": "uint64"
+          }
+        ],
+        "name": "transactThroughSignedMultilocation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x000000000000000000000000000000000000080D",
+      "kind": "dev",
+      "methods": {
+        "encodeUtilityAsDerivative(uint8,uint16,bytes)": {
+          "custom:selector": "ff86378d",
+          "details": "Encode 'utility.as_derivative' relay call",
+          "params": {
+            "index": ": The derivative index to use",
+            "innerCall": ": The inner call to be executed from the derivated address",
+            "transactor": "The transactor to be used"
+          },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "feePerSecond((uint8,bytes[]))": {
+          "custom:selector": "906c9990",
+          "params": {
+            "multilocation": "The asset location for which we want to know the fee per second value"
+          },
+          "returns": {
+            "feePerSecond": "The fee per second that the reserve chain charges for this asset"
+          }
+        },
+        "indexToAccount(uint16)": {
+          "custom:selector": "3fdc4f36",
+          "params": {
+            "index": "The index of which we want to retrieve the account"
+          },
+          "returns": { "owner": "The owner of the derivative index" }
+        },
+        "transactInfoWithSigned((uint8,bytes[]))": {
+          "custom:selector": "b689e20c",
+          "params": {
+            "multilocation": "The location for which we want to know the transact info"
+          },
+          "returns": {
+            "maxWeight": "Maximum allowed weight for a single message in dest",
+            "transactExtraWeight": "The extra weight involved in the XCM message of using derivative",
+            "transactExtraWeightSigned": "The extra weight involved in the XCM message of using signed"
+          }
+        },
+        "transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)": {
+          "custom:selector": "185de2ae",
+          "details": "The token transfer burns/transfers the corresponding amount before sending",
+          "params": {
+            "currencyId": "Address of the currencyId of the asset to be used for fees It has to be a reserve of the destination chain",
+            "feeAmount": "Amount to be used as fee.",
+            "index": "The index to be used",
+            "innerCall": "The inner call to be executed in the destination chain",
+            "overallWeight": "Overall weight to be used for the xcm message.",
+            "transactRequiredWeightAtMost": "The weight we want to buy in the destination chain",
+            "transactor": "The transactor to be used"
+          }
+        },
+        "transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)": {
+          "custom:selector": "fe430475",
+          "details": "The token transfer burns/transfers the corresponding amount before sending",
+          "params": {
+            "feeAmount": "Amount to be used as fee.",
+            "feeAsset": "The asset in which we want to pay fees. It has to be a reserve of the destination chain",
+            "index": "The index to be used",
+            "innerCall": "The inner call to be executed in the destination chain",
+            "overallWeight": "Overall weight to be used for the xcm message.",
+            "transactRequiredWeightAtMost": "The weight we want to buy in the destination chain",
+            "transactor": "The transactor to be used"
+          }
+        },
+        "transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)": {
+          "custom:selector": "b648f3fe",
+          "details": "No token is burnt before sending the message. The caller must ensure the destination is able to undertand the DescendOrigin message, and create a unique account from which dispatch the call",
+          "params": {
+            "call": "The call to be executed in the destination chain",
+            "dest": "The destination chain (as multilocation) where to send the message",
+            "feeAmount": "Amount to be used as fee.",
+            "feeLocationAddress": "The ERC20 address of the token we want to use to pay for fees only callable if such an asset has been BRIDGED to our chain",
+            "overallWeight": "Overall weight to be used for the xcm message.",
+            "transactRequiredWeightAtMost": "The weight we want to buy in the destination chain for the call to be made"
+          }
+        },
+        "transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)": {
+          "custom:selector": "d7ab340c",
+          "details": "No token is burnt before sending the message. The caller must ensure the destination is able to undertand the DescendOrigin message, and create a unique account from which dispatch the call",
+          "params": {
+            "call": "The call to be executed in the destination chain",
+            "dest": "The destination chain (as multilocation) where to send the message",
+            "feeAmount": "Amount to be used as fee.",
+            "feeLocation": "The asset multilocation that indentifies the fee payment currency It has to be a reserve of the destination chain",
+            "overallWeight": "Overall weight to be used for the xcm message.",
+            "transactRequiredWeightAtMost": "The weight we want to buy in the destination chain for the call to be made"
+          }
+        }
+      },
+      "title": "Xcm Transactor Interface The interface through which solidity contracts will interact with xcm transactor pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "encodeUtilityAsDerivative(uint8,uint16,bytes)": "ff86378d",
+        "feePerSecond((uint8,bytes[]))": "906c9990",
+        "indexToAccount(uint16)": "3fdc4f36",
+        "transactInfoWithSigned((uint8,bytes[]))": "b689e20c",
+        "transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)": "185de2ae",
+        "transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)": "fe430475",
+        "transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)": "b648f3fe",
+        "transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)": "d7ab340c"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"transactor\",\"type\":\"uint8\"},{\"internalType\":\"uint16\",\"name\":\"index\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"innerCall\",\"type\":\"bytes\"}],\"name\":\"encodeUtilityAsDerivative\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"multilocation\",\"type\":\"tuple\"}],\"name\":\"feePerSecond\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"feePerSecond\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"index\",\"type\":\"uint16\"}],\"name\":\"indexToAccount\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"multilocation\",\"type\":\"tuple\"}],\"name\":\"transactInfoWithSigned\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"transactExtraWeight\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"transactExtraWeightSigned\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"maxWeight\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"transactor\",\"type\":\"uint8\"},{\"internalType\":\"uint16\",\"name\":\"index\",\"type\":\"uint16\"},{\"internalType\":\"address\",\"name\":\"currencyId\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"transactRequiredWeightAtMost\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"innerCall\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"overallWeight\",\"type\":\"uint64\"}],\"name\":\"transactThroughDerivative\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"transactor\",\"type\":\"uint8\"},{\"internalType\":\"uint16\",\"name\":\"index\",\"type\":\"uint16\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"feeAsset\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"transactRequiredWeightAtMost\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"innerCall\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"overallWeight\",\"type\":\"uint64\"}],\"name\":\"transactThroughDerivativeMultilocation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"dest\",\"type\":\"tuple\"},{\"internalType\":\"address\",\"name\":\"feeLocationAddress\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"transactRequiredWeightAtMost\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"call\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"overallWeight\",\"type\":\"uint64\"}],\"name\":\"transactThroughSigned\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"dest\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmTransactorV2.Multilocation\",\"name\":\"feeLocation\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"transactRequiredWeightAtMost\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"call\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"overallWeight\",\"type\":\"uint64\"}],\"name\":\"transactThroughSignedMultilocation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x000000000000000000000000000000000000080D\",\"kind\":\"dev\",\"methods\":{\"encodeUtilityAsDerivative(uint8,uint16,bytes)\":{\"custom:selector\":\"ff86378d\",\"details\":\"Encode 'utility.as_derivative' relay call\",\"params\":{\"index\":\": The derivative index to use\",\"innerCall\":\": The inner call to be executed from the derivated address\",\"transactor\":\"The transactor to be used\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"feePerSecond((uint8,bytes[]))\":{\"custom:selector\":\"906c9990\",\"params\":{\"multilocation\":\"The asset location for which we want to know the fee per second value\"},\"returns\":{\"feePerSecond\":\"The fee per second that the reserve chain charges for this asset\"}},\"indexToAccount(uint16)\":{\"custom:selector\":\"3fdc4f36\",\"params\":{\"index\":\"The index of which we want to retrieve the account\"},\"returns\":{\"owner\":\"The owner of the derivative index\"}},\"transactInfoWithSigned((uint8,bytes[]))\":{\"custom:selector\":\"b689e20c\",\"params\":{\"multilocation\":\"The location for which we want to know the transact info\"},\"returns\":{\"maxWeight\":\"Maximum allowed weight for a single message in dest\",\"transactExtraWeight\":\"The extra weight involved in the XCM message of using derivative\",\"transactExtraWeightSigned\":\"The extra weight involved in the XCM message of using signed\"}},\"transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)\":{\"custom:selector\":\"185de2ae\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"currencyId\":\"Address of the currencyId of the asset to be used for fees It has to be a reserve of the destination chain\",\"feeAmount\":\"Amount to be used as fee.\",\"index\":\"The index to be used\",\"innerCall\":\"The inner call to be executed in the destination chain\",\"overallWeight\":\"Overall weight to be used for the xcm message.\",\"transactRequiredWeightAtMost\":\"The weight we want to buy in the destination chain\",\"transactor\":\"The transactor to be used\"}},\"transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)\":{\"custom:selector\":\"fe430475\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"feeAmount\":\"Amount to be used as fee.\",\"feeAsset\":\"The asset in which we want to pay fees. It has to be a reserve of the destination chain\",\"index\":\"The index to be used\",\"innerCall\":\"The inner call to be executed in the destination chain\",\"overallWeight\":\"Overall weight to be used for the xcm message.\",\"transactRequiredWeightAtMost\":\"The weight we want to buy in the destination chain\",\"transactor\":\"The transactor to be used\"}},\"transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)\":{\"custom:selector\":\"b648f3fe\",\"details\":\"No token is burnt before sending the message. The caller must ensure the destination is able to undertand the DescendOrigin message, and create a unique account from which dispatch the call\",\"params\":{\"call\":\"The call to be executed in the destination chain\",\"dest\":\"The destination chain (as multilocation) where to send the message\",\"feeAmount\":\"Amount to be used as fee.\",\"feeLocationAddress\":\"The ERC20 address of the token we want to use to pay for fees only callable if such an asset has been BRIDGED to our chain\",\"overallWeight\":\"Overall weight to be used for the xcm message.\",\"transactRequiredWeightAtMost\":\"The weight we want to buy in the destination chain for the call to be made\"}},\"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)\":{\"custom:selector\":\"d7ab340c\",\"details\":\"No token is burnt before sending the message. The caller must ensure the destination is able to undertand the DescendOrigin message, and create a unique account from which dispatch the call\",\"params\":{\"call\":\"The call to be executed in the destination chain\",\"dest\":\"The destination chain (as multilocation) where to send the message\",\"feeAmount\":\"Amount to be used as fee.\",\"feeLocation\":\"The asset multilocation that indentifies the fee payment currency It has to be a reserve of the destination chain\",\"overallWeight\":\"Overall weight to be used for the xcm message.\",\"transactRequiredWeightAtMost\":\"The weight we want to buy in the destination chain for the call to be made\"}}},\"title\":\"Xcm Transactor Interface The interface through which solidity contracts will interact with xcm transactor pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"feePerSecond((uint8,bytes[]))\":{\"notice\":\"Get fee per second charged in its reserve chain for an asset\"},\"indexToAccount(uint16)\":{\"notice\":\"Get index of an account in xcm transactor\"},\"transactInfoWithSigned((uint8,bytes[]))\":{\"notice\":\"Get transact info of a multilocation\"},\"transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)\":{\"notice\":\"Transact through XCM using fee based on its currency_id\"},\"transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)\":{\"notice\":\"Transact through XCM using fee based on its multilocation\"},\"transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)\":{\"notice\":\"Transact through XCM using fee based on its erc20 address through signed origins\"},\"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)\":{\"notice\":\"Transact through XCM using fee based on its multilocation through signed origins\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"XcmTransactorV2.sol\":\"XcmTransactorV2\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"XcmTransactorV2.sol\":{\"keccak256\":\"0xdb00d74748148703717975aa5fac751dc3a840eb8846f3d995d8bdc0b0ca978e\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://d2c8d55b80f47e79ab7af4c07a6619ec0f9bf80981ade95d8eb393badaa22ec6\",\"dweb:/ipfs/QmQ6WfvupBYAgbhduVw7i76NqieJxjqzfVzRSrmXTPy8qH\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "feePerSecond((uint8,bytes[]))": {
+          "notice": "Get fee per second charged in its reserve chain for an asset"
+        },
+        "indexToAccount(uint16)": {
+          "notice": "Get index of an account in xcm transactor"
+        },
+        "transactInfoWithSigned((uint8,bytes[]))": {
+          "notice": "Get transact info of a multilocation"
+        },
+        "transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)": {
+          "notice": "Transact through XCM using fee based on its currency_id"
+        },
+        "transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)": {
+          "notice": "Transact through XCM using fee based on its multilocation"
+        },
+        "transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)": {
+          "notice": "Transact through XCM using fee based on its erc20 address through signed origins"
+        },
+        "transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)": {
+          "notice": "Transact through XCM using fee based on its multilocation through signed origins"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/// @dev The XcmTransactorV2 contract's address.\naddress constant XCM_TRANSACTOR_V2_ADDRESS = 0x000000000000000000000000000000000000080D;\n\n/// @dev The XcmTransactorV2 contract's instance.\nXcmTransactorV2 constant XCM_TRANSACTOR_V2_CONTRACT = XcmTransactorV2(\n    XCM_TRANSACTOR_V2_ADDRESS\n);\n\n/// @author The Moonbeam Team\n/// @title Xcm Transactor Interface\n/// The interface through which solidity contracts will interact with xcm transactor pallet\n/// @custom:address 0x000000000000000000000000000000000000080D\ninterface XcmTransactorV2 {\n    // A multilocation is defined by its number of parents and the encoded junctions (interior)\n    struct Multilocation {\n        uint8 parents;\n        bytes[] interior;\n    }\n\n    /// Get index of an account in xcm transactor\n    /// @custom:selector 3fdc4f36\n    /// @param index The index of which we want to retrieve the account\n    /// @return owner The owner of the derivative index\n    ///\n    function indexToAccount(uint16 index) external view returns (address owner);\n\n    /// Get transact info of a multilocation\n    /// @custom:selector b689e20c\n    /// @param multilocation The location for which we want to know the transact info\n    /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative\n    /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed\n    /// @return maxWeight Maximum allowed weight for a single message in dest\n    ///\n    function transactInfoWithSigned(Multilocation memory multilocation)\n        external\n        view\n        returns (\n            uint64 transactExtraWeight,\n            uint64 transactExtraWeightSigned,\n            uint64 maxWeight\n        );\n\n    /// Get fee per second charged in its reserve chain for an asset\n    /// @custom:selector 906c9990\n    /// @param multilocation The asset location for which we want to know the fee per second value\n    /// @return feePerSecond The fee per second that the reserve chain charges for this asset\n    ///\n    function feePerSecond(Multilocation memory multilocation)\n        external\n        view\n        returns (uint256 feePerSecond);\n\n    /// Transact through XCM using fee based on its multilocation\n    /// @custom:selector fe430475\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param transactor The transactor to be used\n    /// @param index The index to be used\n    /// @param feeAsset The asset in which we want to pay fees.\n    /// It has to be a reserve of the destination chain\n    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain\n    /// @param innerCall The inner call to be executed in the destination chain\n    /// @param feeAmount Amount to be used as fee.\n    /// @param overallWeight Overall weight to be used for the xcm message.\n    ///\n    function transactThroughDerivativeMultilocation(\n        uint8 transactor,\n        uint16 index,\n        Multilocation memory feeAsset,\n        uint64 transactRequiredWeightAtMost,\n        bytes memory innerCall,\n        uint256 feeAmount,\n        uint64 overallWeight\n    ) external;\n\n    /// Transact through XCM using fee based on its currency_id\n    /// @custom:selector 185de2ae\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param transactor The transactor to be used\n    /// @param index The index to be used\n    /// @param currencyId Address of the currencyId of the asset to be used for fees\n    /// It has to be a reserve of the destination chain\n    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain\n    /// @param innerCall The inner call to be executed in the destination chain\n    /// @param feeAmount Amount to be used as fee.\n    /// @param overallWeight Overall weight to be used for the xcm message.\n    function transactThroughDerivative(\n        uint8 transactor,\n        uint16 index,\n        address currencyId,\n        uint64 transactRequiredWeightAtMost,\n        bytes memory innerCall,\n        uint256 feeAmount,\n        uint64 overallWeight\n    ) external;\n\n    /// Transact through XCM using fee based on its multilocation through signed origins\n    /// @custom:selector d7ab340c\n    /// @dev No token is burnt before sending the message. The caller must ensure the destination\n    /// is able to undertand the DescendOrigin message, and create a unique account from which\n    /// dispatch the call\n    /// @param dest The destination chain (as multilocation) where to send the message\n    /// @param feeLocation The asset multilocation that indentifies the fee payment currency\n    /// It has to be a reserve of the destination chain\n    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made\n    /// @param call The call to be executed in the destination chain\n    /// @param feeAmount Amount to be used as fee.\n    /// @param overallWeight Overall weight to be used for the xcm message.\n    function transactThroughSignedMultilocation(\n        Multilocation memory dest,\n        Multilocation memory feeLocation,\n        uint64 transactRequiredWeightAtMost,\n        bytes memory call,\n        uint256 feeAmount,\n        uint64 overallWeight\n    ) external;\n\n    /// Transact through XCM using fee based on its erc20 address through signed origins\n    /// @custom:selector b648f3fe\n    /// @dev No token is burnt before sending the message. The caller must ensure the destination\n    /// is able to undertand the DescendOrigin message, and create a unique account from which\n    /// dispatch the call\n    /// @param dest The destination chain (as multilocation) where to send the message\n    /// @param feeLocationAddress The ERC20 address of the token we want to use to pay for fees\n    /// only callable if such an asset has been BRIDGED to our chain\n    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made\n    /// @param call The call to be executed in the destination chain\n    /// @param feeAmount Amount to be used as fee.\n    /// @param overallWeight Overall weight to be used for the xcm message.\n    function transactThroughSigned(\n        Multilocation memory dest,\n        address feeLocationAddress,\n        uint64 transactRequiredWeightAtMost,\n        bytes memory call,\n        uint256 feeAmount,\n        uint64 overallWeight\n    ) external;\n\n    /// @dev Encode 'utility.as_derivative' relay call\n    /// @custom:selector ff86378d\n    /// @param transactor The transactor to be used\n    /// @param index: The derivative index to use\n    /// @param innerCall: The inner call to be executed from the derivated address\n    /// @return result The bytes associated with the encoded call\n    function encodeUtilityAsDerivative(uint8 transactor, uint16 index, bytes memory innerCall)\n        external\n        pure\n        returns (bytes memory result);\n}\n"
+}

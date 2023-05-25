@@ -1,5 +1,6 @@
 import { BlockCreationResponse } from "./setup-dev-tests";
 import type { EventRecord } from "@polkadot/types/interfaces";
+import { XcmV3TraitsOutcome } from "@polkadot/types/lookup";
 import {
   ApiTypes,
   AugmentedEvent,
@@ -43,6 +44,27 @@ export async function expectOk<
     expect(block.result.successful, block.result.error?.name).to.be.true;
   }
   return block;
+}
+
+export function expectSuccessfulXCM(outcome: XcmV3TraitsOutcome) {
+  let error = "";
+  switch (true) {
+    case outcome.isError:
+      error = "Error executing XCM:" + outcome.asError.toString();
+      break;
+
+    case outcome.isIncomplete:
+      error = "Incomplete XCM:" + outcome.asIncomplete.toString();
+      break;
+
+    case outcome.isNone || outcome.isEmpty:
+      error = "Empty XCM";
+      break;
+
+    default:
+      error = "Default XCM error";
+  }
+  expect(outcome.isComplete, error).to.be.true;
 }
 
 export function expectSubstrateEvent<
@@ -90,7 +112,7 @@ export function expectSubstrateEvent<
       event = foundEvents[0];
     }
   }
-  expect(event).to.not.be.null;
+  expect(event, `Event ${section.toString()}.${method.toString()} not found`).to.not.be.null;
   return event.event as any;
 }
 
