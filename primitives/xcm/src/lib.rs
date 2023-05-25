@@ -30,9 +30,6 @@ pub use constants::*;
 mod fee_handlers;
 pub use fee_handlers::*;
 
-mod location_conversion;
-pub use location_conversion::*;
-
 mod origin_conversion;
 pub use origin_conversion::*;
 
