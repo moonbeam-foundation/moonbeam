@@ -108,7 +108,10 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay({ refTime: 0, proofSize: 0 } as any)
+          context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay({
+            refTime: 0,
+            proofSize: 0,
+          } as any)
         )
       )
     );
@@ -160,15 +163,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",
-        new XcmFragment(config).push_any({
-          Transact: {
-            originType: "SovereignAccount",
-            requireWeightAtMost: new BN(0),
-            call: {
-              encoded: "0x11",
+        new XcmFragment(config)
+          .push_any({
+            Transact: {
+              originType: "SovereignAccount",
+              requireWeightAtMost: new BN(0),
+              call: {
+                encoded: "0x11",
+              },
             },
-          },
-        }).as_v2()
+          })
+          .as_v2()
       )
     );
 
@@ -182,21 +187,21 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // single messages
 
     const requireWeightAtMostParemeter =
-    (weightPerMessage - withdrawWeight - buyExecutionWeight - transactBaseWeight);
+      weightPerMessage - withdrawWeight - buyExecutionWeight - transactBaseWeight;
 
     const xcmMessage = new XcmFragment(config)
-    .withdraw_asset()
-    .buy_execution(0)
-    .push_any({
-      Transact: {
-        originType: "SovereignAccount",
-        requireWeightAtMost: requireWeightAtMostParemeter,
-        call: {
-          encoded: "0x11",
+      .withdraw_asset()
+      .buy_execution(0)
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: requireWeightAtMostParemeter,
+          call: {
+            encoded: "0x11",
+          },
         },
-      },
-    })
-    .as_v2();
+      })
+      .as_v2();
 
     // The way we will prove that the message executed is checking balances.
     // For that, WithdrawAsset needs to work. The only way for this to work
@@ -332,7 +337,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-    let requireWeightAtMostParemeter = weightPerMessage - withdrawWeight - buyExecutionWeight - transactBaseWeight;
+    let requireWeightAtMostParemeter =
+      weightPerMessage - withdrawWeight - buyExecutionWeight - transactBaseWeight;
 
     const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
