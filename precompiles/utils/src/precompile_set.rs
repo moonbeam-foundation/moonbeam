@@ -19,11 +19,14 @@
 //! default and must be disabled explicely throught type annotations.
 
 use crate::{
-	EvmResult,
 	solidity::{codec::String, revert::revert},
 	substrate::RuntimeHelper,
+	EvmResult,
 };
-use fp_evm::{ExitError, IsPrecompileResult, Precompile, PrecompileFailure, PrecompileHandle, PrecompileResult, PrecompileSet};
+use fp_evm::{
+	ExitError, IsPrecompileResult, Precompile, PrecompileFailure, PrecompileHandle,
+	PrecompileResult, PrecompileSet,
+};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
 use pallet_evm::AddressMapping;
@@ -359,13 +362,10 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 
 pub fn is_precompile_or_fail<R: pallet_evm::Config>(address: H160, gas: u64) -> EvmResult<bool> {
 	match <R as pallet_evm::Config>::PrecompilesValue::get().is_precompile(address, gas) {
-		IsPrecompileResult::Answer {
-			is_precompile,
-			..
-		} => Ok(is_precompile),
+		IsPrecompileResult::Answer { is_precompile, .. } => Ok(is_precompile),
 		IsPrecompileResult::OutOfGas => Err(PrecompileFailure::Error {
-			exit_status: ExitError::OutOfGas
-		})
+			exit_status: ExitError::OutOfGas,
+		}),
 	}
 }
 
@@ -632,7 +632,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> Option<PrecompileResult> {
 		let code_address = handle.code_address();
-		if !is_precompile_or_fail::<R>(handle.context().caller, handle.remaining_gas()).ok()? {
+		if !is_precompile_or_fail::<R>(code_address, handle.remaining_gas()).ok()? {
 			return None;
 		}
 		// Perform common checks.

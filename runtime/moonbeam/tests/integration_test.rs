@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -52,7 +52,11 @@ use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
+use precompile_utils::{
+	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
+	prelude::*,
+	testing::*,
+};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -2943,7 +2947,7 @@ fn precompile_existence() {
 
 			if precompile_addresses.contains(&address) {
 				assert!(
-					precompiles.is_precompile(address),
+					is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return true",
 					i
 				);
@@ -2964,7 +2968,7 @@ fn precompile_existence() {
 				);
 			} else {
 				assert!(
-					!precompiles.is_precompile(address),
+					!is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return false",
 					i
 				);
@@ -2997,20 +3001,26 @@ fn removed_precompiles() {
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
 
-			if !precompiles.is_precompile(address) {
+			if !is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok") {
 				continue;
 			}
 
 			if !removed_precompiles.contains(&i) {
 				assert!(
-					precompiles.is_active_precompile(address),
+					match precompiles.is_active_precompile(address, 100_000u64) {
+						IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+						_ => false,
+					},
 					"{i} should be an active precompile"
 				);
 				continue;
 			}
 
 			assert!(
-				!precompiles.is_active_precompile(address),
+				!match precompiles.is_active_precompile(address, 100_000u64) {
+					IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+					_ => false,
+				},
 				"{i} shouldn't be an active precompile"
 			);
 

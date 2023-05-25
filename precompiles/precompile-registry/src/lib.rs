@@ -22,8 +22,11 @@ mod mock;
 mod tests;
 
 use core::marker::PhantomData;
-use fp_evm::{ExitError, IsPrecompileResult, PrecompileFailure, PrecompileSet};
-use precompile_utils::{precompile_set::{is_precompile_or_fail, IsActivePrecompile}, prelude::*};
+use fp_evm::{ExitError, IsPrecompileResult, PrecompileFailure};
+use precompile_utils::{
+	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
+	prelude::*,
+};
 use sp_core::Get;
 
 const DUMMY_CODE: [u8; 5] = [0x60, 0x00, 0x60, 0x00, 0xfd];
@@ -52,14 +55,13 @@ where
 	) -> EvmResult<bool> {
 		// We consider the precompile set is optimized to do at most one storage read.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		match <Runtime::PrecompilesValue>::get().is_active_precompile(address.0, handle.remaining_gas()) {
-			IsPrecompileResult::Answer {
-				is_precompile,
-				..
-			} => Ok(is_precompile),
+		match <Runtime::PrecompilesValue>::get()
+			.is_active_precompile(address.0, handle.remaining_gas())
+		{
+			IsPrecompileResult::Answer { is_precompile, .. } => Ok(is_precompile),
 			IsPrecompileResult::OutOfGas => Err(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas
-			})
+				exit_status: ExitError::OutOfGas,
+			}),
 		}
 	}
 

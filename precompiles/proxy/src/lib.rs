@@ -112,7 +112,12 @@ pub struct EvmSubCall {
 pub trait EvmProxyCallFilter: Sized + Send + Sync {
 	/// If returns `false`, then the subcall will not be executed and the evm transaction will
 	/// revert with error message "CallFiltered".
-	fn is_evm_proxy_call_allowed(&self, _call: &EvmSubCall, _recipient_has_code: bool, _gas: u64) -> EvmResult<bool> {
+	fn is_evm_proxy_call_allowed(
+		&self,
+		_call: &EvmSubCall,
+		_recipient_has_code: bool,
+		_gas: u64,
+	) -> EvmResult<bool> {
 		Ok(false)
 	}
 }
@@ -351,8 +356,11 @@ where
 
 		// Apply proxy type filter
 		frame_support::ensure!(
-			def.proxy_type
-				.is_evm_proxy_call_allowed(&evm_subcall, recipient_has_code, handle.remaining_gas())?,
+			def.proxy_type.is_evm_proxy_call_allowed(
+				&evm_subcall,
+				recipient_has_code,
+				handle.remaining_gas()
+			)?,
 			revert("CallFiltered")
 		);
 

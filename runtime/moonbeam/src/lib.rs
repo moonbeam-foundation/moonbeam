@@ -818,7 +818,10 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 						// accounts (no code nor precompile).
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
-						!recipient_has_code && precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(call.to.0, gas)?
+						!recipient_has_code
+							&& precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+								call.to.0, gas,
+							)?
 					}
 				}
 			}
@@ -856,7 +859,10 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				// Allow only "simple" accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
-				!recipient_has_code && !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(call.to.0, gas)?
+				!recipient_has_code
+					&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+						call.to.0, gas,
+					)?
 			}
 			ProxyType::AuthorMapping => {
 				call.value == U256::zero()
