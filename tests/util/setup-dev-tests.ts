@@ -199,15 +199,16 @@ export function describeDevMoonbeam(
 
         const { parentHash, finalize } = options;
 
+        
+        // TODO: Removes this whole check once Frontier support block import wait for
+        // create block. (cc @tgmichel)
+
         // We are now listening to the eth block too. The main reason is because the Ethereum
         // ingestion in Frontier is asynchronous, and can sometime be slightly delayed. This
         // generates some race condition if we don't wait for it.
         // We don't use the blockNumber because some tests are doing "re-org" which would make
         // the new block number not to be the expected one.
-
         let currentBlockHash = (await subProvider.eth.getBlock("latest")).hash;
-
-        // TODO: Removes this empty promise once we fix the notifications on re-org. (cc @tgmichel)
         const ethCheckPromise = parentHash
           ? Promise.resolve()
           : new Promise<void>((resolve) => {
