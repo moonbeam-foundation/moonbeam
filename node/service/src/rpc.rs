@@ -43,6 +43,7 @@ use sc_client_api::{
 };
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_network::NetworkService;
+use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
@@ -104,6 +105,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub is_authority: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
+	/// Chain syncing service
+	pub sync: Arc<SyncingService<Block>>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
@@ -200,6 +203,7 @@ where
 		deny_unsafe,
 		is_authority,
 		network,
+		sync,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
@@ -236,7 +240,7 @@ where
 			Arc::clone(&pool),
 			graph.clone(),
 			convert_transaction,
-			Arc::clone(&network),
+			Arc::clone(&sync),
 			signers,
 			Arc::clone(&overrides),
 			Arc::clone(&frontier_backend),
@@ -279,7 +283,7 @@ where
 		EthPubSub::new(
 			pool,
 			Arc::clone(&client),
-			network,
+			sync.clone(),
 			subscription_task_executor,
 			overrides,
 		)
@@ -364,6 +368,7 @@ where
 			Duration::new(6, 0),
 			params.client.clone(),
 			params.substrate_backend.clone(),
+			params.overrides.clone(),
 			params.frontier_backend.clone(),
 			3,
 			0,

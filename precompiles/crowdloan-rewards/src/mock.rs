@@ -131,7 +131,7 @@ pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -187,8 +187,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type SignatureNetworkIdentifier = TestSignatureNetworkIdentifier;
 
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {

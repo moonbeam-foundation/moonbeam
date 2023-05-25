@@ -261,7 +261,7 @@ pub type PCall = XcmUtilsPrecompileCall<Runtime, XcmConfig>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 /// A mapping function that converts Ethereum gas to Substrate weight
@@ -269,7 +269,7 @@ parameter_types! {
 pub struct MockGasWeightMapping;
 impl GasWeightMapping for MockGasWeightMapping {
 	fn gas_to_weight(gas: u64, _without_base_weight: bool) -> Weight {
-		Weight::from_ref_time(gas)
+		Weight::from_parts(gas, 1)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
 		weight.ref_time().into()
@@ -435,6 +435,7 @@ impl xcm_executor::Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 pub(crate) struct ExtBuilder {

@@ -1,6 +1,15 @@
 import { BN } from "@polkadot/util";
 import Bottleneck from "bottleneck";
 
+export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+
+  return chunks;
+}
+
 export function rateLimiter() {
   const settings =
     process.env.SKIP_RATE_LIMITER === "true" ? {} : { maxConcurrent: 10, minTime: 150 };

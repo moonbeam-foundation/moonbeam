@@ -1407,7 +1407,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
@@ -1429,7 +1429,7 @@ fn min_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
@@ -1800,7 +1800,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(23775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1852,7 +1852,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(14048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1873,7 +1873,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(31145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1925,7 +1925,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * GLMR }.into(),
 					},
 				)
-				.expect_cost(12787)
+				.expect_cost(12932)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1952,7 +1952,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13016)
+				.expect_cost(13172)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1997,7 +1997,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6699)
+				.expect_cost(6783)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2016,7 +2016,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6713)
+				.expect_cost(6803)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2051,7 +2051,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5548)
+				.expect_cost(5623)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2068,7 +2068,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5550)
+				.expect_cost(5634)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2105,7 +2105,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6614)
+				.expect_cost(6706)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2147,7 +2147,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						issuer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5577)
+				.expect_cost(5657)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2270,7 +2270,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(23775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2335,7 +2335,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(14048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2356,7 +2356,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(31145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2635,7 +2635,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(19078)
+				.expect_cost(18737)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -3196,12 +3196,12 @@ mod fee_tests {
 		type LengthToFeeImpl = LengthToFee;
 
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
-		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
-			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
-				&Weight::from_ref_time(extrinsic_weight),
-			)) + LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(
-			extrinsic_len as u64,
-		)) + tip;
+		let expected_fee =
+			WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+				+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
+					&Weight::from_parts(extrinsic_weight, 1),
+				)) + LengthToFeeImpl::weight_to_fee(&Weight::from_parts(extrinsic_len as u64, 1))
+				+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
@@ -3214,7 +3214,7 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_ref_time(extrinsic_weight),
+					weight: Weight::from_parts(extrinsic_weight, 1),
 				},
 				tip,
 			);
