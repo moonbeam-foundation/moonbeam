@@ -1,9 +1,21 @@
 import "@moonbeam-network/api-augment";
 import { DevModeContext, describeSuite, expect } from "@moonwall/cli";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
-import { ALITH_ADDRESS, createEthersTxn, prepareToDeployCompiledContract, sendRawTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ALITH_PRIVATE_KEY,
+  alith,
+  createEthersTxn,
+  createRawTransaction,
+  prepareToDeployCompiledContract,
+  sendRawTransaction,
+} from "@moonwall/util";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 import { dev } from "@polkadot/types/interfaces/definitions";
+import { parseGwei } from "viem";
+import { Wallet } from "ethers";
+import { getCompiled } from "../../../helpers/contracts.js";
+import { numberToHex } from "@polkadot/util";
 // import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 // import { getCompiled } from "../../util/contracts";
 // import { customWeb3Request, web3Subscribe } from "../../util/providers";
@@ -17,19 +29,40 @@ describeSuite({
   title: "Fee History",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    // async function sendTransaction(context: DevModeContext, payload: any) {
-    //   let signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
-    //   // Ethers internally matches the locally calculated transaction hash against the one
-    //   // returned as a response.
-    //   // Test would fail in case of mismatch.
-    //   const tx = await signer.sendTransaction(payload);
-    //   return tx;
-    // }
     interface FeeHistory {
       oldestBlock: string;
       baseFeePerGas: string[];
       gasUsedRatio: number[];
       reward: string[][];
+    }
+
+    async function createBlocks(
+      block_count: number,
+      reward_percentiles: number[],
+      priority_fees: number[],
+      max_fee_per_gas: string
+    ) {
+      let nonce = await context
+        .viemClient("public")
+        .getTransactionCount({ address: ALITH_ADDRESS });
+      const contractData = getCompiled("MultiplyBy7");
+      for (var b = 0; b < block_count; b++) {
+        for (var p = 0; p < priority_fees.length; p++) {
+          await context.ethersSigner().sendTransaction({
+            from: alith.address,
+            data: contractData.byteCode,
+            value: "0x00",
+            maxFeePerGas: max_fee_per_gas,
+            maxPriorityFeePerGas: numberToHex(priority_fees[p]),
+            accessList: [],
+            nonce: nonce,
+            gasLimit: "0x100000",
+            chainId: 1281,
+          });
+          nonce++;
+        }
+        await context.createBlock();
+      }
     }
 
     function get_percentile(percentile: number, array: number[]) {
@@ -41,38 +74,6 @@ describeSuite({
         return array[index];
       } else {
         return Math.ceil((array[Math.floor(index)] + array[Math.ceil(index)]) / 2);
-      }
-    }
-
-    async function createBlocks(
-      block_count: number,
-      reward_percentiles: number[],
-      priority_fees: number[],
-      max_fee_per_gas: string
-    ) {
-      const { bytecode } = await prepareToDeployCompiledContract(context, "MultiplyBy7");
-      let nonce = await context
-        .viemClient("public")
-        .getTransactionCount({ address: ALITH_ADDRESS });
-      for (var b = 0n; b < block_count; b++) {
-        for (var p = 0; p < priority_fees.length; p++) {
-          const {rawSigned, request}= await createEthersTxn(context, {
-            from: ALITH_ADDRESS,
-            data: bytecode,
-            value: "0x00",
-            maxFeePerGas: max_fee_per_gas,
-            accessList: [],
-            maxPriorityFeePerGas: priority_fees[p],
-            txnType: "eip1559",
-            gasLimit: "0x100000",
-            nonce: nonce,
-          });
-          log(request)
-          // await sendRawTransaction(context, rawSigned)
-          await customDevRpcRequest("eth_sendRawTransaction", [rawSigned])
-          nonce++;
-        }
-        await context.createBlock();
       }
     }
 
@@ -102,34 +103,13 @@ describeSuite({
           });
         });
 
-        // await new Promise((resolve) => subscription.once("connected", resolve));
-        // new Promise<BlockHeader>((resolve) => {
-        //   subscription.on("data", async function (d: any) {
-        //     if (d.number == block_count) {
-        //       let result = (
-        //         await customWeb3Request(context.web3, "eth_feeHistory", [
-        //           "0x2",
-        //           "latest",
-        //           reward_percentiles,
-        //         ])
-        //       ).result;
+        await createBlocks(
+          block_count,
+          reward_percentiles,
+          priority_fees,
+          parseGwei("10").toString()
+        );
 
-        //       // baseFeePerGas is always the requested block range + 1 (the next derived base fee).
-        //       expect(result.baseFeePerGas.length).to.be.eq(block_count + 1);
-        //       // gasUsedRatio for the requested block range.
-        //       expect(result.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0291662));
-        //       // two-dimensional reward list for the requested block range.
-        //       expect(result.reward.length).to.be.eq(block_count);
-        //       // each block has a reward list which's size is the requested percentile list.
-        //       for (let i = 0; i < block_count; i++) {
-        //         expect(result.reward[i].length).to.be.eq(reward_percentiles.length);
-        //       }
-        //       resolve(d);
-        //     }
-        //   });
-        // });
-
-        await createBlocks(block_count, reward_percentiles, priority_fees, DEFAULT_TXN_MAX_BASE_FEE.toString());
         const feeResults = await feeHistory;
         log(feeResults);
         expect(
