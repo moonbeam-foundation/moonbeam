@@ -199,7 +199,6 @@ export function describeDevMoonbeam(
 
         const { parentHash, finalize } = options;
 
-        
         // TODO: Removes this whole check once Frontier support block import wait for
         // create block. (cc @tgmichel)
 
