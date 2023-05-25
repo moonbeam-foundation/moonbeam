@@ -42,7 +42,7 @@ describeSuite({
         gasLimit: 10_000_000,
       });
 
-      await expectOk( context.createBlock(rawSigned));
+      await expectOk(context.createBlock(rawSigned));
 
       contractAbi = abi;
       stateOverrideAddress = contractAddress;
@@ -193,44 +193,24 @@ describeSuite({
     it({
       id: "T07",
       title: "should have allowance 50 but availableFunds 0 with full state override",
-      // modifier: "skip",
       test: async function () {
-        const allowanceKey = Web3.utils.soliditySha3(
-          {
-            type: "uint256",
-            value: baltathar.address,
-          },
-          {
-            type: "uint256",
-            value: Web3.utils.soliditySha3(
-              {
-                type: "uint256",
-                value: alith.address,
-              },
-              {
-                type: "uint256",
-                value: "2", // slot 2
-              }
-            ),
-          }
-        )!;
-        // const allowanceKey = keccak256(
-        //   encodePacked(
-        //     ["uint256", "uint256"],
-        //     [
-        //       baltathar.address,
-        //       keccak256(
-        //         encodePacked(
-        //           ["uint256", "uint256"],
-        //           [
-        //             alith.address,
-        //             2n, // slot 2
-        //           ]
-        //         )
-        //       ) as unknown as bigint,
-        //     ]
-        //   )
-        // );
+        const allowanceKey = keccak256(
+          encodePacked(
+            ["uint256", "uint256"],
+            [
+              baltathar.address,
+              keccak256(
+                encodePacked(
+                  ["uint256", "uint256"],
+                  [
+                    alith.address,
+                    2n, // slot 2
+                  ]
+                )
+              ) as unknown as bigint,
+            ]
+          )
+        );
         const newValue = pad(nToHex(50));
         const result = await customDevRpcRequest("eth_call", [
           {
@@ -245,32 +225,12 @@ describeSuite({
           "latest",
           {
             [stateOverrideAddress]: {
-              stateDiff: {
+              state: {
                 [allowanceKey]: newValue,
               },
             },
           },
         ]);
-        // const newValue = Web3.utils.padLeft(Web3.utils.numberToHex(50), 64);
-
-        // const { result } = await customWeb3Request(context.web3, "eth_call", [
-        //   {
-        //     from: alith.address,
-        //     to: contractAddress,
-        //     data: STATE_OVERRIDE_INTERFACE.encodeFunctionData("allowance", [
-        //       alith.address,
-        //       baltathar.address,
-        //     ]),
-        //   },
-        //   "latest",
-        //   {
-        //     [contractAddress]: {
-        //       state: {
-        //         [allowanceKey]: newValue,
-        //       },
-        //     },
-        //   },
-        // ]);
         expect(hexToBigInt(result)).to.equal(50n);
 
         const result2 = await customDevRpcRequest("eth_call", [
@@ -285,27 +245,12 @@ describeSuite({
           "latest",
           {
             [stateOverrideAddress]: {
-              stateDiff: {
+              state: {
                 [allowanceKey]: newValue,
               },
             },
           },
         ]);
-        // const { result: result2 } = await customWeb3Request(context.web3, "eth_call", [
-        //   {
-        //     from: alith.address,
-        //     to: contractAddress,
-        //     data: STATE_OVERRIDE_INTERFACE.encodeFunctionData("availableFunds"),
-        //   },
-        //   "latest",
-        //   {
-        //     [contractAddress]: {
-        //       state: {
-        //         [allowanceKey]: newValue,
-        //       },
-        //     },
-        //   },
-        // ]);
         expect(hexToBigInt(result2)).to.equal(0n);
       },
     });

@@ -67,6 +67,9 @@ export async function customDevRpcRequest(method: string, params: any[] = []): P
     params,
   };
 
+  console.log(method)
+  console.dir(params, {depth: null})
+
   const response = await fetch(endpoint, {
     method: "POST",
     body: JSON.stringify(data),
