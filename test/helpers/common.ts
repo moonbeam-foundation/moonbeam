@@ -54,7 +54,7 @@ interface JsonRpcResponse {
   };
 }
 
-export async function customDevRpcRequest(method: string, params: any[] = []): Promise<string> {
+export async function customDevRpcRequest(method: string, params: any[] = []): Promise<any> {
   const globalConfig = await importJsonConfig();
   const env = globalConfig.environments.find(({ name }) => name == process.env.MOON_TEST_ENV)!;
   const endpoint = env.connections
@@ -66,9 +66,6 @@ export async function customDevRpcRequest(method: string, params: any[] = []): P
     method,
     params,
   };
-
-  console.log(method)
-  console.dir(params, {depth: null})
 
   const response = await fetch(endpoint, {
     method: "POST",
