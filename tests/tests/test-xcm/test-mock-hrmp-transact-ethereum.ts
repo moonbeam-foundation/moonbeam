@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import { alith, charleth, generateKeyringPair } from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import {
-  descendOriginFromAddress,
+  descendOriginFromAddress20,
   registerForeignAsset,
   injectHrmpMessageAndSeal,
   RawXcmMessage,
@@ -30,7 +30,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
   let random: KeyringPair;
 
   before("should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
     random = generateKeyringPair();
@@ -168,7 +168,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
@@ -315,7 +315,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     descendedAddress = descendOriginAddress;
     random = generateKeyringPair();
@@ -478,7 +478,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
   let random: KeyringPair;
 
   before("should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
     random = generateKeyringPair();
@@ -611,7 +611,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
   let random: KeyringPair;
 
   before("should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
       context,
       charleth.address
     );
@@ -753,7 +753,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
       context,
       charleth.address
     );
@@ -924,7 +924,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
       context,
       charleth.address
     );
@@ -1099,7 +1099,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
   let random: KeyringPair;
 
   before("should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
     random = generateKeyringPair();
@@ -1267,7 +1267,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     transferredBalance = 10_000_000_000_000_000_000n;
 
@@ -1391,7 +1391,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (cont
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     transferredBalance = 10_000_000_000_000_000_000n;
 
@@ -1511,7 +1511,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
   let random: KeyringPair;
 
   before("should receive ethereum transact and account weight used", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
     random = generateKeyringPair();

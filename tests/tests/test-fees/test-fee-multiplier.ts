@@ -8,7 +8,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 import {
   RawXcmMessage,
   XcmFragment,
-  descendOriginFromAddress,
+  descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../util/xcm";
 import { expectOk } from "../../util/expect";
@@ -208,7 +208,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
   let balancesPalletIndex: number;
 
   before("Suite Setup", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;

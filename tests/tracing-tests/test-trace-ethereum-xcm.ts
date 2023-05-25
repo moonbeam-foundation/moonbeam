@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 import { generateKeyringPair, alith } from "../util/accounts";
 import {
-  descendOriginFromAddress,
+  descendOriginFromAddress20,
   injectHrmpMessage,
   injectHrmpMessageAndSeal,
   RawXcmMessage,
@@ -27,7 +27,7 @@ describeDevMoonbeam("Trace ethereum xcm #1", (context) => {
     const { contract, rawTx } = await createContract(context, "Incrementor");
     await expectOk(context.createBlock(rawTx));
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     const sendingAddress = originAddress;
     const random = generateKeyringPair();
     const transferredBalance = 10_000_000_000_000_000_000n;
@@ -145,7 +145,7 @@ describeDevMoonbeam("Trace ethereum xcm #2", (context) => {
     );
     await expectOk(context.createBlock(xcm_rawTx));
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     ethereumXcmDescendedOrigin = descendOriginAddress;
     xcmContractAddress = xcm_contract.options.address;
     const sendingAddress = originAddress;
