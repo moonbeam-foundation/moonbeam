@@ -1781,7 +1781,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(23775)
+				.expect_cost(25775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1800,7 +1800,7 @@ fn asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -1833,7 +1833,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14048)
+				.expect_cost(16048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1854,7 +1854,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(31145)
+				.expect_cost(33145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1906,7 +1906,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * MOVR }.into(),
 					},
 				)
-				.expect_cost(12932)
+				.expect_cost(14932)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1933,7 +1933,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * MOVR }.into(),
 					},
 				)
-				.expect_cost(13172)
+				.expect_cost(15172)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1978,7 +1978,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6783)
+				.expect_cost(8783)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1997,7 +1997,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6803)
+				.expect_cost(8803)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2032,7 +2032,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5623)
+				.expect_cost(7623)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2049,7 +2049,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5634)
+				.expect_cost(7634)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2086,7 +2086,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6706)
+				.expect_cost(8706)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2128,7 +2128,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5657)
+				.expect_cost(7657)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2191,7 +2191,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 
@@ -2204,7 +2204,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 		});
@@ -2249,7 +2249,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(23775)
+				.expect_cost(24775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2268,7 +2268,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -2313,7 +2313,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14048)
+				.expect_cost(15048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2334,7 +2334,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(31145)
+				.expect_cost(32145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
