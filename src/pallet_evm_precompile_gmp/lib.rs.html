@@ -340,7 +340,7 @@
 <span class="kw">use </span>sp_std::boxed::Box;
 <span class="kw">use </span>sp_std::{marker::PhantomData, vec::Vec};
 <span class="kw">use </span>types::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm::{opaque::latest::WeightLimit, VersionedMultiLocation};
+<span class="kw">use </span>xcm::opaque::latest::WeightLimit;
 <span class="kw">use </span>xcm_primitives::AccountIdToCurrencyId;
 
 <span class="attr">#[cfg(test)]
@@ -494,7 +494,7 @@
 			VersionedUserAction::V1(action) =&gt; orml_xtokens::Call::&lt;Runtime&gt;::transfer {
 				currency_id,
 				amount,
-				dest: Box::new(VersionedMultiLocation::V3(action.destination)),
+				dest: Box::new(action.destination),
 				dest_weight_limit: WeightLimit::Unlimited,
 			},
 		};
