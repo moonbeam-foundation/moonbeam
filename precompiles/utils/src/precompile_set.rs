@@ -102,6 +102,29 @@ pub trait PrecompileChecks {
 }
 
 #[derive(Debug, Clone)]
+pub enum DiscriminantResult<T> {
+	Some(T, u64),
+	None(u64),
+	OutOfGas,
+}
+
+impl<T> Into<IsPrecompileResult> for DiscriminantResult<T> {
+	fn into(self) -> IsPrecompileResult {
+		match self {
+			Self::Some(_, extra_cost) => IsPrecompileResult::Answer {
+				is_precompile: true,
+				extra_cost,
+			},
+			Self::None(extra_cost) => IsPrecompileResult::Answer {
+				is_precompile: false,
+				extra_cost,
+			},
+			Self::OutOfGas => IsPrecompileResult::OutOfGas,
+		}
+	}
+}
+
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "testing", derive(serde::Serialize, serde::Deserialize))]
 pub enum PrecompileKind {
 	Single(H160),

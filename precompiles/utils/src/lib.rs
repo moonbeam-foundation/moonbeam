@@ -74,6 +74,7 @@ pub mod prelude {
 			},
 			substrate::{RuntimeHelper, TryDispatchError},
 			EvmResult,
+			precompile_set::DiscriminantResult,
 		},
 		alloc::string::String,
 		pallet_evm::{PrecompileHandle, PrecompileOutput},

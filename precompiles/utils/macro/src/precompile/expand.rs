@@ -401,11 +401,24 @@ impl Precompile {
 						&self,
 						handle: &mut impl PrecompileHandle
 					) -> Option<::precompile_utils::EvmResult<::fp_evm::PrecompileOutput>> {
-						let discriminant = match <#impl_type>::#discriminant_fn(
-							handle.code_address()
-						) {
-							Some(d) => d,
-							None => return None,
+						use ::precompile_utils::precompile_set::DiscriminantResult;
+
+						let discriminant = <#impl_type>::#discriminant_fn(
+							handle.code_address(),
+							handle.remaining_gas()
+						);
+
+						if let DiscriminantResult::Some(_, cost) | DiscriminantResult::None(cost) = discriminant {
+							let result = handle.record_cost(cost);
+							if let Err(e) = result {
+								return Some(Err(e.into()));
+							}
+						}
+
+						let discriminant = match discriminant {
+							DiscriminantResult::Some(d, _) => d,
+							DiscriminantResult::None(cost) => return None,
+							DiscriminantResult::OutOfGas => return Some(Err(ExitError::OutOfGas.into()))
 						};
 
 						#opt_pre_check
@@ -416,11 +429,8 @@ impl Precompile {
 						)
 					}
 
-					fn is_precompile(&self, address: H160, _gas: u64) -> ::fp_evm::IsPrecompileResult {
-						fp_evm::IsPrecompileResult::Answer {
-							is_precompile: <#impl_type>::#discriminant_fn(address).is_some(),
-							extra_cost: 0,
-						}
+					fn is_precompile(&self, address: H160, gas: u64) -> ::fp_evm::IsPrecompileResult {
+						<#impl_type>::#discriminant_fn(address, gas).into()
 					}
 				}
 			)
