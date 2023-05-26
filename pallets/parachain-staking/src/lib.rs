@@ -1163,42 +1163,14 @@ pub mod pallet {
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
-			<Pallet<T>>::delegate2(
-				origin,
-				candidate,
-				amount,
-				candidate_delegation_count,
-				delegation_count,
-				0,
-			)
-		}
-
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::call_index(117)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate(
-				*candidate_delegation_count,
-				*delegation_count
-			)
-		)]
-		pub fn delegate2(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-			_delegator_scheduled_requests_count: u32,
-		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
-				candidate,
+			<Pallet<T>>::delegate_inner(
 				delegator,
+				candidate,
 				amount,
-				Percent::zero(),
 				candidate_delegation_count,
-				0,
 				delegation_count,
+				0,
 			)
 		}
 
@@ -1322,7 +1294,7 @@ pub mod pallet {
 
 		/// Execute pending request to change an existing delegation
 		#[pallet::call_index(25)]
-		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
+		#[pallet::weight(sp_std::cmp::max(<T as Config>::WeightInfo::execute_delegator_bond_less(), <T as Config>::WeightInfo::execute_revoke_delegation()))]
 		pub fn execute_delegation_request(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
@@ -1594,6 +1566,29 @@ pub mod pallet {
 			Ok(Some(actual_weight).into())
 		}
 
+		pub fn delegate_inner(
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			candidate_delegation_count: u32,
+			delegation_count: u32,
+			_delegator_scheduled_requests_count: u32,
+		) -> DispatchResultWithPostInfo {
+			// TODO use these to return actual weight used
+			// let _actual_scheduled_requests_count = state.delegation_count;
+			let actual_weight = Weight::zero();
+			
+			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
+				candidate,
+				delegator,
+				amount,
+				Percent::zero(),
+				candidate_delegation_count,
+				0,
+				delegation_count,
+			)
+		}
+
 		/// Returns an account's free balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let mut balance = T::Currency::free_balance(acc);
@@ -1654,6 +1649,48 @@ pub mod pallet {
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
+			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
+			<Total<T>>::put(new_total_locked);
+			let new_total = state.total_counted;
+			<CandidateInfo<T>>::insert(&candidate, state);
+			Self::deposit_event(Event::DelegatorLeftCandidate {
+				delegator: delegator,
+				candidate: candidate,
+				unstaked_amount: amount,
+				total_candidate_staked: new_total,
+			});
+			Ok(())
+		}
+
+		/// Remove delegation from candidate state
+		/// Amount input should be retrieved from delegator and it informs the storage lookups
+		pub(crate) fn delegator_leaves_candidate_inner(
+			candidate: T::AccountId,
+			delegator: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			Self::delegator_leaves_candidate_callback(candidate.clone(), delegator.clone(), amount.clone(), |state| {
+				state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)
+				Weight::zero()
+			})
+		}
+
+		/// Remove delegation from candidate state
+		/// Amount input should be retrieved from delegator and it informs the storage lookups
+		pub(crate) fn delegator_leaves_candidate_callback<F: FnMut(CandidateMetadata<BalanceOf<T>>) -> Weight>(
+			candidate: T::AccountId,
+			delegator: T::AccountId,
+			amount: BalanceOf<T>,
+			rm_delegation_callback: F,
+		) -> DispatchResult {
+			// TODO initial weight from delegator_leaves_candidate_callback_best
+
+			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			
+			// TODO add callback weight to total
+
+			rm_delegation_callback(state)?;
+			// state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
 			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;

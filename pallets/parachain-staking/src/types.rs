@@ -631,6 +631,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// TODO: initial weight from `add_top_delegation_best`
+
 		let mut less_total_staked = None;
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
 			.expect("CandidateInfo existence => TopDelegations existence");
@@ -645,6 +647,8 @@ impl<
 				less_total_staked = Some(self.lowest_bottom_delegation_amount);
 			}
 			self.add_bottom_delegation::<T>(true, candidate, new_bottom_delegation);
+
+			// TODO: add weight from `add_bottom_delegation`
 		}
 		// insert into top
 		top_delegations.insert_sorted_greatest_to_least(delegation);
@@ -669,6 +673,8 @@ impl<
 	) where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// TODO intial weight from add_bottom_delegation_best
+
 		let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
 			.expect("CandidateInfo existence => BottomDelegations existence");
 		// if bottom is full, kick the lowest bottom (which is expected to be lower than input
@@ -718,6 +724,8 @@ impl<
 				<DelegatorState<T>>::insert(&lowest_bottom_to_be_kicked.owner, delegator_state);
 			}
 			false
+
+			// TODO return weight from add_bottom_delegation_kicked_best (optional add weight from delegation & auto-compound requests)
 		} else {
 			!bumped_from_top
 		};
@@ -770,6 +778,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// TODO init weight with delegation_remove_from_top_best
+
 		let old_total_counted = self.total_counted;
 		// remove top delegation
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
@@ -792,6 +802,8 @@ impl<
 		top_delegations.total = top_delegations.total.saturating_sub(actual_amount);
 		// if bottom nonempty => bump top bottom to top
 		if !matches!(self.bottom_capacity, CapacityStatus::Empty) {
+			// TODO return weight with delegation_remove_from_top_bottom_bumped_up_worst
+
 			let mut bottom_delegations =
 				<BottomDelegations<T>>::get(candidate).expect("bottom is nonempty as just checked");
 			// expect already stored greatest to least by bond amount
@@ -821,6 +833,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance>,
 	{
+		// TODO intial weight from delegation_remove_from_bottom
+		
 		// remove bottom delegation
 		let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
 			.expect("CandidateInfo exists => BottomDelegations exists");

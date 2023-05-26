@@ -20,10 +20,11 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
+use crate::weights::WeightInfo;
 use crate::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::Get;
-use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
+use frame_support::{dispatch::{DispatchResultWithPostInfo, DispatchErrorWithPostInfo}, RuntimeDebug};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
@@ -227,6 +228,8 @@ impl<T: Config> Pallet<T> {
 
 		match request.action {
 			DelegationAction::Revoke(amount) => {
+				let actual_weight = <T as Config>::WeightInfo::execute_revoke_delegation();
+
 				// revoking last delegation => leaving set of delegators
 				let leaving = if state.delegations.0.len() == 1usize {
 					true
@@ -236,7 +239,10 @@ impl<T: Config> Pallet<T> {
 							.total()
 							.saturating_sub(T::MinDelegatorStk::get().into())
 							>= amount,
-						<Error<T>>::DelegatorBondBelowMin
+							DispatchErrorWithPostInfo{
+								post_info: Some(actual_weight).into(),
+								error: <Error<T>>::DelegatorBondBelowMin.into(),
+							}
 					);
 					false
 				};
@@ -252,7 +258,10 @@ impl<T: Config> Pallet<T> {
 				<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
 
 				// remove delegation from collator state delegations
-				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
+				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount).map_err(|err| DispatchErrorWithPostInfo{
+					post_info: Some(actual_weight).into(),
+					error: err,
+				})?;
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
@@ -269,9 +278,11 @@ impl<T: Config> Pallet<T> {
 				} else {
 					<DelegatorState<T>>::insert(&delegator, state);
 				}
-				Ok(().into())
+				Ok(Some(actual_weight).into())
 			}
 			DelegationAction::Decrease(_) => {
+				let actual_weight = <T as Config>::WeightInfo::execute_delegator_bond_less();
+
 				// remove from pending requests
 				let amount = scheduled_requests.remove(request_idx).action.amount();
 				state.less_total = state.less_total.saturating_sub(amount);

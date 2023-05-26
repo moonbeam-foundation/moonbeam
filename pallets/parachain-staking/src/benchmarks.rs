@@ -18,10 +18,11 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
+	AwardedPts, BalanceOf, Bond, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
 	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
-	Staked, TopDelegations,
+	Staked, TopDelegations, BottomDelegations, 
 };
+use crate::types::{CandidateMetadata};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::RawOrigin;
@@ -1035,6 +1036,193 @@ benchmarks! {
 				action: DelegationAction::Decrease(bond_less),
 			}],
 		);
+	}
+
+	delegation_add_to_top_best {
+		// Best case when a delegation is added to top when it's not full
+		let x in 1..(T::MaxTopDelegationsPerCandidate::get()-1);
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		for i in 1..x {
+			state.add_top_delegation(&candidate, Bond {
+				owner: account("delegator", seed.take(), 0u32),
+				amount: T::MinDelegatorStk::get()*2.into() - i.into(),
+			});
+		}
+
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}: {
+		state.add_top_delegation(&candidate, Bond {
+			owner: account("delegator", seed.take(), 0u32),
+			amount: T::MinDelegatorStk::get()*2.into(),
+		});
+	} verify {
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}
+
+	delegation_add_to_bottom_best {
+		// Best case when a delegation is added to bottom when it's not full.
+		let x in 1..(T::MaxBottomDelegationsPerCandidate::get()-1);
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		for i in 1..x {
+			state.add_bottom_delegation(&candidate, Bond {
+				owner: account("delegator", seed.take(), 0u32),
+				amount: T::MinDelegatorStk::get()*2.into(),
+			});
+		}
+
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}: {
+		state.add_bottom_delegation(&candidate, Bond {
+			owner: account("delegator", seed.take(), 0u32),
+			amount: T::MinDelegatorStk::get()*2.into(),
+		});
+	} verify {
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}
+
+	delegation_add_to_full_bottom_kicked_best {
+		// Best case when a delegation is added to a full bottom and the last one kicked
+		let x in 1..(T::MaxBottomDelegationsPerCandidate::get()-1);
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+			state.add_bottom_delegation(&candidate, Bond {
+				owner: account("delegator", seed.take(), 0u32),
+				amount: T::MinDelegatorStk::get()*2.into(),
+			});
+		}
+
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}: {
+		state.add_bottom_delegation(&candidate, Bond {
+			owner: account("delegator", seed.take(), 0u32),
+			amount: T::MinDelegatorStk::get(),
+		});
+	} verify {
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}
+
+	delegation_remove_from_top_best {
+		// Best case for removal of a delegation from top when it's not full
+		let x in 1..T::MaxTopDelegationsPerCandidate::get();
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		let mut last_delegator = T::AccountId::default();
+		for i in 0..x {
+			let delegator = account("delegator", seed.take(), 0u32);
+			last_delegator = delegator.clone();
+			state.add_top_delegation(Bond {
+				owner: delegator,
+				amount: T::MinDelegatorStk::get()*2.into(),
+			});
+		}
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}: {
+		state.rm_top_delegation(candidate, last_delegator).expect("must succeed");
+	} verify {
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}
+
+	delegation_remove_from_top_bottom_bumped_up_worst {
+		// Worst case for removal of a delegation from top when bottom is full and is bumped up
+		let x in 1..T::MaxBottomDelegationsPerCandidate::get();
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		let mut last_top_delegator = T::AccountId::default();
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() {
+			let delegator = account("delegator", seed.take(), 0u32);
+			last_top_delegator = delegator.clone();
+			state.add_top_delegation(&candidate, Bond {
+				owner: delegator,
+				amount: T::MinDelegatorStk::get()*3.into() - i.into(),
+			});
+		}
+
+		for i in 0..x {
+			let delegator = account("delegator", seed.take(), 0u32);
+			state.add_bottom_delegation(&candidate, Bond {
+				owner: delegator,
+				amount: T::MinDelegatorStk::get()*2.into(),
+			});
+		}
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), T::MaxTopDelegationsPerCandidate::get());
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}: {
+		state.rm_top_delegation(candidate, last_top_delegator).expect("must succeed");
+	} verify {
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), T::MaxTopDelegationsPerCandidate::get());
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}
+
+	delegation_remove_from_bottom {
+		// Best case for removal of a delegation from top when bottom is full and is bumped up
+		let x in 0..T::MaxBottomDelegationsPerCandidate::get();
+
+		let mut seed = Seed::new();
+		let candidate = account("candidate", seed.take(), 0u32);
+		let mut state = CandidateMetadata::new(T::MinCandidateStk::get());
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() {
+			state.add_top_delegation(&candidate, Bond {
+				owner: account("delegator", seed.take(), 0u32),
+				amount: T::MinDelegatorStk::get()*3.into() - i.into(),
+			});
+		}
+		
+		let mut last_bottom_delegator = T::AccountId::default();
+		for i in 0..x {
+			let delegator = account("delegator", seed.take(), 0u32);
+			last_bottom_delegator = delegator.clone();
+			state.add_bottom_delegation(&candidate, Bond {
+				owner: delegator,
+				amount: T::MinDelegatorStk::get()*2.into(),
+			});
+		}
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), T::MaxTopDelegationsPerCandidate::get());
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x);
+	}: {
+		state.rm_bottom_delegation(candidate, last_bottom_delegator).expect("must succeed");
+	} verify {
+		assert_eq!(<TopDelegations<T>>::get(&candidate).map(|d| d.delegations.len()).unwrap_or_default(), T::MaxTopDelegationsPerCandidate::get());
+		assert_eq!(<BottomDelegations<T>>::get(&candidate).len().map(|d| d.delegations.len()).unwrap_or_default(), x-1);
+	}
+
+	delegator_leaves_candidate_callback_best {
+		// Best case scenario when a single delegator leaves a candidate, with a 0-weight removal from storage
+		let mut seed = Seed::new();
+
+		let collator = create_account::<T>(
+			"collator",
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
+		)?;
+
+		let delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::MinDelegatorStake,
+			AccountAction::Delegate{ 
+				collator: collator.clone(),
+				amount: Amount::All, 
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: 0,
+				collator_auto_compound_delegation_count: 0,
+			},
+		)?;
+	}: {
+		<Pallet<T>>::delegator_leaves_candidate_callback(collator, delegator, T::MinDelegatorStk::get(), |_state| Some(0).into())
 	}
 
 	execute_revoke_delegation {
