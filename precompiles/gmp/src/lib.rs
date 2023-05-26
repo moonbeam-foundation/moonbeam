@@ -32,7 +32,7 @@ use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;
-use xcm::{opaque::latest::WeightLimit, VersionedMultiLocation};
+use xcm::opaque::latest::WeightLimit;
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -186,7 +186,7 @@ where
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
 				amount,
-				dest: Box::new(VersionedMultiLocation::V3(action.destination)),
+				dest: Box::new(action.destination),
 				dest_weight_limit: WeightLimit::Unlimited,
 			},
 		};
