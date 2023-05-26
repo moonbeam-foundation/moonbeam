@@ -166,6 +166,53 @@ fn transfer_to_reserve_works() {
 }
 
 #[test]
+fn transfer_to_reserve_with_unlimited_weight_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}),
+			);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::transfer {
+						currency_address: Address(AssetAccount(0u128).into()),
+						amount: 500.into(),
+						destination: destination.clone(),
+						weight: u64::MAX,
+					},
+				)
+				.expect_cost(3000)
+				.expect_no_logs()
+				.execute_returns(());
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
+				sender: Alice.into(),
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
+				dest: destination,
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
 fn transfer_to_reserve_with_fee_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])

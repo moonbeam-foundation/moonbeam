@@ -37,10 +37,11 @@ use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AccountId, Balances, CouncilCollective, CrowdloanRewards, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CouncilCollective, CrowdloanRewards, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
+	RuntimeEvent, System, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
+	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -126,6 +127,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
+	is_pallet_prefix::<moonbeam_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonbeam_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbeam_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
@@ -261,6 +265,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbeam_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -287,6 +297,96 @@ fn collective_set_members_root_origin_works() {
 			Some(AccountId::from(ALICE)),
 			2
 		));
+		// OpenTechCommitteeCollective
+		assert_ok!(OpenTechCommitteeCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		));
+	});
+}
+
+#[test]
+fn collective_set_members_general_admin_origin_works() {
+	use moonbeam_runtime::{
+		governance::custom_origins::Origin as CustomOrigin, OriginCaller, Utility,
+	};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let root_caller = <Runtime as frame_system::Config>::RuntimeOrigin::root();
+		let alice = AccountId::from(ALICE);
+
+		// CouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance1>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance2>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// TreasuryCouncilCollective
+		let _ = Utility::dispatch_as(
+			root_caller.clone(),
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+		// OpenTechCommitteeCollective
+		let _ = Utility::dispatch_as(
+			root_caller,
+			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
+			Box::new(
+				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+					new_members: vec![alice, AccountId::from(BOB)],
+					prime: Some(alice),
+					old_count: 2,
+				}
+				.into(),
+			),
+		);
+
+		assert_eq!(
+			System::events()
+				.into_iter()
+				.filter_map(|r| {
+					match r.event {
+						RuntimeEvent::Utility(pallet_utility::Event::DispatchedAs { result })
+							if result.is_ok() =>
+						{
+							Some(true)
+						}
+						_ => None,
+					}
+				})
+				.collect::<Vec<_>>()
+				.len(),
+			4
+		)
 	});
 }
 
@@ -312,6 +412,14 @@ fn collective_set_members_signed_origin_does_not_work() {
 		.is_err());
 		// TreasuryCouncilCollective
 		assert!(TreasuryCouncilCollective::set_members(
+			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
+			vec![AccountId::from(ALICE), AccountId::from(BOB)],
+			Some(AccountId::from(ALICE)),
+			2
+		)
+		.is_err());
+		// OpenTechCommitteeCollective
+		assert!(OpenTechCommitteeCollective::set_members(
 			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
 			vec![AccountId::from(ALICE), AccountId::from(BOB)],
 			Some(AccountId::from(ALICE)),
@@ -362,6 +470,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71);
 	is_pallet_index::<moonbeam_runtime::TreasuryCouncilCollective>(72);
+	is_pallet_index::<moonbeam_runtime::OpenTechCommitteeCollective>(73);
 	// Treasury
 	is_pallet_index::<moonbeam_runtime::Treasury>(80);
 	// Crowdloan
@@ -1298,7 +1407,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
@@ -1320,7 +1429,7 @@ fn min_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
@@ -1691,7 +1800,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(23775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1743,7 +1852,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(14048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1764,7 +1873,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(31145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1816,7 +1925,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * GLMR }.into(),
 					},
 				)
-				.expect_cost(12787)
+				.expect_cost(12932)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1843,7 +1952,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13016)
+				.expect_cost(13172)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1888,7 +1997,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6699)
+				.expect_cost(6783)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1907,7 +2016,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6713)
+				.expect_cost(6803)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1942,7 +2051,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5548)
+				.expect_cost(5623)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1959,7 +2068,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5550)
+				.expect_cost(5634)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1996,7 +2105,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6614)
+				.expect_cost(6706)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2038,7 +2147,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						issuer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5577)
+				.expect_cost(5657)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2161,7 +2270,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(23775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2226,7 +2335,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(14048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2247,7 +2356,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(31145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2526,7 +2635,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(19078)
+				.expect_cost(18737)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2822,7 +2931,8 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2067, 2069,
+			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+			2069,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2909,6 +3019,38 @@ fn removed_precompiles() {
 				.execute_reverts(|out| out == b"Removed precompile");
 		}
 	})
+}
+
+#[test]
+fn deal_with_fees_handles_tip() {
+	use frame_support::traits::OnUnbalanced;
+	use moonbeam_runtime::{DealWithFees, Treasury};
+	use pallet_balances::NegativeImbalance;
+
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 10_000)])
+		.build()
+		.execute_with(|| {
+			// Alice has 10_000, which makes inital supply 10_000.
+			// drop()ing the NegativeImbalance below will cause the total_supply to be decreased
+			// incorrectly (since there was never a withdraw to begin with), which in this case has
+			// the desired effect of showing that currency was burned.
+			let total_supply_before = Balances::total_issuance();
+			assert_eq!(total_supply_before, 10_000);
+
+			let fees_then_tips = vec![
+				NegativeImbalance::<moonbeam_runtime::Runtime>::new(100),
+				NegativeImbalance::<moonbeam_runtime::Runtime>::new(1_000),
+			];
+			DealWithFees::on_unbalanceds(fees_then_tips.into_iter());
+
+			// treasury should have received 20%
+			assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+
+			// verify 80% burned
+			let total_supply_after = Balances::total_issuance();
+			assert_eq!(total_supply_before - total_supply_after, 880);
+		});
 }
 
 #[test]
@@ -3054,12 +3196,12 @@ mod fee_tests {
 		type LengthToFeeImpl = LengthToFee;
 
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
-		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
-			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
-				&Weight::from_ref_time(extrinsic_weight),
-			)) + LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(
-			extrinsic_len as u64,
-		)) + tip;
+		let expected_fee =
+			WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+				+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
+					&Weight::from_parts(extrinsic_weight, 1),
+				)) + LengthToFeeImpl::weight_to_fee(&Weight::from_parts(extrinsic_len as u64, 1))
+				+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
@@ -3072,7 +3214,7 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_ref_time(extrinsic_weight),
+					weight: Weight::from_parts(extrinsic_weight, 1),
 				},
 				tip,
 			);

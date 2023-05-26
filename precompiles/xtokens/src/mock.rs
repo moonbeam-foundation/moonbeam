@@ -136,7 +136,7 @@ pub type PCall = XtokensPrecompileCall<Runtime>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -283,6 +283,7 @@ impl xcm_executor::Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]

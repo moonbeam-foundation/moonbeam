@@ -31,7 +31,7 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> MatchesFungibles<H160, U256>
 	fn matches_fungibles(multiasset: &MultiAsset) -> Result<(H160, U256), MatchError> {
 		let (amount, id) = match (&multiasset.fun, &multiasset.id) {
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
-			_ => return Err(MatchError::AssetNotFound),
+			_ => return Err(MatchError::AssetNotHandled),
 		};
 		let contract_address = Self::matches_erc20_multilocation(id)
 			.map_err(|_| MatchError::AssetIdConversionFailed)?;

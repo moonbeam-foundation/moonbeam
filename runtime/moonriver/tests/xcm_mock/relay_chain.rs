@@ -140,7 +140,7 @@ parameter_types! {
 }
 
 use frame_support::ensure;
-use frame_support::traits::Contains;
+use frame_support::traits::{Contains, ProcessMessageError};
 use sp_std::marker::PhantomData;
 use xcm_executor::traits::ShouldExecute;
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
@@ -154,28 +154,28 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 		message: &mut [Instruction<Call>],
 		max_weight: Weight,
 		_weight_credit: &mut Weight,
-	) -> Result<(), ()> {
+	) -> Result<(), ProcessMessageError> {
 		log::trace!(
 			target: "xcm::barriers",
 			"AllowTopLevelPaidExecutionFromLocal origin:
 			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
 			origin, message, max_weight, _weight_credit,
 		);
-		ensure!(T::contains(origin), ());
+		ensure!(T::contains(origin), ProcessMessageError::Unsupported);
 		let mut iter = message.iter_mut();
-		let mut i = iter.next().ok_or(())?;
+		let mut i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
 		match i {
 			DescendOrigin(..) => (),
-			_ => return Err(()),
+			_ => return Err(ProcessMessageError::BadFormat),
 		}
 
-		i = iter.next().ok_or(())?;
+		i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
 		match i {
 			WithdrawAsset(..) => (),
-			_ => return Err(()),
+			_ => return Err(ProcessMessageError::BadFormat),
 		}
 
-		i = iter.next().ok_or(())?;
+		i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
 		match i {
 			BuyExecution {
 				weight_limit: Limited(ref mut weight),
@@ -191,7 +191,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 				*weight_limit = Limited(max_weight);
 				Ok(())
 			}
-			_ => Err(()),
+			_ => Err(ProcessMessageError::Overweight(max_weight)),
 		}
 	}
 }
@@ -232,6 +232,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -368,30 +369,30 @@ pub struct TestHrmpWeightInfo;
 
 impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	fn hrmp_accept_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_clean_hrmp(_: u32, _: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_close(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_open(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_cancel_open_request(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_close_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_init_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn clean_open_channel_requests(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_open_hrmp_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 }

@@ -73,4 +73,5 @@ impl pallet_democracy::Config for Runtime {
 	type Preimages = Preimage;
 	type MaxDeposits = ConstU32<100>;
 	type MaxBlacklisted = ConstU32<100>;
+	type SubmitOrigin = EnsureSigned<AccountId>;
 }

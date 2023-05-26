@@ -151,9 +151,6 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
-		/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
-		#[pallet::constant]
-		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCandidateStk: Get<BalanceOf<Self>>;
@@ -518,6 +515,19 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
+	pub struct AddGet<T, R> {
+		_phantom: PhantomData<(T, R)>,
+	}
+	impl<T, R> Get<u32> for AddGet<T, R>
+	where
+		T: Get<u32>,
+		R: Get<u32>,
+	{
+		fn get() -> u32 {
+			T::get() + R::get()
+		}
+	}
+
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn auto_compounding_delegations)]
@@ -525,7 +535,10 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec<AutoCompoundConfig<T::AccountId>>,
+		BoundedVec<
+			AutoCompoundConfig<T::AccountId>,
+			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+		>,
 		ValueQuery,
 	>;
 
@@ -1581,7 +1594,7 @@ pub mod pallet {
 
 			// don't underflow uint
 			if now < delay {
-				return Weight::from_ref_time(0u64);
+				return Weight::from_parts(0u64, 0);
 			}
 
 			let paid_for_round = now.saturating_sub(delay);
@@ -1596,7 +1609,7 @@ pub mod pallet {
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {
-				Weight::from_ref_time(0u64)
+				Weight::from_parts(0u64, 0)
 			}
 		}
 
@@ -1711,7 +1724,7 @@ pub mod pallet {
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				(RewardPayment::Finished, Weight::from_ref_time(0u64.into()))
+				(RewardPayment::Finished, Weight::from_parts(0u64, 0))
 			}
 		}
 
@@ -1744,7 +1757,6 @@ pub mod pallet {
 				let mut collators = candidates
 					.into_iter()
 					.take(top_n)
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>();
 
@@ -1757,7 +1769,6 @@ pub mod pallet {
 				// The candidates are already sorted by AccountId, so no need to sort again
 				candidates
 					.into_iter()
-					.filter(|x| x.amount >= T::MinCollatorStk::get())
 					.map(|x| x.owner)
 					.collect::<Vec<T::AccountId>>()
 			}

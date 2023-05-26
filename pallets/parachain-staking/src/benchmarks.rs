@@ -30,7 +30,7 @@ use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
 fn min_candidate_stk<T: Config>() -> BalanceOf<T> {
-	<<T as Config>::MinCollatorStk as Get<BalanceOf<T>>>::get()
+	<<T as Config>::MinCandidateStk as Get<BalanceOf<T>>>::get()
 }
 
 /// Minimum delegator stake
@@ -1123,7 +1123,7 @@ benchmarks! {
 			auto_compounding_state.set_for_delegator(
 				delegator,
 				Percent::from_percent(100),
-			);
+			).expect("must succeed");
 		}
 		auto_compounding_state.set_storage(&prime_candidate);
 

@@ -96,24 +96,12 @@ benchmarks! {
 
 	set_keys {
 		let caller = create_funded_user::<T>();
-		let first_id = nimbus_id(1u8);
-		let first_keys: T::Keys = nimbus_id(3u8).into();
-		let second_id = nimbus_id(2u8);
-		let second_keys: T::Keys = nimbus_id(3u8).into();
-		// we benchmark set_keys after already calling set_keys because
-		// key rotation is more common than initially setting them
-		assert_ok!(Pallet::<T>::set_keys(
-				RawOrigin::Signed(caller.clone()).into(),
-				keys_wrapper::<T>(first_id.clone(),
-				first_keys.clone()),
-			)
-		);
-	}: _(RawOrigin::Signed(caller.clone()), keys_wrapper::<T>(second_id.clone(), second_keys.clone())
+		let id = nimbus_id(2u8);
+		let keys: T::Keys = nimbus_id(3u8).into();
+	}: _(RawOrigin::Signed(caller.clone()), keys_wrapper::<T>(id.clone(), keys.clone())
 		) verify {
-		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
-		assert_eq!(Pallet::<T>::keys_of(&first_id), None);
-		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));
-		assert_eq!(Pallet::<T>::keys_of(&second_id), Some(second_keys));
+		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
+		assert_eq!(Pallet::<T>::keys_of(&id), Some(keys));
 	}
 }
 

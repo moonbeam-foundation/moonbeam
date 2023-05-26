@@ -33,7 +33,7 @@ use sp_runtime::{
 };
 
 use super::*;
-use pallet_ethereum::IntermediateStateRoot;
+use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use sp_runtime::{
 	traits::DispatchInfoOf,
 	transaction_validity::{TransactionValidity, TransactionValidityError},
@@ -64,7 +64,7 @@ frame_support::construct_runtime! {
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
-		frame_system::limits::BlockWeights::simple_max(Weight::from_ref_time(1024));
+		frame_system::limits::BlockWeights::simple_max(Weight::from_parts(1024, 1));
 }
 
 impl frame_system::Config for Test {
@@ -146,7 +146,7 @@ parameter_types! {
 	pub const ChainId: u64 = 42;
 	pub const EVMModuleId: PalletId = PalletId(*b"py/evmpa");
 	pub const BlockGasLimit: U256 = U256::MAX;
-	pub WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 pub struct HashedAddressMapping;
@@ -179,13 +179,18 @@ impl pallet_evm::Config for Test {
 	type OnCreate = ();
 }
 
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
 impl pallet_ethereum::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 1);
 }
 
 #[derive(
