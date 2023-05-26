@@ -34,6 +34,9 @@ export const VOTE_AMOUNT = 10n * GLMR;
 export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_DELEGATOR = 1n * GLMR;
 
+// Maximum PoV size in bytes allowed for a manual sealing dev block
+export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
+
 // Current gas per second
 export const GAS_PER_SECOND = 40_000_000;
 // The real computation is 1_000_000_000_000 / 40_000_000, but we simplify to avoid bigint.

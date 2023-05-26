@@ -58,7 +58,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
+	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -148,6 +148,7 @@ impl pallet_democracy::Config for Runtime {
 	type Preimages = Preimage;
 	type MaxDeposits = ConstU32<1000>;
 	type MaxBlacklisted = ConstU32<5>;
+	type SubmitOrigin = EnsureSigned<AccountId>;
 }
 impl pallet_scheduler::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;

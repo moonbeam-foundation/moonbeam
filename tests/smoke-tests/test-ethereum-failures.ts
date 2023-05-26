@@ -7,6 +7,7 @@ import { rateLimiter } from "../util/common";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { GenericExtrinsic } from "@polkadot/types";
 import { AnyTuple } from "@polkadot/types/types";
+import { TWO_MINS } from "../util/constants";
 const debug = require("debug")("smoke:eth-failures");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
@@ -115,7 +116,7 @@ describeSmokeSuite(
     // of ExtrinsicSuccess fired. Any Extrinsic.Failed events will be reported and mark the
     // block for further investigation.
     testIt("C200", `should have have ExtrinsicSuccess for all ethereum.transact`, function () {
-      this.timeout(30000);
+      this.timeout(TWO_MINS);
       debug(
         `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
           " eth extrinsics all have corresponding ExtrinsicSuccess events."

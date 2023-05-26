@@ -38,6 +38,11 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
 
+#[cfg(feature = "try-runtime")]
+use try_runtime_cli::block_building_info::substrate_info;
+#[cfg(feature = "try-runtime")]
+const SLOT_DURATION: u64 = 12;
+
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
@@ -636,6 +641,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonriver_runtime::Block,
@@ -643,7 +649,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonriverExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -656,6 +662,7 @@ pub fn run() -> Result<()> {
 								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 							})?;
 
+					let info_provider = substrate_info(SLOT_DURATION);
 					Ok((
 						cmd.run::<
 							moonbeam_service::moonbeam_runtime::Block,
@@ -663,7 +670,7 @@ pub fn run() -> Result<()> {
 								sp_io::SubstrateHostFunctions,
 								<moonbeam_service::MoonbeamExecutor
 									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>>(),
+						>, _>(Some(info_provider)),
 						task_manager,
 					))
 				}),
@@ -679,6 +686,7 @@ pub fn run() -> Result<()> {
 									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
 								})?;
 
+						let info_provider = substrate_info(SLOT_DURATION);
 						Ok((
 							cmd.run::<
 								moonbeam_service::moonbase_runtime::Block,
@@ -686,7 +694,7 @@ pub fn run() -> Result<()> {
 									sp_io::SubstrateHostFunctions,
 									<moonbeam_service::MoonbaseExecutor
 										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-							>>(),
+							>, _>(Some(info_provider)),
 							task_manager,
 						))
 					})
@@ -743,7 +751,6 @@ pub fn run() -> Result<()> {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
-
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
 					));
@@ -754,18 +761,21 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),

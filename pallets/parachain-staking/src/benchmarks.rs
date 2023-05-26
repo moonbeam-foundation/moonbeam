@@ -1123,7 +1123,7 @@ benchmarks! {
 			auto_compounding_state.set_for_delegator(
 				delegator,
 				Percent::from_percent(100),
-			);
+			).expect("must succeed");
 		}
 		auto_compounding_state.set_storage(&prime_candidate);
 
