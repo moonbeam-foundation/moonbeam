@@ -323,3 +323,14 @@ export function describeDevMoonbeamAllEthTxTypes(
   describeDevMoonbeam(title + " (EIP1559)", cb, "EIP1559", "moonbase", wasm);
   describeDevMoonbeam(title + " (EIP2930)", cb, "EIP2930", "moonbase", wasm);
 }
+
+export function describeDevMoonbeamAllRuntimes(
+  title: string,
+  cb: (context: DevTestContext) => void,
+  withWasm?: boolean
+) {
+  let wasm = withWasm !== undefined ? withWasm : false;
+  describeDevMoonbeam(title + " (moonbase)", cb, "Legacy", "moonbase", wasm);
+  describeDevMoonbeam(title + " (moonriver)", cb, "Legacy", "moonriver", wasm);
+  describeDevMoonbeam(title + " (moonbeam)", cb, "Legacy", "moonbeam", wasm);
+}
