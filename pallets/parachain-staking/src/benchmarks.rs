@@ -884,7 +884,9 @@ benchmarks! {
 			}
 
 			assert_eq!(
-				<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+				<BottomDelegations<T>>::get(&collator)
+					.map(|bd| bd.delegations.len() as u32)
+					.unwrap_or_default(),
 				T::MaxBottomDelegationsPerCandidate::get(),
 			);
 		}
@@ -1127,7 +1129,10 @@ benchmarks! {
 			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
 
-		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(
+			T::MinDelegatorStk::get() * 2u32.into(),
+			1u32.into(),
+		);
 		let mut col_del_count = 0u32;
 		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
 			let del = create_account::<T>(
