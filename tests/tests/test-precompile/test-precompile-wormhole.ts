@@ -18,8 +18,10 @@ import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 
+import { TypeRegistry, Enum, Struct } from "@polkadot/types";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { expect } from "chai";
+
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -222,6 +224,25 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    // create payload
+    const versionedMultiLocation = {
+      v1: {
+        parents: 1,
+        interior: {
+          X1: {
+            AccountKey20: {
+              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            },
+          },
+        },
+      },
+    };
+
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
     // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
     const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
       u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
@@ -229,6 +250,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
       "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
     );
+
+    const userAction = new XcmRoutingUserAction({ destination });
+    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
+    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
+    let payload = "" + versionedUserAction.toHex();
 
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -255,7 +282,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       PRECOMPILE_GMP_ADDRESS,
       "0x" + evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "0x00010101000000000000000000000000000000000000000000000000000000000000000000"
+      "" + payload
     );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
@@ -272,6 +299,19 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
   });
 });
+
+const registry = new TypeRegistry();
+
+class VersionedUserAction extends Enum {
+  constructor(value?: any) {
+    super(registry, { V1: XcmRoutingUserAction }, value);
+  }
+}
+class XcmRoutingUserAction extends Struct {
+  constructor(value?: any) {
+    super(registry, { destination: "VersionedMultiLocation" }, value);
+  }
+}
 
 describeDevMoonbeam(`Test GMP Killswitch`, (context) => {
   it("should fail with killswitch enabled by default", async function () {
