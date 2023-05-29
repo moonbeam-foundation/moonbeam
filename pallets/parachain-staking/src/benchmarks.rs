@@ -2474,7 +2474,7 @@ mod tests {
 	#[test]
 	fn bench_execute_leave_candidates() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_leave_candidates());
+			assert_ok!(Pallet::<Test>::test_benchmark_execute_leave_candidates_worst_case());
 		});
 	}
 
@@ -2537,21 +2537,21 @@ mod tests {
 	#[test]
 	fn bench_schedule_leave_delegators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_leave_delegators());
+			assert_ok!(Pallet::<Test>::test_benchmark_schedule_leave_delegators_worst());
 		});
 	}
 
 	#[test]
 	fn bench_execute_leave_delegators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_leave_delegators());
+			assert_ok!(Pallet::<Test>::test_benchmark_execute_leave_delegators_worst());
 		});
 	}
 
 	#[test]
 	fn bench_cancel_leave_delegators() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_leave_delegators());
+			assert_ok!(Pallet::<Test>::test_benchmark_cancel_leave_delegators_worst());
 		});
 	}
 
@@ -2586,21 +2586,7 @@ mod tests {
 	#[test]
 	fn bench_execute_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_delegator_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_revoke_delegation() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_revoke_delegation());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_delegator_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_delegator_bond_less());
+			assert_ok!(Pallet::<Test>::test_benchmark_execute_delegator_bond_less_worst());
 		});
 	}
 
