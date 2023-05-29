@@ -462,6 +462,18 @@ impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
 	fn gas_limit(&self) -> Option<u64> {
 		self.handle.gas_limit()
 	}
+
+	fn record_external_cost(
+		&mut self,
+		ref_time: Option<u64>,
+		proof_size: Option<u64>,
+	) -> Result<(), ExitError> {
+		self.handle.record_external_cost(ref_time, proof_size)
+	}
+
+	fn refund_external_cost(&mut self, ref_time: Option<u64>, proof_size: Option<u64>) {
+		self.handle.refund_external_cost(ref_time, proof_size)
+	}
 }
 
 /// Allows to know if a precompile is active or not.

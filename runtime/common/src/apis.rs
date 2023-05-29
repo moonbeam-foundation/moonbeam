@@ -228,7 +228,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn account_code_at(address: H160) -> Vec<u8> {
-					EVM::account_codes(address)
+					pallet_evm::AccountCodes::<Runtime>::get(address)
 				}
 
 				fn author() -> H160 {
@@ -238,7 +238,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn storage_at(address: H160, index: U256) -> H256 {
 					let mut tmp = [0u8; 32];
 					index.to_big_endian(&mut tmp);
-					EVM::account_storages(address, H256::from_slice(&tmp[..]))
+					pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 				}
 
 				fn call(
@@ -274,6 +274,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
+						// TODO we probably want to support external cost recording in non-transactional calls
+						None,
+						None,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -310,20 +313,23 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
+						// TODO we probably want to support external cost recording in non-transactional calls
+						None,
+						None,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
-					Ethereum::current_transaction_statuses()
+					pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 				}
 
 				fn current_block() -> Option<pallet_ethereum::Block> {
-					Ethereum::current_block()
+					pallet_ethereum::CurrentBlock::<Runtime>::get()
 				}
 
 				fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
-					Ethereum::current_receipts()
+					pallet_ethereum::CurrentReceipts::<Runtime>::get()
 				}
 
 				fn current_all() -> (
@@ -332,9 +338,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					Option<Vec<TransactionStatus>>,
 				) {
 					(
-						Ethereum::current_block(),
-						Ethereum::current_receipts(),
-						Ethereum::current_transaction_statuses(),
+						pallet_ethereum::CurrentBlock::<Runtime>::get(),
+						pallet_ethereum::CurrentReceipts::<Runtime>::get(),
+						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get(),
 					)
 				}
 

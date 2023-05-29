@@ -129,6 +129,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub overrides: Arc<OverrideHandle<Block>>,
 	/// Cache for Ethereum block data.
 	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
+	/// Mandated parent hashes for a given block hash.
+	pub forced_parent_hashes: Option<BTreeMap<H256, H256>>,
 }
 
 pub struct TracingConfig {
@@ -169,6 +171,11 @@ pub fn create_full<C, P, BE, A>(
 	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	maybe_tracing_config: Option<TracingConfig>,
+	pubsub_notification_sinks: Arc<
+		fc_mapping_sync::EthereumBlockNotificationSinks<
+			fc_mapping_sync::EthereumBlockNotification<Block>,
+		>,
+	>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: Backend<Block> + 'static,
@@ -215,6 +222,7 @@ where
 		xcm_senders,
 		overrides,
 		block_data_cache,
+		forced_parent_hashes,
 	} = deps;
 
 	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
@@ -249,6 +257,7 @@ where
 			fee_history_cache,
 			fee_history_limit,
 			10,
+			forced_parent_hashes,
 		)
 		.replace_config::<MoonbeamEthConfig<C, BE>>()
 		.into_rpc(),
@@ -286,6 +295,7 @@ where
 			sync.clone(),
 			subscription_task_executor,
 			overrides,
+			pubsub_notification_sinks.clone(),
 		)
 		.into_rpc(),
 	)?;
@@ -345,8 +355,15 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 }
 
 /// Spawn the tasks that are required to run Moonbeam.
-pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
-where
+pub fn spawn_essential_tasks<B, C, BE>(
+	params: SpawnTasksParams<B, C, BE>,
+	sync: Arc<SyncingService<B>>,
+	pubsub_notification_sinks: Arc<
+		fc_mapping_sync::EthereumBlockNotificationSinks<
+			fc_mapping_sync::EthereumBlockNotification<B>,
+		>,
+	>,
+) where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<B> + StorageProvider<B, BE>,
@@ -373,6 +390,8 @@ where
 			3,
 			0,
 			SyncStrategy::Parachain,
+			sync,
+			pubsub_notification_sinks,
 		)
 		.for_each(|()| futures::future::ready(())),
 	);
