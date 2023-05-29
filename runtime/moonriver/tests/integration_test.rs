@@ -1735,7 +1735,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 
@@ -1748,7 +1748,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 		});
@@ -1873,7 +1873,7 @@ fn asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -2353,7 +2353,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
