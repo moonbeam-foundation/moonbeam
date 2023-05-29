@@ -52,6 +52,7 @@ pub mod prelude {
 				handle::PrecompileHandleExt,
 				logs::{log0, log1, log2, log3, log4, LogExt},
 			},
+			precompile_set::DiscriminantResult,
 			solidity::{
 				// We export solidity itself to encourage using `solidity::Codec` to avoid confusion
 				// with parity_scale_codec,
