@@ -207,16 +207,13 @@ where
 			Error::<T>::TooLowCandidateDelegationCountToDelegate
 		);
 
-		let auto_compounding_state = if !auto_compound.is_zero() {
-			let auto_compounding_state = Self::get_storage(&candidate);
+		if !auto_compound.is_zero() {
 			ensure!(
-				auto_compounding_state.len() <= candidate_auto_compounding_delegation_count_hint,
+				Self::get_storage(&candidate).len()
+					<= candidate_auto_compounding_delegation_count_hint,
 				<Error<T>>::TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 			);
-			Some(auto_compounding_state)
-		} else {
-			None
-		};
+		}
 
 		// add delegation to candidate
 		let (delegator_position, less_total_staked) = candidate_state.add_delegation::<T>(
@@ -239,10 +236,11 @@ where
 		};
 		let new_total_locked = <Total<T>>::get().saturating_add(net_total_increase);
 
-		// maybe set auto-compound config, state is Some if the percent is non-zero
-		if let Some(mut state) = auto_compounding_state {
-			state.set_for_delegator(delegator.clone(), auto_compound.clone())?;
-			state.set_storage(&candidate);
+		// set auto-compound config if the percent is non-zero
+		if !auto_compound.is_zero() {
+			let mut auto_compounding_state = Self::get_storage(&candidate);
+			auto_compounding_state.set_for_delegator(delegator.clone(), auto_compound.clone())?;
+			auto_compounding_state.set_storage(&candidate);
 		}
 
 		<Total<T>>::put(new_total_locked);

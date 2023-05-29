@@ -18,11 +18,11 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
-	Staked, TopDelegations,
+	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
+	DelegationAction, Pallet, ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment,
+	Round, ScheduledRequest, Staked, TopDelegations,
 };
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::RawOrigin;
 use sp_runtime::{Perbill, Percent};
@@ -80,7 +80,6 @@ fn create_funded_delegator<T: Config>(
 	Ok(user)
 }
 
-
 #[allow(dead_code)]
 enum Amount<T> {
 	All,
@@ -97,7 +96,7 @@ enum AccountBalance<T> {
 #[allow(dead_code)]
 enum AccountAction<T: Config> {
 	None,
-	Delegate{ 
+	Delegate {
 		collator: T::AccountId,
 		amount: Amount<BalanceOf<T>>,
 		auto_compound: Percent,
@@ -122,14 +121,20 @@ fn create_account<T: Config>(
 		AccountBalance::MinCandidateStake => min_candidate_stk::<T>(),
 		AccountBalance::MinDelegatorStake => min_delegator_stk::<T>(),
 		AccountBalance::Value(v) => v,
-	} ;
+	};
 
 	T::Currency::make_free_balance_be(&acc, initial_balance);
 	T::Currency::issue(initial_balance);
 
 	match action {
 		AccountAction::None => (),
-		AccountAction::Delegate { collator, amount, auto_compound, collator_delegation_count, collator_auto_compound_delegation_count} => {
+		AccountAction::Delegate {
+			collator,
+			amount,
+			auto_compound,
+			collator_delegation_count,
+			collator_auto_compound_delegation_count,
+		} => {
 			let amount = match amount {
 				Amount::All => initial_balance,
 				Amount::Value(v) => v,
@@ -142,9 +147,13 @@ fn create_account<T: Config>(
 				collator_delegation_count,
 				collator_auto_compound_delegation_count,
 				0u32, // first delegation for all calls
-			).expect("failed delegating");
-		},
-		AccountAction::JoinCandidates{ amount, candidate_count } => {
+			)
+			.expect("failed delegating");
+		}
+		AccountAction::JoinCandidates {
+			amount,
+			candidate_count,
+		} => {
 			let amount = match amount {
 				Amount::All => initial_balance,
 				Amount::Value(v) => v,
@@ -153,7 +162,8 @@ fn create_account<T: Config>(
 				RawOrigin::Signed(acc.clone()).into(),
 				amount,
 				candidate_count,
-			).expect("failed joining candidates");
+			)
+			.expect("failed joining candidates");
 		}
 	};
 
@@ -224,6 +234,22 @@ impl Seed {
 	}
 }
 
+struct DecreasingBalance<T: Config> {
+	pub initial: BalanceOf<T>,
+	pub dec_by: BalanceOf<T>,
+}
+impl<T: Config> DecreasingBalance<T> {
+	fn new(initial: BalanceOf<T>, dec_by: BalanceOf<T>) -> Self {
+		DecreasingBalance { initial, dec_by }
+	}
+
+	pub fn take(&mut self) -> BalanceOf<T> {
+		let v = self.initial;
+		self.initial -= self.dec_by;
+		v
+	}
+}
+
 benchmarks! {
 	// MONETARY ORIGIN DISPATCHABLES
 	set_staking_expectations {
@@ -236,7 +262,7 @@ benchmarks! {
 	verify {
 		assert_eq!(Pallet::<T>::inflation_config().expect, stake_range);
 	}
-	
+
 	set_inflation {
 		let inflation_range: Range<Perbill> = Range {
 			min: Perbill::from_perthousand(1),
@@ -380,7 +406,7 @@ benchmarks! {
 				1u32,
 			)?;
 			col_del_ac_count += 1;
-			
+
 			Pallet::<T>::schedule_revoke_delegation(
 				RawOrigin::Signed(delegator.clone()).into(),
 				candidate.clone()
@@ -464,7 +490,7 @@ benchmarks! {
 					1u32,
 				)?;
 			}
-			
+
 			Pallet::<T>::schedule_revoke_delegation(
 				RawOrigin::Signed(delegator.clone()).into(),
 				candidate.clone()
@@ -584,10 +610,10 @@ benchmarks! {
 
 	candidate_bond_more {
 		let x in 1..1_000;
-		
+
 		let more = min_candidate_stk::<T>();
-		
-		let mut candidate_count = 0u32;
+
+		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>(
@@ -641,10 +667,10 @@ benchmarks! {
 
 	execute_candidate_bond_less {
 		let x in 1..1_000;
-		
+
 		let min_candidate_stk = min_candidate_stk::<T>();
-		
-		let mut candidate_count = 0u32;
+
+		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>(
@@ -657,7 +683,6 @@ benchmarks! {
 			candidate_count += 1;
 		}
 
-		
 		let caller: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -705,37 +730,6 @@ benchmarks! {
 			Pallet::<T>::candidate_info(&caller).expect("must exist").request.is_none()
 		);
 	}
-
-	// delegate_bottom_kicked {
-	// 	let x in 3..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-	// 	let y in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
-	// 	let z in 3..<<T as Config>::MaxDelegationsPerDelegator>::get() // used for scheduling delegation requests
-
-	// 	let mut del_scheduled_req_count = 0u32;
-	// 	// Worst Case is full of delegations before calling `delegate`
-	// 	let mut collators: Vec<T::AccountId> = Vec::new();
-	// 	// Initialize MaxDelegationsPerDelegator collator candidates
-	// 	for i in 2..x {
-	// 		let seed = USER_SEED - i;
-	// 		let collator = create_funded_collator::<T>(
-	// 			"collator",
-	// 			seed,
-	// 			0u32.into(),
-	// 			true,
-	// 			collators.len() as u32 + 1u32,
-	// 		)?;
-	// 		collators.push(collator.clone());
-
-	// 		// schedule a pending delegation request for the collator
-	// 		if x < z {
-	// 			Pallet::<T>::schedule_candidate_bond_less(
-	// 				RawOrigin::Signed(collator.clone()).into(),
-	// 				min_candidate_stk
-	// 			)?;
-	// 			del_scheduled_req_count += 1;
-	// 		}
-	// 	}
-	// }
 
 	delegate {
 		let x in 3..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
@@ -803,7 +797,7 @@ benchmarks! {
 
 		let mut seed = Seed::new();
 
-		let collator: T::AccountId = create_account::<T>(
+		let collator = create_account::<T>(
 			"collator",
 			seed.take(),
 			AccountBalance::MinCandidateStake,
@@ -817,9 +811,9 @@ benchmarks! {
 				"delegator",
 				seed.take(),
 				AccountBalance::MinDelegatorStake,
-				AccountAction::Delegate{ 
+				AccountAction::Delegate{
 					collator: collator.clone(),
-					amount: Amount::All, 
+					amount: Amount::All,
 					auto_compound: Percent::from_percent(100),
 					collator_delegation_count: col_del_count,
 					collator_auto_compound_delegation_count: col_del_count,
@@ -856,7 +850,7 @@ benchmarks! {
 		let y in 2..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() - 1);
 		let mut seed = Seed::new();
 
-		let collator: T::AccountId = create_account::<T>(
+		let collator = create_account::<T>(
 			"collator",
 			seed.take(),
 			AccountBalance::MinCandidateStake,
@@ -870,9 +864,9 @@ benchmarks! {
 				"delegator",
 				seed.take(),
 				AccountBalance::MinDelegatorStake,
-				AccountAction::Delegate{ 
+				AccountAction::Delegate{
 					collator: collator.clone(),
-					amount: Amount::All, 
+					amount: Amount::All,
 					auto_compound: Percent::from_percent(100),
 					collator_delegation_count: col_del_count,
 					collator_auto_compound_delegation_count: col_del_count,
@@ -928,112 +922,595 @@ benchmarks! {
 		assert!(Pallet::<T>::delegator_state(&caller).is_none());
 	}
 
-	cancel_leave_delegators {
-		let collator: T::AccountId = create_funded_collator::<T>(
+	schedule_leave_delegators_worst {
+		// We assume that all candidates have full delegations with scheduled requests
+		let x in 1..T::MaxDelegationsPerDelegator::get();
+
+		let mut seed = Seed::new();
+
+		let delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(T::MinDelegatorStk::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()),
+			AccountAction::None,
+		)?;
+
+		for c in 0..x {
+			let collator = create_account::<T>(
+				"collator",
+				seed.take(),
+				AccountBalance::MinCandidateStake,
+				AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: c + 1 },
+			)?;
+
+			let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+			let mut col_del_count = 0u32;
+			for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_delegator_bond_less(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+					5u32.into(),
+				)?;
+			}
+
+			let last_top_delegator_bond = decreasing_balance.take();
+			<Pallet<T>>::delegate_with_auto_compound(
+				RawOrigin::Signed(delegator.clone()).into(),
+				collator.clone(),
+				last_top_delegator_bond,
+				Percent::from_percent(100),
+				col_del_count,
+				col_del_count,
+				c,
+			)?;
+			col_del_count += 1;
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+				0,
+			);
+
+			for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_revoke_delegation(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+				)?;
+			}
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+				T::MaxBottomDelegationsPerCandidate::get(),
+			);
+		}
+	}: {
+		<Pallet<T>>::schedule_leave_delegators(RawOrigin::Signed(delegator.clone()).into())?;
+	} verify {
+		assert!(Pallet::<T>::delegator_state(&delegator).expect("must exist").is_active());
+	}
+
+	cancel_leave_delegators_worst {
+		// We assume that all candidates have full delegations with scheduled requests
+		let x in 1..T::MaxDelegationsPerDelegator::get();
+
+		let mut seed = Seed::new();
+
+		let delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(T::MinDelegatorStk::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()),
+			AccountAction::None,
+		)?;
+
+		for c in 0..x {
+			let collator = create_account::<T>(
+				"collator",
+				seed.take(),
+				AccountBalance::MinCandidateStake,
+				AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: c + 1 },
+			)?;
+
+			let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+			let mut col_del_count = 0u32;
+			for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_delegator_bond_less(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+					5u32.into(),
+				)?;
+			}
+
+			let last_top_delegator_bond = decreasing_balance.take();
+			<Pallet<T>>::delegate_with_auto_compound(
+				RawOrigin::Signed(delegator.clone()).into(),
+				collator.clone(),
+				last_top_delegator_bond,
+				Percent::from_percent(100),
+				col_del_count,
+				col_del_count,
+				c,
+			)?;
+			col_del_count += 1;
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+				0,
+			);
+
+			for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_revoke_delegation(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+				)?;
+			}
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+				T::MaxBottomDelegationsPerCandidate::get(),
+			);
+		}
+
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(delegator.clone()).into())?;
+	}: {
+		<Pallet<T>>::cancel_leave_delegators(RawOrigin::Signed(delegator.clone()).into())?;
+	} verify {
+		assert!(Pallet::<T>::delegator_state(&delegator).expect("must exist").is_active());
+	}
+
+	execute_leave_delegators_worst {
+		// We assume that all candidates have full delegations with scheduled requests
+		let x in 1..T::MaxDelegationsPerDelegator::get();
+
+		let mut seed = Seed::new();
+
+		let delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(T::MinDelegatorStk::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()),
+			AccountAction::None,
+		)?;
+
+		let author = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1u32 },
 		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
-		)?;
-		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(caller.clone()).into())?;
-	}: _(RawOrigin::Signed(caller.clone()))
-	verify {
-		assert!(Pallet::<T>::delegator_state(&caller).expect("must exist").is_active());
+
+		for c in 0..x {
+			let collator = create_account::<T>(
+				"collator",
+				seed.take(),
+				AccountBalance::MinCandidateStake,
+				AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: c + 2 },
+			)?;
+
+			let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+			let mut col_del_count = 0u32;
+			for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_delegator_bond_less(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+					5u32.into(),
+				)?;
+			}
+
+			let last_top_delegator_bond = decreasing_balance.take();
+			<Pallet<T>>::delegate_with_auto_compound(
+				RawOrigin::Signed(delegator.clone()).into(),
+				collator.clone(),
+				last_top_delegator_bond,
+				Percent::from_percent(100),
+				col_del_count,
+				col_del_count,
+				c,
+			)?;
+			col_del_count += 1;
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+				0,
+			);
+
+			for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+				let del = create_account::<T>(
+					"delegator",
+					seed.take(),
+					AccountBalance::Value(decreasing_balance.take()),
+					AccountAction::Delegate{
+						collator: collator.clone(),
+						amount: Amount::All,
+						auto_compound: Percent::from_percent(100),
+						collator_delegation_count: col_del_count,
+						collator_auto_compound_delegation_count: col_del_count,
+					},
+				)?;
+				col_del_count += 1;
+
+				Pallet::<T>::schedule_revoke_delegation(
+					RawOrigin::Signed(del).into(),
+					collator.clone(),
+				)?;
+			}
+
+			assert_eq!(
+				<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+				T::MaxBottomDelegationsPerCandidate::get(),
+			);
+		}
+
+		Pallet::<T>::schedule_leave_delegators(RawOrigin::Signed(delegator.clone()).into())?;
+		roll_to_and_author::<T>(2, author.clone());
+	}: {
+		<Pallet<T>>::execute_leave_delegators(RawOrigin::Signed(delegator.clone()).into(), delegator.clone(), x)?;
+	} verify {
+		assert!(Pallet::<T>::delegator_state(&delegator).is_none());
 	}
 
 	schedule_revoke_delegation {
-		let collator: T::AccountId = create_funded_collator::<T>(
+		// x controls the number of other scheduled requests
+		let x in 0..(T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get() -1);
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
+
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_top_delegator_bond = decreasing_balance.take();
+		let last_top_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(last_top_delegator_bond),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
 		)?;
-	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
-	verify {
+		col_del_count += 1;
+
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator),
-			vec![ScheduledRequest {
-				delegator: caller,
+			<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+			0,
+		);
+
+		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_revoke_delegation(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+			)?;
+		}
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+			T::MaxBottomDelegationsPerCandidate::get(),
+		);
+
+	}: {
+		Pallet::<T>::schedule_revoke_delegation(
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
+			collator.clone(),
+		)?;
+	}
+	verify {
+		let state = Pallet::<T>::delegator_state(&last_top_delegator)
+			.expect("delegator must exist");
+		assert_eq!(
+			Pallet::<T>::delegation_scheduled_requests(&collator).iter().find(|r| r.delegator == last_top_delegator).cloned(),
+			Some(ScheduledRequest {
+				delegator: last_top_delegator,
 				when_executable: 3,
-				action: DelegationAction::Revoke(bond),
-			}],
+				action: DelegationAction::Revoke(last_top_delegator_bond),
+			}),
 		);
 	}
 
 	delegator_bond_more {
-		let collator: T::AccountId = create_funded_collator::<T>(
+		// x controls the number of other scheduled requests
+		let x in 0..(T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get() -1);
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
+
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_top_delegator_bond = decreasing_balance.take();
+		let last_top_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(last_top_delegator_bond + 2_000u32.into()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::Value(last_top_delegator_bond),
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
 		)?;
-	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond)
-	verify {
-		let expected_bond = bond * 2u32.into();
+		col_del_count += 1;
+
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+			0,
+		);
+
+		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+			T::MaxBottomDelegationsPerCandidate::get(),
+		);
+
+		let bond_more = 1_000u32.into();
+	}: {
+		<Pallet<T>>::delegator_bond_more(RawOrigin::Signed(last_top_delegator.clone()).into(), collator.clone(), bond_more)?;
+	}
+	verify {
+		let expected_bond = last_top_delegator_bond + bond_more;
+		assert_eq!(
+			Pallet::<T>::delegator_state(&last_top_delegator).expect("candidate was created, qed").total,
 			expected_bond,
 		);
 	}
 
 	schedule_delegator_bond_less {
-		let collator: T::AccountId = create_funded_collator::<T>(
+		// x controls the number of other scheduled requests
+		let x in 0..(T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get() -1);
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
-		let (caller, total) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
+
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_top_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(decreasing_balance.take()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+			0,
+		);
+
+		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+			T::MaxBottomDelegationsPerCandidate::get(),
+		);
+		let bond_less = 1_000u32.into();
+	}: {
+		Pallet::<T>::schedule_delegator_bond_less(
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
 			collator.clone(),
-			total,
-			0u32,
-			0u32
+			bond_less,
 		)?;
-		let bond_less = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond_less)
+	}
 	verify {
-		let state = Pallet::<T>::delegator_state(&caller)
+		let state = Pallet::<T>::delegator_state(&last_top_delegator)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator),
-			vec![ScheduledRequest {
-				delegator: caller,
+			Pallet::<T>::delegation_scheduled_requests(&collator).iter().find(|r| r.delegator == last_top_delegator).cloned(),
+			Some(ScheduledRequest {
+				delegator: last_top_delegator,
 				when_executable: 3,
 				action: DelegationAction::Decrease(bond_less),
-			}],
+			}),
 		);
 	}
 
@@ -1071,110 +1548,322 @@ benchmarks! {
 		);
 	}
 
-	execute_delegator_bond_less {
-		let collator: T::AccountId = create_funded_collator::<T>(
+	execute_delegator_revoke_delegation_worst {
+		// We assume delegator has auto-compound set, collator has max scheduled requests, and delegator
+		// will be kicked from delegator pool, and a bottom delegator will be bumped to top.
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
-		let (caller, total) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
+
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_top_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(decreasing_balance.take()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
+
+		Pallet::<T>::schedule_revoke_delegation(
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
 			collator.clone(),
-			total,
-			0u32,
-			0u32
 		)?;
-		let bond_less = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+			0,
+		);
+
+		// insert one delegator in bottom
+		let highest_bottom_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(decreasing_balance.take()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
 		Pallet::<T>::schedule_delegator_bond_less(
-			RawOrigin::Signed(caller.clone()).into(),
+			RawOrigin::Signed(highest_bottom_delegator.clone()).into(),
 			collator.clone(),
-			bond_less
+			5u32.into(),
 		)?;
+		for i in 1..T::MaxBottomDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		assert!(
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator)).unwrap_or_default(),
+		);
 		roll_to_and_author::<T>(2, collator.clone());
 	}: {
 		Pallet::<T>::execute_delegation_request(
-			RawOrigin::Signed(caller.clone()).into(),
-			caller.clone(),
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
+			last_top_delegator.clone(),
 			collator.clone()
 		)?;
 	} verify {
-		let expected = total - bond_less;
+		assert!(!Pallet::<T>::is_delegator(&last_top_delegator));
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
+			T::MaxBottomDelegationsPerCandidate::get() - 1,
+		);
+		assert!(
+			<TopDelegations<T>>::get(&collator).map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator)).unwrap_or_default(),
+		);
+	}
+
+	execute_delegator_bond_less_worst {
+		// We assume delegator will be kicked into bottom delegation and collator has max scheduled requests
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
+			"collator",
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
+		)?;
+
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_top_delegator_bond_less = 1_000u32.into();
+		let last_top_delegator_total = decreasing_balance.take();
+		let last_top_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(last_top_delegator_total),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
+
+		Pallet::<T>::schedule_delegator_bond_less(
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
+			collator.clone(),
+			last_top_delegator_bond_less,
+		)?;
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&collator).map(|d| d.delegations.len()).unwrap_or_default(),
+			0,
+		);
+
+		// insert one delegator in bottom
+		let highest_bottom_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(decreasing_balance.take()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
+		Pallet::<T>::schedule_delegator_bond_less(
+			RawOrigin::Signed(highest_bottom_delegator.clone()).into(),
+			collator.clone(),
+			5u32.into(),
+		)?;
+		for i in 1..T::MaxBottomDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		assert!(
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator)).unwrap_or_default(),
+		);
+		roll_to_and_author::<T>(2, collator.clone());
+	}: {
+		Pallet::<T>::execute_delegation_request(
+			RawOrigin::Signed(last_top_delegator.clone()).into(),
+			last_top_delegator.clone(),
+			collator.clone()
+		)?;
+	} verify {
+		let expected = last_top_delegator_total - last_top_delegator_bond_less;
+		assert_eq!(
+			Pallet::<T>::delegator_state(&last_top_delegator).expect("candidate was created, qed").total,
 			expected,
 		);
-	}
-
-	cancel_revoke_delegation {
-		let collator: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
-			collator.clone(),
-			bond,
-			0u32,
-			0u32
-		)?;
-		Pallet::<T>::schedule_revoke_delegation(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone()
-		)?;
-	}: {
-		Pallet::<T>::cancel_delegation_request(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone()
-		)?;
-	} verify {
 		assert!(
-			!Pallet::<T>::delegation_scheduled_requests(&collator)
-			.iter()
-			.any(|x| &x.delegator == &caller)
+			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.iter().any(|d| d.owner == last_top_delegator)).unwrap_or_default(),
+		);
+		assert!(
+			<TopDelegations<T>>::get(&collator).map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator)).unwrap_or_default(),
 		);
 	}
 
-	cancel_delegator_bond_less {
-		let collator: T::AccountId = create_funded_collator::<T>(
+	cancel_delegation_request {
+		// x is number other delegators with scheduled requests
+		let x in 0..(
+			T::MaxTopDelegationsPerCandidate::get()
+			+ T::MaxBottomDelegationsPerCandidate::get() - 1
+		);
+
+		let mut seed = Seed::new();
+		let collator = create_account::<T>(
 			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			1u32
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1 },
 		)?;
-		let (caller, total) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		Pallet::<T>::delegate(RawOrigin::Signed(
-			caller.clone()).into(),
-			collator.clone(),
-			total,
-			0u32,
-			0u32
+
+		let mut col_del_count = 0u32;
+		for i in 0..x {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(T::MinDelegatorStk::get() + 10u32.into()),
+				AccountAction::Delegate{
+					collator: collator.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				collator.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(T::MinDelegatorStk::get() + 100u32.into()),
+			AccountAction::Delegate{
+				collator: collator.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
 		)?;
-		let bond_less = <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get();
+
 		Pallet::<T>::schedule_delegator_bond_less(
-			RawOrigin::Signed(caller.clone()).into(),
+			RawOrigin::Signed(delegator.clone()).into(),
 			collator.clone(),
-			bond_less
+			5u32.into(),
 		)?;
 		roll_to_and_author::<T>(2, collator.clone());
 	}: {
 		Pallet::<T>::cancel_delegation_request(
-			RawOrigin::Signed(caller.clone()).into(),
+			RawOrigin::Signed(delegator.clone()).into(),
 			collator.clone()
 		)?;
 	} verify {
 		assert!(
 			!Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
-				.any(|x| &x.delegator == &caller)
+				.any(|x| &x.delegator == &delegator)
 		);
 	}
 
@@ -1579,6 +2268,147 @@ benchmarks! {
 			x,
 			y,
 			z,
+		)?;
+	}
+	verify {
+		assert!(Pallet::<T>::is_delegator(&prime_delegator));
+		let actual_auto_compound = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate)
+			.get_for_delegator(&prime_delegator);
+		let expected_auto_compound = Some(Percent::from_percent(50));
+		assert_eq!(
+			expected_auto_compound,
+			actual_auto_compound,
+			"delegation must have an auto-compound entry",
+		);
+	}
+
+	delegate_with_auto_compound_worst {
+		// We assume that the delegation bumps the bottom-most delegator, which has its scheduled requests
+		// from a maxed delegation requests
+		use crate::auto_compound::AutoCompoundDelegations;
+
+		let mut seed = Seed::new();
+		let mut candidate_count = 1u32;
+		let prime_candidate = create_account::<T>(
+			"collator",
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count },
+		)?;
+		candidate_count += 1;
+
+		// setup max delegations on prime collator, with a bottom delegation that will be kicked and
+		// has scheduled requests on different collators.
+		let mut decreasing_balance = <DecreasingBalance<T>>::new(T::MinDelegatorStk::get() * 2u32.into(), 1u32.into());
+		let mut col_del_count = 0u32;
+		for i in 0..T::MaxTopDelegationsPerCandidate::get() {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: prime_candidate.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				prime_candidate.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		for i in 0..T::MaxBottomDelegationsPerCandidate::get()-1 {
+			let del = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(decreasing_balance.take()),
+				AccountAction::Delegate{
+					collator: prime_candidate.clone(),
+					amount: Amount::All,
+					auto_compound: Percent::from_percent(100),
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1;
+
+			Pallet::<T>::schedule_delegator_bond_less(
+				RawOrigin::Signed(del).into(),
+				prime_candidate.clone(),
+				5u32.into(),
+			)?;
+		}
+
+		let last_bottom_delegator_bond = decreasing_balance.take();
+		let last_bottom_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(last_bottom_delegator_bond),
+			AccountAction::Delegate{
+				collator: prime_candidate.clone(),
+				amount: Amount::All,
+				auto_compound: Percent::from_percent(100),
+				collator_delegation_count: col_del_count,
+				collator_auto_compound_delegation_count: col_del_count,
+			},
+		)?;
+		col_del_count += 1;
+
+		Pallet::<T>::schedule_revoke_delegation(
+			RawOrigin::Signed(last_bottom_delegator.clone()).into(),
+			prime_candidate.clone(),
+		)?;
+
+		assert_eq!(
+			<BottomDelegations<T>>::get(&prime_candidate).map(|d| d.delegations.len() as u32).unwrap_or_default(),
+			T::MaxBottomDelegationsPerCandidate::get(),
+		);
+
+		assert!(
+			<BottomDelegations<T>>::get(&prime_candidate).map(|bd| bd.delegations.iter().any(|d| d.owner == last_bottom_delegator)).unwrap_or_default(),
+		);
+
+		// initialize the future delegator
+		let prime_delegator = create_account::<T>(
+			"delegator",
+			seed.take(),
+			AccountBalance::Value(T::MinDelegatorStk::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()),
+			AccountAction::None,
+		)?;
+		for i in 0..T::MaxDelegationsPerDelegator::get() - 2 {
+			let collator = create_account::<T>(
+				"collator",
+				seed.take(),
+				AccountBalance::MinCandidateStake,
+				AccountAction::JoinCandidates{ amount: Amount::All, candidate_count },
+			)?;
+			candidate_count += 1;
+
+			Pallet::<T>::delegate_with_auto_compound(
+				RawOrigin::Signed(prime_delegator.clone()).into(),
+				collator,
+				T::MinDelegatorStk::get(),
+				Percent::from_percent(100),
+				0u32,
+				0u32,
+				i,
+			)?;
+		}
+	}: {
+		Pallet::<T>::delegate_with_auto_compound(
+			RawOrigin::Signed(prime_delegator.clone()).into(),
+			prime_candidate.clone(),
+			last_bottom_delegator_bond + 1000u32.into(),
+			Percent::from_percent(50),
+			col_del_count,
+			col_del_count,
+			T::MaxDelegationsPerDelegator::get() - 1,
 		)?;
 	}
 	verify {
