@@ -32,9 +32,10 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
-	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
+	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, CouncilCollective, LocalAssets, OpenTechCommitteeCollective, PolkadotXcm, Precompiles,
 	RuntimeBlockWeights, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
 	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -2409,7 +2410,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2461,7 +2462,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2728,7 +2729,7 @@ fn call_xtokens_with_fee() {
 }
 
 #[test]
-fn test_xcm_utils_ml_to_account() {
+fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
@@ -2778,8 +2779,13 @@ fn test_xcm_utils_ml_to_account() {
 				},
 			),
 		);
+		let expected_address_alice_in_parachain_2000: H160 =
+			xcm_builder::ForeignChainAliasAccount::<AccountId>::convert_ref(
+				alice_in_parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
 
-		// this should fail, this convertor is not allowed in moonriver
 		Precompiles::new()
 			.prepare_test(
 				ALICE,
@@ -2790,7 +2796,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
+			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
 }
 
@@ -2798,7 +2804,8 @@ fn test_xcm_utils_ml_to_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight = UnitWeightCost::get().ref_time();
+		let expected_weight =
+			XcmWeight::<moonriver_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
 		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 

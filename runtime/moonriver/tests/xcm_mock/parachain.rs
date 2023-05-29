@@ -17,10 +17,13 @@
 //! Parachain runtime mock.
 
 use frame_support::{
+	codec::MaxEncodedLen,
 	construct_runtime,
 	dispatch::GetDispatchInfo,
-	parameter_types,
-	traits::{AsEnsureOriginWithArg, Everything, Get, Nothing, PalletInfoAccess},
+	ensure, parameter_types,
+	traits::{
+		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
+	},
 	weights::Weight,
 	PalletId,
 };
@@ -28,7 +31,7 @@ use frame_system::{EnsureNever, EnsureRoot};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, Hash, IdentityLookup},
+	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -89,7 +92,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = Nothing;
+	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -1033,7 +1036,7 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 0);
 }
 
 #[derive(
@@ -1043,6 +1046,8 @@ pub enum ProxyType {
 	NotAllowed = 0,
 	Any = 1,
 }
+
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {}
 
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, _c: &RuntimeCall) -> bool {
