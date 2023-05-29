@@ -178,7 +178,7 @@ fn test_transact_xcm_evm_call_works() {
 		)
 		.expect("Failed to call `bar`");
 
-		let pending = Ethereum::pending();
+		let pending = pallet_ethereum::Pending::<Test>::get();
 		assert!(pending.len() == 2);
 
 		// Transaction is in Pending storage, with nonce 0 and status 1 (evm succeed).
@@ -417,7 +417,7 @@ fn test_transaction_hash_collision() {
 		)
 		.expect("Failed to execute transaction from Bob to Charlie");
 
-		let mut hashes = Ethereum::pending()
+		let mut hashes = pallet_ethereum::Pending::<Test>::get()
 			.iter()
 			.map(|(tx, _, _)| tx.hash())
 			.collect::<Vec<ethereum_types::H256>>();

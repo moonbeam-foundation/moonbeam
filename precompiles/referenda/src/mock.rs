@@ -117,10 +117,16 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 
 pub type PCall = ReferendaPrecompileCall<Runtime, GovOrigin>;
 
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+
 parameter_types! {
-	pub BlockGasLimit: U256 = U256::max_value();
+	pub BlockGasLimit: U256 = U256::from(u64::MAX);
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = if BlockGasLimit::get() > U256::from(u64::MAX) { u64::MAX } else { BlockGasLimit::get().low_u64() };
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
 }
 
 impl pallet_evm::Config for Runtime {
@@ -141,6 +147,9 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

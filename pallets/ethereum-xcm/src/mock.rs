@@ -141,12 +141,18 @@ impl FindAuthor<H160> for FindAuthorTruncated {
 	}
 }
 
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+
 parameter_types! {
 	pub const TransactionByteFee: u64 = 1;
 	pub const ChainId: u64 = 42;
 	pub const EVMModuleId: PalletId = PalletId(*b"py/evmpa");
 	pub const BlockGasLimit: U256 = U256::MAX;
 	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = if BlockGasLimit::get() > U256::from(u64::MAX) { u64::MAX } else { BlockGasLimit::get().low_u64() };
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
 }
 
 pub struct HashedAddressMapping;
@@ -177,6 +183,9 @@ impl pallet_evm::Config for Test {
 	type FindAuthor = FindAuthorTruncated;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 }
 
 parameter_types! {
@@ -187,6 +196,7 @@ impl pallet_ethereum::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<Self>;
 	type PostLogContent = PostBlockAndTxnHashes;
+	type ExtraDataLength = ConstU32<30>;
 }
 
 parameter_types! {
