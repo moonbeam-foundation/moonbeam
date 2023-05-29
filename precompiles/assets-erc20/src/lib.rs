@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::fmt::Display;
-use fp_evm::PrecompileHandle;
+use fp_evm::{ExitError, PrecompileHandle};
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::fungibles::{
 	approvals::Inspect as ApprovalInspect, metadata::Inspect as MetadataInspect,
@@ -133,20 +133,25 @@ where
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {
-	/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
+	/// PrecompileSet discriminant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
 	#[precompile::discriminant]
-	fn discriminant(address: H160) -> Option<AssetIdOf<Runtime, Instance>> {
+	fn discriminant(address: H160, gas: u64) -> DiscriminantResult<AssetIdOf<Runtime, Instance>> {
+		let extra_cost = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		if gas < extra_cost {
+			return DiscriminantResult::OutOfGas;
+		}
+
 		let account_id = Runtime::AddressMapping::into_account_id(address);
 		let asset_id = match Runtime::account_to_asset_id(account_id) {
 			Some((_, asset_id)) => asset_id,
-			None => return None,
+			None => return DiscriminantResult::None(extra_cost),
 		};
 
 		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
-			Some(asset_id)
+			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
-			None
+			DiscriminantResult::None(extra_cost)
 		}
 	}
 
