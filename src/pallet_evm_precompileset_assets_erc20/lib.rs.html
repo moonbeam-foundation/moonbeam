@@ -863,6 +863,11 @@
 <a href="#863" id="863">863</a>
 <a href="#864" id="864">864</a>
 <a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -882,7 +887,7 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>core::fmt::Display;
-<span class="kw">use </span>fp_evm::PrecompileHandle;
+<span class="kw">use </span>fp_evm::{ExitError, PrecompileHandle};
 <span class="kw">use </span>frame_support::traits::fungibles::Inspect;
 <span class="kw">use </span>frame_support::traits::fungibles::{
 	approvals::Inspect <span class="kw">as </span>ApprovalInspect, metadata::Inspect <span class="kw">as </span>MetadataInspect,
@@ -998,21 +1003,26 @@
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
 	Runtime::AccountId: Into&lt;H160&gt;,
 {
-	<span class="doccomment">/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
+	<span class="doccomment">/// PrecompileSet discriminant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
 	</span><span class="attr">#[precompile::discriminant]
-	</span><span class="kw">fn </span>discriminant(address: H160) -&gt; <span class="prelude-ty">Option</span>&lt;AssetIdOf&lt;Runtime, Instance&gt;&gt; {
+	</span><span class="kw">fn </span>discriminant(address: H160, gas: u64) -&gt; DiscriminantResult&lt;AssetIdOf&lt;Runtime, Instance&gt;&gt; {
+		<span class="kw">let </span>extra_cost = RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost();
+		<span class="kw">if </span>gas &lt; extra_cost {
+			<span class="kw">return </span>DiscriminantResult::OutOfGas;
+		}
+
 		<span class="kw">let </span>account_id = Runtime::AddressMapping::into_account_id(address);
 		<span class="kw">let </span>asset_id = <span class="kw">match </span>Runtime::account_to_asset_id(account_id) {
 			<span class="prelude-val">Some</span>((<span class="kw">_</span>, asset_id)) =&gt; asset_id,
-			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span>DiscriminantResult::None(extra_cost),
 		};
 
 		<span class="kw">if </span>pallet_assets::Pallet::&lt;Runtime, Instance&gt;::maybe_total_supply(asset_id).is_some() {
-			<span class="prelude-val">Some</span>(asset_id)
+			DiscriminantResult::Some(asset_id, extra_cost)
 		} <span class="kw">else </span>{
-			<span class="prelude-val">None
-		</span>}
+			DiscriminantResult::None(extra_cost)
+		}
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;totalSupply()&quot;</span>)]

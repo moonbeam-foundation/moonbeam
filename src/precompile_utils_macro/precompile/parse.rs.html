@@ -1028,13 +1028,13 @@
 
 		<span class="kw">let </span>span = method.sig.span();
 
-		<span class="kw">if </span>method.sig.inputs.len() != <span class="number">1 </span>{
-			<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must only take the code address (H160) as \
-			parameter.&quot;</span>;
+		<span class="kw">if </span>method.sig.inputs.len() != <span class="number">2 </span>{
+			<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must only take code address (H160) and \
+			remaining gas (u64) as parameters.&quot;</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must return an Option&lt;_&gt; (no type alias)&quot;</span>;
+		<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must return an DiscriminantResult&lt;_&gt; (no type alias)&quot;</span>;
 
 		<span class="kw">let </span>return_type = <span class="kw">match </span><span class="kw-2">&amp;</span>method.sig.output {
 			syn::ReturnType::Type(<span class="kw">_</span>, t) =&gt; t.as_ref(),
@@ -1058,23 +1058,23 @@
 
 		<span class="kw">let </span>return_segment = <span class="kw-2">&amp;</span>return_path.segments[<span class="number">0</span>];
 
-		<span class="kw">if </span>return_segment.ident.to_string() != <span class="string">&quot;Option&quot; </span>{
+		<span class="kw">if </span>return_segment.ident.to_string() != <span class="string">&quot;DiscriminantResult&quot; </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(return_segment.ident.span(), msg));
 		}
 
-		<span class="kw">let </span>option_arguments = <span class="kw">match </span><span class="kw-2">&amp;</span>return_segment.arguments {
+		<span class="kw">let </span>result_arguments = <span class="kw">match </span><span class="kw-2">&amp;</span>return_segment.arguments {
 			syn::PathArguments::AngleBracketed(args) =&gt; args,
 			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(return_segment.ident.span(), msg)),
 		};
 
-		<span class="kw">if </span>option_arguments.args.len() != <span class="number">1 </span>{
-			<span class="kw">let </span>msg = <span class="string">&quot;Option type should only have 1 type argument&quot;</span>;
-			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(option_arguments.args.span(), msg));
+		<span class="kw">if </span>result_arguments.args.len() != <span class="number">1 </span>{
+			<span class="kw">let </span>msg = <span class="string">&quot;DiscriminantResult type should only have 1 type argument&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(result_arguments.args.span(), msg));
 		}
 
-		<span class="kw">let </span>discriminant_type: <span class="kw-2">&amp;</span>syn::Type = <span class="kw">match </span><span class="kw-2">&amp;</span>option_arguments.args[<span class="number">0</span>] {
+		<span class="kw">let </span>discriminant_type: <span class="kw-2">&amp;</span>syn::Type = <span class="kw">match </span><span class="kw-2">&amp;</span>result_arguments.args[<span class="number">0</span>] {
 			syn::GenericArgument::Type(t) =&gt; t,
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(option_arguments.args.span(), msg)),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(result_arguments.args.span(), msg)),
 		};
 
 		<span class="self">self</span>.try_register_discriminant_type(<span class="kw-2">&amp;</span>discriminant_type)<span class="question-mark">?</span>;

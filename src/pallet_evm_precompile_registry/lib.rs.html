@@ -77,6 +77,12 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -101,8 +107,11 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span>fp_evm::PrecompileSet;
-<span class="kw">use </span>precompile_utils::{precompile_set::IsActivePrecompile, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>fp_evm::{ExitError, IsPrecompileResult, PrecompileFailure};
+<span class="kw">use </span>precompile_utils::{
+	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
+	prelude::<span class="kw-2">*</span>,
+};
 <span class="kw">use </span>sp_core::Get;
 
 <span class="kw">const </span>DUMMY_CODE: [u8; <span class="number">5</span>] = [<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>];
@@ -120,9 +129,7 @@
 	</span><span class="kw">fn </span>is_precompile(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, address: Address) -&gt; EvmResult&lt;bool&gt; {
 		<span class="comment">// We consider the precompile set is optimized to do at most one storage read.
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>active = &lt;Runtime::PrecompilesValue&gt;::get().is_precompile(address.<span class="number">0</span>);
-		<span class="prelude-val">Ok</span>(active)
+		is_precompile_or_fail::&lt;Runtime&gt;(address.<span class="number">0</span>, handle.remaining_gas())
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;isActivePrecompile(address)&quot;</span>)]
@@ -133,9 +140,14 @@
 	) -&gt; EvmResult&lt;bool&gt; {
 		<span class="comment">// We consider the precompile set is optimized to do at most one storage read.
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>active = &lt;Runtime::PrecompilesValue&gt;::get().is_active_precompile(address.<span class="number">0</span>);
-		<span class="prelude-val">Ok</span>(active)
+		<span class="kw">match </span>&lt;Runtime::PrecompilesValue&gt;::get()
+			.is_active_precompile(address.<span class="number">0</span>, handle.remaining_gas())
+		{
+			IsPrecompileResult::Answer { is_precompile, .. } =&gt; <span class="prelude-val">Ok</span>(is_precompile),
+			IsPrecompileResult::OutOfGas =&gt; <span class="prelude-val">Err</span>(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			}),
+		}
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;updateAccountCode(address)&quot;</span>)]
@@ -147,7 +159,7 @@
 		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_write_gas_cost())<span class="question-mark">?</span>;
 
 		<span class="comment">// Prevent touching addresses that are not precompiles.
-		</span><span class="kw">if </span>!&lt;Runtime::PrecompilesValue&gt;::get().is_precompile(address.<span class="number">0</span>) {
+		</span><span class="kw">if </span>!is_precompile_or_fail::&lt;Runtime&gt;(address.<span class="number">0</span>, handle.remaining_gas())<span class="question-mark">? </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;provided address is not a precompile&quot;</span>));
 		}
 

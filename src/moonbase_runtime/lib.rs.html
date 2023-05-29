@@ -1674,6 +1674,9 @@
 <a href="#1674" id="1674">1674</a>
 <a href="#1675" id="1675">1675</a>
 <a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2508,9 +2511,9 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		call: <span class="kw-2">&amp;</span>pallet_evm_precompile_proxy::EvmSubCall,
 		recipient_has_code: bool,
-	) -&gt; bool {
-		<span class="kw">use </span>pallet_evm::PrecompileSet <span class="kw">as _</span>;
-		<span class="kw">match </span><span class="self">self </span>{
+		gas: u64,
+	) -&gt; precompile_utils::EvmResult&lt;bool&gt; {
+		<span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
 			ProxyType::Any =&gt; <span class="bool-val">true</span>,
 			ProxyType::NonTransfer =&gt; {
 				call.value == U256::zero()
@@ -2546,8 +2549,11 @@
 				<span class="comment">// Allow only &quot;simple&quot; accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
-				</span>!recipient_has_code &amp;&amp; !PrecompilesValue::get().is_precompile(call.to.<span class="number">0</span>)
-			}
+				</span>!recipient_has_code
+					&amp;&amp; !precompile_utils::precompile_set::is_precompile_or_fail::&lt;Runtime&gt;(
+						call.to.<span class="number">0</span>, gas,
+					)<span class="question-mark">?
+			</span>}
 			ProxyType::AuthorMapping =&gt; {
 				call.value == U256::zero()
 					&amp;&amp; <span class="macro">matches!</span>(
@@ -2557,7 +2563,7 @@
 			}
 			<span class="comment">// There is no identity precompile
 			</span>ProxyType::IdentityJudgement =&gt; <span class="bool-val">false</span>,
-		}
+		})
 	}
 }
 
