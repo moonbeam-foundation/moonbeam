@@ -406,10 +406,10 @@
 // Defensively we increase this value to allow UMP fragments through xcm-transactor to prepare our
 // runtime for a relay upgrade where the xcm instruction weights are not ZERO hardcoded. If that
 // happens stuff will break in our side.
-// Rationale behind the value: e.g. staking unbond will go above 32kb and thus
+// Rationale behind the value: e.g. staking unbond will go above 64kb and thus
 // required_weight_at_most must be below overall weight but still above whatever value we decide to
 // set. For this reason we set here a value that makes sense for the overall weight.
-</span><span class="kw">pub const </span>DEFAULT_PROOF_SIZE: u64 = <span class="number">128 </span>* <span class="number">1024</span>;
+</span><span class="kw">pub const </span>DEFAULT_PROOF_SIZE: u64 = <span class="number">256 </span>* <span class="number">1024</span>;
 
 <span class="doccomment">/// Max. allowed size of 65_536 bytes.
 </span><span class="kw">pub const </span>MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
