@@ -273,7 +273,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), None)
+								(Some(weight_limit), Some(0))
 							}
 							_ => (None, None),
 						};
