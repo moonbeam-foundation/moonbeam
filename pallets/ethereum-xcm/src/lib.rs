@@ -236,10 +236,8 @@ impl<T: Config> Pallet<T> {
 		transaction
 			.encode()
 			.len()
-			// pallet index
-			.saturating_add(1)
-			// call index
-			.saturating_add(1) as u64
+			// pallet + call indexes
+			.saturating_add(2) as u64
 	}
 
 	fn validate_and_apply(

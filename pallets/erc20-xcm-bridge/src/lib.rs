@@ -66,9 +66,9 @@ pub mod pallet {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn weight_of_erc20_transfer() -> Weight {
-			Weight::from_parts(
-				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
-				0,
+			pallet_evm::FixedGasWeightMapping::<T>::gas_to_weight(
+				T::Erc20TransferGasLimit::get(),
+				true,
 			)
 		}
 		fn erc20_transfer(
@@ -90,11 +90,6 @@ pub mod pallet {
 				true,
 			);
 
-			let transaction_len = (erc20_contract_address.encode().len()
-				+ from.encode().len()
-				+ to.encode().len()
-				+ amount.encode().len()) as u64;
-
 			let exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
@@ -108,7 +103,7 @@ pub mod pallet {
 				false,
 				false,
 				Some(weight_limit),
-				Some(transaction_len),
+				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;
