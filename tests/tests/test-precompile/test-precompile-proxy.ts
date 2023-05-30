@@ -16,6 +16,7 @@ import {
   CONTRACT_PROXY_TYPE_GOVERNANCE,
   CONTRACT_PROXY_TYPE_STAKING,
   PRECOMPILE_PROXY_ADDRESS,
+  PRECOMPILE_NATIVE_ERC20_ADDRESS,
 } from "../../util/constants";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 import { web3EthCall } from "../../util/providers";
@@ -461,5 +462,99 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
     expect(revertReason).to.contain("Unannounced");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
+  });
+});
+
+describeDevMoonbeam("Pallet proxy - should transfer using value", (context) => {
+  it("should transfer using value", async () => {
+    const {
+      result: { events },
+    } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_ANY,
+          0,
+        ]),
+      })
+    );
+    expectEVMResult(events, "Succeed");
+
+    const beforeAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
+    const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
+    const value = BigInt(context.web3.utils.toWei("10", "ether"));
+
+    const {
+      result: { events: events2 },
+    } = await context.createBlock(
+      createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("proxy", [ALITH_ADDRESS, CHARLETH_ADDRESS, []]),
+        value: value.toString(),
+      })
+    );
+
+    expectEVMResult(events2, "Succeed");
+
+    const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
+    const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
+    const afterProxyPrecompileBalance = BigInt(
+      await context.web3.eth.getBalance(PRECOMPILE_PROXY_ADDRESS)
+    );
+
+    expect(afterAlithBalance - beforeAlithBalance).to.be.eq(-value);
+    expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(value);
+    expect(afterProxyPrecompileBalance).to.be.eq(0n);
+  });
+});
+
+describeDevMoonbeam("Pallet proxy - should transfer using balances precompile", (context) => {
+  it("should transfer using balances precompile", async () => {
+    const NATIVE_ERC20_CONTRACT = getCompiled("precompiles/balances-erc20/IERC20");
+    const NATIVE_ERC20_INTERFACE = new ethers.utils.Interface(NATIVE_ERC20_CONTRACT.contract.abi);
+
+    const {
+      result: { events },
+    } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_ANY,
+          0,
+        ]),
+      })
+    );
+    expectEVMResult(events, "Succeed");
+
+    const beforeAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
+    const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
+    const value = BigInt(context.web3.utils.toWei("10", "ether"));
+
+    const {
+      result: { events: events2 },
+    } = await context.createBlock(
+      createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("proxy", [
+          ALITH_ADDRESS,
+          PRECOMPILE_NATIVE_ERC20_ADDRESS,
+          NATIVE_ERC20_INTERFACE.encodeFunctionData("transfer", [CHARLETH_ADDRESS, value]),
+        ]),
+      })
+    );
+
+    expectEVMResult(events2, "Succeed");
+
+    const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
+    const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
+
+    expect(beforeAlithBalance - afterAlithBalance).to.be.eq(value);
+    expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(value);
   });
 });
