@@ -195,12 +195,13 @@ impl crate::EvmProxyCallFilter for ProxyType {
 		&self,
 		_call: &crate::EvmSubCall,
 		_recipient_has_code: bool,
-	) -> bool {
-		match self {
+		_gas: u64,
+	) -> precompile_utils::EvmResult<bool> {
+		Ok(match self {
 			Self::Any => true,
 			Self::Something => true,
 			Self::Nothing => false,
-		}
+		})
 	}
 }
 
