@@ -33,7 +33,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
     expect(max_size).to.equal(809187); // our max Ethereum TXN size in bytes
 
     // max_size - shanghai init cost - create cost
-    let max_size_shanghai = max_size - 6474;
+    let max_size_shanghai = max_size - 6474n;
 
     const tx = await generateLargeTxn(max_size_shanghai);
     const { result } = await context.createBlock(tx);
