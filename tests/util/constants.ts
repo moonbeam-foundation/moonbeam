@@ -35,7 +35,7 @@ export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_DELEGATOR = 1n * GLMR;
 
 // Maximum PoV size in bytes allowed for a manual sealing dev block
-export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
+export const MAX_BLOCK_DEV_POV = 3 * 1024 * 1024 + 512;
 
 // Current gas per second
 export const GAS_PER_SECOND = 40_000_000;
@@ -57,6 +57,8 @@ export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1;
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
 
 export const MIN_GAS_PRICE = 10_000_000_000n;
+
+export const GAS_LIMIT_POV_RATIO = 4;
 
 export const PRECOMPILE_PARACHAIN_STAKING_ADDRESS = "0x0000000000000000000000000000000000000800";
 export const PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS = "0x0000000000000000000000000000000000000801";
