@@ -801,8 +801,8 @@
 	</span>SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;,
 	<span class="comment">// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	</span>AccountKey20Aliases&lt;RelayNetwork, AccountId&gt;,
-	<span class="comment">// The rest of multilocations convert via hashing it
-	</span>xcm_primitives::Account20Hash&lt;AccountId&gt;,
+	<span class="comment">// Generate remote accounts according to polkadot standards
+	</span>xcm_builder::ForeignChainAliasAccount&lt;AccountId&gt;,
 );
 
 <span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
