@@ -262,21 +262,36 @@ macro_rules! impl_runtime_apis_plus_common {
 					};
 					let is_transactional = false;
 					let validate = true;
+
+					let gas_limit = if gas_limit > U256::from(u64::MAX) { u64::MAX } else { gas_limit.low_u64() };
+					let without_base_extrinsic_weight = true;
+
+					// TODO proof_size_base_cost
+					let (weight_limit, proof_size_base_cost) =
+						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+							gas_limit,
+							without_base_extrinsic_weight
+						) {
+							weight_limit if weight_limit.proof_size() > 0 => {
+								(Some(weight_limit), None)
+							}
+							_ => (None, None),
+						};
+
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
 						data,
 						value,
-						gas_limit.low_u64(),
+						gas_limit,
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						// TODO we probably want to support external cost recording in non-transactional calls
-						None,
-						None,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -301,21 +316,36 @@ macro_rules! impl_runtime_apis_plus_common {
 					};
 					let is_transactional = false;
 					let validate = true;
+
+					let gas_limit = if gas_limit > U256::from(u64::MAX) { u64::MAX } else { gas_limit.low_u64() };
+					let without_base_extrinsic_weight = true;
+
+					// TODO proof_size_base_cost
+					let (weight_limit, proof_size_base_cost) =
+						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+							gas_limit,
+							without_base_extrinsic_weight
+						) {
+							weight_limit if weight_limit.proof_size() > 0 => {
+								(Some(weight_limit), None)
+							}
+							_ => (None, None),
+						};
+
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
 						from,
 						data,
 						value,
-						gas_limit.low_u64(),
+						gas_limit,
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						// TODO we probably want to support external cost recording in non-transactional calls
-						None,
-						None,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
