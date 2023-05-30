@@ -7,7 +7,7 @@ import chaiAsPromised from "chai-as-promised";
 import { alith } from "../../util/accounts";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { createContract, createTransaction } from "../../util/transactions";
-import { MAX_BLOCK_DEV_POV } from "../../util/constants";
+import { MAX_BLOCK_ETH_POV } from "../../util/constants";
 import { Contract } from "web3-eth-contract";
 const debug = Debug("test:evm-over-pov");
 
@@ -76,7 +76,7 @@ const deployHeavyContracts = async (context: DevTestContext, first = 6000, last 
   return contracts as HeavyContract[];
 };
 
-describeDevMoonbeam("PoV Limit (4.2Mb in Dev)", (context) => {
+describeDevMoonbeam("PoV Limit (3.5Mb in Dev)", (context) => {
   let contractProxy: Contract;
   let contracts: HeavyContract[];
 
@@ -90,38 +90,40 @@ describeDevMoonbeam("PoV Limit (4.2Mb in Dev)", (context) => {
     contracts = await deployHeavyContracts(
       context,
       6000,
-      6000 + Math.ceil(MAX_BLOCK_DEV_POV / 24_000) + 1
+      Number(6000n + MAX_BLOCK_ETH_POV / 24_000n + 1n)
     );
   });
 
   it("should allow to produce block just under the PoV Limit", async function () {
-    const max_contracts = Math.floor(MAX_BLOCK_DEV_POV / 24_000) - 1;
+    const max_contracts = MAX_BLOCK_ETH_POV / 24_000n - 1n;
 
     const { result, block } = await context.createBlock(
       createTransaction(context, {
         to: contractProxy.options.address,
         data: contractProxy.methods
-          .callRange(contracts[0].account, contracts[max_contracts].account)
+          .callRange(contracts[0].account, contracts[Number(max_contracts)].account)
           .encodeABI(),
+        gas: 15_000_000,
       })
     );
 
     debug("block.proof_size", block.proof_size);
-    expect(block.proof_size).to.be.at.least(MAX_BLOCK_DEV_POV - 20_000);
-    expect(block.proof_size).to.be.at.most(MAX_BLOCK_DEV_POV - 1);
+    expect(block.proof_size).to.be.at.least(Number(MAX_BLOCK_ETH_POV - 20_000n));
+    expect(block.proof_size).to.be.at.most(Number(MAX_BLOCK_ETH_POV - 1n));
     // The transaction should be not be included in the block
     expect(result.successful).to.equal(true);
   });
 
   it("should prevent a transaction reaching just over the PoV", async function () {
-    const max_contracts = Math.ceil(MAX_BLOCK_DEV_POV / 24_000);
+    const max_contracts = MAX_BLOCK_ETH_POV / 24_000n;
 
     const { result, block } = await context.createBlock(
       createTransaction(context, {
         to: contractProxy.options.address,
         data: contractProxy.methods
-          .callRange(contracts[0].account, contracts[max_contracts].account)
+          .callRange(contracts[0].account, contracts[Number(max_contracts)].account)
           .encodeABI(),
+        gas: 15_000_000,
       })
     );
 

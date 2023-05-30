@@ -70,7 +70,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -122,7 +122,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -157,7 +157,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -192,7 +192,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -227,7 +227,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -262,7 +262,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -297,7 +297,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -332,7 +332,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -367,7 +367,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -402,7 +402,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -437,7 +437,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -472,7 +472,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -507,7 +507,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -542,7 +542,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -577,7 +577,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -612,7 +612,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -647,7 +647,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },
@@ -699,7 +699,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: inputData,
       },
@@ -730,7 +730,7 @@ describeDevMoonbeam("Precompiles - modexp", (context) => {
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         data: "0x" + inputData,
       },

@@ -9,9 +9,9 @@ import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 
 describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   // function to generate a junk transaction with a specified data size
-  const generateLargeTxn = async (size: number) => {
+  const generateLargeTxn = async (size: bigint) => {
     const byte = "FF";
-    const data = "0x" + byte.repeat(size);
+    const data = "0x" + byte.repeat(Number(size));
 
     let signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
 
@@ -27,7 +27,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   };
 
   // TODO: I'm not sure where this 2000 came from...
-  const max_size = Math.floor((EXTRINSIC_GAS_LIMIT - 21000) / 16) - 2000;
+  const max_size = (EXTRINSIC_GAS_LIMIT - 21000n) / 16n - 2000n;
 
   it("should accept txns up to known size", async function () {
     expect(max_size).to.equal(809187); // our max Ethereum TXN size in bytes
@@ -40,7 +40,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   });
 
   it("should reject txns which are too large to pay for", async function () {
-    const tx = await generateLargeTxn(max_size + 1);
+    const tx = await generateLargeTxn(max_size + 1n);
     const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
 
     // RPC should outright reject this txn -- this is important because it prevents it from being
