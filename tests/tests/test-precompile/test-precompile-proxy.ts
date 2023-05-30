@@ -487,7 +487,7 @@ describeDevMoonbeam("Pallet proxy - should transfer using value", (context) => {
     const value = BigInt(context.web3.utils.toWei("10", "ether"));
 
     const {
-      result: { events: events2 },
+      result: { events: events2, hash: hash2 },
     } = await context.createBlock(
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
@@ -499,15 +499,18 @@ describeDevMoonbeam("Pallet proxy - should transfer using value", (context) => {
 
     expectEVMResult(events2, "Succeed");
 
+    const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
+    expect(gasUsed).to.equal(40892);
+
     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
     const afterProxyPrecompileBalance = BigInt(
       await context.web3.eth.getBalance(PRECOMPILE_PROXY_ADDRESS)
     );
 
-    expect(afterAlithBalance - beforeAlithBalance).to.be.eq(-value);
-    expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(value);
-    expect(afterProxyPrecompileBalance).to.be.eq(0n);
+    expect(beforeAlithBalance - afterAlithBalance).to.equal(value);
+    expect(afterCharlethBalance - beforeCharlethBalance).to.equal(value);
+    expect(afterProxyPrecompileBalance).to.equal(0n);
   });
 });
 
@@ -536,7 +539,7 @@ describeDevMoonbeam("Pallet proxy - should transfer using balances precompile", 
     const value = BigInt(context.web3.utils.toWei("10", "ether"));
 
     const {
-      result: { events: events2 },
+      result: { events: events2, hash: hash2 },
     } = await context.createBlock(
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
@@ -551,10 +554,13 @@ describeDevMoonbeam("Pallet proxy - should transfer using balances precompile", 
 
     expectEVMResult(events2, "Succeed");
 
+    const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
+    expect(gasUsed).to.equal(33997);
+
     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
 
-    expect(beforeAlithBalance - afterAlithBalance).to.be.eq(value);
-    expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(value);
+    expect(beforeAlithBalance - afterAlithBalance).to.equal(value);
+    expect(afterCharlethBalance - beforeCharlethBalance).to.equal(value);
   });
 });
