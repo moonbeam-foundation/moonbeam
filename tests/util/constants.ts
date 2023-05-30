@@ -50,18 +50,17 @@ export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND / 2n;
 // Block limit is 20M gas but only 75% is used for normal transactions, limiting to 15M Gas
 export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
 
-// Current implementation is limiting block normal transactions to 65% (13/20) of the gas limit
-export const TX_GAS_LIMIT = (BLOCK_GAS_LIMIT * 13n) / 20n;
+// Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+// minus the block initialization (10%) and minus the extrinsic base cost.
+export const EXTRINSIC_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n - BLOCK_GAS_LIMIT / 10n;
 
 // Maximum PoV size in bytes allowed for a manual sealing dev block by substrate.
 export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
-// Maximum PoV size in bytes allowed by the gasometer.
-export const MAX_BLOCK_ETH_POV = TX_GAS_LIMIT / GAS_PER_POV_BYTES;
+
+// Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+export const MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES;
 
 export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
-// Maximum extrinsic weight is taken from the max allowed transaction weight per block,
-// minus the block initialization (10%) and minus the extrinsic base cost.
-export const EXTRINSIC_GAS_LIMIT = TX_GAS_LIMIT - BLOCK_GAS_LIMIT / 10n;
 
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
