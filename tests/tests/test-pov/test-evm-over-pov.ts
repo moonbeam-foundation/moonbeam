@@ -103,7 +103,7 @@ describeDevMoonbeam("PoV Limit (3.5Mb in Dev)", (context) => {
         data: contractProxy.methods
           .callRange(contracts[0].account, contracts[Number(max_contracts)].account)
           .encodeABI(),
-        gas: 15_000_000,
+        gas: 13_000_000,
       })
     );
 

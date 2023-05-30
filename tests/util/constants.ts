@@ -50,8 +50,8 @@ export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND / 2n;
 // Block limit is 20M gas but only 75% is used for normal transactions, limiting to 15M Gas
 export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
 
-// Current implementation is limiting block normal transactions to 75% (3/4) of the gas limit
-export const TX_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n;
+// Current implementation is limiting block normal transactions to 65% (13/20) of the gas limit
+export const TX_GAS_LIMIT = (BLOCK_GAS_LIMIT * 13n) / 20n;
 
 // Maximum PoV size in bytes allowed for a manual sealing dev block by substrate.
 export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
