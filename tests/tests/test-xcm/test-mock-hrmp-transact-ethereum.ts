@@ -1353,7 +1353,10 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
             fungible: transferredBalance / 2n,
           },
         ],
-        weight_limit: { refTime: 40000000000, proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2 } as any,
+        weight_limit: {
+          refTime: 40000000000,
+          proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
+        } as any,
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1362,7 +1365,10 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
         .push_any({
           Transact: {
             originKind: "SovereignAccount",
-            requireWeightAtMost: { refTime: 30000000000, proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO },
+            requireWeightAtMost: {
+              refTime: 30000000000,
+              proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+            },
             call: {
               encoded: transferCallEncoded,
             },
@@ -1594,7 +1600,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: { refTime: targetXcmWeight, proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2 } as any,
+        weight_limit: {
+          refTime: targetXcmWeight,
+          proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
+        } as any,
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1604,14 +1613,16 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
           Transact: {
             originKind: "SovereignAccount",
             // 500_000 gas limit + db read
-            requireWeightAtMost: { refTime: 12_525_000_000, proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO },
+            requireWeightAtMost: {
+              refTime: 12_525_000_000,
+              proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+            },
             call: {
               encoded: transferCallEncoded,
             },
           },
         })
         .as_v3();
-
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
