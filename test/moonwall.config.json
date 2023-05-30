@@ -187,11 +187,11 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-eth-rpc"],
+      "testFileDir": ["suites/dev"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
-      "reporters": ["html", "verbose"],
+      "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
