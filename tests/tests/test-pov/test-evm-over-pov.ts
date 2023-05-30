@@ -9,6 +9,7 @@ import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests"
 import { createContract, createTransaction } from "../../util/transactions";
 import { MAX_ETH_POV_PER_TX } from "../../util/constants";
 import { Contract } from "web3-eth-contract";
+import { expectEVMResult } from "../../util/eth-transactions";
 const debug = Debug("test:evm-over-pov");
 
 chaiUse(chaiAsPromised);
@@ -76,11 +77,86 @@ const deployHeavyContracts = async (context: DevTestContext, first = 6000, last 
   return contracts as HeavyContract[];
 };
 
+describeDevMoonbeam("PoV controlled by gasLimit", (context) => {
+  let contractProxy: Contract;
+  let contracts: HeavyContract[];
+  const MAX_CONTRACTS = 20;
+  const EXPECTED_POV_ROUGH = 500_000; // bytes
+
+  before("Deploy the contracts from range 6000-6100", async function () {
+    // Deploy the CallForwarder contract
+    const creation = await createContract(context, "CallForwarder");
+    contractProxy = creation.contract;
+    await context.createBlock(creation.rawTx);
+
+    // Deploy heavy contracts (test won't use more than what is needed for reaching max pov)
+    contracts = await deployHeavyContracts(context, 6000, 6000 + MAX_CONTRACTS);
+  });
+
+  it("should allow to include transaction with estimate gas to cover PoV", async function () {
+    const { result, block } = await context.createBlock(
+      createTransaction(context, {
+        to: contractProxy.options.address,
+        data: contractProxy.methods
+          .callRange(contracts[0].account, contracts[MAX_CONTRACTS].account)
+          .encodeABI(),
+      })
+    );
+
+    debug(`block.proof_size: ${block.proof_size} (successful: ${result.successful})`);
+    expect(block.proof_size).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);
+    expect(block.proof_size).to.be.at.most(EXPECTED_POV_ROUGH * 1.1);
+    expect(result.successful).to.equal(true);
+    // The transaction should be not be included in the block
+  });
+
+  it("should allow to include transaction with enough gas limit to cover PoV", async function () {
+    const { result, block } = await context.createBlock(
+      createTransaction(context, {
+        to: contractProxy.options.address,
+        data: contractProxy.methods
+          .callRange(contracts[0].account, contracts[MAX_CONTRACTS].account)
+          .encodeABI(),
+        gas: 3_000_000,
+      })
+    );
+
+    debug(`block.proof_size: ${block.proof_size} (successful: ${result.successful})`);
+    expect(block.proof_size).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);
+    expect(block.proof_size).to.be.at.most(EXPECTED_POV_ROUGH * 1.1);
+    expect(result.successful).to.equal(true);
+    // The transaction should be not be included in the block
+  });
+
+  it("should fail to include transaction without enough gas limit to cover PoV", async function () {
+    // This execution uses only < 100k Gas in cpu execute but require 2M Gas for PoV.
+    // We are providing only 1M Gas, so it should fail.
+    const { result, block } = await context.createBlock(
+      createTransaction(context, {
+        to: contractProxy.options.address,
+        data: contractProxy.methods
+          .callRange(contracts[0].account, contracts[MAX_CONTRACTS].account)
+          .encodeABI(),
+        gas: 1_000_000,
+      })
+    );
+
+    debug(`block.proof_size: ${block.proof_size} (successful: ${result.successful})`);
+    // The block still contain the failed (out of gas) transaction so the PoV is still included
+    // in the block.
+    // 1M Gas allows ~250k of PoV, so we verify we are within range.
+    expect(block.proof_size).to.be.at.least(230_000);
+    expect(block.proof_size).to.be.at.most(300_000);
+    expect(result.successful).to.equal(true);
+    expectEVMResult(result.events, "Error", "OutOfGas");
+  });
+});
+
 describeDevMoonbeam("PoV Limit (3.5Mb in Dev)", (context) => {
   let contractProxy: Contract;
   let contracts: HeavyContract[];
 
-  before("Deploy the contracts", async function () {
+  before("Deploy the contracts from range 6000-XXXX", async function () {
     // Deploy the CallForwarder contract
     const creation = await createContract(context, "CallForwarder");
     contractProxy = creation.contract;
@@ -107,7 +183,7 @@ describeDevMoonbeam("PoV Limit (3.5Mb in Dev)", (context) => {
       })
     );
 
-    debug("block.proof_size", block.proof_size);
+    debug(`block.proof_size: ${block.proof_size} (successful: ${result.successful})`);
     expect(block.proof_size).to.be.at.least(Number(MAX_ETH_POV_PER_TX - 20_000n));
     expect(block.proof_size).to.be.at.most(Number(MAX_ETH_POV_PER_TX - 1n));
     // The transaction should be not be included in the block
@@ -127,7 +203,7 @@ describeDevMoonbeam("PoV Limit (3.5Mb in Dev)", (context) => {
       })
     );
 
-    debug("block.proof_size", block.proof_size);
+    debug(`block.proof_size: ${block.proof_size} (successful: ${result.successful})`);
     // Empty blocks usually do not exceed 10kb, picking 50kb as a safe limit
     expect(block.proof_size).to.be.at.most(50_000);
     expect(result.successful).to.equal(false);
