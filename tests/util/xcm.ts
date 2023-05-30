@@ -123,36 +123,38 @@ export async function registerForeignAsset(
   };
 }
 
-export function descendOriginFromAddress(context: DevTestContext, address?: string) {
-  const originAddress = address != null ? address : "0x0101010101010101010101010101010101010101";
-  const derivedMultiLocation = context.polkadotApi.createType(
-    "MultiLocation",
-    JSON.parse(
-      `{\
-              "parents": 1,\
-              "interior": {\
-                "X2": [\
-                  { "Parachain": 1 },\
-                  { "AccountKey20": \
-                    {\
-                      "network": "Any",\
-                      "key": "${originAddress}"\
-                    } \
-                  }\
-                ]\
-              }\
-            }`
-    )
-  );
-
+export function descendOriginFromAddress20(
+  context: DevTestContext,
+  address: string = "0x0101010101010101010101010101010101010101",
+  paraId: number = 1
+) {
   const toHash = new Uint8Array([
-    ...new Uint8Array([32]),
-    ...new TextEncoder().encode("multiloc"),
-    ...derivedMultiLocation.toU8a(),
+    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para20"),
+    ...context.polkadotApi.createType("u32", paraId).toU8a(),
+    ...context.polkadotApi.createType("AccountId", address).toU8a(),
+    ...new Uint8Array([1]),
   ]);
 
   return {
-    originAddress,
+    originAddress: address,
+    descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
+  };
+}
+
+export function descendOriginFromAddress32(
+  context: DevTestContext,
+  address: string,
+  paraId: number = 1
+) {
+  const toHash = new Uint8Array([
+    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para32"),
+    ...context.polkadotApi.createType("u32", paraId).toU8a(),
+    ...context.polkadotApi.createType("AccountId", address).toU8a(),
+    ...new Uint8Array([1]),
+  ]);
+
+  return {
+    originAddress: address,
     descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
   };
 }

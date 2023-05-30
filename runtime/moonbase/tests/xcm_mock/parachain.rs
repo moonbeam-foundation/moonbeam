@@ -182,7 +182,7 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// The rest of multilocations convert via hashing it
-	xcm_primitives::Account20Hash<AccountId>,
+	xcm_builder::ForeignChainAliasAccount<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,

@@ -53,7 +53,6 @@ use precompile_utils::testing::MockHandle;
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
-use xcm_primitives::Account20Hash;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -3028,9 +3027,11 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			Account20Hash::<AccountId>::convert_ref(alice_in_parachain_2000_multilocation.clone())
-				.unwrap()
-				.into();
+			xcm_builder::ForeignChainAliasAccount::<AccountId>::convert_ref(
+				alice_in_parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
 
 		Precompiles::new()
 			.prepare_test(
