@@ -88,21 +88,21 @@ export const createTransaction = async (
   const defaultTxnStyle = MoonwallContext.getContext()!.defaultEthTxnStyle;
 
   const isLegacy = txType
-    ? txType === "Legacy"
+    ? txType === "legacy"
     : defaultTxnStyle
-    ? defaultTxnStyle === "Legacy"
+    ? defaultTxnStyle === "legacy"
     : true;
 
   const isEip2930 = txType
-    ? txType === "EIP2930"
+    ? txType === "eip2930"
     : defaultTxnStyle
-    ? defaultTxnStyle === "EIP2930"
+    ? defaultTxnStyle === "eip2930"
     : true;
 
   const isEip1559 = txType
-    ? txType === "EIP1559"
+    ? txType === "eip1559"
     : defaultTxnStyle
-    ? defaultTxnStyle === "EIP1559"
+    ? defaultTxnStyle === "eip1559"
     : true;
 
   // a transaction shouldn't have both Legacy and EIP1559 fields
