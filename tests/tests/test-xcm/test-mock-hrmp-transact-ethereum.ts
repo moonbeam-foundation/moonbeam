@@ -1533,7 +1533,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
     expect(balance).to.eq(transferredBalance);
   });
 
-  it.only("should receive transact and should use less weight than gas limit", async function () {
+  it("should receive transact and should use less weight than gas limit", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
