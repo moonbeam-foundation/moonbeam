@@ -30,7 +30,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   const max_size = (EXTRINSIC_GAS_LIMIT - 21000n) / 16n - 2000n;
 
   it("should accept txns up to known size", async function () {
-    expect(max_size).to.equal(809187); // our max Ethereum TXN size in bytes
+    expect(max_size).to.equal(809187n); // our max Ethereum TXN size in bytes
 
     // max_size - shanghai init cost - create cost
     let max_size_shanghai = max_size - 6474n;
