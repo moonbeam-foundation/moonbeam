@@ -78,6 +78,13 @@ where
 			return Err(TryDispatchError::Evm(ExitError::OutOfGas));
 		}
 
+		// Make sure there is enough remaining weight
+		// TODO: record ref time when precompile will be benchmarked
+		handle.record_external_cost(
+			None,
+			Some(dispatch_info.weight.proof_size()),
+		).map_err(|e| TryDispatchError::Evm(e))?;
+
 		// Dispatch call.
 		// It may be possible to not record gas cost if the call returns Pays::No.
 		// However while Substrate handle checking weight while not making the sender pay for it,
@@ -86,13 +93,17 @@ where
 		let post_dispatch_info = using_precompile_handle(handle, || call.dispatch(origin))
 			.map_err(|e| TryDispatchError::Substrate(e.error))?;
 
-		let used_weight = post_dispatch_info.actual_weight;
-
-		let used_gas =
-			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
-
+		// Refund weights and compute used weight them record used gas
+		// TODO: refund ref time when precompile will be benchmarked
+		let used_weight = if let Some(actual_weight) = post_dispatch_info.actual_weight {
+			let refund_weight = dispatch_info.weight - actual_weight;
+			handle.refund_external_cost(None, Some(refund_weight.proof_size()));
+			actual_weight
+		} else {
+			dispatch_info.weight
+		};
 		handle
-			.record_cost(used_gas)
+			.record_cost(Runtime::GasWeightMapping::weight_to_gas(used_weight))
 			.map_err(|e| TryDispatchError::Evm(e))?;
 
 		Ok(post_dispatch_info)
