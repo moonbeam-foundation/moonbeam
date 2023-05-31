@@ -283,11 +283,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						estimated_transaction_len += access_list.encoded_size();
 					}
 
-					let gas_limit = if gas_limit > U256::from(u64::MAX) {
-						u64::MAX
-					} else {
-						gas_limit.low_u64()
-					};
+					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 					let without_base_extrinsic_weight = true;
 
 					let (weight_limit, proof_size_base_cost) =

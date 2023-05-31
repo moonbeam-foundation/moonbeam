@@ -162,11 +162,7 @@ mod tests {
 		pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 		pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 		pub GasLimitPovSizeRatio: u64 = {
-			let block_gas_limit = if BlockGasLimit::get() > U256::from(u64::MAX) {
-			u64::MAX
-		} else {
-			BlockGasLimit::get().low_u64()
-		};
+			let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 			block_gas_limit.saturating_div(MAX_POV_SIZE)
 		};
 	}
