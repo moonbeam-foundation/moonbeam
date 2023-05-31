@@ -61,8 +61,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		index: u16,
 	) -> EvmResult<Address> {
-		// storage item: IndexToAccount: Blake2_128(16) + u16(4) + AccountId(20)
-		handle.record_db_read::<Runtime>(40)?;
+		// storage item: IndexToAccount: Blake2_128(16) + u16(2) + AccountId(20)
+		handle.record_db_read::<Runtime>(38)?;
 
 		// fetch data from pallet
 		let account: H160 = pallet_xcm_transactor::Pallet::<Runtime>::index_to_account(index)
