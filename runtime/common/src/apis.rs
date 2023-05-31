@@ -263,17 +263,32 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let gas_limit = if gas_limit > U256::from(u64::MAX) { u64::MAX } else { gas_limit.low_u64() };
+					let estimated_transaction_len = (from.encode().len() +
+						to.encode().len() +
+						data.encode().len() +
+						value.encode().len() +
+						gas_limit.encode().len() +
+						max_fee_per_gas.encode().len() +
+						max_priority_fee_per_gas.encode().len() +
+						nonce.encode().len() +
+						access_list.encode().len() +
+						// 1 byte transaction action variant + chain id 8 bytes + 65 bytes signature
+						74 as usize) as u64;
+
+					let gas_limit = if gas_limit > U256::from(u64::MAX) {
+						u64::MAX
+					} else {
+						gas_limit.low_u64()
+					};
 					let without_base_extrinsic_weight = true;
 
-					// TODO proof_size_base_cost
 					let (weight_limit, proof_size_base_cost) =
 						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 							gas_limit,
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(0))
+								(Some(weight_limit), Some(estimated_transaction_len))
 							}
 							_ => (None, None),
 						};
@@ -317,17 +332,31 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let gas_limit = if gas_limit > U256::from(u64::MAX) { u64::MAX } else { gas_limit.low_u64() };
+					let estimated_transaction_len = (from.encode().len() +
+						data.encode().len() +
+						value.encode().len() +
+						gas_limit.encode().len() +
+						max_fee_per_gas.encode().len() +
+						max_priority_fee_per_gas.encode().len() +
+						nonce.encode().len() +
+						access_list.encode().len() +
+						// 1 byte transaction action variant + chain id 8 bytes + 65 bytes signature
+						74 as usize) as u64;
+
+					let gas_limit = if gas_limit > U256::from(u64::MAX) {
+						u64::MAX
+					} else {
+						gas_limit.low_u64()
+					};
 					let without_base_extrinsic_weight = true;
 
-					// TODO proof_size_base_cost
 					let (weight_limit, proof_size_base_cost) =
 						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 							gas_limit,
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(0))
+								(Some(weight_limit), Some(estimated_transaction_len))
 							}
 							_ => (None, None),
 						};
