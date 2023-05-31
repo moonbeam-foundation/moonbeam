@@ -27,7 +27,7 @@ use pallet_democracy::{
 use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
-use sp_core::{H160, H256, U256};
+use sp_core::{Get, H160, H256, U256};
 use sp_runtime::traits::{Hash, StaticLookup};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -96,7 +96,9 @@ where
 	#[precompile::view]
 	fn public_prop_count(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: PublicPropCount
+		// max encoded len: u32(4)
+		handle.record_db_read::<Runtime>(4)?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 		log::trace!(target: "democracy-precompile", "Prop count from pallet is {:?}", prop_count);
 
@@ -113,7 +115,14 @@ where
 		let prop_index = prop_index.converted();
 
 		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: DepositOf
+		// max encoded len: Twox64(8) + PropIndex u32(4) +
+		// BalanceOf(16) + BoundedVec<AccountId, MaxDeposits> (20 * MaxDeposits)
+		let bounded_vec_bytes: usize = (<Runtime::MaxDeposits>::get())
+			.saturating_mul(20)
+			.try_into()
+			.unwrap();
+		handle.record_db_read::<Runtime>(bounded_vec_bytes.saturating_add(28))?;
 		let deposit = DemocracyOf::<Runtime>::deposit_of(prop_index)
 			.ok_or_else(|| revert("No such proposal in pallet democracy"))?
 			.1;
@@ -131,7 +140,9 @@ where
 	#[precompile::view]
 	fn lowest_unbaked(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: LowestUnbaked
+		// max encoded len: ReferendumIndex u32(4)
+		handle.record_db_read::<Runtime>(4)?;
 		let lowest_unbaked = DemocracyOf::<Runtime>::lowest_unbaked();
 		log::trace!(
 			target: "democracy-precompile",
@@ -147,7 +158,11 @@ where
 		handle: &mut impl PrecompileHandle,
 		ref_index: u32,
 	) -> EvmResult<(U256, H256, u8, U256, U256, U256, U256)> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: ReferendumInfoOf
+		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
+		// ReferendumInfo<BlockNumber u32(4), RuntimeCall(32), Balance(16)>
+		// TODO: check size of RuntimeCall
+		handle.record_db_read::<Runtime>(64)?;
 		let ref_status = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
 			Some(ReferendumInfo::Ongoing(ref_status)) => ref_status,
 			Some(ReferendumInfo::Finished { .. }) => Err(revert("Referendum is finished"))?,
@@ -177,7 +192,11 @@ where
 		handle: &mut impl PrecompileHandle,
 		ref_index: u32,
 	) -> EvmResult<(bool, U256)> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: ReferendumInfoOf
+		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
+		// ReferendumInfo<BlockNumber u32(4), RuntimeCall(32), Balance(16)>
+		// TODO: check size of RuntimeCall
+		handle.record_db_read::<Runtime>(64)?;
 		let (approved, end) = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
 			Some(ReferendumInfo::Ongoing(_)) => Err(revert("Referendum is ongoing"))?,
 			Some(ReferendumInfo::Finished { approved, end }) => (approved, end),
@@ -193,7 +212,9 @@ where
 		handle.record_log_costs_manual(2, 32)?;
 
 		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: PublicPropCount
+		// max encoded len: PropIndex u32(4)
+		handle.record_db_read::<Runtime>(4)?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 
 		let value = Self::u256_to_amount(value).in_field("value")?;
