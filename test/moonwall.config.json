@@ -141,6 +141,7 @@
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
       "reporters": ["basic", "html"],
+      "envVars":["DEBUG_COLORS=1"],
       "foundation": {
         "type": "read_only"
       },
@@ -187,7 +188,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev"],
+      "testFileDir": ["suites/dev/test-fees"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
