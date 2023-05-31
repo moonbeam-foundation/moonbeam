@@ -328,6 +328,7 @@ pub mod pallet {
 		HrmpHandlerNotImplemented,
 		TooMuchFeeUsed,
 		ErrorValidating,
+		RefundNotSupportedWithTransactInfo,
 	}
 
 	#[pallet::event]
@@ -458,6 +459,8 @@ pub mod pallet {
 			inner_call: Vec<u8>,
 			// weight information to be used
 			weight_info: TransactWeights,
+			// add RefundSurplus and DepositAsset appendix
+			refund: bool,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -485,6 +488,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| Ok(v),
@@ -498,6 +502,15 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
+				let deposit_appendix =
+					Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
 				Some(who.clone()),
@@ -506,7 +519,7 @@ pub mod pallet {
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
@@ -543,6 +556,8 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			// weight information to be used
 			weight_info: TransactWeights,
+			// add RefundSurplus and DepositAsset appendix
+			refund: bool,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -558,6 +573,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| Ok(v),
@@ -571,6 +587,15 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
+				let deposit_appendix =
+					Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
@@ -580,7 +605,7 @@ pub mod pallet {
 				origin_kind,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
@@ -656,6 +681,8 @@ pub mod pallet {
 			call: Vec<u8>,
 			// weight information to be used
 			weight_info: TransactWeights,
+			// add RefundSurplus and DepositAsset appendix
+			refund: bool,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -671,6 +698,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info_signed(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| Ok(v),
@@ -684,6 +712,15 @@ pub mod pallet {
 				total_weight.clone(),
 			)?;
 
+			// If refund is true, the appendix instruction will be a deposit back to the sender
+			let appendix: Option<Vec<Instruction<()>>> = if refund {
+				let sender = T::AccountIdToMultiLocation::convert(who.clone());
+				let deposit_appendix = Self::deposit_instruction(sender, &dest, 1u32)?;
+				Some(vec![RefundSurplus, deposit_appendix])
+			} else {
+				None
+			};
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
 				dest.clone(),
@@ -693,7 +730,7 @@ pub mod pallet {
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				None,
+				appendix,
 			)?;
 
 			// Deposit event
@@ -800,6 +837,7 @@ pub mod pallet {
 					Self::take_weight_from_transact_info(
 						destination.clone(),
 						weight_info.transact_required_weight_at_most,
+						false,
 					)
 				},
 				|v| Ok(v),
@@ -892,7 +930,7 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			total_weight: Weight,
 			transact_required_weight_at_most: Weight,
-			_with_appendix: Option<Vec<Instruction<()>>>,
+			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -910,7 +948,7 @@ pub mod pallet {
 				call,
 				transact_required_weight_at_most,
 				origin_kind,
-				None,
+				with_appendix,
 			)?;
 
 			// We append DescendOrigin as the first instruction in the message
@@ -1114,7 +1152,11 @@ pub mod pallet {
 		pub fn take_weight_from_transact_info(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -> Result<Weight, DispatchError> {
+			// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure 'refund' is false
+			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
@@ -1135,7 +1177,11 @@ pub mod pallet {
 		pub fn take_weight_from_transact_info_signed(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -> Result<Weight, DispatchError> {
+			// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure 'refund' is false
+			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
