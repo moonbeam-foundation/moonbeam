@@ -372,9 +372,11 @@ describeDevMoonbeam("Staking - Locks - max delegations", (context) => {
         context.createBlock(
           randomCandidatesChunk.map((randomCandidate) =>
             context.polkadotApi.tx.parachainStaking
-              .delegate(
+              .delegateWithAutoCompound(
                 randomCandidate.address,
                 MIN_GLMR_DELEGATOR,
+                100,
+                1,
                 1,
                 maxDelegationsPerDelegator + 1n
               )
@@ -422,10 +424,10 @@ describeDevMoonbeam("Staking - Locks - multiple delegations single lock", (conte
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 10, 10)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 10, 10, 10)
           .signAsync(randomAccount, { nonce: nonce++ }),
         context.polkadotApi.tx.parachainStaking
-          .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 10, 10)
+          .delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 100, 10, 10, 10)
           .signAsync(randomAccount, { nonce: nonce++ }),
       ])
     );
@@ -477,7 +479,7 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 1, 1)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 1, 1, 1)
           .signAsync(randomAccount)
       )
     );
@@ -491,7 +493,14 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
 
     const txns = await [...additionalDelegators].map((account, i) =>
       context.polkadotApi.tx.parachainStaking
-        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, additionalDelegators.length + 1, 1)
+        .delegateWithAutoCompound(
+          alith.address,
+          MIN_GLMR_DELEGATOR + GLMR,
+          100,
+          additionalDelegators.length + 1,
+          additionalDelegators.length + 1,
+          1
+        )
         .signAsync(account)
     );
 
@@ -561,7 +570,14 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
             // e.g. the first txns sent will have the highest tip
             let tip = BigInt(tipOrdering--) * MILLIGLMR;
             return context.polkadotApi.tx.parachainStaking
-              .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, numDelegations++, 1)
+              .delegateWithAutoCompound(
+                alith.address,
+                MIN_GLMR_DELEGATOR + 1n * GLMR,
+                100,
+                numDelegations,
+                numDelegations++,
+                1
+              )
               .signAsync(account, { tip });
           })
         )
@@ -607,7 +623,14 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
             // e.g. the first txns sent will have the highest tip
             let tip = BigInt(tipOrdering--) * MILLIGLMR;
             return context.polkadotApi.tx.parachainStaking
-              .delegate(alith.address, MIN_GLMR_DELEGATOR, numDelegations++, 1)
+              .delegateWithAutoCompound(
+                alith.address,
+                MIN_GLMR_DELEGATOR,
+                100,
+                numDelegations,
+                numDelegations++,
+                1
+              )
               .signAsync(account, { tip });
           })
         )

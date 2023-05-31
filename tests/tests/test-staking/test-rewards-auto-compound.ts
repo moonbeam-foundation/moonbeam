@@ -391,11 +391,18 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
     // we use a maxDelegationCount here, since the transactions can come out of order.
     const txns = [
       context.polkadotApi.tx.parachainStaking
-        .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
+        .delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 1)
         .signAsync(ethan),
       ...otherDelegators.map((d) =>
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
+          .delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR + 10n * GLMR,
+            100,
+            maxDelegationCount,
+            maxDelegationCount,
+            1
+          )
           .signAsync(d)
       ),
     ];
