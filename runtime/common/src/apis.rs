@@ -263,10 +263,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let estimated_transaction_len = (data.len() +
-						max_fee_per_gas.encode().len() +
-						max_priority_fee_per_gas.encode().len() +
-						access_list.encode().len() +
+					let mut estimated_transaction_len = data.len() +
 						// to: 20
 						// from: 20
 						// value: 32
@@ -275,7 +272,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						210 as usize) as u64;
+						210;
+					if max_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if max_priority_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if access_list.is_some() {
+						estimated_transaction_len += access_list.encoded_size();
+					}
 
 					let gas_limit = if gas_limit > U256::from(u64::MAX) {
 						u64::MAX
@@ -290,7 +296,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len))
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
 							}
 							_ => (None, None),
 						};
@@ -334,10 +340,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let estimated_transaction_len = (data.len() +
-						max_fee_per_gas.encode().len() +
-						max_priority_fee_per_gas.encode().len() +
-						access_list.encode().len() +
+					let mut estimated_transaction_len = data.len() +
+						// to: 20
 						// from: 20
 						// value: 32
 						// gas_limit: 32
@@ -345,7 +349,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						190 as usize) as u64;
+						210;
+					if max_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if max_priority_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if access_list.is_some() {
+						estimated_transaction_len += access_list.encoded_size();
+					}
 
 					let gas_limit = if gas_limit > U256::from(u64::MAX) {
 						u64::MAX
@@ -360,7 +373,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len))
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
 							}
 							_ => (None, None),
 						};
