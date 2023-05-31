@@ -188,7 +188,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-fees"],
+      "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
