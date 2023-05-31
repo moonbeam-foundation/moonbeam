@@ -156,6 +156,9 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-try-runtime = { workspace = true, optional = true }
 
+# InvArch XCM configs
+invarch-xcm-builder = { workspace = true }
+
 [dev-dependencies]
 ethereum = { workspace = true }
 hex = { workspace = true, features = [ "std" ] }
