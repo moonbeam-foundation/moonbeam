@@ -263,19 +263,19 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let estimated_transaction_len = (data.encode().len() +
+					let estimated_transaction_len = (data.len() +
 						max_fee_per_gas.encode().len() +
 						max_priority_fee_per_gas.encode().len() +
-						nonce.encode().len() +
 						access_list.encode().len() +
-						// to: 40
-						// from: 40
-						// value: 64
-						// gas_limit: 64
+						// to: 20
+						// from: 20
+						// value: 32
+						// gas_limit: 32
+						// nonce: 32
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						282 as usize) as u64;
+						210 as usize) as u64;
 
 					let gas_limit = if gas_limit > U256::from(u64::MAX) {
 						u64::MAX
@@ -334,18 +334,18 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let estimated_transaction_len = (data.encode().len() +
+					let estimated_transaction_len = (data.len() +
 						max_fee_per_gas.encode().len() +
 						max_priority_fee_per_gas.encode().len() +
-						nonce.encode().len() +
 						access_list.encode().len() +
-						// from: 40
-						// value: 64
-						// gas_limit: 64
+						// from: 20
+						// value: 32
+						// gas_limit: 32
+						// nonce: 32
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						242 as usize) as u64;
+						190 as usize) as u64;
 
 					let gas_limit = if gas_limit > U256::from(u64::MAX) {
 						u64::MAX
