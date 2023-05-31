@@ -498,18 +498,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// The range of component `x` is `[1, 100]`.
 	fn execute_leave_delegators_worst(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `4433 + x * (34704 ±0)`
-		//  Estimated: `52310 + x * (290055 ±2)`
-		// Minimum execution time: 87_865_000 picoseconds.
-		Weight::from_parts(87_865_000, 0)
-			.saturating_add(Weight::from_parts(0, 52310))
-			// Standard Error: 404_296
-			.saturating_add(Weight::from_parts(63_821_602, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(5))
+		//  Measured:  `4432 + x * (34704 ±0)`
+		//  Estimated: `51750 + x * (290063 ±3)`
+		// Minimum execution time: 164_783_000 picoseconds.
+		Weight::from_parts(16_062_092, 51750)
+			// Standard Error: 377_049
+			.saturating_add(Weight::from_parts(99_015_049, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().reads((5_u64).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes(5))
+			.saturating_add(T::DbWeight::get().writes(5_u64))
 			.saturating_add(T::DbWeight::get().writes((5_u64).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(0, 290055).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 290063).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
