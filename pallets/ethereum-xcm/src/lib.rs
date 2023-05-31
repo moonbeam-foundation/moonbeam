@@ -232,6 +232,14 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	fn transaction_len(transaction: &Transaction) -> u64 {
+		transaction
+			.encode()
+			.len()
+			// pallet + call indexes
+			.saturating_add(2) as u64
+	}
+
 	fn validate_and_apply(
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
@@ -254,7 +262,10 @@ impl<T: Config> Pallet<T> {
 					transaction_data.gas_limit.unique_saturated_into(),
 					true,
 				) {
-					weight_limit if weight_limit.proof_size() > 0 => (Some(weight_limit), Some(0)),
+					weight_limit if weight_limit.proof_size() > 0 => (
+						Some(weight_limit),
+						Some(Self::transaction_len(&transaction)),
+					),
 					_ => (None, None),
 				};
 
