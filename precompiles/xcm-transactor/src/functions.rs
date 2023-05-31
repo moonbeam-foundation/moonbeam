@@ -26,7 +26,7 @@ use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, RemoteTransactInfoWithMaxWeight, TransactWeights,
 };
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{MaxEncodedLen, H160, U256};
 use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
@@ -61,7 +61,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		index: u16,
 	) -> EvmResult<Address> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// storage item: IndexToAccount: Blake2_128(16) + u16(4) + AccountId(20)
+		handle.record_db_read::<Runtime>(40)?;
 
 		// fetch data from pallet
 		let account: H160 = pallet_xcm_transactor::Pallet::<Runtime>::index_to_account(index)
@@ -75,14 +76,20 @@ where
 		handle: &mut impl PrecompileHandle,
 		multilocation: MultiLocation,
 	) -> EvmResult<(u64, U256, u64)> {
-		handle.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
 		// fetch data from pallet
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// + RemoteTransactInfoWithMaxWeight
+		handle.record_db_read::<Runtime>(
+			16 + MultiLocation::max_encoded_len()
+				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+		)?;
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
 		// fetch data from pallet
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
+		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
 		let fee_per_second: u128 =
 			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
@@ -98,9 +105,13 @@ where
 		handle: &mut impl PrecompileHandle,
 		multilocation: MultiLocation,
 	) -> EvmResult<(u64, u64, u64)> {
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
 		// fetch data from pallet
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// + RemoteTransactInfoWithMaxWeight
+		handle.record_db_read::<Runtime>(
+			16 + MultiLocation::max_encoded_len()
+				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+		)?;
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
@@ -120,9 +131,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		multilocation: MultiLocation,
 	) -> EvmResult<U256> {
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
 		// fetch data from pallet
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
+		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
 		let fee_per_second: u128 =
 			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
@@ -225,6 +236,10 @@ where
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
@@ -233,8 +248,6 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(currency_id.0);
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -274,6 +287,10 @@ where
 		fee_amount: u128,
 		overall_weight: u64,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
@@ -283,8 +300,6 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -393,14 +408,16 @@ where
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		let call: Vec<_> = call.into();
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -438,14 +455,16 @@ where
 		fee_amount: u128,
 		overall_weight: u64,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		let call: Vec<_> = call.into();
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -480,7 +499,10 @@ where
 		index: u16,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// There is no DB read in this function,
+		// we just account an arbitrary amount of gas to prevent spam
+		// TODO replace by proper benchmarks
+		handle.record_cost(1000)?;
 
 		let transactor: TransactorOf<Runtime> = transactor
 			.try_into()
