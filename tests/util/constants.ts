@@ -52,7 +52,7 @@ export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
 
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
 // minus the block initialization (10%) and minus the extrinsic base cost.
-export const EXTRINSIC_GAS_LIMIT = ((BLOCK_GAS_LIMIT * 3n) / 4n) - (BLOCK_GAS_LIMIT / 10n);
+export const EXTRINSIC_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n - BLOCK_GAS_LIMIT / 10n;
 
 // Maximum PoV size in bytes allowed for a manual sealing dev block by substrate.
 export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
