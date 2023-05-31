@@ -143,6 +143,68 @@ mod tests {
 		}
 	}
 
+	struct MockPrecompileHandle;
+	impl PrecompileHandle for MockPrecompileHandle {
+		fn call(
+			&mut self,
+			_: sp_core::H160,
+			_: Option<evm::Transfer>,
+			_: Vec<u8>,
+			_: Option<u64>,
+			_: bool,
+			_: &evm::Context,
+		) -> (evm::ExitReason, Vec<u8>) {
+			unimplemented!()
+		}
+
+		fn record_cost(&mut self, _: u64) -> Result<(), evm::ExitError> {
+			Ok(())
+		}
+
+		fn remaining_gas(&self) -> u64 {
+			unimplemented!()
+		}
+
+		fn log(
+			&mut self,
+			_: sp_core::H160,
+			_: Vec<sp_core::H256>,
+			_: Vec<u8>,
+		) -> Result<(), evm::ExitError> {
+			unimplemented!()
+		}
+
+		fn code_address(&self) -> sp_core::H160 {
+			unimplemented!()
+		}
+
+		fn input(&self) -> &[u8] {
+			unimplemented!()
+		}
+
+		fn context(&self) -> &evm::Context {
+			unimplemented!()
+		}
+
+		fn is_static(&self) -> bool {
+			true
+		}
+
+		fn gas_limit(&self) -> Option<u64> {
+			unimplemented!()
+		}
+
+		fn record_external_cost(
+			&mut self,
+			_ref_time: Option<u64>,
+			_proof_size: Option<u64>,
+		) -> Result<(), fp_evm::ExitError> {
+			Ok(())
+		}
+
+		fn refund_external_cost(&mut self, _ref_time: Option<u64>, _proof_size: Option<u64>) {}
+	}
+
 	pub type Precompiles<R> = PrecompileSetBuilder<
 		R,
 		(
@@ -328,7 +390,10 @@ mod tests {
 	fn get_address_type_works_for_eoa() {
 		ExtBuilder::default().build().execute_with(|| {
 			let addr = H160::repeat_byte(0x1d);
-			assert_eq!(AddressType::EOA, get_address_type::<Runtime>(addr));
+			assert_eq!(
+				AddressType::EOA,
+				get_address_type::<Runtime>(&mut MockPrecompileHandle, addr).expect("OOG")
+			);
 		})
 	}
 
@@ -337,7 +402,10 @@ mod tests {
 		ExtBuilder::default().build().execute_with(|| {
 			let addr = H160::repeat_byte(0x1d);
 			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x60, 0x00, 0x60, 0x00, 0xfd]);
-			assert_eq!(AddressType::Precompile, get_address_type::<Runtime>(addr));
+			assert_eq!(
+				AddressType::Precompile,
+				get_address_type::<Runtime>(&mut MockPrecompileHandle, addr).expect("OOG")
+			);
 		})
 	}
 
@@ -351,11 +419,17 @@ mod tests {
 				addr,
 				vec![0x60, 0x00, 0x60, 0x00, 0xfd, 0xff, 0xff],
 			);
-			assert_eq!(AddressType::Contract, get_address_type::<Runtime>(addr));
+			assert_eq!(
+				AddressType::Contract,
+				get_address_type::<Runtime>(&mut MockPrecompileHandle, addr).expect("OOG")
+			);
 
 			// length < 5
 			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x60, 0x00, 0x60]);
-			assert_eq!(AddressType::Contract, get_address_type::<Runtime>(addr));
+			assert_eq!(
+				AddressType::Contract,
+				get_address_type::<Runtime>(&mut MockPrecompileHandle, addr).expect("OOG")
+			);
 		})
 	}
 
@@ -364,7 +438,10 @@ mod tests {
 		ExtBuilder::default().build().execute_with(|| {
 			let addr = H160::repeat_byte(0x1d);
 			pallet_evm::AccountCodes::<Runtime>::insert(addr, vec![0x11, 0x00, 0x60, 0x00, 0xfd]);
-			assert_eq!(AddressType::Unknown, get_address_type::<Runtime>(addr));
+			assert_eq!(
+				AddressType::Unknown,
+				get_address_type::<Runtime>(&mut MockPrecompileHandle, addr).expect("OOG")
+			);
 		})
 	}
 }
