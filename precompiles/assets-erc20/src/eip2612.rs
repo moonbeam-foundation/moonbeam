@@ -25,7 +25,6 @@ use pallet_assets::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
-use parity_scale_codec::MaxEncodedLen;
 use scale_info::prelude::string::ToString;
 use sp_core::H256;
 use sp_io::hashing::keccak_256;
@@ -130,7 +129,6 @@ where
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
-	BoundedVec<u8, <Runtime as pallet_assets::Config<Instance>>::StringLimit>: MaxEncodedLen,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
 		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
@@ -199,9 +197,7 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult {
-		handle.record_db_read::<Runtime>(
-			H160::max_encoded_len().saturating_add(U256::max_encoded_len()),
-		)?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
@@ -255,9 +251,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
 	) -> EvmResult<U256> {
-		handle.record_db_read::<Runtime>(
-			H160::max_encoded_len().saturating_add(U256::max_encoded_len()),
-		)?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let owner: H160 = owner.into();
 
@@ -270,13 +264,7 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {
-		handle.record_db_read::<Runtime>(
-			16 + <Runtime as pallet_assets::Config<Instance>>::AssetId::max_encoded_len()
-				+ pallet_assets::AssetMetadata::<
-					BalanceOf<Runtime, Instance>,
-					BoundedVec<u8, <Runtime as pallet_assets::Config<Instance>>::StringLimit>,
-				>::max_encoded_len(),
-		)?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.code_address(), asset_id).into();
