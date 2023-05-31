@@ -80,10 +80,9 @@ where
 
 		// Make sure there is enough remaining weight
 		// TODO: record ref time when precompile will be benchmarked
-		handle.record_external_cost(
-			None,
-			Some(dispatch_info.weight.proof_size()),
-		).map_err(|e| TryDispatchError::Evm(e))?;
+		handle
+			.record_external_cost(None, Some(dispatch_info.weight.proof_size()))
+			.map_err(|e| TryDispatchError::Evm(e))?;
 
 		// Dispatch call.
 		// It may be possible to not record gas cost if the call returns Pays::No.
