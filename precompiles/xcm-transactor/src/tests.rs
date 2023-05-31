@@ -46,8 +46,14 @@ fn selectors() {
 	assert!(PCallV2::transact_through_derivative_selectors().contains(&0x185de2ae));
 	assert!(PCallV2::transact_through_signed_multilocation_selectors().contains(&0xd7ab340c));
 	assert!(PCallV2::transact_through_signed_selectors().contains(&0xb648f3fe));
-	//bdacc26b
+
+	assert!(PCallV3::index_to_account_selectors().contains(&0x3fdc4f36));
+	assert!(PCallV3::transact_info_with_signed_selectors().contains(&0xb689e20c));
+	assert!(PCallV3::fee_per_second_selectors().contains(&0x906c9990));
 	assert!(PCallV3::transact_through_derivative_multilocation_selectors().contains(&0xbdacc26b));
+	assert!(PCallV3::transact_through_derivative_selectors().contains(&0xca8c82d8));
+	assert!(PCallV3::transact_through_signed_multilocation_selectors().contains(&0x27b1d492));
+	assert!(PCallV3::transact_through_signed_selectors().contains(&0xb18270cf));
 }
 
 #[test]
@@ -349,15 +355,19 @@ fn take_transact_info_with_signed_v3() {
 				1
 			));
 
-			let expected_weight_3: Weight = 10_000u64.into();
-			let expected_weight_2: Weight = 1u64.into();
-			let expected_weight_1: Weight = 0u64.into();
+			let expected_max_weight: Weight = 10_000u64.into();
+			let expected_transact_extra_weight_signed: Weight = 1u64.into();
+			let expected_transact_extra_weight: Weight = 0u64.into();
 
 			precompiles()
 				.prepare_test(Alice, TransactorV3, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns((expected_weight_1, expected_weight_2, expected_weight_3));
+				.execute_returns((
+					expected_transact_extra_weight,
+					expected_transact_extra_weight_signed,
+					expected_max_weight,
+				));
 		});
 }
 
@@ -675,6 +685,14 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 	check_precompile_implements_solidity_interfaces(
 		&["src/v2/XcmTransactorV2.sol"],
 		PCallV2::supports_selector,
+	)
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v3() {
+	check_precompile_implements_solidity_interfaces(
+		&["src/v3/XcmTransactorV3.sol"],
+		PCallV3::supports_selector,
 	)
 }
 

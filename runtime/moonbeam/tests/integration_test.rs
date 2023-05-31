@@ -2749,7 +2749,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2767,7 +2768,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
