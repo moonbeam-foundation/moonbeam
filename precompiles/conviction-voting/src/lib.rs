@@ -26,7 +26,7 @@ use pallet_conviction_voting::{
 };
 use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
-use sp_core::{H160, H256, U256};
+use sp_core::{Get, MaxEncodedLen, H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_std::marker::PhantomData;
 use sp_std::vec::Vec;
@@ -112,6 +112,7 @@ where
 	<Runtime as frame_system::Config>::RuntimeCall: From<ConvictionVotingCall<Runtime>>,
 	IndexOf<Runtime>: TryFrom<u32> + TryInto<u32>,
 	ClassOf<Runtime>: TryFrom<u16> + TryInto<u16>,
+	Runtime: Polling<<Runtime as pallet_conviction_voting::Config>::Polls>,
 {
 	/// Internal helper function for vote* extrinsics exposed in this precompile.
 	fn vote(
@@ -437,7 +438,8 @@ where
 		who: Address,
 		track_id: u16,
 	) -> EvmResult<OutputVotingFor> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// VotingFor: Twox64Concat(8) + 20 + Twox64Concat(8) + TransInfo::Id(2) + VotingOf
+		handle.record_db_read::<Runtime>(38 + VotingOf::<Runtime>::max_encoded_len())?;
 
 		let who = Runtime::AddressMapping::into_account_id(who.into());
 		let class = Self::u16_to_track_id(track_id).in_field("trackId")?;
@@ -453,7 +455,13 @@ where
 		handle: &mut impl PrecompileHandle,
 		who: Address,
 	) -> EvmResult<Vec<OutputClassLock>> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ClassLocksFor: Twox64Concat(8) + 20 + BoundedVec(TransInfo::Id(2) * ClassCountOf)
+		handle.record_db_read::<Runtime>(
+			28 + ((2 * frame_support::traits::ClassCountOf::<
+				Runtime,
+				<Runtime as pallet_conviction_voting::Config>::Polls,
+			>::get()) as usize),
+		)?;
 
 		let who = Runtime::AddressMapping::into_account_id(who.into());
 
