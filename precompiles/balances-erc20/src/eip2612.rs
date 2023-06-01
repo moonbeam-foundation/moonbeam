@@ -168,6 +168,9 @@ where
 	}
 
 	pub(crate) fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
+		// ChainId
+		handle.record_db_read::<Runtime>(8)?;
+
 		Ok(Self::compute_domain_separator(handle.context().address).into())
 	}
 }
