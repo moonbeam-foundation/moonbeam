@@ -2,9 +2,10 @@ import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { alith, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
 import { mockAssetBalance } from "../../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { ApiPromise } from "@polkadot/api";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
@@ -15,7 +16,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
     let assetId: u128;
-    let api;
+    let api: ApiPromise;
     const freshAccount = generateKeyringPair();
 
     beforeAll(async () => {
@@ -45,7 +46,7 @@ describeSuite({
       );
 
       await context.createBlock();
-      const alithBalance = await api.query.assets.account(assetId.toU8a(), alith.address);
+      const alithBalance = await api.query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
       expect(alithBalance.unwrap().balance.toBigInt()).to.equal(100000000000000n);
     });
 
@@ -61,11 +62,11 @@ describeSuite({
           { allowFailures: true }
         );
 
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
+        expect((await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()).to.eq(
           0n
         );
         // Providers should still be 0
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
+        expect((await api.query.system.account(freshAccount.address as string)).providers.toBigInt()).to.eq(
           0n
         );
 

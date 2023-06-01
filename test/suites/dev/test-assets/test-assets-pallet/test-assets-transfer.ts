@@ -2,9 +2,10 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { alith, baltathar } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { mockAssetBalance } from "../../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { ApiPromise } from "@polkadot/api";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -14,7 +15,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
     let assetId: u128;
-    let api;
+    let api: ApiPromise;
     beforeAll(async () => {
       api = context.polkadotJs({ type: "moon" });
       assetId = api.createType("u128", ARBITRARY_ASSET_ID);
@@ -40,10 +41,10 @@ describeSuite({
           api.tx.assets.transfer(assetId, baltathar.address, 1000)
         );
 
-        expect(result.error).to.be.undefined;
+        expect(result!.error).to.be.undefined;
 
         // Baltathar balance is 1000
-        const baltatharBalance = await api.query.assets.account(assetId.toU8a(), baltathar.address);
+        const baltatharBalance = await api.query.assets.account(assetId.toU8a(), BALTATHAR_ADDRESS);
         expect(baltatharBalance.unwrap().balance.toBigInt()).to.equal(1000n);
       },
     });
