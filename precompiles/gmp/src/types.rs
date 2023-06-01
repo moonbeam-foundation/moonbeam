@@ -22,6 +22,12 @@ use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 use xcm::VersionedMultiLocation;
 
+// Enumuration of all actions
+#[derive(Encode, Decode, Debug)]
+pub enum Action {
+	XcmRouting(XcmRoutingUserAction),
+}
+
 // A user action which will attempt to route the transferred assets to the account/chain specified
 // by the given MultiLocation. Recall that a MultiLocation can contain both a chain and an account
 // on that chain, as this one should.
@@ -30,12 +36,34 @@ pub struct XcmRoutingUserAction {
 	pub destination: VersionedMultiLocation,
 }
 
-// A simple versioning wrapper around the initial XcmRoutingUserAction use-case. This should make
-// future breaking changes easy to add in a backwards-compatible way.
+// Enumeration of all fee types
+#[derive(Encode, Decode, Debug)]
+pub enum Fee {
+	NativeFee(NativeFee),
+}
+
+// A fee paid in native currency
+#[derive(Encode, Decode, Debug)]
+pub struct NativeFee {
+	fee: u128, // TODO: use balance type?
+}
+
+// The outermost payload for the GMP precompile.
 #[derive(Encode, Decode, Debug)]
 #[non_exhaustive]
 pub enum VersionedUserAction {
+	// Original VersionedUserAction which supported no fee and only one fixed action.
 	V1(XcmRoutingUserAction),
+	// V2 VersionedUserAction which supports different UserActions and Fees.
+	V2(ActionWithFee),
+}
+
+// An action with an attached fee. The fee should be able to be taken from the funds associated
+// with the action itself, e.g. deducted from the overall amount of a bridged transfer.
+#[derive(Encode, Decode, Debug)]
+pub struct ActionWithFee {
+	pub action: Action,
+	pub fee: Fee,
 }
 
 // Struct representing a Wormhole VM

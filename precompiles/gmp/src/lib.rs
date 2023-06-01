@@ -189,6 +189,7 @@ where
 				dest: Box::new(action.destination),
 				dest_weight_limit: WeightLimit::Unlimited,
 			},
+			VersionedUserAction::V2(action_with_fee) => todo!(),
 		};
 
 		log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
