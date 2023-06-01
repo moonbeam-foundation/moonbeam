@@ -107,6 +107,10 @@ pub mod pallet {
 	pub const COLLATOR_LOCK_ID: LockIdentifier = *b"stkngcol";
 	pub const DELEGATOR_LOCK_ID: LockIdentifier = *b"stkngdel";
 
+	/// A hard limit for weight computation purposes for the max candidates that _could_
+	/// theoretically exist.
+	pub const MAX_CANDIDATES: u32 = 200;
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -509,17 +513,6 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
-	/// Stores outstanding delegation requests per collator.
-	#[pallet::storage]
-	#[pallet::getter(fn delegation_scheduled_requests)]
-	pub(crate) type DelegationScheduledRequests<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		T::AccountId,
-		Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
-		ValueQuery,
-	>;
-
 	pub struct AddGet<T, R> {
 		_phantom: PhantomData<(T, R)>,
 	}
@@ -532,6 +525,20 @@ pub mod pallet {
 			T::get() + R::get()
 		}
 	}
+
+	/// Stores outstanding delegation requests per collator.
+	#[pallet::storage]
+	#[pallet::getter(fn delegation_scheduled_requests)]
+	pub(crate) type DelegationScheduledRequests<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::AccountId,
+		BoundedVec<
+			ScheduledRequest<T::AccountId, BalanceOf<T>>,
+			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+		>,
+		ValueQuery,
+	>;
 
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
@@ -1075,30 +1082,27 @@ pub mod pallet {
 
 		/// Temporarily leave the set of collator candidates without unbonding
 		#[pallet::call_index(11)]
-		#[pallet::weight(<T as Config>::WeightInfo::go_offline(1_000))]
+		#[pallet::weight(<T as Config>::WeightInfo::go_offline(MAX_CANDIDATES))]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			// TODO charge for 1_000 candidates
 			let collator = ensure_signed(origin)?;
 			<Pallet<T>>::go_offline_inner(collator)
 		}
 
 		/// Rejoin the set of collator candidates if previously had called `go_offline`
 		#[pallet::call_index(12)]
-		#[pallet::weight(<T as Config>::WeightInfo::go_online(1_000))]
+		#[pallet::weight(<T as Config>::WeightInfo::go_online(MAX_CANDIDATES))]
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			// TODO charge for 1_000 candidates
 			let collator = ensure_signed(origin)?;
 			<Pallet<T>>::go_online_inner(collator)
 		}
 
 		/// Increase collator candidate self bond by `more`
 		#[pallet::call_index(13)]
-		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more(1_000))]
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more(MAX_CANDIDATES))]
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
-			// TODO charge for 1_000 candidates
 			let candidate = ensure_signed(origin)?;
 			<Pallet<T>>::candidate_bond_more_inner(candidate, more)
 		}
@@ -1124,12 +1128,11 @@ pub mod pallet {
 
 		/// Execute pending request to adjust the collator candidate self bond
 		#[pallet::call_index(15)]
-		#[pallet::weight(<T as Config>::WeightInfo::execute_candidate_bond_less(1_000))]
+		#[pallet::weight(<T as Config>::WeightInfo::execute_candidate_bond_less(MAX_CANDIDATES))]
 		pub fn execute_candidate_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			// TODO charge for 1_000 candidates
 			ensure_signed(origin)?; // we may want to reward this if caller != candidate
 			<Pallet<T>>::execute_candidate_bond_less_inner(candidate)
 		}

@@ -21,9 +21,10 @@ use crate::pallet::{
 	Pallet, Round, RoundIndex, Total,
 };
 use crate::weights::WeightInfo;
-use crate::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
+use crate::{auto_compound::AutoCompoundDelegations, AddGet, Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::Get;
+use frame_support::BoundedVec;
 use frame_support::{
 	dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo},
 	RuntimeDebug,
@@ -31,7 +32,7 @@ use frame_support::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
-use sp_std::{vec, vec::Vec};
+use sp_std::vec;
 
 /// An action that can be performed upon a delegation
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
@@ -102,11 +103,16 @@ impl<T: Config> Pallet<T> {
 			.ok_or(<Error<T>>::DelegationDNE)?;
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
-		scheduled_requests.push(ScheduledRequest {
-			delegator: delegator.clone(),
-			action: DelegationAction::Revoke(bonded_amount),
-			when_executable: when,
-		});
+		scheduled_requests
+			.try_push(ScheduledRequest {
+				delegator: delegator.clone(),
+				action: DelegationAction::Revoke(bonded_amount),
+				when_executable: when,
+			})
+			.map_err(|_| DispatchErrorWithPostInfo {
+				post_info: Some(actual_weight).into(),
+				error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
+			})?;
 		state.less_total = state.less_total.saturating_add(bonded_amount);
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
@@ -178,11 +184,16 @@ impl<T: Config> Pallet<T> {
 
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
-		scheduled_requests.push(ScheduledRequest {
-			delegator: delegator.clone(),
-			action: DelegationAction::Decrease(decrease_amount),
-			when_executable: when,
-		});
+		scheduled_requests
+			.try_push(ScheduledRequest {
+				delegator: delegator.clone(),
+				action: DelegationAction::Decrease(decrease_amount),
+				when_executable: when,
+			})
+			.map_err(|_| DispatchErrorWithPostInfo {
+				post_info: Some(actual_weight).into(),
+				error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
+			})?;
 		state.less_total = state.less_total.saturating_add(decrease_amount);
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
@@ -227,7 +238,10 @@ impl<T: Config> Pallet<T> {
 	fn cancel_request_with_state(
 		delegator: &T::AccountId,
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
-		scheduled_requests: &mut Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
+		scheduled_requests: &mut BoundedVec<
+			ScheduledRequest<T::AccountId, BalanceOf<T>>,
+			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
+		>,
 	) -> Option<ScheduledRequest<T::AccountId, BalanceOf<T>>> {
 		let request_idx = scheduled_requests
 			.iter()
@@ -440,7 +454,12 @@ impl<T: Config> Pallet<T> {
 				},
 			};
 
-			scheduled_requests.push(request);
+			scheduled_requests
+				.try_push(request)
+				.map_err(|_| DispatchErrorWithPostInfo {
+					post_info: Some(actual_weight).into(),
+					error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
+				})?;
 			state.less_total = state.less_total.saturating_add(bonded_amount);
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
