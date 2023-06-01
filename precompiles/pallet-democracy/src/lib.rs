@@ -118,11 +118,7 @@ where
 		// storage item: DepositOf
 		// max encoded len: Twox64(8) + PropIndex u32(4) +
 		// BalanceOf(16) + BoundedVec<AccountId, MaxDeposits> (20 * MaxDeposits)
-		let bounded_vec_bytes: usize = (<Runtime::MaxDeposits>::get())
-			.saturating_mul(20)
-			.try_into()
-			.unwrap();
-		handle.record_db_read::<Runtime>(bounded_vec_bytes.saturating_add(28))?;
+		handle.record_db_read::<Runtime>((20 * <Runtime::MaxDeposits>::get() as usize) + 28)?;
 		let deposit = DemocracyOf::<Runtime>::deposit_of(prop_index)
 			.ok_or_else(|| revert("No such proposal in pallet democracy"))?
 			.1;
@@ -160,9 +156,8 @@ where
 	) -> EvmResult<(U256, H256, u8, U256, U256, U256, U256)> {
 		// storage item: ReferendumInfoOf
 		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
-		// ReferendumInfo<BlockNumber u32(4), RuntimeCall(32), Balance(16)>
-		// TODO: check size of RuntimeCall
-		handle.record_db_read::<Runtime>(64)?;
+		// ReferendumInfo (enum(1) + end(4) + proposal(128) + threshold(1) + delay(4) + tally(3*16))
+		handle.record_db_read::<Runtime>(186)?;
 		let ref_status = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
 			Some(ReferendumInfo::Ongoing(ref_status)) => ref_status,
 			Some(ReferendumInfo::Finished { .. }) => Err(revert("Referendum is finished"))?,
@@ -194,9 +189,8 @@ where
 	) -> EvmResult<(bool, U256)> {
 		// storage item: ReferendumInfoOf
 		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
-		// ReferendumInfo<BlockNumber u32(4), RuntimeCall(32), Balance(16)>
-		// TODO: check size of RuntimeCall
-		handle.record_db_read::<Runtime>(64)?;
+		// ReferendumInfo (enum(1) + end(4) + proposal(128) + threshold(1) + delay(4) + tally(3*16))
+		handle.record_db_read::<Runtime>(186)?;
 		let (approved, end) = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
 			Some(ReferendumInfo::Ongoing(_)) => Err(revert("Referendum is ongoing"))?,
 			Some(ReferendumInfo::Finished { approved, end }) => (approved, end),
@@ -225,8 +219,9 @@ where
 		);
 
 		// This forces it to have the proposal in pre-images.
-		// TODO: REVISIT
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: StatusFor
+		// max encoded len: Hash(32) + RequestStatus(enum(1) + deposit(1+20+16) + count(4) + len(5))
+		handle.record_db_read::<Runtime>(79)?;
 		let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
 			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
 		})?;
@@ -478,9 +473,11 @@ where
 
 		// To mimic imminent preimage behavior, we need to check whether the preimage
 		// has been requested
-		// is_requested implies db read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let proposal_hash = <Runtime as frame_system::Config>::Hashing::hash(&encoded_proposal);
+		// is_requested implies db read
+		// Storage item: StatusFor
+		// max encoded len: Hash(32) + RequestStatus(enum(1) + deposit(1+20+16) + count(4) + len(5))
+		handle.record_db_read::<Runtime>(79)?;
 		if !<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
 			&proposal_hash.into(),
 		) {
