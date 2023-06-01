@@ -285,7 +285,7 @@ function describeBenchmark(
       console.log(
         `  ${chalk.yellow("○")} ${chalk.gray(methodName)} max ${chalk.green(
           numTransactions
-        )} per block (w: ${(weightUtil*100).toFixed(1)}%, p: ${(proofUtil*100).toFixed(1)}%)`
+        )} per block (w: ${(weightUtil * 100).toFixed(1)}%, p: ${(proofUtil * 100).toFixed(1)}%)`
       );
       expect(numTransactions).to.be.greaterThanOrEqual(2);
     });
@@ -312,7 +312,10 @@ async function createAccounts(
   return randomAccounts;
 }
 
-async function countExtrinsics(context: DevTestContext, method: string): Promise<[number, number, number]> {
+async function countExtrinsics(
+  context: DevTestContext,
+  method: string
+): Promise<[number, number, number]> {
   const block = await context.polkadotApi.rpc.chain.getBlock();
   const extrinsicCount = block.block.extrinsics.reduce(
     (acc, ext) =>
@@ -323,10 +326,12 @@ async function countExtrinsics(context: DevTestContext, method: string): Promise
   const maxBlockWeights = context.polkadotApi.consts.system.blockWeights;
   const blockWeights = await context.polkadotApi.query.system.blockWeight();
 
-  const weightUtil = blockWeights.normal.refTime.toNumber() 
-    / maxBlockWeights.perClass.normal.maxTotal.unwrap().refTime.toNumber();
-  const proofUtil = blockWeights.normal.proofSize.toNumber() 
-    / maxBlockWeights.perClass.normal.maxTotal.unwrap().proofSize.toNumber();
+  const weightUtil =
+    blockWeights.normal.refTime.toNumber() /
+    maxBlockWeights.perClass.normal.maxTotal.unwrap().refTime.toNumber();
+  const proofUtil =
+    blockWeights.normal.proofSize.toNumber() /
+    maxBlockWeights.perClass.normal.maxTotal.unwrap().proofSize.toNumber();
 
   return [extrinsicCount, weightUtil, proofUtil];
 }
