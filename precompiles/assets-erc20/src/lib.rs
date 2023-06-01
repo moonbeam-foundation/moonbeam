@@ -162,8 +162,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<U256> {
 		// Storage item: Asset:
-		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(8)) + (3 * Balance(16)) + 15)
-		handle.record_db_read::<Runtime>(127)?;
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		Ok(pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into())
 	}
@@ -176,9 +176,9 @@ where
 		who: Address,
 	) -> EvmResult<U256> {
 		// Storage item: Account:
-		// Blake2_128(16) + AssetId(16) + Blake2_128(16) + AccountId(8) + AssetAccount(19 + Extra)
+		// Blake2_128(16) + AssetId(16) + Blake2_128(16) + AccountId(20) + AssetAccount(19 + Extra)
 		handle.record_db_read::<Runtime>(
-			75 + <Runtime as pallet_assets::Config<Instance>>::Extra::max_encoded_len(),
+			87 + <Runtime as pallet_assets::Config<Instance>>::Extra::max_encoded_len(),
 		)?;
 
 		let who: H160 = who.into();
@@ -202,8 +202,8 @@ where
 		spender: Address,
 	) -> EvmResult<U256> {
 		// Storage item: Approvals:
-		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(8)) + Approval(32)
-		handle.record_db_read::<Runtime>(112)?;
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		handle.record_db_read::<Runtime>(136)?;
 
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
@@ -261,8 +261,8 @@ where
 			value.try_into().unwrap_or_else(|_| Bounded::max_value());
 
 		// Storage item: Approvals:
-		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(8)) + Approval(32)
-		handle.record_db_read::<Runtime>(112)?;
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		handle.record_db_read::<Runtime>(136)?;
 
 		// If previous approval exists, we need to clean it
 		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender)
@@ -457,8 +457,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
 		// Storage item: Asset:
-		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(8)) + (3 * Balance(16)) + 15)
-		handle.record_db_read::<Runtime>(127)?;
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let owner: H160 = pallet_assets::Pallet::<Runtime, Instance>::owner(asset_id)
 			.ok_or(revert("No owner set"))?
@@ -474,8 +474,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
 		// Storage item: Asset:
-		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(8)) + (3 * Balance(16)) + 15)
-		handle.record_db_read::<Runtime>(127)?;
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let issuer: H160 = pallet_assets::Pallet::<Runtime, Instance>::issuer(asset_id)
 			.ok_or(revert("No issuer set"))?
@@ -491,8 +491,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
 		// Storage item: Asset:
-		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(8)) + (3 * Balance(16)) + 15)
-		handle.record_db_read::<Runtime>(127)?;
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let admin: H160 = pallet_assets::Pallet::<Runtime, Instance>::admin(asset_id)
 			.ok_or(revert("No admin set"))?
@@ -508,8 +508,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
 		// Storage item: Asset:
-		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(8)) + (3 * Balance(16)) + 15)
-		handle.record_db_read::<Runtime>(127)?;
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let freezer: H160 = pallet_assets::Pallet::<Runtime, Instance>::freezer(asset_id)
 			.ok_or(revert("No freezer set"))?
