@@ -35,7 +35,7 @@ export type ContractObject<TAbi extends Abi> = {
 };
 
 export function getAllContracts(): string[] {
-  const contractsPath = path.join(__dirname, `../contracts/compiled/`);
+  const contractsPath = path.join(process.cwd(), "helpers", "compiled");
   const contracts = fs.readdirSync(contractsPath, { withFileTypes: true });
   // Register all the contract code
   return contracts
