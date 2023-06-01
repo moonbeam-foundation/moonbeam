@@ -267,7 +267,8 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {
 		// Storage item: AssetMetadata:
-		// Blake2_128(16) + AssetId + AssetMetadata(16 + (2 * boundedString) + 2)
+		// Blake2_128(16) + AssetId + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
 		handle.record_db_read::<Runtime>(
 			34 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
 		)?;
