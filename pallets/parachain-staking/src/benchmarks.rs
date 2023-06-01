@@ -1121,6 +1121,9 @@ benchmarks! {
 			+ T::MaxBottomDelegationsPerCandidate::get() - 1
 		);
 
+		let num_top = x.min(T::MaxTopDelegationsPerCandidate::get() - 1);
+		let num_bottom = x.saturating_sub(num_top).min(T::MaxBottomDelegationsPerCandidate::get());
+
 		let mut seed = Seed::new();
 		let collator = create_account::<T>(
 			"collator",
@@ -1134,7 +1137,7 @@ benchmarks! {
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+		for i in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1176,7 +1179,7 @@ benchmarks! {
 			0,
 		);
 
-		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+		for i in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1199,7 +1202,7 @@ benchmarks! {
 
 		assert_eq!(
 			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
-			T::MaxBottomDelegationsPerCandidate::get(),
+			num_bottom,
 		);
 
 	}: {
@@ -1231,6 +1234,9 @@ benchmarks! {
 			+ T::MaxBottomDelegationsPerCandidate::get() - 1
 		);
 
+		let num_top = x.min(T::MaxTopDelegationsPerCandidate::get() - 1);
+		let num_bottom = x.saturating_sub(num_top).min(T::MaxBottomDelegationsPerCandidate::get());
+
 		let mut seed = Seed::new();
 		let collator = create_account::<T>(
 			"collator",
@@ -1244,7 +1250,7 @@ benchmarks! {
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+		for i in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1286,7 +1292,7 @@ benchmarks! {
 			0,
 		);
 
-		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+		for i in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1310,7 +1316,7 @@ benchmarks! {
 
 		assert_eq!(
 			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
-			T::MaxBottomDelegationsPerCandidate::get(),
+			num_bottom,
 		);
 
 		let bond_more = 1_000u32.into();
@@ -1336,6 +1342,9 @@ benchmarks! {
 			+ T::MaxBottomDelegationsPerCandidate::get() - 1
 		);
 
+		let num_top = x.min(T::MaxTopDelegationsPerCandidate::get() - 1);
+		let num_bottom = x.saturating_sub(num_top).min(T::MaxBottomDelegationsPerCandidate::get());
+
 		let mut seed = Seed::new();
 		let collator = create_account::<T>(
 			"collator",
@@ -1349,7 +1358,7 @@ benchmarks! {
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+		for i in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1390,7 +1399,7 @@ benchmarks! {
 			0,
 		);
 
-		for i in 0..T::MaxBottomDelegationsPerCandidate::get() {
+		for i in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1414,7 +1423,7 @@ benchmarks! {
 
 		assert_eq!(
 			<BottomDelegations<T>>::get(&collator).map(|bd| bd.delegations.len() as u32).unwrap_or_default(),
-			T::MaxBottomDelegationsPerCandidate::get(),
+			num_bottom,
 		);
 		let bond_less = 1_000u32.into();
 	}: {

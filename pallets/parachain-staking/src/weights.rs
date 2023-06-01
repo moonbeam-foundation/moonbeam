@@ -515,14 +515,18 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegationScheduledRequests (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 349]`.
-	fn schedule_revoke_delegation(_x: u32, ) -> Weight {
+	fn schedule_revoke_delegation(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `15515`
-		//  Estimated: `37960`
-		// Minimum execution time: 55_538_000 picoseconds.
-		Weight::from_parts(58_365_791, 37960)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
+		//  Measured:  `574 + x * (42 ±0)`
+		//  Estimated: `7960 + x * (86 ±0)`
+		// Minimum execution time: 10_519_000 picoseconds.
+		Weight::from_parts(13_063_419, 0)
+			.saturating_add(Weight::from_parts(0, 7960))
+			// Standard Error: 2_915
+			.saturating_add(Weight::from_parts(48_921, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+			.saturating_add(Weight::from_parts(0, 86).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
@@ -541,14 +545,18 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: ParachainStaking Total (r:1 w:1)
 	/// Proof Skipped: ParachainStaking Total (max_values: Some(1), max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 349]`.
-	fn delegator_bond_more(_x: u32, ) -> Weight {
+	fn delegator_bond_more(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `27979`
-		//  Estimated: `193037`
-		// Minimum execution time: 131_740_000 picoseconds.
-		Weight::from_parts(134_429_600, 193037)
-			.saturating_add(T::DbWeight::get().reads(8_u64))
-			.saturating_add(T::DbWeight::get().writes(7_u64))
+		//  Measured:  `1954 + x * (79 ±0)`
+		//  Estimated: `37061 + x * (468 ±1)`
+		// Minimum execution time: 34_946_000 picoseconds.
+		Weight::from_parts(38_839_287, 0)
+			.saturating_add(Weight::from_parts(0, 37061))
+			// Standard Error: 5_522
+			.saturating_add(Weight::from_parts(110_446, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(8))
+			.saturating_add(T::DbWeight::get().writes(7))
+			.saturating_add(Weight::from_parts(0, 468).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
@@ -557,14 +565,16 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// The range of component `x` is `[0, 349]`.
 	fn schedule_delegator_bond_less(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `15515`
-		//  Estimated: `37960`
-		// Minimum execution time: 56_573_000 picoseconds.
-		Weight::from_parts(58_214_753, 37960)
-			// Standard Error: 10_063
-			.saturating_add(Weight::from_parts(7_073, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
+		//  Measured:  `574 + x * (42 ±0)`
+		//  Estimated: `7960 + x * (86 ±0)`
+		// Minimum execution time: 12_233_000 picoseconds.
+		Weight::from_parts(13_630_744, 0)
+			.saturating_add(Weight::from_parts(0, 7960))
+			// Standard Error: 3_029
+			.saturating_add(Weight::from_parts(47_410, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+			.saturating_add(Weight::from_parts(0, 86).saturating_mul(x.into()))
 	}
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
