@@ -43,6 +43,8 @@ where
 	#[precompile::view]
 	fn is_precompile(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<bool> {
 		// We consider the precompile set is optimized to do at most one storage read.
+		// TODO this approach is not compatible with external cost recording as we don't know which
+		// storage we are reading.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		is_precompile_or_fail::<Runtime>(address.0, handle.remaining_gas())
 	}
@@ -54,6 +56,8 @@ where
 		address: Address,
 	) -> EvmResult<bool> {
 		// We consider the precompile set is optimized to do at most one storage read.
+		// TODO this approach is not compatible with external cost recording as we don't know which
+		// storage we are reading.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		match <Runtime::PrecompilesValue>::get()
 			.is_active_precompile(address.0, handle.remaining_gas())
@@ -68,6 +72,8 @@ where
 	#[precompile::public("updateAccountCode(address)")]
 	fn update_account_code(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<()> {
 		// We consider the precompile set is optimized to do at most one storage read.
+		// TODO this approach is not compatible with external cost recording as we don't know which
+		// storage we are reading.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
 		// We asume an existing precompile can hold at most 5 bytes worth of dummy code.
