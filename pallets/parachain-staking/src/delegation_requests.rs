@@ -718,7 +718,9 @@ mod tests {
 				when_executable: 1,
 				action: DelegationAction::Decrease(50),
 			},
-		];
+		]
+		.try_into()
+		.expect("must succeed");
 		let removed_request =
 			<Pallet<Test>>::cancel_request_with_state(&1, &mut state, &mut scheduled_requests);
 
@@ -769,7 +771,9 @@ mod tests {
 			delegator: 2,
 			when_executable: 1,
 			action: DelegationAction::Decrease(50),
-		}];
+		}]
+		.try_into()
+		.expect("must succeed");
 		let removed_request =
 			<Pallet<Test>>::cancel_request_with_state(&1, &mut state, &mut scheduled_requests);
 

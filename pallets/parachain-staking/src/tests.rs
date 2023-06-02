@@ -33,7 +33,7 @@ use crate::{
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -7546,11 +7546,12 @@ fn test_delegation_request_exists_returns_true_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_exists(&1, &2));
 		});
@@ -7566,11 +7567,12 @@ fn test_delegation_request_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_exists(&1, &2));
 		});
@@ -7598,11 +7600,12 @@ fn test_delegation_request_revoke_exists_returns_false_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(!ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
@@ -7618,11 +7621,12 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
@@ -7636,14 +7640,8 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up() {
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
-			<DelegationScheduledRequests<Test>>::insert(
-				3,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
+			<DelegationScheduledRequests<Test>>::insert(3, BoundedVec::default());
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
@@ -7664,14 +7662,8 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_speci
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
-			<DelegationScheduledRequests<Test>>::insert(
-				3,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
+			<DelegationScheduledRequests<Test>>::insert(3, BoundedVec::default());
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
@@ -7692,17 +7684,15 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
 			<DelegationScheduledRequests<Test>>::insert(
 				3,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 10,
 					when_executable: 1,
 					action: DelegationAction::Revoke(10),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 
 			assert_noop!(
@@ -7723,10 +7713,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				1,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(1, BoundedVec::default());
 			assert_noop!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
