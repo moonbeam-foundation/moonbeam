@@ -83,11 +83,15 @@ where
 	#[precompile::public("encode_bond(uint256,uint256,bytes)")]
 	#[precompile::view]
 	fn encode_bond(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		controller_address: U256,
 		amount: U256,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
@@ -107,9 +111,13 @@ where
 	#[precompile::public("encode_bond_extra(uint256)")]
 	#[precompile::view]
 	fn encode_bond_extra(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
 			.as_slice()
@@ -122,9 +130,13 @@ where
 	#[precompile::public("encode_unbond(uint256)")]
 	#[precompile::view]
 	fn encode_unbond(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let relay_amount = u256_to_relay_amount(amount)?;
 
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
@@ -138,9 +150,13 @@ where
 	#[precompile::public("encode_withdraw_unbonded(uint32)")]
 	#[precompile::view]
 	fn encode_withdraw_unbonded(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		slashes: u32,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
 			.as_slice()
 			.into();
@@ -152,10 +168,14 @@ where
 	#[precompile::public("encode_validate(uint256,bool)")]
 	#[precompile::view]
 	fn encode_validate(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		comission: Convert<U256, u32>,
 		blocked: bool,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let fraction = Perbill::from_parts(comission.converted());
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
@@ -173,9 +193,13 @@ where
 	#[precompile::public("encode_nominate(uint256[])")]
 	#[precompile::view]
 	fn encode_nominate(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		nominees: BoundedVec<U256, GetArrayLimit>,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let nominees: Vec<_> = nominees.into();
 		let nominated: Vec<AccountId32> = nominees
 			.iter()
@@ -194,7 +218,11 @@ where
 	#[precompile::public("encodeChill()")]
 	#[precompile::public("encode_chill()")]
 	#[precompile::view]
-	fn encode_chill(_handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
+	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
 			.as_slice()
 			.into();
@@ -206,9 +234,13 @@ where
 	#[precompile::public("encode_set_payee(bytes)")]
 	#[precompile::view]
 	fn encode_set_payee(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let reward_destination = reward_destination.into();
 
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
@@ -222,9 +254,13 @@ where
 	#[precompile::public("encode_set_controller(uint256)")]
 	#[precompile::view]
 	fn encode_set_controller(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		controller: U256,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let controller: [u8; 32] = controller.into();
 
 		let encoded =
@@ -239,9 +275,13 @@ where
 	#[precompile::public("encode_rebond(uint256)")]
 	#[precompile::view]
 	fn encode_rebond(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
 			.as_slice()
@@ -253,11 +293,15 @@ where
 	#[precompile::public("encode_hrmp_init_open_channel(uint32,uint32,uint32)")]
 	#[precompile::view]
 	fn encode_hrmp_init_open_channel(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		recipient: u32,
 		max_capacity: u32,
 		max_message_size: u32,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 			recipient.into(),
 			max_capacity,
@@ -276,9 +320,13 @@ where
 	#[precompile::public("encode_hrmp_accept_open_channel(uint32)")]
 	#[precompile::view]
 	fn encode_hrmp_accept_open_channel(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		sender: u32,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded =
 			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
 				.map_err(|_| {
@@ -294,10 +342,14 @@ where
 	#[precompile::public("encode_hrmp_close_channel(uint32,uint32)")]
 	#[precompile::view]
 	fn encode_hrmp_close_channel(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		sender: u32,
 		recipient: u32,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
 			relay_chain::HrmpChannelId {
 				sender: sender.into(),
@@ -317,11 +369,15 @@ where
 	#[precompile::public("encode_hrmp_cancel_open_request(uint32,uint32,uint32)")]
 	#[precompile::view]
 	fn encode_hrmp_cancel_open_request(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		sender: u32,
 		recipient: u32,
 		open_requests: u32,
 	) -> EvmResult<UnboundedBytes> {
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
+
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 			relay_chain::HrmpChannelId {
 				sender: sender.into(),
