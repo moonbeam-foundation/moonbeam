@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/cli/config_schema.json",
+  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 30000,
   "environments": [
@@ -188,7 +188,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-multisigs"],
+      "testFileDir": ["suites/dev/test-polkadot-js"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
