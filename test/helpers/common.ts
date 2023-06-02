@@ -13,6 +13,7 @@ import { DevModeContext, importJsonConfig, MoonwallContext } from "@moonwall/cli
 import { ethers, Signer } from "ethers";
 import fetch from "node-fetch";
 import { Chain } from "viem";
+
 export function rateLimiter() {
   const settings =
     process.env.SKIP_RATE_LIMITER === "true" ? {} : { maxConcurrent: 10, minTime: 150 };
@@ -157,4 +158,5 @@ export function signWith(
     .sign(pair);
 
   return signature as `0x${string}`; //TODO: fix this when type problem is fixed
+
 }

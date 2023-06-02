@@ -122,7 +122,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         {
           multilocation: {
             parents: 1,
-            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0n }] },
           },
           fungible: 10000000000000n,
         },
@@ -187,7 +187,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 0 },
+                { GeneralIndex: 0n },
               ],
             },
           },
@@ -520,7 +520,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
           multilocation: {
             parents: 0,
             interior: {
-              X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: assetId }],
+              X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: BigInt(assetId) }],
             },
           },
           fungible: transferredBalance,
@@ -590,7 +590,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 0 },
+                { GeneralIndex: 0n },
               ],
             },
           },
@@ -603,7 +603,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               X3: [
                 { Parachain: statemint_para_id },
                 { PalletInstance: statemint_assets_pallet_instance },
-                { GeneralIndex: 1 },
+                { GeneralIndex: 1n },
               ],
             },
           },
@@ -780,7 +780,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         {
           multilocation: {
             parents: 1,
-            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0n }] },
           },
           fungible: 10000000000000n,
         },

@@ -1001,8 +1001,8 @@ where
                 .and_then(|call| call.execute(discriminant, handle)),
         )
     }
-    fn is_precompile(&self, address: H160) -> bool {
-        <PrecompileSet<Runtime>>::discriminant(address).is_some()
+    fn is_precompile(&self, address: H160, gas: u64) -> ::fp_evm::IsPrecompileResult {
+        <PrecompileSet<Runtime>>::discriminant(address, gas).is_some()
     }
 }
 #[allow(non_snake_case)]

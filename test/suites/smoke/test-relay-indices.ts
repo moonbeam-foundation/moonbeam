@@ -22,16 +22,18 @@ describeSuite({
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
       const XCM_TRANSACTOR_V2_PRECOMPILE = "0x000000000000000000000000000000000000080D";
 
-      const RELAY_ENCODER_CONTRACT_JSON = getCompiled("precompiles/relay-encoder/RelayEncoder");
+      const RELAY_ENCODER_CONTRACT_JSON = getCompiled(
+        "compiled/precompiles/relay-encoder/RelayEncoder"
+      );
       const RELAY_ENCODER_INTERFACE = RELAY_ENCODER_CONTRACT_JSON.contract.abi;
 
       const XCM_TRANSACTOR_V1_JSON = getCompiled(
-        "precompiles/xcm-transactor/src/v1/XcmTransactorV1"
+        "compiled/precompiles/xcm-transactor/src/v1/XcmTransactorV1"
       );
       const XCM_TRANSACTOR_V1_INTERFACE = XCM_TRANSACTOR_V1_JSON.contract.abi;
 
       const XCM_TRANSACTOR_V2_JSON = getCompiled(
-        "precompiles/xcm-transactor/src/v2/XcmTransactorV2"
+        "compiled/precompiles/xcm-transactor/src/v2/XcmTransactorV2"
       );
       const XCM_TRANSACTOR_V2_INTERFACE = XCM_TRANSACTOR_V2_JSON.contract.abi;
 

@@ -40,6 +40,7 @@ use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use orml_traits::parameter_type_with_key;
+use pallet_ethereum::PostLogContent;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
@@ -181,7 +182,7 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// The rest of multilocations convert via hashing it
-	xcm_primitives::Account20Hash<AccountId>,
+	xcm_builder::ForeignChainAliasAccount<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -390,6 +391,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -512,7 +514,6 @@ pub mod mock_msg_queue {
 	impl<T: Config> Pallet<T> {}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -652,7 +653,6 @@ pub mod mock_version_changer {
 	impl<T: Config> Pallet<T> {}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -918,7 +918,7 @@ use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -1034,13 +1034,17 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	}
 }
 
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
 }
-
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 0);
 }
 
 #[derive(

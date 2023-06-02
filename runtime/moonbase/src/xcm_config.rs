@@ -110,8 +110,8 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
-	// The rest of multilocations convert via hashing it
-	xcm_primitives::Account20Hash<AccountId>,
+	// Generate remote accounts according to polkadot standards
+	xcm_builder::ForeignChainAliasAccount<AccountId>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -336,6 +336,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type AssetIsBurnable = Everything;
 }
 
 // Converts a Signed Local Origin into a MultiLocation

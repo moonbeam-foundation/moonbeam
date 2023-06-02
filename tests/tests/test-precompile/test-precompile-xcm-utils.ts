@@ -10,11 +10,11 @@ import { describeDevMoonbeamAllEthTxTypes, describeDevMoonbeam } from "../../uti
 import { generateKeyringPair } from "../../util/accounts";
 import { BN } from "@polkadot/util";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
-import { descendOriginFromAddress } from "../../util/xcm";
+import { descendOriginFromAddress20 } from "../../util/xcm";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 
-export const CLEAR_ORIGIN_WEIGHT = 8_514_000n;
+export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 const XCM_UTILS_CONTRACT = getCompiled("precompiles/xcm-utils/XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
@@ -102,7 +102,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       ]),
     });
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     expect(result.result).to.equal(`0x${descendOriginAddress.slice(2).padStart(64, "0")}`);
   });
 

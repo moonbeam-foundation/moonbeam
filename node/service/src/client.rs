@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 pub use moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
-use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
+use sc_client_api::{Backend as BackendT, BlockchainEvents, KeysIter, PairsIter};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_consensus::BlockStatus;
@@ -290,14 +290,6 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match_client!(self, storage(hash, key))
 	}
 
-	fn storage_keys(
-		&self,
-		hash: <Block as BlockT>::Hash,
-		key_prefix: &StorageKey,
-	) -> sp_blockchain::Result<Vec<StorageKey>> {
-		match_client!(self, storage_keys(hash, key_prefix))
-	}
-
 	fn storage_hash(
 		&self,
 		hash: <Block as BlockT>::Hash,
@@ -306,23 +298,26 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match_client!(self, storage_hash(hash, key))
 	}
 
+	fn storage_keys(
+		&self,
+		hash: <Block as BlockT>::Hash,
+		prefix: Option<&StorageKey>,
+		start_key: Option<&StorageKey>,
+	) -> sp_blockchain::Result<
+		KeysIter<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+	> {
+		match_client!(self, storage_keys(hash, prefix, start_key))
+	}
+
 	fn storage_pairs(
 		&self,
 		hash: <Block as BlockT>::Hash,
-		key_prefix: &StorageKey,
-	) -> sp_blockchain::Result<Vec<(StorageKey, StorageData)>> {
-		match_client!(self, storage_pairs(hash, key_prefix))
-	}
-
-	fn storage_keys_iter<'a>(
-		&self,
-		hash: <Block as BlockT>::Hash,
-		prefix: Option<&'a StorageKey>,
+		key_prefix: Option<&StorageKey>,
 		start_key: Option<&StorageKey>,
 	) -> sp_blockchain::Result<
-		KeyIterator<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+		PairsIter<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
-		match_client!(self, storage_keys_iter(hash, prefix, start_key))
+		match_client!(self, storage_pairs(hash, key_prefix, start_key))
 	}
 
 	fn child_storage(
@@ -337,24 +332,15 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 	fn child_storage_keys(
 		&self,
 		hash: <Block as BlockT>::Hash,
-		child_info: &ChildInfo,
-		key_prefix: &StorageKey,
-	) -> sp_blockchain::Result<Vec<StorageKey>> {
-		match_client!(self, child_storage_keys(hash, child_info, key_prefix))
-	}
-
-	fn child_storage_keys_iter<'a>(
-		&self,
-		hash: <Block as BlockT>::Hash,
 		child_info: ChildInfo,
-		prefix: Option<&'a StorageKey>,
+		prefix: Option<&StorageKey>,
 		start_key: Option<&StorageKey>,
 	) -> sp_blockchain::Result<
-		KeyIterator<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+		KeysIter<<crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
 		match_client!(
 			self,
-			child_storage_keys_iter(hash, child_info, prefix, start_key)
+			child_storage_keys(hash, child_info, prefix, start_key)
 		)
 	}
 

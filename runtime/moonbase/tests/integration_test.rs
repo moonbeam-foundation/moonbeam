@@ -20,9 +20,13 @@ mod common;
 use common::*;
 
 use pallet_balances::NegativeImbalance;
-use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
+use precompile_utils::{
+	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
+	prelude::*,
+	testing::*,
+};
 
-use fp_evm::Context;
+use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -49,7 +53,6 @@ use precompile_utils::testing::MockHandle;
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
-use xcm_primitives::Account20Hash;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -1389,7 +1392,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 
@@ -1402,7 +1405,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 		});
@@ -1435,7 +1438,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(25775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1454,7 +1457,7 @@ fn asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1487,7 +1490,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(16048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1508,7 +1511,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(33145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1527,7 +1530,7 @@ fn asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1560,7 +1563,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * UNIT }.into(),
 					},
 				)
-				.expect_cost(12787)
+				.expect_cost(14932)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1587,7 +1590,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13016)
+				.expect_cost(15172)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1632,7 +1635,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6699)
+				.expect_cost(8783)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1651,7 +1654,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6713)
+				.expect_cost(8803)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1686,7 +1689,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5548)
+				.expect_cost(7623)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1703,7 +1706,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5550)
+				.expect_cost(7634)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1735,7 +1738,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6614)
+				.expect_cost(8706)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1769,7 +1772,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5577)
+				.expect_cost(7657)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1832,7 +1835,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 
@@ -1845,7 +1848,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 		});
@@ -1890,7 +1893,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(23497)
+				.expect_cost(24775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1909,7 +1912,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1954,7 +1957,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(13862)
+				.expect_cost(15048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1975,7 +1978,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29021)
+				.expect_cost(32145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1994,7 +1997,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -2053,7 +2056,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(52170)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2105,7 +2108,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(52170)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2321,7 +2324,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				10_000_000_000u128.into(),
-				Weight::from_ref_time(25_000_000u64)
+				Weight::from_parts(25_000_000u64, 0)
 			)
 		);
 	});
@@ -2725,7 +2728,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(19078)
+				.expect_cost(18737)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2765,7 +2768,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(19078)
+				.expect_cost(18737)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2847,7 +2850,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16030)
+				.expect_cost(15595)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2869,7 +2872,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15659)
+				.expect_cost(15217)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2890,7 +2893,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16215)
+				.expect_cost(15631)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2933,7 +2936,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16815)
+				.expect_cost(16365)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2958,7 +2961,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16815)
+				.expect_cost(16365)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -3024,9 +3027,11 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			Account20Hash::<AccountId>::convert_ref(alice_in_parachain_2000_multilocation.clone())
-				.unwrap()
-				.into();
+			xcm_builder::ForeignChainAliasAccount::<AccountId>::convert_ref(
+				alice_in_parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
 
 		Precompiles::new()
 			.prepare_test(
@@ -3100,7 +3105,7 @@ fn precompile_existence() {
 
 			if precompile_addresses.contains(&address) {
 				assert!(
-					precompiles.is_precompile(address),
+					is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return true",
 					i
 				);
@@ -3121,7 +3126,7 @@ fn precompile_existence() {
 				);
 			} else {
 				assert!(
-					!precompiles.is_precompile(address),
+					!is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return false",
 					i
 				);
@@ -3154,20 +3159,26 @@ fn removed_precompiles() {
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
 
-			if !precompiles.is_precompile(address) {
+			if !is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok") {
 				continue;
 			}
 
 			if !removed_precompiles.contains(&i) {
 				assert!(
-					precompiles.is_active_precompile(address),
+					match precompiles.is_active_precompile(address, 100_000u64) {
+						IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+						_ => false,
+					},
 					"{i} should be an active precompile"
 				);
 				continue;
 			}
 
 			assert!(
-				!precompiles.is_active_precompile(address),
+				!match precompiles.is_active_precompile(address, 100_000u64) {
+					IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+					_ => false,
+				},
 				"{i} shouldn't be an active precompile"
 			);
 
@@ -3315,7 +3326,7 @@ fn validate_transaction_fails_on_filtered_call() {
 	use sp_runtime::transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidityError,
 	};
-	use sp_transaction_pool::runtime_api::runtime_decl_for_TaggedTransactionQueue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
+	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
 
 	ExtBuilder::default().build().execute_with(|| {
 		let xt = UncheckedExtrinsic::new_unsigned(
@@ -3403,12 +3414,12 @@ mod fee_tests {
 		type LengthToFeeImpl = LengthToFee;
 
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
-		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
-			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
-				&Weight::from_ref_time(extrinsic_weight),
-			)) + LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(
-			extrinsic_len as u64,
-		)) + tip;
+		let expected_fee =
+			WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+				+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
+					&Weight::from_parts(extrinsic_weight, 1),
+				)) + LengthToFeeImpl::weight_to_fee(&Weight::from_parts(extrinsic_len as u64, 1))
+				+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
@@ -3421,7 +3432,7 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_ref_time(extrinsic_weight),
+					weight: Weight::from_parts(extrinsic_weight, 1),
 				},
 				tip,
 			);

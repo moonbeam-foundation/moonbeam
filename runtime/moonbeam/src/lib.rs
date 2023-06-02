@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
 use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
@@ -63,7 +63,7 @@ pub use moonbeam_core_primitives::{
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::Transaction as EthereumTransaction;
+use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
@@ -106,7 +106,9 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod governance;
 pub mod xcm_config;
+use governance::councils::*;
 
 /// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -134,7 +136,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
@@ -193,7 +195,7 @@ const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
 // TODO: we should use benchmarking's overhead feature to measure this
-pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(10000 * WEIGHT_PER_GAS);
+pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(10000 * WEIGHT_PER_GAS, 0);
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
@@ -387,7 +389,7 @@ parameter_types! {
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbeamPrecompiles<Runtime> = MoonbeamPrecompiles::<_>::new();
-	pub WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
+	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
 }
 
 pub struct TransactionPaymentAsGasPrice;
@@ -493,113 +495,6 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-type CouncilInstance = pallet_collective::Instance1;
-type TechCommitteeInstance = pallet_collective::Instance2;
-type TreasuryCouncilInstance = pallet_collective::Instance3;
-
-impl pallet_collective::Config<CouncilInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the council at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of council members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-	type SetMembersOrigin = EnsureRoot<AccountId>;
-}
-
-impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the technical committee at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of technical committee members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-	type SetMembersOrigin = EnsureRoot<AccountId>;
-}
-
-impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type Proposal = RuntimeCall;
-	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the treasury council at once.
-	type MaxProposals = ConstU32<20>;
-	/// The maximum number of treasury council members.
-	type MaxMembers = ConstU32<9>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-	type SetMembersOrigin = EnsureRoot<AccountId>;
-}
-
-// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
-// block as a round change.
-const ENACTMENT_OFFSET: u32 = 900;
-
-impl pallet_democracy::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 2 * DAYS + ENACTMENT_OFFSET }>;
-	type LaunchPeriod = ConstU32<{ 7 * DAYS }>;
-	type VotingPeriod = ConstU32<{ 14 * DAYS }>;
-	type VoteLockingPeriod = ConstU32<{ 7 * DAYS }>;
-	type FastTrackVotingPeriod = ConstU32<{ 1 * DAYS }>;
-	type MinimumDeposit = ConstU128<{ 4 * currency::GLMR * currency::SUPPLY_FACTOR }>;
-	/// To decide what their next motion is.
-	type ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>;
-	/// To have the next scheduled referendum be a straight majority-carries vote.
-	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
-	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To allow a shorter voting/enactment period for external proposals.
-	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 1, 2>;
-	/// To instant fast track.
-	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
-	// To cancel a proposal which has been passed.
-	type CancellationOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
-	>;
-	// To cancel a proposal before it has been passed.
-	type CancelProposalOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
-	>;
-	type BlacklistOrigin = EnsureRoot<AccountId>;
-	// Any single technical committee member may veto a coming council proposal, however they can
-	// only do it once and it lasts only for the cooloff period.
-	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
-	type CooloffPeriod = ConstU32<{ 7 * DAYS }>;
-	type Slash = ();
-	type InstantAllowed = ConstBool<true>;
-	type Scheduler = Scheduler;
-	type MaxVotes = ConstU32<100>;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
-	type MaxProposals = ConstU32<100>;
-	type Preimages = Preimage;
-	type MaxDeposits = ConstU32<100>;
-	type MaxBlacklisted = ConstU32<100>;
-}
-
 impl pallet_preimage::Config for Runtime {
 	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
@@ -648,11 +543,17 @@ impl pallet_treasury::Config for Runtime {
 
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		governance::custom_origins::GeneralAdmin,
+	>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -697,9 +598,14 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -746,10 +652,13 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+type MonetaryGovernanceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
+	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
 	/// Rounds before the collator leaving the candidates request can be executed
@@ -786,7 +695,7 @@ impl pallet_parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
+	type SlotBeacon = RelaychainDataProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
@@ -818,7 +727,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = relay_chain::BlockNumber;
-	type VestingBlockProvider = RelaychainBlockNumberProvider<Self>;
+	type VestingBlockProvider = RelaychainDataProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -863,17 +772,16 @@ impl Default for ProxyType {
 }
 
 fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
-	// Add these precompiles when they are available in Moonbeam:
-	//| PrecompileName::ReferendaPrecompile
-	//| PrecompileName::ConvictionVotingPrecompile
-	//| PrecompileName::OpenTechCommitteeInstance
 	matches!(
 		precompile_name,
 		PrecompileName::DemocracyPrecompile
+			| PrecompileName::ConvictionVotingPrecompile
 			| PrecompileName::CouncilInstance
-			| PrecompileName::TechCommitteeInstance
-			| PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::PreimagePrecompile
+			| PrecompileName::ReferendaPrecompile
+			| PrecompileName::TechCommitteeInstance
+			| PrecompileName::OpenTechCommitteeInstance
+			| PrecompileName::TreasuryCouncilInstance
 	)
 }
 
@@ -884,9 +792,9 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
 		recipient_has_code: bool,
-	) -> bool {
-		use pallet_evm::PrecompileSet as _;
-		match self {
+		gas: u64,
+	) -> precompile_utils::EvmResult<bool> {
+		Ok(match self {
 			ProxyType::Any => {
 				match PrecompileName::from_address(call.to.0) {
 					// Any precompile that can execute a subcall should be forbidden here,
@@ -909,7 +817,10 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 						// accounts (no code nor precompile).
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
-						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+						!recipient_has_code
+							&& precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+								call.to.0, gas,
+							)?
 					}
 				}
 			}
@@ -947,7 +858,10 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				// Allow only "simple" accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
-				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+				!recipient_has_code
+					&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+						call.to.0, gas,
+					)?
 			}
 			ProxyType::AuthorMapping => {
 				call.value == U256::zero()
@@ -958,7 +872,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			}
 			// There is no identity precompile
 			ProxyType::IdentityJudgement => false,
-		}
+		})
 	}
 }
 
@@ -975,10 +889,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
 						| RuntimeCall::Democracy(..)
+						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::ConvictionVoting(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
 						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
@@ -990,10 +907,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Democracy(..)
+					| RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
+					| RuntimeCall::ConvictionVoting(..)
 					| RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
 					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking => matches!(
@@ -1247,12 +1167,17 @@ parameter_types! {
 	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
+type AddCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type DelCollatorOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	type DelCollatorOrigin = DelCollatorOrigin;
 	/// Maximum number of orbiters per collator
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
@@ -1387,6 +1312,10 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 62,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 63,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 64,
+		Origins: governance::custom_origins::{Origin} = 65,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 66,
 
 		// Council stuff.
 		CouncilCollective:
@@ -1395,6 +1324,8 @@ construct_runtime! {
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
+		OpenTechCommitteeCollective:
+			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 73,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,

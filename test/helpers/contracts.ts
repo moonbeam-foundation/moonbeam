@@ -42,6 +42,7 @@ export function getAllContracts(): string[] {
     .filter((dirent) => dirent.isFile())
     .map((contract) => path.basename(contract.name, ".json"));
 }
+
 type Contracts<T extends Abi> = { [name: string]: CompiledContract<T> };
 const contracts: Contracts<Abi> = {};
 
@@ -60,6 +61,7 @@ export function getCompiled<TAbi extends Abi>(name: string): CompiledContract<TA
       );
     }
   }
+
   // @ts-expect-error
   return contracts[name];
 }

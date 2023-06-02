@@ -28,7 +28,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
 use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
@@ -67,7 +67,7 @@ use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::Transaction as EthereumTransaction;
+use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
@@ -143,7 +143,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND)
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
@@ -201,7 +201,7 @@ pub const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturat
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
 // TODO: we should use benchmarking's overhead feature to measure this
-pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(10000 * WEIGHT_PER_GAS);
+pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(10000 * WEIGHT_PER_GAS, 0);
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
@@ -403,7 +403,7 @@ parameter_types! {
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
-	pub WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
+	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
 }
 
 pub struct TransactionPaymentAsGasPrice;
@@ -610,9 +610,14 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -728,7 +733,7 @@ impl pallet_parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
+	type SlotBeacon = RelaychainDataProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
@@ -762,8 +767,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockProvider = RelaychainDataProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -828,9 +832,9 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
 		recipient_has_code: bool,
-	) -> bool {
-		use pallet_evm::PrecompileSet as _;
-		match self {
+		gas: u64,
+	) -> precompile_utils::EvmResult<bool> {
+		Ok(match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
@@ -866,7 +870,10 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				// Allow only "simple" accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
-				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+				!recipient_has_code
+					&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+						call.to.0, gas,
+					)?
 			}
 			ProxyType::AuthorMapping => {
 				call.value == U256::zero()
@@ -877,7 +884,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			}
 			// There is no identity precompile
 			ProxyType::IdentityJudgement => false,
-		}
+		})
 	}
 }
 

@@ -736,9 +736,7 @@ describeDevMoonbeam("Raw trace limits", (context) => {
 
     expect(trace.error).to.deep.eq({
       code: -32603,
-      message:
-        "replayed transaction generated too much data. \
-try disabling memory or storage?",
+      message: "replayed transaction generated too much data. try disabling memory or storage?",
     });
   });
 });

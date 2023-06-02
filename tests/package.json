@@ -61,7 +61,7 @@
   "license": "ISC",
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.1",
-    "@moonbeam-network/api-augment": "^0.2302.0",
+    "@moonbeam-network/api-augment": "^0.2301.0",
     "@openzeppelin/contracts": "^4.8.2",
     "@polkadot/api": "^10.7.1",
     "@polkadot/api-augment": "^10.7.1",

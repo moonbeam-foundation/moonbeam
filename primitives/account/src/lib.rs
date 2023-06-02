@@ -73,6 +73,14 @@ impl Into<[u8; 20]> for AccountId20 {
 	}
 }
 
+impl From<[u8; 32]> for AccountId20 {
+	fn from(bytes: [u8; 32]) -> Self {
+		let mut buffer = [0u8; 20];
+		buffer.copy_from_slice(&bytes[..20]);
+		Self(buffer)
+	}
+}
+
 impl From<H160> for AccountId20 {
 	fn from(h160: H160) -> Self {
 		Self(h160.0)

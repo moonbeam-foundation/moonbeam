@@ -15,10 +15,8 @@
   },
   "lldb.dbgconfig": {
     "rustc_path": "${env:HOME}/.rustup/toolchains/nightly-2021-01-13-x86_64-unknown-linux-gnu/lib/rustlib/src/rust",
-    "port_p2p": 19931,
-    "port_rpc": 19932,
-    "port_ws": 19933
-  },
-  "audioCues.volume": 20,
-  "typescript.tsdk": "test/node_modules/.pnpm/typescript@5.0.4/node_modules/typescript/lib"
+    "port_p2p": 30333,
+    "port_rpc": 9933,
+    "port_ws": 9944
+  }
 }

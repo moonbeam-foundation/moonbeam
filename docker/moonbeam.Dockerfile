@@ -6,7 +6,7 @@ FROM docker.io/library/ubuntu:20.04 AS builder
 
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 LABEL maintainer "alan@purestake.com"
 LABEL description="Binary for Moonbeam Collator"
 
@@ -15,7 +15,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir /data && \
 	chown -R moonbeam:moonbeam /data && \
 	ln -s /data /moonbeam/.local/share/moonbeam && \
-	rm -rf /usr/bin /usr/sbin
+	rm -rf /usr/sbin
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 

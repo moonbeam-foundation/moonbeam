@@ -142,7 +142,7 @@ impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 }
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -195,12 +195,13 @@ impl crate::EvmProxyCallFilter for ProxyType {
 		&self,
 		_call: &crate::EvmSubCall,
 		_recipient_has_code: bool,
-	) -> bool {
-		match self {
+		_gas: u64,
+	) -> precompile_utils::EvmResult<bool> {
+		Ok(match self {
 			Self::Any => true,
 			Self::Something => true,
 			Self::Nothing => false,
-		}
+		})
 	}
 }
 

@@ -28,10 +28,10 @@ use sp_std::vec::Vec;
 // Defensively we increase this value to allow UMP fragments through xcm-transactor to prepare our
 // runtime for a relay upgrade where the xcm instruction weights are not ZERO hardcoded. If that
 // happens stuff will break in our side.
-// Rationale behind the value: e.g. staking unbond will go above 32kb and thus
+// Rationale behind the value: e.g. staking unbond will go above 64kb and thus
 // required_weight_at_most must be below overall weight but still above whatever value we decide to
 // set. For this reason we set here a value that makes sense for the overall weight.
-pub const DEFAULT_PROOF_SIZE: u64 = 128 * 1024;
+pub const DEFAULT_PROOF_SIZE: u64 = 256 * 1024;
 
 /// Max. allowed size of 65_536 bytes.
 pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
