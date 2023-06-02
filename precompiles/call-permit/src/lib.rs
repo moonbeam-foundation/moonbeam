@@ -130,7 +130,6 @@ where
 
 	pub fn dispatch_inherent_cost() -> u64 {
 		3_000 // cost of ECRecover precompile for reference
-			+ RuntimeHelper::<Runtime>::db_read_gas_cost() * 2 // we read nonce and timestamp
 			+ RuntimeHelper::<Runtime>::db_write_gas_cost() // we write nonce
 	}
 
@@ -149,6 +148,11 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult<UnboundedBytes> {
+		// Now: 8
+		handle.record_db_read::<Runtime>(8)?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
+
 		handle.record_cost(Self::dispatch_inherent_cost())?;
 
 		let from: H160 = from.into();
