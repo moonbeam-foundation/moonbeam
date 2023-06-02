@@ -315,7 +315,7 @@ xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "moonb
 
 # InvArch (wasm)
 # Only needed until the configs get merged into xcm-builder: https://github.com/paritytech/polkadot/pull/7165
-invarch-xcm-builder = { git = "https://github.com/InvArch/InvArch-XCM-Builder", branch = "polkadot-v0.9.40", default-features = false }
+invarch-xcm-builder = { git = "https://github.com/InvArch/InvArch-XCM-Builder", rev = "65c59b740a44fc4e947b586ac654e6a5d96ce28e", default-features = false }
 
 # Other (wasm)
 affix = "0.1.2"

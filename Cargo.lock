@@ -4122,7 +4122,7 @@ dependencies = [
 [[package]]
 name = "invarch-xcm-builder"
 version = "0.1.0"
-source = "git+https://github.com/InvArch/InvArch-XCM-Builder?branch=polkadot-v0.9.40#65c59b740a44fc4e947b586ac654e6a5d96ce28e"
+source = "git+https://github.com/InvArch/InvArch-XCM-Builder?rev=65c59b740a44fc4e947b586ac654e6a5d96ce28e#65c59b740a44fc4e947b586ac654e6a5d96ce28e"
 dependencies = [
  "frame-support",
  "log",
