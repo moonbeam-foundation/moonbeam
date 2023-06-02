@@ -368,8 +368,18 @@ where
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		// Fetch info.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// DelegationScheduledRequests:
+		// Blake2128(16) + AccountId(20)
+		// + Vec(
+		// 	ScheduledRequest(20 + 4 + DelegationAction(18))
+		//	* (MaxTopDelegationsPerCandidate + MaxBottomDelegationsPerCandidate)
+		// )
+		handle.record_db_read::<Runtime>(
+			36 + (
+				42 * (<Runtime as pallet_parachain_staking::Config>::MaxTopDelegationsPerCandidate::get()
+				+ <Runtime as pallet_parachain_staking::Config>::MaxBottomDelegationsPerCandidate::get())
+				as usize),
+		)?;
 
 		// If we are not able to get delegator state, we return false
 		// Users can call `is_delegator` to determine when this happens
@@ -389,8 +399,8 @@ where
 	) -> EvmResult<bool> {
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		// Fetch info.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// CandidateInfo: Twox64Concat(8) + AccountId(20) + CandidateMetadata(105)
+		handle.record_db_read::<Runtime>(133)?;
 
 		// If we are not able to get delegator state, we return false
 		// Users can call `is_candidate` to determine when this happens
@@ -419,8 +429,8 @@ where
 	) -> EvmResult<bool> {
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		// Fetch info.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// CandidateInfo: Twox64Concat(8) + AccountId(20) + CandidateMetadata(105)
+		handle.record_db_read::<Runtime>(133)?;
 
 		// If we are not able to get candidate metadata, we return false
 		// Users can call `is_candidate` to determine when this happens
@@ -450,8 +460,17 @@ where
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		// Fetch info.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// AutoCompoundingDelegations:
+		// Blake2128(16) + AccountId(20)
+		// + BoundedVec(
+		// 	AutoCompoundConfig * (MaxTopDelegationsPerCandidate + MaxBottomDelegationsPerCandidate)
+		// )
+		handle.record_db_read::<Runtime>(
+			36 + (
+				22 * (<Runtime as pallet_parachain_staking::Config>::MaxTopDelegationsPerCandidate::get()
+				+ <Runtime as pallet_parachain_staking::Config>::MaxBottomDelegationsPerCandidate::get())
+				as usize),
+		)?;
 
 		let value = <pallet_parachain_staking::Pallet<Runtime>>::delegation_auto_compound(
 			&candidate, &delegator,
@@ -910,7 +929,12 @@ where
 		handle: &mut impl PrecompileHandle,
 		delegator: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// DelegatorState:
+		// Twox64Concat(8) + AccountId(20) + Delegator(56 + MaxDelegationsPerDelegator)
+		handle.record_db_read::<Runtime>(
+			84 + (<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
+				as usize),
+		)?;
 
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
@@ -927,7 +951,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		candidate: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// CandidateInfo: Twox64Concat(8) + AccountId(20) + CandidateMetadata(105)
+		handle.record_db_read::<Runtime>(133)?;
 
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
