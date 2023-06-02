@@ -24,7 +24,7 @@ use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::precompile_set::{self, AddressType, SelectorFilter};
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, StaticLookup, Zero},
@@ -165,7 +165,11 @@ where
 		// See: https://github.com/PureStake/sr-moonbeam/issues/30
 		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
 		// filtered via CallFilter
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		if ProxyPallet::<Runtime>::proxies(&origin)
 			.0
 			.iter()
@@ -319,7 +323,11 @@ where
 
 		let real = Runtime::AddressMapping::into_account_id(real.into());
 
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
 			.0
 			.iter()
@@ -342,14 +350,20 @@ where
 		// Read proxy
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		let def =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)
 				.map_err(|_| RevertReason::custom("Not proxy"))?;
 		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
 
 		// Read subcall recipient code
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
+		// decode_len reads the first 5 bytes to find the payload len under this key
+		handle.record_db_read::<Runtime>(41)?;
 		let recipient_has_code =
 			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
 
