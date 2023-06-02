@@ -14,7 +14,7 @@ const debug = Debug("test:evm-over-pov");
 
 chaiUse(chaiAsPromised);
 
-interface HeavyContract {
+export interface HeavyContract {
   deployed: boolean;
   account: string;
   key: string;
@@ -25,7 +25,7 @@ interface HeavyContract {
  * @param count Number of contracts to deploy
  * @returns
  */
-const deployHeavyContracts = async (context: DevTestContext, first = 6000, last = 6999) => {
+export const deployHeavyContracts = async (context: DevTestContext, first = 6000, last = 6999) => {
   // Generate the contract addresses
   const contracts = await Promise.all(
     new Array(last - first + 1).fill(0).map(async (_, i) => {
