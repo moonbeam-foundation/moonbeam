@@ -33,6 +33,7 @@ pub enum RequestType<T: Config> {
 }
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 /// Type of request
 /// Represents a request for the most recent randomness at or after the inner first field
@@ -303,6 +304,7 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
 	/// Underlying request
@@ -312,6 +314,7 @@ pub struct RequestState<T: Config> {
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 /// Data required to make the subcallback and finish fulfilling the request
 pub struct FulfillArgs<T: Config> {
