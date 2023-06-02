@@ -69,9 +69,9 @@ where
 	fn update_account_code(handle: &mut impl PrecompileHandle, address: Address) -> EvmResult<()> {
 		// We consider the precompile set is optimized to do at most one storage read.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		// We will write into the account code.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
+		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
+		// We asume an existing precompile can hold at most 5 bytes worth of dummy code.
+		handle.record_db_read::<Runtime>(41)?;
 
 		// Prevent touching addresses that are not precompiles.
 		if !is_precompile_or_fail::<Runtime>(address.0, handle.remaining_gas())? {
