@@ -1254,6 +1254,7 @@ impl pallet_randomness::Config for Runtime {
 	type MaxBlockDelay = ConstU32<2_000>;
 	type BlockExpirationDelay = ConstU32<10_000>;
 	type EpochExpirationDelay = ConstU64<10_000>;
+	type WeightInfo = pallet_randomness::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_root_testing::Config for Runtime {}

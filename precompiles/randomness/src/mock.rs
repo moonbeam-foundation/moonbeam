@@ -195,6 +195,7 @@ impl pallet_randomness::Config for Runtime {
 	type MaxBlockDelay = MaxBlockDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
 	type EpochExpirationDelay = MaxBlockDelay;
+	type WeightInfo = pallet_randomness::weights::SubstrateWeight<Runtime>;
 }
 
 /// Externality builder for pallet randomness mock runtime

@@ -21,7 +21,10 @@
 extern crate alloc;
 
 use fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
-use frame_support::traits::Get;
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::Get,
+};
 use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
@@ -37,11 +40,6 @@ mod solidity_types;
 #[cfg(test)]
 mod tests;
 use solidity_types::*;
-
-// Tests to verify equal to weight_to_gas(weight) in runtime integration tests
-pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26289;
-pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16618;
-pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21830;
 
 /// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
 pub fn prepare_and_finish_fulfillment_gas_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
@@ -172,13 +170,17 @@ pub struct RandomnessPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> RandomnessPrecompile<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: From<pallet_randomness::Call<Runtime>>,
 	<Runtime as frame_system::Config>::BlockNumber: TryInto<u32> + TryFrom<u32>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
 	#[precompile::public("relayEpochIndex()")]
 	#[precompile::view]
 	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<u64> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 		let relay_epoch_index =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index();
 		Ok(relay_epoch_index)
@@ -186,8 +188,7 @@ where
 
 	#[precompile::public("requiredDeposit()")]
 	#[precompile::view]
-	fn required_deposit(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn required_deposit(_handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		let required_deposit: U256 = <Runtime as pallet_randomness::Config>::Deposit::get().into();
 		Ok(required_deposit)
 	}
@@ -198,13 +199,20 @@ where
 		handle: &mut impl PrecompileHandle,
 		request_id: Convert<U256, u64>,
 	) -> EvmResult<RequestStatus> {
-		// record cost of 2 DB reads
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
-
 		let request_id = request_id.converted();
+
+		// Storage item read: pallet_randomness::Requests
+		// Max encoded len: Twox64(8) + RequestId(8) + RequestState(
+		// 	request(refund_address(20)+contract_address(20)+fee(16)+gas_limit(8)+num_words(1)
+		//   +salt(32)+info(17))
+		// + deposit(16) )
+		handle.record_db_read::<Runtime>(146)?;
 
 		let status =
 			if let Some(RequestState { request, .. }) = Pallet::<Runtime>::requests(request_id) {
+				// Storage item read: pallet_randomness::RelayEpoch
+				// Max encoded len: u64(8)
+				handle.record_db_read::<Runtime>(8)?;
 				if request.is_expired() {
 					RequestStatus::Expired
 				} else if request.can_be_fulfilled() {
@@ -238,14 +246,21 @@ where
 		u64, // expiration epoch index
 		RequestStatus,
 	)> {
-		// record cost of 2 DB reads
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
-
 		let request_id = request_id.converted();
+
+		// Storage item read: pallet_randomness::Requests
+		// Max encoded len: Twox64(8) + RequestId(8) + RequestState(
+		// 	request(refund_address(20)+contract_address(20)+fee(16)+gas_limit(8)+num_words(1)
+		//   +salt(32)+info(17))
+		// + deposit(16) )
+		handle.record_db_read::<Runtime>(146)?;
 
 		let RequestState { request, .. } =
 			Pallet::<Runtime>::requests(request_id).ok_or(revert("Request Does Not Exist"))?;
 
+		// Storage item read: pallet_randomness::RelayEpoch
+		// Max encoded len: u64(8)
+		handle.record_db_read::<Runtime>(8)?;
 		let status = if request.is_expired() {
 			RequestStatus::Expired
 		} else if request.can_be_fulfilled() {
@@ -317,9 +332,8 @@ where
 		salt: H256,
 		num_words: u8,
 	) -> EvmResult<U256> {
-		handle.record_cost(
-			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
-		)?;
+		// Until proper benchmark, charge few hardcoded gas to prevent free spam
+		handle.record_cost(500)?;
 
 		let refund_address: H160 = refund_address.into();
 		let fee: BalanceOf<Runtime> = fee
@@ -343,11 +357,14 @@ where
 			info: RequestType::BabeEpoch(two_epochs_later),
 		};
 
-		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
-			.into();
+		let request_randomness_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::request_randomness();
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, request_randomness_weight)?;
+		let request_id = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?;
+		RuntimeHelper::<Runtime>::refund_weight_v2_cost(handle, request_randomness_weight, None)?;
 
-		Ok(request_id)
+		Ok(request_id.into())
 	}
 	/// Make request for local VRF randomness
 	#[precompile::public("requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)")]
@@ -360,9 +377,8 @@ where
 		num_words: u8,
 		delay: Convert<u64, u32>,
 	) -> EvmResult<U256> {
-		handle.record_cost(
-			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
-		)?;
+		// Until proper benchmark, charge few hardcoded gas to prevent free spam
+		handle.record_cost(500)?;
 
 		let refund_address: H160 = refund_address.into();
 		let fee: BalanceOf<Runtime> = fee
@@ -392,11 +408,14 @@ where
 			info: RequestType::Local(requested_block_number),
 		};
 
-		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
-			.into();
+		let request_randomness_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::request_randomness();
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, request_randomness_weight)?;
+		let request_id = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?;
+		RuntimeHelper::<Runtime>::refund_weight_v2_cost(handle, request_randomness_weight, None)?;
 
-		Ok(request_id)
+		Ok(request_id.into())
 	}
 
 	/// Fulfill a randomness request due to be fulfilled
@@ -407,32 +426,41 @@ where
 	) -> EvmResult {
 		let request_id = request_id.converted();
 
-		// Since we cannot compute `prepare_and_finish_fulfillment_cost` now (we don't
-		// know the number of words), we compute the cost for the maximum allowed number of
-		// words.
-		let max_prepare_and_finish_fulfillment_cost =
-			prepare_and_finish_fulfillment_gas_cost::<Runtime>(
-				<Runtime as pallet_randomness::Config>::MaxRandomWords::get(),
+		// Call `prepare_fulfillment`, prevently charge for MaxRandomWords then refund.
+		let prepare_fulfillment_max_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::prepare_fulfillment(
+				<Runtime as pallet_randomness::Config>::MaxRandomWords::get() as u32,
 			);
-
-		if handle.remaining_gas() < max_prepare_and_finish_fulfillment_cost {
-			return Err(revert(alloc::format!(
-				"provided gas must be at least {max_prepare_and_finish_fulfillment_cost}"
-			)));
-		}
-
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, prepare_fulfillment_max_weight)?;
 		let pallet_randomness::FulfillArgs {
 			request,
 			deposit,
 			randomness,
 		} = Pallet::<Runtime>::prepare_fulfillment(request_id)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
-
-		let prepare_and_finish_fulfillment_cost =
-			prepare_and_finish_fulfillment_gas_cost::<Runtime>(request.num_words);
-		handle.record_cost(prepare_and_finish_fulfillment_cost)?;
+		let prepare_fulfillment_actual_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::prepare_fulfillment(
+				request.num_words as u32,
+			);
+		let mut prepare_and_finish_fulfillment_used_gas =
+			RuntimeHelper::<Runtime>::refund_weight_v2_cost(
+				handle,
+				prepare_fulfillment_max_weight,
+				Some(prepare_fulfillment_actual_weight),
+			)?;
 
 		let subcall_overhead_gas_costs = subcall_overhead_gas_costs::<Runtime>()?;
+
+		// Precharge for finish fullfillment (necessary to be able to compute
+		// prepare_and_finish_fulfillment_used_gas)
+		let finish_fulfillment_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::finish_fulfillment();
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, finish_fulfillment_weight)?;
+		prepare_and_finish_fulfillment_used_gas += RuntimeHelper::<Runtime>::refund_weight_v2_cost(
+			handle,
+			finish_fulfillment_weight,
+			None,
+		)?;
 
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
@@ -440,12 +468,12 @@ where
 			request.gas_limit,
 			request.fee,
 			subcall_overhead_gas_costs,
-			prepare_and_finish_fulfillment_cost,
+			prepare_and_finish_fulfillment_used_gas,
 		)?;
 
 		// We meter this section to know how much gas was actually used.
 		// It contains the gas used by the subcall and the overhead actually
-		// performing a call. It doesn't contain `prepare_and_finish_fulfillment_cost`.
+		// performing a call. It doesn't contain `prepare_and_finish_fulfillment_used_gas`.
 		let remaining_gas_before = handle.remaining_gas();
 		provide_randomness(
 			handle,
@@ -457,11 +485,11 @@ where
 		let remaining_gas_after = handle.remaining_gas();
 
 		// We compute the actual gas used to refund the caller.
-		// It is the metered gas + `prepare_and_finish_fulfillment_cost`.
+		// It is the metered gas + `prepare_and_finish_fulfillment_used_gas`.
 		let gas_used: U256 = remaining_gas_before
 			.checked_sub(remaining_gas_after)
 			.ok_or(revert("Before remaining gas < After remaining gas"))?
-			.checked_add(prepare_and_finish_fulfillment_cost)
+			.checked_add(prepare_and_finish_fulfillment_used_gas)
 			.ok_or(revert("overflow when adding real call cost + overhead"))?
 			.checked_add(transaction_gas_refund::<Runtime>())
 			.ok_or(revert("overflow when adding real call cost + overhead"))?
@@ -495,7 +523,9 @@ where
 		request_id: Convert<U256, u64>,
 		fee_increase: U256,
 	) -> EvmResult {
-		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
+		let increase_fee_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::increase_fee();
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, increase_fee_weight)?;
 
 		let request_id = request_id.converted();
 
@@ -506,6 +536,8 @@ where
 		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 
+		RuntimeHelper::<Runtime>::refund_weight_v2_cost(handle, increase_fee_weight, None)?;
+
 		Ok(())
 	}
 	/// Execute request expiration to remove the request from storage
@@ -515,12 +547,20 @@ where
 		handle: &mut impl PrecompileHandle,
 		request_id: Convert<U256, u64>,
 	) -> EvmResult {
-		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
+		let execute_request_expiration_weight =
+			<<Runtime as pallet_randomness::Config>::WeightInfo>::execute_request_expiration();
+		RuntimeHelper::<Runtime>::record_weight_v2_cost(handle, execute_request_expiration_weight)?;
 
 		let request_id = request_id.converted();
 
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
+		RuntimeHelper::<Runtime>::refund_weight_v2_cost(
+			handle,
+			execute_request_expiration_weight,
+			None,
+		)?;
+
 		Ok(())
 	}
 }
