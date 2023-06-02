@@ -70,7 +70,7 @@ use crate::governance::referenda::GeneralAdminOrRoot;
 
 parameter_types! {
 	// The network Id of the relay
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub const RelayNetwork: NetworkId = NetworkId::Westend;
 	// The relay chain Origin type
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	// The universal location within the global consensus system
