@@ -2,21 +2,22 @@ import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { alith, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
-import { mockAssetBalance } from "../../../../helpers/assets.js";
+import { alith, ALITH_ADDRESS, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
+import { mockAssetBalance } from "../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { ApiPromise } from "@polkadot/api";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
 
 describeSuite({
-  id: "D131",
+  id: "D0102",
   title: "Pallet Assets - Sufficient tests: is_sufficient to true",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: u128;
     const freshAccount = generateKeyringPair();
-    let api;
+    let api: ApiPromise;
 
     beforeAll(async () => {
       api = context.polkadotJs({ type: "moon" });
@@ -40,12 +41,12 @@ describeSuite({
         assetDetails,
         alith,
         assetId,
-        alith.address,
+        ALITH_ADDRESS,
         true
       );
 
       await context.createBlock();
-      const alithBalance = await api.query.assets.account(assetId.toU8a(), alith.address);
+      const alithBalance = await api.query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
       expect(alithBalance.unwrap().balance.toBigInt()).to.equal(100000000000000n);
     });
 
@@ -60,13 +61,13 @@ describeSuite({
           api.tx.assets.transfer(assetId, freshAccount.address, ARBITRARY_TRANSFER_AMOUNT)
         );
 
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(1n);
         // Providers should still be 0
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(0n);
 
         // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
         const fee = (
@@ -77,13 +78,13 @@ describeSuite({
 
         await context.createBlock(api.tx.balances.transfer(freshAccount.address, fee));
 
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(1n);
         // Providers should now be 1
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(1n);
 
         // What happens now when we execute such transaction? both MOVR and Assets should be drained.
         await context.createBlock(
@@ -94,27 +95,27 @@ describeSuite({
 
         const freshAccountBalance = await api.query.assets.account(
           assetId.toU8a(),
-          freshAccount.address
+          freshAccount.address as string
         );
         expect(freshAccountBalance.isNone).to.equal(true);
 
         // Sufficients should go to 0
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(0n);
         // Providers should be 1
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(1n);
 
         // Nonce should be 1
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(1n);
 
         // But balance of MOVR should be 0
         expect(
-          (await api.query.system.account(freshAccount.address)).data.free.toBigInt() > 0n
+          (await api.query.system.account(freshAccount.address as string)).data.free.toBigInt() > 0n
         ).to.eq(true);
       },
     });

@@ -12,7 +12,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D212",
+  id: "D0209",
   title: "Author Mapping - Removing non-existing author",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -37,7 +37,7 @@ describeSuite({
         );
 
         expect(extrinsic).to.exist;
-        expect(resultEvent.method).to.equal("ExtrinsicFailed");
+        expect(resultEvent?.method).to.equal("ExtrinsicFailed");
       },
     });
 

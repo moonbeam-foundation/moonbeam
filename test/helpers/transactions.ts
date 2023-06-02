@@ -1,7 +1,7 @@
 import { AccessListish } from "@ethersproject/transactions";
 import { RlpStructuredData, TransactionRequest, ethers } from "ethers";
 import * as RLP from "rlp";
-import {Contract} from "web3"
+import { Contract } from "web3";
 import {
   alith,
   ALITH_PRIVATE_KEY,
@@ -14,6 +14,10 @@ import {
   DOROTHY_PRIVATE_KEY,
   ethan,
   ETHAN_PRIVATE_KEY,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  DOROTHY_ADDRESS,
+  ETHAN_ADDRESS,
 } from "@moonwall/util";
 import { getCompiled } from "./contracts.js";
 // import { customWeb3Request } from "./providers";
@@ -52,31 +56,31 @@ export const TRANSACTION_TEMPLATE: TransactionOptions = {
 
 export const ALITH_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
-  from: alith.address,
+  from: ALITH_ADDRESS,
   privateKey: ALITH_PRIVATE_KEY,
 };
 
 export const BALTATHAR_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
-  from: baltathar.address,
+  from: BALTATHAR_ADDRESS,
   privateKey: BALTATHAR_PRIVATE_KEY,
 };
 
 export const CHARLETH_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
-  from: charleth.address,
+  from: CHARLETH_ADDRESS,
   privateKey: CHARLETH_PRIVATE_KEY,
 };
 
 export const DOROTHY_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
-  from: dorothy.address,
+  from: DOROTHY_ADDRESS,
   privateKey: DOROTHY_PRIVATE_KEY,
 };
 
 export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
-  from: ethan.address,
+  from: ETHAN_ADDRESS,
   privateKey: ETHAN_PRIVATE_KEY,
 };
 
@@ -141,7 +145,7 @@ export const createTransaction = async (
       : "0x" +
         (await context.web3().eth.getGasPrice({ number: FMT_NUMBER.HEX, bytes: FMT_BYTES.HEX }));
   const value = options.value !== undefined ? options.value : "0x00";
-  const from = options.from || alith.address;
+  const from = options.from || ALITH_ADDRESS;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
 
   // Allows to retrieve potential errors
@@ -280,9 +284,10 @@ export async function createContract(
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract<any[]>; contractAddress: string }> {
   const contractCompiled = getCompiled(contractName);
-  const from = options.from !== undefined ? options.from : alith.address;
+  const from = options.from !== undefined ? options.from : ALITH_ADDRESS;
   const nonce =
-    options.nonce || (await context.viemClient("public").getTransactionCount({ address: from }));
+    options.nonce ||
+    (await context.viemClient("public").getTransactionCount({ address: from as `0x${string}` }));
   const contractAddress =
     "0x" +
     keccak256(RLP.encode([from, nonce]))
@@ -316,7 +321,7 @@ export async function createContractExecution(
     contractCall: any;
   },
   options: TransactionOptions = {
-    from: alith.address,
+    from: ALITH_ADDRESS,
     privateKey: ALITH_PRIVATE_KEY,
   }
 ) {
@@ -335,7 +340,11 @@ export async function createContractExecution(
  * @param method - The JSONRPC request method.
  * @param params - The JSONRPC request params.
  */
-export function rpcToLocalNode(rpcPort: number, method: string, params: any[] = []): Promise<any> {
+export async function rpcToLocalNode(
+  rpcPort: number,
+  method: string,
+  params: any[] = []
+): Promise<any> {
   return fetch("http://localhost:" + rpcPort, {
     body: JSON.stringify({
       id: 1,
@@ -410,7 +419,7 @@ export async function callPrecompile(
 
   return await customDevRpcRequest("eth_call", [
     {
-      from: alith.address,
+      from: ALITH_ADDRESS,
       value: "0x0",
       gas: "0x10000",
       gasPrice: GAS_PRICE,

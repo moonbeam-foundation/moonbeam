@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { alith, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, alith, createEthersTxn } from "@moonwall/util";
 
 describeSuite({
   id: "D0605",
@@ -25,12 +25,14 @@ describeSuite({
         const value = "0x" + 993452714685890559n.toString(16);
 
         const { rawSigned } = await createEthersTxn(context, {
-          from: alith.address,
+          from: ALITH_ADDRESS,
           to: null,
           value,
           gasLimit: 0x100000,
           gasPrice: 10_000_000_000,
-          data: "0x4141046159864141414141343933343346460100000028F900E06F01000000F71E01000000000000",
+          data:
+            "0x4141046159864141414141343933343346" +
+            "460100000028F900E06F01000000F71E01000000000000",
         });
 
         const { result } = await context.createBlock(rawSigned);
@@ -38,7 +40,7 @@ describeSuite({
         const receipt = await context
           .viemClient("public")
           .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
-          
+
         expect(receipt.status).toBe("reverted");
       },
     });

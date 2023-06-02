@@ -2,20 +2,21 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { alith, baltathar } from "@moonwall/util";
-import { mockAssetBalance } from "../../../../helpers/assets.js";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, baltathar } from "@moonwall/util";
+import { mockAssetBalance } from "../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { expectOk } from "../../../../helpers/expect.js";
+import { expectOk } from "../../../helpers/expect.js";
+import { ApiPromise } from "@polkadot/api";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D121",
+  id: "D0101",
   title: "Pallet Assets - Destruction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: u128;
-    let api;
+    let api: ApiPromise;
     beforeAll(async () => {
       api = context.polkadotJs({ type: "moon" });
       assetId = api.createType("u128", ARBITRARY_ASSET_ID);
@@ -30,7 +31,7 @@ describeSuite({
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
+      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
       await context.createBlock(api.tx.assets.transfer(assetId, baltathar.address, 1000));
     });
 
@@ -54,7 +55,7 @@ describeSuite({
         await expectOk(context.createBlock(api.tx.assets.finishDestroy(assetId)));
 
         // Baltathar balance is None
-        const baltatharBalance = await api.query.assets.account(assetId.toU8a(), baltathar.address);
+        const baltatharBalance = await api.query.assets.account(assetId.toU8a(), BALTATHAR_ADDRESS);
         expect(baltatharBalance.isNone).to.eq(true);
 
         // metadata is default

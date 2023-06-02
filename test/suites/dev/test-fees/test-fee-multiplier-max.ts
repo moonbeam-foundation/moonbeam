@@ -1,12 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect, beforeEach } from "@moonwall/cli";
-import {
-  alith,
-  baltathar,
-  createEthersTxn,
-  createRawTransaction,
-  deployCreateCompiledContract,
-} from "@moonwall/util";
+import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { alith, baltathar, createEthersTxn, deployCreateCompiledContract } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 
@@ -76,8 +70,8 @@ describeSuite({
         const size = 4194304; // 2MB bytes represented in hex
         const hex = "0x" + "F".repeat(size);
 
-        // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
-        // included in a block (not rejected) and was charged based on its length
+        // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it
+        // was included in a block (not rejected) and was charged based on its length
         await context
           .polkadotJs()
           .tx.parachainSystem.enactAuthorizedUpgrade(hex)
@@ -104,8 +98,8 @@ describeSuite({
         expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
 
         // fill_block will not charge its full amount for us, but we can inspect the initial balance
-        // withdraw event to see what it would charge. it is root only and will refund if not called by
-        // root, but sudo will also cause a refund.
+        // withdraw event to see what it would charge. it is root only and will refund if not called
+        // by root, but sudo will also cause a refund.
 
         const fillAmount = 600_000_000; // equal to 60% Perbill
 
@@ -115,7 +109,7 @@ describeSuite({
         );
 
         // grab the first withdraw event and hope it's the right one...
-        const withdrawEvent = result!.events.filter(({ event }) => event.method == "Withdraw")[0];
+        const withdrawEvent = result?.events.filter(({ event }) => event.method == "Withdraw")[0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
         expect(amount).to.equal(1_500_000_012_598_000_941_192n);
       },
@@ -168,17 +162,17 @@ describeSuite({
           .getTransactionReceipt({ hash: interactionResult!.hash as `0x${string}` });
         expect(receipt2.status).toBe("success");
 
-        const successEvent = interactionResult!.events.filter(
+        const successEvent = interactionResult?.events.filter(
           ({ event }) => event.method == "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
         expect(weight).to.equal(2_396_800_000n);
 
-        const withdrawEvents = interactionResult!.events.filter(
+        const withdrawEvents = interactionResult?.events.filter(
           ({ event }) => event.method == "Withdraw"
         );
-        expect(withdrawEvents.length).to.equal(1);
-        const withdrawEvent = withdrawEvents[0];
+        expect(withdrawEvents?.length).to.equal(1);
+        const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
         expect(amount).to.equal(11_986_693_540_669_676_340n);
       },

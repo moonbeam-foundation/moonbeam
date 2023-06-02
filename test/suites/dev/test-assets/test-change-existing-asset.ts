@@ -5,14 +5,14 @@ import {
   PARA_1000_SOURCE_LOCATION,
   RELAY_SOURCE_LOCATION,
   relayAssetMetadata,
-} from "../../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../../helpers/xcm.js";
-import { verifyLatestBlockFees } from "../../../../helpers/block.js";
+} from "../../../helpers/assets.js";
+import { registerForeignAsset } from "../../../helpers/xcm.js";
+import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 describeSuite({
-  id: "D111",
+  id: "D0106",
   title: "XCM - asset manager - Change existing asset",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

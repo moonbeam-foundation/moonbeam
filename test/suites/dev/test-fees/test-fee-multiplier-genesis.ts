@@ -6,7 +6,6 @@ describeSuite({
   title: "Genesis Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     it({
       id: "T01",
       title: "should start with genesis value",

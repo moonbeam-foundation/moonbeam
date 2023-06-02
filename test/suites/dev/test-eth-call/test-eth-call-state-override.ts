@@ -1,19 +1,18 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { expectOk } from "../../../helpers/expect.js";
 import {
+  ALITH_ADDRESS,
   GLMR,
-  alith,
   baltathar,
   createEthersTxn,
   deployCreateCompiledContract,
 } from "@moonwall/util";
-import { encodeFunctionData, encodePacked, keccak256, pad, parseEther } from "viem";
-import { Abi } from "abitype";
 import { hexToBigInt, nToHex } from "@polkadot/util";
+import { Abi } from "abitype";
+import { encodeFunctionData, encodePacked, keccak256, pad, parseEther } from "viem";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 import { getCompiled } from "../../../helpers/contracts.js";
-import Web3 from "web3";
+import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
   id: "D0901",
@@ -89,7 +88,7 @@ describeSuite({
       test: async function () {
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({ abi: contractAbi, functionName: "availableFunds" }),
           },
@@ -107,7 +106,7 @@ describeSuite({
 
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({ abi: contractAbi, functionName: "availableFunds" }),
           },
@@ -131,12 +130,12 @@ describeSuite({
       test: async function () {
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({
               abi: contractAbi,
               functionName: "allowance",
-              args: [alith.address, baltathar.address],
+              args: [ALITH_ADDRESS, baltathar.address],
             }),
           },
         ]);
@@ -157,7 +156,7 @@ describeSuite({
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    alith.address,
+                    ALITH_ADDRESS as any,
                     2n, // slot 2
                   ]
                 )
@@ -169,12 +168,12 @@ describeSuite({
         const newValue = pad(nToHex(50));
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({
               abi: contractAbi,
               functionName: "allowance",
-              args: [alith.address, baltathar.address],
+              args: [ALITH_ADDRESS, baltathar.address],
             }),
           },
           "latest",
@@ -203,7 +202,7 @@ describeSuite({
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    alith.address,
+                    ALITH_ADDRESS as any,
                     2n, // slot 2
                   ]
                 )
@@ -214,12 +213,12 @@ describeSuite({
         const newValue = pad(nToHex(50));
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({
               abi: contractAbi,
               functionName: "allowance",
-              args: [alith.address, baltathar.address],
+              args: [ALITH_ADDRESS, baltathar.address],
             }),
           },
           "latest",
@@ -235,7 +234,7 @@ describeSuite({
 
         const result2 = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({
               abi: contractAbi,
@@ -264,7 +263,7 @@ describeSuite({
         } = getCompiled("MultiplyBy7");
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: alith.address,
+            from: ALITH_ADDRESS,
             to: stateOverrideAddress,
             data: encodeFunctionData({
               abi: multiAbi,

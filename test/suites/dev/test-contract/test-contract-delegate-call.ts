@@ -36,10 +36,7 @@ describeSuite({
     let forwardAbi: Abi;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployCreateCompiledContract(
-        context,
-        "CallForwarder"
-      );
+      const { contractAddress, abi } = await deployCreateCompiledContract(context, "CallForwarder");
       forwardAddress = contractAddress;
       forwardAbi = abi;
     });
@@ -49,8 +46,10 @@ describeSuite({
       timeout: 10000,
       title: "should work for normal smart contract",
       test: async function () {
-        const { contractAddress: dummyAddress, abi: dummyAbi } =
-          await deployCreateCompiledContract(context, "MultiplyBy7");
+        const { contractAddress: dummyAddress, abi: dummyAbi } = await deployCreateCompiledContract(
+          context,
+          "MultiplyBy7"
+        );
 
         const txCall = await context.viemClient("public").call({
           account: ALITH_ADDRESS as `0x${string}`,

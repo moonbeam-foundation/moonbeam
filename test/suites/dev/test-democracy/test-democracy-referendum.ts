@@ -1,21 +1,6 @@
 import "@moonbeam-network/api-augment";
-import {
-  ExtrinsicCreation,
-  beforeAll,
-  beforeEach,
-  describeSuite,
-  expect,
-  instantFastTrack,
-} from "@moonwall/cli";
-import {
-  GLMR,
-  VOTE_AMOUNT,
-  ZERO_ADDRESS,
-  alith,
-  generateKeyringPair,
-  KeyringPair,
-} from "@moonwall/util";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { beforeEach, describeSuite, expect, instantFastTrack } from "@moonwall/cli";
+import { ALITH_ADDRESS, GLMR, KeyringPair, VOTE_AMOUNT, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
   id: "D0807",
@@ -127,7 +112,7 @@ describeSuite({
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, 90n * GLMR, 0, 0)
+            .tx.parachainStaking.delegate(ALITH_ADDRESS, 90n * GLMR, 0, 0)
             .signAsync(randomAccount)
         );
         currentRef = (await context.polkadotJs().query.democracy.referendumCount()).toBigInt() - 1n;

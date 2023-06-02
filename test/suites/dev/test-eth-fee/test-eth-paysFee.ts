@@ -17,7 +17,7 @@ describeSuite({
           const { result } = await context.createBlock(
             await createRawTransfer(context, BALTATHAR_ADDRESS, GLMR, { type: txnType })
           );
-          const info = extractInfo(result!.events)!;
+          const info = extractInfo(result?.events)!;
           expect(info).to.not.be.empty;
           expect(info.paysFee.isYes, "Transaction should be marked as paysFees == no").to.be.false;
         },

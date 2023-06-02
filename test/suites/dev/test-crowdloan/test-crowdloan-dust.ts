@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR } from "@moonwall/util";
 import {
   RELAYCHAIN_ARBITRARY_ADDRESS_1,
   RELAYCHAIN_ARBITRARY_ADDRESS_2,
@@ -19,7 +19,7 @@ describeSuite({
         await context.createBlock(
           context.polkadotJs().tx.sudo.sudo(
             context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-              [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 1_500_000n * GLMR],
+              [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 1_500_000n * GLMR],
               [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_499_999_999_999_999_999_999_999n],
             ])
           )

@@ -11,11 +11,6 @@ import { u128 } from "@polkadot/types-codec";
 import { BN } from "@polkadot/util";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
-const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
-const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const ARBITRARY_VESTING_PERIOD = 201600n;
-
 describeSuite({
   id: "D1803",
   title: "Maintenance Mode - Filter2",
@@ -47,7 +42,7 @@ describeSuite({
           )
       );
 
-      assetId = result!.events
+      assetId = result?.events
         .find(({ event: { section } }) => section.toString() === "assetManager")
         .event.data[0].toHex()
         .replace(/,/g, "");

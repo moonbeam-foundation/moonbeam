@@ -7,10 +7,10 @@ import {
 } from "@moonwall/util";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D225",
+  id: "D0206",
   title: "Author Mapping - non-author cannot rotate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -25,7 +25,7 @@ describeSuite({
       title: "should fail rotating account ids if not an author",
       test: async function () {
         await context.createBlock(api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS));
-        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(
+        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
           alith.address
         );
 
@@ -35,7 +35,7 @@ describeSuite({
             .signAsync(baltathar),
           { allowFailures: true }
         );
-        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(
+        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
           alith.address
         );
         expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);

@@ -1,31 +1,12 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeAll,
-  beforeEach,
-  describeSuite,
-  execTechnicalCommitteeProposal,
-  expect,
-} from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  BALTATHAR_ADDRESS,
-  CHARLETH_ADDRESS,
-  GLMR,
-  alith,
-  baltathar,
-  createRawTransfer,
-} from "@moonwall/util";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../helpers/assets.js";
-import { BN, hexToU8a } from "@polkadot/util";
+import { beforeAll, describeSuite, execTechnicalCommitteeProposal, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
+import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../helpers/assets.js";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
-const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
   id: "D1802",

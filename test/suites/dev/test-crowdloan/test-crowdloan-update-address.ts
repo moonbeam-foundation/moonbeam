@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith, generateKeyringPair } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
 import { calculate_vested_amount, getAccountPayable } from "../../../helpers/crowdloan.js";
 
@@ -22,7 +22,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.crowdloanRewards.initializeRewardVec([
-                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 3_000_000n * GLMR],
+                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 3_000_000n * GLMR],
                 ])
             )
         );
@@ -45,7 +45,7 @@ describeSuite({
         expect(isInitialized.isTrue).to.be.true;
 
         // GENESIS_ACCOUNT should be in accounts pauable
-        const rewardInfo = await getAccountPayable(context, alith.address);
+        const rewardInfo = await getAccountPayable(context, ALITH_ADDRESS);
         expect(rewardInfo!.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
         expect(rewardInfo!.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
 
@@ -59,7 +59,7 @@ describeSuite({
         await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim());
 
         // Claimed amount should match
-        const claimedRewards = (await getAccountPayable(context, alith.address))!.claimedReward;
+        const claimedRewards = (await getAccountPayable(context, ALITH_ADDRESS))!.claimedReward;
         expect(claimedRewards.toBigInt()).to.equal(claimed);
 
         // Let's update the reward address
@@ -68,7 +68,7 @@ describeSuite({
         );
 
         // GENESIS_ACCOUNT should no longer be in accounts payable
-        expect(await getAccountPayable(context, alith.address)).to.be.null;
+        expect(await getAccountPayable(context, ALITH_ADDRESS)).to.be.null;
 
         // toUpdateAccount should be in accounts paYable
         const updateRewardInfo = await getAccountPayable(context, toUpdateAccount.address);

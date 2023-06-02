@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeEach, notePreimage, beforeAll } from "@moonwall/cli";
-import { GLMR, PROPOSAL_AMOUNT, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, PROPOSAL_AMOUNT, alith } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
@@ -14,7 +14,7 @@ describeSuite({
     beforeAll(async () => {
       const proposal = context
         .polkadotJs()
-        .tx.parachainStaking.setParachainBondAccount(alith.address);
+        .tx.parachainStaking.setParachainBondAccount(ALITH_ADDRESS);
       launchPeriod = context.polkadotJs().consts.democracy.launchPeriod.toBigInt();
       encodedHash = await notePreimage(context, proposal, alith);
 
@@ -38,11 +38,11 @@ describeSuite({
       test: async function () {
         const publicProps = await context.polkadotJs().query.democracy.publicProps();
         expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
-        expect(publicProps[0][2].toString()).to.equal(alith.address);
+        expect(publicProps[0][2].toString()).to.equal(ALITH_ADDRESS);
 
         const depositOf = await context.polkadotJs().query.democracy.depositOf(0);
         expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
-        expect(depositOf.unwrap()[0][1].toString()).to.equal(alith.address);
+        expect(depositOf.unwrap()[0][1].toString()).to.equal(ALITH_ADDRESS);
       },
     });
 

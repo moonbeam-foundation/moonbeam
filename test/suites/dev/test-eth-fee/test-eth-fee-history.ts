@@ -1,9 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  alith
-} from "@moonwall/util";
+import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
 import { customDevRpcRequest } from "../../../helpers/common.js";
@@ -36,7 +33,7 @@ describeSuite({
       for (var b = 0; b < block_count; b++) {
         for (var p = 0; p < priority_fees.length; p++) {
           await context.ethersSigner().sendTransaction({
-            from: alith.address,
+            from: ALITH_ADDRESS,
             data: contractData.byteCode,
             value: "0x00",
             maxFeePerGas: max_fee_per_gas,

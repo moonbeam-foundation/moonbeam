@@ -6,12 +6,7 @@ import {
   describeSuite,
   expect,
 } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  createEthersTxn,
-  faith,
-  getCompiled
-} from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTxn, faith, getCompiled } from "@moonwall/util";
 import { AbiConstructor } from "abitype";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";

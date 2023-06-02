@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { charleth, dorothy, getBlockExtrinsic } from "@moonwall/util";
+import { CHARLETH_ADDRESS, charleth, dorothy, getBlockExtrinsic } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
@@ -12,7 +12,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D215",
+  id: "D0215",
   title: "Author Mapping - Update different keys",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -25,11 +25,11 @@ describeSuite({
 
     beforeAll(async function () {
       api = context.polkadotJs({ type: "moon" });
-      await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(charleth);
+      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);
       await context.createBlock();
 
       // Updating with different keys
-      await (api.tx.authorMapping.setKeys as any)(concatNewKeys).signAndSend(charleth);
+      await api.tx.authorMapping.setKeys(concatNewKeys).signAndSend(charleth);
       await context.createBlock();
     });
 
@@ -45,7 +45,7 @@ describeSuite({
         );
 
         expect(extrinsic).to.exist;
-        expect(resultEvent.method).to.equal("ExtrinsicSuccess");
+        expect(resultEvent?.method).to.equal("ExtrinsicSuccess");
       },
     });
 
@@ -88,7 +88,7 @@ describeSuite({
       id: "T05",
       title: "should set correct nimbus lookup",
       test: async function () {
-        const nimbusLookup = (await api.query.authorMapping.nimbusLookup(charleth.address)) as any;
+        const nimbusLookup = await api.query.authorMapping.nimbusLookup(CHARLETH_ADDRESS);
         expect(nimbusLookup.isSome).to.be.true;
         expect(nimbusLookup.unwrapOr(null)).to.not.equal(null);
         expect(nimbusLookup.unwrap().toString()).to.equal(newKeys[0]);

@@ -1,22 +1,23 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../../helpers/xcm.js";
-import { verifyLatestBlockFees } from "../../../../helpers/block.js";
-import { expectOk } from "../../../../helpers/expect.js";
+import { bnToHex } from "@polkadot/util";
+import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../helpers/assets.js";
+import { registerForeignAsset } from "../../../helpers/xcm.js";
+import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
+
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D112",
-  title: "XCM - asset manager - destroy foreign asset",
+  id: "D0111",
+  title: "XCM - asset manager - Remove asset from supported",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, log, it }) => {
     let assetId: string;
     let api: ApiPromise;
+
     beforeAll(async function () {
       api = context.polkadotJs();
-      // registerForeignAsset
       const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
@@ -33,21 +34,15 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should be able to destroy a foreign asset through pallet-asset-manager",
+      title: "should remove an asset from our supported fee payments",
       test: async function () {
-        // Destroy foreign asset
-        await expectOk(
-          context.createBlock(
-            api.tx.sudo.sudo((api.tx.assetManager as any).destroyForeignAsset(assetId, 1))
-          )
+        // ChangeAssetType
+        await context.createBlock(
+          api.tx.sudo.sudo(api.tx.assetManager.removeSupportedAsset(RELAY_SOURCE_LOCATION, 1))
         );
 
-        await expectOk(context.createBlock(api.tx.assets.destroyAccounts(assetId)));
-        await expectOk(context.createBlock(api.tx.assets.destroyApprovals(assetId)));
-        await expectOk(context.createBlock(api.tx.assets.finishDestroy(assetId)));
-
         // assetId
-        const id = await api.query.assetManager.assetTypeId(RELAY_SOURCE_LOCATION);
+        const id = (await api.query.assetManager.assetTypeId(RELAY_SOURCE_LOCATION)).unwrap();
 
         // asset units per second removed
         const assetUnitsPerSecond = await api.query.assetManager.assetTypeUnitsPerSecond(
@@ -57,12 +52,8 @@ describeSuite({
         // Supported assets should be 0
         const supportedAssets = await api.query.assetManager.supportedFeePaymentAssets();
 
-        // assetDetails should have dissapeared
-        const assetDetails = await api.query.assets.asset(assetId);
-
         expect(assetUnitsPerSecond.isNone).to.eq(true);
-        expect(id.isNone).to.eq(true);
-        expect(assetDetails.isNone).to.eq(true);
+        expect(bnToHex(id)).to.eq(assetId);
         // the asset should not be supported
         expect(supportedAssets.length).to.eq(0);
       },

@@ -2,10 +2,10 @@ import "@moonbeam-network/api-augment";
 import { BALTATHAR_SESSION_ADDRESS, generateKeyringPair } from "@moonwall/util";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D223",
+  id: "D0204",
   title: "Author Mapping - Fail without deposit",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -14,10 +14,12 @@ describeSuite({
     beforeAll(async function () {
       api = context.polkadotJs({ type: "moon" });
       const rando = generateKeyringPair();
-      expect((await api.query.system.account(rando.address)).data.free.toBigInt()).to.eq(0n);
+      expect((await api.query.system.account(rando.address as string)).data.free.toBigInt()).to.eq(
+        0n
+      );
       try {
         await api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS).signAndSend(rando);
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message.toString()).to.eq(
           "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
         );

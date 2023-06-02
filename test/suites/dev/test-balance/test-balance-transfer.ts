@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeEach, beforeAll } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
   ALITH_ADDRESS,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
@@ -9,18 +8,16 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  generateKeyringPair,
   GERALD_PRIVATE_KEY,
   GLMR,
   MIN_GAS_PRICE,
-} from "@moonwall/util";
-import { parseGwei } from "viem";
-import {
   checkBalance,
   createRawTransaction,
   createRawTransfer,
+  generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
+import { parseGwei } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
@@ -132,7 +129,7 @@ describeSuite({
           (
             (await (
               await context.polkadotJs().at(block1Hash)
-            ).query.system.account(alith.address)) as any
+            ).query.system.account(ALITH_ADDRESS)) as any
           ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
         );
       },

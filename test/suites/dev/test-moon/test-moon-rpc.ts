@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, createRawTransaction, createRawTransfer } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, createRawTransaction } from "@moonwall/util";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
 describeSuite({

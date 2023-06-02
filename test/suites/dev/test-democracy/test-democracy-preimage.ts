@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, notePreimage } from "@moonwall/cli";
-import { MICROGLMR, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, MICROGLMR, alith } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { u8aToHex } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -31,7 +31,7 @@ describeSuite({
         expect(preimageStatus.unwrap().isUnrequested).to.be.true;
 
         const [proposer, balance] = preimageStatus.unwrap().asUnrequested.deposit;
-        expect(u8aToHex(proposer)).to.eq(alith.address.toLowerCase());
+        expect(u8aToHex(proposer)).to.eq(ALITH_ADDRESS.toLowerCase());
         expect(balance.toBigInt()).to.eq(5002200n * MICROGLMR);
       },
     });

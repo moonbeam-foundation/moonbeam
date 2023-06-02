@@ -1,9 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
-import {
-  EXTRINSIC_GAS_LIMIT,
-  deployCreateCompiledContract
-} from "@moonwall/util";
+import { EXTRINSIC_GAS_LIMIT, deployCreateCompiledContract } from "@moonwall/util";
 import { getCompiled } from "../../../helpers/contracts.js";
 
 describeSuite({

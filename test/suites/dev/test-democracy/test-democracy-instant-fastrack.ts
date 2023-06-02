@@ -9,7 +9,7 @@ import {
   expect,
   notePreimage,
 } from "@moonwall/cli";
-import { alith, baltathar, charleth } from "@moonwall/util";
+import { ALITH_ADDRESS, alith, baltathar, charleth } from "@moonwall/util";
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -143,8 +143,8 @@ const setupProposalAnd3TechnicalCommittee = async (context: DevModeContext) => {
         context
           .polkadotJs()
           .tx.techCommitteeCollective.setMembers(
-            [alith.address, baltathar.address, charleth.address],
-            alith.address,
+            [ALITH_ADDRESS, baltathar.address, charleth.address],
+            ALITH_ADDRESS,
             (
               await context.polkadotJs().query.techCommitteeCollective.members()
             ).length

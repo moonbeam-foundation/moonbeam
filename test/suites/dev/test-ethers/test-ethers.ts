@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY, getCompiled } from "@moonwall/util";
+import { getCompiled } from "@moonwall/util";
 import { ethers } from "ethers";
 
 describeSuite({

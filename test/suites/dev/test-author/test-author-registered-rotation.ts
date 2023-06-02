@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { alith, BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS } from "@moonwall/util";
-import { getMappingInfo } from "../../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers/common.js";
 import { expect, describeSuite } from "@moonwall/cli";
 
 describeSuite({
-  id: "D227",
+  id: "D0208",
   title: "Author Mapping - registered can rotate",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -17,7 +17,7 @@ describeSuite({
             .polkadotJs({ type: "moon" })
             .tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
         );
-        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(
+        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(
           alith.address
         );
 
@@ -27,7 +27,7 @@ describeSuite({
             .tx.authorMapping.updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
         );
         expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
-        expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).account).to.eq(
+        expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS))?.account).to.eq(
           alith.address
         );
 

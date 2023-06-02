@@ -2,15 +2,15 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, alith, baltathar } from "@moonwall/util";
-import { mockAssetBalance } from "../../../../helpers/assets.js";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, baltathar } from "@moonwall/util";
+import { mockAssetBalance } from "../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { ApiPromise } from "@polkadot/api";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D122",
+  id: "D0105",
   title: "Pallet Assets - Transfer",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -30,7 +30,7 @@ describeSuite({
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
+      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
     });
 
     it({

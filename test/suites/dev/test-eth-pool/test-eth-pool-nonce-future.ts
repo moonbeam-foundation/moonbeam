@@ -6,7 +6,7 @@ import {
   createEthersTxn,
   createRawTransfer,
   getCompiled,
-  sendRawTransaction
+  sendRawTransaction,
 } from "@moonwall/util";
 
 import { encodeDeployData } from "viem";

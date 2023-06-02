@@ -26,7 +26,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.crowdloanRewards.initializeRewardVec([
-                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 3_000_000n * GLMR],
+                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 3_000_000n * GLMR],
                 ])
             )
         );
@@ -44,7 +44,7 @@ describeSuite({
             )
         );
 
-        const rewardInfo = await getAccountPayable(context, alith.address);
+        const rewardInfo = await getAccountPayable(context, ALITH_ADDRESS);
         const claimed = await calculate_vested_amount(
           rewardInfo!.totalReward.toBigInt(),
           rewardInfo!.claimedReward.toBigInt(),
@@ -61,7 +61,7 @@ describeSuite({
 
         await context.createBlock();
         expect(
-          (await getAccountPayable(context, alith.address))!.claimedReward.toBigInt()
+          (await getAccountPayable(context, ALITH_ADDRESS))!.claimedReward.toBigInt()
         ).to.equal(claimed);
 
         expect(

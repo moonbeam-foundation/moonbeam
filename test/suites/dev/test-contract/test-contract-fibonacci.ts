@@ -24,7 +24,8 @@ describeSuite({
           expect(await contract.read.fib2([20])).toBe(6765n);
 
           // the largest Fib number supportable by a uint256 is 370.
-          // actual value: 94611056096305838013295371573764256526437182762229865607320618320601813254535
+          // actual value:
+          // 94611056096305838013295371573764256526437182762229865607320618320601813254535
           expect(await contract.read.fib2([370])).toBe(
             94611056096305838013295371573764256526437182762229865607320618320601813254535n
           );
@@ -35,10 +36,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: "should be able to call fibonacci[370] in txn",
         test: async function () {
-          const { abi, contractAddress } = await deployCreateCompiledContract(
-            context,
-            "Fibonacci"
-          );
+          const { abi, contractAddress } = await deployCreateCompiledContract(context, "Fibonacci");
 
           const hash = await context.viemClient("wallet").writeContract({
             abi,

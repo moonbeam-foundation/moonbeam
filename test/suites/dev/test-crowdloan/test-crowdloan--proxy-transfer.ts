@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith, baltathar } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, alith, baltathar } from "@moonwall/util";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
 import { getAccountPayable } from "../../../helpers/crowdloan.js";
 
@@ -22,7 +22,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.crowdloanRewards.initializeRewardVec([
-                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 3_000_000n * GLMR],
+                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 3_000_000n * GLMR],
                 ])
             )
         );
@@ -44,7 +44,7 @@ describeSuite({
         expect(isInitialized.isTrue).to.be.true;
 
         // GENESIS_ACCOUNT should be in accounts pauable
-        const rewardInfo = await getAccountPayable(context, alith.address);
+        const rewardInfo = await getAccountPayable(context, ALITH_ADDRESS);
         expect(rewardInfo!.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
         expect(rewardInfo!.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
 
@@ -58,19 +58,19 @@ describeSuite({
           context
             .polkadotJs()
             .tx.proxy.proxy(
-              alith.address,
+              ALITH_ADDRESS,
               null,
               context.polkadotJs().tx.crowdloanRewards.updateRewardAddress(proxy.address)
             )
             .signAsync(proxy)
         );
-        expect(result!.events[1].event.method).to.eq("ProxyExecuted");
-        expect(result!.events[1].event.data[0].toString()).to.be.eq(
+        expect(result?.events[1].event.method).to.eq("ProxyExecuted");
+        expect(result?.events[1].event.data[0].toString()).to.be.eq(
           `{"err":{"module":{"index":0,"error":"0x05000000"}}}`
         );
 
         // Genesis account still has the money
-        const updatedRewardInfo = await getAccountPayable(context, alith.address);
+        const updatedRewardInfo = await getAccountPayable(context, ALITH_ADDRESS);
         expect(updatedRewardInfo!.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
         expect(updatedRewardInfo!.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
       },

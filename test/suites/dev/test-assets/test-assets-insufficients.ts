@@ -3,7 +3,7 @@ import { u128 } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { alith, ALITH_ADDRESS, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
-import { mockAssetBalance } from "../../../../helpers/assets.js";
+import { mockAssetBalance } from "../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { ApiPromise } from "@polkadot/api";
 
@@ -11,7 +11,7 @@ const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
 
 describeSuite({
-  id: "D133",
+  id: "D0104",
   title: "Pallet Assets - Sufficient tests: is_sufficient to false",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -41,7 +41,7 @@ describeSuite({
         assetDetails,
         alith,
         assetId,
-        alith.address,
+        ALITH_ADDRESS,
         false
       );
 
@@ -62,13 +62,13 @@ describeSuite({
           { allowFailures: true }
         );
 
-        expect((await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(0n);
         // Providers should still be 0
-        expect((await api.query.system.account(freshAccount.address as string)).providers.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(0n);
 
         // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
         const fee = (
@@ -80,13 +80,13 @@ describeSuite({
         // We transfer Balances, which should increase provider
         await context.createBlock(api.tx.balances.transfer(freshAccount.address, fee));
 
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(0n);
         // Providers should now be 1
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(1n);
 
         // We now can transfer assets to freshAccount, since it has a provider
         await api.tx.assets
@@ -95,17 +95,17 @@ describeSuite({
 
         await context.createBlock();
 
-        expect((await api.query.system.account(freshAccount.address)).sufficients.toBigInt()).to.eq(
-          0n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
+        ).to.eq(0n);
 
-        expect((await api.query.system.account(freshAccount.address)).providers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).providers.toBigInt()
+        ).to.eq(1n);
 
-        expect((await api.query.system.account(freshAccount.address)).consumers.toBigInt()).to.eq(
-          1n
-        );
+        expect(
+          (await api.query.system.account(freshAccount.address as string)).consumers.toBigInt()
+        ).to.eq(1n);
 
         // What happens now when we execute such transaction? both MOVR and Assets should be drained.
         await context.createBlock(
@@ -116,11 +116,11 @@ describeSuite({
 
         const freshAccountBalance = await api.query.assets.account(
           assetId.toU8a(),
-          freshAccount.address
+          freshAccount.address as string
         );
         expect(freshAccountBalance.isNone).to.equal(true);
 
-        const freshSystemAccount = await api.query.system.account(freshAccount.address);
+        const freshSystemAccount = await api.query.system.account(freshAccount.address as string);
         // Sufficients should be 0
         expect(freshSystemAccount.sufficients.toBigInt()).to.eq(0n);
 

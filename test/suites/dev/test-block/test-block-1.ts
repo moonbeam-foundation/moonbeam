@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 
 describeSuite({
   id: "D0401",
@@ -38,13 +38,13 @@ describeSuite({
       test: async function () {
         const block = await context.viemClient("public").getBlock({ blockTag: "latest" });
         expect(block).to.include({
-          author: alith.address.toLocaleLowerCase(),
+          author: ALITH_ADDRESS.toLocaleLowerCase(),
           difficulty: 0n,
           extraData: "0x",
           gasLimit: 15000000n,
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
-          miner: alith.address.toLocaleLowerCase(),
+          miner: ALITH_ADDRESS.toLocaleLowerCase(),
           number: 1n,
           receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
           sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",

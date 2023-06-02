@@ -42,26 +42,39 @@ describeSuite({
 
         // should be able to register many accounts
         await context.createBlock(
-          context.polkadotJs().tx.utility
-            .batch([
-              await context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.crowdloanRewards.initializeRewardVec(
-                  largInput.slice(0, Math.floor(numberOfAccounts / 3))
-                )
-              ),
-              await context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.crowdloanRewards.initializeRewardVec(
-                  largInput.slice(
-                    Math.floor(numberOfAccounts / 3),
-                    Math.floor((numberOfAccounts * 2) / 3)
-                  )
-                )
-              ),
-              await context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.crowdloanRewards.initializeRewardVec(
-                  largInput.slice(Math.floor((numberOfAccounts * 2) / 3), numberOfAccounts)
-                )
-              ),
+          context
+            .polkadotJs()
+            .tx.utility.batch([
+              await context
+                .polkadotJs()
+                .tx.sudo.sudo(
+                  context
+                    .polkadotJs()
+                    .tx.crowdloanRewards.initializeRewardVec(
+                      largInput.slice(0, Math.floor(numberOfAccounts / 3))
+                    )
+                ),
+              await context
+                .polkadotJs()
+                .tx.sudo.sudo(
+                  context
+                    .polkadotJs()
+                    .tx.crowdloanRewards.initializeRewardVec(
+                      largInput.slice(
+                        Math.floor(numberOfAccounts / 3),
+                        Math.floor((numberOfAccounts * 2) / 3)
+                      )
+                    )
+                ),
+              await context
+                .polkadotJs()
+                .tx.sudo.sudo(
+                  context
+                    .polkadotJs()
+                    .tx.crowdloanRewards.initializeRewardVec(
+                      largInput.slice(Math.floor((numberOfAccounts * 2) / 3), numberOfAccounts)
+                    )
+                ),
             ])
             .signAsync(alith)
         );
@@ -69,11 +82,13 @@ describeSuite({
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
 
         await context.createBlock(
-          context.polkadotJs().tx.sudo.sudo(
-            context.polkadotJs().tx.crowdloanRewards.completeInitialization(
-              initBlock.toBigInt() + VESTING_PERIOD
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(
+              context
+                .polkadotJs()
+                .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD)
             )
-          )
         );
 
         await Promise.all(

@@ -12,19 +12,17 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D213",
-  title: "Author Mapping - Remove Charlie keys",
+  id: "D0203",
+  title: "Author Mapping - Set Charlie first time keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, log, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {
       api = context.polkadotJs({ type: "moon" });
-      await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(charleth);
-      await context.createBlock();
-
-      // Remove the keys
-      await api.tx.authorMapping.removeKeys().signAndSend(charleth);
+      log(`Setting account ${charleth.address} keys: ${concatOriginalKeys}`);
+      // TODO: fix all setKeys with api 1600.1
+      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);
       await context.createBlock();
     });
 
@@ -36,44 +34,47 @@ describeSuite({
           api,
           await api.rpc.chain.getBlockHash(),
           "authorMapping",
-          "removeKeys"
+          "setKeys"
         );
 
         expect(extrinsic).to.exist;
-        expect(resultEvent.method).to.equal("ExtrinsicSuccess");
+        expect(resultEvent!.method).to.equal("ExtrinsicSuccess");
       },
     });
 
     it({
       id: "T02",
-      title: "should send KeysRemoved event",
+      title: "should send KeysRegistered event",
       test: async function () {
         const { events } = await getBlockExtrinsic(
           api,
           await api.rpc.chain.getBlockHash(),
           "authorMapping",
-          "removeKeys"
+          "setKeys"
         );
-        expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRemoved")).to
+        expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRegistered")).to
           .exist;
       },
     });
 
     it({
       id: "T03",
-      title: "should remove keys",
+      title: "should set new keys",
       test: async function () {
         const mapping = await api.query.authorMapping.mappingWithDeposit(originalKeys[0]);
-        expect(mapping.isNone).to.be.true;
+        expect(mapping.isSome).to.be.true;
+        expect(mapping.unwrap().account.toString()).to.equal(charleth.address);
+        expect(mapping.unwrap().keys_.toString()).to.equal(originalKeys[1]);
       },
     });
 
     it({
       id: "T04",
-      title: "should remove nimbus mapping",
+      title: "should set correct nimbus lookup",
       test: async function () {
         const nimbusLookup = (await api.query.authorMapping.nimbusLookup(charleth.address)) as any;
-        expect(nimbusLookup.isNone).to.be.true;
+        expect(nimbusLookup.isSome).to.be.true;
+        expect(nimbusLookup.unwrap().toString()).to.equal(originalKeys[0]);
       },
     });
   },

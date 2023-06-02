@@ -4,14 +4,6 @@ import { alith } from "@moonwall/util";
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
-// import { Result } from "@polkadot/types";
-// import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
-// import { expect } from "chai";
-
-// import { alith } from "../../util/accounts";
-// import { execTechnicalCommitteeProposal } from "../../util/governance";
-// import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-
 describeSuite({
   id: "D1804",
   title: "Maintenance Mode - General",
@@ -66,7 +58,7 @@ describeSuite({
             .tx.sudo.sudo(context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode())
         );
         expect(
-          (result!.events[1].event.data[0] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin
+          (result?.events[1].event.data[0] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin
         ).to.be.true;
       },
     });
@@ -97,7 +89,7 @@ describeSuite({
             .tx.sudo.sudo(context.polkadotJs().tx.maintenanceMode.resumeNormalOperation())
         );
         expect(
-          (result!.events[1].event.data[0] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin
+          (result?.events[1].event.data[0] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin
         ).to.be.true;
       },
     });

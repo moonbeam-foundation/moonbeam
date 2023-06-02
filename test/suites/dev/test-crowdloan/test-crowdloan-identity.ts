@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, generateKeyringPair } from "@moonwall/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
+import { stringToU8a } from "@polkadot/util";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
 import { calculate_vested_amount, getAccountPayable } from "../../../helpers/crowdloan.js";
-import { stringToU8a } from "@polkadot/util";
 
 describeSuite({
   id: "D0707",
@@ -21,7 +20,7 @@ describeSuite({
         await context.createBlock(
           context.polkadotJs().tx.sudo.sudo(
             context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-              [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 1_500_000n * GLMR],
+              [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 1_500_000n * GLMR],
               [relayAccount.addressRaw, null, 1_500_000n * GLMR],
             ])
           )

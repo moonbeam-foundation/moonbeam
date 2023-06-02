@@ -36,7 +36,7 @@ describeSuite({
         // Here we build the utility call
         const proposal = context.polkadotJs().tx.utility.batchAll(calls);
 
-        const encodedHash = await instantFastTrack(context, proposal);
+        await instantFastTrack(context, proposal);
 
         // vote
         await context.createBlock(
@@ -48,7 +48,7 @@ describeSuite({
         // referendumInfoOf
         const referendumInfoOf = (
           await context.polkadotJs().query.democracy.referendumInfoOf(0)
-        ).unwrap() as any;
+        ).unwrap();
         const onGoing = referendumInfoOf.asOngoing;
 
         const blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();

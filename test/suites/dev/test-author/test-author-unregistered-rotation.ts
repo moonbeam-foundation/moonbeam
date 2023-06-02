@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS } from "@moonwall/util";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { getMappingInfo } from "../../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D2210",
+  id: "D0214",
   title: "Author Mapping - unregistered cannot rotate",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

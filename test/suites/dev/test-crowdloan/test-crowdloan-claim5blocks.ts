@@ -1,10 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, alith } from "@moonwall/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
 import { calculate_vested_amount, getAccountPayable } from "../../../helpers/crowdloan.js";
-
 
 describeSuite({
   id: "D0704",
@@ -16,23 +14,29 @@ describeSuite({
       title: "should make first claim 5 blocks after initialization called",
       test: async function () {
         await context.createBlock(
-          context.polkadotJs().tx.sudo.sudo(
-            context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-              [RELAYCHAIN_ARBITRARY_ADDRESS_1, alith.address, 3_000_000n * GLMR],
-            ])
-          )
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(
+              context
+                .polkadotJs()
+                .tx.crowdloanRewards.initializeRewardVec([
+                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, ALITH_ADDRESS, 3_000_000n * GLMR],
+                ])
+            )
         );
 
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
         await context.createBlock(
-          context.polkadotJs().tx.sudo.sudo(
-            context.polkadotJs().tx.crowdloanRewards.completeInitialization(
-              initBlock.toBigInt() + VESTING_PERIOD
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(
+              context
+                .polkadotJs()
+                .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD)
             )
-          )
         );
 
-        const rewardInfo = await getAccountPayable(context, alith.address);
+        const rewardInfo = await getAccountPayable(context, ALITH_ADDRESS);
         await context.createBlock();
         await context.createBlock();
         await context.createBlock();
@@ -45,7 +49,7 @@ describeSuite({
         await context.polkadotJs().tx.crowdloanRewards.claim().signAndSend(alith);
         await context.createBlock();
 
-        const isPayable4 = await getAccountPayable(context, alith.address);
+        const isPayable4 = await getAccountPayable(context, ALITH_ADDRESS);
         expect(isPayable4!.claimedReward.toBigInt()).to.equal(claimed);
       },
     });

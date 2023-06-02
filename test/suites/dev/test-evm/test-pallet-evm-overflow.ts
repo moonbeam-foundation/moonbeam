@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith, generateKeyringPair } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
@@ -22,7 +22,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.evm.call(
-                  alith.address as string,
+                  ALITH_ADDRESS,
                   randomAddress,
                   "0x0",
                   `0x${(5n * GLMR + 2n ** 128n).toString(16)}`,
@@ -36,7 +36,7 @@ describeSuite({
         );
 
         expect(
-          result!.events.find(
+          result?.events.find(
             ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
           )
         ).to.exist;

@@ -6,7 +6,7 @@ import {
   execCouncilProposal,
   execTechnicalCommitteeProposal,
   expect,
-  notePreimage
+  notePreimage,
 } from "@moonwall/cli";
 import { HOURS, alith, baltathar } from "@moonwall/util";
 import { SubmittableExtrinsic } from "@polkadot/api/types";

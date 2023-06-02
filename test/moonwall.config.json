@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
-  "defaultTestTimeout": 30000,
+  "defaultTestTimeout": 60000,
   "environments": [
     {
       "name": "zombie_moonbeam_ci",
@@ -188,11 +188,11 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-polkadot-js"],
+      "testFileDir": ["suites/dev"],
       "include": ["**/*test*"],
       "multiThreads": true,
       "envVars":["DEBUG_COLORS=1"],
-      "reporters": ["html", "verbose"],
+      "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

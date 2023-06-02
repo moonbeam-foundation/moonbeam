@@ -52,7 +52,7 @@ describeSuite({
         );
 
         expect(
-          (await getAccountPayable(context, alith.address))!.totalReward.toBigInt(),
+          (await getAccountPayable(context, ALITH_ADDRESS))!.totalReward.toBigInt(),
           "Unable to register the genesis account for reward"
         ).to.equal(3_000_000n * GLMR);
         const isInitialized = await context.polkadotJs().query.crowdloanRewards.initialized();

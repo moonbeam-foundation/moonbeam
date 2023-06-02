@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D2201",
@@ -90,7 +89,6 @@ describeSuite({
       id: "T05",
       title: "should appear in events",
       test: async function () {
-
         // Generating two transfers to ensure treasury account exists
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
@@ -126,8 +124,8 @@ describeSuite({
               expect(events).to.be.of.length(1);
               expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
               break;
-            // Fifth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
-            // system.ExtrinsicSuccess
+            // Fifth event: balances.transfer:: system.NewAccount, balances.Endowed,
+            // balances.Transfer, system.ExtrinsicSuccess
             case 4:
               log(events.map((e) => `${e.section}.${e.method}`).join(" - "));
               expect(events).to.be.of.length(8);

@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith } from "@moonwall/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { GLMR, alith } from "@moonwall/util";
 import { PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { VESTING_PERIOD } from "../../../helpers/constants.js";
 import { getAccountPayable } from "../../../helpers/crowdloan.js";
@@ -25,13 +24,12 @@ describeSuite({
       title: "should be able to register many accounts",
       timeout: 30000,
       test: async function () {
-        log(`${numberOfAccounts} accounts will be registered`)
+        log(`${numberOfAccounts} accounts will be registered`);
         // should create a bunch of test eth accounts
         // We need to make sure the rewards match the account funds. 3M GLMR/ number of accounts
         const accounts = new Array(numberOfAccounts)
           .fill(0)
-          .map((_) => privateKeyToAccount(generatePrivateKey())
-          );
+          .map((_) => privateKeyToAccount(generatePrivateKey()));
         largInput = accounts.map((acc: PrivateKeyAccount) => {
           return [
             acc.address + "111111111111111111111111",
@@ -72,7 +70,5 @@ describeSuite({
         );
       },
     });
-
-    
   },
 });

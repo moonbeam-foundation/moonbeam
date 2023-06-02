@@ -2,7 +2,7 @@
 // // This flow is used by some exchange partners like kraken
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { alith, ALITH_GENESIS_LOCK_BALANCE } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, ALITH_GENESIS_LOCK_BALANCE } from "@moonwall/util";
 import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
@@ -53,7 +53,7 @@ describeSuite({
           value: 512,
         },
         {
-          address: alith.address,
+          address: ALITH_ADDRESS,
           blockHash,
           blockNumber: registry.createType("BlockNumber", block.header.number).toNumber(),
           eraPeriod: 64,
@@ -95,7 +95,7 @@ describeSuite({
       id: "T02",
       title: "should reflect balance identically on polkadot/web3",
       test: async function () {
-        const balance = await context.polkadotJs().query.system.account(alith.address);
+        const balance = await context.polkadotJs().query.system.account(ALITH_ADDRESS);
         expect(await checkBalance(context)).to.equal(
           balance.data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
         );

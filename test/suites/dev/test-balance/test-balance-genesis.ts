@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import "@polkadot/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
 import {
   alith,
@@ -31,7 +30,7 @@ describeSuite({
         const genesisHash = await context.polkadotJs().rpc.chain.getBlockHash(0);
         const account = await (
           await context.polkadotJs({ type: "moon" }).at(genesisHash)
-        ).query.system.account(alith.address);
+        ).query.system.account(ALITH_ADDRESS);
         expect(account.data.free.toBigInt()).toBe(ALITH_GENESIS_FREE_BALANCE);
         expect(account.data.reserved.toBigInt()).toBe(ALITH_GENESIS_RESERVE_BALANCE);
       },

@@ -12,7 +12,7 @@ import {
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "1102",
+  id: "D1102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -39,7 +39,7 @@ describeSuite({
           gasPrice: 20_000_000_000_000n,
           privateKey: BALTATHAR_PRIVATE_KEY,
         });
-        const tx2 = await createRawTransfer(context, CHARLETH_ADDRESS, 2, {
+        const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
           nonce: 0,
           gasPrice: 10_000_000_000_000n,
           privateKey: BALTATHAR_PRIVATE_KEY,
@@ -66,7 +66,7 @@ describeSuite({
         });
         await context.createBlock(tx1);
 
-        const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
+        const tx2 = await createRawTransfer(context, CHARLETH_ADDRESS, 2, {
           nonce,
           privateKey: CHARLETH_PRIVATE_KEY,
         });

@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { DEFAULT_GENESIS_BALANCE, alith, baltathar } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  DEFAULT_GENESIS_BALANCE,
+  baltathar,
+} from "@moonwall/util";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
@@ -20,8 +25,8 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.evm.call(
-                  alith.address as string,
-                  baltathar.address as string,
+                  ALITH_ADDRESS,
+                  BALTATHAR_ADDRESS,
                   "0x0",
                   100_000_000_000_000_000_000n,
                   12_000_000n,
@@ -51,7 +56,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.evm.call(
-                  alith.address,
+                  ALITH_ADDRESS,
                   baltathar.address,
                   "0x0",
                   100_000_000_000_000_000_000n,
@@ -65,7 +70,7 @@ describeSuite({
         );
 
         expect(
-          result!.events.find(
+          result?.events.find(
             ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
           )
         ).to.exist;

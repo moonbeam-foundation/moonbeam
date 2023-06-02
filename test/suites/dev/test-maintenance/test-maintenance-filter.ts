@@ -133,7 +133,14 @@ describeSuite({
             supply: balance,
           });
 
-        await mockAssetBalance(context, assetBalance, assetDetails, alith, newAssetId, alith.address);
+        await mockAssetBalance(
+          context,
+          assetBalance,
+          assetDetails,
+          alith,
+          newAssetId,
+          ALITH_ADDRESS
+        );
 
         expect(
           async () =>
@@ -214,126 +221,5 @@ describeSuite({
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
-
   },
 });
-
-//   it("should queue DMP until resuming operations", async function () {
-//     // Send RPC call to inject DMP message
-//     // You can provide a message, but if you don't a downward transfer is the default
-//     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [[]]);
-
-//     // Create a block in which the XCM should be executed
-//     await context.createBlock();
-
-//     // Make sure the state does not have ALITH's DOT tokens
-//     let alithBalance = await context.polkadotJs().query.assets.account(
-//       assetId.toU8a(),
-//       alith.address
-//     );
-
-//     // Alith balance is 0
-//     expect(alithBalance.isNone).to.eq(true);
-
-//     // turn maintenance off
-//     await execTechnicalCommitteeProposal(
-//       context,
-//       context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
-//     );
-
-//     // Create a block in which the XCM will be executed
-//     await context.createBlock();
-
-//     // Make sure the state has ALITH's to DOT tokens
-//     const newAlithBalance = (
-//       await context.polkadotJs().query.assets.account(assetId.toU8a(), alith.address)
-//     ).unwrap();
-
-//     // Alith balance is 10 DOT
-//     expect(newAlithBalance.balance.toBigInt()).to.eq(10000000000000n);
-//   });
-// });
-
-// describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
-//   let assetId: string;
-//   const foreignParaId = 2000;
-
-//   before("registering asset", async function () {
-//     const assetMetadata = {
-//       name: "FOREIGN",
-//       symbol: "FOREIGN",
-//       decimals: new BN(12),
-//       isFroze: false,
-//     };
-
-//     const sourceLocation = {
-//       Xcm: { parents: 1, interior: { X1: { Parachain: foreignParaId } } },
-//     };
-
-//     // registerForeignAsset
-//     const {
-//       result: { events: eventsRegister },
-//     } = await context.createBlock(
-//       context.polkadotJs().tx.sudo.sudo(
-//         context.polkadotJs().tx.assetManager.registerForeignAsset(
-//           sourceLocation,
-//           assetMetadata,
-//           new BN(1),
-//           true
-//         )
-//       )
-//     );
-
-//     assetId = eventsRegister
-//       .find(({ event: { section } }) => section.toString() === "assetManager")
-//       .event.data[0].toHex()
-//       .replace(/,/g, "");
-
-//     // setAssetUnitsPerSecond
-//     await context.createBlock(
-//       context.polkadotJs().tx.sudo.sudo(
-//         context.polkadotJs().tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
-//       )
-//     );
-//   });
-
-//   before("entering maintenant mode", async () => {
-//     await execTechnicalCommitteeProposal(
-//       context,
-//       context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
-//     );
-//   });
-
-//   it("should queue XCM messages until resuming operations", async function () {
-//     // Send RPC call to inject XCMP message
-//     // You can provide a message, but if you don't a downward transfer is the default
-//     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreignParaId, []]);
-
-//     // Create a block in which the XCM should be executed
-//     await context.createBlock();
-
-//     // Make sure the state does not have ALITH's foreign asset tokens
-//     let alithBalance = (await context.polkadotJs().query.assets.account(
-//       assetId,
-//       alith.address
-//     )) as any;
-//     // Alith balance is 0
-//     expect(alithBalance.isNone).to.eq(true);
-
-//     // turn maintenance off
-//     await execTechnicalCommitteeProposal(
-//       context,
-//       context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
-//     );
-
-//     // Create a block in which the XCM will be executed
-//     await context.createBlock();
-
-//     // Make sure the state has ALITH's to foreign assets tokens
-//     alithBalance = (
-//       await context.polkadotJs().query.assets.account(assetId, alith.address)
-//     ).unwrap();
-
-//     expect(alithBalance.balance.toBigInt()).to.eq(10000000000000n);
-//   });
-// });

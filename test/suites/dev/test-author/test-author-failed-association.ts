@@ -1,11 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { alith, ALITH_SESSION_ADDRESS, baltathar, CHARLETH_SESSION_ADDRESS } from "@moonwall/util";
+import {
+  alith,
+  ALITH_SESSION_ADDRESS,
+  baltathar,
+  BALTATHAR_ADDRESS,
+  CHARLETH_SESSION_ADDRESS,
+} from "@moonwall/util";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D222",
+  id: "D0202",
   title: "Author Mapping - Fail to reassociate alice",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -21,7 +27,7 @@ describeSuite({
       test: async function () {
         // Balances before
         const balancesBefore = (
-          await api.query.system.account(baltathar.address)
+          await api.query.system.account(BALTATHAR_ADDRESS)
         ).data.free.toBigInt();
 
         // Fee
@@ -29,28 +35,28 @@ describeSuite({
           await api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS).paymentInfo(baltathar)
         ).partialFee.toBigInt();
 
-        const {
-          result: { events },
-        } = await context.createBlock(
+        const { result } = await context.createBlock(
           api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS).signAsync(baltathar),
           { allowFailures: true }
         );
 
         // should check events for failure
-        expect(events.length === 6);
-        expect(api.events.system.NewAccount.is(events[2].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(events[3].event)).to.be.true;
-        expect(api.events.treasury.Deposit.is(events[4].event)).to.be.true;
-        expect(api.events.system.ExtrinsicFailed.is(events[6].event)).to.be.true;
+        expect(result?.events.length === 6);
+        expect(api.events.system.NewAccount.is(result?.events[2].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result?.events[3].event)).to.be.true;
+        expect(api.events.treasury.Deposit.is(result?.events[4].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result?.events[6].event)).to.be.true;
 
         //check state
-        expect((await api.query.system.account(baltathar.address)).data.free.toBigInt()).to.eq(
+        expect((await api.query.system.account(BALTATHAR_ADDRESS)).data.free.toBigInt()).to.eq(
           balancesBefore - fee
         );
-        expect((await api.query.system.account(baltathar.address)).data.reserved.toBigInt()).to.eq(
+        expect((await api.query.system.account(BALTATHAR_ADDRESS)).data.reserved.toBigInt()).to.eq(
           0n
         );
-        expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).account).to.eq(alith.address);
+        expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
+          alith.address
+        );
       },
     });
 
@@ -61,19 +67,19 @@ describeSuite({
         await context.createBlock(
           api.tx.authorMapping.addAssociation(CHARLETH_SESSION_ADDRESS).signAsync(baltathar)
         );
-        const {
-          result: { error },
-        } = await context.createBlock(
+        const { result } = await context.createBlock(
           api.tx.authorMapping
             .updateAssociation(CHARLETH_SESSION_ADDRESS, ALITH_SESSION_ADDRESS)
             .signAsync(baltathar),
           { allowFailures: true }
         );
 
-        expect(error.name).to.equal("AlreadyAssociated");
+        expect(result!.error!.name).to.equal("AlreadyAssociated");
 
         //check state
-        expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).account).to.eq(alith.address);
+        expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
+          alith.address
+        );
       },
     });
   },

@@ -14,16 +14,16 @@ describeSuite({
         // we use modexp here because it allows us to send large-ish transactions
         const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
-        // directly call the modexp precompile with a large txn. this precompile lets us do two things
-        // which are useful:
+        // directly call the modexp precompile with a large txn. this precompile lets us do two
+        // things which are useful:
         //
         // 1. specify an input length up to 1024 for each of mod, exp, and base
         // 2. returns early and uses little gas (200) if all ore 0
         //
-        // This allows us to create an Ethereum transaction whose fee is largely made up of Ethereum's
-        // per-byte length fee (reminder: this is 4 gas for a 0 and 16 for any non-zero byte). What we
-        // want to show is that this length fee is applied but our exponential LengthToFee (part of our
-        // Substrate-based fees) is not applied.
+        // This allows us to create an Ethereum transaction whose fee is largely made up of
+        // Ethereum's per-byte length fee (reminder: this is 4 gas for a 0 and 16 for any non-zero
+        // byte). What we want to show is that this length fee is applied but our exponential
+        // LengthToFee (part of our Substrate-based fees) is not applied.
 
         const tx = createRawTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,

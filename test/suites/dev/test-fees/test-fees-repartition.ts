@@ -1,14 +1,6 @@
 import "@moonbeam-network/api-augment";
-import {
-  TransactionTypes,
-  describeSuite,
-  expect,
-  extractInfo,
-  filterAndApply,
-} from "@moonwall/cli";
+import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, TREASURY_ACCOUNT, createRawTransfer, extractFee } from "@moonwall/util";
-import type { u128 } from "@polkadot/types-codec";
-import { AccountId20, EventRecord } from "@polkadot/types/interfaces";
 
 describeSuite({
   id: "D1505",
@@ -48,10 +40,8 @@ describeSuite({
             await context.polkadotJs().query.balances.totalIssuance()
           ).toBigInt();
 
-            
-
           const treasuryIncrease = balAfter - balBefore;
-          const fee = extractFee(result!.events)!.amount.toBigInt();
+          const fee = extractFee(result?.events)!.amount.toBigInt();
           expect(fee / treasuryIncrease, "20% of the fees should go to treasury").to.equal(5n);
 
           const issuanceDecrease = issuanceBefore - issuanceAfter;

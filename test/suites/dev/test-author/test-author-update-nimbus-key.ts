@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { charleth, dorothy, getBlockExtrinsic } from "@moonwall/util";
+import {
+  CHARLETH_ADDRESS,
+  charleth,
+  dorothy,
+  getBlockExtrinsic,
+  DOROTHY_ADDRESS,
+} from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
@@ -12,7 +18,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D216",
+  id: "D0216",
   title: "Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -20,11 +26,11 @@ describeSuite({
 
     beforeAll(async function () {
       api = context.polkadotJs({ type: "moon" });
-      await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(charleth);
+      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);
       await context.createBlock();
 
       // Setting same key but with ethan
-      await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(dorothy);
+      await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(dorothy);
       await context.createBlock();
     });
 
@@ -40,7 +46,7 @@ describeSuite({
         );
 
         expect(extrinsic).to.exist;
-        expect(resultEvent.method).to.equal("ExtrinsicFailed");
+        expect(resultEvent?.method).to.equal("ExtrinsicFailed");
       },
     });
 
@@ -73,7 +79,7 @@ describeSuite({
       id: "T04",
       title: "should not set nimbus lookup to Ethan",
       test: async function () {
-        const nimbusLookup = (await api.query.authorMapping.nimbusLookup(dorothy.address)) as any;
+        const nimbusLookup = await api.query.authorMapping.nimbusLookup(DOROTHY_ADDRESS);
         expect(nimbusLookup.isNone).to.be.true;
       },
     });
@@ -82,7 +88,7 @@ describeSuite({
       id: "T05",
       title: "should keep the same nimbus lookup to Faith",
       test: async function () {
-        const nimbusLookup = (await api.query.authorMapping.nimbusLookup(charleth.address)) as any;
+        const nimbusLookup = await api.query.authorMapping.nimbusLookup(CHARLETH_ADDRESS);
         expect(nimbusLookup.isSome).to.be.true;
         expect(nimbusLookup.unwrap().toString()).to.equal(originalKeys[0]);
       },

@@ -1,4 +1,3 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { blake2AsHex, createKeyMulti } from "@polkadot/util-crypto";
@@ -11,7 +10,6 @@ import {
   alith,
   baltathar,
 } from "@moonwall/util";
-
 
 // This test cases in this suite are dependent on each other, and must be run in order.
 // TODO: Make the test cases atomic

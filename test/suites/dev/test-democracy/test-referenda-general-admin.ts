@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import "@polkadot/api-augment"
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
+import "@polkadot/api-augment";
 
 describeSuite({
   id: "D0808",
@@ -53,7 +53,7 @@ describeSuite({
       test: async function () {
         const refInfo = await context.polkadotJs().query.referenda.referendumInfoFor(refIndex);
         const track = refInfo.unwrap().asOngoing.track.toString();
-        const tracks = context.polkadotJs().consts.referenda.tracks
+        const tracks = context.polkadotJs().consts.referenda.tracks;
         const trackName = tracks.find(([index, info]) => index.toString() == track)![1].name;
 
         expect(trackName.toString()).to.be.eq("general_admin");
