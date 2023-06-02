@@ -112,7 +112,14 @@ where
 	<Runtime as frame_system::Config>::RuntimeCall: From<ConvictionVotingCall<Runtime>>,
 	IndexOf<Runtime>: TryFrom<u32> + TryInto<u32>,
 	ClassOf<Runtime>: TryFrom<u16> + TryInto<u16>,
-	Runtime: Polling<<Runtime as pallet_conviction_voting::Config>::Polls>,
+	<Runtime as pallet_conviction_voting::Config>::Polls: Polling<
+		Tally<
+			<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
+				<Runtime as frame_system::Config>::AccountId,
+			>>::Balance,
+			<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
+		>,
+	>,
 {
 	/// Internal helper function for vote* extrinsics exposed in this precompile.
 	fn vote(
@@ -458,8 +465,13 @@ where
 		// ClassLocksFor: Twox64Concat(8) + 20 + BoundedVec(TransInfo::Id(2) * ClassCountOf)
 		handle.record_db_read::<Runtime>(
 			28 + ((2 * frame_support::traits::ClassCountOf::<
-				Runtime,
 				<Runtime as pallet_conviction_voting::Config>::Polls,
+				Tally<
+					<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
+						<Runtime as frame_system::Config>::AccountId,
+					>>::Balance,
+					<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
+				>,
 			>::get()) as usize),
 		)?;
 
