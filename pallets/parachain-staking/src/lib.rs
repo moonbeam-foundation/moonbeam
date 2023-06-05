@@ -1148,6 +1148,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// DEPRECATED use delegateWithAutoCompound
 		/// If caller is not a delegator and not a collator, then join the set of delegators
 		/// If caller is a delegator, then makes delegation to change their delegation state
 		#[pallet::call_index(17)]
