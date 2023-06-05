@@ -66,10 +66,7 @@ pub mod pallet {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn weight_of_erc20_transfer() -> Weight {
-			pallet_evm::FixedGasWeightMapping::<T>::gas_to_weight(
-				T::Erc20TransferGasLimit::get(),
-				true,
-			)
+			T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true)
 		}
 		fn erc20_transfer(
 			erc20_contract_address: H160,
@@ -85,10 +82,8 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
-			let weight_limit = pallet_evm::FixedGasWeightMapping::<T>::gas_to_weight(
-				T::Erc20TransferGasLimit::get(),
-				true,
-			);
+			let weight_limit =
+				T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true);
 
 			let exec_info = T::EvmRunner::call(
 				from,
