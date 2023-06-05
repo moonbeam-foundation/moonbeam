@@ -35,14 +35,18 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
+        const nonce = await context
+        .viemClient("public")
+        .getTransactionCount({ address: CHARLETH_ADDRESS });
+
         const tx1 = await createRawTransfer(context, CHARLETH_ADDRESS, 1, {
-          nonce: 0,
+          nonce,
           gasPrice: parseGwei("15"),
           privateKey: BALTATHAR_PRIVATE_KEY,
           type: "legacy"
         });
         const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
-          nonce: 0,
+          nonce,
           gasPrice: parseGwei("10"),
           privateKey: BALTATHAR_PRIVATE_KEY,
           type: "legacy"
@@ -70,7 +74,7 @@ describeSuite({
         await context.createBlock(tx1);
 
         const tx2 = await createRawTransfer(context, CHARLETH_ADDRESS, 2, {
-          nonce,
+          nonce: 0,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
         expect(
