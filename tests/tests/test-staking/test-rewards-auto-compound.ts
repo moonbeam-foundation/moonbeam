@@ -387,8 +387,6 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       ])
     );
 
-    // fill all delegations, we split this into multiple blocks as it will not fit into one.
-    // we use a maxDelegationCount here, since the transactions can come out of order.
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
@@ -397,6 +395,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       )
     );
 
+    // fill all delegations, we split this into multiple blocks as it will not fit into one.
+    // we use a maxDelegationCount here, since the transactions can come out of order.
     for (const delChunk of chunk(otherDelegators, 8)) {
       await expectOk(
         context.createBlock(
