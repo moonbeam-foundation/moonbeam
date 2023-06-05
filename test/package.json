@@ -14,8 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2302.0",
-    "@moonwall/cli": "^0.5.22",
-    "@moonwall/util": "^0.5.22",
+    "@moonwall/cli": "link:../../moonwall/packages/cli",
+    "@moonwall/util": "link:../../moonwall/packages/util",
     "@polkadot/api": "^10.7.3",
     "@polkadot/api-augment": "^10.7.3",
     "@polkadot/types": "^10.7.3",
