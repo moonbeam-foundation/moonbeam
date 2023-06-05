@@ -318,6 +318,9 @@ pub fn get_address_type<R: pallet_evm::Config>(
 	handle: &mut impl PrecompileHandle,
 	address: H160,
 ) -> Result<AddressType, ExitError> {
+	// AccountCodesMetadata:
+	// Blake2128(16) + H160(20) + CodeMetadata(40)
+	handle.record_db_read::<R>(76)?;
 	let code_len = pallet_evm::Pallet::<R>::account_code_metadata(address).size;
 
 	// 0 => either EOA or precompile without dummy code
