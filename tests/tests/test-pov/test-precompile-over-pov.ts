@@ -12,7 +12,7 @@ import { createContract, createTransaction } from "../../util/transactions";
 import { PRECOMPILE_BATCH_ADDRESS, MAX_ETH_POV_PER_TX } from "../../util/constants";
 import { Contract } from "web3-eth-contract";
 import { expectEVMResult } from "../../util/eth-transactions";
-import {deployHeavyContracts, HeavyContract} from "./test-evm-over-pov";
+import { deployHeavyContracts, HeavyContract } from "./test-evm-over-pov";
 import { customWeb3Request } from "../../util/providers";
 const debug = Debug("test:precompile-over-pov");
 
@@ -40,8 +40,8 @@ describeDevMoonbeam("PoV precompile test", (context) => {
 
     // Get the interface for Batch precompile
     batchInterface = new ethers.utils.Interface(
-        getCompiled("precompiles/batch/Batch").contract.abi
-      );
+      getCompiled("precompiles/batch/Batch").contract.abi
+    );
   });
 
   it("gas cost should have increased with POV", async function () {
@@ -55,17 +55,18 @@ describeDevMoonbeam("PoV precompile test", (context) => {
           [],
           [
             proxyInterface.encodeFunctionData("callRange", [
-              contracts[0].account, contracts[MAX_CONTRACTS].account
+              contracts[0].account,
+              contracts[MAX_CONTRACTS].account,
             ]),
           ],
           [],
         ]),
-        gas: 1_000_000
+        gas: 1_000_000,
       })
-    ); 
+    );
 
     // With 1M gas we are allowed to use ~250k of POV, so verify the range.
-    // The tx is still included in the block because it contains the failed tx, 
+    // The tx is still included in the block because it contains the failed tx,
     // so POV is included in the block as well.
     expect(block.proof_size).to.be.at.least(230_000);
     expect(block.proof_size).to.be.at.most(290_000);
@@ -73,7 +74,7 @@ describeDevMoonbeam("PoV precompile test", (context) => {
     expectEVMResult(result.events, "Error", "OutOfGas");
   });
 
-it("should be able to create a block using the estimated amount of gas", async function () {
+  it("should be able to create a block using the estimated amount of gas", async function () {
     const { result, block } = await context.createBlock(
       createTransaction(context, {
         to: PRECOMPILE_BATCH_ADDRESS,
@@ -82,20 +83,21 @@ it("should be able to create a block using the estimated amount of gas", async f
           [],
           [
             proxyInterface.encodeFunctionData("callRange", [
-              contracts[0].account, contracts[MAX_CONTRACTS].account
+              contracts[0].account,
+              contracts[MAX_CONTRACTS].account,
             ]),
           ],
           [],
-        ])
+        ]),
       })
-    ); 
+    );
     expect(block.proof_size).to.be.at.least(EXPECTED_POV_ROUGH / 1.3);
     expect(block.proof_size).to.be.at.most(EXPECTED_POV_ROUGH * 1.3);
     expect(result.successful).to.equal(true);
     expectEVMResult(result.events, "Succeed", "Returned");
   });
 
-  it("should allow to include a precompile tx with enough gas limit to cover PoV", async function () {
+  it("should allow to call a precompile tx with enough gas limit to cover PoV", async function () {
     const { result, block } = await context.createBlock(
       createTransaction(context, {
         to: PRECOMPILE_BATCH_ADDRESS,
@@ -104,14 +106,15 @@ it("should be able to create a block using the estimated amount of gas", async f
           [],
           [
             proxyInterface.encodeFunctionData("callRange", [
-              contracts[0].account, contracts[MAX_CONTRACTS].account
+              contracts[0].account,
+              contracts[MAX_CONTRACTS].account,
             ]),
           ],
           [],
         ]),
-        gas: 6_000_000
+        gas: 6_000_000,
       })
-    ); 
+    );
     expect(block.proof_size).to.be.at.least(EXPECTED_POV_ROUGH / 1.3);
     expect(block.proof_size).to.be.at.most(EXPECTED_POV_ROUGH * 1.3);
     expect(result.successful).to.equal(true);
