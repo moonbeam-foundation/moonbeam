@@ -112,6 +112,8 @@ pub type LocationToAccountId = (
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// Generate remote accounts according to polkadot standards
 	xcm_builder::ForeignChainAliasAccount<AccountId>,
+	// Mapping Tinkernet multisig to the correctly derived AccountId32.
+	invarch_xcm_builder::TinkernetMultisigAsAccountId<AccountId>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -219,6 +221,8 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognised.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
+	// Derives signed AccountId32 origins for Tinkernet multisigs.
+	invarch_xcm_builder::DeriveOriginFromTinkernetMultisig<RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	pallet_xcm::XcmPassthrough<RuntimeOrigin>,
 	// Xcm Origins defined by a Multilocation of type AccountKey20 can be converted to a 20 byte-
