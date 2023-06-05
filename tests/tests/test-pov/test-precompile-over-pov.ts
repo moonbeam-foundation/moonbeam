@@ -147,7 +147,7 @@ describeDevMoonbeam("PoV precompile test - PoV Limit (3.5Mb in Dev)", (context) 
     );
   });
 
-  it("should allow to produce block just under the PoV Limit with a precompile tx", async function () {
+  it("should allow to produce block under the PoV Limit with precompile tx", async function () {
     const max_contracts = MAX_ETH_POV_PER_TX / 24_000n - 1n;
 
     const { result, block } = await context.createBlock(
@@ -172,7 +172,7 @@ describeDevMoonbeam("PoV precompile test - PoV Limit (3.5Mb in Dev)", (context) 
     expect(result.successful).to.equal(true);
   });
 
-  it("should prevent a transaction reaching just over the PoV with a precompile tx", async function () {
+  it("should prevent a tx reaching just over the PoV with a precompile tx", async function () {
     const max_contracts = MAX_ETH_POV_PER_TX / 24_000n;
 
     const { result, block } = await context.createBlock(

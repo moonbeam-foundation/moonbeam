@@ -189,9 +189,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       ]),
     };
     delete payload["gas"];
-    await context.createBlock(
-      createTransaction(context, payload)
-    );
+    await context.createBlock(createTransaction(context, payload));
 
     // Tokens transferred
     const testAccountBalance = (
@@ -240,9 +238,7 @@ describeDevMoonbeam(
       };
       delete payload["gas"];
 
-      const { result } = await context.createBlock(
-        createTransaction(context, payload)
-      );
+      const { result } = await context.createBlock(createTransaction(context, payload));
       expectEVMResult(result.events, "Revert");
 
       const revertReason = await extractRevertReason(result.hash, context.ethers);
@@ -295,9 +291,7 @@ describeDevMoonbeam(
       };
       delete payload["gas"];
 
-      const { result } = await context.createBlock(
-        createTransaction(context, payload)
-      );
+      const { result } = await context.createBlock(createTransaction(context, payload));
       expectEVMResult(result.events, "Revert");
 
       const revertReason = await extractRevertReason(result.hash, context.ethers);
