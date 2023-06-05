@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "../../../precompiles/proxy/Proxy.sol";
-import "../../../precompiles/parachain-staking/StakingInterface.sol";
+import "precompiles/proxy/Proxy.sol";
+import "precompiles/parachain-staking/StakingInterface.sol";
 
 /// @notice Smart contract to demonstrate how to use Proxy::call
 contract ProxyCallStakingDemo {

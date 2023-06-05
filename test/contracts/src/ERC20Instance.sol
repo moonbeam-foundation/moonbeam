@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "../../../precompiles/assets-erc20/ERC20.sol";
+import "precompiles/assets-erc20/ERC20.sol";
 
 contract ERC20Instance is IERC20 {
     /// The ierc20 at the known pre-compile address.

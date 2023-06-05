@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { deployCreateCompiledContract } from "@moonwall/util";
+import { describeSuite, expect, beforeAll, deployCreateCompiledContract } from "@moonwall/cli";
 import { TransactionReceipt } from "viem";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 

@@ -3,7 +3,7 @@ import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, TREASURY_ACCOUNT, createRawTransfer, extractFee } from "@moonwall/util";
 
 describeSuite({
-  id: "D1505",
+  id: "D1605",
   title: "Fees - Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

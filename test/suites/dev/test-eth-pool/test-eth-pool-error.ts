@@ -10,6 +10,7 @@ import {
   sendRawTransaction,
 } from "@moonwall/util";
 import { customDevRpcRequest } from "../../../helpers/common.js";
+import { parseGwei } from "viem";
 
 describeSuite({
   id: "D1102",
@@ -36,13 +37,15 @@ describeSuite({
       test: async function () {
         const tx1 = await createRawTransfer(context, CHARLETH_ADDRESS, 1, {
           nonce: 0,
-          gasPrice: 20_000_000_000_000n,
+          gasPrice: parseGwei("15"),
           privateKey: BALTATHAR_PRIVATE_KEY,
+          type: "legacy"
         });
         const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
           nonce: 0,
-          gasPrice: 10_000_000_000_000n,
+          gasPrice: parseGwei("10"),
           privateKey: BALTATHAR_PRIVATE_KEY,
+          type: "legacy"
         });
         await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
         expect(

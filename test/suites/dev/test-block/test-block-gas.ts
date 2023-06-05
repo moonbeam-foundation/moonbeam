@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, deployCreateCompiledContract } from "@moonwall/util";
-import { getCompiled } from "../../../helpers/contracts.js";
+import { TransactionTypes, describeSuite, expect, deployCreateCompiledContract, fetchCompiledContract } from "@moonwall/cli";
+import { EXTRINSIC_GAS_LIMIT } from "@moonwall/util";
 
 describeSuite({
   id: "D0403",
@@ -47,11 +46,11 @@ describeSuite({
         );
         expect(await contract.read.getGasLimit([])).to.equal(15000000n);
 
-        const compiledContract = getCompiled("BlockVariables");
+        const {abi} = await fetchCompiledContract("BlockVariables");
         expect(
           await context.viemClient("public").readContract({
             address: contractAddress!,
-            abi: compiledContract.contract.abi,
+            abi,
             args: [],
             functionName: "getGasLimit",
           })

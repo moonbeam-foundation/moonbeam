@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTxn, deployCreateCompiledContract } from "@moonwall/util";
+import { TransactionTypes, beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, createEthersTxn } from "@moonwall/util";
 import { Abi } from "abitype";
 import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";

@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
+import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   createEthersTxn,
   createRawTransfer,
-  getCompiled,
   sendRawTransaction,
 } from "@moonwall/util";
 
@@ -21,10 +20,10 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: "should not be executed until condition is met",
         test: async function () {
-          const { byteCode, contract } = getCompiled("MultiplyBy7");
+          const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
-            abi: contract.abi,
-            bytecode: byteCode,
+            abi,
+            bytecode,
             args: [],
           });
           const { rawSigned } = await createEthersTxn(context, {
@@ -43,10 +42,10 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: "should be executed after condition is met",
         test: async function () {
-          const { byteCode, contract } = getCompiled("MultiplyBy7");
+          const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
-            abi: contract.abi,
-            bytecode: byteCode,
+            abi,
+            bytecode,
             args: [],
           });
           const nonce = await context

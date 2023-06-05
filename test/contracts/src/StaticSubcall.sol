@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "../../../precompiles/randomness/Randomness.sol";
+import "precompiles/randomness/Randomness.sol";
 
 contract StaticSubcall {
     Randomness public randomness =

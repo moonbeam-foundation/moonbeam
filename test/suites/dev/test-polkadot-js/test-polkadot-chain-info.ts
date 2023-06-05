@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D2202",
+  id: "D2302",
   title: "Web3Api Information",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

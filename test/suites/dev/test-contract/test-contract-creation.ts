@@ -1,10 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
+import {
+  TransactionTypes,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import RLP from "rlp";
 import { encodeDeployData, keccak256 } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { getCompiled } from "../../../helpers/contracts.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -23,12 +28,12 @@ describeSuite({
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) + 2}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: `${txnType} should return the contract code`,
         test: async () => {
-          const contractData = getCompiled("MultiplyBy7");
+          const contractData = await fetchCompiledContract("MultiplyBy7");
           const callCode = (
-            await context.viemClient("public").call({ data: contractData.byteCode })
+            await context.viemClient("public").call({ data: contractData.bytecode })
           ).data;
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           const deployedCode = await context
@@ -39,7 +44,7 @@ describeSuite({
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) + 3}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 7}`,
         title: `should not contain ${txnType}  contract at genesis`,
         test: async function () {
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
@@ -52,38 +57,15 @@ describeSuite({
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 10}`,
         title: `${txnType} deployed contracts should store the code on chain`,
         test: async function () {
           // This is to enable pending tag support
           await context.createBlock();
-          const code =
-            "0x608060405234801561005d5760405162461bcd60e51b815260206004820152602260248201527f" +
-            "4574686572" +
-            "2073656e7420746f206e6f6e2d70617961626c652066756e637469604482019081526137b760f11b" +
-            "6064830152" +
-            "608482fd5b50600436106100785760003560e01c8063c6888fa1146100dd575b60405162461bcd60" +
-            "e51b815260" +
-            "206004820152603560248201527f436f6e747261637420646f6573206e6f7420686176652066616c" +
-            "6c6261636b" +
-            "2060448201908152746e6f7220726563656976652066756e6374696f6e7360581b60648301526084" +
-            "82fd5b6100" +
-            "f06100eb366004610115565b610102565b60405190815260200160405180910390f35b600061010f" +
-            "8260076101" +
-            "79565b92915050565b6000602082840312156101725760405162461bcd60e51b8152602060048201" +
-            "5260226024" +
-            "8201527f414249206465636f64696e673a207475706c65206461746120746f6f2073686f60448201" +
-            "52611c9d60" +
-            "f21b6064820152608481fd5b5035919050565b808202811582820484141761010f57634e487b7160" +
-            "e01b600052" +
-            "601160045260246000fdfea26469706673582212201908894ace7c2455a9a9c3f237348fbb18e181" +
-            "47a95c2fd7" +
-            "096a971132e2f57f64736f6c63430008130033";
-
-          const compiled = getCompiled("MultiplyBy7");
+          const compiled = await fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
-            abi: compiled.contract.abi,
-            bytecode: compiled.byteCode,
+            abi: compiled.abi,
+            bytecode: compiled.bytecode,
             args: [],
           }) as `0x${string}`;
 
@@ -102,7 +84,7 @@ describeSuite({
             await context
               .viemClient("public")
               .getBytecode({ address: contractAddress, blockTag: "pending" })
-          ).to.deep.equal(code);
+          ).to.deep.equal(compiled.deployedBytecode);
 
           await context.createBlock();
 
@@ -110,12 +92,12 @@ describeSuite({
             await context
               .viemClient("public")
               .getBytecode({ address: contractAddress, blockTag: "latest" })
-          ).to.deep.equal(code);
+          ).to.deep.equal(compiled.deployedBytecode);
         },
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) + 5}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 13}`,
         title: `should check latest block fees for ${txnType}`,
         test: async function () {
           await context.createBlock();

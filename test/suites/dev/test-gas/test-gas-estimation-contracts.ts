@@ -1,16 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  PRECOMPILE_BATCH_ADDRESS,
-  deployCreateCompiledContract,
-  getCompiled,
-} from "@moonwall/util";
-import { customDevRpcRequest } from "../../../helpers/common.js";
+import { deployCreateCompiledContract, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
+import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D1703",
+  id: "D1803",
   title: "Estimate Gas - Contract estimation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -34,20 +29,20 @@ describeSuite({
       id: "T02",
       title: "eth_estimateGas 0x0 gasPrice is equivalent to not setting one",
       test: async function () {
-        const { byteCode } = getCompiled("Incrementor");
+        const { bytecode } = await fetchCompiledContract("Incrementor");
 
         const result = await context.viemClient("public").estimateGas({
           account: ALITH_ADDRESS,
-          data: byteCode,
+          data: bytecode,
           gasPrice: 0n,
         });
-        expect(result).to.equal(174759n);
+        expect(result).to.equal(116427n);
 
         const result2 = await context.viemClient("public").estimateGas({
           account: ALITH_ADDRESS,
-          data: byteCode,
+          data: bytecode,
         });
-        expect(result2).to.equal(174759n);
+        expect(result2).to.equal(116427n);
       },
     });
 
@@ -63,7 +58,7 @@ describeSuite({
           context,
           "MultiplyBy7"
         );
-        const batchAbi = getCompiled("precompiles/batch/Batch").contract.abi;
+        const batchAbi = (await fetchCompiledContract("Batch")).abi;
 
         const callParameters = [
           [proxyAddress, proxyAddress],
@@ -136,13 +131,13 @@ describeSuite({
       id: "T04",
       title: "Non-transactional calls allowed from e.g. precompile address",
       test: async function () {
-        const { byteCode } = getCompiled("MultiplyBy7");
+        const { bytecode } = await fetchCompiledContract("MultiplyBy7");
         expect(
           await context.viemClient("public").estimateGas({
             account: PRECOMPILE_BATCH_ADDRESS,
-            data: byteCode,
+            data: bytecode,
           })
-        ).toBe(156994n);
+        ).toBe(104055n);
       },
     });
 

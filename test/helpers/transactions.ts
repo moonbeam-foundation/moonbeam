@@ -1,35 +1,27 @@
 import { AccessListish } from "@ethersproject/transactions";
-import { RlpStructuredData, TransactionRequest, ethers } from "ethers";
-import * as RLP from "rlp";
-import { Contract } from "web3";
 import {
-  alith,
-  ALITH_PRIVATE_KEY,
   ALITH_ADDRESS,
-  baltathar,
-  BALTATHAR_PRIVATE_KEY,
-  charleth,
-  CHARLETH_PRIVATE_KEY,
-  dorothy,
-  DOROTHY_PRIVATE_KEY,
-  ethan,
-  ETHAN_PRIVATE_KEY,
+  ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
   DOROTHY_ADDRESS,
+  DOROTHY_PRIVATE_KEY,
   ETHAN_ADDRESS,
+  ETHAN_PRIVATE_KEY,
 } from "@moonwall/util";
-import { getCompiled } from "./contracts.js";
-// import { customWeb3Request } from "./providers";
+import { ethers } from "ethers";
+import * as RLP from "rlp";
+import { Contract, ContractAbi } from "web3";
+import { DevModeContext, EthTransactionType, MoonwallContext, fetchCompiledContract } from "@moonwall/cli";
 import { customDevRpcRequest } from "./common.js";
-import { DevModeContext, MoonwallContext, EthTransactionType } from "@moonwall/cli";
-import { expectEVMResult } from "./eth-transactions.js";
 
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { FMT_BYTES, FMT_NUMBER } from "web3";
 import { keccak256 } from "viem";
+import { FMT_BYTES, FMT_NUMBER } from "web3";
 const debug = require("debug")("test:transaction");
 
 export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
@@ -283,7 +275,7 @@ export async function createContract(
   options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract<any[]>; contractAddress: string }> {
-  const contractCompiled = getCompiled(contractName);
+  const contractCompiled = await fetchCompiledContract(contractName);
   const from = options.from !== undefined ? options.from : ALITH_ADDRESS;
   const nonce =
     options.nonce ||
@@ -294,10 +286,10 @@ export async function createContract(
       .slice(12)
       .substring(14);
 
-  const contract = new Contract(contractCompiled.contract.abi, contractAddress);
+  const contract = new Contract(contractCompiled.abi as ContractAbi, contractAddress);
   const data = contract
     .deploy({
-      data: contractCompiled.byteCode,
+      data: contractCompiled.bytecode,
       arguments: contractArguments as any,
     })
     .encodeABI();

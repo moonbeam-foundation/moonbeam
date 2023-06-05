@@ -23,7 +23,7 @@ const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
 const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
-  id: "D1801",
+  id: "D1901",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

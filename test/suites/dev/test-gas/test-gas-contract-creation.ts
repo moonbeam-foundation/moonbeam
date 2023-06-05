@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, getCompiled } from "@moonwall/util";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D1701",
+  id: "D1801",
   title: "Estimate Gas - Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -11,13 +11,13 @@ describeSuite({
       id: "T01",
       title: "should return contract creation gas cost",
       test: async function () {
-        const contract = getCompiled("MultiplyBy7");
+        const {bytecode} = await fetchCompiledContract("MultiplyBy7");
         expect(
           await context.viemClient("public").estimateGas({
             account: ALITH_ADDRESS,
-            data: contract.byteCode,
+            data: bytecode,
           })
-        ).to.equal(156994n);
+        ).to.equal(104055n);
       },
     });
   },

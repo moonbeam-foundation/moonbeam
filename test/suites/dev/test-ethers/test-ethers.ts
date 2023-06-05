@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { getCompiled } from "@moonwall/util";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ethers } from "ethers";
 
 describeSuite({
@@ -20,10 +19,10 @@ describeSuite({
       id: "T02",
       title: "should be deployable",
       test: async function () {
-        const contractData = getCompiled("MultiplyBy7");
+        const {abi,bytecode} = await fetchCompiledContract("MultiplyBy7");
         const contractFactory = new ethers.ContractFactory(
-          contractData.contract.abi as ethers.InterfaceAbi,
-          contractData.byteCode,
+          abi as ethers.InterfaceAbi,
+          bytecode,
           context.ethersSigner()
         );
 
@@ -44,10 +43,10 @@ describeSuite({
       id: "T03",
       title: "should be callable",
       test: async function () {
-        const contractData = getCompiled("MultiplyBy7");
+        const contractData = await fetchCompiledContract("MultiplyBy7");
         const contractFactory = new ethers.ContractFactory(
-          contractData.contract.abi as ethers.InterfaceAbi,
-          contractData.byteCode,
+          contractData.abi as ethers.InterfaceAbi,
+          contractData.bytecode,
           context.ethersSigner()
         );
 
@@ -70,7 +69,7 @@ describeSuite({
         // Instantiate contract from address
         const contractFromAddress = new ethers.Contract(
           await deployed.getAddress(),
-          contractData.contract.abi as ethers.InterfaceAbi,
+          contractData.abi as ethers.InterfaceAbi,
           context.ethersSigner()
         );
         await context.createBlock();

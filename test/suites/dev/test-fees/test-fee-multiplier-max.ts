@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { alith, baltathar, createEthersTxn, deployCreateCompiledContract } from "@moonwall/util";
+import { beforeEach, describeSuite, expect , deployCreateCompiledContract} from "@moonwall/cli";
+import { alith, baltathar, createEthersTxn  } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 
@@ -12,7 +12,7 @@ import { encodeFunctionData } from "viem";
 // number used internally by transaction-payment for fee calculations.
 
 describeSuite({
-  id: "D1502",
+  id: "D1602",
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -142,7 +142,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viemClient("public").getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124_880_903_689_844n);
+        expect(baseFeePerGas).to.equal(124878911539877n);
 
         const { rawSigned } = await createEthersTxn(context, {
           to: contractAddress,
@@ -151,7 +151,7 @@ describeSuite({
             functionName: "fib2",
             args: [370],
           }),
-          gasLimit: 95985, // Replace this if OPCODE prices change
+          gasLimit: 96234, // Replace this if OPCODE prices change
           gasPrice: baseFeePerGas,
           txnType: "legacy",
         });
@@ -166,7 +166,7 @@ describeSuite({
           ({ event }) => event.method == "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
-        expect(weight).to.equal(2_396_800_000n);
+        expect(weight).to.equal(2405850000n);
 
         const withdrawEvents = interactionResult?.events.filter(
           ({ event }) => event.method == "Withdraw"
@@ -174,7 +174,7 @@ describeSuite({
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(11_986_693_540_669_676_340n);
+        expect(amount).to.equal(12017597173128523218n);
       },
     });
   },

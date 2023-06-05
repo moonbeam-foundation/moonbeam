@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll, TransactionTypes } from "@moonwall/cli";
+import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS, createEthersTxn } from "@moonwall/util";
-import { encodeDeployData, encodeFunctionData } from "viem";
-import { getCompiled } from "../../../helpers/contracts.js";
+import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D0604",
@@ -14,10 +13,10 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: "should contain event",
         test: async function () {
-          const { byteCode, contract } = getCompiled("EventEmitter");
+          const { abi, bytecode } = await fetchCompiledContract("EventEmitter");
 
           const { rawSigned } = await createEthersTxn(context, {
-            data: encodeDeployData({ abi: contract.abi, bytecode: byteCode, args: [] }),
+            data: encodeDeployData({ abi, bytecode, args: [] }),
             txnType,
             gasLimit: 10_000_000,
           });

@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
+import { describeSuite, expect, TransactionTypes , deployCreateCompiledContract} from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
-import { deployCreateCompiledContract, createEthersTxn } from "@moonwall/util";
+import { createEthersTxn } from "@moonwall/util";
 
 describeSuite({
   id: "D0608",
@@ -13,15 +13,15 @@ describeSuite({
     const TestParameters = [
       {
         loop: 1n,
-        gas: 43779n,
+        gas: 43769n,
       },
       {
         loop: 500n,
-        gas: 242393n,
+        gas: 237393n,
       },
       {
         loop: 600n,
-        gas: 282193n,
+        gas: 276193n,
       },
     ];
 

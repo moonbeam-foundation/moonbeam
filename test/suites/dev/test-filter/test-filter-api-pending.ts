@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D1602",
+  id: "D1702",
   title: "Filter Pending Transaction API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

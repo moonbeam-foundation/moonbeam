@@ -1,5 +1,5 @@
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { deployCreateCompiledContract } from "@moonwall/util";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+
 
 describeSuite({
   id: "D0610",

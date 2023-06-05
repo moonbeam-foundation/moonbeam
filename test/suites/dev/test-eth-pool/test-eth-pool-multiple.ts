@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { encodeDeployData } from "viem";
-import { getCompiled } from "../../../helpers/contracts.js";
 
 /*
   At rpc-level, there is no interface for retrieving emulated pending transactions - emulated
@@ -22,10 +21,10 @@ describeSuite({
     let txHashes: string[];
 
     beforeAll(async function () {
-      const { byteCode, contract } = getCompiled("MultiplyBy7");
+      const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
       const callData = encodeDeployData({
-        abi: contract.abi,
-        bytecode: byteCode,
+        abi,
+        bytecode,
         args: [],
       });
 

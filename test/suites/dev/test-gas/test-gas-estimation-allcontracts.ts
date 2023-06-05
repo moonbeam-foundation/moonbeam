@@ -5,21 +5,21 @@ import {
   beforeAll,
   describeSuite,
   expect,
+  fetchCompiledContract,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTxn, faith, getCompiled } from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTxn, faith, getAllCompiledContracts } from "@moonwall/util";
 import { AbiConstructor } from "abitype";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";
 import { customDevRpcRequest } from "../../../helpers/common.js";
-import { getAllContracts } from "../../../helpers/contracts.js";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({
-  id: "D1702",
+  id: "D1802",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    const contractNames = getAllContracts();
+    const contractNames = getAllCompiledContracts("contracts/out", true);
 
     beforeAll(async function () {
       // Estimation for storage need to happen in a block > than genesis.
@@ -47,8 +47,8 @@ describeSuite({
           id: `T${calculateTestCaseNumber(contractName, txnType).toString().padStart(2, "0")}`,
           title: `should be enough for contract ${contractName} via ${txnType}`,
           test: async function () {
-            const { byteCode, contract } = getCompiled(contractName);
-            const constructorAbi = contract.abi.find(
+            const { bytecode, abi } = await fetchCompiledContract(contractName);
+            const constructorAbi = abi.find(
               (call) => call.type == "constructor"
             ) as AbiConstructor;
             // ask RPC for an gas estimate of deploying this contract
@@ -72,9 +72,9 @@ describeSuite({
               : [];
 
             const callData = encodeDeployData({
-              abi: contract.abi,
+              abi,
               args,
-              bytecode: byteCode,
+              bytecode
             });
 
             let estimate: bigint;

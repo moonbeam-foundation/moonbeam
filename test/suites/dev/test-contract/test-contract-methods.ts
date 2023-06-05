@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
+import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS,  } from "@moonwall/util";
 import { Abi } from "abitype";
 import { encodeFunctionData } from "viem";
 
@@ -60,7 +59,7 @@ describeSuite({
     it({
       id: "T04",
       title: "should fail for call method with missing parameters",
-      test: async function () {
+      test: async function () {       
         expect(
           async () =>
             await context.viemClient("public").call({
@@ -73,7 +72,7 @@ describeSuite({
               }),
             }),
           "Execution succeeded but should have failed"
-        ).rejects.toThrowError("revert Contract does not have fallback nor receive functions");
+        ).rejects.toThrowError("VM Exception while processing transaction: revert");
       },
     });
 
@@ -101,7 +100,7 @@ describeSuite({
               }),
             }),
           "Execution succeeded but should have failed"
-        ).rejects.toThrowError("revert Contract does not have fallback nor receive functions");
+        ).rejects.toThrowError("VM Exception while processing transaction: revert");
       },
     });
 
@@ -132,7 +131,7 @@ describeSuite({
               }),
             }),
           "Execution succeeded but should have failed"
-        ).rejects.toThrowError("revert Contract does not have fallback nor receive functions");
+        ).rejects.toThrowError("VM Exception while processing transaction: revert");
       },
     });
   },

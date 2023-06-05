@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
 import { customDevRpcRequest } from "../../../helpers/common.js";
-import { getCompiled } from "../../../helpers/contracts.js";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
@@ -29,12 +28,12 @@ describeSuite({
       let nonce = await context
         .viemClient("public")
         .getTransactionCount({ address: ALITH_ADDRESS });
-      const contractData = getCompiled("MultiplyBy7");
+      const contractData = await fetchCompiledContract("MultiplyBy7");
       for (var b = 0; b < block_count; b++) {
         for (var p = 0; p < priority_fees.length; p++) {
           await context.ethersSigner().sendTransaction({
             from: ALITH_ADDRESS,
-            data: contractData.byteCode,
+            data: contractData.bytecode,
             value: "0x00",
             maxFeePerGas: max_fee_per_gas,
             maxPriorityFeePerGas: numberToHex(priority_fees[p]),
@@ -99,7 +98,7 @@ describeSuite({
           feeResults.baseFeePerGas.length,
           "baseFeePerGas should always the requested block range + 1 (the next derived base fee)"
         ).toBe(block_count + 1);
-        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0311562));
+        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0200514));
         expect(
           feeResults.reward.length,
           "should return two-dimensional reward list for the requested block range"

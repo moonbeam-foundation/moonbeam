@@ -12,7 +12,7 @@ import { BN } from "@polkadot/util";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
-  id: "D1803",
+  id: "D1903",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

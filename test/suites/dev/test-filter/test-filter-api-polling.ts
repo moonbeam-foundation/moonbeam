@@ -1,11 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect , deployCreateCompiledContract} from "@moonwall/cli";
 import { customDevRpcRequest } from "../../../helpers/common.js";
-import { toHex } from "viem";
-import { deployCreateCompiledContract } from "@moonwall/util";
 
 describeSuite({
-  id: "D1603",
+  id: "D1703",
   title: "Filter Block API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

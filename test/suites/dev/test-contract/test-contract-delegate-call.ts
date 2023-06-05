@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
+import { expect, describeSuite, beforeAll, deployCreateCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { deployCreateCompiledContract } from "@moonwall/util";
 import { Abi } from "abitype";
 
 const PRECOMPILE_PREFIXES = [

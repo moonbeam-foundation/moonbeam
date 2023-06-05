@@ -1,17 +1,17 @@
 import { u8aToHex, BN } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { DevModeContext } from "@moonwall/cli";
+import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
 import { web3EthCall, customWeb3Request, PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { getCompiled } from "../helpers/contracts.js";
+import { encodeFunctionData } from "viem";
 import { AssetMetadata } from "./assets.js";
 
-const XCM_UTILS_CONTRACT = getCompiled("precompiles/xcm-utils/XcmUtils");
-const XCM_UTILSTRANSACTOR_INTERFACE = XCM_UTILS_CONTRACT.contract.abi;
+const XCM_UTILS_CONTRACT = await fetchCompiledContract("XcmUtils");
+const XCM_UTILSTRANSACTOR_INTERFACE = XCM_UTILS_CONTRACT.abi;
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -82,30 +82,26 @@ export async function registerForeignAsset(
 ) {
   const api = context.polkadotJs({ type: "moon" });
   unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
-  const {
-    result: { events: eventsRegister },
-  } = await context.createBlock(
+  const { result } = await context.createBlock(
     api.tx.sudo.sudo(api.tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true))
   );
   // Look for assetId in events
-  const registeredAssetId = eventsRegister
+  const registeredAssetId = result?.events
     .find(({ event: { section } }) => section.toString() === "assetManager")!
     .event.data[0].toHex()
     .replace(/,/g, "");
 
   // setAssetUnitsPerSecond
-  const {
-    result: { events },
-  } = await context.createBlock(
+  const { result: result2 } = await context.createBlock(
     api.tx.sudo.sudo(
-      api.tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint)
+      api.tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
     )
   );
   // check asset in storage
   const registeredAsset = ((await api.query.assets.asset(registeredAssetId)) as any).unwrap();
   return {
     registeredAssetId,
-    events,
+    events: result2!.events,
     registeredAsset,
   };
 }
@@ -187,7 +183,11 @@ export async function injectHrmpMessage(
 export async function weightMessage(context: DevModeContext, message: XcmVersionedXcm) {
   const result = await web3EthCall(context.web3(), {
     to: PRECOMPILE_XCM_UTILS_ADDRESS,
-    data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [message.toU8a()]),
+    data: encodeFunctionData({
+      abi: XCM_UTILSTRANSACTOR_INTERFACE,
+      functionName: "weightMessage",
+      args: [message.toU8a()],
+    }),
   });
   console.log("remove");
   console.log(JSON.stringify(result)); // TODO: Remove me

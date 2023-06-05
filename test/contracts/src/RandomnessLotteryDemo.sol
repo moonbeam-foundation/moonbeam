@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "../../../precompiles/randomness/Randomness.sol";
-import {RandomnessConsumer} from "../../../precompiles/randomness/RandomnessConsumer.sol";
+import "precompiles/randomness/Randomness.sol";
+import {RandomnessConsumer} from "precompiles/randomness/RandomnessConsumer.sol";
 
 /// @notice Smart contract to demonstrate how to use requestLocalVRFRandomWords
 contract RandomnessLotteryDemo is RandomnessConsumer {

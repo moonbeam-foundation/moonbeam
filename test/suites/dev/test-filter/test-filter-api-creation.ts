@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { deployCreateCompiledContract } from "@moonwall/util";
+import { describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { customDevRpcRequest } from "../../../helpers/common.js";
 import { fromHex, toHex } from "viem";
 
 describeSuite({
-  id: "D1601",
+  id: "D1701",
   title: "Filter API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

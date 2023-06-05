@@ -9,7 +9,7 @@ import { customDevRpcRequest } from "../../../helpers/common.js";
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D1802",
+  id: "D1902",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

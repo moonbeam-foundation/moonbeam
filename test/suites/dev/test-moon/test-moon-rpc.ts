@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, createRawTransaction } from "@moonwall/util";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
 describeSuite({
-  id: "D1901",
+  id: "D2001",
   title: "Moon RPC Methods - moon_isBlockFinalized ",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

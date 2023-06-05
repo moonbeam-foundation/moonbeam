@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_PRIVATE_KEY, EXTRINSIC_GAS_LIMIT, createRawTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D1507",
+  id: "D1607",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, deployCreateCompiledContract } from "@moonwall/util";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { Abi } from "abitype";
 
 describeSuite({
-  id: "D1704",
+  id: "D1804",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
