@@ -107,6 +107,7 @@ describeSmokeSuite(
 
     testIt("C400", "should have matching indices for Staking.Bond", async function () {
       const callHex = context.relayApi.tx.staking
+      // @ts-ignore
         .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
         .method.toHex();
       const resp = await relayEncoder.encodeBond(
@@ -142,6 +143,7 @@ describeSmokeSuite(
     });
 
     testIt("C900", "should have matching indices for Staking.SetController", async function () {
+      // @ts-ignore
       const callHex = context.relayApi.tx.staking
         .setController(ALITH_SESSION_ADDRESS)
         .method.toHex();

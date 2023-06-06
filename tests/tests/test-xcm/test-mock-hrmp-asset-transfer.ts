@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ParaId } from "@polkadot/types/interfaces";
+import { XcmV3JunctionNetworkId } from "@polkadot/types/lookup";
 import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
-
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import {
@@ -362,11 +361,6 @@ describeDevMoonbeam(
         Plurality?: { id: any; part: any };
         GlobalConsensus?: "Any" | XcmV3JunctionNetworkId["type"];
       }
-
-      const timbo: MultiLocationSimple = {
-        parents: 1,
-        interior: {},
-      };
 
       const xcmMessage = new XcmFragment({
         assets: [
