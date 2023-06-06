@@ -5,14 +5,14 @@ import { Log } from "web3-core";
 import { JsonRpcResponse } from "web3-core-helpers";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
-
 import { typesBundlePre900 } from "moonbeam-types-bundle";
 import { alith, ALITH_PRIVATE_KEY } from "./accounts";
 import { MIN_GAS_PRICE } from "./constants";
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
-  return new Promise<JsonRpcResponse>((resolve, reject) => {
-    (web3.currentProvider as any).request(
+  return await new Promise<JsonRpcResponse>((resolve, reject) => {
+    //@ts-expect-error
+    web3.currentProvider.send(
       {
         jsonrpc: "2.0",
         id: 1,

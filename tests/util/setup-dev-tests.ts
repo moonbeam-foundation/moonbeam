@@ -4,22 +4,21 @@ import { EventRecord } from "@polkadot/types/interfaces";
 import { RegistryError } from "@polkadot/types/types";
 import { ChildProcess } from "child_process";
 import { ethers } from "ethers";
+import { describe } from "mocha";
 import { HttpProvider } from "web3-core";
-
 import { alith } from "./accounts";
 import { createAndFinalizeBlock } from "./block";
 import { DEBUG_MODE, SPAWNING_TIME } from "./constants";
 import { RuntimeChain, startMoonbeamDevNode, startMoonbeamForkedNode } from "./dev-node";
 import {
-  customWeb3Request,
   EnhancedWeb3,
+  customWeb3Request,
   provideEthersApi,
   providePolkadotApi,
   provideWeb3Api,
 } from "./providers";
-import { extractError, ExtrinsicCreation } from "./substrate-rpc";
+import { ExtrinsicCreation, extractError } from "./substrate-rpc";
 
-import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 const debug = require("debug")("test:setup");
 
 export interface BlockCreation {

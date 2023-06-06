@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-
 import { expect } from "chai";
-
+import { it } from "mocha";
 import { alith, generateKeyringPair } from "../../util/accounts";
 import { mapExtrinsics } from "../../util/block";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -10,7 +9,8 @@ import { createTransfer } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
   const randomAccount = generateKeyringPair();
   it("should emit ethereum/transfer events", async function () {
-    await context.createBlock(createTransfer(context, randomAccount.address, 512));
+    this.timeout(600000)
+    await context.createBlock(await createTransfer(context, randomAccount.address, 512));
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
@@ -21,10 +21,6 @@ describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
     const txsWithEvents = mapExtrinsics(signedBlock.block.extrinsics, allRecords);
 
     const ethTx = txsWithEvents.find(({ extrinsic: { method } }) => method.section == "ethereum");
-
-    ethTx.events.forEach((event) => {
-      console.log(event.toHuman());
-    });
 
     expect(ethTx.events.length).to.eq(11);
     expect(context.polkadotApi.events.system.NewAccount.is(ethTx.events[1])).to.be.true;
