@@ -41,6 +41,7 @@ pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo},
+	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -79,7 +80,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf, UniqueSaturatedInto,
+		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -630,6 +631,32 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
+pub struct EthereumXcmEnsureProxy;
+impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
+		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
+		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber> =
+			pallet_proxy::Pallet::<Runtime>::find_proxy(
+				&delegator,
+				&delegatee,
+				Some(ProxyType::Any),
+			)
+			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
+		// We only allow to use it for delay zero proxies, as the call will immediatly be executed
+		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
+		Ok(())
+	}
+}
+
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId>;
+}
+
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
@@ -1009,6 +1036,7 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::PolkadotXcm(_) => false,
 			RuntimeCall::Treasury(_) => false,
 			RuntimeCall::XcmTransactor(_) => false,
+			RuntimeCall::EthereumXcm(_) => false,
 			_ => true,
 		}
 	}
@@ -1354,6 +1382,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
+		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
+
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
