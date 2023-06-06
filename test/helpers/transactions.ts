@@ -12,7 +12,7 @@ import {
   ETHAN_PRIVATE_KEY,
 } from "@moonwall/util";
 import { ethers } from "ethers";
-import * as RLP from "rlp";
+import { numberToHex, toRlp } from "viem";
 import { Contract, ContractAbi } from "web3";
 import {
   DevModeContext,
@@ -27,6 +27,7 @@ import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { keccak256 } from "viem";
 import { FMT_BYTES, FMT_NUMBER } from "web3";
+import { hexToU8a } from "@polkadot/util";
 const debug = require("debug")("test:transaction");
 
 export const DEFAULT_TXN_MAX_BASE_FEE = 10_000_000_000;
@@ -285,11 +286,11 @@ export async function createContract(
   const nonce =
     options.nonce ||
     (await context.viemClient("public").getTransactionCount({ address: from as `0x${string}` }));
-  const contractAddress =
-    "0x" +
-    keccak256(RLP.encode([from, nonce]))
+
+  const contractAddress = ("0x" +
+    keccak256(hexToU8a(toRlp([from as `0x${string}`, numberToHex(nonce)])))
       .slice(12)
-      .substring(14);
+      .substring(14)) as `0x${string}`;
 
   const contract = new Contract(contractCompiled.abi as ContractAbi, contractAddress);
   const data = contract
