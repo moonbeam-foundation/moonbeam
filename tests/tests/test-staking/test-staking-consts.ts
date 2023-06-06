@@ -59,7 +59,14 @@ describeDevMoonbeam("Staking - Consts - MaxDelegationsPerDelegator", (context) =
         context.createBlock(
           randomCandidatesChunk.map((randomCandidate) =>
             context.polkadotApi.tx.parachainStaking
-              .delegate(randomCandidate.address, MIN_GLMR_DELEGATOR, 1, maxDelegationsPerDelegator)
+              .delegateWithAutoCompound(
+                randomCandidate.address,
+                MIN_GLMR_DELEGATOR,
+                100,
+                1,
+                1,
+                maxDelegationsPerDelegator
+              )
               .signAsync(randomAccount, { nonce: nonce++ })
           )
         )
