@@ -136,11 +136,9 @@ impl<Balance, Info> core::fmt::Debug for Request<Balance, Info> {
 		f.debug_struct("Request")
 			.field("refund_address", &self.refund_address)
 			.field("contract_address", &self.refund_address)
-			//.field("fee", &self.fee)
 			.field("gas_limit", &self.gas_limit)
 			.field("num_words", &self.num_words)
 			.field("salt", &self.salt)
-			//.field("info", &self.info)
 			.finish()
 	}
 }
