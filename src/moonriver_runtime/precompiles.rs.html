@@ -255,6 +255,8 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -288,6 +290,7 @@
 <span class="kw">use </span>pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_gmp::GmpPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -485,6 +488,7 @@
 		PrecompileRegistry&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2070</span>&gt;, GmpPrecompile&lt;R&gt;, SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;&gt;,
 );
 
 <span class="doccomment">/// The PrecompileSet installed in the Moonriver runtime.
