@@ -254,6 +254,12 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -386,7 +392,6 @@
 
 	<span class="kw">pub fn </span>dispatch_inherent_cost() -&gt; u64 {
 		<span class="number">3_000 </span><span class="comment">// cost of ECRecover precompile for reference
-			</span>+ RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2 </span><span class="comment">// we read nonce and timestamp
 			</span>+ RuntimeHelper::&lt;Runtime&gt;::db_write_gas_cost() <span class="comment">// we write nonce
 	</span>}
 
@@ -405,6 +410,11 @@
 		r: H256,
 		s: H256,
 	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		<span class="comment">// Now: 8
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">8</span>)<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
+
 		handle.record_cost(<span class="self">Self</span>::dispatch_inherent_cost())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>from: H160 = from.into();
@@ -490,7 +500,8 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;nonces(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>nonces(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 
@@ -502,7 +513,8 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>domain_separator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;H256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// ChainId
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">8</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>domain_separator: H256 =
 			<span class="self">Self</span>::compute_domain_separator(handle.context().address).into();

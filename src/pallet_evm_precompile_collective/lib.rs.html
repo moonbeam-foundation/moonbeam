@@ -340,6 +340,17 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -491,7 +502,8 @@
 		threshold: u32,
 		proposal: BoundedBytes&lt;GetProposalLimit&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// ProposalCount
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">4</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
 		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
@@ -631,7 +643,10 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;proposals()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>proposals(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;H256&gt;&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Proposals: BoundedVec(32 * MaxProposals)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">32 </span>* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxProposals::get() <span class="kw">as </span>usize),
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>proposals = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposals();
 		<span class="kw">let </span>proposals: Vec&lt;<span class="kw">_</span>&gt; = proposals.into_iter().map(|hash| hash.into()).collect();
@@ -642,7 +657,10 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;members()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>members(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Members: Vec(20 * MaxMembers)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">20 </span>* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxProposals::get() <span class="kw">as </span>usize),
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>members = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::members();
 		<span class="kw">let </span>members: Vec&lt;<span class="kw">_</span>&gt; = members.into_iter().map(|id| Address(id.into())).collect();
@@ -653,7 +671,10 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;isMember(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_member(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, account: Address) -&gt; EvmResult&lt;bool&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Members: Vec(20 * MaxMembers)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">20 </span>* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxProposals::get() <span class="kw">as </span>usize),
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(account.into());
 
@@ -665,7 +686,8 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;prime()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>prime(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Prime
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">20</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>prime = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::prime()
 			.map(|prime| prime.into())

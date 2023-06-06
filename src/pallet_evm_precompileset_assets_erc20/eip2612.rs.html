@@ -272,6 +272,13 @@
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -471,7 +478,8 @@
 		r: H256,
 		s: H256,
 	) -&gt; EvmResult {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>spender: H160 = spender.into();
@@ -525,7 +533,8 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		owner: Address,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 
@@ -538,7 +547,12 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;H256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: AssetMetadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">50 </span>+ (<span class="number">2 </span>* &lt;Runtime <span class="kw">as </span>pallet_assets::Config&lt;Instance&gt;&gt;::StringLimit::get()) <span class="kw">as </span>usize,
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>domain_separator: H256 =
 			<span class="self">Self</span>::compute_domain_separator(handle.code_address(), asset_id).into();

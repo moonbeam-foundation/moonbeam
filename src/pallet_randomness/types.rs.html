@@ -383,6 +383,21 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -407,7 +422,7 @@
 <span class="kw">use </span>sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 <span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="attr">#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(PartialEq, Copy, Clone, Encode, Decode, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 </span><span class="doccomment">/// Shared request info, a subset of `RequestInfo`
 </span><span class="kw">pub enum </span>RequestType&lt;T: Config&gt; {
@@ -417,7 +432,8 @@
 	</span>Local(T::BlockNumber),
 }
 
-<span class="attr">#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(PartialEq, Copy, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Debug))]
 #[scale_info(skip_type_params(T))]
 </span><span class="doccomment">/// Type of request
 /// Represents a request for the most recent randomness at or after the inner first field
@@ -496,7 +512,7 @@
 	}
 }
 
-<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
 </span><span class="doccomment">/// Input arguments to request randomness
 </span><span class="kw">pub struct </span>Request&lt;Balance, Info&gt; {
 	<span class="doccomment">/// Fee is returned to this account upon execution
@@ -513,6 +529,18 @@
 	</span><span class="kw">pub </span>salt: H256,
 	<span class="doccomment">/// Details regarding request type
 	</span><span class="kw">pub </span>info: Info,
+}
+
+<span class="kw">impl</span>&lt;Balance, Info&gt; core::fmt::Debug <span class="kw">for </span>Request&lt;Balance, Info&gt; {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+		f.debug_struct(<span class="string">&quot;Request&quot;</span>)
+			.field(<span class="string">&quot;refund_address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.refund_address)
+			.field(<span class="string">&quot;contract_address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.refund_address)
+			.field(<span class="string">&quot;gas_limit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.gas_limit)
+			.field(<span class="string">&quot;num_words&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.num_words)
+			.field(<span class="string">&quot;salt&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.salt)
+			.finish()
+	}
 }
 
 <span class="kw">impl</span>&lt;T: Config&gt; From&lt;Request&lt;BalanceOf&lt;T&gt;, RequestType&lt;T&gt;&gt;&gt;
@@ -673,7 +701,8 @@
 	}
 }
 
-<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Debug))]
 #[scale_info(skip_type_params(T))]
 </span><span class="kw">pub struct </span>RequestState&lt;T: Config&gt; {
 	<span class="doccomment">/// Underlying request
@@ -682,7 +711,8 @@
 	</span><span class="kw">pub </span>deposit: BalanceOf&lt;T&gt;,
 }
 
-<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Debug))]
 #[scale_info(skip_type_params(T))]
 </span><span class="doccomment">/// Data required to make the subcallback and finish fulfilling the request
 </span><span class="kw">pub struct </span>FulfillArgs&lt;T: Config&gt; {

@@ -171,6 +171,9 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -271,7 +274,8 @@
 		r: H256,
 		s: H256,
 	) -&gt; EvmResult {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>spender: H160 = spender.into();
@@ -331,7 +335,8 @@
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>nonces(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">104</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 
@@ -339,7 +344,8 @@
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>domain_separator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;H256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// ChainId
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">8</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::compute_domain_separator(handle.context().address).into())
 	}

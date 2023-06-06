@@ -276,7 +276,7 @@
 	traits::OriginTrait,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>parity_scale_codec::DecodeLimit;
+<span class="kw">use </span>parity_scale_codec::{DecodeLimit, MaxEncodedLen};
 <span class="kw">use </span>precompile_utils::precompile_set::SelectorFilter;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
@@ -356,9 +356,9 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		multilocation: MultiLocation,
 	) -&gt; EvmResult&lt;Address&gt; {
-		<span class="comment">// TODO: Change once precompiles are benchmarked
-		// for now we charge a db read,
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// storage item: AssetTypeUnitsPerSecond
+		// max encoded len: hash (16) + Multilocation + u128 (16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>origin =
 			XcmConfig::OriginConverter::convert_origin(multilocation, OriginKind::SovereignAccount)
@@ -382,9 +382,9 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		multilocation: MultiLocation,
 	) -&gt; EvmResult&lt;U256&gt; {
-		<span class="comment">// TODO: Change once precompiles are benchmarked
-		// for now we charge a db read,
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// storage item: AssetTypeUnitsPerSecond
+		// max encoded len: hash (16) + Multilocation + u128 (16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="comment">// We will construct an asset with the max amount, and check how much we
 		// get in return to substract

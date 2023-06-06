@@ -438,6 +438,19 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -465,7 +478,7 @@
 <span class="kw">use </span>pallet_proxy::Pallet <span class="kw">as </span>ProxyPallet;
 <span class="kw">use </span>precompile_utils::precompile_set::{<span class="self">self</span>, AddressType, SelectorFilter};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::{H160, U256};
+<span class="kw">use </span>sp_core::{Get, H160, U256};
 <span class="kw">use </span>sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, StaticLookup, Zero},
@@ -615,7 +628,11 @@
 		// See: https://github.com/PureStake/sr-moonbeam/issues/30
 		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
 		// filtered via CallFilter
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+		)<span class="question-mark">?</span>;
 		<span class="kw">if </span>ProxyPallet::&lt;Runtime&gt;::proxies(<span class="kw-2">&amp;</span>origin)
 			.<span class="number">0
 			</span>.iter()
@@ -769,7 +786,11 @@
 
 		<span class="kw">let </span>real = Runtime::AddressMapping::into_account_id(real.into());
 
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>is_proxy = ProxyPallet::&lt;Runtime&gt;::proxies(real)
 			.<span class="number">0
 			</span>.iter()
@@ -785,22 +806,27 @@
 		evm_subcall: EvmSubCall,
 	) -&gt; EvmResult {
 		<span class="comment">// Check that we only perform proxy calls on behalf of externally owned accounts
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-		<span class="kw">let </span>AddressType::EOA = precompile_set::get_address_type::&lt;Runtime&gt;(real.into()) <span class="kw">else </span>{
+		</span><span class="kw">let </span>AddressType::EOA = precompile_set::get_address_type::&lt;Runtime&gt;(handle, real.into())<span class="question-mark">? </span><span class="kw">else </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;real address must be EOA&quot;</span>));
 		};
 
 		<span class="comment">// Read proxy
 		</span><span class="kw">let </span>real_account_id = Runtime::AddressMapping::into_account_id(real.into());
 		<span class="kw">let </span>who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>def =
 			pallet_proxy::Pallet::&lt;Runtime&gt;::find_proxy(<span class="kw-2">&amp;</span>real_account_id, <span class="kw-2">&amp;</span>who, force_proxy_type)
 				.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Not proxy&quot;</span>))<span class="question-mark">?</span>;
 		<span class="macro">frame_support::ensure!</span>(def.delay.is_zero(), revert(<span class="string">&quot;Unannounced&quot;</span>));
 
 		<span class="comment">// Read subcall recipient code
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
+		// decode_len reads the first 5 bytes to find the payload len under this key
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">41</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>recipient_has_code =
 			pallet_evm::AccountCodes::&lt;Runtime&gt;::decode_len(evm_subcall.to.<span class="number">0</span>).unwrap_or(<span class="number">0</span>) &gt; <span class="number">0</span>;
 

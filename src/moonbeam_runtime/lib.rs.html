@@ -1694,6 +1694,17 @@
 <a href="#1694" id="1694">1694</a>
 <a href="#1695" id="1695">1695</a>
 <a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2087,6 +2098,12 @@
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonbeamPrecompiles&lt;Runtime&gt; = MoonbeamPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
 	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, <span class="number">0</span>);
+	<span class="doccomment">/// The amount of gas per pov. A ratio of 4 if we convert ref_time to gas and we compare
+	/// it with the pov_size for a block. E.g.
+	/// ceil(
+	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
+	/// )
+	</span><span class="kw">pub const </span>GasLimitPovSizeRatio: u64 = <span class="number">4</span>;
 }
 
 <span class="kw">pub struct </span>TransactionPaymentAsGasPrice;
@@ -2173,6 +2190,9 @@
 	<span class="kw">type </span>BlockGasLimit = BlockGasLimit;
 	<span class="kw">type </span>FindAuthor = FindAuthorAdapter&lt;AuthorInherent&gt;;
 	<span class="kw">type </span>OnCreate = ();
+	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	<span class="kw">type </span>Timestamp = Timestamp;
+	<span class="kw">type </span>WeightInfo = pallet_evm::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2303,6 +2323,7 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>StateRoot = pallet_ethereum::IntermediateStateRoot&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>PostLogContent = PostBlockAndTxnHashes;
+	<span class="kw">type </span>ExtraDataLength = ConstU32&lt;<span class="number">30</span>&gt;;
 }
 
 <span class="kw">impl </span>cumulus_pallet_parachain_system::Config <span class="kw">for </span>Runtime {
@@ -2968,6 +2989,7 @@
 	<span class="kw">type </span>MaxBlockDelay = ConstU32&lt;<span class="number">2_000</span>&gt;;
 	<span class="kw">type </span>BlockExpirationDelay = ConstU32&lt;<span class="number">10_000</span>&gt;;
 	<span class="kw">type </span>EpochExpirationDelay = ConstU64&lt;<span class="number">10_000</span>&gt;;
+	<span class="kw">type </span>WeightInfo = pallet_randomness::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {}

@@ -218,6 +218,7 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -258,7 +259,7 @@
 	<span class="kw">use </span>ethereum_types::BigEndianHash;
 	<span class="kw">use </span>fp_evm::{ExitReason, ExitSucceed};
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
-	<span class="kw">use </span>pallet_evm::Runner;
+	<span class="kw">use </span>pallet_evm::{GasWeightMapping, Runner};
 	<span class="kw">use </span>sp_core::{H160, H256, U256};
 	<span class="kw">use </span>sp_std::vec::Vec;
 	<span class="kw">use </span>xcm::latest::{
@@ -286,11 +287,7 @@
 			Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::is_erc20_asset(asset)
 		}
 		<span class="kw">pub fn </span>weight_of_erc20_transfer() -&gt; Weight {
-			<span class="kw">let </span>gas_limit = T::Erc20TransferGasLimit::get();
-			Weight::from_parts(
-				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
-				gas_limit / <span class="number">4</span>, <span class="comment">// TODO: apply gas/proof_size ratio
-			</span>)
+			T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), <span class="bool-val">true</span>)
 		}
 		<span class="kw">fn </span>erc20_transfer(
 			erc20_contract_address: H160,
@@ -306,6 +303,9 @@
 			<span class="comment">// append amount to be transferred
 			</span>input.extend_from_slice(H256::from_uint(<span class="kw-2">&amp;</span>amount).as_bytes());
 
+			<span class="kw">let </span>weight_limit =
+				T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), <span class="bool-val">true</span>);
+
 			<span class="kw">let </span>exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
@@ -318,6 +318,8 @@
 				Default::default(),
 				<span class="bool-val">false</span>,
 				<span class="bool-val">false</span>,
+				<span class="prelude-val">Some</span>(weight_limit),
+				<span class="prelude-val">Some</span>(<span class="number">0</span>),
 				<span class="kw-2">&amp;</span>&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::config(),
 			)
 			.map_err(|<span class="kw">_</span>| Erc20TransferError::EvmCallFail)<span class="question-mark">?</span>;

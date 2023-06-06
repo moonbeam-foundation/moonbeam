@@ -481,6 +481,24 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -510,7 +528,7 @@
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_preimage::Call <span class="kw">as </span>PreimageCall;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_core::{Get, H160, H256, U256};
 <span class="kw">use </span>sp_runtime::traits::{Hash, StaticLookup};
 <span class="kw">use </span>sp_std::{
 	convert::{TryFrom, TryInto},
@@ -579,7 +597,9 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>public_prop_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// Fetch data from pallet
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// storage item: PublicPropCount
+		// max encoded len: u32(4)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>prop_count = DemocracyOf::&lt;Runtime&gt;::public_prop_count();
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;Prop count from pallet is {:?}&quot;</span>, prop_count);
 
@@ -596,7 +616,10 @@
 		<span class="kw">let </span>prop_index = prop_index.converted();
 
 		<span class="comment">// Fetch data from pallet
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// storage item: DepositOf
+		// max encoded len: Twox64(8) + PropIndex u32(4) +
+		// BalanceOf(16) + BoundedVec&lt;AccountId, MaxDeposits&gt; (20 * MaxDeposits)
+		</span>handle.record_db_read::&lt;Runtime&gt;((<span class="number">20 </span>* &lt;Runtime::MaxDeposits&gt;::get() <span class="kw">as </span>usize) + <span class="number">28</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>deposit = DemocracyOf::&lt;Runtime&gt;::deposit_of(prop_index)
 			.ok_or_else(|| revert(<span class="string">&quot;No such proposal in pallet democracy&quot;</span>))<span class="question-mark">?
 			</span>.<span class="number">1</span>;
@@ -614,7 +637,9 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>lowest_unbaked(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// Fetch data from pallet
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// storage item: LowestUnbaked
+		// max encoded len: ReferendumIndex u32(4)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>lowest_unbaked = DemocracyOf::&lt;Runtime&gt;::lowest_unbaked();
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -630,7 +655,10 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		ref_index: u32,
 	) -&gt; EvmResult&lt;(U256, H256, u8, U256, U256, U256, U256)&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// storage item: ReferendumInfoOf
+		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
+		// ReferendumInfo (enum(1) + end(4) + proposal(128) + threshold(1) + delay(4) + tally(3*16))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">186</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>ref_status = <span class="kw">match </span>DemocracyOf::&lt;Runtime&gt;::referendum_info(ref_index) {
 			<span class="prelude-val">Some</span>(ReferendumInfo::Ongoing(ref_status)) =&gt; ref_status,
 			<span class="prelude-val">Some</span>(ReferendumInfo::Finished { .. }) =&gt; <span class="prelude-val">Err</span>(revert(<span class="string">&quot;Referendum is finished&quot;</span>))<span class="question-mark">?</span>,
@@ -660,7 +688,10 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		ref_index: u32,
 	) -&gt; EvmResult&lt;(bool, U256)&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// storage item: ReferendumInfoOf
+		// max encoded len: Twox64(8) + ReferendumIndex u32(4) +
+		// ReferendumInfo (enum(1) + end(4) + proposal(128) + threshold(1) + delay(4) + tally(3*16))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">186</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>(approved, end) = <span class="kw">match </span>DemocracyOf::&lt;Runtime&gt;::referendum_info(ref_index) {
 			<span class="prelude-val">Some</span>(ReferendumInfo::Ongoing(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(revert(<span class="string">&quot;Referendum is ongoing&quot;</span>))<span class="question-mark">?</span>,
 			<span class="prelude-val">Some</span>(ReferendumInfo::Finished { approved, end }) =&gt; (approved, end),
@@ -676,7 +707,9 @@
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Fetch data from pallet
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// storage item: PublicPropCount
+		// max encoded len: PropIndex u32(4)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>prop_count = DemocracyOf::&lt;Runtime&gt;::public_prop_count();
 
 		<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
@@ -687,8 +720,9 @@
 		);
 
 		<span class="comment">// This forces it to have the proposal in pre-images.
-		// TODO: REVISIT
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// Storage item: StatusFor
+		// max encoded len: Hash(32) + RequestStatus(enum(1) + deposit(1+20+16) + count(4) + len(5))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">79</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>len = &lt;Runtime <span class="kw">as </span>pallet_democracy::Config&gt;::Preimages::len(<span class="kw-2">&amp;</span>proposal_hash).ok_or({
 			RevertReason::custom(<span class="string">&quot;Failure in preimage fetch&quot;</span>).in_field(<span class="string">&quot;proposal_hash&quot;</span>)
 		})<span class="question-mark">?</span>;
@@ -940,9 +974,11 @@
 
 		<span class="comment">// To mimic imminent preimage behavior, we need to check whether the preimage
 		// has been requested
-		// is_requested implies db read
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-		<span class="kw">let </span>proposal_hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>encoded_proposal);
+		</span><span class="kw">let </span>proposal_hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>encoded_proposal);
+		<span class="comment">// is_requested implies db read
+		// Storage item: StatusFor
+		// max encoded len: Hash(32) + RequestStatus(enum(1) + deposit(1+20+16) + count(4) + len(5))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">79</span>)<span class="question-mark">?</span>;
 		<span class="kw">if </span>!&lt;&lt;Runtime <span class="kw">as </span>pallet_democracy::Config&gt;::Preimages <span class="kw">as </span>QueryPreimage&gt;::is_requested(
 			<span class="kw-2">&amp;</span>proposal_hash.into(),
 		) {

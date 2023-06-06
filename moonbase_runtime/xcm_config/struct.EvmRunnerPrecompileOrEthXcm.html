@@ -13,6 +13,8 @@
     access_list: <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;(H160, <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;)&gt;,
     _is_transactional: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
     _validate: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
+    _weight_limit: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Weight&gt;,
+    _transaction_len: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.u64.html">u64</a>&gt;,
     _config: &amp;Config
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;CallInfo, RunnerError&lt;Self::Error&gt;&gt;</h4></section><section id="method.create" class="method trait-impl"><a class="srclink rightside" href="../../src/moonbase_runtime/xcm_config.rs.html#281">source</a><a href="#method.create" class="anchor">§</a><h4 class="code-header">fn <a class="fn">create</a>(
     _source: H160,
@@ -25,6 +27,8 @@
     _access_list: <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;(H160, <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;)&gt;,
     _is_transactional: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
     _validate: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
+    _weight_limit: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Weight&gt;,
+    _transaction_len: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.u64.html">u64</a>&gt;,
     _config: &amp;Config
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;CreateInfo, RunnerError&lt;Self::Error&gt;&gt;</h4></section><section id="method.create2" class="method trait-impl"><a class="srclink rightside" href="../../src/moonbase_runtime/xcm_config.rs.html#281">source</a><a href="#method.create2" class="anchor">§</a><h4 class="code-header">fn <a class="fn">create2</a>(
     _source: H160,
@@ -38,6 +42,8 @@
     _access_list: <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;(H160, <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;)&gt;,
     _is_transactional: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
     _validate: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
+    _weight_limit: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Weight&gt;,
+    _transaction_len: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.u64.html">u64</a>&gt;,
     _config: &amp;Config
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;CreateInfo, RunnerError&lt;Self::Error&gt;&gt;</h4></section><section id="method.validate" class="method trait-impl"><a class="srclink rightside" href="../../src/moonbase_runtime/xcm_config.rs.html#281">source</a><a href="#method.validate" class="anchor">§</a><h4 class="code-header">fn <a class="fn">validate</a>(
     _source: H160,
@@ -50,6 +56,8 @@
     _nonce: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;U256&gt;,
     _access_list: <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;(H160, <a class="struct" href="https://doc.rust-lang.org/1.70.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;H256&gt;)&gt;,
     _is_transactional: <a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.bool.html">bool</a>,
+    _weight_limit: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Weight&gt;,
+    _transaction_len: <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.u64.html">u64</a>&gt;,
     _evm_config: &amp;Config
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.70.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.70.0/std/primitive.unit.html">()</a>, RunnerError&lt;Self::Error&gt;&gt;</h4></section></div></details></div><h2 id="synthetic-implementations" class="small-section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-RefUnwindSafe-for-EvmRunnerPrecompileOrEthXcm%3CCallDispatcher,+Runtime%3E" class="impl"><a href="#impl-RefUnwindSafe-for-EvmRunnerPrecompileOrEthXcm%3CCallDispatcher,+Runtime%3E" class="anchor">§</a><h3 class="code-header">impl&lt;CallDispatcher, Runtime&gt; <a class="trait" href="https://doc.rust-lang.org/1.70.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.EvmRunnerPrecompileOrEthXcm.html" title="struct moonbase_runtime::xcm_config::EvmRunnerPrecompileOrEthXcm">EvmRunnerPrecompileOrEthXcm</a>&lt;CallDispatcher, Runtime&gt;<span class="where fmt-newline">where
     CallDispatcher: <a class="trait" href="https://doc.rust-lang.org/1.70.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a>,

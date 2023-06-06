@@ -199,6 +199,12 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -361,7 +367,9 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;nimbusIdOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>nimbus_id_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, address: Address) -&gt; EvmResult&lt;H256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: NimbusLookup:
+		// Blake2_128(16) + AccountId(20) + NimbusId(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">68</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(address.<span class="number">0</span>);
 
 		<span class="kw">let </span>nimbus_id = pallet_author_mapping::Pallet::&lt;Runtime&gt;::nimbus_id_of(<span class="kw-2">&amp;</span>account)
@@ -373,7 +381,9 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;addressOf(bytes32)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>address_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: MappingWithDeposit:
+		// Blake2_128(16) + NimbusId(32) + RegistrationInfo(20 + 16 + VrfId(32))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">116</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id);
 		<span class="kw">let </span>nimbus_id: NimbusId = nimbus_id.into();
@@ -388,7 +398,9 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;keysOf(bytes32)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>keys_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult&lt;UnboundedBytes&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: MappingWithDeposit:
+		// Blake2_128(16) + NimbusId(32) + RegistrationInfo(20 + 16 + VrfId(32))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">116</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id);
 		<span class="kw">let </span>nimbus_id: NimbusId = nimbus_id.into();

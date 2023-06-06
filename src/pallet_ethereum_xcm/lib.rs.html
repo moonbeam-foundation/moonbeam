@@ -290,6 +290,28 @@
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -524,6 +546,14 @@
 }
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+	<span class="kw">fn </span>transaction_len(transaction: <span class="kw-2">&amp;</span>Transaction) -&gt; u64 {
+		transaction
+			.encode()
+			.len()
+			<span class="comment">// pallet + call indexes
+			</span>.saturating_add(<span class="number">2</span>) <span class="kw">as </span>u64
+	}
+
 	<span class="kw">fn </span>validate_and_apply(
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
@@ -541,6 +571,18 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
 			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();
 
+			<span class="kw">let </span>(weight_limit, proof_size_base_cost) =
+				<span class="kw">match </span>&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight(
+					transaction_data.gas_limit.unique_saturated_into(),
+					<span class="bool-val">true</span>,
+				) {
+					weight_limit <span class="kw">if </span>weight_limit.proof_size() &gt; <span class="number">0 </span>=&gt; (
+						<span class="prelude-val">Some</span>(weight_limit),
+						<span class="prelude-val">Some</span>(<span class="self">Self</span>::transaction_len(<span class="kw-2">&amp;</span>transaction)),
+					),
+					<span class="kw">_ </span>=&gt; (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>),
+				};
+
 			<span class="kw">let _ </span>= CheckEvmTransaction::&lt;T::InvalidEvmTransactionError&gt;::new(
 				CheckEvmTransactionConfig {
 					evm_config: T::config(),
@@ -554,6 +596,8 @@
 					is_transactional: <span class="bool-val">true</span>,
 				},
 				transaction_data.into(),
+				weight_limit,
+				proof_size_base_cost,
 			)
 			<span class="comment">// We only validate the gas limit against the evm transaction cost.
 			// No need to validate fee payment, as it is handled by the xcm executor.

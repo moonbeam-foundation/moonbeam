@@ -458,6 +458,8 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -537,7 +539,7 @@
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span><span class="kw">crate</span>::weights::{SubstrateWeight, WeightInfo};
+	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 	<span class="kw">use </span>frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, PalletId};
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
@@ -594,6 +596,8 @@
 		<span class="doccomment">/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>EpochExpirationDelay: Get&lt;u64&gt;;
+		<span class="doccomment">/// Weight info
+		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
 	<span class="attr">#[pallet::error]
@@ -696,7 +700,7 @@
 		<span class="doccomment">/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
 		#[pallet::weight((
-			SubstrateWeight::&lt;T&gt;::set_babe_randomness_results(),
+			T::WeightInfo::set_babe_randomness_results(),
 			DispatchClass::Mandatory
 		))]
 		</span><span class="kw">pub fn </span>set_babe_randomness_results(origin: OriginFor&lt;T&gt;) -&gt; DispatchResultWithPostInfo {
@@ -765,7 +769,7 @@
 			}
 			<span class="comment">// Verify VRF output included by block author and set it in storage
 			</span>vrf::verify_and_set_output::&lt;T&gt;();
-			SubstrateWeight::&lt;T&gt;::on_initialize()
+			T::WeightInfo::on_initialize()
 		}
 		<span class="kw">fn </span>on_finalize(_now: BlockNumberFor&lt;T&gt;) {
 			<span class="comment">// Ensure the mandatory inherent was included in the block or the block is invalid

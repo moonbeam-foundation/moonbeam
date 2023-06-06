@@ -117,6 +117,37 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -143,7 +174,7 @@
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
 		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-		pallet_prelude::DispatchError,
+		pallet_prelude::<span class="kw-2">*</span>,
 		traits::Get,
 	},
 	pallet_evm::GasWeightMapping,
@@ -176,6 +207,43 @@
 	</span>Runtime: pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
+	<span class="attr">#[inline(always)]
+	</span><span class="kw">pub fn </span>record_weight_v2_cost(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		weight: Weight,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ExitError&gt; {
+		<span class="comment">// Make sure there is enough gas.
+		</span><span class="kw">let </span>remaining_gas = handle.remaining_gas();
+		<span class="kw">let </span>required_gas = Runtime::GasWeightMapping::weight_to_gas(weight);
+		<span class="kw">if </span>required_gas &gt; remaining_gas {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(ExitError::OutOfGas);
+		}
+
+		<span class="comment">// Make sure there is enough remaining weight
+		// TODO: record ref time when precompile will be benchmarked
+		</span>handle.record_external_cost(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(weight.proof_size()))
+	}
+
+	<span class="attr">#[inline(always)]
+	</span><span class="kw">pub fn </span>refund_weight_v2_cost(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		weight: Weight,
+		maybe_actual_weight: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;u64, ExitError&gt; {
+		<span class="comment">// Refund weights and compute used weight them record used gas
+		// TODO: refund ref time when precompile will be benchmarked
+		</span><span class="kw">let </span>used_weight = <span class="kw">if let </span><span class="prelude-val">Some</span>(actual_weight) = maybe_actual_weight {
+			<span class="kw">let </span>refund_weight = weight - actual_weight;
+			handle.refund_external_cost(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(refund_weight.proof_size()));
+			actual_weight
+		} <span class="kw">else </span>{
+			weight
+		};
+		<span class="kw">let </span>used_gas = Runtime::GasWeightMapping::weight_to_gas(used_weight);
+		handle.record_cost(used_gas)<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(used_gas)
+	}
+
 	<span class="doccomment">/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
 	/// If successful returns the used gas using the Runtime GasWeightMapping.
@@ -190,12 +258,8 @@
 		<span class="kw">let </span>call = Runtime::RuntimeCall::from(call);
 		<span class="kw">let </span>dispatch_info = call.get_dispatch_info();
 
-		<span class="comment">// Make sure there is enough gas.
-		</span><span class="kw">let </span>remaining_gas = handle.remaining_gas();
-		<span class="kw">let </span>required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
-		<span class="kw">if </span>required_gas &gt; remaining_gas {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(TryDispatchError::Evm(ExitError::OutOfGas));
-		}
+		<span class="self">Self</span>::record_weight_v2_cost(handle, dispatch_info.weight)
+			.map_err(|e| TryDispatchError::Evm(e))<span class="question-mark">?</span>;
 
 		<span class="comment">// Dispatch call.
 		// It may be possible to not record gas cost if the call returns Pays::No.
@@ -205,14 +269,12 @@
 		</span><span class="kw">let </span>post_dispatch_info = using_precompile_handle(handle, || call.dispatch(origin))
 			.map_err(|e| TryDispatchError::Substrate(e.error))<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>used_weight = post_dispatch_info.actual_weight;
-
-		<span class="kw">let </span>used_gas =
-			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
-
-		handle
-			.record_cost(used_gas)
-			.map_err(|e| TryDispatchError::Evm(e))<span class="question-mark">?</span>;
+		<span class="self">Self</span>::refund_weight_v2_cost(
+			handle,
+			dispatch_info.weight,
+			post_dispatch_info.actual_weight,
+		)
+		.map_err(|e| TryDispatchError::Evm(e))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(post_dispatch_info)
 	}

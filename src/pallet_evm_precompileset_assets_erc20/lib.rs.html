@@ -868,6 +868,38 @@
 <a href="#868" id="868">868</a>
 <a href="#869" id="869">869</a>
 <a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -903,7 +935,7 @@
 <span class="kw">use </span>sp_runtime::traits::Bounded;
 <span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_core::{MaxEncodedLen, H160, H256, U256};
 <span class="kw">use </span>sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
@@ -1031,7 +1063,9 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(pallet_assets::Pallet::&lt;Runtime, Instance&gt;::total_issuance(asset_id).into())
 	}
@@ -1043,7 +1077,11 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		who: Address,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Account:
+		// Blake2_128(16) + AssetId(16) + Blake2_128(16) + AccountId(20) + AssetAccount(19 + Extra)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">87 </span>+ &lt;Runtime <span class="kw">as </span>pallet_assets::Config&lt;Instance&gt;&gt;::Extra::max_encoded_len(),
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>who: H160 = who.into();
 
@@ -1065,7 +1103,9 @@
 		owner: Address,
 		spender: Address,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Approvals:
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">136</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>spender: H160 = spender.into();
@@ -1122,8 +1162,9 @@
 		</span><span class="kw">let </span>amount: BalanceOf&lt;Runtime, Instance&gt; =
 			value.try_into().unwrap_or_else(|<span class="kw">_</span>| Bounded::max_value());
 
-		<span class="comment">// Allowance read
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Approvals:
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">136</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// If previous approval exists, we need to clean it
 		</span><span class="kw">if </span>pallet_assets::Pallet::&lt;Runtime, Instance&gt;::allowance(asset_id, <span class="kw-2">&amp;</span>owner, <span class="kw-2">&amp;</span>spender)
@@ -1259,7 +1300,12 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">50 </span>+ (<span class="number">2 </span>* &lt;Runtime <span class="kw">as </span>pallet_assets::Config&lt;Instance&gt;&gt;::StringLimit::get()) <span class="kw">as </span>usize,
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>name = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::name(asset_id)
 			.as_slice()
@@ -1274,7 +1320,12 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">50 </span>+ (<span class="number">2 </span>* &lt;Runtime <span class="kw">as </span>pallet_assets::Config&lt;Instance&gt;&gt;::StringLimit::get()) <span class="kw">as </span>usize,
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>symbol = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::symbol(asset_id)
 			.as_slice()
@@ -1289,7 +1340,12 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;u8&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">50 </span>+ (<span class="number">2 </span>* &lt;Runtime <span class="kw">as </span>pallet_assets::Config&lt;Instance&gt;&gt;::StringLimit::get()) <span class="kw">as </span>usize,
+		)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(pallet_assets::Pallet::&lt;Runtime, Instance&gt;::decimals(
 			asset_id,
@@ -1302,7 +1358,9 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::owner(asset_id)
 			.ok_or(revert(<span class="string">&quot;No owner set&quot;</span>))<span class="question-mark">?
@@ -1317,7 +1375,9 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>issuer: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::issuer(asset_id)
 			.ok_or(revert(<span class="string">&quot;No issuer set&quot;</span>))<span class="question-mark">?
@@ -1332,7 +1392,9 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>admin: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::admin(asset_id)
 			.ok_or(revert(<span class="string">&quot;No admin set&quot;</span>))<span class="question-mark">?
@@ -1347,7 +1409,9 @@
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; EvmResult&lt;Address&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>freezer: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::freezer(asset_id)
 			.ok_or(revert(<span class="string">&quot;No freezer set&quot;</span>))<span class="question-mark">?

@@ -83,6 +83,20 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -128,7 +142,11 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_precompile(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, address: Address) -&gt; EvmResult&lt;bool&gt; {
 		<span class="comment">// We consider the precompile set is optimized to do at most one storage read.
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// In the case of moonbeam, the storage item that can be read is pallet_asset::Asset
+		// (TODO make it more generic, maybe add a const generic on PrecompileRegistry type)
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 		is_precompile_or_fail::&lt;Runtime&gt;(address.<span class="number">0</span>, handle.remaining_gas())
 	}
 
@@ -139,7 +157,11 @@
 		address: Address,
 	) -&gt; EvmResult&lt;bool&gt; {
 		<span class="comment">// We consider the precompile set is optimized to do at most one storage read.
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		// In the case of moonbeam, the storage item that can be read is pallet_asset::Asset
+		// (TODO make it more generic, maybe add a const generic on PrecompileRegistry type)
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
 		<span class="kw">match </span>&lt;Runtime::PrecompilesValue&gt;::get()
 			.is_active_precompile(address.<span class="number">0</span>, handle.remaining_gas())
 		{
@@ -152,17 +174,23 @@
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;updateAccountCode(address)&quot;</span>)]
 	</span><span class="kw">fn </span>update_account_code(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, address: Address) -&gt; EvmResult&lt;()&gt; {
-		<span class="comment">// We consider the precompile set is optimized to do at most one storage read.
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-
-		<span class="comment">// We will write into the account code.
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_write_gas_cost())<span class="question-mark">?</span>;
-
 		<span class="comment">// Prevent touching addresses that are not precompiles.
-		</span><span class="kw">if </span>!is_precompile_or_fail::&lt;Runtime&gt;(address.<span class="number">0</span>, handle.remaining_gas())<span class="question-mark">? </span>{
+		//
+		// We consider the precompile set is optimized to do at most one storage read.
+		// In the case of moonbeam, the storage item that can be read is pallet_asset::Asset
+		// (TODO make it more generic, maybe add a const generic on PrecompileRegistry type)
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">175</span>)<span class="question-mark">?</span>;
+		<span class="kw">if </span>!is_precompile_or_fail::&lt;Runtime&gt;(address.<span class="number">0</span>, handle.remaining_gas())<span class="question-mark">? </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;provided address is not a precompile&quot;</span>));
 		}
 
+		<span class="comment">// pallet_evm::create_account read storage item pallet_evm::AccountCodes
+		//
+		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
+		// We asume an existing precompile can hold at most 5 bytes worth of dummy code.
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">41</span>)<span class="question-mark">?</span>;
 		pallet_evm::Pallet::&lt;Runtime&gt;::create_account(address.<span class="number">0</span>, DUMMY_CODE.to_vec());
 
 		<span class="prelude-val">Ok</span>(())

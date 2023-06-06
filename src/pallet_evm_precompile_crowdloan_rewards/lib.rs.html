@@ -162,6 +162,10 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -224,9 +228,11 @@
 	#[precompile::public(<span class="string">&quot;is_contributor(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_contributor(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, contributor: Address) -&gt; EvmResult&lt;bool&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>; <span class="comment">// accounts_payable
+		<span class="comment">// AccountsPayable: Blake2128(16) + 20 + RewardInfo(16 + 16 + UnBoundedVec&lt;AccountId32(32)&gt;)
+		// TODO RewardInfo.contributed_relay_addresses is unbounded, we set a safe length of 100.
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">3268</span>)<span class="question-mark">?</span>;
 
-		</span><span class="kw">let </span>contributor: H160 = contributor.into();
+		<span class="kw">let </span>contributor: H160 = contributor.into();
 
 		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -252,9 +258,11 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		contributor: Address,
 	) -&gt; EvmResult&lt;(U256, U256)&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>; <span class="comment">// accounts_payable
+		<span class="comment">// AccountsPayable: Blake2128(16) + 20 + RewardInfo(16 + 16 + UnBoundedVec&lt;AccountId32(32)&gt;)
+		// TODO RewardInfo.contributed_relay_addresses is unbounded, we set a safe length of 100.
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">3268</span>)<span class="question-mark">?</span>;
 
-		</span><span class="kw">let </span>contributor: H160 = contributor.into();
+		<span class="kw">let </span>contributor: H160 = contributor.into();
 
 		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(contributor);
 

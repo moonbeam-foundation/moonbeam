@@ -174,6 +174,18 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -227,6 +239,8 @@
 				access_list: Vec&lt;(H160, Vec&lt;H256&gt;)&gt;,
 				_is_transactional: bool,
 				_validate: bool,
+				_weight_limit: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+				_transaction_len: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 				_config: <span class="kw-2">&amp;</span>fp_evm::Config,
 			) -&gt; <span class="prelude-ty">Result</span>&lt;CallInfo, RunnerError&lt;<span class="self">Self</span>::Error&gt;&gt; {
 				<span class="comment">// The `with_precompile_handle` function will execute the closure (and return the
@@ -259,8 +273,12 @@
 					<span class="prelude-val">Ok</span>(CallInfo {
 						exit_reason,
 						value,
-						used_gas: U256::default(),
+						used_gas: fp_evm::UsedGas {
+							standard: U256::default(),
+							effective: U256::default(),
+						},
 						logs: Default::default(),
+						weight_info: <span class="prelude-val">None</span>,
 					})
 				} <span class="kw">else </span>{
 					<span class="kw">let </span>xcm_transaction = EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
@@ -309,6 +327,8 @@
 				_access_list: Vec&lt;(H160, Vec&lt;H256&gt;)&gt;,
 				_is_transactional: bool,
 				_validate: bool,
+				_weight_limit: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+				_transaction_len: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 				_config: <span class="kw-2">&amp;</span>fp_evm::Config,
 			) -&gt; <span class="prelude-ty">Result</span>&lt;fp_evm::CreateInfo, RunnerError&lt;<span class="self">Self</span>::Error&gt;&gt; {
 				<span class="macro">unimplemented!</span>()
@@ -326,6 +346,8 @@
 				_access_list: Vec&lt;(H160, Vec&lt;H256&gt;)&gt;,
 				_is_transactional: bool,
 				_validate: bool,
+				_weight_limit: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+				_transaction_len: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 				_config: <span class="kw-2">&amp;</span>fp_evm::Config,
 			) -&gt; <span class="prelude-ty">Result</span>&lt;fp_evm::CreateInfo, RunnerError&lt;<span class="self">Self</span>::Error&gt;&gt; {
 				<span class="macro">unimplemented!</span>()
@@ -342,6 +364,8 @@
 				_nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
 				_access_list: Vec&lt;(H160, Vec&lt;H256&gt;)&gt;,
 				_is_transactional: bool,
+				_weight_limit: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+				_transaction_len: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 				_evm_config: <span class="kw-2">&amp;</span>fp_evm::Config,
 			) -&gt; <span class="prelude-ty">Result</span>&lt;(), RunnerError&lt;<span class="self">Self</span>::Error&gt;&gt; {
 				<span class="macro">unimplemented!</span>()

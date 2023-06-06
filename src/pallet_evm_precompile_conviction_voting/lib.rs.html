@@ -735,6 +735,26 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -763,7 +783,7 @@
 };
 <span class="kw">use </span>pallet_evm::{AddressMapping, Log};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_core::{Get, MaxEncodedLen, H160, H256, U256};
 <span class="kw">use </span>sp_runtime::traits::StaticLookup;
 <span class="kw">use </span>sp_std::marker::PhantomData;
 <span class="kw">use </span>sp_std::vec::Vec;
@@ -849,6 +869,14 @@
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ConvictionVotingCall&lt;Runtime&gt;&gt;,
 	IndexOf&lt;Runtime&gt;: TryFrom&lt;u32&gt; + TryInto&lt;u32&gt;,
 	ClassOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::Polls: Polling&lt;
+		Tally&lt;
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
+				&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+			&gt;&gt;::Balance,
+			&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::MaxTurnout,
+		&gt;,
+	&gt;,
 {
 	<span class="doccomment">/// Internal helper function for vote* extrinsics exposed in this precompile.
 	</span><span class="kw">fn </span>vote(
@@ -1174,7 +1202,8 @@
 		who: Address,
 		track_id: u16,
 	) -&gt; EvmResult&lt;OutputVotingFor&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// VotingFor: Twox64Concat(8) + 20 + Twox64Concat(8) + TransInfo::Id(2) + VotingOf
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">38 </span>+ VotingOf::&lt;Runtime&gt;::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>who = Runtime::AddressMapping::into_account_id(who.into());
 		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
@@ -1190,7 +1219,18 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		who: Address,
 	) -&gt; EvmResult&lt;Vec&lt;OutputClassLock&gt;&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// ClassLocksFor: Twox64Concat(8) + 20 + BoundedVec(TransInfo::Id(2) * ClassCountOf)
+		</span>handle.record_db_read::&lt;Runtime&gt;(
+			<span class="number">28 </span>+ ((<span class="number">2 </span>* frame_support::traits::ClassCountOf::&lt;
+				&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::Polls,
+				Tally&lt;
+					&lt;&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
+						&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+					&gt;&gt;::Balance,
+					&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::MaxTurnout,
+				&gt;,
+			&gt;::get()) <span class="kw">as </span>usize),
+		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>who = Runtime::AddressMapping::into_account_id(who.into());
 

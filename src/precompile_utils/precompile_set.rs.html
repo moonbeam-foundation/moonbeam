@@ -1077,6 +1077,27 @@
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
 <a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1098,8 +1119,8 @@
 //! default and must be disabled explicely throught type annotations.
 
 </span><span class="kw">use crate</span>::{
+	evm::handle::PrecompileHandleExt,
 	solidity::{codec::String, revert::revert},
-	substrate::RuntimeHelper,
 	EvmResult,
 };
 <span class="kw">use </span>fp_evm::{
@@ -1393,32 +1414,42 @@
 }
 
 <span class="doccomment">/// Retrieves the type of address demarcated by `AddressType`.
-</span><span class="kw">pub fn </span>get_address_type&lt;R: pallet_evm::Config&gt;(address: H160) -&gt; AddressType {
-	<span class="kw">let </span>code_len = pallet_evm::AccountCodes::&lt;R&gt;::decode_len(address).unwrap_or(<span class="number">0</span>);
+</span><span class="kw">pub fn </span>get_address_type&lt;R: pallet_evm::Config&gt;(
+	handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	address: H160,
+) -&gt; <span class="prelude-ty">Result</span>&lt;AddressType, ExitError&gt; {
+	<span class="comment">// AccountCodesMetadata:
+	// Blake2128(16) + H160(20) + CodeMetadata(40)
+	</span>handle.record_db_read::&lt;R&gt;(<span class="number">76</span>)<span class="question-mark">?</span>;
+	<span class="kw">let </span>code_len = pallet_evm::Pallet::&lt;R&gt;::account_code_metadata(address).size;
 
 	<span class="comment">// 0 =&gt; either EOA or precompile without dummy code
 	</span><span class="kw">if </span>code_len == <span class="number">0 </span>{
-		<span class="kw">return </span>AddressType::EOA;
+		<span class="kw">return </span><span class="prelude-val">Ok</span>(AddressType::EOA);
 	}
 
 	<span class="comment">// dummy code is 5 bytes long, so any other len means it is a contract.
 	</span><span class="kw">if </span>code_len != <span class="number">5 </span>{
-		<span class="kw">return </span>AddressType::Contract;
+		<span class="kw">return </span><span class="prelude-val">Ok</span>(AddressType::Contract);
 	}
 
 	<span class="comment">// check code matches dummy code
-	</span><span class="kw">let </span>code = pallet_evm::AccountCodes::&lt;R&gt;::get(address);
+	</span>handle.record_db_read::&lt;R&gt;(code_len <span class="kw">as </span>usize)<span class="question-mark">?</span>;
+	<span class="kw">let </span>code = pallet_evm::AccountCodes::&lt;R&gt;::get(address);
 	<span class="kw">if </span><span class="kw-2">&amp;</span>code == <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>] {
-		<span class="kw">return </span>AddressType::Precompile;
+		<span class="kw">return </span><span class="prelude-val">Ok</span>(AddressType::Precompile);
 	}
 
-	AddressType::Unknown
+	<span class="prelude-val">Ok</span>(AddressType::Unknown)
 }
 
-<span class="kw">fn </span>is_address_eoa_or_precompile&lt;R: pallet_evm::Config&gt;(address: H160) -&gt; bool {
-	<span class="kw">match </span>get_address_type::&lt;R&gt;(address) {
-		AddressType::EOA | AddressType::Precompile =&gt; <span class="bool-val">true</span>,
-		<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+<span class="kw">fn </span>is_address_eoa_or_precompile&lt;R: pallet_evm::Config&gt;(
+	handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	address: H160,
+) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ExitError&gt; {
+	<span class="kw">match </span>get_address_type::&lt;R&gt;(handle, address)<span class="question-mark">? </span>{
+		AddressType::EOA | AddressType::Precompile =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+		<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
 	}
 }
 
@@ -1447,8 +1478,7 @@
 	</span><span class="kw">let </span>callable_by_smart_contract =
 		C::callable_by_smart_contract(caller, selector).unwrap_or(<span class="bool-val">false</span>);
 	<span class="kw">if </span>!callable_by_smart_contract {
-		handle.record_cost(RuntimeHelper::&lt;R&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
-		<span class="kw">if </span>!is_address_eoa_or_precompile::&lt;R&gt;(caller) {
+		<span class="kw">if </span>!is_address_eoa_or_precompile::&lt;R&gt;(handle, caller)<span class="question-mark">? </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Function not callable by smart contracts&quot;</span>));
 		}
 	}
@@ -1540,6 +1570,18 @@
 
 	<span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
 		<span class="self">self</span>.handle.gas_limit()
+	}
+
+	<span class="kw">fn </span>record_external_cost(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		ref_time: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+		proof_size: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ExitError&gt; {
+		<span class="self">self</span>.handle.record_external_cost(ref_time, proof_size)
+	}
+
+	<span class="kw">fn </span>refund_external_cost(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ref_time: <span class="prelude-ty">Option</span>&lt;u64&gt;, proof_size: <span class="prelude-ty">Option</span>&lt;u64&gt;) {
+		<span class="self">self</span>.handle.refund_external_cost(ref_time, proof_size)
 	}
 }
 

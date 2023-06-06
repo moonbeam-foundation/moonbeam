@@ -484,6 +484,13 @@
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -678,7 +685,8 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;totalSupply()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>total_supply(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// TotalIssuance: Balance(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">16</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(pallet_balances::Pallet::&lt;Runtime, Instance&gt;::total_issuance().into())
 	}
@@ -686,7 +694,9 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;balanceOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>balance_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// frame_system::Account:
+		// Blake2128(16) + AccountId(20) + AccountInfo ((4 * 4) + AccountData(16 * 4))
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">116</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
@@ -701,7 +711,9 @@
 		owner: Address,
 		spender: Address,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// frame_system::ApprovesStorage:
+		// (2 * (Blake2128(16) + AccountId(20)) + Balanceof(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">88</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>spender: H160 = spender.into();
@@ -791,7 +803,9 @@
 		to: Address,
 		value: U256,
 	) -&gt; EvmResult&lt;bool&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// frame_system::ApprovesStorage:
+		// (2 * (Blake2128(16) + AccountId(20)) + Balanceof(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">88</span>)<span class="question-mark">?</span>;
 		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_write_gas_cost())<span class="question-mark">?</span>;
 		handle.record_log_costs_manual(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 

@@ -524,6 +524,46 @@
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -547,7 +587,10 @@
 </span><span class="kw">extern crate </span>alloc;
 
 <span class="kw">use </span>fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
-<span class="kw">use </span>frame_support::traits::Get;
+<span class="kw">use </span>frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::Get,
+};
 <span class="kw">use </span>pallet_evm::GasWeightMapping;
 <span class="kw">use </span>pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
@@ -563,11 +606,6 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 <span class="kw">use </span>solidity_types::<span class="kw-2">*</span>;
-
-<span class="comment">// Tests to verify equal to weight_to_gas(weight) in runtime integration tests
-</span><span class="kw">pub const </span>REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = <span class="number">26289</span>;
-<span class="kw">pub const </span>INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = <span class="number">16618</span>;
-<span class="kw">pub const </span>EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = <span class="number">21830</span>;
 
 <span class="doccomment">/// Fulfillment overhead cost, which takes input weight hint -&gt; weight -&gt; return gas
 </span><span class="kw">pub fn </span>prepare_and_finish_fulfillment_gas_cost&lt;T: pallet_evm::Config&gt;(num_words: u8) -&gt; u64 {
@@ -698,13 +736,17 @@
 </span><span class="kw">impl</span>&lt;Runtime&gt; RandomnessPrecompile&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: pallet_randomness::Config + pallet_evm::Config,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::RuntimeCall: From&lt;pallet_randomness::Call&lt;Runtime&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockNumber: TryInto&lt;u32&gt; + TryFrom&lt;u32&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">&quot;relayEpochIndex()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>relay_epoch_index(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u64&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="comment">// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>relay_epoch_index =
 			&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::BabeDataGetter::get_epoch_index();
 		<span class="prelude-val">Ok</span>(relay_epoch_index)
@@ -712,8 +754,7 @@
 
 	<span class="attr">#[precompile::public(<span class="string">&quot;requiredDeposit()&quot;</span>)]
 	#[precompile::view]
-	</span><span class="kw">fn </span>required_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+	</span><span class="kw">fn </span>required_deposit(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="kw">let </span>required_deposit: U256 = &lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::Deposit::get().into();
 		<span class="prelude-val">Ok</span>(required_deposit)
 	}
@@ -724,13 +765,20 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		request_id: Convert&lt;U256, u64&gt;,
 	) -&gt; EvmResult&lt;RequestStatus&gt; {
-		<span class="comment">// record cost of 2 DB reads
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2</span>)<span class="question-mark">?</span>;
-
 		<span class="kw">let </span>request_id = request_id.converted();
+
+		<span class="comment">// Storage item read: pallet_randomness::Requests
+		// Max encoded len: Twox64(8) + RequestId(8) + RequestState(
+		// 	request(refund_address(20)+contract_address(20)+fee(16)+gas_limit(8)+num_words(1)
+		//   +salt(32)+info(17))
+		// + deposit(16) )
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">146</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>status =
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(RequestState { request, .. }) = Pallet::&lt;Runtime&gt;::requests(request_id) {
+				<span class="comment">// Storage item read: pallet_randomness::RelayEpoch
+				// Max encoded len: u64(8)
+				</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">8</span>)<span class="question-mark">?</span>;
 				<span class="kw">if </span>request.is_expired() {
 					RequestStatus::Expired
 				} <span class="kw">else if </span>request.can_be_fulfilled() {
@@ -764,14 +812,21 @@
 		</span>u64, <span class="comment">// expiration epoch index
 		</span>RequestStatus,
 	)&gt; {
-		<span class="comment">// record cost of 2 DB reads
-		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2</span>)<span class="question-mark">?</span>;
-
 		<span class="kw">let </span>request_id = request_id.converted();
+
+		<span class="comment">// Storage item read: pallet_randomness::Requests
+		// Max encoded len: Twox64(8) + RequestId(8) + RequestState(
+		// 	request(refund_address(20)+contract_address(20)+fee(16)+gas_limit(8)+num_words(1)
+		//   +salt(32)+info(17))
+		// + deposit(16) )
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">146</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>RequestState { request, .. } =
 			Pallet::&lt;Runtime&gt;::requests(request_id).ok_or(revert(<span class="string">&quot;Request Does Not Exist&quot;</span>))<span class="question-mark">?</span>;
 
+		<span class="comment">// Storage item read: pallet_randomness::RelayEpoch
+		// Max encoded len: u64(8)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">8</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>status = <span class="kw">if </span>request.is_expired() {
 			RequestStatus::Expired
 		} <span class="kw">else if </span>request.can_be_fulfilled() {
@@ -843,9 +898,8 @@
 		salt: H256,
 		num_words: u8,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(
-			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost(),
-		)<span class="question-mark">?</span>;
+		<span class="comment">// Until proper benchmark, charge few hardcoded gas to prevent free spam
+		</span>handle.record_cost(<span class="number">500</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>refund_address: H160 = refund_address.into();
 		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
@@ -869,11 +923,14 @@
 			info: RequestType::BabeEpoch(two_epochs_later),
 		};
 
-		<span class="kw">let </span>request_id: U256 = Pallet::&lt;Runtime&gt;::request_randomness(request)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?
-			</span>.into();
+		<span class="kw">let </span>request_randomness_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::request_randomness();
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, request_randomness_weight)<span class="question-mark">?</span>;
+		<span class="kw">let </span>request_id = Pallet::&lt;Runtime&gt;::request_randomness(request)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, request_randomness_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(request_id)
+		<span class="prelude-val">Ok</span>(request_id.into())
 	}
 	<span class="doccomment">/// Make request for local VRF randomness
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)&quot;</span>)]
@@ -886,9 +943,8 @@
 		num_words: u8,
 		delay: Convert&lt;u64, u32&gt;,
 	) -&gt; EvmResult&lt;U256&gt; {
-		handle.record_cost(
-			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost(),
-		)<span class="question-mark">?</span>;
+		<span class="comment">// Until proper benchmark, charge few hardcoded gas to prevent free spam
+		</span>handle.record_cost(<span class="number">500</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>refund_address: H160 = refund_address.into();
 		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
@@ -918,11 +974,14 @@
 			info: RequestType::Local(requested_block_number),
 		};
 
-		<span class="kw">let </span>request_id: U256 = Pallet::&lt;Runtime&gt;::request_randomness(request)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?
-			</span>.into();
+		<span class="kw">let </span>request_randomness_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::request_randomness();
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, request_randomness_weight)<span class="question-mark">?</span>;
+		<span class="kw">let </span>request_id = Pallet::&lt;Runtime&gt;::request_randomness(request)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, request_randomness_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(request_id)
+		<span class="prelude-val">Ok</span>(request_id.into())
 	}
 
 	<span class="doccomment">/// Fulfill a randomness request due to be fulfilled
@@ -933,32 +992,41 @@
 	) -&gt; EvmResult {
 		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="comment">// Since we cannot compute `prepare_and_finish_fulfillment_cost` now (we don&#39;t
-		// know the number of words), we compute the cost for the maximum allowed number of
-		// words.
-		</span><span class="kw">let </span>max_prepare_and_finish_fulfillment_cost =
-			prepare_and_finish_fulfillment_gas_cost::&lt;Runtime&gt;(
-				&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::MaxRandomWords::get(),
+		<span class="comment">// Call `prepare_fulfillment`, prevently charge for MaxRandomWords then refund.
+		</span><span class="kw">let </span>prepare_fulfillment_max_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::prepare_fulfillment(
+				&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::MaxRandomWords::get() <span class="kw">as </span>u32,
 			);
-
-		<span class="kw">if </span>handle.remaining_gas() &lt; max_prepare_and_finish_fulfillment_cost {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="macro">alloc::format!</span>(
-				<span class="string">&quot;provided gas must be at least {max_prepare_and_finish_fulfillment_cost}&quot;
-			</span>)));
-		}
-
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, prepare_fulfillment_max_weight)<span class="question-mark">?</span>;
 		<span class="kw">let </span>pallet_randomness::FulfillArgs {
 			request,
 			deposit,
 			randomness,
 		} = Pallet::&lt;Runtime&gt;::prepare_fulfillment(request_id)
 			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>prepare_and_finish_fulfillment_cost =
-			prepare_and_finish_fulfillment_gas_cost::&lt;Runtime&gt;(request.num_words);
-		handle.record_cost(prepare_and_finish_fulfillment_cost)<span class="question-mark">?</span>;
+		<span class="kw">let </span>prepare_fulfillment_actual_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::prepare_fulfillment(
+				request.num_words <span class="kw">as </span>u32,
+			);
+		<span class="kw">let </span><span class="kw-2">mut </span>prepare_and_finish_fulfillment_used_gas =
+			RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(
+				handle,
+				prepare_fulfillment_max_weight,
+				<span class="prelude-val">Some</span>(prepare_fulfillment_actual_weight),
+			)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>subcall_overhead_gas_costs = subcall_overhead_gas_costs::&lt;Runtime&gt;()<span class="question-mark">?</span>;
+
+		<span class="comment">// Precharge for finish fullfillment (necessary to be able to compute
+		// prepare_and_finish_fulfillment_used_gas)
+		</span><span class="kw">let </span>finish_fulfillment_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::finish_fulfillment();
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, finish_fulfillment_weight)<span class="question-mark">?</span>;
+		prepare_and_finish_fulfillment_used_gas += RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(
+			handle,
+			finish_fulfillment_weight,
+			<span class="prelude-val">None</span>,
+		)<span class="question-mark">?</span>;
 
 		<span class="comment">// check that randomness can be provided
 		</span>ensure_can_provide_randomness::&lt;Runtime&gt;(
@@ -966,12 +1034,12 @@
 			request.gas_limit,
 			request.fee,
 			subcall_overhead_gas_costs,
-			prepare_and_finish_fulfillment_cost,
+			prepare_and_finish_fulfillment_used_gas,
 		)<span class="question-mark">?</span>;
 
 		<span class="comment">// We meter this section to know how much gas was actually used.
 		// It contains the gas used by the subcall and the overhead actually
-		// performing a call. It doesn&#39;t contain `prepare_and_finish_fulfillment_cost`.
+		// performing a call. It doesn&#39;t contain `prepare_and_finish_fulfillment_used_gas`.
 		</span><span class="kw">let </span>remaining_gas_before = handle.remaining_gas();
 		provide_randomness(
 			handle,
@@ -983,11 +1051,11 @@
 		<span class="kw">let </span>remaining_gas_after = handle.remaining_gas();
 
 		<span class="comment">// We compute the actual gas used to refund the caller.
-		// It is the metered gas + `prepare_and_finish_fulfillment_cost`.
+		// It is the metered gas + `prepare_and_finish_fulfillment_used_gas`.
 		</span><span class="kw">let </span>gas_used: U256 = remaining_gas_before
 			.checked_sub(remaining_gas_after)
 			.ok_or(revert(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?
-			</span>.checked_add(prepare_and_finish_fulfillment_cost)
+			</span>.checked_add(prepare_and_finish_fulfillment_used_gas)
 			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
 			</span>.checked_add(transaction_gas_refund::&lt;Runtime&gt;())
 			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
@@ -1021,7 +1089,9 @@
 		request_id: Convert&lt;U256, u64&gt;,
 		fee_increase: U256,
 	) -&gt; EvmResult {
-		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)<span class="question-mark">?</span>;
+		<span class="kw">let </span>increase_fee_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::increase_fee();
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, increase_fee_weight)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>request_id = request_id.converted();
 
@@ -1032,6 +1102,8 @@
 		Pallet::&lt;Runtime&gt;::increase_request_fee(<span class="kw-2">&amp;</span>handle.context().caller, request_id, fee_increase)
 			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
+		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, increase_fee_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 	<span class="doccomment">/// Execute request expiration to remove the request from storage
@@ -1041,12 +1113,20 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		request_id: Convert&lt;U256, u64&gt;,
 	) -&gt; EvmResult {
-		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)<span class="question-mark">?</span>;
+		<span class="kw">let </span>execute_request_expiration_weight =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::execute_request_expiration();
+		RuntimeHelper::&lt;Runtime&gt;::record_weight_v2_cost(handle, execute_request_expiration_weight)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>request_id = request_id.converted();
 
 		Pallet::&lt;Runtime&gt;::execute_request_expiration(<span class="kw-2">&amp;</span>handle.context().caller, request_id)
 			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(
+			handle,
+			execute_request_expiration_weight,
+			<span class="prelude-val">None</span>,
+		)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 }
