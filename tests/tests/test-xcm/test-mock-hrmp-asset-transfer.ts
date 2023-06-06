@@ -1,9 +1,10 @@
 import "@moonbeam-network/api-augment";
+
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ParaId } from "@polkadot/types/interfaces";
-import { XcmV3JunctionNetworkId } from "@polkadot/types/lookup";
 import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
+
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import {
@@ -334,34 +335,6 @@ describeDevMoonbeam(
       ).index;
 
       // The rest should be going to the deposit account
-
-      type MultiLocationSimple =
-        | {
-            parents: number;
-            interior: {
-              X1: { PalletInstance: number };
-            };
-          }
-        | {
-            parents: 1;
-            interior: {
-              X3: [{ Parachain: number }, { PalletInstance: number }, { GeneralIndex: number }];
-            };
-          };
-
-      interface Junction {
-        Parachain?: number;
-        AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"]; id: Uint8Array };
-        AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"]; index: number };
-        AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"]; key: Uint8Array };
-        PalletInstance?: number;
-        GeneralIndex?: bigint;
-        GeneralKey?: { length: number; data: Uint8Array };
-        OnlyChild?: null;
-        Plurality?: { id: any; part: any };
-        GlobalConsensus?: "Any" | XcmV3JunctionNetworkId["type"];
-      }
-
       const xcmMessage = new XcmFragment({
         assets: [
           {

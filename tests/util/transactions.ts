@@ -2,6 +2,7 @@ import { AccessListish } from "@ethersproject/transactions";
 import { ethers } from "ethers";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
+
 import {
   alith,
   ALITH_PRIVATE_KEY,
@@ -77,20 +78,11 @@ export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
   privateKey: ETHAN_PRIVATE_KEY,
 };
 
-export type EthTransactionType = "Legacy" | "EIP2930" | "EIP1559";
-
-type isLegacy<T> = T extends "Legacy" ? true : false;
-
-function checkTxType(type: EthTransactionType) {
-  return;
-}
-
 export const createTransaction = async (
   context: DevTestContext,
-  options: TransactionOptions,
-  txType?: EthTransactionType
+  options: TransactionOptions
 ): Promise<string> => {
-  const isLegacy = txType ? txType === "Legacy" : context.ethTransactionType === "Legacy";
+  const isLegacy = context.ethTransactionType === "Legacy";
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
@@ -203,7 +195,7 @@ export const createTransaction = async (
     }
     rawTransaction = await signer.signTransaction(data);
   }
-  context.web3.currentProvider;
+
   debug(
     `Tx [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] ` +
       `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +

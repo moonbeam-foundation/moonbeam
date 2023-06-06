@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { it } from "mocha";
 import { alith, generateKeyringPair } from "../../util/accounts";
 import { mapExtrinsics } from "../../util/block";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -9,7 +8,6 @@ import { createTransfer } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
   const randomAccount = generateKeyringPair();
   it("should emit ethereum/transfer events", async function () {
-    this.timeout(600000)
     await context.createBlock(await createTransfer(context, randomAccount.address, 512));
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
