@@ -7,12 +7,12 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { BN, nToHex } from "@polkadot/util";
+import { BN, bnToHex, nToHex } from "@polkadot/util";
 import { expectOk } from "../../../helpers/expect.js";
 import {
   RawXcmMessage,
   XcmFragment,
-  descendOriginFromAddress,
+  descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../../helpers/xcm.js";
 
@@ -34,7 +34,7 @@ describeSuite({
     let balancesPalletIndex: number;
 
     beforeAll(async function () {
-      const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       random = generateKeyringPair();
       transferredBalance = 10_000_000_000_000_000_000n;
@@ -63,7 +63,7 @@ describeSuite({
           context
             .polkadotJs()
             .tx.system.setStorage([
-              [MULTIPLIER_STORAGE_KEY, nToHex(startingBn, { isLe: true, bitLength: 128 })],
+              [MULTIPLIER_STORAGE_KEY, bnToHex(startingBn, { isLe: true, bitLength: 128 })],
             ])
         )
         .signAndSend(alith);

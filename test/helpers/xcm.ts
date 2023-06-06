@@ -1,17 +1,14 @@
-import { u8aToHex, BN } from "@polkadot/util";
-import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
-import { web3EthCall, customWeb3Request, PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
+import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
+import { PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
+import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  XcmV3JunctionNetworkId,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
-import { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { encodeFunctionData } from "viem";
-import { AssetMetadata } from "./assets.js";
-
-const XCM_UTILS_CONTRACT = await fetchCompiledContract("XcmUtils");
-const XCM_UTILSTRANSACTOR_INTERFACE = XCM_UTILS_CONTRACT.abi;
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -24,7 +21,6 @@ export function mockHrmpChannelExistanceTx(
   maxTotalSize: Number,
   maxMessageSize: Number
 ) {
-  const api = context.polkadotJs({ type: "moon" });
   // This constructs the relevant state to be inserted
   const relevantMessageState = {
     dmqMqcHead: "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -58,19 +54,22 @@ export function mockHrmpChannelExistanceTx(
   };
 
   const stateToInsert: CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot =
-    api.createType(
-      "CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot",
-      relevantMessageState
-    ) as any;
+    context
+      .polkadotJs()
+      .createType(
+        "CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot",
+        relevantMessageState
+      ) as any;
 
   // Get keys to modify state
   const module = xxhashAsU8a(new TextEncoder().encode("ParachainSystem"), 128);
   const account_key = xxhashAsU8a(new TextEncoder().encode("RelevantMessagingState"), 128);
-  // @ts-expect-error
-  api.rpc.call(wadawda);
+
   const overallKey = new Uint8Array([...module, ...account_key]);
 
-  return api.tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())]]);
+  return context
+    .polkadotJs()
+    .tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())]]);
 }
 
 export async function registerForeignAsset(
@@ -78,27 +77,36 @@ export async function registerForeignAsset(
   asset: any,
   metadata: AssetMetadata,
   unitsPerSecond?: number,
-  numAssetsWeightHint?: number // TODO: Check this is right
+  numAssetsWeightHint?: number
 ) {
-  const api = context.polkadotJs({ type: "moon" });
   unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
   const { result } = await context.createBlock(
-    api.tx.sudo.sudo(api.tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true))
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context.polkadotJs().tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
+      )
   );
   // Look for assetId in events
-  const registeredAssetId = result?.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")!
+  const registeredAssetId = result!.events
+    .find(({ event: { section } }) => section.toString() === "assetManager")
     .event.data[0].toHex()
     .replace(/,/g, "");
 
   // setAssetUnitsPerSecond
   const { result: result2 } = await context.createBlock(
-    api.tx.sudo.sudo(
-      api.tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-    )
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
+      )
   );
   // check asset in storage
-  const registeredAsset = ((await api.query.assets.asset(registeredAssetId)) as any).unwrap();
+  const registeredAsset = (
+    (await context.polkadotJs().query.assets.asset(registeredAssetId)) as any
+  ).unwrap();
   return {
     registeredAssetId,
     events: result2!.events,
@@ -106,38 +114,39 @@ export async function registerForeignAsset(
   };
 }
 
-export function descendOriginFromAddress(context: DevModeContext, address?: string) {
-  const api = context.polkadotJs({ type: "moon" });
-  const originAddress = address != null ? address : "0x0101010101010101010101010101010101010101";
-  const derivedMultiLocation = api.createType(
-    "MultiLocation",
-    JSON.parse(
-      `{\
-              "parents": 1,\
-              "interior": {\
-                "X2": [\
-                  { "Parachain": 1 },\
-                  { "AccountKey20": \
-                    {\
-                      "network": "Any",\
-                      "key": "${originAddress}"\
-                    } \
-                  }\
-                ]\
-              }\
-            }`
-    )
-  );
-
+export function descendOriginFromAddress20(
+  context: DevModeContext,
+  address: string = "0x0101010101010101010101010101010101010101",
+  paraId: number = 1
+) {
   const toHash = new Uint8Array([
-    ...new Uint8Array([32]),
-    ...new TextEncoder().encode("multiloc"),
-    ...derivedMultiLocation.toU8a(),
+    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para20"),
+    ...context.polkadotJs().createType("u32", paraId).toU8a(),
+    ...context.polkadotJs().createType("AccountId", address).toU8a(),
+    ...new Uint8Array([1]),
   ]);
 
   return {
-    originAddress,
-    descendOriginAddress: u8aToHex(api.registry.hash(toHash).slice(0, 20)),
+    originAddress: address,
+    descendOriginAddress: u8aToHex(context.polkadotJs().registry.hash(toHash).slice(0, 20)),
+  };
+}
+
+export function descendOriginFromAddress32(
+  context: DevModeContext,
+  address: string,
+  paraId: number = 1
+) {
+  const toHash = new Uint8Array([
+    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para32"),
+    ...context.polkadotJs().createType("u32", paraId).toU8a(),
+    ...context.polkadotJs().createType("AccountId", address).toU8a(),
+    ...new Uint8Array([1]),
+  ]);
+
+  return {
+    originAddress: address,
+    descendOriginAddress: u8aToHex(context.polkadotJs().registry.hash(toHash).slice(0, 20)),
   };
 }
 
@@ -145,7 +154,7 @@ export function sovereignAccountOfSibling(context: DevModeContext, paraId: numbe
   return u8aToHex(
     new Uint8Array([
       ...new TextEncoder().encode("sibl"),
-      ...context.polkadotJs({ type: "moon" }).createType("u32", paraId).toU8a(),
+      ...context.polkadotJs().createType("u32", paraId).toU8a(),
       ...new Uint8Array(12),
     ])
   );
@@ -160,10 +169,10 @@ export interface RawXcmMessage {
 export function buildXcmpMessage(context: DevModeContext, message: RawXcmMessage): number[] {
   const format = message.format != null ? message.format : "ConcatenatedVersionedXcm";
   const xcmpFormat: XcmpMessageFormat = context
-    .polkadotJs({ type: "moon" })
+    .polkadotJs()
     .createType("XcmpMessageFormat", format) as any;
   const receivedMessage: XcmVersionedXcm = context
-    .polkadotJs({ type: "moon" })
+    .polkadotJs()
     .createType(message.type, message.payload) as any;
 
   return [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
@@ -176,23 +185,29 @@ export async function injectHrmpMessage(
 ) {
   let totalMessage = message != null ? buildXcmpMessage(context, message) : [];
   // Send RPC call to inject XCM message
-  await customWeb3Request(context.web3(), "xcm_injectHrmpMessage", [paraId, totalMessage]);
+  await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
-
 // Weight a particular message using the xcm utils precompile
 export async function weightMessage(context: DevModeContext, message: XcmVersionedXcm) {
-  const result = await web3EthCall(context.web3(), {
+  const XCM_UTILS_CONTRACT = await fetchCompiledContract("precompiles/xcm-utils/XcmUtils");
+  const result = await context.viemClient("public").call({
     to: PRECOMPILE_XCM_UTILS_ADDRESS,
     data: encodeFunctionData({
-      abi: XCM_UTILSTRANSACTOR_INTERFACE,
+      abi: XCM_UTILS_CONTRACT.abi,
       functionName: "weightMessage",
       args: [message.toU8a()],
     }),
   });
-  console.log("remove");
-  console.log(JSON.stringify(result)); // TODO: Remove me
-  return result;
+  return BigInt(result.data as string);
 }
+
+// export async function weightMessage(context: DevModeContext, message?: XcmVersionedXcm) {
+//   const result = await web3EthCall(context.web3, {
+//     to: PRECOMPILE_XCM_UTILS_ADDRESS,
+//     data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [message.toU8a()]),
+//   });
+//   return BigInt(result.result);
+// }
 
 export async function injectHrmpMessageAndSeal(
   context: DevModeContext,
@@ -204,12 +219,39 @@ export async function injectHrmpMessageAndSeal(
   await context.createBlock();
 }
 
-interface XcmFragmentConfig {
+interface Junction {
+  Parachain?: number;
+  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"]; id: Uint8Array | string };
+  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"]; index: number };
+  AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"]; key: Uint8Array | string };
+  PalletInstance?: number;
+  GeneralIndex?: bigint;
+  GeneralKey?: { length: number; data: Uint8Array };
+  OnlyChild?: null;
+  Plurality?: { id: any; part: any };
+  GlobalConsensus?: "Any" | XcmV3JunctionNetworkId["type"];
+}
+
+interface Junctions {
+  Here?: null;
+  X1?: Junction;
+  X2?: [Junction, Junction];
+  X3?: [Junction, Junction, Junction];
+  X4?: [Junction, Junction, Junction, Junction];
+  X5?: [Junction, Junction, Junction, Junction, Junction];
+  X6?: [Junction, Junction, Junction, Junction, Junction, Junction];
+  X7?: [Junction, Junction, Junction, Junction, Junction, Junction, Junction];
+  X8?: [Junction, Junction, Junction, Junction, Junction, Junction, Junction, Junction];
+}
+
+export interface MultiLocation {
+  parents: number;
+  interior: Junctions;
+}
+
+export interface XcmFragmentConfig {
   assets: {
-    multilocation: {
-      parents: number;
-      interior: any;
-    };
+    multilocation: MultiLocation;
     fungible: bigint;
   }[];
   weight_limit?: BN;
@@ -279,6 +321,17 @@ export class XcmFragment {
     return this;
   }
 
+  // Add one or more `BuyExecution` instruction
+  // if weight_limit is not set in config, then we put unlimited
+  refund_surplus(repeat: bigint = 1n): this {
+    for (var i = 0; i < repeat; i++) {
+      this.instructions.push({
+        RefundSurplus: null,
+      });
+    }
+    return this;
+  }
+
   // Add a `ClaimAsset` instruction
   claim_asset(index: number = 0): this {
     this.instructions.push({
@@ -329,7 +382,10 @@ export class XcmFragment {
   }
 
   // Add a `DepositAsset` instruction
-  deposit_asset(max_assets: bigint = 1n): this {
+  deposit_asset(
+    max_assets: bigint = 1n,
+    network: "Any" | XcmV3JunctionNetworkId["type"] = "Any"
+  ): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
     }
@@ -339,7 +395,27 @@ export class XcmFragment {
         maxAssets: max_assets,
         beneficiary: {
           parents: 0,
-          interior: { X1: { AccountKey20: { network: "Any", key: this.config.beneficiary } } },
+          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
+        },
+      },
+    });
+    return this;
+  }
+
+  // Add a `DepositAsset` instruction for xcm v3
+  deposit_asset_v3(
+    max_assets: bigint = 1n,
+    network: XcmV3JunctionNetworkId["type"] | null = null
+  ): this {
+    if (this.config.beneficiary == null) {
+      console.warn("!Building a DepositAsset instruction without a configured beneficiary");
+    }
+    this.instructions.push({
+      DepositAsset: {
+        assets: { Wild: { AllCounted: max_assets } },
+        beneficiary: {
+          parents: 0,
+          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
         },
       },
     });
@@ -400,11 +476,337 @@ export class XcmFragment {
     };
   }
 
+  /// XCM V3 calls
+  as_v3(): any {
+    return {
+      V3: replaceNetworkAny(this.instructions),
+    };
+  }
+
+  // Add a `BurnAsset` instruction
+  burn_asset(amount: bigint = 0n): this {
+    this.instructions.push({
+      BurnAsset: this.config.assets.map(({ multilocation, fungible }) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: amount == 0n ? fungible : amount },
+        };
+      }, this),
+    });
+    return this;
+  }
+
+  // Add a `ReportHolding` instruction
+  report_holding(
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
+    query_id: number = Math.floor(Math.random() * 1000),
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
+    }
+  ): this {
+    this.instructions.push({
+      ReportHolding: {
+        response_info: {
+          destination,
+          query_id,
+          max_weight,
+        },
+        assets: { Wild: "All" },
+      },
+    });
+    return this;
+  }
+
+  // Add a `ExpectAsset` instruction
+  expect_asset(): this {
+    this.instructions.push({
+      ExpectAsset: this.config.assets.map(({ multilocation, fungible }) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: fungible },
+        };
+      }, this),
+    });
+    return this;
+  }
+
+  // Add a `ExpectOrigin` instruction
+  expect_origin(
+    multilocation: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } }
+  ): this {
+    this.instructions.push({
+      ExpectOrigin: multilocation,
+    });
+    return this;
+  }
+
+  // Add a `ExpectError` instruction
+  expect_error(index: number = 0, error: string = "Unimplemented"): this {
+    this.instructions.push({
+      ExpectError: [index, error],
+    });
+    return this;
+  }
+
+  // Add a `ExpectTransactStatus` instruction
+  expect_transact_status(status: string = "Success"): this {
+    this.instructions.push({
+      ExpectTransactStatus: status,
+    });
+    return this;
+  }
+
+  // Add a `QueryPallet` instruction
+  query_pallet(
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
+    query_id: number = Math.floor(Math.random() * 1000),
+    module_name: string = "pallet_balances",
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
+    }
+  ): this {
+    this.instructions.push({
+      QueryPallet: {
+        module_name: stringToU8a(module_name),
+        response_info: {
+          destination,
+          query_id,
+          max_weight,
+        },
+      },
+    });
+    return this;
+  }
+
+  // Add a `ExpectPallet` instruction
+  expect_pallet(
+    index: number = 0,
+    name: string = "Balances",
+    module_name: string = "pallet_balances",
+    crate_major: number = 4,
+    min_crate_minor: number = 0
+  ): this {
+    this.instructions.push({
+      ExpectPallet: {
+        index,
+        name: stringToU8a(name),
+        module_name: stringToU8a(module_name),
+        crate_major,
+        min_crate_minor,
+      },
+    });
+    return this;
+  }
+
+  // Add a `ReportTransactStatus` instruction
+  report_transact_status(
+    destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
+    query_id: number = Math.floor(Math.random() * 1000),
+    max_weight: { refTime: bigint; proofSize: bigint } = {
+      refTime: 1_000_000_000n,
+      proofSize: 1_000_000_000n,
+    }
+  ): this {
+    this.instructions.push({
+      ReportTransactStatus: {
+        destination,
+        query_id,
+        max_weight,
+      },
+    });
+    return this;
+  }
+
+  // Add a `ClearTransactStatus` instruction
+  clear_transact_status(): this {
+    this.instructions.push({
+      ClearTransactStatus: null as any,
+    });
+    return this;
+  }
+
+  // Add a `UniversalOrigin` instruction
+  universal_origin(junction: Junction): this {
+    this.instructions.push({
+      UniversalOrigin: junction,
+    });
+    return this;
+  }
+
+  // Add a `ExportMessage` instruction
+  export_message(
+    xcm_hex: string = "",
+    network: "Any" | XcmV3JunctionNetworkId["type"] = "Ethereum",
+    destination: Junctions = { X1: { Parachain: 1000 } }
+  ): this {
+    const callVec = stringToU8a(xcm_hex);
+    let xcm = Array.from(callVec);
+    this.instructions.push({
+      ExportMessage: {
+        network,
+        destination,
+        xcm,
+      },
+    });
+    return this;
+  }
+
+  // Add a `LockAsset` instruction
+  lock_asset(
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    unlocker: MultiLocation = this.config.assets[0].multilocation
+  ): this {
+    this.instructions.push({
+      LockAsset: {
+        asset: {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: {
+            Fungible: fungible,
+          },
+        },
+        unlocker,
+      },
+    });
+    return this;
+  }
+
+  // Add a `UnlockAsset` instruction
+  unlock_asset(
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    target: MultiLocation = this.config.assets[0].multilocation
+  ): this {
+    this.instructions.push({
+      UnlockAsset: {
+        asset: {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: {
+            Fungible: fungible,
+          },
+        },
+        target,
+      },
+    });
+    return this;
+  }
+
+  // Add a `NoteUnlockable` instruction
+  note_unlockable(
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    owner: MultiLocation = this.config.assets[0].multilocation
+  ): this {
+    this.instructions.push({
+      NoteUnlockable: {
+        asset: {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: {
+            Fungible: fungible,
+          },
+        },
+        owner,
+      },
+    });
+    return this;
+  }
+
+  // Add a `RequestUnlock` instruction
+  request_unlock(
+    multilocation: MultiLocation = this.config.assets[0].multilocation,
+    fungible: bigint = this.config.assets[0].fungible,
+    locker: MultiLocation = this.config.assets[0].multilocation
+  ): this {
+    this.instructions.push({
+      RequestUnlock: {
+        asset: {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: {
+            Fungible: fungible,
+          },
+        },
+        locker,
+      },
+    });
+    return this;
+  }
+
+  // Add a `SetFeesMode` instruction
+  set_fees_mode(jit_withdraw: boolean = true): this {
+    this.instructions.push({
+      SetFeesMode: { jit_withdraw },
+    });
+    return this;
+  }
+
+  // Add a `SetTopic` instruction
+  set_topic(topic: string = "0xk89103a9CF04c71Dbc94D0b566f7A2"): this {
+    this.instructions.push({
+      SetTopic: Array.from(stringToU8a(topic)),
+    });
+    return this;
+  }
+
+  // Add a `ClearTopic` instruction
+  clear_topic(): this {
+    this.instructions.push({
+      ClearTopic: null as any,
+    });
+    return this;
+  }
+
+  // Add a `AliasOrigin` instruction
+  alias_origin(
+    destination: MultiLocation = {
+      parents: 1,
+      interior: { X1: { Parachain: 1000 } },
+    }
+  ): this {
+    this.instructions.push({
+      AliasOrigin: destination,
+    });
+    return this;
+  }
+
+  // Add a `UnpaidExecution` instruction
+  unpaid_execution(
+    destination: MultiLocation = {
+      parents: 1,
+      interior: { X1: { Parachain: 1000 } },
+    }
+  ): this {
+    const weight_limit =
+      this.config.weight_limit != null
+        ? { Limited: this.config.weight_limit }
+        : { Unlimited: null };
+    this.instructions.push({
+      UnpaidExecution: {
+        weight_limit,
+        check_origin: destination,
+      },
+    });
+    return this;
+  }
+
   // Overrides the weight limit of the first buyExeuction encountered
   // with the measured weight
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
-      .polkadotJs({ type: "moon" })
+      .polkadotJs()
       .createType("XcmVersionedXcm", this.as_v2()) as any;
 
     const instructions = message.asV2;
@@ -423,3 +825,24 @@ export class XcmFragment {
     return this;
   }
 }
+
+function replaceNetworkAny(obj: AnyObject | Array<AnyObject>): any {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => replaceNetworkAny(item));
+  } else if (typeof obj === "object" && obj !== null) {
+    const newObj: AnyObject = {};
+    for (const key in obj) {
+      if (key === "network" && obj[key] === "Any") {
+        newObj[key] = null;
+      } else {
+        newObj[key] = replaceNetworkAny(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+}
+
+type AnyObject = {
+  [key: string]: any;
+};

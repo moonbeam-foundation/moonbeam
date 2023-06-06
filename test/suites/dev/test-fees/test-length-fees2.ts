@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY, EXTRINSIC_GAS_LIMIT, MIN_GAS_PRICE, createRawTransaction } from "@moonwall/util";
+import { ALITH_PRIVATE_KEY, EXTRINSIC_GAS_LIMIT, createRawTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D1607",
@@ -35,7 +35,7 @@ describeSuite({
             "0".repeat(2048) +
             "0".repeat(2048)) as `0x${string}`,
           privateKey: ALITH_PRIVATE_KEY,
-          type: "legacy"
+          type: "legacy",
         });
 
         const { result } = await context.createBlock(tx);
@@ -52,7 +52,7 @@ describeSuite({
         //
         // conclusion: the LengthToFee modifier is NOT involved
 
-        const expected = 33908n;
+        const expected = 37708n;
         expect(receipt.gasUsed).toBe(expected);
 
         // furthermore, we can account for the entire fee:

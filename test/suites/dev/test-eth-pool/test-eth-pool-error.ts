@@ -36,7 +36,7 @@ describeSuite({
       test: async function () {
         const nonce = await context
           .viemClient("public")
-          .getTransactionCount({ address: CHARLETH_ADDRESS });
+          .getTransactionCount({ address: BALTATHAR_ADDRESS });
 
         const tx1 = await createRawTransfer(context, CHARLETH_ADDRESS, 1, {
           nonce,
@@ -45,7 +45,6 @@ describeSuite({
           type: "legacy",
         });
         log(await customDevRpcRequest("eth_sendRawTransaction", [tx1]));
-        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
           nonce,
