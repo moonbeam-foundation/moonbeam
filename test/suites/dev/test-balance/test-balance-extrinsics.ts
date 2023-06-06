@@ -21,7 +21,7 @@ describeSuite({
       const privateKey = generatePrivateKey();
       randomAccount = privateKeyToAccount(privateKey);
     });
-    // editorconfig-checker-disable
+
     for (const txnType of TransactionTypes) {
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,

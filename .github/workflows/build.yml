@@ -130,11 +130,12 @@ jobs:
         run: |
           ls /tmp/bin/ec-linux-amd64 || \
           cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.5.0/ec-linux-amd64.tar.gz && \
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.7.0/ec-linux-amd64.tar.gz && \
           tar xvf ec-linux-amd64.tar.gz && \
           chmod +x bin/ec-linux-amd64
       - name: Check files
-        run: /tmp/bin/ec-linux-amd64 --exclude "typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts"
+        # Prettier and editorconfig-checker have different ideas about indentation
+        run: /tmp/bin/ec-linux-amd64 -exclude "typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"

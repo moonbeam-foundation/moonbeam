@@ -47,7 +47,7 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
       "Technical Committee Wrong event"
     ).to.equal(2);
     expect((events[2].event.data[1] as Result<any, SpRuntimeDispatchError>).isOk).to.be.true;
-events.forEach(event=> console.log(event.event.toHuman()))
+    events.forEach((event) => console.log(event.event.toHuman()));
     // Verify the proposal is NOT sent to referendum
     expect((await context.polkadotApi.query.democracy.referendumCount()).toNumber()).to.be.equal(1);
   });

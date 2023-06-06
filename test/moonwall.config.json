@@ -145,7 +145,7 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "reporters": ["basic", "html"],
-      "envVars":["DEBUG_COLORS=1"],
+      "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
         "type": "read_only"
       },
@@ -196,7 +196,7 @@
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "multiThreads": true,
-      "envVars":["DEBUG_COLORS=1"],
+      "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
