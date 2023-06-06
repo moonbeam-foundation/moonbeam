@@ -19,6 +19,8 @@ import {
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
+import { GAS_LIMIT_POV_RATIO } from "../../util/constants";
+
 import { createContract } from "../../util/transactions";
 
 import { expectOk } from "../../util/expect";
@@ -1296,10 +1298,12 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
     // Matches the BoundedVec limit in the runtime.
     const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
 
+    const GAS_LIMIT = 1000000;
+
     const xcmTransactions = [
       {
         V1: {
-          gas_limit: 1000000,
+          gas_limit: GAS_LIMIT,
           fee_payment: {
             Auto: {
               Low: null,
@@ -1318,7 +1322,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
       },
       {
         V2: {
-          gas_limit: 1000000,
+          gas_limit: GAS_LIMIT,
           action: {
             Call: contractDeployed.options.address,
           },
@@ -1349,7 +1353,10 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
             fungible: transferredBalance / 2n,
           },
         ],
-        weight_limit: new BN(40000000000),
+        weight_limit: {
+          refTime: 40000000000,
+          proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
+        } as any,
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1357,14 +1364,17 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
         .buy_execution()
         .push_any({
           Transact: {
-            originType: "SovereignAccount",
-            requireWeightAtMost: new BN(30000000000),
+            originKind: "SovereignAccount",
+            requireWeightAtMost: {
+              refTime: 30000000000,
+              proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+            },
             call: {
               encoded: transferCallEncoded,
             },
           },
         })
-        .as_v2();
+        .as_v3();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -1540,12 +1550,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
 
     const amountToTransfer = transferredBalance / 10n;
 
+    const GAS_LIMIT = 500_000;
+
     // We will put a very high gas limit. However, the weight accounted
     // for the block should only
     const xcmTransactions = [
       {
         V1: {
-          gas_limit: 500_000,
+          gas_limit: GAS_LIMIT,
           fee_payment: {
             Auto: {
               Low: null,
@@ -1588,7 +1600,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
             fungible: targetXcmFee,
           },
         ],
-        weight_limit: new BN(targetXcmWeight.toString()),
+        weight_limit: {
+          refTime: targetXcmWeight,
+          proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
+        } as any,
         descend_origin: sendingAddress,
       })
         .descend_origin()
@@ -1596,15 +1611,18 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
         .buy_execution()
         .push_any({
           Transact: {
-            originType: "SovereignAccount",
+            originKind: "SovereignAccount",
             // 500_000 gas limit + db read
-            requireWeightAtMost: new BN(12_500_000_000).add(new BN(25_000_000)),
+            requireWeightAtMost: {
+              refTime: 12_525_000_000,
+              proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+            },
             call: {
               encoded: transferCallEncoded,
             },
           },
         })
-        .as_v2();
+        .as_v3();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {

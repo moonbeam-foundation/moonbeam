@@ -27,7 +27,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     const { block, result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         maxFeePerGas: 10_000_000_000,
         maxPriorityFeePerGas: 0,
         to: baltathar.address,
@@ -64,18 +64,18 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
   });
 
   it("should correctly refund weight from excess gas_limit supplied", async function () {
-    const gasAmount = Math.floor(EXTRINSIC_GAS_LIMIT * 0.8);
+    const gasAmount = (EXTRINSIC_GAS_LIMIT * 8n) / 10n;
     const tx_1 = await createTransfer(context, baltathar.address, 1, {
-      gas: gasAmount,
+      gas: gasAmount.toString(),
       nonce: 1,
     });
     const tx_2 = await createTransfer(context, charleth.address, 1, {
-      gas: gasAmount,
+      gas: gasAmount.toString(),
       privateKey: BALTATHAR_PRIVATE_KEY,
       nonce: 0,
     });
     const tx_3 = await createTransfer(context, alith.address, 1, {
-      gas: gasAmount,
+      gas: gasAmount.toString(),
       privateKey: CHARLETH_PRIVATE_KEY,
       nonce: 0,
     });

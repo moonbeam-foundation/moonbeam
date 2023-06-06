@@ -9,7 +9,9 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
   it("should be allowed to the max block gas", async function () {
-    const { rawTx } = await createContract(context, "MultiplyBy7", { gas: EXTRINSIC_GAS_LIMIT });
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
+      gas: EXTRINSIC_GAS_LIMIT.toString(),
+    });
     const { result } = await context.createBlock(rawTx);
     expect(result.successful).to.be.true;
 
@@ -21,7 +23,7 @@ describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
 describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
   it("should fail setting it over the max block gas", async function () {
     const { rawTx } = await createContract(context, "MultiplyBy7", {
-      gas: EXTRINSIC_GAS_LIMIT + 1,
+      gas: (EXTRINSIC_GAS_LIMIT + 1n).toString(),
     });
 
     expect(
