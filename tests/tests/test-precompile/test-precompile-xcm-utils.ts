@@ -180,16 +180,17 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       xcmMessage
     ) as any;
 
-    let payload = {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      to: PRECOMPILE_XCM_UTILS_ADDRESS,
-      data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
-        receivedMessage.toU8a(),
-        2_000_000_000,
-      ]),
-    };
-    delete payload["gas"];
-    await context.createBlock(createTransaction(context, payload));
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        gas: undefined,
+        to: PRECOMPILE_XCM_UTILS_ADDRESS,
+        data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+          receivedMessage.toU8a(),
+          2_000_000_000,
+        ]),
+      })
+    );
 
     // Tokens transferred
     const testAccountBalance = (
@@ -228,17 +229,17 @@ describeDevMoonbeam(
         xcmMessage
       ) as any;
 
-      let payload = {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
-          receivedMessage.toU8a(),
-          2_000_000_000,
-        ]),
-      };
-      delete payload["gas"];
-
-      const { result } = await context.createBlock(createTransaction(context, payload));
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          gas: undefined,
+          to: PRECOMPILE_XCM_UTILS_ADDRESS,
+          data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+            receivedMessage.toU8a(),
+            2_000_000_000,
+          ]),
+        })
+      );
       expectEVMResult(result.events, "Revert");
 
       const revertReason = await extractRevertReason(result.hash, context.ethers);
@@ -280,18 +281,18 @@ describeDevMoonbeam(
         xcmMessage
       ) as any;
 
-      let payload = {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        gasPrice: 1_000_000_000_000,
-        to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
-          receivedMessage.toU8a(),
-          2_000_000_000,
-        ]),
-      };
-      delete payload["gas"];
-
-      const { result } = await context.createBlock(createTransaction(context, payload));
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          gas: undefined,
+          gasPrice: 1_000_000_000_000,
+          to: PRECOMPILE_XCM_UTILS_ADDRESS,
+          data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+            receivedMessage.toU8a(),
+            2_000_000_000,
+          ]),
+        })
+      );
       expectEVMResult(result.events, "Revert");
 
       const revertReason = await extractRevertReason(result.hash, context.ethers);
