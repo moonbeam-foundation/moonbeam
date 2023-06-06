@@ -42,6 +42,8 @@
     "@polkadot/apps-config": "^0.130.1",
     "@polkadot/keyring": "^12.2.1",
     "@polkadot/util-crypto": "^12.2.1",
+    "@types/json-bigint": "^1.0.1",
+    "@types/yargs": "^17.0.24",
     "@vitest/ui": "^0.31.4",
     "@zombienet/utils": "^0.0.19",
     "bfj": "^7.0.2",

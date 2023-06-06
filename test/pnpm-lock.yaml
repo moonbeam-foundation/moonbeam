@@ -13,6 +13,12 @@ dependencies:
   '@polkadot/util-crypto':
     specifier: ^12.2.1
     version: 12.2.1(@polkadot/util@12.2.1)
+  '@types/json-bigint':
+    specifier: ^1.0.1
+    version: 1.0.1
+  '@types/yargs':
+    specifier: ^17.0.24
+    version: 17.0.24
   '@vitest/ui':
     specifier: ^0.31.4
     version: 0.31.4(vitest@0.31.4)
@@ -3091,6 +3097,10 @@ packages:
       '@types/ms': 0.7.31
     dev: true
 
+  /@types/json-bigint@1.0.1:
+    resolution: {integrity: sha512-zpchZLNsNuzJHi6v64UBoFWAvQlPhch7XAi36FkH6tL1bbbmimIF+cS7vwkzY4u5RaSWMoflQfu+TshMPPw8uw==}
+    dev: false
+
   /@types/long@4.0.2:
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
     dev: true
@@ -3123,13 +3133,11 @@ packages:
 
   /@types/yargs-parser@21.0.0:
     resolution: {integrity: sha512-iO9ZQHkZxHn4mSakYV0vFHAVDyEOIJQrV2uZ06HxEPcx+mt8swXoZHIbaaJ2crJYFfErySgktuTZ3BeLz+XmFA==}
-    dev: true
 
   /@types/yargs@17.0.24:
     resolution: {integrity: sha512-6i0aC7jV6QzQB8ne1joVZ0eSFIstHsCrobmOtghM11yGlH0j43FKL2UhWdELkyps0zuf7qVTUVCCR+tgSlyLLw==}
     dependencies:
       '@types/yargs-parser': 21.0.0
-    dev: true
 
   /@unique-nft/opal-testnet-types@939.54.0(@polkadot/api@10.8.1)(@polkadot/types@10.8.1):
     resolution: {integrity: sha512-Ej4C5zhti57iwvyIbu0eOH+/ZkAGcYG2kn+HTfVDOpuXEQzxMSAZCePY8h9pH0vHivGD1giKodNG6JSgfnH3ww==}
@@ -7159,7 +7167,7 @@ packages:
       web3-utils: 4.0.1-rc.1
       web3-validator: 1.0.0-rc.1
     optionalDependencies:
-      web3-providers-ipc: 4.0.1-rc.1
+      web3-providers-ipc: 4.0.1-rc.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
