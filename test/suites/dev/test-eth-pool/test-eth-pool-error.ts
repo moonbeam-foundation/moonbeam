@@ -1,14 +1,19 @@
 import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 import {
+  ALITH_ADDRESS,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
+  DOROTHY_ADDRESS,
   MIN_GAS_PRICE,
+  charleth,
+  createEthersTxn,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
+import { formatUnits, parseUnits } from "ethers";
 import { parseGwei } from "viem";
 
 describeSuite({
@@ -36,21 +41,24 @@ describeSuite({
       test: async function () {
         const nonce = await context
           .viemClient("public")
-          .getTransactionCount({ address: BALTATHAR_ADDRESS });
+          .getTransactionCount({ address: ALITH_ADDRESS });
 
-        const tx1 = await createRawTransfer(context, CHARLETH_ADDRESS, 1, {
+        const { rawSigned: tx1 } = await createEthersTxn(context, {
+          to: CHARLETH_ADDRESS,
           nonce,
           gasPrice: parseGwei("15"),
-          privateKey: BALTATHAR_PRIVATE_KEY,
-          type: "legacy",
+          value: 100,
+          txnType: "legacy",
         });
-        log(await customDevRpcRequest("eth_sendRawTransaction", [tx1]));
 
-        const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
+        await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
+
+        const { rawSigned: tx2 } = await createEthersTxn(context, {
+          to: DOROTHY_ADDRESS,
           nonce,
+          value: 200,
           gasPrice: parseGwei("10"),
-          privateKey: BALTATHAR_PRIVATE_KEY,
-          type: "legacy",
+          txnType: "legacy",
         });
 
         expect(
@@ -67,16 +75,14 @@ describeSuite({
       test: async function () {
         const nonce = await context
           .viemClient("public")
-          .getTransactionCount({ address: CHARLETH_ADDRESS });
+          .getTransactionCount({ address: ALITH_ADDRESS });
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
           nonce,
-          privateKey: CHARLETH_PRIVATE_KEY,
         });
         await context.createBlock(tx1);
 
-        const tx2 = await createRawTransfer(context, CHARLETH_ADDRESS, 2, {
-          nonce: 0,
-          privateKey: CHARLETH_PRIVATE_KEY,
+        const tx2 = await createRawTransfer(context, DOROTHY_ADDRESS, 2, {
+          nonce,
         });
         expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2])

@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY, EXTRINSIC_GAS_LIMIT, createRawTransaction } from "@moonwall/util";
+import {
+  ALITH_PRIVATE_KEY,
+  EXTRINSIC_GAS_LIMIT,
+  createEthersTxn,
+  createRawTransaction,
+} from "@moonwall/util";
 
 describeSuite({
   id: "D1607",
@@ -25,17 +30,19 @@ describeSuite({
         // byte). What we want to show is that this length fee is applied but our exponential
         // LengthToFee (part of our Substrate-based fees) is not applied.
 
-        const tx = await createRawTransaction(context, {
+        const { rawSigned: tx } = await createEthersTxn(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gas: BigInt(EXTRINSIC_GAS_LIMIT),
-          data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          gasLimit: EXTRINSIC_GAS_LIMIT,
+          value: "0x00",
+          nonce: 0,
+          input:
+            "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
             "0000000000000000000000000000000000000000000000000000000000000004" + // exp
             "0000000000000000000000000000000000000000000000000000000000000004" + // mod
             "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
             "0".repeat(2048) +
-            "0".repeat(2048)) as `0x${string}`,
-          privateKey: ALITH_PRIVATE_KEY,
-          type: "legacy",
+            "0".repeat(2048),
+          txnType: "legacy",
         });
 
         const { result } = await context.createBlock(tx);
