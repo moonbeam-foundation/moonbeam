@@ -702,6 +702,105 @@
 <a href="#702" id="702">702</a>
 <a href="#703" id="703">703</a>
 <a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -724,14 +823,19 @@
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-<span class="kw">use crate</span>::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
+<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
+<span class="kw">use crate</span>::{auto_compound::AutoCompoundDelegations, AddGet, Delegator, DelegatorStatus};
 <span class="kw">use </span>frame_support::ensure;
 <span class="kw">use </span>frame_support::traits::Get;
-<span class="kw">use </span>frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
+<span class="kw">use </span>frame_support::BoundedVec;
+<span class="kw">use </span>frame_support::{
+	dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo},
+	RuntimeDebug,
+};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::traits::Saturating;
-<span class="kw">use </span>sp_std::{vec, vec::Vec};
+<span class="kw">use </span>sp_std::vec;
 
 <span class="doccomment">/// An action that can be performed upon a delegation
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
@@ -784,11 +888,17 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
 
+		<span class="kw">let </span>actual_weight =
+			T::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() <span class="kw">as </span>u32);
+
 		<span class="macro">ensure!</span>(
 			!scheduled_requests
 				.iter()
 				.any(|req| req.delegator == delegator),
-			&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestAlreadyExists,
+			DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::PendingDelegationRequestAlreadyExists.into(),
+			},
 		);
 
 		<span class="kw">let </span>bonded_amount = state
@@ -796,11 +906,16 @@
 			.ok_or(&lt;Error&lt;T&gt;&gt;::DelegationDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
 		<span class="kw">let </span>when = now.saturating_add(T::RevokeDelegationDelay::get());
-		scheduled_requests.push(ScheduledRequest {
-			delegator: delegator.clone(),
-			action: DelegationAction::Revoke(bonded_amount),
-			when_executable: when,
-		});
+		scheduled_requests
+			.try_push(ScheduledRequest {
+				delegator: delegator.clone(),
+				action: DelegationAction::Revoke(bonded_amount),
+				when_executable: when,
+			})
+			.map_err(|<span class="kw">_</span>| DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator.into(),
+			})<span class="question-mark">?</span>;
 		state.less_total = state.less_total.saturating_add(bonded_amount);
 		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(collator.clone(), scheduled_requests);
 		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
@@ -823,24 +938,39 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
 
+		<span class="kw">let </span>actual_weight =
+			T::WeightInfo::schedule_delegator_bond_less(scheduled_requests.len() <span class="kw">as </span>u32);
+
 		<span class="macro">ensure!</span>(
 			!scheduled_requests
 				.iter()
 				.any(|req| req.delegator == delegator),
-			&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestAlreadyExists,
+			DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::PendingDelegationRequestAlreadyExists.into(),
+			},
 		);
 
 		<span class="kw">let </span>bonded_amount = state
 			.get_bond_amount(<span class="kw-2">&amp;</span>collator)
-			.ok_or(&lt;Error&lt;T&gt;&gt;::DelegationDNE)<span class="question-mark">?</span>;
+			.ok_or(DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::DelegationDNE.into(),
+			})<span class="question-mark">?</span>;
 		<span class="macro">ensure!</span>(
 			bonded_amount &gt; decrease_amount,
-			&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
+			DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+			},
 		);
 		<span class="kw">let </span>new_amount: BalanceOf&lt;T&gt; = (bonded_amount - decrease_amount).into();
 		<span class="macro">ensure!</span>(
 			new_amount &gt;= T::MinDelegation::get(),
-			&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
+			DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
+			},
 		);
 
 		<span class="comment">// Net Total is total after pending orders are executed
@@ -849,16 +979,24 @@
 		</span><span class="kw">let </span>max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
 		<span class="macro">ensure!</span>(
 			decrease_amount &lt;= max_subtracted_amount,
-			&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
+			DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+			},
 		);
 
 		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
 		<span class="kw">let </span>when = now.saturating_add(T::RevokeDelegationDelay::get());
-		scheduled_requests.push(ScheduledRequest {
-			delegator: delegator.clone(),
-			action: DelegationAction::Decrease(decrease_amount),
-			when_executable: when,
-		});
+		scheduled_requests
+			.try_push(ScheduledRequest {
+				delegator: delegator.clone(),
+				action: DelegationAction::Decrease(decrease_amount),
+				when_executable: when,
+			})
+			.map_err(|<span class="kw">_</span>| DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator.into(),
+			})<span class="question-mark">?</span>;
 		state.less_total = state.less_total.saturating_add(decrease_amount);
 		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(collator.clone(), scheduled_requests);
 		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
@@ -869,7 +1007,7 @@
 			amount_to_decrease: decrease_amount,
 			execute_round: when,
 		});
-		<span class="prelude-val">Ok</span>(().into())
+		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 	}
 
 	<span class="doccomment">/// Cancels the delegator&#39;s existing [ScheduledRequest] towards a given collator.
@@ -879,10 +1017,15 @@
 	) -&gt; DispatchResultWithPostInfo {
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
+		<span class="kw">let </span>actual_weight =
+			T::WeightInfo::cancel_delegation_request(scheduled_requests.len() <span class="kw">as </span>u32);
 
 		<span class="kw">let </span>request =
 			<span class="self">Self</span>::cancel_request_with_state(<span class="kw-2">&amp;</span>delegator, <span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests)
-				.ok_or(&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE)<span class="question-mark">?</span>;
+				.ok_or(DispatchErrorWithPostInfo {
+					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+					error: &lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE.into(),
+				})<span class="question-mark">?</span>;
 
 		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(collator.clone(), scheduled_requests);
 		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
@@ -892,13 +1035,16 @@
 			collator,
 			cancelled_request: request.into(),
 		});
-		<span class="prelude-val">Ok</span>(().into())
+		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 	}
 
 	<span class="kw">fn </span>cancel_request_with_state(
 		delegator: <span class="kw-2">&amp;</span>T::AccountId,
 		state: <span class="kw-2">&amp;mut </span>Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
-		scheduled_requests: <span class="kw-2">&amp;mut </span>Vec&lt;ScheduledRequest&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;,
+		scheduled_requests: <span class="kw-2">&amp;mut </span>BoundedVec&lt;
+			ScheduledRequest&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+			AddGet&lt;T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate&gt;,
+		&gt;,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;ScheduledRequest&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt; {
 		<span class="kw">let </span>request_idx = scheduled_requests
 			.iter()
@@ -931,6 +1077,8 @@
 
 		<span class="kw">match </span>request.action {
 			DelegationAction::Revoke(amount) =&gt; {
+				<span class="kw">let </span>actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+
 				<span class="comment">// revoking last delegation =&gt; leaving set of delegators
 				</span><span class="kw">let </span>leaving = <span class="kw">if </span>state.delegations.<span class="number">0</span>.len() == <span class="number">1usize </span>{
 					<span class="bool-val">true
@@ -940,7 +1088,10 @@
 							.total()
 							.saturating_sub(T::MinDelegatorStk::get().into())
 							&gt;= amount,
-						&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
+						DispatchErrorWithPostInfo {
+							post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+							error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+						}
 					);
 					<span class="bool-val">false
 				</span>};
@@ -956,7 +1107,11 @@
 				</span>&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
 
 				<span class="comment">// remove delegation from collator state delegations
-				</span><span class="self">Self</span>::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)<span class="question-mark">?</span>;
+				</span><span class="self">Self</span>::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)
+					.map_err(|err| DispatchErrorWithPostInfo {
+						post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+						error: err,
+					})<span class="question-mark">?</span>;
 				<span class="self">Self</span>::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
@@ -973,9 +1128,11 @@
 				} <span class="kw">else </span>{
 					&lt;DelegatorState&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>delegator, state);
 				}
-				<span class="prelude-val">Ok</span>(().into())
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 			}
 			DelegationAction::Decrease(<span class="kw">_</span>) =&gt; {
+				<span class="kw">let </span>actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+
 				<span class="comment">// remove from pending requests
 				</span><span class="kw">let </span>amount = scheduled_requests.remove(request_idx).action.amount();
 				state.less_total = state.less_total.saturating_sub(amount);
@@ -987,29 +1144,43 @@
 							<span class="kw">let </span>amount_before: BalanceOf&lt;T&gt; = bond.amount.into();
 							bond.amount = bond.amount.saturating_sub(amount);
 							<span class="kw">let </span><span class="kw-2">mut </span>collator_info = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator)
-								.ok_or(&lt;Error&lt;T&gt;&gt;::CandidateDNE)<span class="question-mark">?</span>;
+								.ok_or(&lt;Error&lt;T&gt;&gt;::CandidateDNE)
+								.map_err(|err| DispatchErrorWithPostInfo {
+									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+									error: err.into(),
+								})<span class="question-mark">?</span>;
 
-							state.total_sub_if::&lt;T, <span class="kw">_</span>&gt;(amount, |total| {
-								<span class="kw">let </span>new_total: BalanceOf&lt;T&gt; = total.into();
-								<span class="macro">ensure!</span>(
-									new_total &gt;= T::MinDelegation::get(),
-									&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
-								);
-								<span class="macro">ensure!</span>(
-									new_total &gt;= T::MinDelegatorStk::get(),
-									&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
-								);
+							state
+								.total_sub_if::&lt;T, <span class="kw">_</span>&gt;(amount, |total| {
+									<span class="kw">let </span>new_total: BalanceOf&lt;T&gt; = total.into();
+									<span class="macro">ensure!</span>(
+										new_total &gt;= T::MinDelegation::get(),
+										&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
+									);
+									<span class="macro">ensure!</span>(
+										new_total &gt;= T::MinDelegatorStk::get(),
+										&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
+									);
 
-								<span class="prelude-val">Ok</span>(())
-							})<span class="question-mark">?</span>;
+									<span class="prelude-val">Ok</span>(())
+								})
+								.map_err(|err| DispatchErrorWithPostInfo {
+									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+									error: err,
+								})<span class="question-mark">?</span>;
 
 							<span class="comment">// need to go into decrease_delegation
-							</span><span class="kw">let </span>in_top = collator_info.decrease_delegation::&lt;T&gt;(
-								<span class="kw-2">&amp;</span>collator,
-								delegator.clone(),
-								amount_before,
-								amount,
-							)<span class="question-mark">?</span>;
+							</span><span class="kw">let </span>in_top = collator_info
+								.decrease_delegation::&lt;T&gt;(
+									<span class="kw-2">&amp;</span>collator,
+									delegator.clone(),
+									amount_before,
+									amount,
+								)
+								.map_err(|err| DispatchErrorWithPostInfo {
+									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+									error: err,
+								})<span class="question-mark">?</span>;
 							&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>collator, collator_info);
 							<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(amount);
 							&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
@@ -1025,14 +1196,20 @@
 								amount,
 								in_top,
 							});
-							<span class="prelude-val">Ok</span>(().into())
+							<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 						} <span class="kw">else </span>{
 							<span class="comment">// must rm entire delegation if bond.amount &lt;= less or cancel request
-							</span><span class="prelude-val">Err</span>(&lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into())
+							</span><span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
+								post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+								error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
+							})
 						};
 					}
 				}
-				<span class="prelude-val">Err</span>(&lt;Error&lt;T&gt;&gt;::DelegationDNE.into())
+				<span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
+					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+					error: &lt;Error&lt;T&gt;&gt;::DelegationDNE.into(),
+				})
 			}
 		}
 	}
@@ -1043,6 +1220,9 @@
 		delegator: T::AccountId,
 	) -&gt; DispatchResultWithPostInfo {
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
+		<span class="kw">let </span>actual_weight =
+			T::WeightInfo::schedule_leave_delegators_worst(state.delegations.<span class="number">0</span>.len() <span class="kw">as </span>u32);
+
 		<span class="kw">let </span><span class="kw-2">mut </span>updated_scheduled_requests = <span class="macro">vec!</span>[];
 		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
 		<span class="kw">let </span>when = now.saturating_add(T::LeaveDelegatorsDelay::get());
@@ -1077,13 +1257,21 @@
 				},
 			};
 
-			scheduled_requests.push(request);
+			scheduled_requests
+				.try_push(request)
+				.map_err(|<span class="kw">_</span>| DispatchErrorWithPostInfo {
+					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+					error: Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator.into(),
+				})<span class="question-mark">?</span>;
 			state.less_total = state.less_total.saturating_add(bonded_amount);
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
 
 		<span class="kw">if </span>existing_revoke_count == state.delegations.<span class="number">0</span>.len() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(&lt;Error&lt;T&gt;&gt;::DelegatorAlreadyLeaving.into());
+			<span class="kw">return </span><span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
+				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+				error: &lt;Error&lt;T&gt;&gt;::DelegatorAlreadyLeaving.into(),
+			});
 		}
 
 		updated_scheduled_requests
@@ -1098,7 +1286,7 @@
 			delegator,
 			scheduled_exit: when,
 		});
-		<span class="prelude-val">Ok</span>(().into())
+		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 	}
 
 	<span class="doccomment">/// Cancels every [DelegationAction::Revoke] request for a delegator towards a collator.
@@ -1110,13 +1298,16 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>updated_scheduled_requests = <span class="macro">vec!</span>[];
 
+		<span class="kw">let </span>actual_weight =
+			T::WeightInfo::cancel_leave_delegators_worst(state.delegations.<span class="number">0</span>.len() <span class="kw">as </span>u32);
+
 		<span class="comment">// backwards compatible handling for DelegatorStatus::Leaving
 		</span><span class="attr">#[allow(deprecated)]
 		</span><span class="kw">if </span><span class="macro">matches!</span>(state.status, DelegatorStatus::Leaving(<span class="kw">_</span>)) {
 			state.status = DelegatorStatus::Active;
 			&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state.clone());
 			<span class="self">Self</span>::deposit_event(Event::DelegatorExitCancelled { delegator });
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(().into());
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into());
 		}
 
 		<span class="comment">// pre-validate that all delegations have a Revoke request.
@@ -1128,7 +1319,10 @@
 				.find(|req| {
 					req.delegator == delegator &amp;&amp; <span class="macro">matches!</span>(req.action, DelegationAction::Revoke(<span class="kw">_</span>))
 				})
-				.ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorNotLeaving)<span class="question-mark">?</span>;
+				.ok_or(DispatchErrorWithPostInfo {
+					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+					error: &lt;Error&lt;T&gt;&gt;::DelegatorNotLeaving.into(),
+				})<span class="question-mark">?</span>;
 		}
 
 		<span class="comment">// cancel all requests
@@ -1148,7 +1342,7 @@
 		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
 		<span class="self">Self</span>::deposit_event(Event::DelegatorExitCancelled { delegator });
 
-		<span class="prelude-val">Ok</span>(().into())
+		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 	}
 
 	<span class="doccomment">/// Executes every [DelegationAction::Revoke] request for a delegator towards a collator.
@@ -1327,7 +1521,9 @@
 				when_executable: <span class="number">1</span>,
 				action: DelegationAction::Decrease(<span class="number">50</span>),
 			},
-		];
+		]
+		.try_into()
+		.expect(<span class="string">&quot;must succeed&quot;</span>);
 		<span class="kw">let </span>removed_request =
 			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
 
@@ -1378,7 +1574,9 @@
 			delegator: <span class="number">2</span>,
 			when_executable: <span class="number">1</span>,
 			action: DelegationAction::Decrease(<span class="number">50</span>),
-		}];
+		}]
+		.try_into()
+		.expect(<span class="string">&quot;must succeed&quot;</span>);
 		<span class="kw">let </span>removed_request =
 			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
 

@@ -415,8 +415,6 @@
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -626,16 +624,13 @@
 			Error::&lt;T&gt;::TooLowCandidateDelegationCountToDelegate
 		);
 
-		<span class="kw">let </span>auto_compounding_state = <span class="kw">if </span>!auto_compound.is_zero() {
-			<span class="kw">let </span>auto_compounding_state = <span class="self">Self</span>::get_storage(<span class="kw-2">&amp;</span>candidate);
+		<span class="kw">if </span>!auto_compound.is_zero() {
 			<span class="macro">ensure!</span>(
-				auto_compounding_state.len() &lt;= candidate_auto_compounding_delegation_count_hint,
+				<span class="self">Self</span>::get_storage(<span class="kw-2">&amp;</span>candidate).len()
+					&lt;= candidate_auto_compounding_delegation_count_hint,
 				&lt;Error&lt;T&gt;&gt;::TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 			);
-			<span class="prelude-val">Some</span>(auto_compounding_state)
-		} <span class="kw">else </span>{
-			<span class="prelude-val">None
-		</span>};
+		}
 
 		<span class="comment">// add delegation to candidate
 		</span><span class="kw">let </span>(delegator_position, less_total_staked) = candidate_state.add_delegation::&lt;T&gt;(
@@ -658,10 +653,11 @@
 		};
 		<span class="kw">let </span>new_total_locked = &lt;Total&lt;T&gt;&gt;::get().saturating_add(net_total_increase);
 
-		<span class="comment">// maybe set auto-compound config, state is Some if the percent is non-zero
-		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>state) = auto_compounding_state {
-			state.set_for_delegator(delegator.clone(), auto_compound.clone())<span class="question-mark">?</span>;
-			state.set_storage(<span class="kw-2">&amp;</span>candidate);
+		<span class="comment">// set auto-compound config if the percent is non-zero
+		</span><span class="kw">if </span>!auto_compound.is_zero() {
+			<span class="kw">let </span><span class="kw-2">mut </span>auto_compounding_state = <span class="self">Self</span>::get_storage(<span class="kw-2">&amp;</span>candidate);
+			auto_compounding_state.set_for_delegator(delegator.clone(), auto_compound.clone())<span class="question-mark">?</span>;
+			auto_compounding_state.set_storage(<span class="kw-2">&amp;</span>candidate);
 		}
 
 		&lt;Total&lt;T&gt;&gt;::put(new_total_locked);
