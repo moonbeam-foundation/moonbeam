@@ -1,15 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract, fetchCompiledContract } from "@moonwall/cli";
 import {
-  ALITH_ADDRESS,
-  GLMR,
-  baltathar,
-  createEthersTxn,
-} from "@moonwall/util";
+  beforeAll,
+  describeSuite,
+  expect,
+  deployCreateCompiledContract,
+  fetchCompiledContract,
+  customDevRpcRequest,
+} from "@moonwall/cli";
+import { ALITH_ADDRESS, GLMR, baltathar, createEthersTxn } from "@moonwall/util";
 import { hexToBigInt, nToHex } from "@polkadot/util";
 import { Abi } from "abitype";
 import { encodeFunctionData, encodePacked, keccak256, pad, parseEther } from "viem";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
@@ -256,9 +257,7 @@ describeSuite({
       id: "T08",
       title: "should set MultiplyBy7 deployedBytecode with state override",
       test: async function () {
-        const {
-           abi, deployedBytecode
-        } = await fetchCompiledContract("MultiplyBy7");
+        const { abi, deployedBytecode } = await fetchCompiledContract("MultiplyBy7");
         const result = await customDevRpcRequest("eth_call", [
           {
             from: ALITH_ADDRESS,

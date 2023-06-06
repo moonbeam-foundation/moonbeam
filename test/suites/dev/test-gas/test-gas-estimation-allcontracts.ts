@@ -3,6 +3,7 @@ import {
   EthTransactionType,
   TransactionTypes,
   beforeAll,
+  customDevRpcRequest,
   describeSuite,
   expect,
   fetchCompiledContract,
@@ -11,7 +12,6 @@ import { ALITH_ADDRESS, createEthersTxn, faith, getAllCompiledContracts } from "
 import { AbiConstructor } from "abitype";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({
@@ -48,9 +48,7 @@ describeSuite({
           title: `should be enough for contract ${contractName} via ${txnType}`,
           test: async function () {
             const { bytecode, abi } = await fetchCompiledContract(contractName);
-            const constructorAbi = abi.find(
-              (call) => call.type == "constructor"
-            ) as AbiConstructor;
+            const constructorAbi = abi.find((call) => call.type == "constructor") as AbiConstructor;
             // ask RPC for an gas estimate of deploying this contract
 
             const args = constructorAbi
@@ -74,7 +72,7 @@ describeSuite({
             const callData = encodeDeployData({
               abi,
               args,
-              bytecode
+              bytecode,
             });
 
             let estimate: bigint;

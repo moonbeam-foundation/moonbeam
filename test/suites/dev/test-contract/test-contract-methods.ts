@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS,  } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { Abi } from "abitype";
 import { encodeFunctionData } from "viem";
 
@@ -59,7 +59,7 @@ describeSuite({
     it({
       id: "T04",
       title: "should fail for call method with missing parameters",
-      test: async function () {       
+      test: async function () {
         expect(
           async () =>
             await context.viemClient("public").call({

@@ -14,8 +14,13 @@ import {
 import { ethers } from "ethers";
 import * as RLP from "rlp";
 import { Contract, ContractAbi } from "web3";
-import { DevModeContext, EthTransactionType, MoonwallContext, fetchCompiledContract } from "@moonwall/cli";
-import { customDevRpcRequest } from "./common.js";
+import {
+  DevModeContext,
+  EthTransactionType,
+  MoonwallContext,
+  fetchCompiledContract,
+  customDevRpcRequest,
+} from "@moonwall/cli";
 
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";

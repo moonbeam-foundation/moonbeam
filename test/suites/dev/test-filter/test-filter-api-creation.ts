@@ -1,6 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { customDevRpcRequest } from "../../../helpers/common.js";
+import {
+  customDevRpcRequest,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "@moonwall/cli";
 import { fromHex, toHex } from "viem";
 
 describeSuite({

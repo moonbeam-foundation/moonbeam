@@ -1,6 +1,5 @@
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 
-
 describeSuite({
   id: "D0610",
   title: "Block Contract - Block variables",

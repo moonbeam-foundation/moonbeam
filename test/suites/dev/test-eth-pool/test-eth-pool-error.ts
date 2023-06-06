@@ -1,4 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
@@ -9,7 +9,6 @@ import {
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 import { parseGwei } from "viem";
 
 describeSuite({
@@ -36,22 +35,25 @@ describeSuite({
       title: "replacement transaction underpriced",
       test: async function () {
         const nonce = await context
-        .viemClient("public")
-        .getTransactionCount({ address: CHARLETH_ADDRESS });
+          .viemClient("public")
+          .getTransactionCount({ address: CHARLETH_ADDRESS });
 
         const tx1 = await createRawTransfer(context, CHARLETH_ADDRESS, 1, {
           nonce,
           gasPrice: parseGwei("15"),
           privateKey: BALTATHAR_PRIVATE_KEY,
-          type: "legacy"
+          type: "legacy",
         });
+        log(await customDevRpcRequest("eth_sendRawTransaction", [tx1]));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 2, {
           nonce,
           gasPrice: parseGwei("10"),
           privateKey: BALTATHAR_PRIVATE_KEY,
-          type: "legacy"
+          type: "legacy",
         });
-        await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
+
         expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2])
         ).rejects.toThrowError("replacement transaction underpriced");

@@ -1,8 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { deployCreateCompiledContract, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  customDevRpcRequest,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
   id: "D1803",

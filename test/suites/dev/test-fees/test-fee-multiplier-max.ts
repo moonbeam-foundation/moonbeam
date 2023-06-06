@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect , deployCreateCompiledContract} from "@moonwall/cli";
-import { alith, baltathar, createEthersTxn  } from "@moonwall/util";
+import { beforeEach, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { alith, baltathar, createEthersTxn } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 

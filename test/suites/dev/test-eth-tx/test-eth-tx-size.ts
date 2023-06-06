@@ -1,13 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { customDevRpcRequest } from "../../../helpers/common.js";
-import {
-  ALITH_ADDRESS,
-  EXTRINSIC_GAS_LIMIT,
-  createEthersTxn,
-  createRawTransaction,
-} from "@moonwall/util";
-import { parseGwei } from "viem";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { EXTRINSIC_GAS_LIMIT, createEthersTxn } from "@moonwall/util";
 
 describeSuite({
   id: "D1301",

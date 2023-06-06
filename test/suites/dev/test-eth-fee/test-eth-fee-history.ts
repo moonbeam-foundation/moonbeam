@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract, customDevRpcRequest } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.

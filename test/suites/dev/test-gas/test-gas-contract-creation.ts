@@ -11,7 +11,7 @@ describeSuite({
       id: "T01",
       title: "should return contract creation gas cost",
       test: async function () {
-        const {bytecode} = await fetchCompiledContract("MultiplyBy7");
+        const { bytecode } = await fetchCompiledContract("MultiplyBy7");
         expect(
           await context.viemClient("public").estimateGas({
             account: ALITH_ADDRESS,

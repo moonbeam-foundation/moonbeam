@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   createRawTransfer,
 } from "@moonwall/util";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
   id: "D1303",

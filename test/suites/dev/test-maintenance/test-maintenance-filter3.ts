@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import {
   beforeAll,
   beforeEach,
+  customDevRpcRequest,
   describeSuite,
   execTechnicalCommitteeProposal,
   expect,
@@ -9,7 +10,6 @@ import {
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { BN } from "@polkadot/util";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 
 describeSuite({
   id: "D1903",

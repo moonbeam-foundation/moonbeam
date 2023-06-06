@@ -9,12 +9,11 @@ import {
   baltathar,
   createRawTransfer,
 } from "@moonwall/util";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../helpers/assets.js";
-import { hexToU8a } from "@polkadot/util";
 import { u128 } from "@polkadot/types-codec";
-import { customDevRpcRequest } from "../../../helpers/common.js";
+import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { hexToU8a } from "@polkadot/util";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { mockAssetBalance } from "../../../helpers/assets.js";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_ASSET_ID_2 = 37857590458095351632257641799342538748n;

@@ -1,5 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import {
+  TransactionTypes,
+  describeSuite,
+  expect,
+  deployCreateCompiledContract,
+} from "@moonwall/cli";
 
 describeSuite({
   id: "D0606",

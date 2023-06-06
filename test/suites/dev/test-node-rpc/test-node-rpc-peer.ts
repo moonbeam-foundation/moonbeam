@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { customDevRpcRequest } from "../../../helpers/common.js";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
   id: "D2201",

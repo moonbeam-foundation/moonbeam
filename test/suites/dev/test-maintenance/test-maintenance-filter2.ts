@@ -1,10 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, execTechnicalCommitteeProposal, expect } from "@moonwall/cli";
+import {
+  beforeAll,
+  describeSuite,
+  execTechnicalCommitteeProposal,
+  expect,
+  customDevRpcRequest,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../helpers/assets.js";
-import { customDevRpcRequest } from "../../../helpers/common.js";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
