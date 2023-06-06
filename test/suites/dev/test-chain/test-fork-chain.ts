@@ -54,7 +54,6 @@ describeSuite({
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 2}`,
         title: `should re-insert ${txnType} Tx from retracted fork on new canonical chain`,
-        modifier: "only",
         test: async function () {
           let parentHash = (await context.polkadotJs().rpc.chain.getBlockHash()).toString();
 

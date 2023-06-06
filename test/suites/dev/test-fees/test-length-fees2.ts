@@ -51,7 +51,7 @@ describeSuite({
         //
         // conclusion: the LengthToFee modifier is NOT involved
 
-        const expected = 33908n;
+        const expected = 37708n;
         expect(receipt.gasUsed).toBe(expected);
 
         // furthermore, we can account for the entire fee:

@@ -7,9 +7,9 @@ import {
   fetchCompiledContract,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import RLP from "rlp";
-import { encodeDeployData, keccak256 } from "viem";
+import { encodeDeployData, numberToHex, keccak256, toRlp } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { hexToU8a } from "@polkadot/util";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -76,7 +76,7 @@ describeSuite({
           await context.viemClient("wallet").sendTransaction({ data: callData, nonce });
 
           const contractAddress = ("0x" +
-            keccak256(RLP.encode([ALITH_ADDRESS, nonce]))
+            keccak256(hexToU8a(toRlp([ALITH_ADDRESS, numberToHex(nonce)])))
               .slice(12)
               .substring(14)) as `0x${string}`;
 
