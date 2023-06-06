@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeEach, beforeAll, TransactionTypes } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, GLMR, mapExtrinsics } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, GLMR, mapExtrinsics } from "@moonwall/util";
 import { PrivateKeyAccount } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { createRawTransfer } from "@moonwall/util";
@@ -21,7 +21,7 @@ describeSuite({
       const privateKey = generatePrivateKey();
       randomAccount = privateKeyToAccount(privateKey);
     });
-
+    // editorconfig-checker-disable
     for (const txnType of TransactionTypes) {
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,

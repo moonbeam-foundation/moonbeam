@@ -89,6 +89,7 @@ describeSuite({
       title: "should have matching indices for Staking.Bond",
       test: async function () {
         const callHex = relayApi.tx.staking
+          // @ts-expect-error
           .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
           .method.toHex();
         const resp = await relayEncoder.encodeBond(
@@ -144,6 +145,7 @@ describeSuite({
       id: "C900",
       title: "should have matching indices for Staking.SetController",
       test: async function () {
+        // @ts-expect-error
         const callHex = relayApi.tx.staking.setController(ALITH_SESSION_ADDRESS).method.toHex();
         const resp = await relayEncoder.encodeSetController(ALITH_SESSION_ADDRESS);
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);

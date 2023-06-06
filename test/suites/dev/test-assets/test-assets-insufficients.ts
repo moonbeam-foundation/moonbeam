@@ -107,7 +107,7 @@ describeSuite({
           (await api.query.system.account(freshAccount.address as string)).consumers.toBigInt()
         ).to.eq(1n);
 
-        // What happens now when we execute such transaction? both MOVR and Assets should be drained.
+        // When we execute transaction, both MOVR and Assets should be drained
         await context.createBlock(
           api.tx.assets
             .transfer(assetId, baltathar.address, ARBITRARY_TRANSFER_AMOUNT)

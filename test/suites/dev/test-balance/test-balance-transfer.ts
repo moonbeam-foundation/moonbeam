@@ -207,8 +207,8 @@ describeSuite({
       id: "T09",
       title: "should use partial max_priority_fee_per_gas",
       test: async function () {
-        // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
-        // is 2GWEI and the base fee is 1GWEI.
+        // With this configuration only half of the priority fee will be used,
+        // as the max_fee_per_gas is 2GWEI and the base fee is 1GWEI.
         const accountData = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS))
           .data;
         const freeBal = accountData.free.toBigInt() - accountData.reserved.toBigInt();

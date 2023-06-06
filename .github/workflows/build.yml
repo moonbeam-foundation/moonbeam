@@ -622,7 +622,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Compile Contracts
-        run: forge build
+        run: cd test && forge build
       - name: "Install and run dev test"
         run: |
           chmod uog+x target/release/moonbeam

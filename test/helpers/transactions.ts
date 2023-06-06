@@ -474,17 +474,3 @@ export const sendAllStreamAndWaitLast = async (
 };
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
-// export const setupErc20Contract = async (context: DevModeContext, name: string, symbol: string) => {
-//   const { contract, contractAddress, rawTx } = await createContract(
-//     context,
-//     "ERC20WithInitialSupply",
-//     {
-//       ...ALITH_TRANSACTION_TEMPLATE,
-//       gas: 5_000_000,
-//     },
-//     [name, symbol, ALITH_ADDRESS, ERC20_TOTAL_SUPPLY]
-//   );
-//   const { result } = await context.createBlock(rawTx);
-//   expectEVMResult(result.events, "Succeed");
-//   return { contract, contractAddress };
-// };
