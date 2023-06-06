@@ -38,7 +38,7 @@ pub mod pallet {
 	use ethereum_types::BigEndianHash;
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
-	use pallet_evm::Runner;
+	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_core::{H160, H256, U256};
 	use sp_std::vec::Vec;
 	use xcm::latest::{
@@ -66,11 +66,7 @@ pub mod pallet {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn weight_of_erc20_transfer() -> Weight {
-			let gas_limit = T::Erc20TransferGasLimit::get();
-			Weight::from_parts(
-				T::Erc20TransferGasLimit::get().saturating_mul(T::WeightPerGas::get().ref_time()),
-				gas_limit / 4, // TODO: apply gas/proof_size ratio
-			)
+			T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true)
 		}
 		fn erc20_transfer(
 			erc20_contract_address: H160,
@@ -86,6 +82,9 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
+			let weight_limit =
+				T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true);
+
 			let exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
@@ -98,6 +97,8 @@ pub mod pallet {
 				Default::default(),
 				false,
 				false,
+				Some(weight_limit),
+				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;

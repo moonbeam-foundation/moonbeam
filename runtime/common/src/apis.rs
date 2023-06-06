@@ -228,7 +228,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn account_code_at(address: H160) -> Vec<u8> {
-					EVM::account_codes(address)
+					pallet_evm::AccountCodes::<Runtime>::get(address)
 				}
 
 				fn author() -> H160 {
@@ -238,7 +238,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn storage_at(address: H160, index: U256) -> H256 {
 					let mut tmp = [0u8; 32];
 					index.to_big_endian(&mut tmp);
-					EVM::account_storages(address, H256::from_slice(&tmp[..]))
+					pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 				}
 
 				fn call(
@@ -262,18 +262,55 @@ macro_rules! impl_runtime_apis_plus_common {
 					};
 					let is_transactional = false;
 					let validate = true;
+
+					let mut estimated_transaction_len = data.len() +
+						// to: 20
+						// from: 20
+						// value: 32
+						// gas_limit: 32
+						// nonce: 32
+						// 1 byte transaction action variant
+						// chain id 8 bytes
+						// 65 bytes signature
+						210;
+					if max_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if max_priority_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if access_list.is_some() {
+						estimated_transaction_len += access_list.encoded_size();
+					}
+
+					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
+					let without_base_extrinsic_weight = true;
+
+					let (weight_limit, proof_size_base_cost) =
+						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+							gas_limit,
+							without_base_extrinsic_weight
+						) {
+							weight_limit if weight_limit.proof_size() > 0 => {
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
+							}
+							_ => (None, None),
+						};
+
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
 						data,
 						value,
-						gas_limit.low_u64(),
+						gas_limit,
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -298,32 +335,73 @@ macro_rules! impl_runtime_apis_plus_common {
 					};
 					let is_transactional = false;
 					let validate = true;
+
+					let mut estimated_transaction_len = data.len() +
+						// to: 20
+						// from: 20
+						// value: 32
+						// gas_limit: 32
+						// nonce: 32
+						// 1 byte transaction action variant
+						// chain id 8 bytes
+						// 65 bytes signature
+						210;
+					if max_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if max_priority_fee_per_gas.is_some() {
+						estimated_transaction_len += 32;
+					}
+					if access_list.is_some() {
+						estimated_transaction_len += access_list.encoded_size();
+					}
+
+					let gas_limit = if gas_limit > U256::from(u64::MAX) {
+						u64::MAX
+					} else {
+						gas_limit.low_u64()
+					};
+					let without_base_extrinsic_weight = true;
+
+					let (weight_limit, proof_size_base_cost) =
+						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+							gas_limit,
+							without_base_extrinsic_weight
+						) {
+							weight_limit if weight_limit.proof_size() > 0 => {
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
+							}
+							_ => (None, None),
+						};
+
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
 						from,
 						data,
 						value,
-						gas_limit.low_u64(),
+						gas_limit,
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
-					Ethereum::current_transaction_statuses()
+					pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 				}
 
 				fn current_block() -> Option<pallet_ethereum::Block> {
-					Ethereum::current_block()
+					pallet_ethereum::CurrentBlock::<Runtime>::get()
 				}
 
 				fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
-					Ethereum::current_receipts()
+					pallet_ethereum::CurrentReceipts::<Runtime>::get()
 				}
 
 				fn current_all() -> (
@@ -332,9 +410,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					Option<Vec<TransactionStatus>>,
 				) {
 					(
-						Ethereum::current_block(),
-						Ethereum::current_receipts(),
-						Ethereum::current_transaction_statuses(),
+						pallet_ethereum::CurrentBlock::<Runtime>::get(),
+						pallet_ethereum::CurrentReceipts::<Runtime>::get(),
+						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get(),
 					)
 				}
 

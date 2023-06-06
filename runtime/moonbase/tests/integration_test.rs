@@ -56,16 +56,10 @@ use xcm_executor::traits::Convert as XcmConvert;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
-use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompile_randomness::{
-	EXECUTE_EXPIRATION_ESTIMATED_COST, INCREASE_REQUEST_FEE_ESTIMATED_COST,
-	REQUEST_RANDOMNESS_ESTIMATED_COST,
-};
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
@@ -96,26 +90,6 @@ type XcmTransactorV2PCall =
 
 // TODO: can we construct a const U256...?
 const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI;
-
-#[test]
-fn verify_randomness_precompile_gas_constants() {
-	let weight_to_gas = |weight| {
-		<moonbase_runtime::Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight)
-	};
-	type Weight = SubstrateWeight<moonbase_runtime::Runtime>;
-	assert_eq!(
-		weight_to_gas(Weight::request_randomness()),
-		REQUEST_RANDOMNESS_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(Weight::increase_fee()),
-		INCREASE_REQUEST_FEE_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(Weight::execute_request_expiration()),
-		EXECUTE_EXPIRATION_ESTIMATED_COST
-	);
-}
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {

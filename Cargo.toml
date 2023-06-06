@@ -226,11 +226,9 @@ ethereum = { version = "0.14.0", default-features = false, features = [
 	"with-codec",
 ] }
 ethereum-types = { version = "0.14", default-features = false }
-evm = { version = "0.39.0", default-features = false, features = [
-	"with-codec",
-] }
-evm-gasometer = { version = "0.39.0", default-features = false }
-evm-runtime = { version = "0.39.0", default-features = false }
+evm = { git = "https://github.com/purestake/evm", branch = "tgm-record-external-cost", default-features = false }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "tgm-record-external-cost", default-features = false }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "tgm-record-external-cost", default-features = false }
 fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
@@ -238,16 +236,28 @@ fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "m
 pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
 	"forbid-evm-reentrancy",
+	"evm-with-weight-limit",
 ] }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
 	"forbid-evm-reentrancy",
+	"evm-with-weight-limit",
 ] }
-pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
+	"evm-with-weight-limit",
+] }
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
+	"evm-with-weight-limit",
+] }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
+	"evm-with-weight-limit",
+] }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
+	"evm-with-weight-limit",
+] }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
+	"evm-with-weight-limit",
+] }
 
 # Frontier (client)
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40" }
@@ -363,12 +373,6 @@ tracing = "0.1.34"
 tracing-core = "0.1.29"
 trie-root = "0.15.2"
 url = "2.2.2"
-
-[patch.crates-io]
-evm = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
-evm-core = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
-evm-gasometer = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
-evm-runtime = { git = "https://github.com/rust-blockchain/evm", rev = "842e03d068ddb6a3195a2dedc4a9b63caadb3355" }
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of

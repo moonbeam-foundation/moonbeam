@@ -53,6 +53,16 @@ const LOCAL_ASSET_EXTENDED_ERC20_INTERFACE = new ethers.utils.Interface(
 
 const ROLES_INTERFACE = new ethers.utils.Interface(ROLES_CONTRACT.contract.abi);
 
+function call_params(data, to) {
+  return {
+    from: alith.address,
+    value: "0x0",
+    to,
+    data: data,
+    gasPrice: GAS_PRICE,
+  };
+}
+
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
@@ -92,14 +102,13 @@ describeDevMoonbeamAllEthTxTypes(
         []
       );
 
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -117,15 +126,13 @@ describeDevMoonbeamAllEthTxTypes(
         "symbol",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
 
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -143,15 +150,13 @@ describeDevMoonbeamAllEthTxTypes(
         "decimals",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
 
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -165,15 +170,13 @@ describeDevMoonbeamAllEthTxTypes(
         "balanceOf",
         [baltathar.address]
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
 
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
       let amount = new BN(100000000000000);
@@ -188,14 +191,13 @@ describeDevMoonbeamAllEthTxTypes(
         "totalSupply",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -211,14 +213,13 @@ describeDevMoonbeamAllEthTxTypes(
         "owner",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -232,14 +233,13 @@ describeDevMoonbeamAllEthTxTypes(
         "freezer",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -253,14 +253,13 @@ describeDevMoonbeamAllEthTxTypes(
         "admin",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 
@@ -274,14 +273,13 @@ describeDevMoonbeamAllEthTxTypes(
         "issuer",
         []
       );
+      const params = call_params(data, assetAddress);
+      const estimate = await customWeb3Request(context.web3, "eth_estimateGas", [params]);
+
       const tx_call = await customWeb3Request(context.web3, "eth_call", [
         {
-          from: alith.address,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: assetAddress,
-          data: data,
+          gas: estimate.result,
+          ...params,
         },
       ]);
 

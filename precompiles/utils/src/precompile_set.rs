@@ -19,8 +19,8 @@
 //! default and must be disabled explicely throught type annotations.
 
 use crate::{
+	evm::handle::PrecompileHandleExt,
 	solidity::{codec::String, revert::revert},
-	substrate::RuntimeHelper,
 	EvmResult,
 };
 use fp_evm::{
@@ -314,32 +314,42 @@ pub enum AddressType {
 }
 
 /// Retrieves the type of address demarcated by `AddressType`.
-pub fn get_address_type<R: pallet_evm::Config>(address: H160) -> AddressType {
-	let code_len = pallet_evm::AccountCodes::<R>::decode_len(address).unwrap_or(0);
+pub fn get_address_type<R: pallet_evm::Config>(
+	handle: &mut impl PrecompileHandle,
+	address: H160,
+) -> Result<AddressType, ExitError> {
+	// AccountCodesMetadata:
+	// Blake2128(16) + H160(20) + CodeMetadata(40)
+	handle.record_db_read::<R>(76)?;
+	let code_len = pallet_evm::Pallet::<R>::account_code_metadata(address).size;
 
 	// 0 => either EOA or precompile without dummy code
 	if code_len == 0 {
-		return AddressType::EOA;
+		return Ok(AddressType::EOA);
 	}
 
 	// dummy code is 5 bytes long, so any other len means it is a contract.
 	if code_len != 5 {
-		return AddressType::Contract;
+		return Ok(AddressType::Contract);
 	}
 
 	// check code matches dummy code
+	handle.record_db_read::<R>(code_len as usize)?;
 	let code = pallet_evm::AccountCodes::<R>::get(address);
 	if &code == &[0x60, 0x00, 0x60, 0x00, 0xfd] {
-		return AddressType::Precompile;
+		return Ok(AddressType::Precompile);
 	}
 
-	AddressType::Unknown
+	Ok(AddressType::Unknown)
 }
 
-fn is_address_eoa_or_precompile<R: pallet_evm::Config>(address: H160) -> bool {
-	match get_address_type::<R>(address) {
-		AddressType::EOA | AddressType::Precompile => true,
-		_ => false,
+fn is_address_eoa_or_precompile<R: pallet_evm::Config>(
+	handle: &mut impl PrecompileHandle,
+	address: H160,
+) -> Result<bool, ExitError> {
+	match get_address_type::<R>(handle, address)? {
+		AddressType::EOA | AddressType::Precompile => Ok(true),
+		_ => Ok(false),
 	}
 }
 
@@ -368,8 +378,7 @@ fn common_checks<R: pallet_evm::Config, C: PrecompileChecks>(
 	let callable_by_smart_contract =
 		C::callable_by_smart_contract(caller, selector).unwrap_or(false);
 	if !callable_by_smart_contract {
-		handle.record_cost(RuntimeHelper::<R>::db_read_gas_cost())?;
-		if !is_address_eoa_or_precompile::<R>(caller) {
+		if !is_address_eoa_or_precompile::<R>(handle, caller)? {
 			return Err(revert("Function not callable by smart contracts"));
 		}
 	}
@@ -461,6 +470,18 @@ impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
 
 	fn gas_limit(&self) -> Option<u64> {
 		self.handle.gas_limit()
+	}
+
+	fn record_external_cost(
+		&mut self,
+		ref_time: Option<u64>,
+		proof_size: Option<u64>,
+	) -> Result<(), ExitError> {
+		self.handle.record_external_cost(ref_time, proof_size)
+	}
+
+	fn refund_external_cost(&mut self, ref_time: Option<u64>, proof_size: Option<u64>) {
+		self.handle.refund_external_cost(ref_time, proof_size)
 	}
 }
 

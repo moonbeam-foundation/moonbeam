@@ -88,7 +88,9 @@ where
 		amount: U256,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
@@ -112,7 +114,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
@@ -129,7 +133,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 
@@ -147,7 +153,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		slashes: u32,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
 			.as_slice()
@@ -164,7 +172,9 @@ where
 		comission: Convert<U256, u32>,
 		blocked: bool,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let fraction = Perbill::from_parts(comission.converted());
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
@@ -186,7 +196,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		nominees: BoundedVec<U256, GetArrayLimit>,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let nominees: Vec<_> = nominees.into();
 		let nominated: Vec<AccountId32> = nominees
@@ -207,7 +219,9 @@ where
 	#[precompile::public("encode_chill()")]
 	#[precompile::view]
 	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
 			.as_slice()
@@ -223,7 +237,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let reward_destination = reward_destination.into();
 
@@ -241,7 +257,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		controller: U256,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let controller: [u8; 32] = controller.into();
 
@@ -260,7 +278,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		amount: U256,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
@@ -278,7 +298,9 @@ where
 		max_capacity: u32,
 		max_message_size: u32,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 			recipient.into(),
@@ -301,7 +323,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		sender: u32,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded =
 			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
@@ -322,7 +346,9 @@ where
 		sender: u32,
 		recipient: u32,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
 			relay_chain::HrmpChannelId {
@@ -348,7 +374,9 @@ where
 		recipient: u32,
 		open_requests: u32,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// No DB access but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amount of gas
+		handle.record_cost(1000)?;
 
 		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 			relay_chain::HrmpChannelId {
