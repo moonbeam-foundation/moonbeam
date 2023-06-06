@@ -9,11 +9,7 @@ import { MIN_GLMR_STAKING, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../ut
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import {
-  createTransaction,
-  withoutGasLimit,
-  ETHAN_TRANSACTION_TEMPLATE,
-} from "../../util/transactions";
+import { createTransaction, ETHAN_TRANSACTION_TEMPLATE } from "../../util/transactions";
 
 const PARACHAIN_STAKING_CONTRACT = getCompiled("precompiles/parachain-staking/ParachainStaking");
 const PARACHAIN_STAKING_INTERFACE = new ethers.utils.Interface(
@@ -115,19 +111,17 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Collator Leaving", (co
 describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (context) => {
   beforeEach("should successfully call delegate for ethan.address to ALITH", async function () {
     await context.createBlock(
-      createTransaction(
-        context,
-        withoutGasLimit({
-          ...ETHAN_TRANSACTION_TEMPLATE,
-          to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-          data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
-            alith.address,
-            MIN_GLMR_STAKING,
-            0,
-            0,
-          ]),
-        })
-      )
+      createTransaction(context, {
+        ...ETHAN_TRANSACTION_TEMPLATE,
+        gas: undefined,
+        to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
+          alith.address,
+          MIN_GLMR_STAKING,
+          0,
+          0,
+        ]),
+      })
     );
   });
 
@@ -201,19 +195,17 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
   before("should successfully call delegate for ethan.address to ALITH", async function () {
     // Delegate ethan.address->ALITH
     await context.createBlock(
-      createTransaction(
-        context,
-        withoutGasLimit({
-          ...ETHAN_TRANSACTION_TEMPLATE,
-          to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-          data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
-            alith.address,
-            MIN_GLMR_STAKING,
-            0,
-            0,
-          ]),
-        })
-      )
+      createTransaction(context, {
+        ...ETHAN_TRANSACTION_TEMPLATE,
+        gas: undefined,
+        to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
+          alith.address,
+          MIN_GLMR_STAKING,
+          0,
+          0,
+        ]),
+      })
     );
 
     const { result } = await web3EthCall(context.web3, {

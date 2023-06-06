@@ -78,11 +78,6 @@ export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
   privateKey: ETHAN_PRIVATE_KEY,
 };
 
-export const withoutGasLimit = (options: TransactionOptions): TransactionOptions => {
-  delete options["gas"];
-  return options;
-};
-
 export const createTransaction = async (
   context: DevTestContext,
   options: TransactionOptions
