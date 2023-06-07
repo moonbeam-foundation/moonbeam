@@ -137,6 +137,13 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
     // per-byte length fee (reminder: this is 4 gas for a 0 and 16 for any non-zero byte). What we
     // want to show is that this length fee is applied but our exponential LengthToFee (part of our
     // Substrate-based fees) is not applied.
+
+    console.log("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+    "0000000000000000000000000000000000000000000000000000000000000004" + // exp
+    "0000000000000000000000000000000000000000000000000000000000000004" + // mod
+    "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
+    "0".repeat(2048) +
+    "0".repeat(2048))
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,

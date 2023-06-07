@@ -195,7 +195,7 @@
       "testFileDir": ["suites/dev"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "multiThreads": 4,
+      "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {

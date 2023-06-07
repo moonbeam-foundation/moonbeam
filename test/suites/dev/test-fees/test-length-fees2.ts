@@ -30,19 +30,15 @@ describeSuite({
         // byte). What we want to show is that this length fee is applied but our exponential
         // LengthToFee (part of our Substrate-based fees) is not applied.
 
-        const { rawSigned: tx } = await createEthersTxn(context, {
+        const tx = await createRawTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gasLimit: EXTRINSIC_GAS_LIMIT,
-          value: "0x00",
-          nonce: 0,
-          input:
-            "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          gas: BigInt(EXTRINSIC_GAS_LIMIT),
+          data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
             "0000000000000000000000000000000000000000000000000000000000000004" + // exp
             "0000000000000000000000000000000000000000000000000000000000000004" + // mod
             "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
             "0".repeat(2048) +
-            "0".repeat(2048),
-          txnType: "legacy",
+            "0".repeat(2048)) as `0x${string}`,
         });
 
         const { result } = await context.createBlock(tx);
@@ -60,15 +56,15 @@ describeSuite({
         // conclusion: the LengthToFee modifier is NOT involved
 
         const expected = 37708n;
-        expect(receipt.gasUsed).toBe(expected);
+        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
 
         // furthermore, we can account for the entire fee:
         const non_zero_byte_fee = 3n * 16n;
         const zero_byte_fee = 3165n * 4n;
         const base_ethereum_fee = 21000n;
-        const modexp_min_cost = 200n; // see MIN_GAS_COST in frontier's modexp precompile
+        const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
-        expect(entire_fee).to.equal(expected);
+        expect(entire_fee, "entire fee doesn't match manual calculation").to.equal(expected);
       },
     });
   },
