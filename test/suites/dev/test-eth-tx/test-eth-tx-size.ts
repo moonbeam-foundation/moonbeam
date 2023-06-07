@@ -8,20 +8,24 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     // TODO: I'm not sure where this 2000 came from...
-    const maxSize = Math.floor((EXTRINSIC_GAS_LIMIT - 21000) / 16) - 2000;
+    const maxSize = (BigInt(EXTRINSIC_GAS_LIMIT) - 21000n) / 16n - 2000n;
 
     it({
       id: "T01",
       title: "should accept txns up to known size",
       test: async function () {
-        expect(maxSize).to.equal(809187); // our max Ethereum TXN size in bytes
-        const data = ("0x" + "FF".repeat(maxSize)) as `0x${string}`;
+        expect(maxSize).to.equal(809187n); // our max Ethereum TXN size in bytes
+        // max_size - shanghai init cost - create cost
+        const maxSizeShanghai = maxSize - 6474n;
+        const data = ("0x" + "FF".repeat(Number(maxSizeShanghai))) as `0x${string}`;
 
         const { rawSigned } = await createEthersTxn(context, {
           value: 0n,
           data,
           gasLimit: EXTRINSIC_GAS_LIMIT,
         });
+
+        log(rawSigned);
 
         const { result } = await context.createBlock(rawSigned);
         const receipt = await context
@@ -36,7 +40,7 @@ describeSuite({
       id: "T02",
       title: "should reject txns which are too large to pay for",
       test: async function () {
-        const data = ("0x" + "FF".repeat(maxSize + 1)) as `0x${string}`;
+        const data = ("0x" + "FF".repeat(Number(maxSize) + 1)) as `0x${string}`;
 
         const { rawSigned } = await createEthersTxn(context, {
           value: 0n,

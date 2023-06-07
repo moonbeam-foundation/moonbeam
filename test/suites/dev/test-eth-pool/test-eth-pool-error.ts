@@ -1,19 +1,16 @@
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
+import { afterEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
-  BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   DOROTHY_ADDRESS,
   MIN_GAS_PRICE,
-  charleth,
   createEthersTxn,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
-import { formatUnits, parseUnits } from "ethers";
 import { parseGwei } from "viem";
 
 describeSuite({
@@ -21,6 +18,10 @@ describeSuite({
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    afterEach(async () => {
+      await context.createBlock();
+    });
+
     it({
       id: "T01",
       title: "already known #1",
@@ -31,7 +32,6 @@ describeSuite({
         expect(async () => await sendRawTransaction(context, tx)).rejects.toThrowError(
           "already known"
         );
-        await context.createBlock();
       },
     });
 
@@ -64,8 +64,6 @@ describeSuite({
         expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2])
         ).rejects.toThrowError("replacement transaction underpriced");
-
-        await context.createBlock();
       },
     });
 
@@ -76,18 +74,25 @@ describeSuite({
         const nonce = await context
           .viemClient("public")
           .getTransactionCount({ address: ALITH_ADDRESS });
-        const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
+        const tx1 = await createEthersTxn(context, {
+          to: BALTATHAR_ADDRESS,
+          value: 1,
           nonce,
+          privateKey: CHARLETH_PRIVATE_KEY,
         });
-        await context.createBlock(tx1);
+        await context.createBlock(tx1.rawSigned);
 
-        const tx2 = await createRawTransfer(context, DOROTHY_ADDRESS, 2, {
-          nonce,
+        const tx2 = await createEthersTxn(context, {
+          to: DOROTHY_ADDRESS,
+          value: 2,
+          nonce: Math.max(nonce - 1, 0),
+          privateKey: CHARLETH_PRIVATE_KEY,
         });
+
         expect(
-          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2])
+          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2.rawSigned]),
+          "tx should be rejected for duplicate nonce"
         ).rejects.toThrowError("nonce too low");
-        await context.createBlock();
       },
     });
 
