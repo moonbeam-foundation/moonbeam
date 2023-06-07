@@ -92,13 +92,14 @@ pub mod pallet {
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
+	use moonbeam_core_primitives::AccountId;
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
-	use xcm::{latest::prelude::*, VersionedMultiLocation};
-	use xcm_executor::traits::{TransactAsset, WeightBounds};
+	use xcm::{latest::prelude::*, v2::Junction::AccountId32, VersionedMultiLocation};
+	use xcm_executor::traits::{Convert as XcmConvert, TransactAsset, WeightBounds};
 	use xcm_primitives::{
 		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
 		UtilityEncodeCall, XcmTransact,
@@ -715,11 +716,15 @@ pub mod pallet {
 			// If refund is true, the appendix instruction will be a deposit back to the sender
 			let appendix: Option<Vec<Instruction<()>>> = if refund {
 				let sender = T::AccountIdToMultiLocation::convert(who.clone());
+				//println!("SENDER MULTILOC: {:#?}", sender.clone());
+				//println!("DEST MULTILOC: {:#?}", dest.clone());
 				let deposit_appendix = Self::deposit_instruction(sender, &dest, 1u32)?;
 				Some(vec![RefundSurplus, deposit_appendix])
 			} else {
 				None
 			};
+
+			//println!("APPENDIX: {:#?}", appendix);
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
@@ -1063,6 +1068,7 @@ pub mod pallet {
 			beneficiary
 				.reanchor(at, universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
+			//println!("BENEFICIARY MULTILOC: {:#?}", beneficiary.clone());
 			Ok(DepositAsset {
 				assets: Wild(AllCounted(max_assets)),
 				beneficiary,

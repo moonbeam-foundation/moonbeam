@@ -19,6 +19,7 @@ use crate::*;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use frame_support::dispatch::{DispatchError, Weight};
 use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
+use sp_runtime::traits::Convert;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
@@ -1616,5 +1617,109 @@ fn test_transact_through_derivative_with_refund_fails_overall_weight_not_set() {
 				),
 				Error::<Test>::RefundNotSupportedWithTransactInfo
 			);
+		})
+}
+
+#[test]
+fn test_transact_through_signed_with_refund_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				0.into(),
+				10000.into(),
+				Some(1.into())
+			));
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				RuntimeOrigin::root(),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				1
+			));
+
+			let para_alice: [u8; 20] = [1; 20];
+
+			let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+			// Overall weight to use
+			let total_weight: Weight = 10_100u64.into();
+			/* assert_ok!(XcmTransactor::transact_through_signed(
+				RuntimeOrigin::signed(1u64),
+				Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+						para_b_balances
+					))),
+					fee_amount: None
+				},
+				vec![1u8],
+				TransactWeights {
+					transact_required_weight_at_most: 100u64.into(),
+					overall_weight: Some(total_weight)
+				},
+				true
+			)); */
+
+			assert_ok!(XcmTransactor::transact_through_signed(
+				RuntimeOrigin::signed(1u64),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+					fee_amount: None
+				},
+				vec![1u8],
+				TransactWeights {
+					transact_required_weight_at_most: 100u64.into(),
+					overall_weight: Some(total_weight)
+				},
+				true
+			));
+
+			/* let expected = vec![
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
+						transact_extra_weight: 0.into(),
+						max_weight: 10000.into(),
+						transact_extra_weight_signed: Some(1.into()),
+					},
+				},
+				crate::Event::DestFeePerSecondChanged {
+					location: MultiLocation::parent(),
+					fee_per_second: 1,
+				},
+				crate::Event::TransactedSigned {
+					fee_payer: 1u64,
+					dest: MultiLocation::parent(),
+					call: vec![1u8],
+				},
+			]; */
+			//assert_eq!(events(), expected);
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+
+			// Check message contains the new appendix
+			/* assert!(sent_message.0.contains(&SetAppendix(Xcm(vec![
+				RefundSurplus,
+				DepositAsset {
+					assets: Wild(AllCounted(1u32)),
+					beneficiary: MultiLocation {
+						parents: 0,
+						interior: X2(
+							Junction::Parachain(100),
+							AccountIdToMultiLocation::convert(1)
+								.interior
+								.take_first()
+								.unwrap()
+						)
+					}
+				}
+			])))); */
 		})
 }
