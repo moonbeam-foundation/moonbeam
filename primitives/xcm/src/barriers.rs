@@ -35,9 +35,9 @@ use xcm_executor::traits::ShouldExecute;
 /// first
 pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
 impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
-	fn should_execute<RuntimeCall>(
+	fn should_execute<Call>(
 		origin: &MultiLocation,
-		message: &mut [Instruction<RuntimeCall>],
+		message: &mut [Instruction<Call>],
 		max_weight: Weight,
 		_weight_credit: &mut Weight,
 	) -> Result<(), ProcessMessageError> {
