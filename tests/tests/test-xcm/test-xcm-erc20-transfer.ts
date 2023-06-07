@@ -159,7 +159,7 @@ describeDevMoonbeamAllRuntimes("Mock XCM - Receive back erc20", (context) => {
               X1: { PalletInstance: Number(balancesPalletIndex) },
             },
           },
-          fungible: 1_000_000_000_000_000n,
+          fungible: 100_000_000_000_000_000n,
         },
         {
           multilocation: {
