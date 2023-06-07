@@ -25,7 +25,7 @@ use frame_support::{
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
 use sp_std::marker::PhantomData;
 use xcm::latest::{
-	prelude::{BuyExecution, DescendOrigin, Instruction, WithdrawAsset},
+	prelude::{BuyExecution, ClearOrigin, DescendOrigin, Instruction, WithdrawAsset},
 	MultiLocation,
 	WeightLimit::{Limited, Unlimited},
 };
@@ -35,9 +35,9 @@ use xcm_executor::traits::ShouldExecute;
 /// first
 pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
 impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
-	fn should_execute<Call>(
+	fn should_execute<RuntimeCall>(
 		origin: &MultiLocation,
-		message: &mut [Instruction<Call>],
+		message: &mut [Instruction<RuntimeCall>],
 		max_weight: Weight,
 		_weight_credit: &mut Weight,
 	) -> Result<(), ProcessMessageError> {
@@ -48,7 +48,8 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 			origin, message, max_weight, _weight_credit,
 		);
 		ensure!(T::contains(origin), ProcessMessageError::Unsupported);
-		let mut iter = message.iter_mut();
+		// At most two ClearOrigin
+		let mut iter = message.iter_mut().take(5);
 		// Make sure the first instruction is DescendOrigin
 		iter.next()
 			.filter(|instruction| matches!(instruction, DescendOrigin(_)))
@@ -60,14 +61,16 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 			.ok_or(ProcessMessageError::BadFormat)?;
 
 		// Then BuyExecution
-		let i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
+		let mut i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
+		while let ClearOrigin = i {
+			i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
+		}
 		match i {
 			BuyExecution {
 				weight_limit: Limited(ref mut weight),
 				..
 			} if weight.all_gte(max_weight) => {
-				weight.set_ref_time(max_weight.ref_time());
-				weight.set_proof_size(max_weight.proof_size());
+				*weight = max_weight;
 				Ok(())
 			}
 			BuyExecution {
