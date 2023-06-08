@@ -2145,10 +2145,10 @@ benchmarks! {
 		// y controls number of distinct auto-compounding delegations the prime collator will have
 		// z controls number of distinct delegations the prime delegator will have
 		let x in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get());
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get() - 1);
 		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
 		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get() - 1;
-		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get() - 1;
+		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 
 		use crate::auto_compound::AutoCompoundDelegations;
 
