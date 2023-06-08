@@ -8908,7 +8908,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "moonbeam-core-primitives",
  "orml-traits",
  "pallet-balances",
  "pallet-timestamp",

@@ -513,6 +513,47 @@ fn test_transact_derivative_v2() {
 }
 
 #[test]
+fn test_transact_derivative_v3() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			//let total_weight = 1_000_000_000u64;
+			let total_weight = Weight::from_parts(1_000_000_000u64, 82_000u64);
+			let require_weight_at_most = Weight::from_parts(4_000_000u64, 82_000u64);
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV3,
+					PCallV3::transact_through_derivative {
+						transactor: 0,
+						index: 0,
+						fee_asset: Address(AssetAddress(0).into()),
+						weight: require_weight_at_most,
+						inner_call: bytes.into(),
+						fee_amount: u128::from(total_weight.ref_time()).into(),
+						overall_weight: total_weight,
+						refund: false,
+					},
+				)
+				.expect_cost(188254000)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
 fn test_transact_signed() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])
@@ -582,6 +623,44 @@ fn test_transact_signed_v2() {
 						call: bytes.into(),
 						fee_amount: u128::from(total_weight).into(),
 						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(468449000)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
+fn test_transact_signed_v3() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = Weight::from_parts(1_000_000_000u64, 82_000u64);
+			let require_weight_at_most = Weight::from_parts(4_000_000u64, 82_000u64);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV3,
+					PCallV3::transact_through_signed {
+						dest: MultiLocation::parent(),
+						fee_asset: Address(AssetAddress(0).into()),
+						weight: require_weight_at_most,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight.ref_time()).into(),
+						overall_weight: total_weight,
+						refund: false,
 					},
 				)
 				.expect_cost(468449000)
@@ -664,6 +743,47 @@ fn test_transact_signed_multilocation_v2() {
 						call: bytes.into(),
 						fee_amount: u128::from(total_weight).into(),
 						overall_weight: total_weight,
+					},
+				)
+				.expect_cost(468448000)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}
+
+#[test]
+fn test_transact_through_signed_multilocation_v3() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
+
+			// we pay with our current self reserve.
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = vec![1u8, 2u8, 3u8];
+
+			let total_weight = Weight::from_parts(1_000_000_000u64, 82_000u64);
+			let require_weight_at_most = Weight::from_parts(4_000_000u64, 82_000u64);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					TransactorV3,
+					PCallV3::transact_through_signed_multilocation {
+						dest: MultiLocation::parent(),
+						fee_asset: fee_payer_asset,
+						weight: require_weight_at_most,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight.ref_time()).into(),
+						overall_weight: total_weight,
+						refund: false,
 					},
 				)
 				.expect_cost(468448000)

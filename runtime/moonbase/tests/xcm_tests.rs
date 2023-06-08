@@ -1310,7 +1310,6 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			PARAALICE.into(),
 			0,
 		));
-		println!("PARA EVENTS: {:#?}", parachain::para_events());
 	});
 
 	// Send to registered address
@@ -3076,7 +3075,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 				fee_amount: Some(total_weight as u128)
 			},
 			encoded,
-			// 4000000000 for transfer + 4000 for XCM
+			// 4000000000 for transfer + 9000 for XCM
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
 				overall_weight: Some(total_weight.into())
@@ -3086,9 +3085,11 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	});
 
 	Relay::execute_with(|| {
-		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000005286);
+		// 100 transferred
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 100);
 
-		assert_eq!(RelayBalances::free_balance(&derived), 0);
+		// 4000005186 refunded
+		assert_eq!(RelayBalances::free_balance(&derived), 4000005186);
 	});
 }
 
@@ -3212,18 +3213,6 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
 
 	ParaA::execute_with(|| {
-		// Root can set transact info
-		assert_ok!(XcmTransactor::set_transact_info(
-			parachain::RuntimeOrigin::root(),
-			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
-			// Para charges 1000 for every instruction, and we have 3, so 3
-			3.into(),
-			20000000000.into(),
-			// 4 instructions in transact through signed
-			Some(4.into())
-		));
-		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
@@ -3239,27 +3228,14 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	});
 
 	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	println!("SELF LOCATION: {:#?}", descend_origin_multilocation);
 	descend_origin_multilocation
 		.append_with(signed_origin)
 		.unwrap();
-
-	println!(
-		"DESCEND ORIGIN MULTILOCATION BEFORE: {:#?}",
-		descend_origin_multilocation
-	);
-
-	println!("ANCESTRY: {:#?}", ancestry);
 
 	// To convert it to what the paraB will see instead of us
 	descend_origin_multilocation
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
-
-	println!(
-		"DESCEND ORIGIN MULTILOCATION REANCHOR: {:#?}",
-		descend_origin_multilocation
-	);
 
 	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
@@ -3277,41 +3253,25 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 		assert!(ParaBalances::free_balance(&derived) == 4000009100);
 		// sovereign account has 0 funds
 		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
-
-		println!(
-			"ALICE PARA B FUNDS BEFORE: {:?}",
-			ParaBalances::free_balance(&PARAALICE.into())
-		);
 	});
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
 	let mut encoded: Vec<u8> = Vec::new();
 	let index =
-		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::Utility>()
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::Balances>()
 			.unwrap() as u8;
 
 	encoded.push(index);
 
-	let mut call_bytes = pallet_utility::Call::<parachain::Runtime>::batch_all {
-		calls: vec![pallet_balances::Call::<parachain::Runtime>::transfer {
-			// 100 to sovereign
-			dest: para_a_account_20(),
-			value: 100u32.into(),
-		}
-		.into()],
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
-
 	// Then call bytes
-	/* let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer {
 		// 100 to sovereign
 		dest: para_a_account_20(),
 		value: 100u32.into(),
 	}
 	.encode();
-	encoded.append(&mut call_bytes); */
+	encoded.append(&mut call_bytes);
 
 	let overall_weight = 4000009000u64;
 	ParaA::execute_with(|| {
@@ -3332,41 +3292,14 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 			},
 			true
 		));
-
-		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
-			.iter()
-			.find_map(|event| match event.clone() {
-				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
-					Some(event.clone())
-				}
-				_ => None,
-			});
-		// Assert that the events do not contain the assets being trapped
-		assert!(event_found.is_none());
-
-		//println!("PARA A EVENTS: {:#?}", parachain::para_events());
 	});
 
 	ParaB::execute_with(|| {
-		println!("PARA B EVENTS: {:#?}", parachain::para_events());
-		println!("DERIVED FUNDS: {:?}", ParaBalances::free_balance(&derived));
-		//assert!(ParaBalances::free_balance(&derived) == 0);
-		println!(
-			"ALICE PARA B FUNDS AFTER: {:?}",
-			ParaBalances::free_balance(&PARAALICE.into())
-		);
-		println!(
-			"para a20 FUNDS: {:?}",
-			ParaBalances::free_balance(&para_a_account_20())
-		);
-		//assert!(ParaBalances::free_balance(&para_a_account_20()) == 100);
-	});
+		// Check the derived account was refunded
+		assert_eq!(ParaBalances::free_balance(&derived), 8993);
 
-	Relay::execute_with(|| {
-		println!(
-			"para a32 relay FUNDS: {:?}",
-			RelayBalances::free_balance(&para_a_account())
-		);
+		// Check the transfer was executed
+		assert_eq!(ParaBalances::free_balance(&para_a_account_20()), 100);
 	});
 }
 

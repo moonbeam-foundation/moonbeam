@@ -529,10 +529,14 @@ where
 		handle: &mut impl PrecompileHandle,
 		multilocation: MultiLocation,
 	) -> EvmResult<(Weight, Weight, Weight)> {
-		//((u64, u64), (u64, u64), (u64, u64))
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
 		// fetch data from pallet
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// + RemoteTransactInfoWithMaxWeight
+		handle.record_db_read::<Runtime>(
+			16 + MultiLocation::max_encoded_len()
+				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+		)?;
+
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
@@ -601,6 +605,10 @@ where
 		overall_weight: Weight,
 		refund: bool,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
@@ -610,8 +618,6 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -685,14 +691,16 @@ where
 		overall_weight: Weight,
 		refund: bool,
 	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		let call: Vec<_> = call.into();
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;

@@ -113,7 +113,7 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
 }
@@ -574,7 +574,6 @@ pub mod mock_msg_queue {
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
 					let mut id = [0u8; 32];
 					id.copy_from_slice(hash.as_ref());
-					println!("XCM {:#?}:", xcm);
 					match T::XcmExecutor::execute_xcm(location, xcm, id, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
 						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
@@ -1138,21 +1137,6 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
-impl pallet_utility::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type WeightInfo = ();
-	type PalletsOrigin = OriginCaller;
-}
-
-impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
-where
-	RuntimeCall: From<C>,
-{
-	type Extrinsic = UncheckedExtrinsic;
-	type OverarchingCall = RuntimeCall;
-}
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -1181,7 +1165,6 @@ construct_runtime!(
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
-		Utility: pallet_utility::{Pallet, Call, Event},
 	}
 );
 
