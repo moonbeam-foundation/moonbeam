@@ -20,6 +20,7 @@ jobs:
       - name: "clean moonbeam"
         run: |
           rm -rf /home/gh-actions/runner/_work/moonbeam/moonbeam
+          git clone --depth 1 https://github.com/purestake/moonbeam /home/gh-actions/runner/_work/moonbeam/moonbeam
       - uses: actions/checkout@v3
         with:
           ref: "master"
