@@ -25,8 +25,6 @@ describeSuite({
           gasLimit: EXTRINSIC_GAS_LIMIT,
         });
 
-        log(rawSigned);
-
         const { result } = await context.createBlock(rawSigned);
         const receipt = await context
           .viemClient("public")
