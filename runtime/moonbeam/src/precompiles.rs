@@ -43,7 +43,7 @@ use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::{
-	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
+	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
@@ -234,6 +234,11 @@ type MoonbeamPrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
+	PrecompileAt<
+		AddressU64<2071>,
+		XcmTransactorPrecompileV3<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 );
 
 /// The PrecompileSet installed in the Moonbeam runtime.
