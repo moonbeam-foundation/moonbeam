@@ -21,8 +21,10 @@ use frame_support::{
 	assert_ok,
 	traits::{PalletInfo, PalletInfoAccess},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
+	BoundedVec,
 };
 use pallet_asset_manager::LocalAssetIdCreator;
+use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_executor::traits::Convert;
@@ -2633,6 +2635,586 @@ fn transact_through_signed_multilocation() {
 		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
 
 		assert!(RelayBalances::free_balance(&derived) == 0);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_custom_fee_and_weight() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	ParaA::execute_with(|| {
+		ancestry = parachain::UniversalLocation::get().into();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the relay will see instead of us
+	descend_origin_multilocation
+		.reanchor(&MultiLocation::parent(), ancestry.interior)
+		.unwrap();
+
+	let derived = xcm_builder::Account32Hash::<
+		relay_chain::KusamaNetwork,
+		relay_chain::AccountId,
+	>::convert_ref(descend_origin_multilocation)
+	.unwrap();
+
+	Relay::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			derived.clone(),
+			4000004100u128,
+		));
+		// derived account has all funds
+		assert!(RelayBalances::free_balance(&derived) == 4000004100);
+		// sovereign account has 0 funds
+		assert!(RelayBalances::free_balance(&para_a_account()) == 0);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+		// 100 to sovereign
+		dest: para_a_account(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	let total_weight = 4000004000u64;
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					MultiLocation::parent()
+				))),
+				fee_amount: Some(total_weight as u128)
+			},
+			encoded,
+			// 4000000000 for transfer + 4000 for XCM
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: Some(total_weight.into())
+			}
+		));
+	});
+
+	Relay::execute_with(|| {
+		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
+
+		assert!(RelayBalances::free_balance(&derived) == 0);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_para_to_para() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			// ParaB
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			// Para charges 1000 for every instruction, and we have 3, so 3
+			3.into(),
+			20000000000.into(),
+			// 4 instructions in transact through signed
+			Some(4.into())
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			parachain::ParaTokensPerSecond::get().1 as u128,
+		));
+		ancestry = parachain::UniversalLocation::get().into();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the paraB will see instead of us
+	descend_origin_multilocation
+		.reanchor(&para_b_location, ancestry.interior)
+		.unwrap();
+
+	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+		descend_origin_multilocation,
+	)
+	.unwrap();
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(ParaBalances::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			derived.clone(),
+			4000000104u128,
+		));
+		// derived account has all funds
+		assert!(ParaBalances::free_balance(&derived) == 4000000104);
+		// sovereign account has 0 funds
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index =
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::Balances>()
+			.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer {
+		// 100 to sovereign
+		dest: para_a_account_20(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
+			encoded,
+			// 4000000000 for transfer + 4000 for XCM
+			// 1-1 to fee
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: None
+			}
+		));
+	});
+
+	ParaB::execute_with(|| {
+		assert!(ParaBalances::free_balance(&derived) == 0);
+
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 100);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_para_to_para_ethereum() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			// ParaB
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			// Para charges 1000 for every instruction, and we have 3, so 3
+			3.into(),
+			20000000000.into(),
+			// 4 instructions in transact through signed
+			Some(4.into())
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			parachain::ParaTokensPerSecond::get().1 as u128,
+		));
+		ancestry = parachain::UniversalLocation::get().into();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the paraB will see instead of us
+	descend_origin_multilocation
+		.reanchor(&para_b_location, ancestry.interior)
+		.unwrap();
+
+	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+		descend_origin_multilocation,
+	)
+	.unwrap();
+
+	let mut parachain_b_alice_balances_before = 0;
+	ParaB::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			derived.clone(),
+			4000000104u128,
+		));
+		// derived account has all funds
+		assert!(ParaBalances::free_balance(&derived) == 4000000104);
+		// sovereign account has 0 funds
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
+
+		parachain_b_alice_balances_before = ParaBalances::free_balance(&PARAALICE.into())
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index =
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::EthereumXcm>()
+			.unwrap() as u8;
+
+	encoded.push(index);
+
+	use sp_core::U256;
+	// Let's do a EVM transfer
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V1(xcm_primitives::EthereumXcmTransactionV1 {
+			gas_limit: U256::from(21000),
+			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
+			action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
+			value: U256::from(100),
+			input: BoundedVec::<
+				u8,
+				ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>
+			>::try_from(vec![]).unwrap(),
+			access_list: None,
+		});
+
+	// Then call bytes
+	let mut call_bytes = pallet_ethereum_xcm::Call::<parachain::Runtime>::transact {
+		xcm_transaction: eth_tx,
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
+			encoded,
+			// 4000000000 for transfer + 4000 for XCM
+			// 1-1 to fee
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: None
+			}
+		));
+	});
+
+	ParaB::execute_with(|| {
+		// Make sure the EVM transfer went through
+		assert!(
+			ParaBalances::free_balance(&PARAALICE.into())
+				== parachain_b_alice_balances_before + 100
+		);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			// ParaB
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			// Para charges 1000 for every instruction, and we have 3, so 3
+			3.into(),
+			20000000000.into(),
+			// 4 instructions in transact through signed
+			Some(4.into())
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			parachain::ParaTokensPerSecond::get().1 as u128,
+		));
+		ancestry = parachain::UniversalLocation::get().into();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the paraB will see instead of us
+	descend_origin_multilocation
+		.reanchor(&para_b_location, ancestry.interior)
+		.unwrap();
+
+	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+		descend_origin_multilocation,
+	)
+	.unwrap();
+
+	let mut parachain_b_alice_balances_before = 0;
+	ParaB::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			derived.clone(),
+			4000000104u128,
+		));
+		// derived account has all funds
+		assert!(ParaBalances::free_balance(&derived) == 4000000104);
+		// sovereign account has 0 funds
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
+
+		parachain_b_alice_balances_before = ParaBalances::free_balance(&PARAALICE.into())
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index =
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::EthereumXcm>()
+			.unwrap() as u8;
+
+	encoded.push(index);
+
+	use sp_core::U256;
+	// Let's do a EVM transfer
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V1(xcm_primitives::EthereumXcmTransactionV1 {
+			gas_limit: U256::from(21000),
+			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
+			action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
+			value: U256::from(100),
+			input: BoundedVec::<
+				u8,
+				ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>
+			>::try_from(vec![]).unwrap(),
+			access_list: None,
+		});
+
+	// Then call bytes
+	let mut call_bytes = pallet_ethereum_xcm::Call::<parachain::Runtime>::transact_through_proxy {
+		transact_as: PARAALICE.into(),
+		xcm_transaction: eth_tx,
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
+			encoded,
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: None
+			}
+		));
+	});
+
+	ParaB::execute_with(|| {
+		// Make sure the EVM transfer wasn't executed
+		assert!(ParaBalances::free_balance(&PARAALICE.into()) == parachain_b_alice_balances_before);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			// ParaB
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			// Para charges 1000 for every instruction, and we have 3, so 3
+			3.into(),
+			20000000000.into(),
+			// 4 instructions in transact through signed
+			Some(4.into())
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			parachain::ParaTokensPerSecond::get().1 as u128,
+		));
+		ancestry = parachain::UniversalLocation::get().into();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the paraB will see instead of us
+	descend_origin_multilocation
+		.reanchor(&para_b_location, ancestry.interior)
+		.unwrap();
+
+	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+		descend_origin_multilocation,
+	)
+	.unwrap();
+
+	let transfer_recipient = evm_account();
+	let mut transfer_recipient_balance_before = 0;
+	ParaB::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			derived.clone(),
+			4000000104u128,
+		));
+		// derived account has all funds
+		assert!(ParaBalances::free_balance(&derived) == 4000000104);
+		// sovereign account has 0 funds
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
+
+		transfer_recipient_balance_before = ParaBalances::free_balance(&transfer_recipient.into());
+
+		// Add proxy ALICE  -> derived
+		let _ = parachain::Proxy::add_proxy_delegate(
+			&PARAALICE.into(),
+			derived,
+			parachain::ProxyType::Any,
+			0,
+		);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index =
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::EthereumXcm>()
+			.unwrap() as u8;
+
+	encoded.push(index);
+
+	use sp_core::U256;
+	// Let's do a EVM transfer
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V2(xcm_primitives::EthereumXcmTransactionV2 {
+			gas_limit: U256::from(21000),
+			action: pallet_ethereum::TransactionAction::Call(transfer_recipient.into()),
+			value: U256::from(100),
+			input: BoundedVec::<
+				u8,
+				ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>
+			>::try_from(vec![]).unwrap(),
+			access_list: None,
+		});
+
+	// Then call bytes
+	let mut call_bytes = pallet_ethereum_xcm::Call::<parachain::Runtime>::transact_through_proxy {
+		transact_as: PARAALICE.into(),
+		xcm_transaction: eth_tx,
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
+			encoded,
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: None
+			}
+		));
+	});
+
+	ParaB::execute_with(|| {
+		// Make sure the EVM transfer was executed
+		assert!(
+			ParaBalances::free_balance(&transfer_recipient.into())
+				== transfer_recipient_balance_before + 100
+		);
 	});
 }
 

@@ -468,7 +468,7 @@ fn test_transact_derivative() {
 						inner_call: bytes.into(),
 					},
 				)
-				.expect_cost(188253001)
+				.expect_cost(188254000)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -506,7 +506,7 @@ fn test_transact_derivative_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(188253001)
+				.expect_cost(188254000)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -551,7 +551,7 @@ fn test_transact_signed() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(468448001)
+				.expect_cost(468449000)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -584,7 +584,7 @@ fn test_transact_signed_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(468448001)
+				.expect_cost(468449000)
 				.expect_no_logs()
 				.execute_returns(());
 		});

@@ -19,12 +19,13 @@
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::precompile_set::{self, AddressType, SelectorFilter};
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, StaticLookup, Zero},
@@ -41,7 +42,8 @@ pub struct OnlyIsProxy<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> SelectorFilter for OnlyIsProxy<Runtime>
 where
-	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	Runtime:
+		pallet_proxy::Config + pallet_evm::Config + frame_system::Config + pallet_balances::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
@@ -49,7 +51,9 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		From<ProxyCall<Runtime>> + From<BalancesCall<Runtime>>,
+	<Runtime as pallet_balances::Config<()>>::Balance: TryFrom<U256> + Into<U256>,
 {
 	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
 		match selector {
@@ -70,7 +74,8 @@ pub struct OnlyIsProxyAndProxy<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> SelectorFilter for OnlyIsProxyAndProxy<Runtime>
 where
-	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	Runtime:
+		pallet_proxy::Config + pallet_evm::Config + frame_system::Config + pallet_balances::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
@@ -78,7 +83,9 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		From<ProxyCall<Runtime>> + From<BalancesCall<Runtime>>,
+	<Runtime as pallet_balances::Config<()>>::Balance: TryFrom<U256> + Into<U256>,
 {
 	fn is_allowed(_caller: H160, selector: Option<u32>) -> bool {
 		match selector {
@@ -128,7 +135,8 @@ pub struct ProxyPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> ProxyPrecompile<Runtime>
 where
-	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	Runtime:
+		pallet_proxy::Config + pallet_evm::Config + frame_system::Config + pallet_balances::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
@@ -136,7 +144,9 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		From<ProxyCall<Runtime>> + From<BalancesCall<Runtime>>,
+	<Runtime as pallet_balances::Config<()>>::Balance: TryFrom<U256> + Into<U256>,
 {
 	/// Register a proxy account for the sender that is able to make calls on its behalf.
 	/// The dispatch origin for this call must be Signed.
@@ -165,7 +175,11 @@ where
 		// See: https://github.com/PureStake/sr-moonbeam/issues/30
 		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
 		// filtered via CallFilter
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		if ProxyPallet::<Runtime>::proxies(&origin)
 			.0
 			.iter()
@@ -176,7 +190,7 @@ where
 
 		let delegate: <Runtime::Lookup as StaticLookup>::Source =
 			Runtime::Lookup::unlookup(delegate.clone());
-		let call = ProxyCall::<Runtime>::add_proxy {
+		let call: ProxyCall<Runtime> = ProxyCall::<Runtime>::add_proxy {
 			delegate,
 			proxy_type,
 			delay,
@@ -212,7 +226,7 @@ where
 		let delegate: <Runtime::Lookup as StaticLookup>::Source =
 			Runtime::Lookup::unlookup(delegate.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ProxyCall::<Runtime>::remove_proxy {
+		let call: ProxyCall<Runtime> = ProxyCall::<Runtime>::remove_proxy {
 			delegate,
 			proxy_type,
 			delay,
@@ -231,7 +245,7 @@ where
 	#[precompile::public("removeProxies()")]
 	fn remove_proxies(handle: &mut impl PrecompileHandle) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ProxyCall::<Runtime>::remove_proxies {}.into();
+		let call: ProxyCall<Runtime> = ProxyCall::<Runtime>::remove_proxies {}.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -319,7 +333,11 @@ where
 
 		let real = Runtime::AddressMapping::into_account_id(real.into());
 
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
 			.0
 			.iter()
@@ -335,22 +353,27 @@ where
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
 		// Check that we only perform proxy calls on behalf of externally owned accounts
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(real.into()) else {
+		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(handle, real.into())? else {
 			return Err(revert("real address must be EOA"));
 		};
 
 		// Read proxy
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Proxies:
+		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
+		handle.record_db_read::<Runtime>(
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+		)?;
 		let def =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)
 				.map_err(|_| RevertReason::custom("Not proxy"))?;
 		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
 
 		// Read subcall recipient code
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
+		// decode_len reads the first 5 bytes to find the payload len under this key
+		handle.record_db_read::<Runtime>(41)?;
 		let recipient_has_code =
 			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
 
@@ -380,8 +403,28 @@ where
 		let transfer = if value.is_zero() {
 			None
 		} else {
+			let contract_address: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(handle.context().address);
+
+			// Send back funds received by the precompile.
+			RuntimeHelper::<Runtime>::try_dispatch(
+				handle,
+				Some(contract_address).into(),
+				pallet_balances::Call::<Runtime>::transfer {
+					dest: Runtime::Lookup::unlookup(who),
+					value: {
+						let balance: <Runtime as pallet_balances::Config<()>>::Balance =
+							value.try_into().map_err(|_| PrecompileFailure::Revert {
+								exit_status: fp_evm::ExitRevert::Reverted,
+								output: sp_std::vec::Vec::new(),
+							})?;
+						balance
+					},
+				},
+			)?;
+
 			Some(Transfer {
-				source: handle.context().caller,
+				source: sub_context.caller,
 				target: address.clone(),
 				value,
 			})

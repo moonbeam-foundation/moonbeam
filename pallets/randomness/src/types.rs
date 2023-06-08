@@ -22,7 +22,7 @@ use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 use sp_std::vec::Vec;
 
-#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Copy, Clone, Encode, Decode, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 /// Shared request info, a subset of `RequestInfo`
 pub enum RequestType<T: Config> {
@@ -32,7 +32,8 @@ pub enum RequestType<T: Config> {
 	Local(T::BlockNumber),
 }
 
-#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Copy, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 /// Type of request
 /// Represents a request for the most recent randomness at or after the inner first field
@@ -111,7 +112,7 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 	}
 }
 
-#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
 /// Input arguments to request randomness
 pub struct Request<Balance, Info> {
 	/// Fee is returned to this account upon execution
@@ -128,6 +129,18 @@ pub struct Request<Balance, Info> {
 	pub salt: H256,
 	/// Details regarding request type
 	pub info: Info,
+}
+
+impl<Balance, Info> core::fmt::Debug for Request<Balance, Info> {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		f.debug_struct("Request")
+			.field("refund_address", &self.refund_address)
+			.field("contract_address", &self.refund_address)
+			.field("gas_limit", &self.gas_limit)
+			.field("num_words", &self.num_words)
+			.field("salt", &self.salt)
+			.finish()
+	}
 }
 
 impl<T: Config> From<Request<BalanceOf<T>, RequestType<T>>>
@@ -288,7 +301,8 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 	}
 }
 
-#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
 	/// Underlying request
@@ -297,7 +311,8 @@ pub struct RequestState<T: Config> {
 	pub deposit: BalanceOf<T>,
 }
 
-#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[scale_info(skip_type_params(T))]
 /// Data required to make the subcallback and finish fulfilling the request
 pub struct FulfillArgs<T: Config> {

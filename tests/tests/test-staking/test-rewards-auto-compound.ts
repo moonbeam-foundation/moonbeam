@@ -387,20 +387,26 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       ])
     );
 
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking
+          .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
+          .signAsync(ethan)
+      )
+    );
+
     // fill all delegations, we split this into multiple blocks as it will not fit into one.
     // we use a maxDelegationCount here, since the transactions can come out of order.
-    const txns = [
-      context.polkadotApi.tx.parachainStaking
-        .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
-        .signAsync(ethan),
-      ...otherDelegators.map((d) =>
-        context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
-          .signAsync(d)
-      ),
-    ];
-    for (const txnsChunk of chunk(txns, 20)) {
-      await expectOk(context.createBlock(txnsChunk));
+    for (const delChunk of chunk(otherDelegators, 8)) {
+      await expectOk(
+        context.createBlock(
+          delChunk.map((d) =>
+            context.polkadotApi.tx.parachainStaking
+              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
+              .signAsync(d)
+          )
+        )
+      );
     }
 
     await expectOk(

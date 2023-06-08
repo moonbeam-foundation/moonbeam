@@ -37,7 +37,7 @@ use xcm_builder::{
 	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
 	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
 	FixedWeightBounds, IsConcrete, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
@@ -139,72 +139,23 @@ parameter_types! {
 	pub MatcherLocation: MultiLocation = MultiLocation::here();
 }
 
-use frame_support::ensure;
-use frame_support::traits::{Contains, ProcessMessageError};
-use sp_std::marker::PhantomData;
-use xcm_executor::traits::ShouldExecute;
-/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
-/// payments into account.
-///
-/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
-	fn should_execute<Call>(
-		origin: &MultiLocation,
-		message: &mut [Instruction<Call>],
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
-	) -> Result<(), ProcessMessageError> {
-		log::trace!(
-			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin:
-			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
-			origin, message, max_weight, _weight_credit,
-		);
-		ensure!(T::contains(origin), ProcessMessageError::Unsupported);
-		let mut iter = message.iter_mut();
-		let mut i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
-		match i {
-			DescendOrigin(..) => (),
-			_ => return Err(ProcessMessageError::BadFormat),
-		}
-
-		i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
-		match i {
-			WithdrawAsset(..) => (),
-			_ => return Err(ProcessMessageError::BadFormat),
-		}
-
-		i = iter.next().ok_or(ProcessMessageError::BadFormat)?;
-		match i {
-			BuyExecution {
-				weight_limit: Limited(ref mut weight),
-				..
-			} if weight.all_gte(max_weight) => {
-				*weight = max_weight;
-				Ok(())
-			}
-			BuyExecution {
-				ref mut weight_limit,
-				..
-			} if weight_limit == &Unlimited => {
-				*weight_limit = Limited(max_weight);
-				Ok(())
-			}
-			_ => Err(ProcessMessageError::Overweight(max_weight)),
-		}
-	}
-}
-
 pub type XcmRouter = super::RelayChainXcmRouter;
-pub type Barrier = (
+
+pub type XcmBarrier = (
+	// Weight that is paid for may be consumed.
 	TakeWeightCredit,
-	AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
-	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
+	WithComputedOrigin<
+		(
+			// If the message is one that immediately attemps to pay for execution, then allow it.
+			AllowTopLevelPaidExecutionFrom<Everything>,
+			// Subscriptions for version tracking are OK.
+			AllowSubscriptionsFrom<Everything>,
+		),
+		UniversalLocation,
+		ConstU32<8>,
+	>,
 );
 
 pub struct XcmConfig;
@@ -216,7 +167,7 @@ impl Config for XcmConfig {
 	type IsReserve = ();
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
-	type Barrier = Barrier;
+	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
 	type ResponseHandler = XcmPallet;

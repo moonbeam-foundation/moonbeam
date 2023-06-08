@@ -33,7 +33,7 @@ use crate::{
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
 	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -1164,12 +1164,14 @@ fn cannot_execute_leave_candidates_before_delay() {
 				1u32
 			));
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0),
+				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0)
+					.map_err(|err| err.error),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(9);
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0),
+				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0)
+					.map_err(|err| err.error),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(10);
@@ -1290,7 +1292,7 @@ fn go_offline_updates_candidate_state_to_idle() {
 fn cannot_go_offline_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::go_offline(RuntimeOrigin::signed(3)),
+			ParachainStaking::go_offline(RuntimeOrigin::signed(3)).map_err(|err| err.error),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -1305,7 +1307,7 @@ fn cannot_go_offline_if_already_offline() {
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			assert_noop!(
-				ParachainStaking::go_offline(RuntimeOrigin::signed(1)),
+				ParachainStaking::go_offline(RuntimeOrigin::signed(1)).map_err(|err| err.error),
 				Error::<Test>::AlreadyOffline
 			);
 		});
@@ -1377,7 +1379,7 @@ fn cannot_go_online_if_already_online() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::go_online(RuntimeOrigin::signed(1)),
+				ParachainStaking::go_online(RuntimeOrigin::signed(1)).map_err(|err| err.error),
 				Error::<Test>::AlreadyActive
 			);
 		});
@@ -1395,7 +1397,7 @@ fn cannot_go_online_if_leaving() {
 				1
 			));
 			assert_noop!(
-				ParachainStaking::go_online(RuntimeOrigin::signed(1)),
+				ParachainStaking::go_online(RuntimeOrigin::signed(1)).map_err(|err| err.error),
 				Error::<Test>::CannotGoOnlineIfLeaving
 			);
 		});
@@ -2196,7 +2198,8 @@ fn cannot_schedule_leave_delegators_if_already_leaving() {
 				RuntimeOrigin::signed(2)
 			));
 			assert_noop!(
-				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(2)),
+				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(2))
+					.map_err(|err| err.error),
 				Error::<Test>::DelegatorAlreadyLeaving
 			);
 		});
@@ -2566,7 +2569,8 @@ fn cannot_cancel_leave_delegators_if_single_delegation_revoke_manually_cancelled
 			));
 			roll_to(10);
 			assert_noop!(
-				ParachainStaking::cancel_leave_delegators(RuntimeOrigin::signed(2)),
+				ParachainStaking::cancel_leave_delegators(RuntimeOrigin::signed(2))
+					.map_err(|err| err.error),
 				Error::<Test>::DelegatorNotLeaving
 			);
 			// can execute after manually scheduling revoke, without waiting for round delay after
@@ -2656,7 +2660,8 @@ fn delegator_not_allowed_revoke_if_already_leaving() {
 				RuntimeOrigin::signed(2)
 			));
 			assert_noop!(
-				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 3),
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 3)
+					.map_err(|err| err.error),
 				<Error<Test>>::PendingDelegationRequestAlreadyExists,
 			);
 		});
@@ -3001,7 +3006,8 @@ fn delegator_not_allowed_bond_less_if_leaving() {
 				RuntimeOrigin::signed(2)
 			));
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1)
+					.map_err(|err| err.error),
 				<Error<Test>>::PendingDelegationRequestAlreadyExists,
 			);
 		});
@@ -3020,7 +3026,8 @@ fn cannot_delegator_bond_less_if_revoking() {
 				1
 			));
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1)
+					.map_err(|err| err.error),
 				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 		});
@@ -3030,7 +3037,8 @@ fn cannot_delegator_bond_less_if_revoking() {
 fn cannot_delegator_bond_less_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 5),
+			ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 5)
+				.map_err(|err| err.error),
 			Error::<Test>::DelegatorDNE
 		);
 	});
@@ -3045,7 +3053,8 @@ fn cannot_delegator_bond_less_if_candidate_dne() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegationDNE
 			);
 		});
@@ -3060,7 +3069,8 @@ fn cannot_delegator_bond_less_if_delegation_dne() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegationDNE
 			);
 		});
@@ -3075,7 +3085,8 @@ fn cannot_delegator_bond_less_below_min_collator_stk() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 6),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 6)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 		});
@@ -3090,7 +3101,8 @@ fn cannot_delegator_bond_less_more_than_total_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 11),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 11)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 		});
@@ -3105,7 +3117,8 @@ fn cannot_delegator_bond_less_below_min_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 8),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 8)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegationBelowMin
 			);
 		});
@@ -3161,7 +3174,8 @@ fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
 			));
 			roll_to(10);
 			assert_noop!(
-				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1),
+				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1)
+					.map_err(|err| err.error),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 			// but delegator can cancel the request and request to leave instead:
@@ -3522,7 +3536,8 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 				scheduled_exit: 3,
 			});
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 2),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 2)
+					.map_err(|err| err.error),
 				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
@@ -7531,11 +7546,12 @@ fn test_delegation_request_exists_returns_true_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_exists(&1, &2));
 		});
@@ -7551,11 +7567,12 @@ fn test_delegation_request_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_exists(&1, &2));
 		});
@@ -7583,11 +7600,12 @@ fn test_delegation_request_revoke_exists_returns_false_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(!ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
@@ -7603,11 +7621,12 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
@@ -7621,14 +7640,8 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up() {
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
-			<DelegationScheduledRequests<Test>>::insert(
-				3,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
+			<DelegationScheduledRequests<Test>>::insert(3, BoundedVec::default());
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
@@ -7649,14 +7662,8 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_speci
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
-			<DelegationScheduledRequests<Test>>::insert(
-				3,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
+			<DelegationScheduledRequests<Test>>::insert(3, BoundedVec::default());
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
@@ -7677,17 +7684,15 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				2,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(2, BoundedVec::default());
 			<DelegationScheduledRequests<Test>>::insert(
 				3,
-				vec![ScheduledRequest {
+				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 10,
 					when_executable: 1,
 					action: DelegationAction::Revoke(10),
-				}],
+				}])
+				.expect("must succeed"),
 			);
 
 			assert_noop!(
@@ -7708,10 +7713,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 		.build()
 		.execute_with(|| {
 			// invalid state
-			<DelegationScheduledRequests<Test>>::insert(
-				1,
-				Vec::<ScheduledRequest<u64, u128>>::new(),
-			);
+			<DelegationScheduledRequests<Test>>::insert(1, BoundedVec::default());
 			assert_noop!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
 					RuntimeOrigin::signed(1),
@@ -8996,7 +8998,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277065000, 0), weight);
+			assert_eq!(Weight::from_parts(281952000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
@@ -9010,8 +9012,8 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2479994997;
-			assert_eq!(Weight::from_parts(expected_on_init, 186592), weight);
+			let expected_on_init = 2501354773;
+			assert_eq!(Weight::from_parts(expected_on_init, 187584), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
@@ -9031,7 +9033,7 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 186592), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 187584), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
