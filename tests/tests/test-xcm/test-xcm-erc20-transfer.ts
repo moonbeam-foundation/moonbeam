@@ -9,7 +9,7 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "../../util/a
 import { PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
 import { getCompiled } from "../../util/contracts";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllRuntimes } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createTransaction,
@@ -30,7 +30,7 @@ const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
 const XTOKENS_CONTRACT = getCompiled("XtokensInstance");
 const XTOKENS_INTERFACE = new ethers.utils.Interface(XTOKENS_CONTRACT.contract.abi);
 
-describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - Send local erc20", (context) => {
   let erc20Contract: Contract;
   let erc20ContractAddress: string;
 
@@ -95,7 +95,7 @@ describeDevMoonbeam("Mock XCM - Send local erc20", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - Receive back erc20", (context) => {
   let erc20Contract: Contract;
   let erc20ContractAddress: string;
 
@@ -159,7 +159,7 @@ describeDevMoonbeam("Mock XCM - Receive back erc20", (context) => {
               X1: { PalletInstance: Number(balancesPalletIndex) },
             },
           },
-          fungible: 1_000_000_000_000_000n,
+          fungible: 100_000_000_000_000_000n,
         },
         {
           multilocation: {

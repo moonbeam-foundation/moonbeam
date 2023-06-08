@@ -191,6 +191,7 @@ pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -443,29 +444,41 @@ impl From<AssetType> for AssetId {
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
+	// Our native token
 	SelfReserve,
+	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
 	// Our local assets
 	LocalAssetReserve(AssetId),
+	// Erc20 token
+	Erc20 { contract_address: H160 },
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
-		match account {
+		Some(match account {
 			// the self-reserve currency is identified by the pallet-balances address
-			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
+			a if a == H160::from_low_u64_be(2050).into() => CurrencyId::SelfReserve,
 			// the rest of the currencies, by their corresponding erc20 address
-			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
-				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-					CurrencyId::ForeignAsset(asset_id)
-				} else {
-					CurrencyId::LocalAssetReserve(asset_id)
+			_ => match Runtime::account_to_asset_id(account) {
+				// We distinguish by prefix, and depending on it we create either
+				// Foreign or Local
+				Some((prefix, asset_id)) => {
+					if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+						CurrencyId::ForeignAsset(asset_id)
+					} else {
+						CurrencyId::LocalAssetReserve(asset_id)
+					}
 				}
-			}),
-		}
+				// If no known prefix is identified, we consider that it's a "real" erc20 token
+				// (i.e. managed by a real smart contract)
+				None => CurrencyId::Erc20 {
+					contract_address: account.into(),
+				},
+			},
+		})
 	}
 }
-
 // How to convert from CurrencyId to MultiLocation
 pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
@@ -484,6 +497,16 @@ where
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
+			CurrencyId::Erc20 { contract_address } => {
+				let mut location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.0,
+						network: None,
+					})
+					.ok();
 				Some(location)
 			}
 		}
