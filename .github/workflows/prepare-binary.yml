@@ -12,7 +12,7 @@ jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: self-hosted
+    runs-on: bare-metal
     strategy:
       matrix:
         cpu: ["", "skylake"]
