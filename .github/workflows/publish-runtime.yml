@@ -44,7 +44,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v2.2.0
         if: github.repository == 'purestake/moonbeam'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
