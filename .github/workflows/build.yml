@@ -591,6 +591,7 @@ jobs:
           pnpm moonwall test zombie_${{ matrix.chain }}_ci
 
   dev-test:
+    timeout-minutes: 10
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
