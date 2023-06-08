@@ -348,7 +348,7 @@ describeDevMoonbeam("Staking - Locks - max delegations", (context) => {
     );
 
     // We split the candidates since they won't fit in a single block
-    for (const randomCandidatesChunk of chunk(randomCandidates, 50)) {
+    for (const randomCandidatesChunk of chunk(randomCandidates, 10)) {
       await expectOk(
         context.createBlock(
           randomCandidatesChunk.map((randomCandidate) =>
@@ -505,7 +505,7 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
     );
 
     // this can no longer fit in one block
-    for (const txnChunk of chunk(txns, 20)) {
+    for (const txnChunk of chunk(txns, 10)) {
       await expectOk(context.createBlock(txnChunk));
     }
 
