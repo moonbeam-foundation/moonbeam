@@ -232,7 +232,8 @@ parameter_types! {
 		));
 	pub MaxInstructions: u32 = 100;
 
-	pub UniversalLocation: InteriorMultiLocation = Junctions::X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()));
+	pub UniversalLocation: InteriorMultiLocation =
+		Junctions::X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()));
 }
 
 #[derive(Encode, Decode)]
