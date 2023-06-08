@@ -348,7 +348,7 @@ describeDevMoonbeam("Staking - Locks - max delegations", (context) => {
     );
 
     // We split the candidates since they won't fit in a single block
-    for (const randomCandidatesChunk of chunk(randomCandidates, 10)) {
+    for (const randomCandidatesChunk of chunk(randomCandidates, 20)) {
       await expectOk(
         context.createBlock(
           randomCandidatesChunk.map((randomCandidate) =>
@@ -367,7 +367,7 @@ describeDevMoonbeam("Staking - Locks - max delegations", (context) => {
     );
 
     let nonce = await context.web3.eth.getTransactionCount(randomAccount.address);
-    for (const randomCandidatesChunk of chunk(randomCandidates, 50)) {
+    for (const randomCandidatesChunk of chunk(randomCandidates, 20)) {
       await expectOk(
         context.createBlock(
           randomCandidatesChunk.map((randomCandidate) =>
@@ -505,7 +505,7 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
     );
 
     // this can no longer fit in one block
-    for (const txnChunk of chunk(txns, 10)) {
+    for (const txnChunk of chunk(txns, 15)) {
       await expectOk(context.createBlock(txnChunk));
     }
 
