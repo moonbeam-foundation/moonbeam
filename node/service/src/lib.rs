@@ -26,7 +26,6 @@ pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
-use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -36,7 +35,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
-use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
+use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
 use fc_consensus::FrontierBlockImport;
 use fc_db::DatabaseSource;
@@ -572,7 +571,7 @@ where
 
 	let params = new_partial(&mut parachain_config, false)?;
 	let (
-		_block_import,
+		_frontier_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -593,44 +592,53 @@ where
 		hwbench.clone(),
 	)
 	.await
-	.map_err(|e| match e {
-		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
-		s => s.to_string().into(),
-	})?;
-
-	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
+	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
-	let (network, system_rpc_tx, tx_handler_controller, start_network) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &parachain_config,
+	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
+		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
+			parachain_config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			block_announce_validator_builder: Some(Box::new(|_| {
-				Box::new(block_announce_validator)
-			})),
-			warp_sync: None,
-		})?;
+			para_id: id,
+			relay_chain_interface: relay_chain_interface.clone(),
+		})
+		.await?;
 
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
@@ -667,6 +675,7 @@ where
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
+		let sync = sync_service.clone();
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
@@ -675,6 +684,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -692,9 +702,11 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
+				sync: sync.clone(),
 				xcm_senders: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
+				forced_parent_hashes: None,
 			};
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
@@ -704,10 +716,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};
@@ -721,6 +740,7 @@ where
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
+		sync_service: sync_service.clone(),
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
@@ -740,11 +760,14 @@ where
 	}
 
 	let announce_block = {
-		let network = network.clone();
-		Arc::new(move |hash, data| network.announce_block(hash, data))
+		let sync_service = sync_service.clone();
+		Arc::new(move |hash, data| sync_service.announce_block(hash, data))
 	};
 
 	let relay_chain_slot_duration = Duration::from_secs(6);
+	let overseer_handle = relay_chain_interface
+		.overseer_handle()
+		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
 	if collator {
 		let parachain_consensus = build_consensus(
@@ -772,6 +795,7 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
 			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
 				"Collator Key is None".to_string(),
 			))?,
@@ -788,6 +812,7 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
 		};
 
 		start_full_node(params)?;
@@ -900,7 +925,7 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub fn new_dev<RuntimeApi, Executor>(
+pub async fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
@@ -938,7 +963,7 @@ where
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
+	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -946,7 +971,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync: None,
+			warp_sync_params: None,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -1089,16 +1114,32 @@ where
 			}),
 		);
 	}
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1135,11 +1176,13 @@ where
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
+		let sync = sync_service.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -1157,9 +1200,11 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
+				sync: sync.clone(),
 				xcm_senders: xcm_senders.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
+				forced_parent_hashes: None,
 			};
 
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1170,10 +1215,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};
@@ -1187,6 +1239,7 @@ where
 		rpc_builder: Box::new(rpc_builder),
 		backend,
 		system_rpc_tx,
+		sync_service: sync_service.clone(),
 		config,
 		tx_handler_controller,
 		telemetry: None,
@@ -1295,14 +1348,13 @@ mod tests {
 	fn dalek_does_not_panic() {
 		use futures::executor::block_on;
 		use sc_block_builder::BlockBuilderProvider;
+		use sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
 		use sp_api::ProvideRuntimeApi;
 		use sp_consensus::BlockOrigin;
-		use sp_runtime::generic::BlockId;
 		use substrate_test_runtime::TestAPI;
 		use substrate_test_runtime_client::runtime::Block;
 		use substrate_test_runtime_client::{
-			ClientBlockImportExt, DefaultTestClientBuilderExt, TestClientBuilder,
-			TestClientBuilderExt,
+			ClientBlockImportExt, TestClientBuilder, TestClientBuilderExt,
 		};
 
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
@@ -1320,7 +1372,23 @@ mod tests {
 			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
 		}
 
-		let mut client = TestClientBuilder::new().build();
+		let tmp = tempfile::tempdir().unwrap();
+		let backend = Arc::new(
+			Backend::new(
+				DatabaseSettings {
+					trie_cache_maximum_size: Some(1 << 20),
+					state_pruning: Some(PruningMode::ArchiveAll),
+					blocks_pruning: BlocksPruning::KeepAll,
+					source: DatabaseSource::RocksDb {
+						path: tmp.path().into(),
+						cache_size: 1024,
+					},
+				},
+				u64::MAX,
+			)
+			.unwrap(),
+		);
+		let mut client = TestClientBuilder::with_backend(backend).build();
 
 		client
 			.execution_extensions()
@@ -1330,7 +1398,7 @@ mod tests {
 		>::new(1));
 
 		let a1 = client
-			.new_block_at(&BlockId::Number(0), Default::default(), false)
+			.new_block_at(client.chain_info().genesis_hash, Default::default(), false)
 			.unwrap()
 			.build()
 			.unwrap()
@@ -1341,7 +1409,12 @@ mod tests {
 		// shouldnt panic on importing invalid sig
 		assert!(!client
 			.runtime_api()
-			.verify_ed25519(&BlockId::Number(0), invalid_sig(), zero_ed_pub(), vec![])
+			.verify_ed25519(
+				client.chain_info().genesis_hash,
+				invalid_sig(),
+				zero_ed_pub(),
+				vec![]
+			)
 			.unwrap());
 	}
 

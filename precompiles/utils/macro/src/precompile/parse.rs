@@ -409,13 +409,13 @@ impl Precompile {
 
 		let span = method.sig.span();
 
-		if method.sig.inputs.len() != 1 {
-			let msg = "The discriminant function must only take the code address (H160) as \
-			parameter.";
+		if method.sig.inputs.len() != 2 {
+			let msg = "The discriminant function must only take code address (H160) and \
+			remaining gas (u64) as parameters.";
 			return Err(syn::Error::new(span, msg));
 		}
 
-		let msg = "The discriminant function must return an Option<_> (no type alias)";
+		let msg = "The discriminant function must return an DiscriminantResult<_> (no type alias)";
 
 		let return_type = match &method.sig.output {
 			syn::ReturnType::Type(_, t) => t.as_ref(),
@@ -439,23 +439,23 @@ impl Precompile {
 
 		let return_segment = &return_path.segments[0];
 
-		if return_segment.ident.to_string() != "Option" {
+		if return_segment.ident.to_string() != "DiscriminantResult" {
 			return Err(syn::Error::new(return_segment.ident.span(), msg));
 		}
 
-		let option_arguments = match &return_segment.arguments {
+		let result_arguments = match &return_segment.arguments {
 			syn::PathArguments::AngleBracketed(args) => args,
 			_ => return Err(syn::Error::new(return_segment.ident.span(), msg)),
 		};
 
-		if option_arguments.args.len() != 1 {
-			let msg = "Option type should only have 1 type argument";
-			return Err(syn::Error::new(option_arguments.args.span(), msg));
+		if result_arguments.args.len() != 1 {
+			let msg = "DiscriminantResult type should only have 1 type argument";
+			return Err(syn::Error::new(result_arguments.args.span(), msg));
 		}
 
-		let discriminant_type: &syn::Type = match &option_arguments.args[0] {
+		let discriminant_type: &syn::Type = match &result_arguments.args[0] {
 			syn::GenericArgument::Type(t) => t,
-			_ => return Err(syn::Error::new(option_arguments.args.span(), msg)),
+			_ => return Err(syn::Error::new(result_arguments.args.span(), msg)),
 		};
 
 		self.try_register_discriminant_type(&discriminant_type)?;

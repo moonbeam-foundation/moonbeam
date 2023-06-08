@@ -16,6 +16,7 @@ precompile-utils = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-balances = { workspace = true }
 pallet-proxy = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 sp-core = { workspace = true }
@@ -48,10 +49,12 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-balances/std",
 	"pallet-evm/std",
 	"pallet-proxy/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
+	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]

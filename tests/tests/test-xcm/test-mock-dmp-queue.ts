@@ -70,12 +70,24 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-    const unlimitedBuyExecutionsPerMessage =
-      (weightPerMessage - withdrawWeight) / buyExecutionWeight;
+    // How much does the refundSurplus weight?
+    // We use refund surplus because it has 0 pov
+    // it's easier to focus on reftime
+    const refundSurplusWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).refund_surplus().as_v2()
+      )
+    );
+
+    const refundSurplusPerMessage =
+      (weightPerMessage - withdrawWeight - buyExecutionWeight) / refundSurplusWeight;
 
     const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
-      .buy_execution(0, unlimitedBuyExecutionsPerMessage)
+      .buy_execution(0)
+      .refund_surplus(refundSurplusPerMessage)
       .as_v2();
 
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(

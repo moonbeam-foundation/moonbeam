@@ -25,7 +25,7 @@ yargs(hideBin(process.argv))
     },
     async (argv) => {
       process.stdout.write(`Reading from: ${argv.inputPath} ...`);
-      const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath)).toString());
+      const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath!)).toString());
       process.stdout.write(`Done ✅\n`);
 
       plainSpec.bootNodes = [];
@@ -37,7 +37,7 @@ yargs(hideBin(process.argv))
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
-        argv.outputPath,
+        argv.outputPath!,
         convertExponentials(JSONbig.stringify(plainSpec, null, 3))
       );
       process.stdout.write(`Done ✅\n`);

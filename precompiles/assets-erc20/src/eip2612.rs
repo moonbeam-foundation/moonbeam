@@ -197,7 +197,8 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
 
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
@@ -251,7 +252,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
 
 		let owner: H160 = owner.into();
 
@@ -264,7 +266,12 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: AssetMetadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		handle.record_db_read::<Runtime>(
+			50 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
+		)?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.code_address(), asset_id).into();

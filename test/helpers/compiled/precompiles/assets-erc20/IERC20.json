@@ -1,0 +1,268 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Approval",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Transfer",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "owner", "type": "address" },
+          { "internalType": "address", "name": "spender", "type": "address" }
+        ],
+        "name": "allowance",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "spender", "type": "address" },
+          { "internalType": "uint256", "name": "value", "type": "uint256" }
+        ],
+        "name": "approve",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "name",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "to", "type": "address" },
+          { "internalType": "uint256", "name": "value", "type": "uint256" }
+        ],
+        "name": "transfer",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "from", "type": "address" },
+          { "internalType": "address", "name": "to", "type": "address" },
+          { "internalType": "uint256", "name": "value", "type": "uint256" }
+        ],
+        "name": "transferFrom",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "details": "see https://github.com/ethereum/EIPs/issues/20copied from https://github.com/OpenZeppelin/openzeppelin-contracts",
+      "events": {
+        "Approval(address,address,uint256)": {
+          "custom:selector": "8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+          "details": "Event emited when an approval has been registered.",
+          "params": {
+            "owner": "address Owner of the tokens.",
+            "spender": "address Allowed spender.",
+            "value": "uint256 Amount of tokens approved."
+          }
+        },
+        "Transfer(address,address,uint256)": {
+          "custom:selector": "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "details": "Event emited when a transfer has been performed.",
+          "params": {
+            "from": "address The address sending the tokens",
+            "to": "address The address receiving the tokens.",
+            "value": "uint256 The amount of tokens transfered."
+          }
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "allowance(address,address)": {
+          "custom:selector": "dd62ed3e",
+          "details": "Function to check the amount of tokens that an owner allowed to a spender.",
+          "params": {
+            "owner": "address The address which owns the funds.",
+            "spender": "address The address which will spend the funds."
+          },
+          "returns": {
+            "_0": "A uint256 specifying the amount of tokens still available for the spender."
+          }
+        },
+        "approve(address,uint256)": {
+          "custom:selector": "095ea7b3",
+          "details": "Approve the passed address to spend the specified amount of tokens on behalf of msg.sender. Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards: https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729",
+          "params": {
+            "spender": "The address which will spend the funds.",
+            "value": "The amount of tokens to be spent."
+          }
+        },
+        "balanceOf(address)": {
+          "custom:selector": "70a08231",
+          "details": "Gets the balance of the specified address.",
+          "params": { "who": "The address to query the balance of." },
+          "returns": {
+            "_0": "An uint256 representing the amount owned by the passed address."
+          }
+        },
+        "decimals()": {
+          "custom:selector": "313ce567",
+          "details": "Returns the decimals places of the token."
+        },
+        "name()": {
+          "custom:selector": "06fdde03",
+          "details": "Returns the name of the token."
+        },
+        "symbol()": {
+          "custom:selector": "95d89b41",
+          "details": "Returns the symbol of the token."
+        },
+        "totalSupply()": {
+          "custom:selector": "18160ddd",
+          "details": "Total number of tokens in existence"
+        },
+        "transfer(address,uint256)": {
+          "custom:selector": "a9059cbb",
+          "details": "Transfer token for a specified address",
+          "params": {
+            "to": "The address to transfer to.",
+            "value": "The amount to be transferred."
+          }
+        },
+        "transferFrom(address,address,uint256)": {
+          "custom:selector": "23b872dd",
+          "details": "Transfer tokens from one address to another",
+          "params": {
+            "from": "address The address which you want to send tokens from",
+            "to": "address The address which you want to transfer to",
+            "value": "uint256 the amount of tokens to be transferred"
+          }
+        }
+      },
+      "title": "ERC20 interface",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "allowance(address,address)": "dd62ed3e",
+        "approve(address,uint256)": "095ea7b3",
+        "balanceOf(address)": "70a08231",
+        "decimals()": "313ce567",
+        "name()": "06fdde03",
+        "symbol()": "95d89b41",
+        "totalSupply()": "18160ddd",
+        "transfer(address,uint256)": "a9059cbb",
+        "transferFrom(address,address,uint256)": "23b872dd"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"details\":\"see https://github.com/ethereum/EIPs/issues/20copied from https://github.com/OpenZeppelin/openzeppelin-contracts\",\"events\":{\"Approval(address,address,uint256)\":{\"custom:selector\":\"8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925\",\"details\":\"Event emited when an approval has been registered.\",\"params\":{\"owner\":\"address Owner of the tokens.\",\"spender\":\"address Allowed spender.\",\"value\":\"uint256 Amount of tokens approved.\"}},\"Transfer(address,address,uint256)\":{\"custom:selector\":\"ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef\",\"details\":\"Event emited when a transfer has been performed.\",\"params\":{\"from\":\"address The address sending the tokens\",\"to\":\"address The address receiving the tokens.\",\"value\":\"uint256 The amount of tokens transfered.\"}}},\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"custom:selector\":\"dd62ed3e\",\"details\":\"Function to check the amount of tokens that an owner allowed to a spender.\",\"params\":{\"owner\":\"address The address which owns the funds.\",\"spender\":\"address The address which will spend the funds.\"},\"returns\":{\"_0\":\"A uint256 specifying the amount of tokens still available for the spender.\"}},\"approve(address,uint256)\":{\"custom:selector\":\"095ea7b3\",\"details\":\"Approve the passed address to spend the specified amount of tokens on behalf of msg.sender. Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards: https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\",\"params\":{\"spender\":\"The address which will spend the funds.\",\"value\":\"The amount of tokens to be spent.\"}},\"balanceOf(address)\":{\"custom:selector\":\"70a08231\",\"details\":\"Gets the balance of the specified address.\",\"params\":{\"who\":\"The address to query the balance of.\"},\"returns\":{\"_0\":\"An uint256 representing the amount owned by the passed address.\"}},\"decimals()\":{\"custom:selector\":\"313ce567\",\"details\":\"Returns the decimals places of the token.\"},\"name()\":{\"custom:selector\":\"06fdde03\",\"details\":\"Returns the name of the token.\"},\"symbol()\":{\"custom:selector\":\"95d89b41\",\"details\":\"Returns the symbol of the token.\"},\"totalSupply()\":{\"custom:selector\":\"18160ddd\",\"details\":\"Total number of tokens in existence\"},\"transfer(address,uint256)\":{\"custom:selector\":\"a9059cbb\",\"details\":\"Transfer token for a specified address\",\"params\":{\"to\":\"The address to transfer to.\",\"value\":\"The amount to be transferred.\"}},\"transferFrom(address,address,uint256)\":{\"custom:selector\":\"23b872dd\",\"details\":\"Transfer tokens from one address to another\",\"params\":{\"from\":\"address The address which you want to send tokens from\",\"to\":\"address The address which you want to transfer to\",\"value\":\"uint256 the amount of tokens to be transferred\"}}},\"title\":\"ERC20 interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"ERC20.sol\":\"IERC20\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"ERC20.sol\":{\"keccak256\":\"0xe7c8ada690dd42cdbd8c8cd06ad0b4fd84ad310b0cc8d2bf5e0f8ec4f11011c4\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://f276ba3963334b7c34f54799549ca8e327ae244e344e9e12f35d0539fb4df876\",\"dweb:/ipfs/QmSuFioQtQqPzgUsa8TYCyxzs48kHiTPkjcR6Sgqm6LtS5\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title ERC20 interface\n/// @dev see https://github.com/ethereum/EIPs/issues/20\n/// @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts\ninterface IERC20 {\n    /// @dev Returns the name of the token.\n    /// @custom:selector 06fdde03\n    function name() external view returns (string memory);\n\n    /// @dev Returns the symbol of the token.\n    /// @custom:selector 95d89b41\n    function symbol() external view returns (string memory);\n\n    /// @dev Returns the decimals places of the token.\n    /// @custom:selector 313ce567\n    function decimals() external view returns (uint8);\n\n    /// @dev Total number of tokens in existence\n    /// @custom:selector 18160ddd\n    function totalSupply() external view returns (uint256);\n\n    /// @dev Gets the balance of the specified address.\n    /// @custom:selector 70a08231\n    /// @param who The address to query the balance of.\n    /// @return An uint256 representing the amount owned by the passed address.\n    function balanceOf(address who) external view returns (uint256);\n\n    /// @dev Function to check the amount of tokens that an owner allowed to a spender.\n    /// @custom:selector dd62ed3e\n    /// @param owner address The address which owns the funds.\n    /// @param spender address The address which will spend the funds.\n    /// @return A uint256 specifying the amount of tokens still available for the spender.\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n\n    /// @dev Transfer token for a specified address\n    /// @custom:selector a9059cbb\n    /// @param to The address to transfer to.\n    /// @param value The amount to be transferred.\n    function transfer(address to, uint256 value) external returns (bool);\n\n    /// @dev Approve the passed address to spend the specified amount of tokens on behalf\n    /// of msg.sender.\n    /// Beware that changing an allowance with this method brings the risk that someone may\n    /// use both the old\n    /// and the new allowance by unfortunate transaction ordering. One possible solution to\n    /// mitigate this race condition is to first reduce the spender's allowance to 0 and set\n    /// the desired value afterwards:\n    /// https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\n    /// @custom:selector 095ea7b3\n    /// @param spender The address which will spend the funds.\n    /// @param value The amount of tokens to be spent.\n    function approve(address spender, uint256 value) external returns (bool);\n\n    /// @dev Transfer tokens from one address to another\n    /// @custom:selector 23b872dd\n    /// @param from address The address which you want to send tokens from\n    /// @param to address The address which you want to transfer to\n    /// @param value uint256 the amount of tokens to be transferred\n    function transferFrom(\n        address from,\n        address to,\n        uint256 value\n    ) external returns (bool);\n\n    /// @dev Event emited when a transfer has been performed.\n    /// @custom:selector ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef\n    /// @param from address The address sending the tokens\n    /// @param to address The address receiving the tokens.\n    /// @param value uint256 The amount of tokens transfered.\n    event Transfer(address indexed from, address indexed to, uint256 value);\n\n    /// @dev Event emited when an approval has been registered.\n    /// @custom:selector 8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925\n    /// @param owner address Owner of the tokens.\n    /// @param spender address Allowed spender.\n    /// @param value uint256 Amount of tokens approved.\n    event Approval(\n        address indexed owner,\n        address indexed spender,\n        uint256 value\n    );\n}\n"
+}

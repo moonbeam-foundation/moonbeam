@@ -232,6 +232,14 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	fn transaction_len(transaction: &Transaction) -> u64 {
+		transaction
+			.encode()
+			.len()
+			// pallet + call indexes
+			.saturating_add(2) as u64
+	}
+
 	fn validate_and_apply(
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
@@ -249,6 +257,18 @@ impl<T: Config> Pallet<T> {
 		if let Some(transaction) = transaction {
 			let transaction_data: TransactionData = (&transaction).into();
 
+			let (weight_limit, proof_size_base_cost) =
+				match <T as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+					transaction_data.gas_limit.unique_saturated_into(),
+					true,
+				) {
+					weight_limit if weight_limit.proof_size() > 0 => (
+						Some(weight_limit),
+						Some(Self::transaction_len(&transaction)),
+					),
+					_ => (None, None),
+				};
+
 			let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
 				CheckEvmTransactionConfig {
 					evm_config: T::config(),
@@ -262,6 +282,8 @@ impl<T: Config> Pallet<T> {
 					is_transactional: true,
 				},
 				transaction_data.into(),
+				weight_limit,
+				proof_size_base_cost,
 			)
 			// We only validate the gas limit against the evm transaction cost.
 			// No need to validate fee payment, as it is handled by the xcm executor.

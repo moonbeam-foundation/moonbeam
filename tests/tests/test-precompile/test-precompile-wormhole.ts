@@ -15,8 +15,13 @@ import { ethers } from "ethers";
 import { alith, ALITH_ADDRESS, ALITH_PRIVATE_KEY, BALTATHAR_ADDRESS } from "../../util/accounts";
 import { PRECOMPILE_GMP_ADDRESS } from "../../util/constants";
 import { expectSubstrateEvent, expectSubstrateEvents } from "../../util/expect";
+import { u8aConcat, u8aToHex } from "@polkadot/util";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
 
-import { expectEVMResult } from "../../util/eth-transactions";
+import { TypeRegistry, Enum, Struct } from "@polkadot/types";
+import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
+import { expect } from "chai";
+
 const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
@@ -187,8 +192,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     // before interacting with the precompile, we need to set some contract addresses from our
     // our deployments above
-    const CORE_CONTRACT_STORAGE_ADDRESS =
-      "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c";
+    const CORE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("CoreAddress", 128))
+    );
+    expect(CORE_CONTRACT_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c"
+    );
+
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
@@ -198,12 +208,62 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-    const BRIDGE_CONTRACT_STORAGE_ADDRESS =
-      "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45";
+    const BRIDGE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("BridgeAddress", 128))
+    );
+    expect(BRIDGE_CONTRACT_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45"
+    );
+
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.system.setStorage([
           [BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeContract.contractAddress],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+
+    // create payload
+    const versionedMultiLocation = {
+      v1: {
+        parents: 1,
+        interior: {
+          X1: {
+            AccountKey20: {
+              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            },
+          },
+        },
+      },
+    };
+
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
+    const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
+    );
+    expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
+    );
+
+    const userAction = new XcmRoutingUserAction({ destination });
+    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
+    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
+    let payload = "" + versionedUserAction.toHex();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [
+            ENABLED_FLAG_STORAGE_ADDRESS,
+            context.polkadotApi.registry.createType("Option<bool>", true).toHex(),
+          ],
         ])
       )
       .signAndSend(alith);
@@ -222,7 +282,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       PRECOMPILE_GMP_ADDRESS,
       "0x" + evmChainId.toString(16),
       "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "0x00010101000000000000000000000000000000000000000000000000000000000000000000"
+      "" + payload
     );
 
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
@@ -237,5 +297,39 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     expectEVMResult(result.result.events, "Succeed", "Returned");
     expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+  });
+});
+
+const registry = new TypeRegistry();
+
+class VersionedUserAction extends Enum {
+  constructor(value?: any) {
+    super(registry, { V1: XcmRoutingUserAction }, value);
+  }
+}
+class XcmRoutingUserAction extends Struct {
+  constructor(value?: any) {
+    super(registry, { destination: "VersionedMultiLocation" }, value);
+  }
+}
+
+describeDevMoonbeam(`Test GMP Killswitch`, (context) => {
+  it("should fail with killswitch enabled by default", async function () {
+    // payload should be irrelevant since the precompile will fail before attempting to decode
+    const transferVAA = "deadbeef";
+
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 500_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Revert", "Reverted");
+    const revertReason = await extractRevertReason(result.result.hash, context.ethers);
+    expect(revertReason).to.contain("GMP Precompile is not enabled");
   });
 });

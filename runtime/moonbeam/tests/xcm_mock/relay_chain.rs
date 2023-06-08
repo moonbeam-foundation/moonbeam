@@ -139,67 +139,10 @@ parameter_types! {
 	pub MatcherLocation: MultiLocation = MultiLocation::here();
 }
 
-use frame_support::ensure;
-use frame_support::traits::Contains;
-use sp_std::marker::PhantomData;
-use xcm_executor::traits::ShouldExecute;
-/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
-/// payments into account.
-///
-/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
-	fn should_execute<Call>(
-		origin: &MultiLocation,
-		message: &mut [Instruction<Call>],
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
-	) -> Result<(), ()> {
-		log::trace!(
-			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin:
-			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
-			origin, message, max_weight, _weight_credit,
-		);
-		ensure!(T::contains(origin), ());
-		let mut iter = message.iter_mut();
-		let mut i = iter.next().ok_or(())?;
-		match i {
-			DescendOrigin(..) => (),
-			_ => return Err(()),
-		}
-
-		i = iter.next().ok_or(())?;
-		match i {
-			WithdrawAsset(..) => (),
-			_ => return Err(()),
-		}
-
-		i = iter.next().ok_or(())?;
-		match i {
-			BuyExecution {
-				weight_limit: Limited(ref mut weight),
-				..
-			} if weight.all_gte(max_weight) => {
-				*weight = max_weight;
-				Ok(())
-			}
-			BuyExecution {
-				ref mut weight_limit,
-				..
-			} if weight_limit == &Unlimited => {
-				*weight_limit = Limited(max_weight);
-				Ok(())
-			}
-			_ => Err(()),
-		}
-	}
-}
-
 pub type XcmRouter = super::RelayChainXcmRouter;
 pub type Barrier = (
 	TakeWeightCredit,
-	AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
@@ -232,6 +175,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type AssetIsBurnable = Everything;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -368,30 +312,30 @@ pub struct TestHrmpWeightInfo;
 
 impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	fn hrmp_accept_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_clean_hrmp(_: u32, _: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_close(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_open(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_cancel_open_request(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_close_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_init_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn clean_open_channel_requests(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_open_hrmp_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 }
