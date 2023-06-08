@@ -9,9 +9,8 @@ import {
   fetchCompiledContract,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, createEthersTxn, faith, getAllCompiledContracts } from "@moonwall/util";
-import { AbiConstructor } from "abitype";
 import { randomBytes } from "ethers";
-import { encodeDeployData } from "viem";
+import { encodeDeployData, Abi } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({

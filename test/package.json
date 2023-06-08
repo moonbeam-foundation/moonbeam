@@ -25,7 +25,6 @@
     "@substrate/txwrapper-substrate": "^6.0.1",
     "@types/debug": "^4.1.8",
     "@types/node": "^18.16.16",
-    "abitype": "^0.8.7",
     "bottleneck": "^2.19.5",
     "debug": "^4.3.4",
     "ethers": "^6.4.2",
@@ -46,15 +45,12 @@
     "@types/yargs": "^17.0.24",
     "@vitest/ui": "^0.31.4",
     "@zombienet/utils": "^0.0.19",
-    "bfj": "^7.0.2",
     "chalk": "^5.2.0",
     "json-bigint": "^1.0.0",
-    "json-stable-stringify": "^1.0.2",
     "node-fetch": "^3.3.1",
     "semver": "^7.5.1",
     "tsconfig-paths": "^4.2.0",
     "viem": "^0.3.50",
-    "vitest": "^0.31.4",
-    "web": "^0.0.2"
+    "vitest": "^0.31.4"
   }
 }

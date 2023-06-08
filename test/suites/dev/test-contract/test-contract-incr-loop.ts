@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { Abi } from "abitype";
+import { Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({

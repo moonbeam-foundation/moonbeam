@@ -7,8 +7,7 @@ import {
   expect,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, createEthersTxn } from "@moonwall/util";
-import { Abi } from "abitype";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 // TODO: expand these tests to do multiple txn types when added to viem

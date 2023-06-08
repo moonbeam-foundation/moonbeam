@@ -9,8 +9,7 @@ import {
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, baltathar, createEthersTxn } from "@moonwall/util";
 import { hexToBigInt, nToHex } from "@polkadot/util";
-import { Abi } from "abitype";
-import { encodeFunctionData, encodePacked, keccak256, pad, parseEther } from "viem";
+import { encodeFunctionData, encodePacked, keccak256, pad, parseEther, Abi } from "viem";
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
