@@ -45,7 +45,7 @@ jobs:
         srtool_image:
           - purestake/srtool
         srtool_image_tag:
-          - 1.66.1
+          - 1.69.0
     steps:
       - name: "clean moonbeam"
         run: |
