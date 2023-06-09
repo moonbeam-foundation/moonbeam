@@ -1,13 +1,13 @@
 name: Moonwall Dev Tests
 description: |
- Setup and run moonwall Dev tests against a local moonbeam node.
+  Setup and run moonwall Dev tests against a local moonbeam node.
 
 runs:
   using: "composite"
   steps:
     - uses: pnpm/action-setup@v2
       with:
-          version: 8
+        version: 8
     - uses: actions/setup-node@v3
       with:
         node-version: 18.x
@@ -34,4 +34,3 @@ runs:
       with:
         name: dev-test-report
         path: test/html
-        
