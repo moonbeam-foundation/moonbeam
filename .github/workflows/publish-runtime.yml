@@ -18,8 +18,6 @@ jobs:
     runs-on: bare-metal
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Upload scripts
         uses: actions/upload-artifact@v3
         with:
