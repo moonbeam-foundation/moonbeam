@@ -11,17 +11,6 @@ jobs:
   tag-docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Cleanup
-        run: |
-        if [[ -d runtime/moonbase/target ]]; then
-          docker run -u 0 -v $(pwd)/runtime/moonbase/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
-        if [[ -d runtime/moonriver/target ]]; then
-          docker run -u 0 -v $(pwd)/runtime/moonriver/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
-        if [[ -d runtime/moonbeam/target ]]; then
-          docker run -u 0 -v $(pwd)/runtime/moonbeam/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
       - name: Checkout
         uses: actions/checkout@v3
         with:
