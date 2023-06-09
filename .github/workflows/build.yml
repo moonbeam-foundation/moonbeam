@@ -116,6 +116,7 @@ jobs:
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           use-quiet-mode: "yes"
+          max-depth: 4
 
   check-editorconfig:
     name: "Check editorconfig"
