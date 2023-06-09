@@ -22,15 +22,15 @@ jobs:
           echo "cleanup of $(pwd)"
           if [[ -d runtime/moonbase/target ]]; then
             echo "Removing runtime/moonbase/target"
-            docker run -u 0 -v $(pwd)/runtime/moonbase/target:/todelete debian:stable-slim rm -rf /todelete
+            docker run -u 0 -v $(pwd)/runtime/moonbase:/todelete debian:stable-slim rm -rf /todelete/target
           fi
           if [[ -d runtime/moonriver/target ]]; then
             echo "Removing runtime/moonriver/target"
-            docker run -u 0 -v $(pwd)/runtime/moonriver/target:/todelete debian:stable-slim rm -rf /todelete
+            docker run -u 0 -v $(pwd)/runtime/moonriver:/todelete debian:stable-slim rm -rf /todelete/target
           fi
           if [[ -d runtime/moonbeam/target ]]; then
             echo "Removing runtime/moonbeam/target"
-            docker run -u 0 -v $(pwd)/runtime/moonbeam/target:/todelete debian:stable-slim rm -rf /todelete
+            docker run -u 0 -v $(pwd)/runtime/moonbeam:/todelete debian:stable-slim rm -rf /todelete/target
           fi
       - uses: actions/checkout@v3
       - name: Upload scripts
