@@ -38,9 +38,9 @@ jobs:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - purestake/srtool
+          - paritytech/srtool
         srtool_image_tag:
-          - 1.69.1
+          - 1.69.0
     steps:
       - uses: actions/checkout@v3
         with:
