@@ -19,19 +19,19 @@ jobs:
     steps:
       - name: Cleanup
         run: |
-        echo "cleanup of $(pwd)"
-        if [[ -d runtime/moonbase/target ]]; then
-          echp "Removing runtime/moonbase/target"
-          docker run -u 0 -v $(pwd)/runtime/moonbase/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
-        if [[ -d runtime/moonriver/target ]]; then
-          echp "Removing runtime/moonriver/target"
-          docker run -u 0 -v $(pwd)/runtime/moonriver/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
-        if [[ -d runtime/moonbeam/target ]]; then
-          echp "Removing runtime/moonbeam/target"
-          docker run -u 0 -v $(pwd)/runtime/moonbeam/target:/todelete debian:stable-slim rm -rf /todelete
-        fi
+          echo "cleanup of $(pwd)"
+          if [[ -d runtime/moonbase/target ]]; then
+            echp "Removing runtime/moonbase/target"
+            docker run -u 0 -v $(pwd)/runtime/moonbase/target:/todelete debian:stable-slim rm -rf /todelete
+          fi
+          if [[ -d runtime/moonriver/target ]]; then
+            echp "Removing runtime/moonriver/target"
+            docker run -u 0 -v $(pwd)/runtime/moonriver/target:/todelete debian:stable-slim rm -rf /todelete
+          fi
+          if [[ -d runtime/moonbeam/target ]]; then
+            echp "Removing runtime/moonbeam/target"
+            docker run -u 0 -v $(pwd)/runtime/moonbeam/target:/todelete debian:stable-slim rm -rf /todelete
+          fi
       - uses: actions/checkout@v3
       - name: Upload scripts
         uses: actions/upload-artifact@v3
