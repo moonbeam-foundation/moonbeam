@@ -98,11 +98,11 @@ jobs:
             ${{ matrix.chain }}-srtool-digest.json
       - name: Cleanup
         run: |
-          echo "Removing runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target"
-          ls -lna runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
+          echo "Removing runtime/${{ matrix.chain }}/target"
+          ls -lna runtime/${{ matrix.chain }}/target
 
           # Removing using docker root to ensure we have permissions
-          docker run -u 0 -v $(pwd)/runtime/${GH_WORKFLOW_MATRIX_CHAIN}/:/runtime \
+          docker run -u 0 -v $(pwd)/runtime/${{ matrix.chain }}/:/runtime \
             -it --entrypoint bash paritytech/srtool:1.69.0 -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
 
   ####### Prepare the release draft #######
