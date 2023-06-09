@@ -17,6 +17,9 @@ jobs:
   setup-scripts:
     runs-on: bare-metal
     steps:
+      - name: checks
+        run: |
+          ls -la /home/gh-actions/runner/_work/moonbeam/moonbeam/runtime/moonbase/target/srtool
       - uses: actions/checkout@v3
       - name: Upload scripts
         uses: actions/upload-artifact@v3
