@@ -20,9 +20,6 @@ jobs:
       - name: Cleanup
         run: |
           ls -la /home/${USER}/srtool
-          echo "entry=============="
-          cat /home/${USER}/srtool/entrypoint.sh
-          echo "entry=============="
           echo "cleanup of $(pwd)"
           if [[ -d runtime/moonbase/target ]]; then
             echo "Removing runtime/moonbase/target"
@@ -37,12 +34,6 @@ jobs:
             docker run -u 0 -v $(pwd)/runtime/moonbeam:/todelete debian:stable-slim rm -rf /todelete/target
           fi
           echo "Removing runtime/moonbase/target"
-          mkdir -p srtool-copy
-          docker run -u 0 -v /home/${USER}/srtool:/toown -v $(pwd)/srtool-copy:/moonbeam \
-             debian:stable-slim cp -r /toown/.ssh /moonbeam/
-          docker run -u 0 -v /home/${USER}/srtool:/toown -v $(pwd)/srtool-copy:/moonbeam \
-             debian:stable-slim cp -r /toown/entrypoint.sh /moonbeam/
-          ll srtool-copy
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
