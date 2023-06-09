@@ -19,12 +19,12 @@ jobs:
     steps:
       - name: Cleanup
         run: |
-        for runtime in moonbase moonriver moonbeam; do
-          if [[ -d runtime/$runtime/target ]]; then
-            echo "Removing runtime/$runtime/target"
-            rm -rf runtime/$runtime/target
-          fi
-        done
+          for runtime in moonbase moonriver moonbeam; do
+            if [[ -d runtime/$runtime/target ]]; then
+              echo "Removing runtime/$runtime/target"
+              rm -rf runtime/$runtime/target
+            fi
+          done
       - uses: actions/checkout@v3
       - name: Upload scripts
         uses: actions/upload-artifact@v3
@@ -48,6 +48,14 @@ jobs:
         srtool_image_tag:
           - 1.69.0
     steps:
+      - name: Cleanup
+        run: |
+          for runtime in moonbase moonriver moonbeam; do
+            if [[ -d runtime/$runtime/target ]]; then
+              echo "Removing runtime/$runtime/target"
+              rm -rf runtime/$runtime/target
+            fi
+          done
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
