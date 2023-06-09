@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.to }}
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Upload scripts
         uses: actions/upload-artifact@v3
         with:
@@ -84,9 +84,8 @@ jobs:
           mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
           chmod uog+rwX runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
 
-          chmod u+x ./scripts/build-runtime-srtool.sh
-          cat  ./scripts/build-runtime-srtool.sh
-          ./scripts/build-runtime-srtool.sh
+          chmod u+x ./original-scripts/build-runtime-srtool.sh
+          ./original-scripts/build-runtime-srtool.sh
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
