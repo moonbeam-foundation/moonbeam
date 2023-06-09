@@ -34,7 +34,7 @@ jobs:
             docker run -u 0 -v $(pwd)/runtime/moonbeam:/todelete debian:stable-slim rm -rf /todelete/target
           fi
           echo "Removing runtime/moonbase/target"
-          docker run -u 0 -v /:/toown debian:stable-slim chmod uog+rX /toown/home/${USER}/srtool/.ssh /toown/home/${USER}/srtool/entrypoint.sh
+          docker run -u maintenance -v /:/toown debian:stable-slim chmod uog+rX /toown/home/${USER}/srtool/.ssh /toown/home/${USER}/srtool/entrypoint.sh
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
