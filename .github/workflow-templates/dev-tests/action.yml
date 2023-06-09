@@ -1,6 +1,11 @@
-name: Moonwall Dev Tests
+name: Moonwall Build Contracts and Run Tests
 description: |
   Setup and run moonwall Dev tests against a local moonbeam node.
+
+inputs:
+  moonwall_environment:
+    description: Name of the moonwall environment to run tests against.
+    required: true
 
 runs:
   using: "composite"
@@ -27,7 +32,7 @@ runs:
         chmod uog+x target/release/moonbeam
         cd test
         pnpm i
-        pnpm moonwall test dev_${{ matrix.chain }}
+        pnpm moonwall test ${{ inputs.moonwall_environment }}
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2

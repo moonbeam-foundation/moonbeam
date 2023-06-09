@@ -615,3 +615,5 @@ jobs:
           path: target/release
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
+        with:
+          moonwall_environment: dev_${{ matrix.chain }}
