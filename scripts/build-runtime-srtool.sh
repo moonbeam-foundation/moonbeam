@@ -6,7 +6,7 @@ CMD="docker run \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
   -v ${PWD}:/build \
   ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
-    build --app --json -cM"
+    build --root --app --json -cM"
 
 
 # Here we run the command and stream the output (JSON blob) to a variable
