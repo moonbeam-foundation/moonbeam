@@ -93,6 +93,14 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:

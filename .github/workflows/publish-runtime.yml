@@ -17,6 +17,14 @@ jobs:
   setup-scripts:
     runs-on: bare-metal
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - uses: actions/checkout@v3
       - name: Upload scripts
         uses: actions/upload-artifact@v3

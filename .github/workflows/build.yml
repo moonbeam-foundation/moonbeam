@@ -166,6 +166,14 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -272,6 +280,14 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -288,6 +304,14 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -310,6 +334,14 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -333,6 +365,14 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -370,6 +410,14 @@ jobs:
     env:
       BINARY_PATH: "../build/moonbeam"
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -390,6 +438,14 @@ jobs:
       labels: bare-metal
     needs: ["set-tags", "build"]
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -499,6 +555,14 @@ jobs:
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -533,6 +597,14 @@ jobs:
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
     steps:
+      - name: Cleanup
+        run: |
+        for runtime in moonbase moonriver moonbeam; do
+          if [[ -d runtime/$runtime/target ]]; then
+            echo "Removing runtime/$runtime/target"
+            rm -rf runtime/$runtime/target
+          fi
+        done
       - name: Checkout
         uses: actions/checkout@v3
         with:
