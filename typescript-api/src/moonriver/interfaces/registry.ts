@@ -13,6 +13,7 @@ import type {
   CumulusPalletDmpQueueEvent,
   CumulusPalletDmpQueuePageIndexData,
   CumulusPalletParachainSystemCall,
+  CumulusPalletParachainSystemCodeUpgradeAuthorization,
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -140,6 +141,7 @@ import type {
   PalletDemocracyDelegations,
   PalletDemocracyError,
   PalletDemocracyEvent,
+  PalletDemocracyMetadataOwner,
   PalletDemocracyReferendumInfo,
   PalletDemocracyReferendumStatus,
   PalletDemocracyTally,
@@ -151,7 +153,11 @@ import type {
   PalletEthereumError,
   PalletEthereumEvent,
   PalletEthereumRawOrigin,
+  PalletEthereumXcmCall,
+  PalletEthereumXcmError,
+  PalletEthereumXcmRawOrigin,
   PalletEvmCall,
+  PalletEvmCodeMetadata,
   PalletEvmError,
   PalletEvmEvent,
   PalletIdentityBitFlags,
@@ -174,6 +180,11 @@ import type {
   PalletMoonbeamOrbitersCurrentOrbiter,
   PalletMoonbeamOrbitersError,
   PalletMoonbeamOrbitersEvent,
+  PalletMultisigCall,
+  PalletMultisigError,
+  PalletMultisigEvent,
+  PalletMultisigMultisig,
+  PalletMultisigTimepoint,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
   PalletParachainStakingBondWithAutoCompound,
@@ -287,6 +298,11 @@ import type {
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
   XcmDoubleEncoded,
+  XcmPrimitivesEthereumXcmEthereumXcmFee,
+  XcmPrimitivesEthereumXcmEthereumXcmTransaction,
+  XcmPrimitivesEthereumXcmEthereumXcmTransactionV1,
+  XcmPrimitivesEthereumXcmEthereumXcmTransactionV2,
+  XcmPrimitivesEthereumXcmManualEthereumXcmFee,
   XcmV2BodyId,
   XcmV2BodyPart,
   XcmV2Instruction,
@@ -328,7 +344,6 @@ import type {
   XcmV3Response,
   XcmV3TraitsError,
   XcmV3TraitsOutcome,
-  XcmV3VecPalletInfo,
   XcmV3WeightLimit,
   XcmV3Xcm,
   XcmVersionedAssetId,
@@ -348,6 +363,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletDmpQueueEvent: CumulusPalletDmpQueueEvent;
     CumulusPalletDmpQueuePageIndexData: CumulusPalletDmpQueuePageIndexData;
     CumulusPalletParachainSystemCall: CumulusPalletParachainSystemCall;
+    CumulusPalletParachainSystemCodeUpgradeAuthorization: CumulusPalletParachainSystemCodeUpgradeAuthorization;
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
     CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot;
@@ -475,6 +491,7 @@ declare module "@polkadot/types/types/registry" {
     PalletDemocracyDelegations: PalletDemocracyDelegations;
     PalletDemocracyError: PalletDemocracyError;
     PalletDemocracyEvent: PalletDemocracyEvent;
+    PalletDemocracyMetadataOwner: PalletDemocracyMetadataOwner;
     PalletDemocracyReferendumInfo: PalletDemocracyReferendumInfo;
     PalletDemocracyReferendumStatus: PalletDemocracyReferendumStatus;
     PalletDemocracyTally: PalletDemocracyTally;
@@ -486,7 +503,11 @@ declare module "@polkadot/types/types/registry" {
     PalletEthereumError: PalletEthereumError;
     PalletEthereumEvent: PalletEthereumEvent;
     PalletEthereumRawOrigin: PalletEthereumRawOrigin;
+    PalletEthereumXcmCall: PalletEthereumXcmCall;
+    PalletEthereumXcmError: PalletEthereumXcmError;
+    PalletEthereumXcmRawOrigin: PalletEthereumXcmRawOrigin;
     PalletEvmCall: PalletEvmCall;
+    PalletEvmCodeMetadata: PalletEvmCodeMetadata;
     PalletEvmError: PalletEvmError;
     PalletEvmEvent: PalletEvmEvent;
     PalletIdentityBitFlags: PalletIdentityBitFlags;
@@ -509,6 +530,11 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
     PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
     PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
+    PalletMultisigCall: PalletMultisigCall;
+    PalletMultisigError: PalletMultisigError;
+    PalletMultisigEvent: PalletMultisigEvent;
+    PalletMultisigMultisig: PalletMultisigMultisig;
+    PalletMultisigTimepoint: PalletMultisigTimepoint;
     PalletParachainStakingAutoCompoundAutoCompoundConfig: PalletParachainStakingAutoCompoundAutoCompoundConfig;
     PalletParachainStakingBond: PalletParachainStakingBond;
     PalletParachainStakingBondWithAutoCompound: PalletParachainStakingBondWithAutoCompound;
@@ -622,6 +648,11 @@ declare module "@polkadot/types/types/registry" {
     SpWeightsRuntimeDbWeight: SpWeightsRuntimeDbWeight;
     SpWeightsWeightV2Weight: SpWeightsWeightV2Weight;
     XcmDoubleEncoded: XcmDoubleEncoded;
+    XcmPrimitivesEthereumXcmEthereumXcmFee: XcmPrimitivesEthereumXcmEthereumXcmFee;
+    XcmPrimitivesEthereumXcmEthereumXcmTransaction: XcmPrimitivesEthereumXcmEthereumXcmTransaction;
+    XcmPrimitivesEthereumXcmEthereumXcmTransactionV1: XcmPrimitivesEthereumXcmEthereumXcmTransactionV1;
+    XcmPrimitivesEthereumXcmEthereumXcmTransactionV2: XcmPrimitivesEthereumXcmEthereumXcmTransactionV2;
+    XcmPrimitivesEthereumXcmManualEthereumXcmFee: XcmPrimitivesEthereumXcmManualEthereumXcmFee;
     XcmV2BodyId: XcmV2BodyId;
     XcmV2BodyPart: XcmV2BodyPart;
     XcmV2Instruction: XcmV2Instruction;
@@ -663,7 +694,6 @@ declare module "@polkadot/types/types/registry" {
     XcmV3Response: XcmV3Response;
     XcmV3TraitsError: XcmV3TraitsError;
     XcmV3TraitsOutcome: XcmV3TraitsOutcome;
-    XcmV3VecPalletInfo: XcmV3VecPalletInfo;
     XcmV3WeightLimit: XcmV3WeightLimit;
     XcmV3Xcm: XcmV3Xcm;
     XcmVersionedAssetId: XcmVersionedAssetId;

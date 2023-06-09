@@ -33,6 +33,7 @@ import type {
 import type {
   CumulusPalletDmpQueueConfigData,
   CumulusPalletDmpQueuePageIndexData,
+  CumulusPalletParachainSystemCodeUpgradeAuthorization,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletXcmpQueueInboundChannelDetails,
   CumulusPalletXcmpQueueOutboundChannelDetails,
@@ -61,12 +62,15 @@ import type {
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
+  PalletDemocracyMetadataOwner,
   PalletDemocracyReferendumInfo,
   PalletDemocracyVoteThreshold,
   PalletDemocracyVoteVoting,
+  PalletEvmCodeMetadata,
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
   PalletParachainStakingCandidateMetadata,
@@ -463,6 +467,27 @@ declare module "@polkadot/api-base/types/storage" {
       lowestUnbaked: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * General information concerning any proposal or referendum. The `PreimageHash` refers to the
+       * preimage of the `Preimages` provider which can be a JSON dump or IPFS hash of a JSON file.
+       *
+       * Consider a garbage collection for a metadata of finished referendums to `unrequest`
+       * (remove) large preimages.
+       */
+      metadataOf: AugmentedQuery<
+        ApiType,
+        (
+          arg:
+            | PalletDemocracyMetadataOwner
+            | { External: any }
+            | { Proposal: any }
+            | { Referendum: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<H256>>,
+        [PalletDemocracyMetadataOwner]
+      > &
+        QueryableStorageEntry<ApiType, [PalletDemocracyMetadataOwner]>;
+      /**
        * The referendum to be tabled whenever it would be valid to table an external proposal. This
        * happens when a referendum needs to be tabled and one of two conditions are met:
        *
@@ -593,6 +618,16 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    ethereumXcm: {
+      /** Whether or not Ethereum-XCM is suspended from executing */
+      ethereumXcmSuspended: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Global nonce used for building Ethereum transaction payload. */
+      nonce: AugmentedQuery<ApiType, () => Observable<U256>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     evm: {
       accountCodes: AugmentedQuery<
         ApiType,
@@ -600,9 +635,27 @@ declare module "@polkadot/api-base/types/storage" {
         [H160]
       > &
         QueryableStorageEntry<ApiType, [H160]>;
+      accountCodesAccessed: AugmentedQuery<
+        ApiType,
+        (arg: H160 | string | Uint8Array) => Observable<bool>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
+      accountCodesMetadata: AugmentedQuery<
+        ApiType,
+        (arg: H160 | string | Uint8Array) => Observable<Option<PalletEvmCodeMetadata>>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
       accountStorages: AugmentedQuery<
         ApiType,
         (arg1: H160 | string | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<H256>,
+        [H160, H256]
+      > &
+        QueryableStorageEntry<ApiType, [H160, H256]>;
+      accountStoragesAccessed: AugmentedQuery<
+        ApiType,
+        (arg1: H160 | string | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<bool>,
         [H160, H256]
       > &
         QueryableStorageEntry<ApiType, [H160, H256]>;
@@ -781,6 +834,20 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    multisig: {
+      /** The set of open multisig operations. */
+      multisigs: AugmentedQuery<
+        ApiType,
+        (
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: U8aFixed | string | Uint8Array
+        ) => Observable<Option<PalletMultisigMultisig>>,
+        [AccountId20, U8aFixed]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, U8aFixed]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -965,7 +1032,11 @@ declare module "@polkadot/api-base/types/storage" {
       announcedHrmpMessagesPerCandidate: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** The next authorized upgrade, if there is one. */
-      authorizedUpgrade: AugmentedQuery<ApiType, () => Observable<Option<H256>>, []> &
+      authorizedUpgrade: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<CumulusPalletParachainSystemCodeUpgradeAuthorization>>,
+        []
+      > &
         QueryableStorageEntry<ApiType, []>;
       /**
        * A custom head data that should be returned as result of `validate_block`.
@@ -1239,6 +1310,9 @@ declare module "@polkadot/api-base/types/storage" {
         [u32, XcmVersionedMultiLocation]
       > &
         QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
+      /** Global suspension state of the XCM executor. */
+      xcmExecutionSuspended: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1340,6 +1414,19 @@ declare module "@polkadot/api-base/types/storage" {
         [u16]
       > &
         QueryableStorageEntry<ApiType, [u16]>;
+      /**
+       * The metadata is a general information concerning the referendum. The `PreimageHash` refers
+       * to the preimage of the `Preimages` provider which can be a JSON dump or IPFS hash of a JSON file.
+       *
+       * Consider a garbage collection for a metadata of finished referendums to `unrequest`
+       * (remove) large preimages.
+       */
+      metadataOf: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<H256>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
       /** The next free referendum index, aka the number of referenda started so far. */
       referendumCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
