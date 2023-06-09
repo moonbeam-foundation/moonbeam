@@ -33,6 +33,8 @@ jobs:
             echo "Removing runtime/moonbeam/target"
             docker run -u 0 -v $(pwd)/runtime/moonbeam:/todelete debian:stable-slim rm -rf /todelete/target
           fi
+          echo "Removing runtime/moonbase/target"
+          docker run -u 0 -v /home/${USER}/srtool:/toown debian:stable-slim chown -R gh-actions:gh-actions /toown/.ssh /toown/entrypoint.sh
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
