@@ -17,23 +17,6 @@ jobs:
   setup-scripts:
     runs-on: bare-metal
     steps:
-      - name: Cleanup
-        run: |
-          ls -la /home/${USER}/srtool
-          echo "cleanup of $(pwd)"
-          if [[ -d runtime/moonbase/target ]]; then
-            echo "Removing runtime/moonbase/target"
-            docker run -u 0 -v $(pwd)/runtime/moonbase:/todelete debian:stable-slim rm -rf /todelete/target
-          fi
-          if [[ -d runtime/moonriver/target ]]; then
-            echo "Removing runtime/moonriver/target"
-            docker run -u 0 -v $(pwd)/runtime/moonriver:/todelete debian:stable-slim rm -rf /todelete/target
-          fi
-          if [[ -d runtime/moonbeam/target ]]; then
-            echo "Removing runtime/moonbeam/target"
-            docker run -u 0 -v $(pwd)/runtime/moonbeam:/todelete debian:stable-slim rm -rf /todelete/target
-          fi
-          echo "Removing runtime/moonbase/target"
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
@@ -98,6 +81,9 @@ jobs:
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
         run: |
+          mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
+          chmod uog+rwX runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
+
           chmod u+x ./original-scripts/build-runtime-srtool.sh
           ./original-scripts/build-runtime-srtool.sh
       - name: Summary
@@ -112,6 +98,9 @@ jobs:
           path: |
             ${{ matrix.chain }}-runtime.compact.compressed.wasm
             ${{ matrix.chain }}-srtool-digest.json
+      - name: Cleanup
+        run: |
+          rm -rf runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
 
   ####### Prepare the release draft #######
 

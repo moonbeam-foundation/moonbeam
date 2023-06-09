@@ -1,11 +1,7 @@
 # Docker command to generate JSON blob of the runtime
-mkdir -p ${PWD}/runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
-chmod uog+rwX ${PWD}/runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
-
 CMD="docker run \
   -i \
   --rm \
-  -u 1001:1001 \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
   -v ${PWD}:/build \
