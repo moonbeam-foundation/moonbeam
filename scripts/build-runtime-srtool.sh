@@ -2,6 +2,7 @@
 CMD="docker run \
   -i \
   --rm \
+  -u $(id -u):$(id -g) \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
   -v ${PWD}:/build \
