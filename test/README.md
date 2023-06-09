@@ -34,11 +34,6 @@ Run a network:
 pnpm moonwall run <environment_name>
 ```
 
-Download from GitHub:
-```
-pnpm moonwall download <artifact>
-```
-
 Test an environment:
 ```
 pnpm moonwall test <environment_name>
