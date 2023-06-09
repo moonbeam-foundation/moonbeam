@@ -36,8 +36,9 @@ jobs:
           for runtime in moonbase moonriver moonbeam; do
             if [[ -d runtime/$runtime/target ]]; then
               echo "Removing runtime/$runtime/target"
-              docker run -v $(pwd)/runtime/$runtime/:/runtime \
-                -it --entrypoint bash paritytech/srtool:1.69.0 -c "rm -rf /runtime/target"
+              ls -lna runtime/$runtime/target
+              docker run -u 0 -v $(pwd)/runtime/$runtime/:/runtime \
+                -it --entrypoint bash paritytech/srtool:1.69.0 -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
             fi
           done
           sleep 120
