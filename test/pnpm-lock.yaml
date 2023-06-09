@@ -52,11 +52,11 @@ devDependencies:
     specifier: ^0.2302.0
     version: 0.2302.0
   '@moonwall/cli':
-    specifier: ^1.0.2
-    version: 1.0.2(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2302.0)(@moonwall/util@1.0.2)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(viem@1.0.2)(web3-providers-ws@4.0.1)(web3@4.0.1)
+    specifier: ^1.0.3
+    version: 1.0.3(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2302.0)(@moonwall/util@1.0.3)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(viem@1.0.2)(web3-providers-ws@4.0.1)(web3@4.0.1)
   '@moonwall/util':
-    specifier: ^1.0.2
-    version: 1.0.2(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1)
+    specifier: ^1.0.3
+    version: 1.0.3(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1)
   '@polkadot/api':
     specifier: ^10.8.1
     version: 10.8.1
@@ -711,14 +711,14 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonwall/cli@1.0.2(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2302.0)(@moonwall/util@1.0.2)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(viem@1.0.2)(web3-providers-ws@4.0.1)(web3@4.0.1):
-    resolution: {integrity: sha512-YDtQxc/KApXorjUusZO7E+3aWuna8cuJrMqvXwnBFpCiy+y0CafEIwrYdU+AKU8hOknj6Ql5vcFTonKfqpGo6w==}
+  /@moonwall/cli@1.0.3(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2302.0)(@moonwall/util@1.0.3)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(viem@1.0.2)(web3-providers-ws@4.0.1)(web3@4.0.1):
+    resolution: {integrity: sha512-9OfT+wRFJyVLKD7Zy7i5afdPM0pEdk3We42b4oK1T4WgPD9lCvmuu/ek+LfcGfYpftf5jJAu5rTYp+kwKmR/nw==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     hasBin: true
     peerDependencies:
       '@acala-network/chopsticks': ^0.6.6
       '@moonbeam-network/api-augment': ^0.2302.0
-      '@moonwall/util': 1.0.2
+      '@moonwall/util': 1.0.3
       '@polkadot/api': ^10.8.1
       '@polkadot/api-augment': ^10.8.1
       '@polkadot/api-derive': ^10.8.1
@@ -728,13 +728,13 @@ packages:
       '@polkadot/util': ^12.1.2
       ethers: ^6.5.1
       viem: ^1.0.2
-      web3: 4.0.1-rc.2
-      web3-providers-ws: 4.0.1-rc.2
+      web3: 4.0.1
+      web3-providers-ws: 4.0.1
     dependencies:
       '@acala-network/chopsticks': 0.6.6(debug@4.3.4)(ts-node@10.9.1)
       '@moonbeam-network/api-augment': 0.2302.0
-      '@moonwall/types': 1.0.2
-      '@moonwall/util': 1.0.2(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1)
+      '@moonwall/types': 1.0.3
+      '@moonwall/util': 1.0.3(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1)
       '@polkadot/api': 10.8.1
       '@polkadot/api-augment': 10.8.1
       '@polkadot/api-derive': 10.8.1
@@ -799,14 +799,14 @@ packages:
       - zod
     dev: true
 
-  /@moonwall/types@1.0.2:
-    resolution: {integrity: sha512-G0K+AaV1/YTFTv5PhxdJfs4uSSj4Cbt38A7Kz4NXG+FPGBbVzXtmxrd1kDVgo/DBZg9tkLXb9pVBMDUJzbFRfQ==}
+  /@moonwall/types@1.0.3:
+    resolution: {integrity: sha512-5AyjlnbJYfMGglWzhQwWAahHLrWwSdWErgMnRT8QFNPsqqPsFVq13IVf8VzgdwUkejwB79JWOco1JEcezl+GcQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@polkadot/api': 10.8.1
       debug: 4.3.4(supports-color@8.1.1)
       ethers: 6.5.1
-      web3: 4.0.1-rc.2
+      web3: 4.0.1
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -814,8 +814,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@moonwall/util@1.0.2(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1):
-    resolution: {integrity: sha512-cPEhgdE8/eWEsBqsqR21zyS55tMBRphbnI+zT3S1wL/9InHEpWkNg1jGaML4BVQ3R6Jyv6DIifRbZ8NCSuoVng==}
+  /@moonwall/util@1.0.3(@moonbeam-network/api-augment@0.2302.0)(@polkadot/api-augment@10.8.1)(@polkadot/api-derive@10.8.1)(@polkadot/api@10.8.1)(@polkadot/keyring@12.2.1)(@polkadot/rpc-provider@10.8.1)(@polkadot/types-codec@10.8.1)(@polkadot/types@10.8.1)(@polkadot/util@12.2.1)(@vitest/ui@0.31.4)(ethers@6.5.1)(typescript@5.1.3)(web3@4.0.1):
+    resolution: {integrity: sha512-PDF2/UJIN9pPFamqou+6ioj2uAm1H1+2OR5d9CqUUJSxBuQCrx0YxjGI5DzLPfckrkzoHDc9/ljYfPBCH/pcuA==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     peerDependencies:
       '@moonbeam-network/api-augment': ^0.2302.0
@@ -828,10 +828,10 @@ packages:
       '@polkadot/types-codec': ^10.8.1
       '@polkadot/util': ^12.1.2
       ethers: ^6.5.1
-      web3: 4.0.1-rc.2
+      web3: 4.0.1
     dependencies:
       '@moonbeam-network/api-augment': 0.2302.0
-      '@moonwall/types': 1.0.2
+      '@moonwall/types': 1.0.3
       '@polkadot/api': 10.8.1
       '@polkadot/api-augment': 10.8.1
       '@polkadot/api-derive': 10.8.1
@@ -6943,32 +6943,6 @@ packages:
 
   /web3@4.0.1:
     resolution: {integrity: sha512-IVxPbRy3A+RYB2+NYReNPLDXvE2iamTTvx1oNjM4UdbhNt/KQujQusOaRfSpGqfIKBCIYrim1c5LSCFcKlfQhA==}
-    engines: {node: '>=14.0.0', npm: '>=6.12.0'}
-    dependencies:
-      web3-core: 4.0.1
-      web3-errors: 1.0.0
-      web3-eth: 4.0.1
-      web3-eth-abi: 4.0.1
-      web3-eth-accounts: 4.0.1
-      web3-eth-contract: 4.0.1
-      web3-eth-ens: 4.0.1
-      web3-eth-iban: 4.0.1
-      web3-eth-personal: 4.0.1
-      web3-net: 4.0.1
-      web3-providers-http: 4.0.1
-      web3-providers-ws: 4.0.1
-      web3-rpc-methods: 1.0.0
-      web3-types: 1.0.0
-      web3-utils: 4.0.1
-      web3-validator: 1.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - utf-8-validate
-    dev: true
-
-  /web3@4.0.1-rc.2:
-    resolution: {integrity: sha512-3uFbNUMyj+f1PM7ZXZAie26uStCh67ASZrv2tezPauyoQiP9SEUiyjX4pdaQdQNmRFuy0pk4uh9Zrg5vCIxeQQ==}
     engines: {node: '>=14.0.0', npm: '>=6.12.0'}
     dependencies:
       web3-core: 4.0.1

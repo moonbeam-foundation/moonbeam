@@ -1,0 +1,33 @@
+name: Moonwall Dev Tests
+description: |
+ Setup and run moonwall Dev tests against a local moonbeam node.
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: "pnpm"
+        cache-dependency-path: test/pnpm-lock.yaml
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+    - name: Compile Contracts
+      shell: bash
+      run: cd test && forge build
+    - name: "Install and run dev test"
+      shell: bash
+      env:
+        DEBUG_COLOURS: "1"
+        NODE_OPTIONS: "--max-old-space-size=12288"
+      run: |
+        chmod uog+x target/release/moonbeam
+        cd test
+        pnpm i
+        pnpm moonwall test dev_${{ matrix.chain }}
+    - name: Upload HTML report
+      if: always()
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: dev-test-report
+        path: test/html

@@ -606,14 +606,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
@@ -621,19 +613,5 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-      - name: Compile Contracts
-        run: cd test && forge build
-      - name: "Install and run dev test"
-        run: |
-          chmod uog+x target/release/moonbeam
-          cd test
-          pnpm i
-          pnpm moonwall test dev_${{ matrix.chain }}
-      - name: Upload HTML report
-        if: always()
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: dev-test-report
-          path: test/html
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
