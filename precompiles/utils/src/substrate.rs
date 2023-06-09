@@ -24,7 +24,7 @@ use {
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
 		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-		pallet_prelude::DispatchError,
+		pallet_prelude::*,
 		traits::Get,
 	},
 	pallet_evm::GasWeightMapping,
@@ -57,6 +57,43 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
+	#[inline(always)]
+	pub fn record_weight_v2_cost(
+		handle: &mut impl PrecompileHandle,
+		weight: Weight,
+	) -> Result<(), ExitError> {
+		// Make sure there is enough gas.
+		let remaining_gas = handle.remaining_gas();
+		let required_gas = Runtime::GasWeightMapping::weight_to_gas(weight);
+		if required_gas > remaining_gas {
+			return Err(ExitError::OutOfGas);
+		}
+
+		// Make sure there is enough remaining weight
+		// TODO: record ref time when precompile will be benchmarked
+		handle.record_external_cost(None, Some(weight.proof_size()))
+	}
+
+	#[inline(always)]
+	pub fn refund_weight_v2_cost(
+		handle: &mut impl PrecompileHandle,
+		weight: Weight,
+		maybe_actual_weight: Option<Weight>,
+	) -> Result<u64, ExitError> {
+		// Refund weights and compute used weight them record used gas
+		// TODO: refund ref time when precompile will be benchmarked
+		let used_weight = if let Some(actual_weight) = maybe_actual_weight {
+			let refund_weight = weight - actual_weight;
+			handle.refund_external_cost(None, Some(refund_weight.proof_size()));
+			actual_weight
+		} else {
+			weight
+		};
+		let used_gas = Runtime::GasWeightMapping::weight_to_gas(used_weight);
+		handle.record_cost(used_gas)?;
+		Ok(used_gas)
+	}
+
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
 	/// If successful returns the used gas using the Runtime GasWeightMapping.
@@ -71,12 +108,8 @@ where
 		let call = Runtime::RuntimeCall::from(call);
 		let dispatch_info = call.get_dispatch_info();
 
-		// Make sure there is enough gas.
-		let remaining_gas = handle.remaining_gas();
-		let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
-		if required_gas > remaining_gas {
-			return Err(TryDispatchError::Evm(ExitError::OutOfGas));
-		}
+		Self::record_weight_v2_cost(handle, dispatch_info.weight)
+			.map_err(|e| TryDispatchError::Evm(e))?;
 
 		// Dispatch call.
 		// It may be possible to not record gas cost if the call returns Pays::No.
@@ -86,14 +119,12 @@ where
 		let post_dispatch_info = using_precompile_handle(handle, || call.dispatch(origin))
 			.map_err(|e| TryDispatchError::Substrate(e.error))?;
 
-		let used_weight = post_dispatch_info.actual_weight;
-
-		let used_gas =
-			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
-
-		handle
-			.record_cost(used_gas)
-			.map_err(|e| TryDispatchError::Evm(e))?;
+		Self::refund_weight_v2_cost(
+			handle,
+			dispatch_info.weight,
+			post_dispatch_info.actual_weight,
+		)
+		.map_err(|e| TryDispatchError::Evm(e))?;
 
 		Ok(post_dispatch_info)
 	}

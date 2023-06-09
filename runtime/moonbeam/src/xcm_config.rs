@@ -19,12 +19,15 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
+	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::traits::Hash as THash;
+use sp_runtime::{
+	traits::{Hash as THash, PostDispatchInfoOf},
+	DispatchErrorWithPostInfo,
+};
 
 use frame_support::{
 	dispatch::Weight,
@@ -32,20 +35,20 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
 
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds, WithComputedOrigin,
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -104,7 +107,20 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// Generate remote accounts according to polkadot standards
+	xcm_builder::ForeignChainAliasAccount<AccountId>,
 );
+
+/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
+pub struct LocationToH160;
+impl xcm_executor::traits::Convert<MultiLocation, H160> for LocationToH160 {
+	fn convert(location: MultiLocation) -> Result<H160, MultiLocation> {
+		<LocationToAccountId as xcm_executor::traits::Convert<MultiLocation, AccountId>>::convert(
+			location,
+		)
+		.map(Into::into)
+	}
+}
 
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
@@ -175,6 +191,7 @@ pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -207,16 +224,27 @@ parameter_types! {
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
+pub type XcmWeigher = WeightInfoBounds<
+	moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, RuntimeCall>,
+	RuntimeCall,
+	MaxInstructions,
+>;
 
-// Allow paid executions
 pub type XcmBarrier = (
+	// Weight that is paid for may be consumed.
 	TakeWeightCredit,
-	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
+	WithComputedOrigin<
+		(
+			// If the message is one that immediately attemps to pay for execution, then allow it.
+			AllowTopLevelPaidExecutionFrom<Everything>,
+			// Subscriptions for version tracking are OK.
+			AllowSubscriptionsFrom<Everything>,
+		),
+		UniversalLocation,
+		ConstU32<8>,
+	>,
 );
 
 parameter_types! {
@@ -254,6 +282,15 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
+// Our implementation of the Moonbeam Call
+// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+#[cfg(not(feature = "evm-tracing"))]
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+#[cfg(feature = "evm-tracing")]
+moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!();
+
+moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type RuntimeCall = RuntimeCall;
@@ -286,9 +323,9 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
+	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = RuntimeCall;
+	type CallDispatcher = MoonbeamCall;
 	type PalletInstancesInfo = crate::AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	type AssetLocker = ();
@@ -300,7 +337,10 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetIsBurnable = Everything;
 }
 
-type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
+	RuntimeCall,
+	xcm_executor::XcmExecutor<XcmExecutorConfig>,
+>;
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
@@ -410,29 +450,41 @@ impl From<AssetType> for AssetId {
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
+	// Our native token
 	SelfReserve,
+	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
 	// Our local assets
 	LocalAssetReserve(AssetId),
+	// Erc20 token
+	Erc20 { contract_address: H160 },
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
-		match account {
+		Some(match account {
 			// the self-reserve currency is identified by the pallet-balances address
-			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
+			a if a == H160::from_low_u64_be(2050).into() => CurrencyId::SelfReserve,
 			// the rest of the currencies, by their corresponding erc20 address
-			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
-				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-					CurrencyId::ForeignAsset(asset_id)
-				} else {
-					CurrencyId::LocalAssetReserve(asset_id)
+			_ => match Runtime::account_to_asset_id(account) {
+				// We distinguish by prefix, and depending on it we create either
+				// Foreign or Local
+				Some((prefix, asset_id)) => {
+					if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+						CurrencyId::ForeignAsset(asset_id)
+					} else {
+						CurrencyId::LocalAssetReserve(asset_id)
+					}
 				}
-			}),
-		}
+				// If no known prefix is identified, we consider that it's a "real" erc20 token
+				// (i.e. managed by a real smart contract)
+				None => CurrencyId::Erc20 {
+					contract_address: account.into(),
+				},
+			},
+		})
 	}
 }
-
 // How to convert from CurrencyId to MultiLocation
 pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
@@ -451,6 +503,16 @@ where
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
+			CurrencyId::Erc20 { contract_address } => {
+				let mut location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.0,
+						network: None,
+					})
+					.ok();
 				Some(location)
 			}
 		}
@@ -572,6 +634,29 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 	type HrmpEncoder = moonbeam_relay_encoder::polkadot::PolkadotEncoder;
+}
+
+parameter_types! {
+	// This is the relative view of erc20 assets.
+	// Identified by this prefix + AccountKey20(contractAddress)
+	// We use the RELATIVE multilocation
+	pub Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<Erc20XcmBridge as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	// To be able to support almost all erc20 implementations,
+	// we provide a sufficiently hight gas limit.
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 80_000;
+}
+
+impl pallet_erc20_xcm_bridge::Config for Runtime {
+	type AccountIdConverter = LocationToH160;
+	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
+	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

@@ -614,16 +614,31 @@ where
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
@@ -669,6 +684,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -690,6 +706,7 @@ where
 				xcm_senders: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
+				forced_parent_hashes: None,
 			};
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
@@ -699,10 +716,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};
@@ -1090,16 +1114,32 @@ where
 			}),
 		);
 	}
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1142,6 +1182,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -1163,6 +1204,7 @@ where
 				xcm_senders: xcm_senders.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
+				forced_parent_hashes: None,
 			};
 
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1173,10 +1215,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};

@@ -81,8 +81,13 @@ where
 		// 1 read for enabled flag
 		// 2 reads for contract addresses
 		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
-		let initial_gas = 2500 + 3 * RuntimeHelper::<Runtime>::db_read_gas_cost();
-		handle.record_cost(initial_gas)?;
+		handle.record_cost(2500)?;
+		// CoreAddress: AccountId(20)
+		handle.record_db_read::<Runtime>(20)?;
+		// BridgeAddress: AccountId(20)
+		handle.record_db_read::<Runtime>(20)?;
+		// PrecompileEnabled: AccountId(1)
+		handle.record_db_read::<Runtime>(1)?;
 
 		ensure_enabled()?;
 

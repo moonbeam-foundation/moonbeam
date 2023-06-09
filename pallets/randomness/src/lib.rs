@@ -77,7 +77,7 @@ pub trait GetBabeData<EpochIndex, Randomness> {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use crate::weights::{SubstrateWeight, WeightInfo};
+	use crate::weights::WeightInfo;
 	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
@@ -134,6 +134,8 @@ pub mod pallet {
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		#[pallet::constant]
 		type EpochExpirationDelay: Get<u64>;
+		/// Weight info
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -236,7 +238,7 @@ pub mod pallet {
 		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		#[pallet::call_index(0)]
 		#[pallet::weight((
-			SubstrateWeight::<T>::set_babe_randomness_results(),
+			T::WeightInfo::set_babe_randomness_results(),
 			DispatchClass::Mandatory
 		))]
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
@@ -305,7 +307,7 @@ pub mod pallet {
 			}
 			// Verify VRF output included by block author and set it in storage
 			vrf::verify_and_set_output::<T>();
-			SubstrateWeight::<T>::on_initialize()
+			T::WeightInfo::on_initialize()
 		}
 		fn on_finalize(_now: BlockNumberFor<T>) {
 			// Ensure the mandatory inherent was included in the block or the block is invalid
