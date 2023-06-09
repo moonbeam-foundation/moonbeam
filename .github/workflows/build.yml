@@ -23,7 +23,8 @@ env:
 jobs:
   ####### Check files and formatting #######
   set-tags:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: bare-metal
     strategy:
       matrix:
         chain: [1, 2, 3, 4, 5, 6]
