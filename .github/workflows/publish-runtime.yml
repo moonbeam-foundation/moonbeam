@@ -20,6 +20,9 @@ jobs:
       - name: Cleanup
         run: |
           ls -la /home/${USER}/srtool
+          echo "entry=============="
+          cat /home/${USER}/srtool/entrypoint.sh
+          echo "entry=============="
           echo "cleanup of $(pwd)"
           if [[ -d runtime/moonbase/target ]]; then
             echo "Removing runtime/moonbase/target"
