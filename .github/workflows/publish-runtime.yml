@@ -58,9 +58,19 @@ jobs:
       - name: Check accesses
         run: |
           # Check file access
-          ls -la /home/${USER}/srtool/.ssh/* || true
+          ls -la /home/${USER}/srtool/.ssh || true
           echo "Check namei"
           namei -ln /home/${USER}/srtool/.ssh/* || true
+          echo "Check builder access"
+          docker run \
+            -i \
+            --rm \
+            -u 1001 \
+            -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
+            -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
+            --entrypoint bash \
+            ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} \
+              ls -lna /home/${USER}/srtool/.ssh || true
           echo "checked"
       - name: Build & Push purestake/srtool image
         if: github.repository == 'purestake/moonbeam'
