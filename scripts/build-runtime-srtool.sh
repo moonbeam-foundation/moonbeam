@@ -1,10 +1,21 @@
+
+# CARGO_NET_GIT_FETCH_WITH_CLI=true and --entrypoint /srtool/entrypoint.sh
+# are required to allow srtool to fetch from github private repositories
+
+# self-hosted runner uses user `maintenance` to match srtool `builder` user 1001
+
 # Docker command to generate JSON blob of the runtime
 CMD="docker run \
   -i \
   --rm \
+  -u 1001 \
+  -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
   -v ${PWD}:/build \
+  -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
+  -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
+  --entrypoint /srtool/entrypoint.sh \
   ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
     build --app --json -cM"
 
