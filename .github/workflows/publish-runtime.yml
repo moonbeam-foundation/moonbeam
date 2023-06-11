@@ -70,7 +70,7 @@ jobs:
             -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
             --entrypoint ls \
             ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} \
-              -lna /home/builder/.ssh || true
+              -lna /home/builder || true
           echo "checked"
       - name: Build & Push purestake/srtool image
         if: github.repository == 'purestake/moonbeam'
