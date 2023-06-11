@@ -58,9 +58,9 @@ jobs:
       - name: Check accesses
         run: |
           # Check file access
-          ls -la /home/${USER}/srtool/.ssh/*
+          ls -la /home/${USER}/srtool/.ssh/* || true
           echo "Check namei"
-          namei -ln /home/${USER}/srtool/.ssh/*
+          namei -ln /home/${USER}/srtool/.ssh/* || true
           echo "checked"
       - name: Build & Push purestake/srtool image
         if: github.repository == 'purestake/moonbeam'
