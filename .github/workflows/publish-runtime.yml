@@ -58,9 +58,7 @@ jobs:
       - name: Check accesses
         run: |
           # Check file access
-          ls -la /home/${USER}/srtool/.ssh || true
-          echo "Check namei"
-          namei -ln /home/${USER}/srtool/.ssh/* || true
+          ls -lna /home/${USER}/srtool || true
           echo "Check builder access"
           docker run \
             -i \
