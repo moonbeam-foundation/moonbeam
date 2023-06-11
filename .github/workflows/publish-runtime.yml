@@ -36,9 +36,9 @@ jobs:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - paritytech/srtool
+          - purestake/srtool
         srtool_image_tag:
-          - 1.69.0
+          - 1.69.2
     steps:
       - uses: actions/checkout@v3
         with:
@@ -82,6 +82,7 @@ jobs:
           mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
           chmod uog+rwX runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
 
+          cat ./original-scripts/build-runtime-srtool.sh
           chmod u+x ./original-scripts/build-runtime-srtool.sh
           ./original-scripts/build-runtime-srtool.sh
       - name: Summary
