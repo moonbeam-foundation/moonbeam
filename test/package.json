@@ -14,12 +14,12 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2302.0",
-    "@moonwall/cli": "^2.0.2",
-    "@moonwall/util": "^2.0.0",
-    "@polkadot/api": "^10.8.1",
-    "@polkadot/api-augment": "^10.8.1",
-    "@polkadot/types": "^10.8.1",
-    "@polkadot/types-codec": "^10.8.1",
+    "@moonwall/cli": "^2.0.3",
+    "@moonwall/util": "^2.0.3",
+    "@polkadot/api": "^10.9.1",
+    "@polkadot/api-augment": "^10.9.1",
+    "@polkadot/types": "^10.9.1",
+    "@polkadot/types-codec": "^10.9.1",
     "@polkadot/util": "^12.3.2",
     "@substrate/txwrapper-core": "^6.0.1",
     "@substrate/txwrapper-substrate": "^6.0.1",
@@ -52,7 +52,7 @@
     "semver": "^7.5.1",
     "solc": "0.8.19",
     "tsconfig-paths": "^4.2.0",
-    "viem": "^1.0.2",
+    "viem": "^1.0.5",
     "vitest": "^0.31.4"
   }
 }

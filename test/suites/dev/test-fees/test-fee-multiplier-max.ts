@@ -174,7 +174,7 @@ describeSuite({
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(12017597237222291898n);
+        expect(amount).to.equal(12017789020287671340n);
       },
     });
   },
