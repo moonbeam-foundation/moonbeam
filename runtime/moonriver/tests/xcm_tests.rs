@@ -2769,7 +2769,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -2878,7 +2878,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3004,7 +3004,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3126,7 +3126,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
