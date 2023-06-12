@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "precompiles/xtokens/Xtokens.sol";
+import "../../../precompiles/xtokens/Xtokens.sol";
 
 contract XTokensInstance is Xtokens {
     function transfer(

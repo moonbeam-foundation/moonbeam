@@ -142,7 +142,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viemClient("public").getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124878912205897n);
+        expect(baseFeePerGas).to.equal(124880905088510n);
 
         const { rawSigned } = await createEthersTxn(context, {
           to: contractAddress,
@@ -166,7 +166,7 @@ describeSuite({
           ({ event }) => event.method == "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
-        expect(weight).to.equal(2405850000n);
+        expect(weight).to.equal(2396800000n);
 
         const withdrawEvents = interactionResult?.events.filter(
           ({ event }) => event.method == "Withdraw"

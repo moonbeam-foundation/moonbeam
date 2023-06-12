@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "precompiles/parachain-staking/StakingInterface.sol";
+import "../../../precompiles/parachain-staking/StakingInterface.sol";
 
 contract StakingAttacker {
     /// The collator (ALITH) that this contract will benefit with delegations

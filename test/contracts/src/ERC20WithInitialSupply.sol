@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "precompiles/assets-erc20/ERC20.sol";
+import "../../../precompiles/assets-erc20/ERC20.sol";
 
 /// @author The Moonbeam Team
 /// @title ERC20 interface
@@ -50,21 +50,16 @@ contract ERC20WithInitialSupply is IERC20 {
         return _balances[account];
     }
 
-    function transfer(address to, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function transfer(
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
         address owner = msg.sender;
         _transfer(owner, to, amount);
         return true;
     }
 
-    function _transfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
+    function _transfer(address from, address to, uint256 amount) internal {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
 
@@ -83,20 +78,17 @@ contract ERC20WithInitialSupply is IERC20 {
         emit Transfer(from, to, amount);
     }
 
-    function allowance(address owner, address spender)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function allowance(
+        address owner,
+        address spender
+    ) public view override returns (uint256) {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function approve(
+        address spender,
+        uint256 amount
+    ) public override returns (bool) {
         address owner = msg.sender;
         _approve(owner, spender, amount);
         return true;
@@ -124,11 +116,7 @@ contract ERC20WithInitialSupply is IERC20 {
         return true;
     }
 
-    function _approve(
-        address owner,
-        address spender,
-        uint256 amount
-    ) internal {
+    function _approve(address owner, address spender, uint256 amount) internal {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 

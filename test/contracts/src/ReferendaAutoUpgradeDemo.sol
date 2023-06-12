@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "precompiles/referenda/Referenda.sol";
-import "precompiles/preimage/Preimage.sol";
-import "precompiles/conviction-voting/ConvictionVoting.sol";
+import "../../../precompiles/referenda/Referenda.sol";
+import "../../../precompiles/preimage/Preimage.sol";
+import "../../../precompiles/conviction-voting/ConvictionVoting.sol";
 import "./SubstrateTools.sol";
 
 /// @notice Smart contract to demonstrate how to use Referenda Precompile to self-upgrade
@@ -27,11 +27,9 @@ abstract contract ReferendaAutoUpgradeDemo {
 
     /// @notice retrieves the track id matching the track name
     /// @notice this is ineficient and only used for a demo.
-    function getTrackId(string memory trackName)
-        internal
-        view
-        returns (uint16)
-    {
+    function getTrackId(
+        string memory trackName
+    ) internal view returns (uint16) {
         uint16[] memory trackIds = REFERENDA_CONTRACT.trackIds();
         for (uint256 i = 0; i < trackIds.length; i++) {
             Referenda.TrackInfo memory info = REFERENDA_CONTRACT.trackInfo(
@@ -85,9 +83,10 @@ abstract contract ReferendaAutoUpgradeDemo {
 
 /// @notice First version of the contract
 contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
-    constructor(string memory trackName, bytes2 pSetStorageCallIndex)
-        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)
-    {}
+    constructor(
+        string memory trackName,
+        bytes2 pSetStorageCallIndex
+    ) ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex) {}
 
     function version() external pure returns (uint256) {
         return 1;
@@ -96,9 +95,10 @@ contract ReferendaAutoUpgradeDemoV1 is ReferendaAutoUpgradeDemo {
 
 /// @notice Second version of the contract
 contract ReferendaAutoUpgradeDemoV2 is ReferendaAutoUpgradeDemo {
-    constructor(string memory trackName, bytes2 pSetStorageCallIndex)
-        ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex)
-    {}
+    constructor(
+        string memory trackName,
+        bytes2 pSetStorageCallIndex
+    ) ReferendaAutoUpgradeDemo(trackName, pSetStorageCallIndex) {}
 
     function version() external pure returns (uint256) {
         return 2;

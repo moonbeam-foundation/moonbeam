@@ -257,6 +257,8 @@ describeSuite({
       title: "should set MultiplyBy7 deployedBytecode with state override",
       test: async function () {
         const { abi, deployedBytecode } = await fetchCompiledContract("MultiplyBy7");
+
+        console.log(deployedBytecode);
         const result = await customDevRpcRequest("eth_call", [
           {
             from: ALITH_ADDRESS,

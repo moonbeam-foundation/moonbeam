@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-import "precompiles/randomness/Randomness.sol";
+import "../../../precompiles/randomness/Randomness.sol";
 import {RandomnessConsumer} from "precompiles/randomness/RandomnessConsumer.sol";
 
 /// @notice Smart contract to demonstrate how to use requestLocalVRFRandomWords
@@ -114,10 +114,9 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice Which randomness source to use
     Randomness.RandomnessSource randomnessSource;
 
-    constructor(Randomness.RandomnessSource source)
-        payable
-        RandomnessConsumer()
-    {
+    constructor(
+        Randomness.RandomnessSource source
+    ) payable RandomnessConsumer() {
         /// Because this contract can only perform 1 random request at a time,
         /// We only need to have 1 required deposit.
         uint256 requiredDeposit = RANDOMNESS_CONTRACT.requiredDeposit();
@@ -130,7 +129,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         globalRequestCount = 0;
         jackpot = 0;
         /// Set the requestId to the maximum allowed value by the precompile (64 bits)
-        requestId = 2**64 - 1;
+        requestId = 2 ** 64 - 1;
     }
 
     function status() external view returns (LotteryStatus) {
@@ -261,7 +260,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     }
 
     function fulfillRandomWords(
-        uint256, /* requestId */
+        uint256 /* requestId */,
         uint256[] memory randomWords
     ) internal override {
         pickWinners(randomWords);
