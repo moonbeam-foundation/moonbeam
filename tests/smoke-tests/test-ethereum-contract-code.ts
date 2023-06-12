@@ -100,10 +100,15 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
 
-      for (const contract of returnedValues) {
+      const combined = returnedValues.map((contract, index) => ({
+        contract,
+        batch: batch[index],
+      }));
+
+      for (const item of combined) {
         totalContracts++;
-        const accountId = "0x" + batch[returnedValues.indexOf(contract)].slice(-40);
-        const deployedBytecode = contract.toHex().slice(10);
+        const accountId = "0x" + item.batch.slice(-40);
+        const deployedBytecode = item.contract.toHex().slice(10);
         const codesize = getBytecodeSize(deployedBytecode);
         if (codesize > MAX_CONTRACT_SIZE_BYTES) {
           failedContractCodes.push({ accountId, codesize });
