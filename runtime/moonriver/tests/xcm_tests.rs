@@ -27,6 +27,7 @@ use pallet_asset_manager::LocalAssetIdCreator;
 use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
+use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
 use xcm_executor::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
@@ -2769,7 +2770,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -2878,7 +2879,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3004,7 +3005,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3126,7 +3127,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
