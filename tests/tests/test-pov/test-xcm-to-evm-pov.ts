@@ -203,7 +203,7 @@ describeDevMoonbeam("XCM to EVM - PoV tests", (context) => {
         Transact: {
           originKind: "SovereignAccount",
           requireWeightAtMost: {
-            refTime: 47_025_000_000,
+            refTime: 40_025_000_000,
             proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
           },
           call: {
