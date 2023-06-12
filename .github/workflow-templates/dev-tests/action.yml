@@ -18,11 +18,6 @@ runs:
         node-version: 18.x
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
-    - name: Install Foundry
-      uses: foundry-rs/foundry-toolchain@v1
-    - name: Compile Contracts
-      shell: bash
-      run: cd test && forge build
     - name: "Install and run dev test"
       shell: bash
       env:
