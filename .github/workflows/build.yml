@@ -213,7 +213,7 @@ jobs:
   ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
