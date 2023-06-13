@@ -236,7 +236,7 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="docker.io/purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
