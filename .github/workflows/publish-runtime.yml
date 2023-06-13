@@ -63,7 +63,7 @@ jobs:
           docker run \
             -i \
             --rm \
-            -u 1001 \
+            $(~/srtool/uid-gid-mapping.sh 1001 | xargs) \
             -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
             -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
             --entrypoint ls \
