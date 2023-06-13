@@ -2,9 +2,10 @@ import "@moonbeam-network/api-augment";
 import chalk from "chalk";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import { u8aConcat, u8aToHex } from "@polkadot/util";
+import { u8aConcat, u8aToHex, u8aToString } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { rateLimiter } from "../util/common";
+import v8 from "node:v8";
 
 const debug = require("debug")("smoke:ethereum-contract");
 const limiter = rateLimiter();
@@ -86,7 +87,9 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       keyQueryTime > 60
         ? `${(keyQueryTime / 60).toFixed(1)} minutes`
         : `${keyQueryTime.toFixed(1)} seconds`;
-    debug(`Finished querying ${pagedKeys.length} EVM.AccountCodes storage keys in ${keyText} ✅`);
+
+    const totalKeys = pagedKeys.length;
+    debug(`Finished querying ${totalKeys} EVM.AccountCodes storage keys in ${keyText} ✅`);
 
     count = 0;
     t0 = performance.now();
@@ -94,21 +97,24 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
     t1 = t0;
     loopCount = 0;
 
-    for (let i = 0; i < pagedKeys.length; i += limit) {
-      const batch = pagedKeys.slice(i, i + limit);
+    while (pagedKeys.length) {
+      let batch = [];
+      for (let i = 0; i < limit && pagedKeys.length; i++) {
+        batch.push(pagedKeys.pop());
+      }
       const returnedValues = (await limiter.schedule(() =>
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
 
-      const combined = returnedValues.map((contract, index) => ({
-        contract,
-        batch: batch[index],
+      const combined = returnedValues.map((value, index) => ({
+        value,
+        address: batch[index],
       }));
 
-      for (const item of combined) {
+      for (let j = 0; j < combined.length; j++) {
         totalContracts++;
-        const accountId = "0x" + item.batch.slice(-40);
-        const deployedBytecode = item.contract.toHex().slice(10);
+        const accountId = "0x" + combined[j].address.slice(-40);
+        const deployedBytecode = u8aToHex(combined[j].value.unwrap()).slice(6);
         const codesize = getBytecodeSize(deployedBytecode);
         if (codesize > MAX_CONTRACT_SIZE_BYTES) {
           failedContractCodes.push({ accountId, codesize });
@@ -124,7 +130,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
         debug(
           `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
             0
-          )} MB heap used, ${((count * 100) / pagedKeys.length).toFixed(1)}% complete`
+          )} MB heap used, ${((count * 100) / totalKeys).toFixed(1)}% complete`
         );
         loopCount++;
         t1 = t2;
