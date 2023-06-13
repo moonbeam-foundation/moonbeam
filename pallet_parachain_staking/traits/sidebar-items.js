@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["OnCollatorPayout","OnNewRound","PayoutCollatorReward"]};
+window.SIDEBAR_ITEMS = {"trait":[["OnCollatorPayout",""],["OnNewRound",""],["PayoutCollatorReward","Defines the behavior to payout the collator’s reward."]]};

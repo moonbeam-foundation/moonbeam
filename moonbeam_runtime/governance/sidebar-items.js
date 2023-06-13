@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["councils","custom_origins","referenda"],"struct":["GeneralAdmin","ReferendumCanceller","ReferendumKiller","TracksInfo","WhitelistedCaller"]};
+window.SIDEBAR_ITEMS = {"mod":[["councils","Councils for Gov1 and Gov2"],["custom_origins","The module that hosts all the FRAME types needed to add this pallet to a runtime."],["referenda","Gov2 config"]],"struct":[["GeneralAdmin",""],["ReferendumCanceller",""],["ReferendumKiller",""],["TracksInfo",""],["WhitelistedCaller",""]]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["costs","handle","logs"]};
+window.SIDEBAR_ITEMS = {"mod":[["costs","Cost calculations. TODO: PR EVM to make those cost calculations public."],["handle",""],["logs",""]]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MappingWithDeposit","NimbusLookup"]};
+window.SIDEBAR_ITEMS = {"struct":[["MappingWithDeposit","We maintain a mapping from the NimbusIds used in the consensus layer to the AccountIds runtime."],["NimbusLookup","We maintain a reverse mapping from AccountIds to NimbusIDS"]]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["EthereumXcmSuspended","Nonce"]};
+window.SIDEBAR_ITEMS = {"struct":[["EthereumXcmSuspended","Whether or not Ethereum-XCM is suspended from executing"],["Nonce","Global nonce used for building Ethereum transaction payload."]]};

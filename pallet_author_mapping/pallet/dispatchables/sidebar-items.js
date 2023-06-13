@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["add_association","clear_association","remove_keys","set_keys","update_association"]};
+window.SIDEBAR_ITEMS = {"fn":[["add_association","Register your NimbusId onchain so blocks you author are associated with your account."],["clear_association","Clear your Mapping."],["remove_keys","Remove your Mapping."],["set_keys","Set association and session keys at once."],["update_association","Change your Mapping."]]};

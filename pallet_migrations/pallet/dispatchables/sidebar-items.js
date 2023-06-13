@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["migrate_democracy_preimage"]};
+window.SIDEBAR_ITEMS = {"fn":[["migrate_democracy_preimage","NOTE: This function is an automatically generated, doc only, uncallable stub. designed to document the [`migrate_democracy_preimage`][`Call::migrate_democracy_preimage`] variant of the pallet [`Call`] enum. You should not attempt to call this function directly."]]};

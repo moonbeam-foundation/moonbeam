@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["log0","log1","log2","log3","log4"],"trait":["LogExt"]};
+window.SIDEBAR_ITEMS = {"fn":[["log0","Create a 0-topic log."],["log1","Create a 1-topic log."],["log2","Create a 2-topics log."],["log3","Create a 3-topics log."],["log4","Create a 4-topics log."]],"trait":[["LogExt","Extension trait allowing to record logs into a PrecompileHandle."]]};

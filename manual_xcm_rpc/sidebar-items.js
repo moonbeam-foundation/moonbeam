@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["internal_err"],"struct":["ManualXcm"],"trait":["ManualXcmApiServer"]};
+window.SIDEBAR_ITEMS = {"fn":[["internal_err",""]],"struct":[["ManualXcm",""]],"trait":[["ManualXcmApiServer","Server trait implementation for the `ManualXcmApi` RPC API."]]};

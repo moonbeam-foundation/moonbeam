@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["pallet"],"struct":["AssetTrapWrapper","XcmExecutorWrapper"]};
+window.SIDEBAR_ITEMS = {"mod":[["pallet","The module that hosts all the FRAME types needed to add this pallet to a runtime."]],"struct":[["AssetTrapWrapper","Morph a given `DropAssets` implementation into one which filter out erc20 assets."],["XcmExecutorWrapper","Xcm executor wrapper that inject xcm holding extension “XcmHoldingErc20sOrigins”"]]};

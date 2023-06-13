@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/weights.rs`."><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/weights.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1667,8 +1667,7 @@
 <a href="#1667" id="1667">1667</a>
 <a href="#1668" id="1668">1668</a>
 <a href="#1669" id="1669">1669</a>
-<a href="#1670" id="1670">1670</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2483,36 +2482,36 @@
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking AutoCompoundingDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking BottomDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: Balances Locks (r:1 w:1)
 	/// Proof: Balances Locks (max_values: None, max_size: Some(1287), added: 3762, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking Total (r:1 w:1)
 	/// Proof Skipped: ParachainStaking Total (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
-	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
-	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 350]`.
-	/// The range of component `y` is `[0, 350]`.
-	/// The range of component `z` is `[0, 100]`.
+	/// The range of component `y` is `[0, 349]`.
+	/// The range of component `z` is `[0, 99]`.
 	</span><span class="kw">fn </span>delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `0 + x * (56 ±0) + y * (21 ±0) + z * (41 ±0)`
-		//  Estimated: `38555 + x * (142 ±0) + y * (191 ±0) + z * (291 ±0)`
-		// Minimum execution time: 110_244_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">82_475_228</span>, <span class="number">38555</span>)
-			<span class="comment">// Standard Error: 9_271
-			</span>.saturating_add(Weight::from_parts(<span class="number">37_524</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			<span class="comment">// Standard Error: 9_271
-			</span>.saturating_add(Weight::from_parts(<span class="number">59_736</span>, <span class="number">0</span>).saturating_mul(y.into()))
-			<span class="comment">// Standard Error: 32_357
-			</span>.saturating_add(Weight::from_parts(<span class="number">209_896</span>, <span class="number">0</span>).saturating_mul(z.into()))
+		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
+		//  Estimated: `114512 + x * (264 ±0) + y * (37 ±0) + z * (189 ±1)`
+		// Minimum execution time: 123_405_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">99_606_447</span>, <span class="number">114512</span>)
+			<span class="comment">// Standard Error: 1_425
+			</span>.saturating_add(Weight::from_parts(<span class="number">181_327</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 1_429
+			</span>.saturating_add(Weight::from_parts(<span class="number">9_131</span>, <span class="number">0</span>).saturating_mul(y.into()))
+			<span class="comment">// Standard Error: 5_033
+			</span>.saturating_add(Weight::from_parts(<span class="number">258_516</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">8_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">8_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">142</span>).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">191</span>).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">291</span>).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">264</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">37</span>).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">189</span>).saturating_mul(z.into()))
 	}
 	<span class="doccomment">/// Storage: System Account (r:2 w:2)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
@@ -3257,8 +3256,7 @@
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">1_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">46</span>).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">72</span>).saturating_mul(y.into()))
-	}
-	<span class="doccomment">/// Storage: System Account (r:1 w:1)
+	}<span class="doccomment">/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
@@ -3266,36 +3264,36 @@
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking AutoCompoundingDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking BottomDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: Balances Locks (r:1 w:1)
 	/// Proof: Balances Locks (max_values: None, max_size: Some(1287), added: 3762, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking Total (r:1 w:1)
 	/// Proof Skipped: ParachainStaking Total (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
-	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
-	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 350]`.
-	/// The range of component `y` is `[0, 350]`.
-	/// The range of component `z` is `[0, 100]`.
+	/// The range of component `y` is `[0, 349]`.
+	/// The range of component `z` is `[0, 99]`.
 	</span><span class="kw">fn </span>delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `0 + x * (56 ±0) + y * (21 ±0) + z * (41 ±0)`
-		//  Estimated: `38555 + x * (142 ±0) + y * (191 ±0) + z * (291 ±0)`
-		// Minimum execution time: 110_244_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">82_475_228</span>, <span class="number">38555</span>)
-			<span class="comment">// Standard Error: 9_271
-			</span>.saturating_add(Weight::from_parts(<span class="number">37_524</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			<span class="comment">// Standard Error: 9_271
-			</span>.saturating_add(Weight::from_parts(<span class="number">59_736</span>, <span class="number">0</span>).saturating_mul(y.into()))
-			<span class="comment">// Standard Error: 32_357
-			</span>.saturating_add(Weight::from_parts(<span class="number">209_896</span>, <span class="number">0</span>).saturating_mul(z.into()))
+		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
+		//  Estimated: `114512 + x * (264 ±0) + y * (37 ±0) + z * (189 ±1)`
+		// Minimum execution time: 123_405_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">99_606_447</span>, <span class="number">114512</span>)
+			<span class="comment">// Standard Error: 1_425
+			</span>.saturating_add(Weight::from_parts(<span class="number">181_327</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 1_429
+			</span>.saturating_add(Weight::from_parts(<span class="number">9_131</span>, <span class="number">0</span>).saturating_mul(y.into()))
+			<span class="comment">// Standard Error: 5_033
+			</span>.saturating_add(Weight::from_parts(<span class="number">258_516</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(RocksDbWeight::get().reads(<span class="number">8_u64</span>))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">8_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">142</span>).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">191</span>).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">291</span>).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">264</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">37</span>).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">189</span>).saturating_mul(z.into()))
 	}
 	<span class="doccomment">/// Storage: System Account (r:2 w:2)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
@@ -3337,4 +3335,5 @@
 			.saturating_add(RocksDbWeight::get().reads(<span class="number">1_u64</span>))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">1_u64</span>))
 	}
-}</code></pre></div></section></main></body></html>
+}</code></pre></div>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

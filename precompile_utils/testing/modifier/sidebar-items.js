@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PrecompilesModifierTester"]};
+window.SIDEBAR_ITEMS = {"struct":[["PrecompilesModifierTester",""]]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/xcm_config.rs`."><title>xcm_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/xcm_config.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>xcm_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -657,7 +657,36 @@
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -703,7 +732,7 @@
 	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
 	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds,
+	WeightInfoBounds, WithComputedOrigin,
 };
 
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
@@ -850,6 +879,7 @@
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -888,15 +918,21 @@
 	MaxInstructions,
 &gt;;
 
-<span class="comment">// Allow paid executions
-</span><span class="kw">pub type </span>XcmBarrier = (
-	TakeWeightCredit,
-	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst&lt;Everything&gt;,
-	AllowTopLevelPaidExecutionFrom&lt;Everything&gt;,
+<span class="kw">pub type </span>XcmBarrier = (
+	<span class="comment">// Weight that is paid for may be consumed.
+	</span>TakeWeightCredit,
 	<span class="comment">// Expected responses are OK.
 	</span>AllowKnownQueryResponses&lt;PolkadotXcm&gt;,
-	<span class="comment">// Subscriptions for version tracking are OK.
-	</span>AllowSubscriptionsFrom&lt;Everything&gt;,
+	WithComputedOrigin&lt;
+		(
+			<span class="comment">// If the message is one that immediately attemps to pay for execution, then allow it.
+			</span>AllowTopLevelPaidExecutionFrom&lt;Everything&gt;,
+			<span class="comment">// Subscriptions for version tracking are OK.
+			</span>AllowSubscriptionsFrom&lt;Everything&gt;,
+		),
+		UniversalLocation,
+		ConstU32&lt;<span class="number">8</span>&gt;,
+	&gt;,
 );
 
 <span class="macro">parameter_types! </span>{
@@ -1102,29 +1138,41 @@
 <span class="comment">// Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 </span><span class="attr">#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 </span><span class="kw">pub enum </span>CurrencyId {
-	SelfReserve,
-	ForeignAsset(AssetId),
+	<span class="comment">// Our native token
+	</span>SelfReserve,
+	<span class="comment">// Assets representing other chains native tokens
+	</span>ForeignAsset(AssetId),
 	<span class="comment">// Our local assets
 	</span>LocalAssetReserve(AssetId),
+	<span class="comment">// Erc20 token
+	</span>Erc20 { contract_address: H160 },
 }
 
 <span class="kw">impl </span>AccountIdToCurrencyId&lt;AccountId, CurrencyId&gt; <span class="kw">for </span>Runtime {
 	<span class="kw">fn </span>account_to_currency_id(account: AccountId) -&gt; <span class="prelude-ty">Option</span>&lt;CurrencyId&gt; {
-		<span class="kw">match </span>account {
+		<span class="prelude-val">Some</span>(<span class="kw">match </span>account {
 			<span class="comment">// the self-reserve currency is identified by the pallet-balances address
-			</span>a <span class="kw">if </span>a == H160::from_low_u64_be(<span class="number">2050</span>).into() =&gt; <span class="prelude-val">Some</span>(CurrencyId::SelfReserve),
+			</span>a <span class="kw">if </span>a == H160::from_low_u64_be(<span class="number">2050</span>).into() =&gt; CurrencyId::SelfReserve,
 			<span class="comment">// the rest of the currencies, by their corresponding erc20 address
-			</span><span class="kw">_ </span>=&gt; Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
-				<span class="kw">if </span>prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-					CurrencyId::ForeignAsset(asset_id)
-				} <span class="kw">else </span>{
-					CurrencyId::LocalAssetReserve(asset_id)
+			</span><span class="kw">_ </span>=&gt; <span class="kw">match </span>Runtime::account_to_asset_id(account) {
+				<span class="comment">// We distinguish by prefix, and depending on it we create either
+				// Foreign or Local
+				</span><span class="prelude-val">Some</span>((prefix, asset_id)) =&gt; {
+					<span class="kw">if </span>prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+						CurrencyId::ForeignAsset(asset_id)
+					} <span class="kw">else </span>{
+						CurrencyId::LocalAssetReserve(asset_id)
+					}
 				}
-			}),
-		}
+				<span class="comment">// If no known prefix is identified, we consider that it&#39;s a &quot;real&quot; erc20 token
+				// (i.e. managed by a real smart contract)
+				</span><span class="prelude-val">None </span>=&gt; CurrencyId::Erc20 {
+					contract_address: account.into(),
+				},
+			},
+		})
 	}
 }
-
 <span class="comment">// How to convert from CurrencyId to MultiLocation
 </span><span class="kw">pub struct </span>CurrencyIdtoMultiLocation&lt;AssetXConverter&gt;(sp_std::marker::PhantomData&lt;AssetXConverter&gt;);
 <span class="kw">impl</span>&lt;AssetXConverter&gt; sp_runtime::traits::Convert&lt;CurrencyId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt;
@@ -1143,6 +1191,16 @@
 			</span>CurrencyId::LocalAssetReserve(asset) =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				<span class="prelude-val">Some</span>(location)
+			}
+			CurrencyId::Erc20 { contract_address } =&gt; {
+				<span class="kw">let </span><span class="kw-2">mut </span>location = Erc20XcmBridgePalletLocation::get();
+				location
+					.push_interior(Junction::AccountKey20 {
+						key: contract_address.<span class="number">0</span>,
+						network: <span class="prelude-val">None</span>,
+					})
+					.ok();
 				<span class="prelude-val">Some</span>(location)
 			}
 		}
@@ -1316,4 +1374,5 @@
 		}
 	}
 }
-</code></pre></div></section></main></body></html>
+</code></pre></div>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

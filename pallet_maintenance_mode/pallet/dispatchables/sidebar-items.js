@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["enter_maintenance_mode","resume_normal_operation"]};
+window.SIDEBAR_ITEMS = {"fn":[["enter_maintenance_mode","Place the chain in maintenance mode"],["resume_normal_operation","Return the chain to normal operating mode"]]};

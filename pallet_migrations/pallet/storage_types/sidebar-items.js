@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["FullyUpgraded","MigrationState","ShouldPauseXcm"]};
+window.SIDEBAR_ITEMS = {"struct":[["FullyUpgraded","True if all required migrations have completed"],["MigrationState","MigrationState tracks the progress of a migration. Maps name (Vec) -> whether or not migration has been completed (bool)"],["ShouldPauseXcm","Temporary value that is set to true at the beginning of the block during which the execution of xcm messages must be paused."]]};
