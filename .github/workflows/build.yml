@@ -231,6 +231,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
