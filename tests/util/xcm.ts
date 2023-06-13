@@ -130,7 +130,7 @@ export function descendOriginFromAddress20(
 ) {
   const toHash = new Uint8Array([
     ...new TextEncoder().encode("SiblingChain"),
-    ...context.polkadotApi.createType("u32", paraId).toU8a(),
+    ...context.polkadotApi.createType("Compact<u32>", paraId).toU8a(),
     ...new TextEncoder().encode("AccountKey20"),
     ...context.polkadotApi.createType("AccountId", address).toU8a(),
   ]);
