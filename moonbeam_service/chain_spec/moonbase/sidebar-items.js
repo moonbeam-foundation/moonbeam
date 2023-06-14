@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["development_chain_spec","Generate a chain spec for use with the development service."],["get_chain_spec","Generate a default spec for the parachain service. Use this as a starting point when launching a custom chain."],["moonbase_inflation_config",""],["testnet_genesis",""]],"type":[["ChainSpec","Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type."]]};
+window.SIDEBAR_ITEMS = {"fn":["development_chain_spec","get_chain_spec","moonbase_inflation_config","testnet_genesis"],"type":["ChainSpec"]};

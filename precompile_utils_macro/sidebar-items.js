@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["precompile",""],["precompile_name_from_address",""]],"derive":[["Codec",""]],"macro":[["keccak256",""]]};
+window.SIDEBAR_ITEMS = {"attr":["precompile","precompile_name_from_address"],"derive":["Codec"],"macro":["keccak256"]};

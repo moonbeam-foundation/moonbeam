@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["digest","VRF pre digest object and conversion to DigestItem"],["inherent",""],["vrf","VRF Key type"]],"trait":[["KeysLookup","A Trait to lookup keys from AuthorIds"]]};
+window.SIDEBAR_ITEMS = {"mod":["digest","inherent","vrf"],"trait":["KeysLookup"]};

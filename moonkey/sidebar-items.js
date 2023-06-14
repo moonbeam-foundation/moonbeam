@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]],"struct":[["Opt",""]]};
+window.SIDEBAR_ITEMS = {"fn":["main"],"struct":["Opt"]};

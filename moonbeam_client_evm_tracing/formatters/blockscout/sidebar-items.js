@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["BlockscoutCallInner",""]],"struct":[["BlockscoutCall",""],["Formatter",""]]};
+window.SIDEBAR_ITEMS = {"enum":["BlockscoutCallInner"],"struct":["BlockscoutCall","Formatter"]};

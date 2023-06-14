@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DelegationChange","Changes requested by the delegator"]],"struct":[["CollatorSnapshot","Snapshot of collator state at the start of the round for which they are selected"],["DelegationRequest",""],["Delegator","Delegator state"],["PendingDelegationRequests","Pending requests to mutate delegations for each delegator"]]};
+window.SIDEBAR_ITEMS = {"enum":["DelegationChange"],"struct":["CollatorSnapshot","DelegationRequest","Delegator","PendingDelegationRequests"]};

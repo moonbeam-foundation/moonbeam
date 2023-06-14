@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CollatorPoolInfo",""],["CurrentOrbiter",""],["RoundAuthors",""]]};
+window.SIDEBAR_ITEMS = {"struct":["CollatorPoolInfo","CurrentOrbiter","RoundAuthors"]};

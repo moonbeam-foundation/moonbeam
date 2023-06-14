@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["set_babe_randomness_results","Populates `RandomnessResults` due this epoch with BABE epoch randomness"]]};
+window.SIDEBAR_ITEMS = {"fn":["set_babe_randomness_results"]};

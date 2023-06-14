@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["precompile",""]],"macro":[["keccak256",""]],"struct":[["PrecompileOutput","Data returned by a precompile on success."],["String","A UTF-8–encoded, growable string."]],"trait":[["PrecompileHandle","Handle provided to a precompile to interact with the EVM."]]};
+window.SIDEBAR_ITEMS = {"attr":["precompile"],"macro":["keccak256"],"struct":["PrecompileOutput","String"],"trait":["PrecompileHandle"]};

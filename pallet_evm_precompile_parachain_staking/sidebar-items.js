@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParachainStakingPrecompileCall",""]],"struct":[["ParachainStakingPrecompile","A precompile to wrap the functionality from parachain_staking."]]};
+window.SIDEBAR_ITEMS = {"enum":["ParachainStakingPrecompileCall"],"struct":["ParachainStakingPrecompile"]};
