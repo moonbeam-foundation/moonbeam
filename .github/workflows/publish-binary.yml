@@ -14,7 +14,7 @@ on:
 jobs:
   ####### Building binaries #######
   setup-scripts:
-    runs-on: self-hosted
+    runs-on: bare-metal
     steps:
       - uses: actions/checkout@v3
       - name: Upload tools
@@ -25,7 +25,7 @@ jobs:
 
   build-binary:
     needs: ["setup-scripts"]
-    runs-on: self-hosted
+    runs-on: bare-metal
     strategy:
       matrix:
         cpu: ["", "skylake", "znver3"]
