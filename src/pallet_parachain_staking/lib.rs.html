@@ -2153,33 +2153,6 @@
 <a href="#2153" id="2153">2153</a>
 <a href="#2154" id="2154">2154</a>
 <a href="#2155" id="2155">2155</a>
-<a href="#2156" id="2156">2156</a>
-<a href="#2157" id="2157">2157</a>
-<a href="#2158" id="2158">2158</a>
-<a href="#2159" id="2159">2159</a>
-<a href="#2160" id="2160">2160</a>
-<a href="#2161" id="2161">2161</a>
-<a href="#2162" id="2162">2162</a>
-<a href="#2163" id="2163">2163</a>
-<a href="#2164" id="2164">2164</a>
-<a href="#2165" id="2165">2165</a>
-<a href="#2166" id="2166">2166</a>
-<a href="#2167" id="2167">2167</a>
-<a href="#2168" id="2168">2168</a>
-<a href="#2169" id="2169">2169</a>
-<a href="#2170" id="2170">2170</a>
-<a href="#2171" id="2171">2171</a>
-<a href="#2172" id="2172">2172</a>
-<a href="#2173" id="2173">2173</a>
-<a href="#2174" id="2174">2174</a>
-<a href="#2175" id="2175">2175</a>
-<a href="#2176" id="2176">2176</a>
-<a href="#2177" id="2177">2177</a>
-<a href="#2178" id="2178">2178</a>
-<a href="#2179" id="2179">2179</a>
-<a href="#2180" id="2180">2180</a>
-<a href="#2181" id="2181">2181</a>
-<a href="#2182" id="2182">2182</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3343,33 +3316,6 @@
 			amount: BalanceOf&lt;T&gt;,
 			candidate_delegation_count: u32,
 			delegation_count: u32,
-		) -&gt; DispatchResultWithPostInfo {
-			&lt;Pallet&lt;T&gt;&gt;::delegate2(
-				origin,
-				candidate,
-				amount,
-				candidate_delegation_count,
-				delegation_count,
-				<span class="number">0</span>,
-			)
-		}
-
-		<span class="doccomment">/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		</span><span class="attr">#[pallet::call_index(<span class="number">117</span>)]
-		#[pallet::weight(
-			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::delegate(
-				<span class="kw-2">*</span>candidate_delegation_count,
-				<span class="kw-2">*</span>delegation_count
-			)
-		)]
-		</span><span class="kw">pub fn </span>delegate2(
-			origin: OriginFor&lt;T&gt;,
-			candidate: T::AccountId,
-			amount: BalanceOf&lt;T&gt;,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-			_delegator_scheduled_requests_count: u32,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span>delegator = ensure_signed(origin)<span class="question-mark">?</span>;
 			&lt;AutoCompoundDelegations&lt;T&gt;&gt;::delegate_with_auto_compound(
