@@ -21,7 +21,7 @@ RUN cargo build --profile production --locked
 
 # ===== SECOND STAGE ======
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 LABEL maintainer "alan@purestake.com"
 LABEL description="Polkadot for Moonbeam Relay Chains"
 COPY --from=builder /polkadot/target/production/polkadot /usr/local/bin
@@ -30,7 +30,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 	mkdir -p /moonbase-alphanet/.local/share/moonbase-alphanet && \
 	chown -R moonbeam:moonbeam /moonbase-alphanet && \
 	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
-	rm -rf /usr/bin /usr/sbin
+	rm -rf /usr/sbin
 
 USER moonbeam
 

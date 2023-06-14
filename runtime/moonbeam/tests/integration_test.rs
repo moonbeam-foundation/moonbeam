@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -32,17 +32,17 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-
 use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
-	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
+	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, CouncilCollective, CrowdloanRewards, OpenTechCommitteeCollective,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
 	RuntimeEvent, System, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
 	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
@@ -52,7 +52,11 @@ use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
-use precompile_utils::{precompile_set::IsActivePrecompile, prelude::*, testing::*};
+use precompile_utils::{
+	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
+	prelude::*,
+	testing::*,
+};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
@@ -1754,7 +1758,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 
@@ -1767,7 +1771,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 		});
@@ -1800,7 +1804,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23775)
+				.expect_cost(25775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1819,7 +1823,7 @@ fn asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -1852,7 +1856,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14048)
+				.expect_cost(16048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1873,7 +1877,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(31145)
+				.expect_cost(33145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1892,7 +1896,7 @@ fn asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -1925,7 +1929,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * GLMR }.into(),
 					},
 				)
-				.expect_cost(12932)
+				.expect_cost(14932)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1952,7 +1956,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * GLMR }.into(),
 					},
 				)
-				.expect_cost(13172)
+				.expect_cost(15172)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1997,7 +2001,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6783)
+				.expect_cost(8783)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2016,7 +2020,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(6803)
+				.expect_cost(8803)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2051,7 +2055,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(5623)
+				.expect_cost(7623)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2068,7 +2072,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(5634)
+				.expect_cost(7634)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2105,7 +2109,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(6706)
+				.expect_cost(8706)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2147,7 +2151,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						issuer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(5657)
+				.expect_cost(7657)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -2211,7 +2215,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					LocalAssetsPCall::total_supply {},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 
@@ -2224,7 +2228,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 		});
@@ -2270,7 +2274,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(23775)
+				.expect_cost(24775)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2289,7 +2293,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -2335,7 +2339,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14048)
+				.expect_cost(15048)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2356,7 +2360,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(31145)
+				.expect_cost(32145)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2375,7 +2379,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -2435,7 +2439,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2487,7 +2491,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(57639)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2820,7 +2824,7 @@ fn call_xtokens_with_fee() {
 }
 
 #[test]
-fn test_xcm_utils_ml_to_account() {
+fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
@@ -2870,8 +2874,13 @@ fn test_xcm_utils_ml_to_account() {
 				},
 			),
 		);
+		let expected_address_alice_in_parachain_2000: H160 =
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
+				alice_in_parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
 
-		// this should fail, this convertor is not allowed in moonriver
 		Precompiles::new()
 			.prepare_test(
 				ALICE,
@@ -2882,7 +2891,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
+			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
 }
 
@@ -2890,7 +2899,8 @@ fn test_xcm_utils_ml_to_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight = UnitWeightCost::get().ref_time();
+		let expected_weight =
+			XcmWeight::<moonbeam_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
 		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 
@@ -2932,7 +2942,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069,
+			2069, 2070,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2943,7 +2953,7 @@ fn precompile_existence() {
 
 			if precompile_addresses.contains(&address) {
 				assert!(
-					precompiles.is_precompile(address),
+					is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return true",
 					i
 				);
@@ -2964,7 +2974,7 @@ fn precompile_existence() {
 				);
 			} else {
 				assert!(
-					!precompiles.is_precompile(address),
+					!is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok"),
 					"is_precompile({}) should return false",
 					i
 				);
@@ -2997,20 +3007,26 @@ fn removed_precompiles() {
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
 
-			if !precompiles.is_precompile(address) {
+			if !is_precompile_or_fail::<Runtime>(address, 100_000u64).expect("to be ok") {
 				continue;
 			}
 
 			if !removed_precompiles.contains(&i) {
 				assert!(
-					precompiles.is_active_precompile(address),
+					match precompiles.is_active_precompile(address, 100_000u64) {
+						IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+						_ => false,
+					},
 					"{i} should be an active precompile"
 				);
 				continue;
 			}
 
 			assert!(
-				!precompiles.is_active_precompile(address),
+				!match precompiles.is_active_precompile(address, 100_000u64) {
+					IsPrecompileResult::Answer { is_precompile, .. } => is_precompile,
+					_ => false,
+				},
 				"{i} shouldn't be an active precompile"
 			);
 

@@ -10,7 +10,7 @@ import { describeDevMoonbeamAllEthTxTypes, describeDevMoonbeam } from "../../uti
 import { generateKeyringPair } from "../../util/accounts";
 import { BN } from "@polkadot/util";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
-import { descendOriginFromAddress } from "../../util/xcm";
+import { descendOriginFromAddress20 } from "../../util/xcm";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import { expectEVMResult, extractRevertReason } from "../../util/eth-transactions";
 
@@ -102,7 +102,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       ]),
     });
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     expect(result.result).to.equal(`0x${descendOriginAddress.slice(2).padStart(64, "0")}`);
   });
 
@@ -183,6 +183,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
+        gas: undefined,
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
         data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
           receivedMessage.toU8a(),
@@ -231,6 +232,7 @@ describeDevMoonbeam(
       const { result } = await context.createBlock(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
+          gas: undefined,
           to: PRECOMPILE_XCM_UTILS_ADDRESS,
           data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
             receivedMessage.toU8a(),
@@ -282,6 +284,7 @@ describeDevMoonbeam(
       const { result } = await context.createBlock(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
+          gas: undefined,
           gasPrice: 1_000_000_000_000,
           to: PRECOMPILE_XCM_UTILS_ADDRESS,
           data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [

@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
 import {
-  descendOriginFromAddress,
+  descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
@@ -22,7 +22,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
@@ -105,7 +105,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact with two Descends", 
   let random: KeyringPair;
 
   before("Should receive transact action with two DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
@@ -189,7 +189,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without withdraw", (
   let random: KeyringPair;
 
   before("Should receive transact action without Withdraw", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
@@ -271,7 +271,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without buy executio
   let random: KeyringPair;
 
   before("Should receive transact action without buy execution", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;

@@ -34,6 +34,7 @@ export interface BlockCreationResponse<
   block: {
     duration: number;
     hash: string;
+    proof_size?: number;
   };
   result: Call extends (string | SubmittableExtrinsic<ApiType>)[]
     ? ExtrinsicCreation[]
@@ -100,9 +101,9 @@ export function describeDevMoonbeam(
         ? await startMoonbeamDevNode(withWasm, runtime)
         : {
             runningNode: null,
-            p2pPort: 19931,
-            wsPort: 19933,
-            rpcPort: 19932,
+            p2pPort: 30333,
+            wsPort: 9944,
+            rpcPort: 9944,
           };
       moonbeamProcess = init.runningNode;
       context.rpcPort = init.rpcPort;
@@ -322,4 +323,15 @@ export function describeDevMoonbeamAllEthTxTypes(
   describeDevMoonbeam(title + " (Legacy)", cb, "Legacy", "moonbase", wasm);
   describeDevMoonbeam(title + " (EIP1559)", cb, "EIP1559", "moonbase", wasm);
   describeDevMoonbeam(title + " (EIP2930)", cb, "EIP2930", "moonbase", wasm);
+}
+
+export function describeDevMoonbeamAllRuntimes(
+  title: string,
+  cb: (context: DevTestContext) => void,
+  withWasm?: boolean
+) {
+  let wasm = withWasm !== undefined ? withWasm : false;
+  describeDevMoonbeam(title + " (moonbase)", cb, "Legacy", "moonbase", wasm);
+  describeDevMoonbeam(title + " (moonriver)", cb, "Legacy", "moonriver", wasm);
+  describeDevMoonbeam(title + " (moonbeam)", cb, "Legacy", "moonbeam", wasm);
 }

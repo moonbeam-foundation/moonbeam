@@ -34,26 +34,40 @@ export const VOTE_AMOUNT = 10n * GLMR;
 export const MIN_GLMR_STAKING = 1000n * GLMR;
 export const MIN_GLMR_DELEGATOR = 1n * GLMR;
 
+// Weight correspond to 1 picosecond
+export const WEIGHT_PER_SECOND = 1_000_000_000_000n;
+
 // Current gas per second
-export const GAS_PER_SECOND = 40_000_000;
-// The real computation is 1_000_000_000_000 / 40_000_000, but we simplify to avoid bigint.
-export const GAS_PER_WEIGHT = 1_000_000 / 40;
+export const GAS_PER_SECOND = 40_000_000n;
+export const GAS_PER_WEIGHT = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+
+// Maximum Gas to PoV ratio used in the gasometer
+export const GAS_PER_POV_BYTES = 4n;
 
 // Our weight limit is 500ms.
-export const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
+export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND / 2n;
 
-// Current implementation is limiting block transactions to 75% of the block gas limit
-export const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
-export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
+// Block limit is 20M gas but only 75% is used for normal transactions, limiting to 15M Gas
+export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
 
-// Maximum extrinsic weight is taken from the max allowed transaction weight per block,
+// Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
 // minus the block initialization (10%) and minus the extrinsic base cost.
-export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1;
+export const EXTRINSIC_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n - BLOCK_GAS_LIMIT / 10n;
+
+// Maximum PoV size in bytes allowed for a manual sealing dev block by substrate.
+export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
+
+// Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+export const MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES;
+
+export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
 
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;
 
 export const MIN_GAS_PRICE = 10_000_000_000n;
+
+export const GAS_LIMIT_POV_RATIO = 4;
 
 export const PRECOMPILE_PARACHAIN_STAKING_ADDRESS = "0x0000000000000000000000000000000000000800";
 export const PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS = "0x0000000000000000000000000000000000000801";

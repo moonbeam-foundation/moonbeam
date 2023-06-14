@@ -32,7 +32,7 @@ use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;
-use xcm::{opaque::latest::WeightLimit, VersionedMultiLocation};
+use xcm::opaque::latest::WeightLimit;
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -81,8 +81,13 @@ where
 		// 1 read for enabled flag
 		// 2 reads for contract addresses
 		// 2500 as fudge for computation, esp. payload decoding (TODO: benchmark?)
-		let initial_gas = 2500 + 3 * RuntimeHelper::<Runtime>::db_read_gas_cost();
-		handle.record_cost(initial_gas)?;
+		handle.record_cost(2500)?;
+		// CoreAddress: AccountId(20)
+		handle.record_db_read::<Runtime>(20)?;
+		// BridgeAddress: AccountId(20)
+		handle.record_db_read::<Runtime>(20)?;
+		// PrecompileEnabled: AccountId(1)
+		handle.record_db_read::<Runtime>(1)?;
 
 		ensure_enabled()?;
 
@@ -186,7 +191,7 @@ where
 			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
 				currency_id,
 				amount,
-				dest: Box::new(VersionedMultiLocation::V3(action.destination)),
+				dest: Box::new(action.destination),
 				dest_weight_limit: WeightLimit::Unlimited,
 			},
 		};

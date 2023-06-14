@@ -12,7 +12,7 @@ jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: self-hosted
+    runs-on: bare-metal
     strategy:
       matrix:
         cpu: ["", "skylake"]
@@ -73,7 +73,7 @@ jobs:
           driver-opts: |
             image=moby/buildkit:master
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -32,7 +32,9 @@ moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
+pallet-erc20-xcm-bridge = { workspace = true }
 pallet-ethereum-chain-id = { workspace = true }
+pallet-ethereum-xcm = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
@@ -50,6 +52,7 @@ pallet-evm-precompile-collective = { workspace = true }
 pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
 pallet-evm-precompile-democracy = { workspace = true }
+pallet-evm-precompile-gmp = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
@@ -205,7 +208,9 @@ std = [
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
+	"pallet-erc20-xcm-bridge/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-ethereum-xcm/std",
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
@@ -300,6 +305,7 @@ runtime-benchmarks = [
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
