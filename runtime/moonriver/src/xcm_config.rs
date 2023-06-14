@@ -110,7 +110,7 @@ pub type LocationToAccountId = (
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// Generate remote accounts according to polkadot standards
-	xcm_builder::ForeignChainAliasAccount<AccountId>,
+	xcm_builder::HashedDescriptionDescribeFamilyAllTerminal<AccountId>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
