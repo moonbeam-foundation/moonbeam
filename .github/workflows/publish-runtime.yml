@@ -38,7 +38,7 @@ jobs:
         srtool_image:
           - purestake/srtool
         srtool_image_tag:
-          - 1.69.2
+          - 1.69.0-ssh
     steps:
       - uses: actions/checkout@v3
         with:
@@ -55,21 +55,6 @@ jobs:
         with:
           name: original-scripts
           path: original-scripts
-      - name: Check accesses
-        run: |
-          # Check file access
-          ls -lna /home/${USER}/srtool || true
-          echo "Check builder access"
-          docker run \
-            -i \
-            --rm \
-            $(~/srtool/uid-gid-mapping.sh 1001 | xargs) \
-            -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
-            -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
-            --entrypoint ls \
-            ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} \
-              -lna /home/builder || true
-          echo "checked"
       - name: Build & Push purestake/srtool image
         if: github.repository == 'purestake/moonbeam'
         run: |
@@ -94,10 +79,10 @@ jobs:
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
         run: |
+          # Ensure we have permissions to write to the runtime folder target for the docker user
           mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
           chmod uog+rwX runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
 
-          cat ./original-scripts/build-runtime-srtool.sh
           chmod u+x ./original-scripts/build-runtime-srtool.sh
           ./original-scripts/build-runtime-srtool.sh
       - name: Summary
@@ -119,7 +104,7 @@ jobs:
 
           # Removing using docker root to ensure we have permissions
           docker run -u 0 -v $(pwd)/runtime/${{ matrix.chain }}/:/runtime \
-            -it --entrypoint bash paritytech/srtool:1.69.0 -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
+            -it --entrypoint bash ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
 
   ####### Prepare the release draft #######
 
