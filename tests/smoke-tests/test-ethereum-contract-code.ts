@@ -102,7 +102,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       for (let i = 0; i < limit && pagedKeys.length; i++) {
         batch.push(pagedKeys.pop());
       }
-      const returnedValues = (await limiter.schedule(() =>
+      let returnedValues = (await limiter.schedule(() =>
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
 
@@ -151,6 +151,8 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
           debug(`⏲️  Estimated time left: ${text}`);
         }
       }
+      batch = null;
+      returnedValues = null;
     }
 
     t3 = performance.now();
