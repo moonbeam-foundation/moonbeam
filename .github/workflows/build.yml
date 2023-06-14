@@ -213,7 +213,7 @@ jobs:
   ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -231,6 +231,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
@@ -247,12 +248,12 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
-            MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            MOONBEAM_DOCKER_TAG="docker.io/purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             # Clear the dummy container if it wasn't properly cleaned up
             docker rm -f dummy 2> /dev/null | true
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
