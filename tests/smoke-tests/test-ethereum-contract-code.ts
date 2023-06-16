@@ -5,10 +5,8 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { u8aConcat, u8aToHex, u8aToString } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { rateLimiter } from "../util/common";
-import v8 from "node:v8";
 
 const debug = require("debug")("smoke:ethereum-contract");
-const limiter = rateLimiter();
 
 describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (context, testIt) => {
   let atBlockNumber: number;
@@ -47,6 +45,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
     let t0 = performance.now();
     let t1 = t0;
     keys: while (true) {
+      const limiter = rateLimiter();
       const queryResults = (
         await limiter.schedule(() =>
           context.polkadotApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
@@ -79,6 +78,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
           debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
         }
       }
+      await limiter.disconnect()
     }
 
     let t3 = performance.now();
@@ -98,6 +98,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
     loopCount = 0;
 
     while (pagedKeys.length) {
+      const limiter = rateLimiter();
       let batch = [];
       for (let i = 0; i < limit && pagedKeys.length; i++) {
         batch.push(pagedKeys.pop());
@@ -105,6 +106,8 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       let returnedValues = (await limiter.schedule(() =>
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
+
+      debug(context.polkadotApi.stats)
 
       const combined = returnedValues.map((value, index) => ({
         value,
@@ -153,6 +156,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       }
       batch = null;
       returnedValues = null;
+      await limiter.disconnect()
     }
 
     t3 = performance.now();
