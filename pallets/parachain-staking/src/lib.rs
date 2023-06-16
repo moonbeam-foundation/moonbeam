@@ -1162,33 +1162,6 @@ pub mod pallet {
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
-			<Pallet<T>>::delegate2(
-				origin,
-				candidate,
-				amount,
-				candidate_delegation_count,
-				delegation_count,
-				0,
-			)
-		}
-
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::call_index(117)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate(
-				*candidate_delegation_count,
-				*delegation_count
-			)
-		)]
-		pub fn delegate2(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-			_delegator_scheduled_requests_count: u32,
-		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
 				candidate,
