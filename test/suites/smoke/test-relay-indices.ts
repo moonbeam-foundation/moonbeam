@@ -40,19 +40,19 @@ describeSuite({
       relayEncoder = new ethers.Contract(
         RELAY_ENCODER_PRECOMPILE,
         RELAY_ENCODER_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
 
       xcmTransactorV1 = new ethers.Contract(
         XCM_TRANSACTOR_V1_PRECOMPILE,
         XCM_TRANSACTOR_V1_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
 
       xcmTransactorV2 = new ethers.Contract(
         XCM_TRANSACTOR_V2_PRECOMPILE,
         XCM_TRANSACTOR_V2_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
     });
 
