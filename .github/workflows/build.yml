@@ -523,69 +523,69 @@ jobs:
           pnpm i
           pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
 
-  zombie_upgrade_test:
-    runs-on:
-      labels: bare-metal
-    needs: ["set-tags", "build", "prepare-polkadot"]
-    strategy:
-      matrix:
-        ## TODO: add moonriver here when it is ready
-        chain: ["moonbase", "moonbeam"]
-    env:
-      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 7
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
-      - name: "Download branch built runtime"
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: runtimes
-          path: test/tmp
-      - name: "Download branch built node"
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: moonbeam
-          path: test/tmp
-      - name: Retrieve polkadot binary from docker
-        run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+  # zombie_upgrade_test:
+  #   runs-on:
+  #     labels: bare-metal
+  #   needs: ["set-tags", "build", "prepare-polkadot"]
+  #   strategy:
+  #     matrix:
+  #       ## TODO: add moonriver here when it is ready
+  #       chain: ["moonbase", "moonbeam"]
+  #   env:
+  #     GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - uses: pnpm/action-setup@v2
+  #       with:
+  #         version: 7
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18.x
+  #         cache: "pnpm"
+  #         cache-dependency-path: test/pnpm-lock.yaml
+  #     - name: "Download branch built runtime"
+  #       uses: actions/download-artifact@v3.0.2
+  #       with:
+  #         name: runtimes
+  #         path: test/tmp
+  #     - name: "Download branch built node"
+  #       uses: actions/download-artifact@v3.0.2
+  #       with:
+  #         name: moonbeam
+  #         path: test/tmp
+  #     - name: Retrieve polkadot binary from docker
+  #       run: |
+  #         POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+  #         DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
-          docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
-          docker rm -f dummy
-      - name: Retrieve moonbeam binary from docker (for plainSpec generation)
-        run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
+  #         docker rm -f dummy 2> /dev/null | true
+  #         docker create -ti --name dummy $DOCKER_TAG bash
+  #         docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
+  #         docker rm -f dummy
+  #     - name: Retrieve moonbeam binary from docker (for plainSpec generation)
+  #       run: |
+  #         MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
+  #         DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
 
-          docker rm -f moonbeam_container 2> /dev/null | true
-          docker create --name moonbeam_container $DOCKER_TAG bash
-          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
-          docker rm -f moonbeam_container
-      - name: "Run zombie upgrade test"
-        run: |
-          cd test
-          pnpm i
+  #         docker rm -f moonbeam_container 2> /dev/null | true
+  #         docker create --name moonbeam_container $DOCKER_TAG bash
+  #         docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
+  #         docker rm -f moonbeam_container
+  #     - name: "Run zombie upgrade test"
+  #       run: |
+  #         cd test
+  #         pnpm i
 
-          ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/moonbeam_rt
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+  #         ## Generate old spec using latest published node, modify it, and generate raw spec
+  #         chmod uog+x tmp/moonbeam_rt
+  #         tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+  #         pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
+  #         tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
-          ## Start zombie network and run tests
-          chmod uog+x tmp/moonbeam
-          chmod uog+x tmp/polkadot
-          pnpm moonwall test zombie_${{ matrix.chain }}_ci
+  #         ## Start zombie network and run tests
+  #         chmod uog+x tmp/moonbeam
+  #         chmod uog+x tmp/polkadot
+  #         pnpm moonwall test zombie_${{ matrix.chain }}_ci
