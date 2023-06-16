@@ -33,8 +33,10 @@ import type {
   MoonbaseRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
+  PalletDemocracyMetadataOwner,
   PalletDemocracyVoteAccountVote,
   PalletDemocracyVoteThreshold,
+  PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
   PalletXcmTransactorHrmpOperation,
@@ -141,6 +143,12 @@ declare module "@polkadot/api-base/types/events" {
       >;
       /** Some asset `asset_id` was frozen. */
       AssetFrozen: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** The min_balance of an asset has been updated by the asset owner. */
+      AssetMinBalanceChanged: AugmentedEvent<
+        ApiType,
+        [assetId: u128, newMinBalance: u128],
+        { assetId: u128; newMinBalance: u128 }
+      >;
       /** An asset has had its attributes changed by the `Force` origin. */
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
@@ -464,6 +472,28 @@ declare module "@polkadot/api-base/types/events" {
       >;
       /** An external proposal has been tabled. */
       ExternalTabled: AugmentedEvent<ApiType, []>;
+      /** Metadata for a proposal or a referendum has been cleared. */
+      MetadataCleared: AugmentedEvent<
+        ApiType,
+        [owner: PalletDemocracyMetadataOwner, hash_: H256],
+        { owner: PalletDemocracyMetadataOwner; hash_: H256 }
+      >;
+      /** Metadata for a proposal or a referendum has been set. */
+      MetadataSet: AugmentedEvent<
+        ApiType,
+        [owner: PalletDemocracyMetadataOwner, hash_: H256],
+        { owner: PalletDemocracyMetadataOwner; hash_: H256 }
+      >;
+      /** Metadata has been transferred to new owner. */
+      MetadataTransferred: AugmentedEvent<
+        ApiType,
+        [prevOwner: PalletDemocracyMetadataOwner, owner: PalletDemocracyMetadataOwner, hash_: H256],
+        {
+          prevOwner: PalletDemocracyMetadataOwner;
+          owner: PalletDemocracyMetadataOwner;
+          hash_: H256;
+        }
+      >;
       /** A proposal has been rejected by referendum. */
       NotPassed: AugmentedEvent<ApiType, [refIndex: u32], { refIndex: u32 }>;
       /** A proposal has been approved by referendum. */
@@ -557,8 +587,20 @@ declare module "@polkadot/api-base/types/events" {
       /** An ethereum transaction was successfully executed. */
       Executed: AugmentedEvent<
         ApiType,
-        [from: H160, to: H160, transactionHash: H256, exitReason: EvmCoreErrorExitReason],
-        { from: H160; to: H160; transactionHash: H256; exitReason: EvmCoreErrorExitReason }
+        [
+          from: H160,
+          to: H160,
+          transactionHash: H256,
+          exitReason: EvmCoreErrorExitReason,
+          extraData: Bytes
+        ],
+        {
+          from: H160;
+          to: H160;
+          transactionHash: H256;
+          exitReason: EvmCoreErrorExitReason;
+          extraData: Bytes;
+        }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
@@ -663,6 +705,12 @@ declare module "@polkadot/api-base/types/events" {
       >;
       /** Some asset `asset_id` was frozen. */
       AssetFrozen: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** The min_balance of an asset has been updated by the asset owner. */
+      AssetMinBalanceChanged: AugmentedEvent<
+        ApiType,
+        [assetId: u128, newMinBalance: u128],
+        { assetId: u128; newMinBalance: u128 }
+      >;
       /** An asset has had its attributes changed by the `Force` origin. */
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
@@ -841,6 +889,66 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [account: AccountId20],
         { account: AccountId20 }
+      >;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    multisig: {
+      /** A multisig operation has been approved by someone. */
+      MultisigApproval: AugmentedEvent<
+        ApiType,
+        [
+          approving: AccountId20,
+          timepoint: PalletMultisigTimepoint,
+          multisig: AccountId20,
+          callHash: U8aFixed
+        ],
+        {
+          approving: AccountId20;
+          timepoint: PalletMultisigTimepoint;
+          multisig: AccountId20;
+          callHash: U8aFixed;
+        }
+      >;
+      /** A multisig operation has been cancelled. */
+      MultisigCancelled: AugmentedEvent<
+        ApiType,
+        [
+          cancelling: AccountId20,
+          timepoint: PalletMultisigTimepoint,
+          multisig: AccountId20,
+          callHash: U8aFixed
+        ],
+        {
+          cancelling: AccountId20;
+          timepoint: PalletMultisigTimepoint;
+          multisig: AccountId20;
+          callHash: U8aFixed;
+        }
+      >;
+      /** A multisig operation has been executed. */
+      MultisigExecuted: AugmentedEvent<
+        ApiType,
+        [
+          approving: AccountId20,
+          timepoint: PalletMultisigTimepoint,
+          multisig: AccountId20,
+          callHash: U8aFixed,
+          result: Result<Null, SpRuntimeDispatchError>
+        ],
+        {
+          approving: AccountId20;
+          timepoint: PalletMultisigTimepoint;
+          multisig: AccountId20;
+          callHash: U8aFixed;
+          result: Result<Null, SpRuntimeDispatchError>;
+        }
+      >;
+      /** A new multisig operation has begun. */
+      NewMultisig: AugmentedEvent<
+        ApiType,
+        [approving: AccountId20, multisig: AccountId20, callHash: U8aFixed],
+        { approving: AccountId20; multisig: AccountId20; callHash: U8aFixed }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
@@ -1569,6 +1677,14 @@ declare module "@polkadot/api-base/types/events" {
         [index: u32, tally: PalletConvictionVotingTally],
         { index: u32; tally: PalletConvictionVotingTally }
       >;
+      /** Metadata for a referendum has been cleared. */
+      MetadataCleared: AugmentedEvent<
+        ApiType,
+        [index: u32, hash_: H256],
+        { index: u32; hash_: H256 }
+      >;
+      /** Metadata for a referendum has been set. */
+      MetadataSet: AugmentedEvent<ApiType, [index: u32, hash_: H256], { index: u32; hash_: H256 }>;
       /** A proposal has been rejected by referendum. */
       Rejected: AugmentedEvent<
         ApiType,
