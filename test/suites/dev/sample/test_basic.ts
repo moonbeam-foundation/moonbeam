@@ -21,7 +21,7 @@ describeSuite({
     const anotherLogger = setupLogger("anotherLogger");
 
     beforeAll(() => {
-      signer = context.ethersSigner();
+      signer = context.ethers();
       w3 = context.web3();
       polkadotJs = context.polkadotJs();
     });

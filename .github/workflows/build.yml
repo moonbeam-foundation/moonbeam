@@ -70,7 +70,8 @@ jobs:
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
-          LATEST_RT_SHA8=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
+          LATEST_RT_TAG=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.url' ) && [[ ! -z "${LATEST_RT_TAG}" ]]
+          LATEST_RT_SHA8=$(curl -s $LATEST_RT_TAG | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
           echo $LATEST_RT_SHA8
           echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
       - name: Check existing docker image
@@ -499,6 +500,7 @@ jobs:
         chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -533,6 +535,7 @@ jobs:
         chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v3

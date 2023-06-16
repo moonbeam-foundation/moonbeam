@@ -1,8 +1,8 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import chalk from "chalk";
-import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
+import { ApiDecoration } from "@polkadot/api/types";
+import chalk from "chalk";
 
 describeSuite({
   id: "S200",
