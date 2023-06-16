@@ -498,6 +498,7 @@ jobs:
         chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -532,6 +533,7 @@ jobs:
         chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v3

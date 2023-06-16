@@ -78,7 +78,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
           debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
         }
       }
-      await limiter.disconnect()
+      await limiter.disconnect();
     }
 
     let t3 = performance.now();
@@ -107,7 +107,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
 
-      debug(context.polkadotApi.stats)
+      debug(context.polkadotApi.stats);
 
       const combined = returnedValues.map((value, index) => ({
         value,
@@ -156,7 +156,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       }
       batch = null;
       returnedValues = null;
-      await limiter.disconnect()
+      await limiter.disconnect();
     }
 
     t3 = performance.now();
