@@ -71,7 +71,7 @@ jobs:
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
           LATEST_RT_TAG=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.url' ) && [[ ! -z "${LATEST_RT_TAG}" ]]
-          LATEST_RT_SHA8=$(curl -s '$LATEST_RT_TAG' | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
+          LATEST_RT_SHA8=$(curl -s $LATEST_RT_TAG | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
           echo $LATEST_RT_SHA8
           echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
       - name: Check existing docker image
