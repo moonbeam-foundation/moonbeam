@@ -2784,7 +2784,7 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::ForeignChainAliasAccount::<AccountId>::convert_ref(
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
 				alice_in_parachain_2000_multilocation.clone(),
 			)
 			.unwrap()
