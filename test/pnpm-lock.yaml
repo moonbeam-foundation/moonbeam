@@ -1,7 +1,7 @@
 lockfileVersion: '6.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 dependencies:
@@ -11,9 +11,18 @@ dependencies:
   '@openzeppelin/contracts':
     specifier: ^4.9.2
     version: 4.9.2
+  '@polkadot/api-derive':
+    specifier: ^10.9.1
+    version: 10.9.1
   '@polkadot/apps-config':
     specifier: ^0.129.1
     version: 0.129.1(@polkadot/util-crypto@12.3.2)
+  '@polkadot/keyring':
+    specifier: ^12.1.2
+    version: 12.3.2(@polkadot/util-crypto@12.3.2)(@polkadot/util@12.3.2)
+  '@polkadot/rpc-provider':
+    specifier: ^10.9.1
+    version: 10.9.1
   '@polkadot/util-crypto':
     specifier: ^12.3.2
     version: 12.3.2(@polkadot/util@12.3.2)
