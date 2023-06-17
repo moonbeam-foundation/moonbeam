@@ -34,6 +34,8 @@ declare module "@polkadot/api-base/types/errors" {
       BadWitness: AugmentedError<ApiType>;
       /** Account balance must be greater than or equal to the transfer amount. */
       BalanceLow: AugmentedError<ApiType>;
+      /** Callback action resulted in error */
+      CallbackFailed: AugmentedError<ApiType>;
       /** The origin account is frozen. */
       Frozen: AugmentedError<ApiType>;
       /** The asset status is not the expected status. */
@@ -259,6 +261,8 @@ declare module "@polkadot/api-base/types/errors" {
       NotSimpleMajority: AugmentedError<ApiType>;
       /** The given account did not vote on the referendum. */
       NotVoter: AugmentedError<ApiType>;
+      /** The preimage does not exist. */
+      PreimageNotExist: AugmentedError<ApiType>;
       /** Proposal still blacklisted */
       ProposalBlacklisted: AugmentedError<ApiType>;
       /** Proposal does not exist */
@@ -380,6 +384,8 @@ declare module "@polkadot/api-base/types/errors" {
       BadWitness: AugmentedError<ApiType>;
       /** Account balance must be greater than or equal to the transfer amount. */
       BalanceLow: AugmentedError<ApiType>;
+      /** Callback action resulted in error */
+      CallbackFailed: AugmentedError<ApiType>;
       /** The origin account is frozen. */
       Frozen: AugmentedError<ApiType>;
       /** The asset status is not the expected status. */
@@ -463,6 +469,38 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    multisig: {
+      /** Call is already approved by this signatory. */
+      AlreadyApproved: AugmentedError<ApiType>;
+      /** The data to be stored is already stored. */
+      AlreadyStored: AugmentedError<ApiType>;
+      /** The maximum weight information provided was too low. */
+      MaxWeightTooLow: AugmentedError<ApiType>;
+      /** Threshold must be 2 or greater. */
+      MinimumThreshold: AugmentedError<ApiType>;
+      /** Call doesn't need any (more) approvals. */
+      NoApprovalsNeeded: AugmentedError<ApiType>;
+      /** Multisig operation not found when attempting to cancel. */
+      NotFound: AugmentedError<ApiType>;
+      /** No timepoint was given, yet the multisig operation is already underway. */
+      NoTimepoint: AugmentedError<ApiType>;
+      /** Only the account that originally created the multisig is able to cancel it. */
+      NotOwner: AugmentedError<ApiType>;
+      /** The sender was contained in the other signatories; it shouldn't be. */
+      SenderInSignatories: AugmentedError<ApiType>;
+      /** The signatories were provided out of order; they should be ordered. */
+      SignatoriesOutOfOrder: AugmentedError<ApiType>;
+      /** There are too few signatories in the list. */
+      TooFewSignatories: AugmentedError<ApiType>;
+      /** There are too many signatories in the list. */
+      TooManySignatories: AugmentedError<ApiType>;
+      /** A timepoint was given, yet no multisig operation is underway. */
+      UnexpectedTimepoint: AugmentedError<ApiType>;
+      /** A different timepoint was given to the multisig operation that is underway. */
+      WrongTimepoint: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     openTechCommitteeCollective: {
       /** Members are already initialized! */
       AlreadyInitialized: AugmentedError<ApiType>;
@@ -525,8 +563,13 @@ declare module "@polkadot/api-base/types/errors" {
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHint: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintCandidateBondMore: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintGoOffline: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintGoOnline: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -537,21 +580,21 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     parachainSystem: {
-      /** The inherent which supplies the host configuration did not run this block */
+      /** The inherent which supplies the host configuration did not run this block. */
       HostConfigurationNotAvailable: AugmentedError<ApiType>;
       /** No code upgrade has been authorized. */
       NothingAuthorized: AugmentedError<ApiType>;
       /** No validation function upgrade is currently scheduled. */
       NotScheduled: AugmentedError<ApiType>;
-      /** Attempt to upgrade validation function while existing upgrade pending */
+      /** Attempt to upgrade validation function while existing upgrade pending. */
       OverlappingUpgrades: AugmentedError<ApiType>;
-      /** Polkadot currently prohibits this parachain from upgrading its validation function */
+      /** Polkadot currently prohibits this parachain from upgrading its validation function. */
       ProhibitedByPolkadot: AugmentedError<ApiType>;
-      /** The supplied validation function has compiled into a blob larger than Polkadot is willing to run */
+      /** The supplied validation function has compiled into a blob larger than Polkadot is willing to run. */
       TooBig: AugmentedError<ApiType>;
       /** The given code upgrade has not been authorized. */
       Unauthorized: AugmentedError<ApiType>;
-      /** The inherent which supplies the validation data did not run this block */
+      /** The inherent which supplies the validation data did not run this block. */
       ValidationDataNotAvailable: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
@@ -679,6 +722,8 @@ declare module "@polkadot/api-base/types/errors" {
       NotOngoing: AugmentedError<ApiType>;
       /** No track exists for the proposal origin. */
       NoTrack: AugmentedError<ApiType>;
+      /** The preimage does not exist. */
+      PreimageNotExist: AugmentedError<ApiType>;
       /** The queue of the track is empty. */
       QueueEmpty: AugmentedError<ApiType>;
       /** Any deposit cannot be refunded until after the decision is over. */

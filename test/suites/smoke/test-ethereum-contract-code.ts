@@ -1,100 +1,176 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
-import chalk from "chalk";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { THIRTY_MINS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import { u8aConcat, u8aToHex } from "@polkadot/util";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
+import chalk from "chalk";
+import { rateLimiter } from "../../helpers/common.js";
+const limiter = rateLimiter();
 
-// TODO: Once balanceConsistency refactor PR merged, update this tc to use the new fast query logic
 describeSuite({
   id: "S600",
   title: `Ethereum contract bytecode should not be large`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
-    const accountCodeSizesByAddress: { [account: string]: number } = {};
-    let paraApi: ApiPromise;
-
-    // returns the length in bytes of the byte array represented by the given hex string.
-    // assumes a prefixed "0x".
-    const byteLengthOfHexString = (hex: string): number => {
-      return (hex.length - 2) / 2;
-    };
+    let atBlockNumber: number;
+    let totalContracts: bigint = 0n;
+    const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      const blockHash = process.env.BLOCK_NUMBER
+        ? (
+            await context
+              .polkadotJs({ apiName: "para" })
+              .rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))
+          ).toHex()
+        : (await context.polkadotJs({ apiName: "para" }).rpc.chain.getFinalizedHead()).toHex();
+      atBlockNumber = (
+        await context.polkadotJs({ apiName: "para" }).rpc.chain.getHeader(blockHash)
+      ).number.toNumber();
+
+      // taken from geth, e.g. search "MaxCodeSize":
+      // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
+      const MAX_CONTRACT_SIZE_BYTES = 24576;
+      const getBytecodeSize = (bytecode: string) => Math.ceil((bytecode.length - 2) / 2);
+
+      // Max RPC response limit is 15728640 bytes (15MB), so pessimistically the pageLimit
+      // needs to be lower than if every contract was above the MAX_CONTRACT_SIZE
       const limit = 500;
-      let last_key = "";
+      const keyPrefix = u8aToHex(
+        u8aConcat(xxhashAsU8a("EVM", 128), xxhashAsU8a("AccountCodes", 128))
+      );
+      const growthFactor = 1.5;
+      let last_key = keyPrefix;
       let count = 0;
+      let loggingFrequency = 10;
+      let loopCount = 0;
 
-      // Configure the api at a specific block
-      // (to avoid inconsistency querying over multiple block when the test takes a long time to
-      // query data and blocks are being produced)
-      atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
-        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
-      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
+      let pagedKeys = [];
 
-      const doOneRequest = async () => {
-        const query = await apiAt.query.evm.accountCodes.entriesPaged({
-          args: [],
-          pageSize: limit,
-          startKey: last_key,
-        });
+      let t0 = performance.now();
+      let t1 = t0;
+      keys: while (true) {
+        const queryResults = (
+          await limiter.schedule(() =>
+            context
+              .polkadotJs({ apiName: "para" })
+              .rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
+          )
+        )
+          .map((key) => key.toHex())
+          .filter((key) => key.includes(keyPrefix));
+        pagedKeys.push(...queryResults);
+        count += queryResults.length;
 
-        if (query.length == 0) {
-          return true;
-        }
-        count += query.length;
-
-        for (const accountCode of query) {
-          let accountId = `0x${accountCode[0].toHex().slice(-40)}`;
-          last_key = accountCode[0].toString();
-          accountCodeSizesByAddress[accountId] = byteLengthOfHexString(accountCode[1].toHex());
+        if (queryResults.length === 0) {
+          break keys;
         }
 
-        // Debug logs to make sure it keeps progressing
-        if (count % (10 * limit) == 0) {
-          log(`Retrieved ${count} accountCodes`);
-        }
+        last_key = queryResults[queryResults.length - 1];
 
-        return false;
-      };
+        if (count % (limit * loggingFrequency) == 0) {
+          loopCount++;
+          const t2 = performance.now();
+          const duration = t2 - t1;
+          const qps = (limit * loggingFrequency) / (duration / 1000);
+          const used = process.memoryUsage().heapUsed / 1024 / 1024;
+          log(
+            `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
+          );
 
-      await new Promise<void>((resolve) => {
-        const run = async () => {
-          const done = await doOneRequest();
-          if (done) {
-            resolve();
-          } else {
-            setTimeout(run, 100);
+          // Increase logging threshold after 5 prints
+          if (loopCount % 5 === 0) {
+            loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
+            log(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
           }
-        };
+        }
+      }
 
-        setTimeout(run, 100);
-      });
+      let t3 = performance.now();
+      const keyQueryTime = (t3 - t0) / 1000;
+      const keyText =
+        keyQueryTime > 60
+          ? `${(keyQueryTime / 60).toFixed(1)} minutes`
+          : `${keyQueryTime.toFixed(1)} seconds`;
 
-      log(`Retrieved ${count} total accountCodes`);
+      const totalKeys = pagedKeys.length;
+      log(`Finished querying ${totalKeys} EVM.AccountCodes storage keys in ${keyText} ✅`);
+
+      count = 0;
+      t0 = performance.now();
+      loggingFrequency = 10;
+      t1 = t0;
+      loopCount = 0;
+
+      while (pagedKeys.length) {
+        let batch = [];
+        for (let i = 0; i < limit && pagedKeys.length; i++) {
+          batch.push(pagedKeys.pop());
+        }
+        const returnedValues = (await limiter.schedule(() =>
+          context.polkadotJs({ apiName: "para" }).rpc.state.queryStorageAt(batch, blockHash)
+        )) as any[];
+
+        const combined = returnedValues.map((value, index) => ({
+          value,
+          address: batch[index],
+        }));
+
+        for (let j = 0; j < combined.length; j++) {
+          totalContracts++;
+          const accountId = "0x" + combined[j].address.slice(-40);
+          const deployedBytecode = u8aToHex(combined[j].value.unwrap()).slice(6);
+          const codesize = getBytecodeSize(deployedBytecode);
+          if (codesize > MAX_CONTRACT_SIZE_BYTES) {
+            failedContractCodes.push({ accountId, codesize });
+          }
+        }
+        count += batch.length;
+
+        if (count % (loggingFrequency * limit) === 0) {
+          const t2 = performance.now();
+          const used = process.memoryUsage().heapUsed / 1024 / 1024;
+          const duration = t2 - t1;
+          const qps = (loggingFrequency * limit) / (duration / 1000);
+          log(
+            `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
+              0
+            )} MB heap used, ${((count * 100) / totalKeys).toFixed(1)}% complete`
+          );
+          loopCount++;
+          t1 = t2;
+
+          // Increase logging threshold after 5 prints
+          if (loopCount % 5 === 0) {
+            loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
+            log(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
+          }
+
+          // Print estimated time left every 10 prints
+          if (loopCount % 10 === 0) {
+            const timeLeft = (pagedKeys.length - count) / qps;
+            const text =
+              timeLeft < 60
+                ? `${timeLeft.toFixed(0)} seconds`
+                : `${(timeLeft / 60).toFixed(0)} minutes`;
+            log(`⏲️  Estimated time left: ${text}`);
+          }
+        }
+      }
+
+      t3 = performance.now();
+      const checkTime = (t3 - t0) / 1000;
+      const text =
+        checkTime < 60
+          ? `${checkTime.toFixed(1)} seconds`
+          : `${(checkTime / 60).toFixed(1)} minutes`;
+      log(`Finished checking ${totalContracts} EVM.AccountCodes storage values in ${text} ✅`);
     }, THIRTY_MINS);
 
     it({
       id: "C100",
       title: "should not have excessively long account codes",
       test: async function () {
-        // taken from geth, e.g. search "MaxCodeSize":
-        // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
-        const MAX_CONTRACT_SIZE_BYTES = 24576;
-        const MAX_CONTRACT_SIZE_HEX = 2 + 2 * MAX_CONTRACT_SIZE_BYTES;
-        const failedContractCodes: { accountId: string; codesize: number }[] = [];
-
-        for (const accountId of Object.keys(accountCodeSizesByAddress)) {
-          const codesize = accountCodeSizesByAddress[accountId];
-          if (codesize > MAX_CONTRACT_SIZE_HEX) {
-            failedContractCodes.push({ accountId, codesize });
-          }
-        }
-
         expect(
           failedContractCodes.length,
           `Failed account codes (too long): ${failedContractCodes
@@ -104,8 +180,7 @@ describeSuite({
             .join(`, `)}`
         ).to.equal(0);
 
-        const numAccounts = Object.keys(accountCodeSizesByAddress).length;
-        log(`Verified ${numAccounts} total account codes (at #${atBlockNumber})`);
+        log(`Verified ${totalContracts} total account codes (at #${atBlockNumber})`);
       },
     });
   },
