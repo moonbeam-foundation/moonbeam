@@ -95,7 +95,7 @@ async function main(args: any) {
   }
 
   console.log(`📁 Found ${Object.keys(sourceToCompile).length} contracts to compile`);
-  const contractsToCompile = [];
+  const contractsToCompile: string[] = [];
   const tempFileExists = await fs
     .access(tempFile)
     .then(() => true)
@@ -105,7 +105,7 @@ async function main(args: any) {
     contractMd5 = JSON.parse((await fs.readFile(tempFile)).toString());
     for (const contract of Object.keys(sourceToCompile)) {
       const path = filePaths.find((path) => path.includes(contract));
-      const contractHash = computeHash((await fs.readFile(path)).toString());
+      const contractHash = computeHash((await fs.readFile(path!)).toString());
       if (contractHash != contractMd5[contract]) {
         console.log(`  - Change in ${chalk.yellow(contract)}, compiling ⚙️`);
         contractsToCompile.push(contract);
