@@ -130,16 +130,13 @@ describeSuite({
         const signedBlock = await paraApi.rpc.chain.getBlock(blockHash);
         const apiAt = await paraApi.at(blockHash);
         const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrapOrDefault();
-        const ethersBlock = await context.ethersSigner().provider.getBlock(blockNum);
+        const ethersBlock = await context.ethers().provider.getBlock(blockNum);
         const transactionStatuses = (
           await apiAt.query.ethereum.currentTransactionStatuses()
         ).unwrapOrDefault();
         const ethersTransactionsFees = await Promise.all(
           ethersBlock.transactions.map(
-            async (hash) =>
-              (
-                await context.ethersSigner().provider.getTransactionReceipt(hash)
-              ).gasUsed
+            async (hash) => (await context.ethers().provider.getTransactionReceipt(hash)).gasUsed
           )
         );
         const weights = await apiAt.query.system.blockWeight();

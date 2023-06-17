@@ -11,7 +11,7 @@ on:
 
 jobs:
   setup-scripts:
-    runs-on: self-hosted
+    runs-on: bare-metal
     steps:
       - uses: actions/checkout@v3
       - name: Upload tools

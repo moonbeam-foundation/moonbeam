@@ -31,6 +31,7 @@ use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
+use pallet_evm_precompile_gmp::GmpPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -130,7 +131,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2052>,
 		XtokensPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting<1>,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	>,
 	PrecompileAt<
 		AddressU64<2053>,
@@ -228,6 +233,7 @@ type MoonbeamPrecompilesAt<R> = (
 		PrecompileRegistry<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
+	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
 );
 
 /// The PrecompileSet installed in the Moonbeam runtime.

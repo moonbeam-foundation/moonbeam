@@ -50,9 +50,9 @@ describeSmokeSuite("S570", `RPC Eth ParentHash`, async function (context, testIt
       await context.polkadotApi.rpc.chain.getBlockHash(badBlockNumber)
     );
 
-    const specName = context.polkadotApi.consts.system.version.specName.toString();
-    if (specName !== "moonbase") {
-      debug(`Test only applies for "moonbase", skipping for "${specName}"`);
+    const chainName = (await context.polkadotApi.rpc.system.chain()).toString();
+    if (chainName !== "Moonbase Alpha") {
+      debug(`Test only applies for "Moonbase Alpha", skipping for "${chainName}"`);
       this.skip();
     }
 

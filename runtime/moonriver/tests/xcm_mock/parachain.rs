@@ -53,7 +53,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -181,7 +181,7 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// Generate remote accounts according to polkadot standards
-	xcm_builder::ForeignChainAliasAccount<AccountId>,
+	xcm_builder::HashedDescriptionDescribeFamilyAllTerminal<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -280,14 +280,21 @@ pub type AssetTransactors = (
 
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
-pub type Barrier = (
+pub type XcmBarrier = (
+	// Weight that is paid for may be consumed.
 	TakeWeightCredit,
-	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
-	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
+	WithComputedOrigin<
+		(
+			// If the message is one that immediately attemps to pay for execution, then allow it.
+			AllowTopLevelPaidExecutionFrom<Everything>,
+			// Subscriptions for version tracking are OK.
+			AllowSubscriptionsFrom<Everything>,
+		),
+		UniversalLocation,
+		ConstU32<8>,
+	>,
 );
 
 parameter_types! {
@@ -361,7 +368,7 @@ impl Config for XcmConfig {
 	>;
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
-	type Barrier = Barrier;
+	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	// We use three traders
 	// When we receive either representation of the self-reserve asset,

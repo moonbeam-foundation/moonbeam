@@ -21,9 +21,6 @@
 mod asset_id_conversions;
 pub use asset_id_conversions::*;
 
-mod barriers;
-pub use barriers::*;
-
 mod constants;
 pub use constants::*;
 

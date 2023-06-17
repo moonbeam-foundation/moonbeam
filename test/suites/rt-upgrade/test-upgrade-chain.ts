@@ -1,8 +1,8 @@
-import { describeSuite, beforeAll, expect, MoonwallContext } from "@moonwall/cli";
+import "@moonbeam-network/api-augment";
+import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import "@moonbeam-network/api-augment";
 
 describeSuite({
   id: "CIRT",
