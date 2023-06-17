@@ -161,7 +161,7 @@ export const verifyBlockFees = async (
                 //   (await context.web3().eth.getBlock(number - 1)).baseFeePerGas!
                 // );
                 const baseFeePerGas = (
-                  await context.viemClient("public").getBlock({ blockNumber: BigInt(number - 1) })
+                  await context.viem("public").getBlock({ blockNumber: BigInt(number - 1) })
                 ).baseFeePerGas!;
                 let priorityFee;
 

@@ -36,7 +36,7 @@ describeSuite({
         );
 
         expect(
-          BigInt(await context.viemClient("public").getBalance({ address: randomAddress }))
+          BigInt(await context.viem("public").getBalance({ address: randomAddress }))
         ).to.equal(2n * GLMR);
       },
     });

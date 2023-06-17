@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should have a balance of > 100 GLMR without state override",
       test: async function () {
-        const { data } = await context.viemClient("public").call({
+        const { data } = await context.viem("public").call({
           account: baltathar.address,
           to: stateOverrideAddress as `0x${string}`,
           data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),

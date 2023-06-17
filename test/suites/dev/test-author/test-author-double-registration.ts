@@ -35,12 +35,12 @@ describeSuite({
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
           alith.address
         );
-        const expectedReservecBalance = 2n * DEFAULT_GENESIS_MAPPING;
+        const expectedReservedBalance = 2n * DEFAULT_GENESIS_MAPPING;
         expect((await api.query.system.account(ALITH_ADDRESS)).data.free.toBigInt()).to.eq(
-          DEFAULT_GENESIS_BALANCE - expectedReservecBalance - fee
+          DEFAULT_GENESIS_BALANCE - expectedReservedBalance - fee
         );
         expect((await api.query.system.account(ALITH_ADDRESS)).data.reserved.toBigInt()).to.eq(
-          expectedReservecBalance
+          expectedReservedBalance
         );
       },
     });
@@ -64,12 +64,12 @@ describeSuite({
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(
           alith.address
         );
-        const expectedReservecBalance = 3n * DEFAULT_GENESIS_MAPPING;
+        const expectedReservedBalance = 3n * DEFAULT_GENESIS_MAPPING;
         expect((await api.query.system.account(ALITH_ADDRESS)).data.free.toBigInt()).to.eq(
           genesisAccountBalanceBefore - DEFAULT_GENESIS_MAPPING - fee
         );
         expect((await api.query.system.account(ALITH_ADDRESS)).data.reserved.toBigInt()).to.eq(
-          expectedReservecBalance
+          expectedReservedBalance
         );
       },
     });

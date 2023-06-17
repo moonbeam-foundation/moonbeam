@@ -36,14 +36,14 @@ describeSuite({
       test: async function () {
         const { bytecode } = await fetchCompiledContract("Incrementor");
 
-        const result = await context.viemClient("public").estimateGas({
+        const result = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           data: bytecode,
           gasPrice: 0n,
         });
         expect(result).to.equal(174798n);
 
-        const result2 = await context.viemClient("public").estimateGas({
+        const result2 = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           data: bytecode,
         });
@@ -97,7 +97,7 @@ describeSuite({
           [],
         ];
 
-        const batchSomeGas = await context.viemClient("public").estimateGas({
+        const batchSomeGas = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -107,7 +107,7 @@ describeSuite({
           }),
         });
 
-        const batchSomeUntilFailureGas = await context.viemClient("public").estimateGas({
+        const batchSomeUntilFailureGas = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -117,7 +117,7 @@ describeSuite({
           }),
         });
 
-        const batchAllGas = await context.viemClient("public").estimateGas({
+        const batchAllGas = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -138,7 +138,7 @@ describeSuite({
       test: async function () {
         const { bytecode } = await fetchCompiledContract("MultiplyBy7");
         expect(
-          await context.viemClient("public").estimateGas({
+          await context.viem("public").estimateGas({
             account: PRECOMPILE_BATCH_ADDRESS,
             data: bytecode,
           })
@@ -155,7 +155,7 @@ describeSuite({
 
         expect(
           async () =>
-            await context.viemClient("public").estimateGas({
+            await context.viem("public").estimateGas({
               account: ALITH_ADDRESS,
               to: contractAddress,
               data: encodeFunctionData({

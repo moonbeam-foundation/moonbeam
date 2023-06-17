@@ -41,7 +41,7 @@ describeSuite({
         const EXPECTED_WEIGHT = EXPECTED_GAS_USED * WEIGHT_PER_GAS;
 
         const receipt = await context
-          .viemClient("public")
+          .viem("public")
           .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
         expect(BigInt(receipt.gasUsed)).to.equal(EXPECTED_GAS_USED);
 

@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@moonbeam-network/api-augment": "^0.2302.0",
+    "@moonbeam-network/api-augment": "^0.2400.0",
     "@moonwall/cli": "^3.0.5",
     "@moonwall/util": "^3.0.4",
     "@polkadot/api": "^10.9.1",
@@ -37,14 +37,21 @@
   },
   "dependencies": {
     "@acala-network/chopsticks": "^0.6.6",
+    "@openzeppelin/contracts": "^4.9.2",
     "@polkadot/apps-config": "^0.129.1",
     "@polkadot/util-crypto": "^12.3.2",
+    "@substrate/txwrapper-core": "^6.0.1",
+    "@substrate/txwrapper-substrate": "^6.0.1",
+    "@types/yargs": "^17.0.24",
     "@vitest/ui": "^0.31.4",
     "@zombienet/utils": "^0.0.19",
     "chalk": "^5.2.0",
     "json-bigint": "^1.0.0",
     "json-stable-stringify": "^1.0.2",
+    "node-fetch": "^3.3.1",
     "semver": "^7.5.2",
+    "solc": "0.8.19",
+    "viem": "^1.0.7",
     "vitest": "^0.31.4"
   }
 }

@@ -12,7 +12,7 @@ describeSuite({
       title: "treasury should be empty at genesis",
       test: async () => {
         expect(
-          await context.viemClient("public").getBalance({ address: TREASURY_ACCOUNT }),
+          await context.viem("public").getBalance({ address: TREASURY_ACCOUNT }),
           "Treasury account should be initially empty"
         ).to.equal(0n);
       },
@@ -23,9 +23,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 2}`,
         title: `should send 20% of fees to treasury for ${txnType} transfers`,
         test: async () => {
-          const balBefore = await context
-            .viemClient("public")
-            .getBalance({ address: TREASURY_ACCOUNT });
+          const balBefore = await context.viem("public").getBalance({ address: TREASURY_ACCOUNT });
           const issuanceBefore = (
             await context.polkadotJs().query.balances.totalIssuance()
           ).toBigInt();
@@ -33,9 +31,7 @@ describeSuite({
             await createRawTransfer(context, BALTATHAR_ADDRESS, 128, { type: txnType })
           );
 
-          const balAfter = await context
-            .viemClient("public")
-            .getBalance({ address: TREASURY_ACCOUNT });
+          const balAfter = await context.viem("public").getBalance({ address: TREASURY_ACCOUNT });
           const issuanceAfter = (
             await context.polkadotJs().query.balances.totalIssuance()
           ).toBigInt();

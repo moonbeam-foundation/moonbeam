@@ -7,15 +7,15 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
-      expect(await context.viemClient("public").getBlockNumber()).toBe(0n);
+      expect(await context.viem("public").getBlockNumber()).toBe(0n);
     });
 
     it({
       id: "T01",
       title: "should contain block details",
       test: async function () {
-        expect(await context.viemClient("public").getBlockNumber()).to.equal(0n);
-        const block = await context.viemClient("public").getBlock({ blockNumber: 0n });
+        expect(await context.viem("public").getBlockNumber()).to.equal(0n);
+        const block = await context.viem("public").getBlock({ blockNumber: 0n });
         expect(block).to.include({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,
@@ -43,8 +43,8 @@ describeSuite({
       id: "T02",
       title: "should be accessible by hash",
       test: async function () {
-        const block = await context.viemClient("public").getBlock({ blockNumber: 0n });
-        const blockByHash = await context.viemClient("public").getBlock({ blockHash: block.hash! });
+        const block = await context.viem("public").getBlock({ blockNumber: 0n });
+        const blockByHash = await context.viem("public").getBlock({ blockHash: block.hash! });
         expect(blockByHash).to.include({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,

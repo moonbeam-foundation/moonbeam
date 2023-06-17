@@ -38,7 +38,7 @@ describeSuite({
         const { result } = await context.createBlock(rawSigned);
 
         const receipt = await context
-          .viemClient("public")
+          .viem("public")
           .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
 
         expect(receipt.status).toBe("reverted");

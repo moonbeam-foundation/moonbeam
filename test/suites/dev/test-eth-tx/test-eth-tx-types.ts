@@ -55,7 +55,7 @@ describeSuite({
       title: "should contain valid EIP2930 Ethereum data",
       test: async function () {
         const currentNonce = await context
-          .viemClient("public")
+          .viem("public")
           .getTransactionCount({ address: ALITH_ADDRESS });
         await context.createBlock(
           (
@@ -112,7 +112,7 @@ describeSuite({
       title: "should contain valid EIP1559 Ethereum data",
       test: async function () {
         const currentNonce = await context
-          .viemClient("public")
+          .viem("public")
           .getTransactionCount({ address: ALITH_ADDRESS });
         await context.createBlock(
           (

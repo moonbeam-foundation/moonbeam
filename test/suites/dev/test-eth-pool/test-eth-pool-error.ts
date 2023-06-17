@@ -39,9 +39,7 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
-        const nonce = await context
-          .viemClient("public")
-          .getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
 
         const { rawSigned: tx1 } = await createEthersTxn(context, {
           to: CHARLETH_ADDRESS,
@@ -71,9 +69,7 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context
-          .viemClient("public")
-          .getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
         const tx1 = await createEthersTxn(context, {
           to: BALTATHAR_ADDRESS,
           value: 1,

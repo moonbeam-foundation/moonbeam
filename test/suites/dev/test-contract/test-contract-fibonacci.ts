@@ -42,7 +42,7 @@ describeSuite({
         test: async function () {
           const { abi, contractAddress } = await deployCreateCompiledContract(context, "Fibonacci");
 
-          const hash = await context.viemClient("wallet").writeContract({
+          const hash = await context.viem("wallet").writeContract({
             abi,
             address: contractAddress,
             functionName: "fib2",
@@ -51,7 +51,7 @@ describeSuite({
           });
 
           await context.createBlock();
-          const receipt = await context.viemClient("public").getTransactionReceipt({ hash });
+          const receipt = await context.viem("public").getTransactionReceipt({ hash });
           expect(receipt.status).toBe("success");
         },
       });

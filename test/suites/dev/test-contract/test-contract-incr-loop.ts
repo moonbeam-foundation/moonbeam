@@ -35,7 +35,7 @@ describeSuite({
       id: "T02",
       title: "should increment contract state",
       test: async function () {
-        await context.viemClient("wallet").writeContract({
+        await context.viem("wallet").writeContract({
           abi: incrementorAbi,
           address: incrementorAddress,
           functionName: "incr",
@@ -51,7 +51,7 @@ describeSuite({
       id: "T01",
       title: "should increment contract state (check fees)",
       test: async function () {
-        await context.viemClient("wallet").writeContract({
+        await context.viem("wallet").writeContract({
           abi: incrementorAbi,
           address: incrementorAddress,
           functionName: "incr",

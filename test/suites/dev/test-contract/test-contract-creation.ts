@@ -32,12 +32,11 @@ describeSuite({
         title: `${txnType} should return the contract code`,
         test: async () => {
           const contractData = await fetchCompiledContract("MultiplyBy7");
-          const callCode = (
-            await context.viemClient("public").call({ data: contractData.bytecode })
-          ).data;
+          const callCode = (await context.viem("public").call({ data: contractData.bytecode }))
+            .data;
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           const deployedCode = await context
-            .viemClient("public")
+            .viem("public")
             .getBytecode({ address: contractAddress! });
           expect(callCode).to.be.eq(deployedCode);
         },
@@ -49,9 +48,7 @@ describeSuite({
         test: async function () {
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           expect(
-            await context
-              .viemClient("public")
-              .getBytecode({ address: contractAddress!, blockNumber: 0n })
+            await context.viem("public").getBytecode({ address: contractAddress!, blockNumber: 0n })
           ).toBeUndefined();
         },
       });
@@ -70,10 +67,10 @@ describeSuite({
           }) as `0x${string}`;
 
           const nonce = await context
-            .viemClient("public")
+            .viem("public")
             .getTransactionCount({ address: ALITH_ADDRESS });
 
-          await context.viemClient("wallet").sendTransaction({ data: callData, nonce });
+          await context.viem("wallet").sendTransaction({ data: callData, nonce });
 
           const contractAddress = ("0x" +
             keccak256(hexToU8a(toRlp([ALITH_ADDRESS, numberToHex(nonce)])))
@@ -82,7 +79,7 @@ describeSuite({
 
           expect(
             await context
-              .viemClient("public")
+              .viem("public")
               .getBytecode({ address: contractAddress, blockTag: "pending" })
           ).to.deep.equal(compiled.deployedBytecode);
 
@@ -90,7 +87,7 @@ describeSuite({
 
           expect(
             await context
-              .viemClient("public")
+              .viem("public")
               .getBytecode({ address: contractAddress, blockTag: "latest" })
           ).to.deep.equal(compiled.deployedBytecode);
         },

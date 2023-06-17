@@ -15,7 +15,7 @@ describeSuite({
       id: "T01",
       title: "should be at block 2",
       test: async function () {
-        expect(await context.viemClient("public").getBlockNumber()).toBe(2n);
+        expect(await context.viem("public").getBlockNumber()).toBe(2n);
       },
     });
 
@@ -23,8 +23,8 @@ describeSuite({
       id: "T02",
       title: "should include previous block hash as parent",
       test: async function () {
-        const block = await context.viemClient("public").getBlock({ blockTag: "latest" });
-        const previousBlock = await context.viemClient("public").getBlock({ blockNumber: 1n });
+        const block = await context.viem("public").getBlock({ blockTag: "latest" });
+        const previousBlock = await context.viem("public").getBlock({ blockNumber: 1n });
         expect(block.hash).to.not.equal(previousBlock.hash);
         expect(block.parentHash).to.equal(previousBlock.hash);
       },

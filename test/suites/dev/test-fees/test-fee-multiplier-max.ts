@@ -48,7 +48,7 @@ describeSuite({
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
         ).toBigInt();
         expect(multiplier).toBe(100_000_000_000_000_000_000_000n);
-        const gasPrice = await context.viemClient("public").getGasPrice();
+        const gasPrice = await context.viem("public").getGasPrice();
         expect(gasPrice).toBe(125_000_000_000_000n);
       },
     });
@@ -122,9 +122,8 @@ describeSuite({
       title: "fibonacci[370] should be spendable",
       test: async function () {
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        let baseFeePerGas = (
-          await context.viemClient("public").getBlock({ blockNumber: blockNumber })
-        ).baseFeePerGas!;
+        let baseFeePerGas = (await context.viem("public").getBlock({ blockNumber: blockNumber }))
+          .baseFeePerGas!;
         expect(baseFeePerGas).to.equal(125_000_000_000_000n);
 
         const {
@@ -133,14 +132,12 @@ describeSuite({
           abi: contractAbi,
         } = await deployCreateCompiledContract(context, "Fibonacci");
 
-        const receipt = await context
-          .viemClient("public")
-          .getTransactionReceipt({ hash: createTxHash });
+        const receipt = await context.viem("public").getTransactionReceipt({ hash: createTxHash });
         expect(receipt.status).toBe("success");
 
         // the multiplier (and thereby base_fee) will have decreased very slightly...
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        baseFeePerGas = (await context.viemClient("public").getBlock({ blockNumber: blockNumber }))
+        baseFeePerGas = (await context.viem("public").getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
         expect(baseFeePerGas).to.equal(124880905088510n);
 
@@ -158,7 +155,7 @@ describeSuite({
         const { result: interactionResult } = await context.createBlock(rawSigned);
 
         const receipt2 = await context
-          .viemClient("public")
+          .viem("public")
           .getTransactionReceipt({ hash: interactionResult!.hash as `0x${string}` });
         expect(receipt2.status).toBe("success");
 

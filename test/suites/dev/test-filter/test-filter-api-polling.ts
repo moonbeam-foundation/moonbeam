@@ -16,7 +16,7 @@ describeSuite({
       title: "should return block information",
       test: async function () {
         const createFilter = await customDevRpcRequest("eth_newBlockFilter", []);
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         const poll = await customDevRpcRequest("eth_getFilterChanges", [createFilter]);
 
         expect(poll.length).to.be.eq(1);
@@ -38,8 +38,8 @@ describeSuite({
 
         const poll = await customDevRpcRequest("eth_getFilterChanges", [filterId]);
 
-        const block2 = await context.viemClient("public").getBlock({ blockNumber: 2n });
-        const block3 = await context.viemClient("public").getBlock({ blockNumber: 3n });
+        const block2 = await context.viem("public").getBlock({ blockNumber: 2n });
+        const block3 = await context.viem("public").getBlock({ blockNumber: 3n });
         expect(poll.length).to.be.eq(2);
         expect(poll[0]).to.be.eq(block2.hash);
         expect(poll[1]).to.be.eq(block3.hash);
@@ -68,7 +68,7 @@ describeSuite({
           context,
           "EventEmitter"
         );
-        const receipt = await context.viemClient("public").getTransactionReceipt({ hash });
+        const receipt = await context.viem("public").getTransactionReceipt({ hash });
 
         const filterId = await customDevRpcRequest("eth_newFilter", [
           {

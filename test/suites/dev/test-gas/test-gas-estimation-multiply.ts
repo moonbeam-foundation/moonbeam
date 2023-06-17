@@ -22,7 +22,7 @@ describeSuite({
       id: "T01",
       title: "should return correct gas estimation",
       test: async function () {
-        const estimatedGas = await context.viemClient("public").estimateContractGas({
+        const estimatedGas = await context.viem("public").estimateContractGas({
           account: ALITH_ADDRESS,
           abi: multiAbi,
           address: multiAddress,
@@ -40,7 +40,7 @@ describeSuite({
       id: "T02",
       title: "should work without gas limit",
       test: async function () {
-        const estimatedGas = await context.viemClient("public").estimateContractGas({
+        const estimatedGas = await context.viem("public").estimateContractGas({
           account: ALITH_ADDRESS,
           abi: multiAbi,
           address: multiAddress,
@@ -60,7 +60,7 @@ describeSuite({
       id: "T03",
       title: "should work with gas limit",
       test: async function () {
-        const estimatedGas = await context.viemClient("public").estimateContractGas({
+        const estimatedGas = await context.viem("public").estimateContractGas({
           account: ALITH_ADDRESS,
           abi: multiAbi,
           address: multiAddress,
@@ -79,7 +79,7 @@ describeSuite({
       id: "T04",
       title: "should ignore from balance (?)",
       test: async function () {
-        const estimatedGas = await context.viemClient("public").estimateContractGas({
+        const estimatedGas = await context.viem("public").estimateContractGas({
           account: "0x0000000000000000000000000000000000000000",
           abi: multiAbi,
           address: multiAddress,
@@ -101,7 +101,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viemClient("public").estimateContractGas({
+            await context.viem("public").estimateContractGas({
               account: "0x0000000000000000000000000000000000000000",
               abi: multiAbi,
               address: multiAddress,

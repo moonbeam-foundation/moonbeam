@@ -13,9 +13,7 @@ describeSuite({
 
     beforeEach(async function () {
       randomAddress = privateKeyToAccount(generatePrivateKey()).address;
-      currentNonce = await context
-        .viemClient("public")
-        .getTransactionCount({ address: ALITH_ADDRESS });
+      currentNonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
     });
 
     it({
@@ -32,9 +30,7 @@ describeSuite({
             maxFeePerGas: parseGwei("20"),
           }),
         ]);
-        expect(await context.viemClient("public").getBalance({ address: randomAddress })).to.equal(
-          2n
-        );
+        expect(await context.viem("public").getBalance({ address: randomAddress })).to.equal(2n);
       },
     });
 
@@ -52,9 +48,7 @@ describeSuite({
             maxFeePerGas: parseGwei("10"),
           }),
         ]);
-        expect(await context.viemClient("public").getBalance({ address: randomAddress })).to.equal(
-          1n
-        );
+        expect(await context.viem("public").getBalance({ address: randomAddress })).to.equal(1n);
       },
     });
 
@@ -76,9 +70,7 @@ describeSuite({
           }),
         ]);
 
-        expect(await context.viemClient("public").getBalance({ address: randomAddress })).to.equal(
-          2n
-        );
+        expect(await context.viem("public").getBalance({ address: randomAddress })).to.equal(2n);
       },
     });
 
@@ -115,9 +107,7 @@ describeSuite({
 
         await context.createBlock(txns);
 
-        expect(await context.viemClient("public").getBalance({ address: randomAddress })).to.equal(
-          2n
-        );
+        expect(await context.viem("public").getBalance({ address: randomAddress })).to.equal(2n);
       },
     });
   },

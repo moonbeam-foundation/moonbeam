@@ -36,7 +36,7 @@ describeSuite({
       id: "T01",
       title: "should cost 21000 gas for a transfer",
       test: async function () {
-        const estimatedGas = await context.viemClient("public").estimateGas({
+        const estimatedGas = await context.viem("public").estimateGas({
           account: ALITH_ADDRESS,
           value: 0n * GLMR,
           to: randomAddress,

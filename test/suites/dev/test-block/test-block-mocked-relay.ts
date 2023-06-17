@@ -8,7 +8,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
-      expect(await context.viemClient("public").getBlockNumber()).toBe(0n);
+      expect(await context.viem("public").getBlockNumber()).toBe(0n);
     });
 
     it({

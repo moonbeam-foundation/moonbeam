@@ -13,7 +13,7 @@ describeSuite({
       test: async function () {
         const { bytecode } = await fetchCompiledContract("MultiplyBy7");
         expect(
-          await context.viemClient("public").estimateGas({
+          await context.viem("public").estimateGas({
             account: ALITH_ADDRESS,
             data: bytecode,
           })

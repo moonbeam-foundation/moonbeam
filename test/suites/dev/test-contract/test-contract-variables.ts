@@ -26,7 +26,7 @@ describeSuite({
       id: "T02",
       title: "should return parent block number + 1 when accessed by RPC call",
       test: async function () {
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         expect(await blockContract.read.getNumber()).toBe(1n);
         expect(await blockContract.read.getNumber()).toBe(block.number);
       },

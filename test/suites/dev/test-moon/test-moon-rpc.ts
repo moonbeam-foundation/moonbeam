@@ -76,7 +76,7 @@ describeSuite({
           { finalize: true }
         );
 
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         const resp = await context
           .polkadotJs()
           .rpc.moon.isTxFinalized(block.transactions[0] as string);
@@ -99,7 +99,7 @@ describeSuite({
           { finalize: false }
         );
 
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         const resp = await context
           .polkadotJs()
           .rpc.moon.isTxFinalized(block.transactions[0] as string);
@@ -130,7 +130,7 @@ describeSuite({
           }),
           { finalize: false }
         );
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         await context.createBlock([], { finalize: true });
         const resp = await context
           .polkadotJs()
@@ -155,7 +155,7 @@ describeSuite({
           )
         ).block.hash;
 
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         await context.createBlock([], { finalize: false });
         await context.createBlock([], { finalize: true, parentHash: blockHash });
         const resp = await context

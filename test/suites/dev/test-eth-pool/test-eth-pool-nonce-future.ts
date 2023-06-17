@@ -31,7 +31,7 @@ describeSuite({
             txnType,
           });
           const txHash = await sendRawTransaction(context, rawSigned);
-          const transaction = await context.viemClient("public").getTransaction({ hash: txHash });
+          const transaction = await context.viem("public").getTransaction({ hash: txHash });
           expect(transaction.blockNumber).to.be.null;
           await context.createBlock();
         },
@@ -49,7 +49,7 @@ describeSuite({
             args: [],
           });
           const nonce = await context
-            .viemClient("public")
+            .viem("public")
             .getTransactionCount({ address: ALITH_ADDRESS });
           const { rawSigned } = await createEthersTxn(context, {
             data: callData,
@@ -60,7 +60,7 @@ describeSuite({
           await context.createBlock(
             await createRawTransfer(context, BALTATHAR_ADDRESS, 512, { nonce })
           );
-          const transaction = await context.viemClient("public").getTransaction({ hash: txHash });
+          const transaction = await context.viem("public").getTransaction({ hash: txHash });
           expect(transaction.blockNumber! > 0n).toBe(true);
         },
       });

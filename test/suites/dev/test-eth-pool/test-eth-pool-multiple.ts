@@ -31,7 +31,7 @@ describeSuite({
       txHashes = await Promise.all(
         new Array(10).fill(0).map(async (_, i) => {
           return await context
-            .viemClient("wallet")
+            .viem("wallet")
             .sendTransaction({ nonce: i, data: callData, gas: 200000n });
         })
       );
@@ -43,7 +43,7 @@ describeSuite({
       test: async function () {
         const transactions = await Promise.all(
           txHashes.map((txHash) =>
-            context.viemClient("public").getTransaction({ hash: txHash as `0x${string}` })
+            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
           )
         );
 
@@ -60,7 +60,7 @@ describeSuite({
       test: async function () {
         const transactions = await Promise.all(
           txHashes.map((txHash) =>
-            context.viemClient("public").getTransaction({ hash: txHash as `0x${string}` })
+            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
           )
         );
 
@@ -79,7 +79,7 @@ describeSuite({
         await context.createBlock();
         const transactions = await Promise.all(
           txHashes.map((txHash) =>
-            context.viemClient("public").getTransaction({ hash: txHash as `0x${string}` })
+            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
           )
         );
 

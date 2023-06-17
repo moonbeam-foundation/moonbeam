@@ -32,7 +32,7 @@ describeSuite({
       id: "T01",
       title: "should appear in the block transaction list",
       test: async () => {
-        const block = await context.viemClient("public").getBlock();
+        const block = await context.viem("public").getBlock();
         const txHash = block.transactions[0];
         expect(txHash).toBe(deployHash);
       },
@@ -42,7 +42,7 @@ describeSuite({
       id: "T02",
       title: "should be in the transaction list",
       test: async () => {
-        const tx = await context.viemClient("public").getTransaction({ hash: deployHash });
+        const tx = await context.viem("public").getTransaction({ hash: deployHash });
         expect(tx.hash).to.equal(deployHash);
       },
     });
@@ -61,7 +61,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viemClient("public").call({
+            await context.viem("public").call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({
@@ -81,7 +81,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viemClient("public").call({
+            await context.viem("public").call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({
@@ -109,7 +109,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viemClient("public").call({
+            await context.viem("public").call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({

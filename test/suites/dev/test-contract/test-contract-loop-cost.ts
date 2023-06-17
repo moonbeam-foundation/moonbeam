@@ -52,7 +52,7 @@ describeSuite({
             await context.createBlock(rawSigned);
 
             expect(await contract.read.count()).toBe(loop);
-            const block = await context.viemClient("public").getBlock();
+            const block = await context.viem("public").getBlock();
             expect(block.gasUsed).toBe(gas);
           },
         });

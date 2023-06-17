@@ -24,13 +24,11 @@ describeSuite({
       priority_fees: number[],
       max_fee_per_gas: string
     ) {
-      let nonce = await context
-        .viemClient("public")
-        .getTransactionCount({ address: ALITH_ADDRESS });
+      let nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
       const contractData = await fetchCompiledContract("MultiplyBy7");
       for (var b = 0; b < block_count; b++) {
         for (var p = 0; p < priority_fees.length; p++) {
-          await context.ethersSigner().sendTransaction({
+          await context.ethers().sendTransaction({
             from: ALITH_ADDRESS,
             data: contractData.bytecode,
             value: "0x00",
@@ -67,10 +65,10 @@ describeSuite({
         const block_count = 2;
         const reward_percentiles = [20, 50, 70];
         const priority_fees = [1, 2, 3];
-        const startingBlock = await context.viemClient("public").getBlockNumber();
+        const startingBlock = await context.viem("public").getBlockNumber();
 
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
-          const unwatch = context.viemClient("public").watchBlocks({
+          const unwatch = context.viem("public").watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) == block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [
@@ -122,10 +120,10 @@ describeSuite({
         let block_count = 11;
         let reward_percentiles = [20, 50, 70, 85, 100];
         let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const startingBlock = await context.viemClient("public").getBlockNumber();
+        const startingBlock = await context.viem("public").getBlockNumber();
 
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
-          const unwatch = context.viemClient("public").watchBlocks({
+          const unwatch = context.viem("public").watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) == block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [

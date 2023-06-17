@@ -33,7 +33,7 @@ describeSuite({
         test: async function () {
           expect(
             async () =>
-              await context.viemClient("public").call({
+              await context.viem("public").call({
                 account: ALITH_ADDRESS,
                 to: looperAddress,
                 data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
@@ -56,7 +56,7 @@ describeSuite({
 
           const { result } = await context.createBlock(rawSigned);
           const receipt = await context
-            .viemClient("public")
+            .viem("public")
             .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           expect(receipt.status).toBe("reverted");
         },

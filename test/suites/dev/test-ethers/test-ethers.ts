@@ -11,7 +11,7 @@ describeSuite({
       id: "T01",
       title: "should get correct network ids",
       test: async function () {
-        expect((await context.ethersSigner().provider!.getNetwork()).chainId).to.equal(1281n);
+        expect((await context.ethers().provider!.getNetwork()).chainId).to.equal(1281n);
       },
     });
 
@@ -23,7 +23,7 @@ describeSuite({
         const contractFactory = new ethers.ContractFactory(
           abi as ethers.InterfaceAbi,
           bytecode,
-          context.ethersSigner()
+          context.ethers()
         );
 
         const contract = await contractFactory.deploy({
@@ -34,8 +34,7 @@ describeSuite({
 
         log("Contract address: ", await contract.getAddress());
         expect((await contract.getAddress()).length).toBeGreaterThan(3);
-        expect(await context.ethersSigner().provider?.getCode(await contract.getAddress())).to.be
-          .string;
+        expect(await context.ethers().provider?.getCode(await contract.getAddress())).to.be.string;
       },
     });
 
@@ -47,13 +46,13 @@ describeSuite({
         const contractFactory = new ethers.ContractFactory(
           contractData.abi as ethers.InterfaceAbi,
           contractData.bytecode,
-          context.ethersSigner()
+          context.ethers()
         );
 
         const deployed = await contractFactory.deploy({
           gasLimit: 1_000_000,
           gasPrice: 10_000_000_000,
-          nonce: await context.ethersSigner().getNonce(),
+          nonce: await context.ethers().getNonce(),
         });
         await context.createBlock();
 
@@ -70,7 +69,7 @@ describeSuite({
         const contractFromAddress = new ethers.Contract(
           await deployed.getAddress(),
           contractData.abi as ethers.InterfaceAbi,
-          context.ethersSigner()
+          context.ethers()
         );
         await context.createBlock();
         expect(
