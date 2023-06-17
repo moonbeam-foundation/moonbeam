@@ -119,9 +119,10 @@ describeSuite({
         for (let j = 0; j < combined.length; j++) {
           totalContracts++;
           const accountId = "0x" + combined[j].address.slice(-40);
-          const deployedBytecode = u8aToHex(combined[j].value.unwrap()).slice(6);
+          const deployedBytecode = u8aToHex(combined[j].value.unwrap());
           const codesize = getBytecodeSize(deployedBytecode);
-          if (codesize > MAX_CONTRACT_SIZE_BYTES) {
+          // 4 bytes maximum for the length prefix
+          if (codesize > MAX_CONTRACT_SIZE_BYTES - 4) {
             failedContractCodes.push({ accountId, codesize });
           }
         }
