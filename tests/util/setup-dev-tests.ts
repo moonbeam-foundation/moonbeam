@@ -17,7 +17,7 @@ import {
   providePolkadotApi,
   provideWeb3Api,
 } from "./providers";
-import { extractError, ExtrinsicCreation } from "./substrate-rpc";
+import { extractBatchError, extractError, ExtrinsicCreation } from "./substrate-rpc";
 
 import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 const debug = require("debug")("test:setup");
@@ -103,7 +103,7 @@ export function describeDevMoonbeam(
             runningNode: null,
             p2pPort: 30333,
             wsPort: 9944,
-            rpcPort: 9944,
+            rpcPort: 9933,
           };
       moonbeamProcess = init.runningNode;
       context.rpcPort = init.rpcPort;

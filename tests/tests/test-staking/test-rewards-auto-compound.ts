@@ -188,7 +188,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - no revoke requests", (con
 describeDevMoonbeam(
   "Staking - Rewards Auto-Compound - scheduled revoke request after round snapshot",
   (context) => {
-    before("should scheduleLeaveDelegators", async () => {
+    before("should scheduleRevokeDelegation", async () => {
       await expectOk(
         context.createBlock([
           context.polkadotApi.tx.sudo
@@ -227,7 +227,7 @@ describeDevMoonbeam(
   }
 );
 
-describeDevMoonbeam("Staking - Rewards Auto-Compound - delegator leave", (context) => {
+describeDevMoonbeam("Staking - Rewards Auto-Compound - delegator revoke", (context) => {
   before("should delegate and add baltathar as candidate", async () => {
     await expectOk(
       context.createBlock([
@@ -252,11 +252,16 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - delegator leave", (contex
 
     await expectOk(
       context.createBlock(
-        context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+        context.polkadotApi.tx.utility
+          .batch([
+            context.polkadotApi.tx.parachainStaking.scheduleRevokeDelegation(alith.address),
+            context.polkadotApi.tx.parachainStaking.scheduleRevokeDelegation(baltathar.address),
+          ])
+          .signAsync(ethan)
       )
     );
 
-    const roundDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay.toNumber();
+    const roundDelay = context.polkadotApi.consts.parachainStaking.revokeDelegationDelay.toNumber();
     await jumpRounds(context, roundDelay);
   });
 
@@ -270,10 +275,21 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - delegator leave", (contex
     expect(autoCompoundDelegationsAlithBefore.toJSON()).to.not.be.empty;
     expect(autoCompoundDelegationsBaltatharBefore.toJSON()).to.not.be.empty;
 
-    await context.createBlock(
-      context.polkadotApi.tx.parachainStaking
-        .executeLeaveDelegators(ethan.address, 2)
-        .signAsync(ethan)
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.utility
+          .batch([
+            context.polkadotApi.tx.parachainStaking.executeDelegationRequest(
+              ethan.address,
+              alith.address
+            ),
+            context.polkadotApi.tx.parachainStaking.executeDelegationRequest(
+              ethan.address,
+              baltathar.address
+            ),
+          ])
+          .signAsync(ethan)
+      )
     );
 
     const autoCompoundDelegationsAlithAfter =
