@@ -1,0 +1,22 @@
+ailing benchmark tests:
+schedule_leave_delegators_worst: "DelegatorBondBelowMin"
+cancel_leave_delegators_worst: "DelegatorBondBelowMin"
+execute_leave_delegators_worst: "DelegatorBondBelowMin"
+schedule_revoke_delegation: "DelegatorBondBelowMin"
+delegator_bond_more: "DelegatorBondBelowMin"
+schedule_delegator_bond_less: "DelegatorBondBelowMin"
+execute_delegator_revoke_delegation_worst: "DelegatorBondBelowMin"
+execute_delegator_bond_less_worst: "DelegatorBondBelowMin"
+delegate_with_auto_compound_worst: "DelegatorBondBelowMin"
+thread 'benchmarks::benchmark_tests::test_benchmarks' panicked at 'assertion failed: !anything_failed', pallets/parachain-staking/src/benchmarks.rs:2610:1
+
+
+failures:
+    benchmarks::benchmark_tests::test_benchmarks
+    benchmarks::tests::bench_cancel_leave_delegators
+    benchmarks::tests::bench_delegator_bond_more
+    benchmarks::tests::bench_execute_delegator_bond_less
+    benchmarks::tests::bench_execute_leave_delegators
+    benchmarks::tests::bench_schedule_delegator_bond_less
+    benchmarks::tests::bench_schedule_leave_delegators
+    benchmarks::tests::bench_schedule_revoke_delegation
