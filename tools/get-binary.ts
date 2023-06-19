@@ -3,10 +3,10 @@
  *  It contains pre-registered versions to allow easy run using Docker.
  *
  *  ports can be given using --port-prefix xx (default 34) using the following rule:
- *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
- *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
- *  - para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
- *  - para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
+ *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001)
+ *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011)
+ *  - para 1 - p2p (p2p: XX100, rpcPort: XX101)
+ *  - para 2 - p2p (p2p: XX110, rpcPort: XX111)
  *
  */
 
