@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, PollStatus, Polling, TotalIssuanceOf},
+	traits::{Everything, PollStatus, Polling, TotalIssuanceOf, VoteTally},
 	weights::Weight,
 };
 use pallet_conviction_voting::TallyOf;
@@ -26,14 +26,14 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
 	DispatchError, Perbill,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
-pub type BlockNumber = u32;
+pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -170,7 +170,7 @@ pub struct TestPolls;
 impl Polling<TallyOf<Runtime>> for TestPolls {
 	type Index = u8;
 	type Votes = u128;
-	type Moment = u32;
+	type Moment = u64;
 	type Class = u8;
 	fn classes() -> Vec<u8> {
 		vec![0, 1, 2]
@@ -186,7 +186,7 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 	}
 	fn access_poll<R>(
 		index: Self::Index,
-		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u32, u8>) -> R,
+		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u64, u8>) -> R,
 	) -> R {
 		let mut polls = Polls::get();
 		let entry = polls.get_mut(&index);
@@ -205,7 +205,7 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 	}
 	fn try_access_poll<R>(
 		index: Self::Index,
-		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u32, u8>) -> Result<R, DispatchError>,
+		f: impl FnOnce(PollStatus<&mut TallyOf<Runtime>, u64, u8>) -> Result<R, DispatchError>,
 	) -> Result<R, DispatchError> {
 		let mut polls = Polls::get();
 		let entry = polls.get_mut(&index);
@@ -249,7 +249,7 @@ impl Polling<TallyOf<Runtime>> for TestPolls {
 impl pallet_conviction_voting::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = pallet_balances::Pallet<Self>;
-	type VoteLockingPeriod = ConstU32<3>;
+	type VoteLockingPeriod = ConstU64<3>;
 	type MaxVotes = ConstU32<3>;
 	type WeightInfo = ();
 	type MaxTurnout = TotalIssuanceOf<Balances, Self::AccountId>;

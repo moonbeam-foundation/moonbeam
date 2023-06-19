@@ -1,68 +1,73 @@
 [package]
-name = "pallet-evm-precompile-xtokens"
-authors = { workspace = true }
+authors = {workspace = true}
 description = "A Precompile to make xtokens accessible to pallet-evm"
 edition = "2021"
+name = "pallet-evm-precompile-xtokens"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
+log = {workspace = true}
+num_enum = {workspace = true}
+rustc-hex = {workspace = true}
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "codec-xcm" ] }
-xcm-primitives = { workspace = true }
+precompile-utils = {workspace = true, features = ["codec-xcm"]}
+xcm-primitives = {workspace = true}
 
 # Substrate
-frame-support = { workspace = true }
-sp-core = { workspace = true }
-sp-runtime = { workspace = true }
-sp-std = { workspace = true }
+frame-support = {workspace = true}
+sp-core = {workspace = true}
+sp-runtime = {workspace = true}
+sp-std = {workspace = true}
 
 # Frontier
-fp-evm = { workspace = true }
-frame-system = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+fp-evm = {workspace = true}
+frame-system = {workspace = true}
+pallet-evm = {workspace = true, features = ["forbid-evm-reentrancy"]}
 
 # Polkadot / XCM
-orml-xtokens = { workspace = true }
-xcm = { workspace = true }
+orml-xtokens = {workspace = true}
+xcm = {workspace = true}
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
+derive_more = {workspace = true}
+serde = {workspace = true}
+sha3 = {workspace = true}
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "testing" ] }
+precompile-utils = {workspace = true, features = ["testing"]}
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "std" ] }
-pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
-sp-io = { workspace = true }
+pallet-balances = {workspace = true, features = ["std"]}
+pallet-timestamp = {workspace = true}
+parity-scale-codec = {workspace = true, features = ["max-encoded-len"]}
+scale-info = {workspace = true, features = ["derive"]}
+sp-io = {workspace = true}
 
 # Cumulus
-cumulus-primitives-core = { workspace = true }
+cumulus-primitives-core = {workspace = true}
 
 # Polkadot
-orml-traits = { workspace = true }
-pallet-xcm = { workspace = true }
-xcm-builder = { workspace = true }
-xcm-executor = { workspace = true }
+orml-traits = {workspace = true}
+pallet-xcm = {workspace = true}
+xcm-builder = {workspace = true}
+xcm-executor = {workspace = true}
 
 [features]
-default = [ "std" ]
+default = ["std"]
+runtime-benchmarks = [
+  "frame-support/runtime-benchmarks",
+  "frame-system/runtime-benchmarks",
+  "xcm-builder/runtime-benchmarks",
+]
 std = [
-	"fp-evm/std",
-	"frame-support/std",
-	"frame-system/std",
-	"orml-xtokens/std",
-	"pallet-evm/std",
-	"precompile-utils/std",
-	"sp-core/std",
-	"sp-std/std",
-	"xcm-primitives/std",
+  "fp-evm/std",
+  "frame-support/std",
+  "frame-system/std",
+  "orml-xtokens/std",
+  "pallet-evm/std",
+  "precompile-utils/std",
+  "sp-core/std",
+  "sp-std/std",
+  "xcm-primitives/std",
 ]
