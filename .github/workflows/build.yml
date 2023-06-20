@@ -312,11 +312,6 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
-        env:
-          RUSTFLAGS: "-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=./mold/bin/mold"
-          RUSTC_WRAPPER: "sccache"
-          CARGO_INCREMENTAL: "0"
-          SCCACHE_CACHE_SIZE: "100GB"
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
