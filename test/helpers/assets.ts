@@ -65,18 +65,18 @@ export async function mockAssetBalance(
   expect(assets.unwrap().asXcm.parents.toNumber()).to.equal(1);
 
   // Get keys to modify balance
-  let module = xxhashAsU8a(new TextEncoder().encode("Assets"), 128);
-  let account_key = xxhashAsU8a(new TextEncoder().encode("Account"), 128);
-  let blake2concatAssetId = new Uint8Array([
+  const module = xxhashAsU8a(new TextEncoder().encode("Assets"), 128);
+  const account_key = xxhashAsU8a(new TextEncoder().encode("Account"), 128);
+  const blake2concatAssetId = new Uint8Array([
     ...blake2AsU8a(assetId.toU8a(), 128),
     ...assetId.toU8a(),
   ]);
 
-  let blake2concatAccount = new Uint8Array([
+  const blake2concatAccount = new Uint8Array([
     ...blake2AsU8a(hexToU8a(account.toString()), 128),
     ...hexToU8a(account.toString()),
   ]);
-  let overallAccountKey = new Uint8Array([
+  const overallAccountKey = new Uint8Array([
     ...module,
     ...account_key,
     ...blake2concatAssetId,
@@ -84,9 +84,9 @@ export async function mockAssetBalance(
   ]);
 
   // Get keys to modify total supply & dummyCode (TODO: remove once dummy code inserted by node)
-  let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
-  let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-  let evmCodeAssetKey = api.query.evm.accountCodes.key("0xFfFFfFff" + assetId.toHex().slice(2));
+  const assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
+  const overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
+  const evmCodeAssetKey = api.query.evm.accountCodes.key("0xFfFFfFff" + assetId.toHex().slice(2));
 
   await context.createBlock(
     api.tx.sudo
@@ -128,7 +128,7 @@ export async function registerLocalAssetWithMeta(
 ): Promise<{ assetId: string; assetAddress: string }> {
   const api = context.polkadotJs({ type: "moon" });
   const {
-    result: { events: eventsRegister },
+    result
   } = await context.createBlock(
     api.tx.sudo
       .sudo(
@@ -143,7 +143,7 @@ export async function registerLocalAssetWithMeta(
   );
 
   // Look for assetId in events
-  const assetId = eventsRegister
+  const assetId = result?.events
     .find(({ event: { section } }) => section.toString() === "assetManager")!
     .event.data[0].toHex()
     .replace(/,/g, "");
