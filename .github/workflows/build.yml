@@ -73,7 +73,7 @@ jobs:
           ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
           RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
           TYPE=$(echo $RESPONSE | jq -r '.object.type')
-  
+
           if [[ $TYPE == "commit" ]]
           then
             LATEST_RT_SHA8=$(echo $RESPONSE | jq -r '.object.sha' | cut -c -8)
@@ -88,7 +88,6 @@ jobs:
           echo $LATEST_RT_SHA8
           echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
 
-          
       - name: Check existing docker image
         id: check-docker-image
         run: |
