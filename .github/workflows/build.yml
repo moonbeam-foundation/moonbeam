@@ -70,10 +70,25 @@ jobs:
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
-          LATEST_RT_TAG=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.url' ) && [[ ! -z "${LATEST_RT_TAG}" ]]
-          LATEST_RT_SHA8=$(curl -s $LATEST_RT_TAG | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
+          ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
+          RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
+          TYPE=$(echo $RESPONSE | jq -r '.object.type')
+  
+          if [[ $TYPE == "commit" ]]
+          then
+            LATEST_RT_SHA8=$(echo $RESPONSE | jq -r '.object.sha' | cut -c -8)
+          elif [[ $TYPE == "tag" ]]
+          then
+            URL=$(echo $RESPONSE | jq -r '.object.url')
+            TAG_RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $URL)
+            TAG_RESPONSE_CLEAN=$(echo $TAG_RESPONSE | tr -d '\000-\037')
+            LATEST_RT_SHA8=$(echo $TAG_RESPONSE_CLEAN | jq -r '.object.sha' | cut -c -8)
+          fi
+
           echo $LATEST_RT_SHA8
           echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
+
+          
       - name: Check existing docker image
         id: check-docker-image
         run: |
