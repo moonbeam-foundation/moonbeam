@@ -312,6 +312,11 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
+        env:
+          RUSTFLAGS: "-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=./mold/bin/mold"
+          RUSTC_WRAPPER: "sccache"
+          CARGO_INCREMENTAL: "0"
+          SCCACHE_CACHE_SIZE: "100GB"
       - name: Upload runtimes
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -613,8 +618,8 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
-          find /tmp/zombie-* -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
-          echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
+          MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
+          find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
       - uses: actions/upload-artifact@v3.1.2
         if: failure()
         with:
