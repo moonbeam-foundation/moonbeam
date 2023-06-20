@@ -1,6 +1,6 @@
 # Inspired by Polkadot Dockerfile
 
-FROM docker.io/paritytech/ci-linux:production as builder
+FROM docker.io/paritytech/ci-linux:1.69.0-bullseye as builder
 LABEL maintainer "alan@purestake.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 
@@ -36,7 +36,7 @@ USER moonbeam
 
 COPY --chown=moonbeam specs/alphanet/westend-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
 RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
-    /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
+	/moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic
 # 9933 for RPC call

@@ -127,9 +127,7 @@ export async function registerLocalAssetWithMeta(
   }: RegisterLocalAssetOptions
 ): Promise<{ assetId: string; assetAddress: string }> {
   const api = context.polkadotJs({ type: "moon" });
-  const {
-    result
-  } = await context.createBlock(
+  const { result } = await context.createBlock(
     api.tx.sudo
       .sudo(
         api.tx.assetManager.registerLocalAsset(
