@@ -309,7 +309,8 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--no-prometheus",
               "--no-telemetry",
               `--port=${ports[i * 4 + numberOfParachains + 2].p2pPort}`,
-              `--ws-port=${ports[i * 4 + numberOfParachains + 2].rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
+              // "--ws-port" parameter will be renamed to "--rpc-port" in 0.9.43
+              `--ws-port=${ports[i * 4 + numberOfParachains + 2].rpcPort}`,
             ],
           },
           {
