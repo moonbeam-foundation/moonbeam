@@ -70,10 +70,25 @@ jobs:
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
 
-          LATEST_RT_TAG=$(curl -s 'https://api.github.com/repos/purestake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.url' ) && [[ ! -z "${LATEST_RT_TAG}" ]]
-          LATEST_RT_SHA8=$(curl -s $LATEST_RT_TAG | jq -r '.object.sha' | cut -c 1-8) && [[ ! -z "${LATEST_RT_SHA8}" ]]
+          ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
+          RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
+          TYPE=$(echo $RESPONSE | jq -r '.object.type')
+  
+          if [[ $TYPE == "commit" ]]
+          then
+            LATEST_RT_SHA8=$(echo $RESPONSE | jq -r '.object.sha' | cut -c -8)
+          elif [[ $TYPE == "tag" ]]
+          then
+            URL=$(echo $RESPONSE | jq -r '.object.url')
+            TAG_RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $URL)
+            TAG_RESPONSE_CLEAN=$(echo $TAG_RESPONSE | tr -d '\000-\037')
+            LATEST_RT_SHA8=$(echo $TAG_RESPONSE_CLEAN | jq -r '.object.sha' | cut -c -8)
+          fi
+
           echo $LATEST_RT_SHA8
           echo "latest_rt_sha8=$LATEST_RT_SHA8" >> $GITHUB_OUTPUT
+
+          
       - name: Check existing docker image
         id: check-docker-image
         run: |
@@ -117,6 +132,7 @@ jobs:
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           use-quiet-mode: "yes"
+          max-depth: 4
 
   check-editorconfig:
     name: "Check editorconfig"
@@ -131,11 +147,12 @@ jobs:
         run: |
           ls /tmp/bin/ec-linux-amd64 || \
           cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.5.0/ec-linux-amd64.tar.gz && \
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.7.0/ec-linux-amd64.tar.gz && \
           tar xvf ec-linux-amd64.tar.gz && \
           chmod +x bin/ec-linux-amd64
       - name: Check files
-        run: /tmp/bin/ec-linux-amd64 --exclude "typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts"
+        # Prettier and editorconfig-checker have different ideas about indentation
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts)|(test\/contracts\/lib\/.*)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
@@ -491,7 +508,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-  test-wasm-upgrade-chopsticks:
+  chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -585,10 +602,37 @@ jobs:
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm ts-node --esm scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          pnpm ts-node --esm --swc scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam
           chmod uog+x tmp/polkadot
           pnpm moonwall test zombie_${{ matrix.chain }}_ci
+
+  dev-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    strategy:
+      matrix:
+        chain: ["moonbase"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
+        with:
+          moonwall_environment: dev_${{ matrix.chain }}
