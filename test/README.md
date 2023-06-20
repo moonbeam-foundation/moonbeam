@@ -57,7 +57,7 @@ pnpm moonwall run dev_moonbase
 ```
 
 ```
-pnpm moonwall download moonriver-runtime 2201
+pnpm moonwall download moonriver-runtime 2401
 ```
 
 
