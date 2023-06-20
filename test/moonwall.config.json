@@ -21,7 +21,7 @@
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
       "foundation": {
-        "rtUpgradePath": "tmp/moonbeam-runtime-latest.wasm",
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"

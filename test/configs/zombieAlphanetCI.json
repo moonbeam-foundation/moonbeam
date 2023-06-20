@@ -26,7 +26,7 @@
   "parachains": [
     {
       "chain": "moonbase-local",
-      "chain_spec_path": "tmp/moonbase-plain-spec.json",
+      "chain_spec_path": "tmp/moonbase-raw-spec.json",
       "id": 1000,
       "collator": {
         "name": "alith",
