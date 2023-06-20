@@ -92,7 +92,7 @@ jobs:
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          echo "image_exists=$(docker image inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -254,7 +254,7 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
@@ -266,7 +266,7 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
@@ -612,10 +612,10 @@ jobs:
         if: failure()
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          NODE_LOGS_ZIP="node_logs_${TIMESTAMP}.zip"
+          NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
           find /tmp -name 'zombie-*' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v3.0.2
+      - uses: actions/upload-artifact@v3.1.2
         if: failure()
         with:
           name: failed-node-logs
@@ -639,7 +639,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v3.0.2
+        uses: actions/download-artifact@v3.1.2
         with:
           name: moonbeam
           path: target/release
