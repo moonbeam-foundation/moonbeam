@@ -19,7 +19,7 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{
-	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
+	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait,
 };
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
