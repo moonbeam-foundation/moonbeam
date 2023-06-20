@@ -613,7 +613,7 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
-          find /tmp -name 'zombie-*' -exec zip -r $NODE_LOGS_ZIP {} \;
+          find /tmp/zombie-* -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v3.1.2
         if: failure()
@@ -639,7 +639,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v3.1.2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam
           path: target/release
