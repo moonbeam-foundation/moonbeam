@@ -5,18 +5,6 @@
   "scriptsDir": "scripts/",
   "environments": [
     {
-      "name": "zombie_moonbeam_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbeam*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbeam_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeamCI.json"
-        }
-      }
-    },
-    {
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
@@ -25,18 +13,6 @@
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"
-        }
-      }
-    },
-    {
-      "name": "zombie_moonbase_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieAlphanetCI.json"
         }
       }
     },
