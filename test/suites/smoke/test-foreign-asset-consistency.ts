@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
+import { rateLimiter } from "../../helpers/common.js";
 
 describeSuite({
   id: "S1000",
@@ -9,7 +10,8 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
+    const limiter = rateLimiter();
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];
@@ -24,35 +26,39 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
-      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
+        : (await limiter.schedule(() => paraApi.rpc.chain.getHeader())).number.toNumber();
+
+      apiAt = await limiter.schedule(async () =>
+        paraApi.at(await limiter.schedule(() => paraApi.rpc.chain.getBlockHash(atBlockNumber)))
+      );
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
-      let query = await apiAt.query.assetManager.assetIdType.entries();
+      let query = await limiter.schedule(() => apiAt.query.assetManager.assetIdType.entries());
       query.forEach(([key, exposure]) => {
         let assetId = key.args.toString();
         foreignAssetIdType[assetId] = exposure.unwrap().toString();
       });
-      query = await apiAt.query.assetManager.assetTypeId.entries();
+      query = await limiter.schedule(() => apiAt.query.assetManager.assetTypeId.entries());
       query.forEach(([key, exposure]) => {
         let assetType = key.args.toString();
         foreignAssetTypeId[assetType] = exposure.unwrap().toString();
       });
 
-      query = await apiAt.query.assetManager.assetTypeUnitsPerSecond.entries();
+      query = await limiter.schedule(() =>
+        apiAt.query.assetManager.assetTypeUnitsPerSecond.entries()
+      );
       query.forEach(([key, _]) => {
         let assetType = key.args.toString();
         foreignXcmAcceptedAssets.push(assetType);
       });
 
       if (specVersion >= 2200) {
-        liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce(
-          (acc, [key, value]) => {
-            acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
-            return acc;
-          },
-          {}
-        );
+        liveForeignAssets = (
+          await limiter.schedule(() => apiAt.query.assets.asset.entries())
+        ).reduce((acc, [key, value]) => {
+          acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
+          return acc;
+        }, {});
       }
     });
 
@@ -131,7 +137,7 @@ describeSuite({
       test: async function () {
         if (specVersion < 2200) {
           log(`ChainSpec ${specVersion} unsupported, skipping.`);
-          this.skip();
+          return;
         }
 
         const notLiveAssets: string[] = [];
@@ -158,7 +164,7 @@ describeSuite({
       test: async function () {
         if (specVersion < 2200) {
           log(`ChainSpec ${specVersion} unsupported, skipping.`);
-          this.skip();
+          return;
         }
 
         const notLiveAssets: string[] = [];
