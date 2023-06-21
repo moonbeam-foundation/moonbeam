@@ -608,7 +608,7 @@ jobs:
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
-          chmod uog+x tmp/moonbeam
+          chmod uog+x ../target/release/moonbeam
           chmod uog+x tmp/polkadot
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
