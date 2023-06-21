@@ -565,16 +565,19 @@ jobs:
           node-version: 18.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
+      - run: |
+          mkdir -p target/release
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: test/tmp
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam
-          path: test/tmp
+          path: target/release
       - name: Retrieve polkadot binary from docker
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
@@ -607,7 +610,7 @@ jobs:
           ## Start zombie network and run tests
           chmod uog+x tmp/moonbeam
           chmod uog+x tmp/polkadot
-          pnpm moonwall test zombie_${{ matrix.chain }}_ci
+          pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
