@@ -1,6 +1,6 @@
 # Inspired by Polkadot Dockerfile
 
-FROM docker.io/paritytech/ci-linux:1.68.2-bullseye as builder
+FROM docker.io/paritytech/ci-linux:1.69.0-bullseye as builder
 LABEL maintainer "alan@purestake.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 

@@ -32,6 +32,7 @@ jobs:
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
     steps:
@@ -69,6 +70,7 @@ jobs:
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
+          echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
 
           ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
           RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
@@ -101,6 +103,9 @@ jobs:
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+          echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
+          echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+          echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
 
   check-copyright:
     runs-on: ubuntu-latest
@@ -254,6 +259,8 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+
+          # change below to "docker image inspect..." after img fixed
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
@@ -266,6 +273,8 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+
+          # change below to "docker image inspect..." after img fixed
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
@@ -544,7 +553,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "prepare-polkadot"]
+    needs: ["set-tags", "build"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
@@ -579,10 +588,13 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Retrieve polkadot binary from docker
+      - name: Retrieve polkadot binary from
         run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_version }}
+          DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
+
+          #POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          #DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
           docker rm -f dummy 2> /dev/null | true
           docker create -ti --name dummy $DOCKER_TAG bash
