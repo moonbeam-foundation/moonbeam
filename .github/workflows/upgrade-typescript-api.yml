@@ -32,6 +32,7 @@ jobs:
         run: |
           cd moonbeam-types-bundle
           npm install @polkadot/api@latest
+          npm run build
       - name: Upgrade polkadotjs for typescript-api
         run: |
           cd typescript-api
