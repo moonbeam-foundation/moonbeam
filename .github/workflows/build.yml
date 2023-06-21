@@ -32,6 +32,7 @@ jobs:
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
       polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
     steps:
@@ -69,6 +70,7 @@ jobs:
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
+          echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -1)" >> $GITHUB_OUTPUT
 
           ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
           RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
@@ -92,7 +94,7 @@ jobs:
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          echo "image_exists=$(docker image inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -101,6 +103,9 @@ jobs:
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+          echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
+          echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+          echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
 
   check-copyright:
     runs-on: ubuntu-latest
@@ -254,7 +259,8 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
@@ -266,7 +272,8 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
@@ -544,7 +551,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "prepare-polkadot"]
+    needs: ["set-tags", "build"]
     strategy:
       matrix:
         ## TODO: add moonriver here when it is ready
@@ -565,24 +572,28 @@ jobs:
           node-version: 18.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: test/tmp
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         uses: actions/download-artifact@v3.0.2
         with:
           name: moonbeam
-          path: test/tmp
-      - name: Retrieve polkadot binary from docker
+          path: target/release
+      - name: Retrieve polkadot binary from
         run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_ver }}
+          DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
 
           docker rm -f dummy 2> /dev/null | true
           docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
+          docker cp dummy:/usr/bin/polkadot test/tmp/polkadot
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
@@ -605,6 +616,46 @@ jobs:
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
-          chmod uog+x tmp/moonbeam
+          chmod uog+x ../target/release/moonbeam
           chmod uog+x tmp/polkadot
-          pnpm moonwall test zombie_${{ matrix.chain }}_ci
+          pnpm moonwall test zombie_${{ matrix.chain }}
+      - name: Zip and Upload Node Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
+          MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
+          find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
+          echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v3.1.2
+        if: failure()
+        with:
+          name: failed-node-logs
+          path: ${{ env.NODE_LOGS_ZIP }}
+
+  dev-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    strategy:
+      matrix:
+        chain: ["moonbase"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
+        with:
+          moonwall_environment: dev_${{ matrix.chain }}
