@@ -14,7 +14,7 @@ echo "Installing Packages"
 npm ci
 
 echo "Starting moonbeam node"
-../target/release/moonbeam --tmp --chain=moonbase-local --rpc-port=9933 &> /tmp/node-start.log &
+../target/release/moonbeam --tmp --chain=moonbase-local &> /tmp/node-start.log &
 PID=$!
 
 echo "Waiting node...(5s)"
