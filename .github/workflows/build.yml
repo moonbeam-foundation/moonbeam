@@ -590,7 +590,7 @@ jobs:
           path: target/release
       - name: Retrieve polkadot binary from
         run: |
-          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_version }}
+          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_ver }}
           DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
 
           #POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
