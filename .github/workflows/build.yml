@@ -591,12 +591,8 @@ jobs:
           POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_ver }}
           DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
 
-          #POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          #DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-
           docker rm -f dummy 2> /dev/null | true
           docker create -ti --name dummy $DOCKER_TAG bash
-          # docker cp dummy:/usr/local/bin/polkadot test/tmp/polkadot
           docker cp dummy:/usr/bin/polkadot test/tmp/polkadot
           docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
