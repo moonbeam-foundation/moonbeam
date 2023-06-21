@@ -70,7 +70,7 @@ jobs:
           echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
           echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
-          echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')" >> $GITHUB_OUTPUT
+          echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -1)" >> $GITHUB_OUTPUT
 
           ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
           RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
