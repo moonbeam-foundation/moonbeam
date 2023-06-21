@@ -260,8 +260,7 @@ jobs:
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
-          # change below to "docker image inspect..." after img fixed
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
@@ -274,8 +273,7 @@ jobs:
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
-          # change below to "docker image inspect..." after img fixed
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
