@@ -1,6 +1,6 @@
 # Inspired by Polkadot Dockerfile
 
-FROM docker.io/paritytech/ci-linux:1.69.0-bullseye as builder
+FROM docker.io/paritytech/ci-linux:1.68.2-bullseye as builder
 LABEL maintainer "alan@purestake.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 
@@ -13,6 +13,7 @@ WORKDIR /
 # TODO how to grab the correct commit from the lock file?
 RUN git clone ${POLKADOT_REPO}
 WORKDIR /polkadot
+RUN rustc --version
 RUN git checkout ${POLKADOT_COMMIT}
 
 # RUN sed -i 's/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 1 \* HOURS/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 2 \* MINUTES/' runtime/*/src/constants.rs

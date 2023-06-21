@@ -565,9 +565,10 @@ jobs:
           node-version: 18.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
-      - run: |
-          mkdir -p target/release
+      - name: Create local folders
+        run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v3.0.2
         with:
