@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { THIRTY_MINS } from "../util/constants";
 
-const debug = require("debug")("smoke:ethereum-contract");
+const debug = require("debug")("smoke:ethereum-block-fix");
 
 describeSmokeSuite("S570", `RPC Eth ParentHash`, async function (context, testIt) {
   let atBlockNumber: number = 0;

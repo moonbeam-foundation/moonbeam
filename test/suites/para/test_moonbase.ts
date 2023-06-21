@@ -119,7 +119,7 @@ describeSuite({
         ).to.be.greaterThan(0);
         // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
         // await context
-        //   .ethersSigner()
+        //   .ethers()
         //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
         // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
       },

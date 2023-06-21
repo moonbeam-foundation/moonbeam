@@ -8,13 +8,10 @@ inputs:
     required: true
   timeout:
     description: default timeout for the tests
-    default: 5000
+    default: "5000"
   force-pass:
-    description: If the tests should pass even if there are failures
-    default: false
-
-env:
-  NODE_OPTIONS: "--max-old-space-size=12288"
+    description: "Indicate whether the workflow should mark the test step as successful, even if actual test failures occur."
+    default: "false"
 
 runs:
   using: "composite"
@@ -66,13 +63,15 @@ runs:
 
     - name: Execute tests
       shell: bash
+      env:
+        NODE_OPTIONS: "--max-old-space-size=12288"
       run: |
         cd ./tests
         node node_modules/.bin/mocha \
           --timeout ${{ inputs.timeout }} \
           --parallel -j $((CPUS / 4)) \
           --exit \
-          'build/tests/**/test-*.js' || ${{ inputs.force-pass }}
+          'build/tests/**/test-*.js' ||  [[ '${{ inputs.force-pass }}' == 'true' ]]
 
     # We determine whether there are unmodified package-lock.json files by:
     # 1. Asking git for a list of all modified files
@@ -80,6 +79,8 @@ runs:
     # 3. Counting the number of lines of output
     - name: Check package-lock.json
       shell: bash
+      env:
+        NODE_OPTIONS: "--max-old-space-size=12288"
       run: |
         cd ./tests
         # Log npm version to make sure it maches with local version
