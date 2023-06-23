@@ -164,7 +164,6 @@ sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 sp-debug-derive = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 sp-externalities = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
@@ -235,29 +234,17 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"forbid-evm-reentrancy",
-	"evm-with-weight-limit",
+	"forbid-evm-reentrancy"
 ] }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
 	"forbid-evm-reentrancy",
-	"evm-with-weight-limit",
 ] }
-pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"evm-with-weight-limit",
-] }
-pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"evm-with-weight-limit",
-] }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"evm-with-weight-limit",
-] }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"evm-with-weight-limit",
-] }
+pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false}
+pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
-	"evm-with-weight-limit",
-] }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false}
 
 # Frontier (client)
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.43" }
@@ -373,6 +360,7 @@ tracing = "0.1.34"
 tracing-core = "0.1.29"
 trie-root = "0.15.2"
 url = "2.2.2"
+schnorrkel = { version = "0.9.1", features = ["preaudit_deprecated", "u64_backend"], default-features = false }
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of
