@@ -8,7 +8,7 @@ on:
         description: tag (ex. v0.8.3) to retrieve commit diff from
         required: true
       to:
-        description: tag (ex. v0.9.0) to generate release note and srtool runtimes from
+        description: tag (ex. v0.9.0) to generate release note and binaries from
         required: true
 
 jobs:
@@ -29,27 +29,40 @@ jobs:
     strategy:
       matrix:
         cpu: ["", "skylake", "znver3"]
-    env:
-      RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: Build Node
-        run: cargo build --profile=production --all
+      - name: Build production moonbeam
+        run: |
+          # Build moonbeam
+          # (we don't use volumes because of ownership/permissions issues)
+          docker build \
+            --tag prod \
+            --build-arg="COMMIT=${{ github.event.inputs.to }}" \
+            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+            - < docker/moonbeam-production.Dockerfile
+
+          # Copy moonbeam binary 
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy prod bash
+          docker cp dummy:/moonbeam/moonbeam moonbeam
+          docker rm -f dummy
+
+          # Cleanup
+          docker rmi prod
+          
       - name: Save parachain binary
         if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam
+          cp moonbeam build/moonbeam
       - name: Save parachain custom binary
         if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam-${{matrix.cpu}}
+          cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:
