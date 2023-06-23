@@ -17,28 +17,20 @@
 //! VRF Key type
 use nimbus_primitives::NimbusId;
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
-use sp_consensus_babe::Transcript;
+use sp_core::sr25519::vrf::{VrfInput, VrfSignData};
 #[cfg(feature = "std")]
-use sp_keystore::vrf::{VRFTranscriptData, VRFTranscriptValue};
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
 /// Make VRF transcript from the VrfInput
-pub fn make_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> Transcript {
-	let mut transcript = Transcript::new(&VRF_ENGINE_ID);
-	transcript.append_message(b"last vrf output", last_vrf_output.as_ref());
-	transcript
+pub fn make_vrf_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VrfInput {
+	VrfInput::new(
+		&VRF_ENGINE_ID,
+		&[(b"last vrf output", last_vrf_output.as_ref())],
+	)
 }
 
-/// Make a VRF transcript data container
-#[cfg(feature = "std")]
-pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {
-	VRFTranscriptData {
-		label: &VRF_ENGINE_ID,
-		items: vec![(
-			"last vrf output",
-			VRFTranscriptValue::Bytes(last_vrf_output.as_ref().to_vec()),
-		)],
-	}
+pub fn make_vrf_sign_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VrfSignData {
+	make_vrf_transcript(last_vrf_output).into()
 }
 
 /// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId
