@@ -2147,8 +2147,8 @@ benchmarks! {
 		let x in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
 		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get());
 		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
-		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get() - 1;
+		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get() - 1;
 
 		use crate::auto_compound::AutoCompoundDelegations;
 
@@ -2174,7 +2174,6 @@ benchmarks! {
 
 		// have x-1 distinct delegators delegate to prime collator, of which y are auto-compounding.
 		// we can directly set the storage here.
-		let auto_compound_z = x * y / 100;
 		for i in 1..x {
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
@@ -2213,10 +2212,11 @@ benchmarks! {
 			)?;
 		}
 	}: {
+		// Use a higher bond amount so that we become the top delegator to trigger worst case behavior.
 		Pallet::<T>::delegate_with_auto_compound(
 			RawOrigin::Signed(prime_delegator.clone()).into(),
 			prime_candidate.clone(),
-			min_delegator_stake,
+			min_delegator_stake * 2u32.into(),
 			Percent::from_percent(50),
 			x,
 			y,

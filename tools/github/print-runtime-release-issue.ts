@@ -28,13 +28,16 @@ async function main() {
   const newVersion = argv.to;
   const lastClientVersion = argv.client;
 
-  const commonTemplate = `
+  const commonTemplate =
+    `
 ## Release
 - [ ] Check all proxy types.
 - [ ] Re-run all extrinsics/hooks benchmarks.
 - [ ] Tag master with runtime-${newVersion} and push to github
 - [ ] Start the github action Publish Runtime Draft
 with runtime-${previousVersion} => runtime-${newVersion}
+  - \`gh workflow run "Publish Runtime Draft" -r 'master' ` +
+    `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
 - [ ] Create the tracing runtime on moonbeam-runtime-overrides
 (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
@@ -49,7 +52,8 @@ with ${lastClientVersion} and master
 
   // Detect if it's a major release or hotfix
   if (newVersion.endsWith("00")) {
-    const template = `
+    const template =
+      `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
 
@@ -64,6 +68,8 @@ ${commonTemplate}
 
 ## Post Release
 - [ ] Publish the docker runtime image (trigger the github action "Publish Docker runtime")
+  - \`gh workflow run "Publish Runtime Draft" -r 'master' ` +
+      `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Create a PR that increment spec version (like #1051)
     `;
     console.log(template);

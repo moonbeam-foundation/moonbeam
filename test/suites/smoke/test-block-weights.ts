@@ -160,7 +160,6 @@ describeSuite({
 
         const checkBlockWeight = async (blockInfo: BlockInfo) => {
           const apiAt = await paraApi.at(blockInfo.hash);
-
           const normalWeight = blockInfo.weights.normal;
           const maxWeight = blockLimits.normal;
           const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
