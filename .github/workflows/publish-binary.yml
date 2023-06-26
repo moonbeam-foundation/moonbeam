@@ -50,7 +50,7 @@ jobs:
 
           # Cleanup
           docker rmi prod
-          
+
       - name: Save parachain binary
         if: ${{ matrix.cpu == '' }}
         run: |
