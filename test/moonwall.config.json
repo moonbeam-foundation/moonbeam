@@ -169,7 +169,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev"],
+      "testFileDir": ["suites/dev/test-pov"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "multiThreads": true,

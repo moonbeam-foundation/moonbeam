@@ -50,8 +50,8 @@ dependencies:
     specifier: ^3.3.1
     version: 3.3.1
   semver:
-    specifier: ^7.5.2
-    version: 7.5.2
+    specifier: ^7.5.3
+    version: 7.5.3
   solc:
     specifier: 0.8.19
     version: 0.8.19(debug@4.3.4)
@@ -67,11 +67,11 @@ devDependencies:
     specifier: ^0.2400.0
     version: 0.2400.0
   '@moonwall/cli':
-    specifier: ^3.0.7
-    version: 3.0.7(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2400.0)(@moonwall/util@3.0.7)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.0)(typescript@5.1.3)(viem@1.0.7)(web3-providers-ws@4.0.1)(web3@4.0.1)
+    specifier: link:../../moonwall/packages/cli
+    version: 3.0.8(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2400.0)(@moonwall/util@3.0.8)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.1)(typescript@5.1.3)(viem@1.0.7)(web3-providers-ws@4.0.1)(web3@4.0.1)
   '@moonwall/util':
-    specifier: ^3.0.7
-    version: 3.0.7(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.0)(typescript@5.1.3)(web3@4.0.1)
+    specifier: link:../../moonwall/packages/util
+    version: 3.0.8(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.1)(typescript@5.1.3)(web3@4.0.1)
   '@polkadot/api':
     specifier: ^10.9.1
     version: 10.9.1
@@ -98,19 +98,19 @@ devDependencies:
     version: 2.19.5
   debug:
     specifier: ^4.3.4
-    version: 4.3.4(supports-color@5.5.0)
+    version: 4.3.4(supports-color@8.1.1)
   ethers:
-    specifier: ^6.6.0
-    version: 6.6.0
+    specifier: ^6.6.1
+    version: 6.6.1
   pnpm:
-    specifier: ^8.6.3
-    version: 8.6.3
+    specifier: ^8.6.5
+    version: 8.6.5
   prettier:
     specifier: ^2.8.8
     version: 2.8.8
   ts-node:
     specifier: ^10.9.1
-    version: 10.9.1(@swc/core@1.3.65)(@types/node@18.16.18)(typescript@5.1.3)
+    version: 10.9.1(@types/node@18.16.18)(typescript@5.1.3)
   typescript:
     specifier: ^5.1.3
     version: 5.1.3
@@ -841,7 +841,7 @@ packages:
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
-      semver: 7.5.2
+      semver: 7.5.3
       tar: 6.1.15
     transitivePeerDependencies:
       - encoding
@@ -858,14 +858,14 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonwall/cli@3.0.7(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2400.0)(@moonwall/util@3.0.7)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.0)(typescript@5.1.3)(viem@1.0.7)(web3-providers-ws@4.0.1)(web3@4.0.1):
-    resolution: {integrity: sha512-MoIbkNcz2MWZSuxo+pwcIXiP5MeZfMDkDmzI69w+hv8Ruf2AfJo7jg/FSK165BVrIM5mKAvSvP8aKyVoCp2ZUw==}
+  /@moonwall/cli@3.0.8(@acala-network/chopsticks@0.6.6)(@moonbeam-network/api-augment@0.2400.0)(@moonwall/util@3.0.8)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.1)(typescript@5.1.3)(viem@1.0.7)(web3-providers-ws@4.0.1)(web3@4.0.1):
+    resolution: {integrity: sha512-ypwz2ZzqdVYpDed/hCP4AbxBHQls9F1zrSQkqHL4FxSQR97yRTfEDkaLykhslnxSr7vwi96gM4ReL177UbGQHQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     hasBin: true
     peerDependencies:
       '@acala-network/chopsticks': ^0.6.6
       '@moonbeam-network/api-augment': ^0.2400.0
-      '@moonwall/util': 3.0.7
+      '@moonwall/util': 3.0.8
       '@polkadot/api': ^10.9.1
       '@polkadot/api-augment': ^10.9.1
       '@polkadot/api-derive': ^10.9.1
@@ -880,8 +880,8 @@ packages:
     dependencies:
       '@acala-network/chopsticks': 0.6.6(debug@4.3.4)(ts-node@10.9.1)
       '@moonbeam-network/api-augment': 0.2400.0
-      '@moonwall/types': 3.0.7
-      '@moonwall/util': 3.0.7(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.0)(typescript@5.1.3)(web3@4.0.1)
+      '@moonwall/types': 3.0.8
+      '@moonwall/util': 3.0.8(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.1)(typescript@5.1.3)(web3@4.0.1)
       '@polkadot/api': 10.9.1
       '@polkadot/api-augment': 10.9.1
       '@polkadot/api-derive': 10.9.1
@@ -902,13 +902,13 @@ packages:
       colors: 1.4.0
       debug: 4.3.4(supports-color@5.5.0)
       dotenv: 16.3.1
-      ethers: 6.6.0
+      ethers: 6.6.1
       inquirer: 8.2.5
       inquirer-press-to-continue: 1.2.0(inquirer@8.2.5)
       moonbeam-types-bundle: 2.0.10
       node-fetch: 3.3.1
       prettier: 2.8.8
-      semver: 7.5.2
+      semver: 7.5.3
       superagent: 8.0.9
       ts-node: 10.9.1(@swc/core@1.3.65)(@types/node@18.16.18)(typescript@5.1.3)
       tsup: 6.7.0(@swc/core@1.3.65)(ts-node@10.9.1)(typescript@5.1.3)
@@ -945,13 +945,13 @@ packages:
       - webdriverio
     dev: true
 
-  /@moonwall/types@3.0.7:
-    resolution: {integrity: sha512-bk3/Tp6WhjPYSHbu342gKJEK8Ll5eP2ZYAJU0YG3x7d24br+p3G9dkRXDz8cnY2Xp8i4YdmX0gXX9gaX5ixv8Q==}
+  /@moonwall/types@3.0.8:
+    resolution: {integrity: sha512-t+1qMv8T3m9ijCsCyU19tV3+yfCV9yq74LOxS3JylN19loLQdmMhp6VTmvY+8RUcfB2b8gJ7mv3maViYM6xMgQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@polkadot/api': 10.9.1
-      debug: 4.3.4(supports-color@5.5.0)
-      ethers: 6.6.0
+      debug: 4.3.4(supports-color@8.1.1)
+      ethers: 6.6.1
       web3: 4.0.1
     transitivePeerDependencies:
       - bufferutil
@@ -960,8 +960,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@moonwall/util@3.0.7(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.0)(typescript@5.1.3)(web3@4.0.1):
-    resolution: {integrity: sha512-ffUqqkVEz/oaeBWfjuqSASCncQlqosj/ZveWUSYsd8mpUF7/LufKSCp9RfG1WFxNFJvkey6T3ZOADHNMBM9N5A==}
+  /@moonwall/util@3.0.8(@moonbeam-network/api-augment@0.2400.0)(@polkadot/api-augment@10.9.1)(@polkadot/api-derive@10.9.1)(@polkadot/api@10.9.1)(@polkadot/keyring@12.3.2)(@polkadot/rpc-provider@10.9.1)(@polkadot/types-codec@10.9.1)(@polkadot/types@10.9.1)(@polkadot/util@12.3.2)(@vitest/ui@0.31.4)(ethers@6.6.1)(typescript@5.1.3)(web3@4.0.1):
+    resolution: {integrity: sha512-0LrjLX8SVOIy5ZItsT2T+MaRofk1F5AEp4jdVjbtvF9BM6gFceoGBnJTCPziGHfXUBC01hDIyE+Mnq2pwBZ0XQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     peerDependencies:
       '@moonbeam-network/api-augment': ^0.2400.0
@@ -977,7 +977,7 @@ packages:
       web3: 4.0.1
     dependencies:
       '@moonbeam-network/api-augment': 0.2400.0
-      '@moonwall/types': 3.0.7
+      '@moonwall/types': 3.0.8
       '@polkadot/api': 10.9.1
       '@polkadot/api-augment': 10.9.1
       '@polkadot/api-derive': 10.9.1
@@ -994,17 +994,17 @@ packages:
       clear: 0.1.0
       cli-progress: 3.12.0
       colors: 1.4.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       dotenv: 16.3.1
-      ethers: 6.6.0
+      ethers: 6.6.1
       inquirer: 8.2.5
       inquirer-press-to-continue: 1.2.0(inquirer@8.2.5)
       moonbeam-types-bundle: 2.0.10
       node-fetch: 3.3.1
       prettier: 2.8.8
       rlp: 3.0.0
-      semver: 7.5.2
-      ts-node: 10.9.1(@swc/core@1.3.65)(@types/node@18.16.18)(typescript@5.1.3)
+      semver: 7.5.3
+      ts-node: 10.9.1(@types/node@18.16.18)(typescript@5.1.3)
       viem: 1.0.7(typescript@5.1.3)
       vite: 4.3.9(@types/node@18.16.18)
       vitest: 0.31.4(@vitest/ui@0.31.4)
@@ -1097,7 +1097,7 @@ packages:
     resolution: {integrity: sha512-8KG5RD0GVP4ydEzRn/I4BNDuxDtqVbOdm8675T49OIG/NGhaK0pjPX7ZcDlvKYbA+ulvVK3ztfcF4uBdOxuJbQ==}
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.5.2
+      semver: 7.5.3
     optional: true
 
   /@npmcli/move-file@1.1.2:
@@ -2716,6 +2716,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-darwin-x64@1.3.65:
@@ -2724,6 +2725,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-linux-arm-gnueabihf@1.3.65:
@@ -2732,6 +2734,7 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-linux-arm64-gnu@1.3.65:
@@ -2740,6 +2743,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-linux-arm64-musl@1.3.65:
@@ -2748,6 +2752,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-linux-x64-gnu@1.3.65:
@@ -2756,6 +2761,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-linux-x64-musl@1.3.65:
@@ -2764,6 +2770,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-win32-arm64-msvc@1.3.65:
@@ -2772,6 +2779,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-win32-ia32-msvc@1.3.65:
@@ -2780,6 +2788,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core-win32-x64-msvc@1.3.65:
@@ -2788,6 +2797,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@swc/core@1.3.65:
@@ -2810,6 +2820,7 @@ packages:
       '@swc/core-win32-arm64-msvc': 1.3.65
       '@swc/core-win32-ia32-msvc': 1.3.65
       '@swc/core-win32-x64-msvc': 1.3.65
+    dev: true
 
   /@tootallnate/once@1.1.2:
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
@@ -3047,11 +3058,11 @@ packages:
     resolution: {integrity: sha512-dTU1orWPPMyGNi86nLLFEd3cK5n+DNbavAdiOOqu2rhem2m+AuycwYEGXKf+Y4j3Ofau2gnfdUllsfFjRWrj7A==}
     dependencies:
       cli-table3: 0.6.3
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       mocha: 10.2.0
       nunjucks: 3.2.4
       toml: 3.0.0
-      ts-node: 10.9.1(@swc/core@1.3.65)(@types/node@18.16.18)(typescript@5.1.3)
+      ts-node: 10.9.1(@types/node@18.16.18)(typescript@5.1.3)
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -3131,7 +3142,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3139,7 +3150,7 @@ packages:
     resolution: {integrity: sha512-7Epl1Blf4Sy37j4v9f9FjICCh4+KAQOyXgHEwlyBiAQLbhKdq/i2QQU3amQalS/wPhdPzDXPL5DMR5bkn+YeWg==}
     engines: {node: '>= 8.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       depd: 2.0.0
       humanize-ms: 1.2.1
     transitivePeerDependencies:
@@ -3666,7 +3677,7 @@ packages:
       js-string-escape: 1.0.1
       lodash: 4.17.21
       md5-hex: 3.0.1
-      semver: 7.5.2
+      semver: 7.5.3
       well-known-symbols: 2.0.0
 
   /console-control-strings@1.1.0:
@@ -4067,8 +4078,8 @@ packages:
       '@scure/bip39': 1.2.0
     dev: true
 
-  /ethers@6.6.0:
-    resolution: {integrity: sha512-7D2U+n8eZYmh592VZqap9vBu50jN7YUDHqAmwBYTMntmUKC9RVgcqcFbd+3DTCOQ1jMyK6QHv1usbcfgiGaHOA==}
+  /ethers@6.6.1:
+    resolution: {integrity: sha512-bjNPf/EU4l1jQlAslOmOlyHqjOnM0W7LRPuSf0Kt0tYV4RpUEZsdGWDhvFXfogIhfzXJ/v2tPz4HqXwBt5T8mA==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@adraffy/ens-normalize': 1.9.2
@@ -4211,7 +4222,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -4525,7 +4536,7 @@ packages:
     dependencies:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -4546,7 +4557,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -5457,7 +5468,7 @@ packages:
     resolution: {integrity: sha512-vHnopocZuI93p2ccivFyGuUfzjq2fxNyNurp7816mlT5V5HF4SzXu8lvLrVzBbNqzs+ODooZ6OksuSUNM7Njkw==}
     engines: {node: '>= 10.13'}
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       json-stringify-safe: 5.0.1
       lodash: 4.17.21
       propagate: 2.0.1
@@ -5512,7 +5523,7 @@ packages:
       nopt: 5.0.0
       npmlog: 6.0.2
       rimraf: 3.0.2
-      semver: 7.5.2
+      semver: 7.5.3
       tar: 6.1.15
       which: 2.0.2
     transitivePeerDependencies:
@@ -5801,8 +5812,8 @@ packages:
     resolution: {integrity: sha512-95ChzOoYLOPIyVmL+Y6X+abKGXUJlvOVLkB1QQkyXl7Uczc6FElUy/x01NS7r2GX6GRezloO/ecCX9h4U9KadA==}
     dev: false
 
-  /pnpm@8.6.3:
-    resolution: {integrity: sha512-0Y4neugHIJEEa8y8oJMfd9wwgHkc1hIq6JC/UEEl2K92s3+zPaKH26n7u22m67E+MU6fpKRkx+/+PYWZzr5yQw==}
+  /pnpm@8.6.5:
+    resolution: {integrity: sha512-mztfvneJl4o9gCWfQlFKio6gVYhJbFazWUVBcomJ9u/yspwScHUxMyWvxOed1a543roo+aeIjp5VQkHOoTWFAg==}
     engines: {node: '>=16.14'}
     hasBin: true
     dev: true
@@ -6137,8 +6148,8 @@ packages:
     resolution: {integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==}
     hasBin: true
 
-  /semver@7.5.2:
-    resolution: {integrity: sha512-SoftuTROv/cRjCze/scjGyiDtcUyxw1rgYQSZY7XTmtR5hX+dm76iDbTH8TkLPHCQmlbQVSSbNZCPM2hb0knnQ==}
+  /semver@7.5.3:
+    resolution: {integrity: sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
@@ -6226,7 +6237,7 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -6411,7 +6422,7 @@ packages:
       methods: 1.1.2
       mime: 2.6.0
       qs: 6.11.2
-      semver: 7.5.2
+      semver: 7.5.3
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -6597,6 +6608,37 @@ packages:
       typescript: 5.1.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    dev: true
+
+  /ts-node@10.9.1(@types/node@18.16.18)(typescript@5.1.3):
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 18.16.18
+      acorn: 8.9.0
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.1.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
 
   /tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
@@ -6733,14 +6775,14 @@ packages:
       chalk: 4.1.2
       cli-highlight: 2.1.11
       date-fns: 2.30.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       dotenv: 16.3.1
       glob: 8.1.0
       mkdirp: 2.1.6
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
       sqlite3: 5.1.6
-      ts-node: 10.9.1(@swc/core@1.3.65)(@types/node@18.16.18)(typescript@5.1.3)
+      ts-node: 10.9.1(@types/node@18.16.18)(typescript@5.1.3)
       tslib: 2.5.3
       uuid: 9.0.0
       yargs: 17.7.2
@@ -6848,7 +6890,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       mlly: 1.3.0
       pathe: 1.1.1
       picocolors: 1.0.0
@@ -6939,7 +6981,7 @@ packages:
       cac: 6.7.14
       chai: 4.3.7
       concordance: 5.0.4
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4(supports-color@8.1.1)
       local-pkg: 0.4.3
       magic-string: 0.30.0
       pathe: 1.1.1
