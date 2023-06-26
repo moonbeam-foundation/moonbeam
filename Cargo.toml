@@ -287,9 +287,9 @@ cumulus-relay-chain-rpc-interface = { git = "https://github.com/purestake/cumulu
 nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.43" }
 
 # Polkadot / XCM (wasm)
-orml-traits = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "update-polkadot-v0.9.43", default-features = false }
-orml-xcm-support = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "update-polkadot-v0.9.43", default-features = false }
-orml-xtokens = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "update-polkadot-v0.9.43", default-features = false }
+orml-traits = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+orml-xcm-support = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+orml-xtokens = { git = "https://github.com/Moonsong-Labs/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-xcm-benchmarks = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
