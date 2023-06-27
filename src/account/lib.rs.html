@@ -310,9 +310,9 @@
 	}
 }
 
-<span class="kw">impl </span>Into&lt;[u8; <span class="number">20</span>]&gt; <span class="kw">for </span>AccountId20 {
-	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; [u8; <span class="number">20</span>] {
-		<span class="self">self</span>.<span class="number">0
+<span class="kw">impl </span>From&lt;AccountId20&gt; <span class="kw">for </span>[u8; <span class="number">20</span>] {
+	<span class="kw">fn </span>from(value: AccountId20) -&gt; <span class="self">Self </span>{
+		value.<span class="number">0
 	</span>}
 }
 
@@ -330,9 +330,9 @@
 	}
 }
 
-<span class="kw">impl </span>Into&lt;H160&gt; <span class="kw">for </span>AccountId20 {
-	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; H160 {
-		H160(<span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>From&lt;AccountId20&gt; <span class="kw">for </span>H160 {
+	<span class="kw">fn </span>from(value: AccountId20) -&gt; <span class="self">Self </span>{
+		H160(value.<span class="number">0</span>)
 	}
 }
 
@@ -363,7 +363,7 @@
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		<span class="kw">match </span>sp_io::crypto::secp256k1_ecdsa_recover(<span class="self">self</span>.<span class="number">0</span>.as_ref(), <span class="kw-2">&amp;</span>m) {
 			<span class="prelude-val">Ok</span>(pubkey) =&gt; {
-				AccountId20(H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>pubkey).as_slice()[<span class="number">12</span>..<span class="number">32</span>]).<span class="number">0</span>)
+				AccountId20(H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(pubkey).as_slice()[<span class="number">12</span>..<span class="number">32</span>]).<span class="number">0</span>)
 					== <span class="kw-2">*</span>signer
 			}
 			<span class="prelude-val">Err</span>(sp_io::EcdsaVerifyError::BadRS) =&gt; {
@@ -412,7 +412,7 @@
 		.serialize();
 		<span class="kw">let </span><span class="kw-2">mut </span>m = [<span class="number">0u8</span>; <span class="number">64</span>];
 		m.copy_from_slice(<span class="kw-2">&amp;</span>decompressed[<span class="number">1</span>..<span class="number">65</span>]);
-		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
+		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
 		EthereumSigner(account.into())
 	}
 }
@@ -421,7 +421,7 @@
 	<span class="kw">fn </span>from(x: libsecp256k1::PublicKey) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span><span class="kw-2">mut </span>m = [<span class="number">0u8</span>; <span class="number">64</span>];
 		m.copy_from_slice(<span class="kw-2">&amp;</span>x.serialize()[<span class="number">1</span>..<span class="number">65</span>]);
-		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
+		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
 		EthereumSigner(account.into())
 	}
 }
