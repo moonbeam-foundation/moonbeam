@@ -923,7 +923,7 @@ impl pallet_evm::Config for Runtime {
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 
-	type AddressMapping = IdentityAddressMapping;
+	type AddressMapping = pallet_evm::IdentityAddressMapping;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
