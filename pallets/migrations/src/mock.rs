@@ -91,7 +91,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -103,6 +103,10 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
