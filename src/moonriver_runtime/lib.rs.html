@@ -1712,6 +1712,7 @@
 <a href="#1712" id="1712">1712</a>
 <a href="#1713" id="1713">1713</a>
 <a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1780,7 +1781,8 @@
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
 <span class="kw">use </span>pallet_evm::{
 	Account <span class="kw">as </span>EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
-	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction <span class="kw">as </span>OnChargeEVMTransactionT, Runner,
+	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
+	OnChargeEVMTransaction <span class="kw">as </span>OnChargeEVMTransactionT, Runner,
 };
 <span class="kw">pub use </span>pallet_parachain_staking::{InflationInfo, Range};
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
@@ -2187,7 +2189,7 @@
 	<span class="kw">type </span>BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>CallOrigin = EnsureAddressRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>WithdrawOrigin = EnsureAddressNever&lt;AccountId&gt;;
-	<span class="kw">type </span>AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	<span class="kw">type </span>AddressMapping = IdentityAddressMapping;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Runner = pallet_evm::runner::stack::Runner&lt;<span class="self">Self</span>&gt;;
@@ -2995,7 +2997,7 @@
 
 <span class="kw">impl </span>pallet_randomness::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	<span class="kw">type </span>AddressMapping = IdentityAddressMapping;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>BabeDataGetter = BabeDataGetter;
 	<span class="kw">type </span>VrfKeyLookup = AuthorMapping;
