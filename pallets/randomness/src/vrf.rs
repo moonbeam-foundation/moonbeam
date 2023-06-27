@@ -18,13 +18,12 @@
 use crate::{Config, LocalVrfOutput, RandomnessResults, RequestType};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
-pub use session_keys_primitives::make_transcript;
+pub use session_keys_primitives::make_vrf_transcript;
 use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
-use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
 
 /// VRF output
-type Randomness = schnorrkel::Randomness;
+type Randomness = sp_consensus_babe::Randomness;
 
 /// Gets VRF output from system digests and verifies it using the block author's VrfId
 /// Transforms VRF output into randomness value and puts it into `LocalVrfOutput`
@@ -72,17 +71,18 @@ pub(crate) fn verify_and_set_output<T: Config>() {
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	// VRF input is last block's VRF output
 	let vrf_input_transcript =
-		make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
+		make_vrf_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 	// Verify VRF output + proof using input transcript + block author's VrfId
 	assert!(
 		block_author_vrf_id
-			.vrf_verify(vrf_input_transcript.clone(), &vrf_output, &vrf_proof)
+			.vrf_verify(vrf_input_transcript.0.clone(), &vrf_output.0, &vrf_proof.0)
 			.is_ok(),
 		"VRF signature verification failed"
 	);
 	// Transform VrfOutput into randomness bytes stored on-chain
 	let randomness: Randomness = vrf_output
-		.attach_input_hash(&block_author_vrf_id, vrf_input_transcript)
+		.0
+		.attach_input_hash(&block_author_vrf_id, vrf_input_transcript.0.clone())
 		.ok()
 		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		.expect("Transforming VrfOutput into randomness bytes failed");
