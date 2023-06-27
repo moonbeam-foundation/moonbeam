@@ -16,8 +16,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::H160;
-
 mod apis;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
