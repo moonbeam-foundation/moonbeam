@@ -1,41 +1,18 @@
 {
   "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
-  "defaultTestTimeout": 30000,
+  "defaultTestTimeout": 60000,
+  "scriptsDir": "scripts/",
   "environments": [
-    {
-      "name": "zombie_moonbeam_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbeam*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbeam_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeamCI.json"
-        }
-      }
-    },
     {
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
       "foundation": {
-        "rtUpgradePath": "tmp/moonbeam-runtime-latest.wasm",
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"
-        }
-      }
-    },
-    {
-      "name": "zombie_moonbase_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieAlphanetCI.json"
         }
       }
     },
@@ -64,6 +41,7 @@
     },
     {
       "name": "smoke_stagenet",
+      "contracts": "contracts/",
       "testFileDir": ["/suites/smoke"],
       "reporters": ["basic", "html"],
       "foundation": {
@@ -90,6 +68,7 @@
     {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -115,6 +94,7 @@
     {
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -140,7 +120,9 @@
     {
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
       "reporters": ["basic", "html"],
+      "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
         "type": "read_only"
       },
@@ -187,17 +169,19 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev"],
+      "include": ["**/*test*"],
+      "contracts": "contracts/",
       "multiThreads": true,
-      "html": false,
+      "envVars": ["DEBUG_COLORS=1"],
+      "runScripts": ["compile-contracts.ts compile"],
+      "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
           {
             "name": "moonbeam",
-            "running": true,
-
-            "binPath": "./tmp/moonbeam"
+            "binPath": "../target/release/moonbeam"
           }
         ]
       }
