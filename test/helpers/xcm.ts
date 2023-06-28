@@ -116,7 +116,7 @@ export async function registerForeignAsset(
 
 export function descendOriginFromAddress20(
   context: DevModeContext,
-  address: string = "0x0101010101010101010101010101010101010101",
+  address: `0x${string}` = "0x0101010101010101010101010101010101010101",
   paraId: number = 1
 ) {
   const toHash = new Uint8Array([
