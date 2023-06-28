@@ -31,6 +31,9 @@ use sp_runtime::{
 };
 use sp_std::collections::btree_map::BTreeMap;
 
+#[cfg(feature = "runtime-benchmarks")]
+use frame_support::traits::VoteTally;
+
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
