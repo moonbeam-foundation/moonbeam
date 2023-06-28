@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import chalk from "chalk";
-import { expect } from "chai";
-import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import { u8aConcat, u8aToHex, u8aToString } from "@polkadot/util";
+import { compactStripLength, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { expect } from "chai";
+import chalk from "chalk";
 import { rateLimiter } from "../util/common";
+import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
@@ -26,7 +26,11 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
     // taken from geth, e.g. search "MaxCodeSize":
     // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
     const MAX_CONTRACT_SIZE_BYTES = 24576;
-    const getBytecodeSize = (bytecode: string) => Math.ceil((bytecode.length - 2) / 2);
+    const getBytecodeSize = (storageValue: Uint8Array) => {
+      const [len, bytecode] = compactStripLength(storageValue);
+      const hex = u8aToHex(bytecode);
+      return (hex.length - 2) / 2;
+    };
 
     // Max RPC response limit is 15728640 bytes (15MB), so pessimistically the pageLimit
     // needs to be lower than if every contract was above the MAX_CONTRACT_SIZE
@@ -107,8 +111,6 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
         context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
       )) as any[];
 
-      debug(context.polkadotApi.stats);
-
       const combined = returnedValues.map((value, index) => ({
         value,
         address: batch[index],
@@ -117,8 +119,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       for (let j = 0; j < combined.length; j++) {
         totalContracts++;
         const accountId = "0x" + combined[j].address.slice(-40);
-        const deployedBytecode = u8aToHex(combined[j].value.unwrap()).slice(6);
-        const codesize = getBytecodeSize(deployedBytecode);
+        const codesize = getBytecodeSize(combined[j].value.unwrap());
         if (codesize > MAX_CONTRACT_SIZE_BYTES) {
           failedContractCodes.push({ accountId, codesize });
         }
