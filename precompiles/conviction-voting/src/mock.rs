@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, PollStatus, Polling, TotalIssuanceOf, VoteTally},
+	traits::{Everything, PollStatus, Polling, TotalIssuanceOf},
 	weights::Weight,
 };
 use pallet_conviction_voting::TallyOf;
