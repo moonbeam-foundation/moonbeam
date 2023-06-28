@@ -5433,9 +5433,9 @@ dependencies = [
  "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
- "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
+ "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -5895,9 +5895,9 @@ dependencies = [
  "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
- "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
+ "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -6247,9 +6247,9 @@ dependencies = [
  "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
- "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
+ "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -7385,17 +7385,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-ethereum-chain-id"
-version = "1.0.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
-]
-
-[[package]]
 name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
@@ -7451,6 +7440,17 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-chain-id"
+version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.40#688ad3bf8d1eb28936a51c3a41287dd80804f5a3"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
 ]
 
 [[package]]

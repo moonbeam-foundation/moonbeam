@@ -68,7 +68,6 @@ moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-fe
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "pallets/author-mapping", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
-pallet-ethereum-chain-id = { path = "pallets/ethereum-chain-id", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
 
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
@@ -242,6 +241,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 	"forbid-evm-reentrancy",
 	"evm-with-weight-limit",
 ] }
+pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.40", default-features = false, features = [
 	"evm-with-weight-limit",
 ] }
