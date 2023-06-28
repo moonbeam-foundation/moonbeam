@@ -10,6 +10,7 @@ import {
   DOROTHY_PRIVATE_KEY,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
+  createRawTransaction,
 } from "@moonwall/util";
 import { ethers } from "ethers";
 import { numberToHex, toRlp } from "viem";
@@ -87,25 +88,29 @@ export const createTransaction = async (
   options: TransactionOptions,
   txType?: EthTransactionType
 ): Promise<string> => {
-  const defaultTxnStyle = MoonwallContext.getContext()!.defaultEthTxnStyle;
+  const defaultTxnStyle = "legacy";
 
-  const isLegacy = txType
-    ? txType === "legacy"
-    : defaultTxnStyle
-    ? defaultTxnStyle === "legacy"
-    : true;
+  const isLegacy = true;
+  const isEip1559 = false;
+  const isEip2930 = false;
 
-  const isEip2930 = txType
-    ? txType === "eip2930"
-    : defaultTxnStyle
-    ? defaultTxnStyle === "eip2930"
-    : true;
+  // const isLegacy = txType
+  //   ? txType === "legacy"
+  //   : defaultTxnStyle
+  //   ? defaultTxnStyle === "legacy"
+  //   : true;
 
-  const isEip1559 = txType
-    ? txType === "eip1559"
-    : defaultTxnStyle
-    ? defaultTxnStyle === "eip1559"
-    : true;
+  // const isEip2930 = txType
+  //   ? txType === "eip2930"
+  //   : defaultTxnStyle
+  //   ? defaultTxnStyle === "eip2930"
+  //   : true;
+
+  // const isEip1559 = txType
+  //   ? txType === "eip1559"
+  //   : defaultTxnStyle
+  //   ? defaultTxnStyle === "eip1559"
+  //   : true;
 
   // a transaction shouldn't have both Legacy and EIP1559 fields
   if (options.gasPrice && options.maxFeePerGas) {
@@ -367,14 +372,14 @@ export async function rpcToLocalNode(
 // The parameters passed to the function are assumed to have all been converted to hexadecimal
 export async function sendPrecompileTx(
   context: DevModeContext,
-  precompileContractAddress: string,
+  precompileContractAddress: `0x${string}`,
   selectors: { [key: string]: string },
   from: string,
-  privateKey: string,
+  privateKey: `0x${string}`,
   selector: string,
   parameters: string[]
 ) {
-  let data: string;
+  let data: `0x${string}`;
   if (selectors[selector]) {
     data = `0x${selectors[selector]}`;
   } else {
@@ -385,12 +390,11 @@ export async function sendPrecompileTx(
   });
 
   return context.createBlock(
-    createTransaction(context, {
+    createRawTransaction(context, {
       from,
       privateKey,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: ALITH_TRANSACTION_TEMPLATE.gasPrice,
+      value: 0n,
+      gas: 200_000n,
       to: precompileContractAddress,
       data,
     })

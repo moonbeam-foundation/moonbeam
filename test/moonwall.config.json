@@ -175,7 +175,7 @@
       "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
       "runScripts": [],
-      "reporters": ["html", "verbose"],
+      "reporters": ["html", "default"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
