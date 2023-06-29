@@ -208,8 +208,10 @@ fn test_encode_set_controller() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
-						.as_slice(),
+					TestEncoder::encode_call(AvailableStakeCalls::SetController(Some(
+						[1u8; 32].into(),
+					)))
+					.as_slice(),
 				))
 		});
 }

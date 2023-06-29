@@ -27,6 +27,7 @@ use frame_support::{
 	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -42,9 +43,16 @@ mod test_relay_runtime;
 #[cfg(test)]
 mod tests;
 
+#[derive(Encode, Decode, Default)]
+pub enum RelayStakingVersions {
+	#[default]
+	V13,
+	V14,
+}
+
 pub enum AvailableStakeCalls {
 	Bond(
-		relay_chain::AccountId,
+		Option<relay_chain::AccountId>,
 		relay_chain::Balance,
 		pallet_staking::RewardDestination<relay_chain::AccountId>,
 	),
@@ -55,7 +63,7 @@ pub enum AvailableStakeCalls {
 	Nominate(Vec<relay_chain::AccountId>),
 	Chill,
 	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController(relay_chain::AccountId),
+	SetController(Option<relay_chain::AccountId>),
 	Rebond(relay_chain::Balance),
 }
 
@@ -96,11 +104,18 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-			address.into(),
-			relay_amount,
-			reward_destination,
-		))
+		let encoded = match storage::RelayStakingVersion::get() {
+			RelayStakingVersions::V13 => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+				Some(address.into()),
+				relay_amount,
+				reward_destination,
+			)),
+			_ => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+				None,
+				relay_amount,
+				reward_destination,
+			)),
+		}
 		.as_slice()
 		.into();
 
@@ -263,10 +278,14 @@ where
 
 		let controller: [u8; 32] = controller.into();
 
-		let encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
-				.as_slice()
-				.into();
+		let encoded = match storage::RelayStakingVersion::get() {
+			RelayStakingVersions::V13 => RelayRuntime::encode_call(
+				AvailableStakeCalls::SetController(Some(controller.into())),
+			),
+			_ => RelayRuntime::encode_call(AvailableStakeCalls::SetController(None)),
+		}
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -483,4 +502,29 @@ impl solidity::Codec for RewardDestinationWrapper {
 	fn signature() -> String {
 		UnboundedBytes::signature()
 	}
+}
+
+/// twox_128("relayEncoder") => 0x19be908724abae4148b8d366414b06e9
+/// twox_128("RelayStakingVersion") => 0xcc0bdf4eb748e2ec7dbec45ca14ba45b
+mod storage {
+	use super::*;
+	use frame_support::{
+		storage::types::{StorageValue, ValueQuery},
+		traits::StorageInstance,
+	};
+
+	// storage for the relay staking pallet version
+	pub struct RelayStakingVersionStorageInstance;
+	impl StorageInstance for RelayStakingVersionStorageInstance {
+		const STORAGE_PREFIX: &'static str = "RelayStakingVersion";
+		fn pallet_prefix() -> &'static str {
+			"relayEncoder"
+		}
+	}
+	pub type RelayStakingVersion = StorageValue<
+		RelayStakingVersionStorageInstance,
+		RelayStakingVersions,
+		ValueQuery,
+		// OnEmpty = defualtRelay
+	>;
 }

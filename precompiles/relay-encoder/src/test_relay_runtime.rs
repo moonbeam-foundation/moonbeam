@@ -98,7 +98,7 @@ impl StakeEncodeCall for TestEncoder {
 			}
 
 			AvailableStakeCalls::SetController(a) => {
-				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
+				RelayCall::Stake(StakeCall::SetController(a.unwrap().into())).encode()
 			}
 
 			AvailableStakeCalls::Rebond(a) => {
