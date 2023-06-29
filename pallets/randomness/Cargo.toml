@@ -20,7 +20,7 @@ sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-schnorrkel = { workspace = true, features = ["preaudit_deprecated", "u64_backend"], default-features = false }
+schnorrkel = { workspace = true }
 sp-consensus-babe = { workspace = true }
 
 # Frontier
