@@ -274,8 +274,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_ethereum_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_ethereum_chain_id::GenesisConfig {
+		<pallet_evm_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_evm_chain_id::GenesisConfig {
 				chain_id: self.chain_id,
 			},
 			&mut t,

@@ -123,7 +123,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbeam_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonbeam_runtime::ParachainInfo>("ParachainInfo");
-	is_pallet_prefix::<moonbeam_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonbeam_runtime::EvmChainId>("EvmChainId");
 	is_pallet_prefix::<moonbeam_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonbeam_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonbeam_runtime::ParachainStaking>("ParachainStaking");
@@ -464,7 +464,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
 	// Ethereum compatibility
-	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonbeam_runtime::EvmChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
 	is_pallet_index::<moonbeam_runtime::Ethereum>(52);
 	// Governance
