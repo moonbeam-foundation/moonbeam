@@ -27,7 +27,7 @@ use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	EthereumConfig, EvmChainIdConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig,
 	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
@@ -270,7 +270,7 @@ pub fn testnet_genesis(
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
-		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		evm_chain_id: EvmChainIdConfig { chain_id },
 		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
