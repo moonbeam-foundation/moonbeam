@@ -305,8 +305,15 @@ jobs:
         uses: arduino/setup-protoc@v1
       - name: Setup Rust toolchain
         run: rustup show
-      - name: Clippy
+      # Basic clippy check
+      - name: Clippy (branch)
+        if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks
+      # Production code clippy check
+      # Disallows: todo
+      - name: Clippy (prod)
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'perm-')
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
     runs-on:
