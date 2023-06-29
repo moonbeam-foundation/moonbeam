@@ -29,7 +29,7 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 [dev-dependencies]
 derive_more = { workspace = true }
 pallet-author-mapping = { workspace = true, features = [ "std" ] }
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "std", "insecure_zero_ed" ] }
 
 [features]
 default = [ "std" ]

@@ -82,6 +82,9 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
+			let weight_limit =
+				T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true);
+
 			let exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
@@ -94,6 +97,8 @@ pub mod pallet {
 				Default::default(),
 				false,
 				false,
+				Some(weight_limit),
+				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;

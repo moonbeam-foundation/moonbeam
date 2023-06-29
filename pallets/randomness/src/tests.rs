@@ -116,19 +116,19 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 #[test]
 fn request_reserves_deposit_and_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			assert_eq!(Randomness::total_locked(), 0);
-			assert_eq!(Balances::free_balance(&ALICE), 31);
+			assert_eq!(Balances::free_balance(&ALICE), 30);
 			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 15);
-			assert_eq!(Balances::free_balance(&ALICE), 16);
+			assert_eq!(Balances::free_balance(&ALICE), 15);
 			let request = build_default_request(RequestType::Local(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 30);
-			assert_eq!(Balances::free_balance(&ALICE), 1);
+			assert_eq!(Balances::free_balance(&ALICE), 0);
 		});
 }
 
@@ -182,7 +182,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 #[test]
 fn request_babe_one_epoch_ago_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 16)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -211,7 +211,7 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 #[test]
 fn request_local_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 16)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -240,7 +240,7 @@ fn request_local_randomness_emits_event() {
 #[test]
 fn request_randomness_adds_new_randomness_result() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 16)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -262,7 +262,7 @@ fn request_randomness_adds_new_randomness_result() {
 #[test]
 fn request_randomness_increments_randomness_result() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -312,7 +312,7 @@ fn prepare_fulfillment_for_local_works() {
 #[test]
 fn prepare_fulfillment_fails_before_can_be_fulfilled() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -376,7 +376,7 @@ fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
 #[test]
 fn finish_fulfillment_removes_request_from_storage() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -410,7 +410,7 @@ fn finish_fulfillment_removes_request_from_storage() {
 #[test]
 fn finish_fulfillment_refunds_refund_address_with_excess_and_caller_with_cost_of_execution() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31), (Pallet::<Test>::account_id(), 1)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -436,8 +436,8 @@ fn finish_fulfillment_refunds_refund_address_with_excess_and_caller_with_cost_of
 				&ALICE,
 				3,
 			);
-			// 31 - ( deposit = 10 + fee = 5) + cost_of_execution_refund_for_caller = 3 == 18
-			assert_eq!(Balances::free_balance(&ALICE), 19);
+			// 30 - ( deposit = 10 + fee = 5) + cost_of_execution_refund_for_caller = 3 == 18
+			assert_eq!(Balances::free_balance(&ALICE), 18);
 			// 0 + deposit = 10 + fee = 5 - cost_of_execution = 3 == 12
 			assert_eq!(Balances::free_balance(&BOB), 12);
 		});
@@ -446,7 +446,7 @@ fn finish_fulfillment_refunds_refund_address_with_excess_and_caller_with_cost_of
 #[test]
 fn finish_fulfillment_decrements_randomness_result_and_keeps_in_storage_if_not_last() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
@@ -640,7 +640,7 @@ fn execute_request_expiration_fails_before_request_expiration() {
 #[test]
 fn execute_request_expiration_removes_request() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31), (Pallet::<Test>::account_id(), 1)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
@@ -658,7 +658,7 @@ fn execute_request_expiration_removes_request() {
 #[test]
 fn execute_request_expiration_removes_result() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31), (Pallet::<Test>::account_id(), 1)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
@@ -676,7 +676,7 @@ fn execute_request_expiration_removes_result() {
 #[test]
 fn execute_request_expiration_returns_deposit_to_contract_address_and_fees_to_caller() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 31), (Pallet::<Test>::account_id(), 1)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
@@ -687,6 +687,6 @@ fn execute_request_expiration_returns_deposit_to_contract_address_and_fees_to_ca
 			// fee returned to BOB (caller)
 			assert_eq!(Balances::free_balance(&BOB), 5);
 			// deposit returned to ALICE (contract_address)
-			assert_eq!(Balances::free_balance(&ALICE), 26);
+			assert_eq!(Balances::free_balance(&ALICE), 25);
 		});
 }
