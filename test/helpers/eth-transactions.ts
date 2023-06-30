@@ -7,7 +7,7 @@ import {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitFatal,
 } from "@polkadot/types/lookup";
-import { ethers, JsonRpcProvider } from "ethers";
+import { Provider, Signer } from "ethers";
 import { expect } from "@moonwall/cli";
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
@@ -16,15 +16,14 @@ export type Errors = {
   Fatal: EvmCoreErrorExitFatal["type"];
 };
 
-export async function extractRevertReason(responseHash: string, provider: JsonRpcProvider) {
-  const tx = (await provider.getTransaction(responseHash))!;
+export async function extractRevertReason(responseHash: string, ethers:Signer) {
+  const tx = (await ethers.provider!.getTransaction(responseHash))!
   try {
-    await provider.call({ to: tx.to, data: tx.data });
-    provider.call;
+    await ethers.call({ to: tx.to, data: tx.data, gasLimit: tx.gasLimit });
     return null;
-  } catch (e) {
-    const jsonError = JSON.parse(e.error.body);
-    return jsonError.error.message.split("VM Exception while processing transaction: revert ")[1];
+  } catch (e: any) {
+    const errorMessage = e.info.error.message;
+    return errorMessage.split("VM Exception while processing transaction: revert ")[1];
   }
 }
 
