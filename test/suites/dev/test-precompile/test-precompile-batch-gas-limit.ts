@@ -7,7 +7,7 @@ import { encodeAbiParameters } from "viem";
 // Casting of type in solidity is performing truncation:
 // https://docs.soliditylang.org/en/latest/types.html#conversions-between-elementary-types
 describeSuite({
-  id: "D1",
+  id: "D2520",
   title: "Precompile Batch - Overflowing gasLimit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
