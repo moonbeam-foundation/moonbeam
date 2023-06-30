@@ -10,15 +10,13 @@ import {
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   alith,
-  createEthersTxn,
-  createRawTransaction,
+  createEthersTxn
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
 import { mockAssetBalance } from "../../../helpers/assets.js";
-import { Transaction } from "ethers";
 
 describeSuite({
   id: "D2501",
