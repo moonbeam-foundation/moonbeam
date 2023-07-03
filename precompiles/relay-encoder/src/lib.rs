@@ -98,11 +98,9 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = match storage::RelayStakingVersion::get() {
-			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-				Some(address.into()),
-				relay_amount,
-				reward_destination,
-			)),
+			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(
+				AvailableStakeCalls::Bond(Some(address.into()), relay_amount, reward_destination),
+			),
 			_ => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 				None,
 				relay_amount,
