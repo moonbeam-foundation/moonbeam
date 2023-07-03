@@ -18,7 +18,7 @@
 use nimbus_primitives::NimbusId;
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
 use sp_core::sr25519::vrf::{VrfInput, VrfSignData};
-#[cfg(feature = "std")]
+//#[cfg(feature = "std")] <- TODO: Check if this is still needed
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
 /// Make VRF transcript from the VrfInput
