@@ -131,11 +131,11 @@ where
 	Runtime::AccountId: Into<H160>,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
-		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
+		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id.clone());
 
 		let name = if asset_name.is_empty() {
 			let mut name = b"Unnamed XC20 #".to_vec();
-			name.extend_from_slice(asset_id.to_string().as_bytes());
+			name.extend_from_slice(asset_id.clone().to_string().as_bytes());
 			name
 		} else {
 			asset_name
@@ -212,8 +212,15 @@ where
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
-		let permit =
-			Self::generate_permit(address, asset_id, owner, spender, value, nonce, deadline);
+		let permit = Self::generate_permit(
+			address,
+			asset_id.clone(),
+			owner,
+			spender,
+			value,
+			nonce,
+			deadline,
+		);
 
 		let mut sig = [0u8; 65];
 		sig[0..32].copy_from_slice(&r.as_bytes());
