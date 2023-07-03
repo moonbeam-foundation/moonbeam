@@ -291,6 +291,10 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ConstU128<0>;
 	type AccountStore = System;
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type HoldIdentifier = ();
+	type MaxHolds = ();
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -735,6 +739,7 @@ impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainDataProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
+	type AuthorId = AccountId;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
 

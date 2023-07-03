@@ -751,7 +751,7 @@ impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainDataProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
-	type AuthorId = AccountId20;
+	type AuthorId = AccountId;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
 
