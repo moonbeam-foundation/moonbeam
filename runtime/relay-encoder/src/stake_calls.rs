@@ -20,7 +20,7 @@ use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
 
 #[derive(Encode, Decode)]
-pub enum StakeCallV13 {
+pub enum StakeCallV0 {
 	#[codec(index = 0u16)]
 	// the index should match the position of the dispatchable in the target pallet
 	Bond(
@@ -33,7 +33,7 @@ pub enum StakeCallV13 {
 }
 
 #[derive(Encode, Decode)]
-pub enum StakeCallV14 {
+pub enum StakeCallV1 {
 	#[codec(index = 0u16)]
 	// the index should match the position of the dispatchable in the target pallet
 	Bond(

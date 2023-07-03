@@ -521,10 +521,6 @@ mod storage {
 			"relayEncoder"
 		}
 	}
-	pub type RelayStakingVersion = StorageValue<
-		RelayStakingVersionStorageInstance,
-		RelayStakingVersions,
-		ValueQuery,
-		// OnEmpty = defualtRelay
-	>;
+	pub type RelayStakingVersion =
+		StorageValue<RelayStakingVersionStorageInstance, RelayStakingVersions, ValueQuery>;
 }

@@ -17,7 +17,7 @@
 // We want to avoid including the rococo-runtime here.
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
-use crate::stake_calls::{StakeCallV13, StakeCallV14};
+use crate::stake_calls::{StakeCallV0, StakeCallV1};
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
@@ -27,13 +27,13 @@ use sp_std::vec::Vec;
 #[derive(Encode, Decode)]
 pub enum RelayCallV0 {
 	#[codec(index = 6u8)]
-	Stake(StakeCallV13),
+	Stake(StakeCallV0),
 }
 
 #[derive(Encode, Decode)]
 pub enum RelayCallV1 {
 	#[codec(index = 6u8)]
-	Stake(StakeCallV14),
+	Stake(StakeCallV1),
 	#[codec(index = 24u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
@@ -104,48 +104,48 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for KusamaEncoder {
 	fn encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(a, b, c) => match a {
-				None => RelayCallV1::Stake(StakeCallV14::Bond(b, c)).encode(),
-				Some(i) => RelayCallV0::Stake(StakeCallV13::Bond(i.into(), b, c)).encode(),
+				None => RelayCallV1::Stake(StakeCallV1::Bond(b, c)).encode(),
+				Some(i) => RelayCallV0::Stake(StakeCallV0::Bond(i.into(), b, c)).encode(),
 			},
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(a) => {
-				RelayCallV1::Stake(StakeCallV14::BondExtra(a)).encode()
+				RelayCallV1::Stake(StakeCallV1::BondExtra(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(a) => {
-				RelayCallV1::Stake(StakeCallV14::Unbond(a)).encode()
+				RelayCallV1::Stake(StakeCallV1::Unbond(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(a) => {
-				RelayCallV1::Stake(StakeCallV14::WithdrawUnbonded(a)).encode()
+				RelayCallV1::Stake(StakeCallV1::WithdrawUnbonded(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(a) => {
-				RelayCallV1::Stake(StakeCallV14::Validate(a)).encode()
+				RelayCallV1::Stake(StakeCallV1::Validate(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill => {
-				RelayCallV1::Stake(StakeCallV14::Chill).encode()
+				RelayCallV1::Stake(StakeCallV1::Chill).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
-				RelayCallV1::Stake(StakeCallV14::SetPayee(a.into())).encode()
+				RelayCallV1::Stake(StakeCallV1::SetPayee(a.into())).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(a) => match a {
-				None => RelayCallV1::Stake(StakeCallV14::SetController).encode(),
-				Some(i) => RelayCallV0::Stake(StakeCallV13::SetController(i.into())).encode(),
+				None => RelayCallV1::Stake(StakeCallV1::SetController).encode(),
+				Some(i) => RelayCallV0::Stake(StakeCallV0::SetController(i.into())).encode(),
 			},
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
-				RelayCallV1::Stake(StakeCallV14::Rebond(a.into())).encode()
+				RelayCallV1::Stake(StakeCallV1::Rebond(a.into())).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
 					a.iter().map(|add| (*add).clone().into()).collect();
 
-				RelayCallV1::Stake(StakeCallV14::Nominate(nominated)).encode()
+				RelayCallV1::Stake(StakeCallV1::Nominate(nominated)).encode()
 			}
 		}
 	}
