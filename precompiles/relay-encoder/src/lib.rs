@@ -43,13 +43,6 @@ mod test_relay_runtime;
 #[cfg(test)]
 mod tests;
 
-#[derive(Encode, Decode, Default)]
-pub enum RelayStakingVersions {
-	#[default]
-	V13,
-	V14,
-}
-
 pub enum AvailableStakeCalls {
 	Bond(
 		Option<relay_chain::AccountId>,
@@ -105,7 +98,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = match storage::RelayStakingVersion::get() {
-			RelayStakingVersions::V13 => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 				Some(address.into()),
 				relay_amount,
 				reward_destination,
@@ -279,7 +272,7 @@ where
 		let controller: [u8; 32] = controller.into();
 
 		let encoded = match storage::RelayStakingVersion::get() {
-			RelayStakingVersions::V13 => RelayRuntime::encode_call(
+			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(
 				AvailableStakeCalls::SetController(Some(controller.into())),
 			),
 			_ => RelayRuntime::encode_call(AvailableStakeCalls::SetController(None)),
@@ -513,6 +506,13 @@ mod storage {
 		traits::StorageInstance,
 	};
 
+	#[derive(Encode, Decode, Default)]
+	pub enum StakingVersion {
+		#[default]
+		V0,
+		V1,
+	}
+
 	// storage for the relay staking pallet version
 	pub struct RelayStakingVersionStorageInstance;
 	impl StorageInstance for RelayStakingVersionStorageInstance {
@@ -522,5 +522,5 @@ mod storage {
 		}
 	}
 	pub type RelayStakingVersion =
-		StorageValue<RelayStakingVersionStorageInstance, RelayStakingVersions, ValueQuery>;
+		StorageValue<RelayStakingVersionStorageInstance, StakingVersion, ValueQuery>;
 }
