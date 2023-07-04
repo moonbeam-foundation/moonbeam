@@ -99,7 +99,6 @@ fn test_encode_bond() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Bond(
-						Some([1u8; 32].into()),
 						100u32.into(),
 						RewardDestination::Controller,
 					))
@@ -208,9 +207,7 @@ fn test_encode_set_controller() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(AvailableStakeCalls::SetController(Some(
-						[1u8; 32].into(),
-					)))
+					TestEncoder::encode_call(AvailableStakeCalls::SetController)
 					.as_slice(),
 				))
 		});

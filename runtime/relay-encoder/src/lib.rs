@@ -19,5 +19,4 @@
 
 pub mod kusama;
 pub mod polkadot;
-mod stake_calls;
 pub mod westend;

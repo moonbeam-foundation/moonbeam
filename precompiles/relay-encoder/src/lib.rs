@@ -27,7 +27,6 @@ use frame_support::{
 	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
-use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -45,7 +44,6 @@ mod tests;
 
 pub enum AvailableStakeCalls {
 	Bond(
-		Option<relay_chain::AccountId>,
 		relay_chain::Balance,
 		pallet_staking::RewardDestination<relay_chain::AccountId>,
 	),
@@ -56,7 +54,7 @@ pub enum AvailableStakeCalls {
 	Nominate(Vec<relay_chain::AccountId>),
 	Chill,
 	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController(Option<relay_chain::AccountId>),
+	SetController,
 	Rebond(relay_chain::Balance),
 }
 
@@ -80,12 +78,11 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	#[precompile::public("encodeBond(uint256,uint256,bytes)")]
-	#[precompile::public("encode_bond(uint256,uint256,bytes)")]
+	#[precompile::public("encodeBond(uint256,bytes)")]
+	#[precompile::public("encode_bond(uint256,bytes)")]
 	#[precompile::view]
 	fn encode_bond(
 		handle: &mut impl PrecompileHandle,
-		controller_address: U256,
 		amount: U256,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
@@ -93,20 +90,12 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = match storage::RelayStakingVersion::get() {
-			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(
-				AvailableStakeCalls::Bond(Some(address.into()), relay_amount, reward_destination),
-			),
-			_ => RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-				None,
-				relay_amount,
-				reward_destination,
-			)),
-		}
+		let encoded = RelayRuntime::encode_call(
+				AvailableStakeCalls::Bond(relay_amount, reward_destination),
+			)
 		.as_slice()
 		.into();
 
@@ -256,27 +245,20 @@ where
 		Ok(encoded)
 	}
 
-	#[precompile::public("encodeSetController(uint256)")]
-	#[precompile::public("encode_set_controller(uint256)")]
+	#[precompile::public("encodeSetController()")]
+	#[precompile::public("encode_set_controller()")]
 	#[precompile::view]
 	fn encode_set_controller(
 		handle: &mut impl PrecompileHandle,
-		controller: U256,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let controller: [u8; 32] = controller.into();
 
-		let encoded = match storage::RelayStakingVersion::get() {
-			crate::storage::StakingVersion::V0 => RelayRuntime::encode_call(
-				AvailableStakeCalls::SetController(Some(controller.into())),
-			),
-			_ => RelayRuntime::encode_call(AvailableStakeCalls::SetController(None)),
-		}
-		.as_slice()
-		.into();
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController)
+			.as_slice()
+			.into();
 
 		Ok(encoded)
 	}
@@ -493,32 +475,4 @@ impl solidity::Codec for RewardDestinationWrapper {
 	fn signature() -> String {
 		UnboundedBytes::signature()
 	}
-}
-
-/// twox_128("relayEncoder") => 0x19be908724abae4148b8d366414b06e9
-/// twox_128("RelayStakingVersion") => 0xcc0bdf4eb748e2ec7dbec45ca14ba45b
-mod storage {
-	use super::*;
-	use frame_support::{
-		storage::types::{StorageValue, ValueQuery},
-		traits::StorageInstance,
-	};
-
-	#[derive(Encode, Decode, Default)]
-	pub enum StakingVersion {
-		#[default]
-		V0,
-		V1,
-	}
-
-	// storage for the relay staking pallet version
-	pub struct RelayStakingVersionStorageInstance;
-	impl StorageInstance for RelayStakingVersionStorageInstance {
-		const STORAGE_PREFIX: &'static str = "RelayStakingVersion";
-		fn pallet_prefix() -> &'static str {
-			"relayEncoder"
-		}
-	}
-	pub type RelayStakingVersion =
-		StorageValue<RelayStakingVersionStorageInstance, StakingVersion, ValueQuery>;
 }

@@ -17,7 +17,6 @@
 // We want to avoid including the rococo-runtime here.
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
-use crate::stake_calls::{StakeCallV0, StakeCallV1};
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
@@ -25,22 +24,44 @@ use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
 
 #[derive(Encode, Decode)]
-pub enum RelayCallV0 {
-	#[codec(index = 6u8)]
-	Stake(StakeCallV0),
-}
-
-#[derive(Encode, Decode)]
-pub enum RelayCallV1 {
+pub enum RelayCall {
 	#[codec(index = 16u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
 
 	#[codec(index = 6u8)]
-	Stake(StakeCallV1),
+	Stake(StakeCall),
 	#[codec(index = 51u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Hrmp(HrmpCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum StakeCall {
+	#[codec(index = 0u16)]
+	// the index should match the position of the dispatchable in the target pallet
+	Bond(
+		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
+		pallet_staking::RewardDestination<AccountId32>,
+	),
+	#[codec(index = 1u16)]
+	BondExtra(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
+	#[codec(index = 2u16)]
+	Unbond(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
+	#[codec(index = 3u16)]
+	WithdrawUnbonded(u32),
+	#[codec(index = 4u16)]
+	Validate(pallet_staking::ValidatorPrefs),
+	#[codec(index = 5u16)]
+	Nominate(Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source>),
+	#[codec(index = 6u16)]
+	Chill,
+	#[codec(index = 7u16)]
+	SetPayee(pallet_staking::RewardDestination<AccountId32>),
+	#[codec(index = 8u16)]
+	SetController,
+	#[codec(index = 19u16)]
+	Rebond(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
 }
 
 // Utility call encoding, needed for xcm transactor pallet
@@ -69,7 +90,7 @@ impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
 	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-				let mut call = RelayCallV1::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 				// If we encode directly we inject the call length,
 				// so we just append the inner call after encoding the outer
 				call.append(&mut b.clone());
@@ -84,18 +105,18 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
-			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCallV1::Hrmp(
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
 				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
 			)
 			.encode()),
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-				Ok(RelayCallV1::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
-				Ok(RelayCallV1::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
-				Ok(RelayCallV1::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
 			}
 		}
 	}
@@ -103,49 +124,47 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for WestendEncoder {
 	fn encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -> Vec<u8> {
 		match call {
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(a, b, c) => match a {
-				None => RelayCallV1::Stake(StakeCallV1::Bond(b, c)).encode(),
-				Some(i) => RelayCallV0::Stake(StakeCallV0::Bond(i.into(), b, c)).encode(),
-			},
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(b, c) => {
+				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
+			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(a) => {
-				RelayCallV1::Stake(StakeCallV1::BondExtra(a)).encode()
+				RelayCall::Stake(StakeCall::BondExtra(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(a) => {
-				RelayCallV1::Stake(StakeCallV1::Unbond(a)).encode()
+				RelayCall::Stake(StakeCall::Unbond(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(a) => {
-				RelayCallV1::Stake(StakeCallV1::WithdrawUnbonded(a)).encode()
+				RelayCall::Stake(StakeCall::WithdrawUnbonded(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(a) => {
-				RelayCallV1::Stake(StakeCallV1::Validate(a)).encode()
+				RelayCall::Stake(StakeCall::Validate(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill => {
-				RelayCallV1::Stake(StakeCallV1::Chill).encode()
+				RelayCall::Stake(StakeCall::Chill).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
-				RelayCallV1::Stake(StakeCallV1::SetPayee(a.into())).encode()
+				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(a) => match a {
-				None => RelayCallV1::Stake(StakeCallV1::SetController).encode(),
-				Some(i) => RelayCallV0::Stake(StakeCallV0::SetController(i.into())).encode(),
-			},
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController => {
+				RelayCall::Stake(StakeCall::SetController).encode()
+			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
-				RelayCallV1::Stake(StakeCallV1::Rebond(a.into())).encode()
+				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
 					a.iter().map(|add| (*add).clone().into()).collect();
 
-				RelayCallV1::Stake(StakeCallV1::Nominate(nominated)).encode()
+				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
 			}
 		}
 	}
@@ -196,7 +215,6 @@ mod tests {
 	#[test]
 	fn test_stake_bond() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
-		let relay_account: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -205,7 +223,6 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::bond {
-			controller: relay_account.clone().into(),
 			value: 100u32.into(),
 			payee: pallet_staking::RewardDestination::Controller,
 		}
@@ -215,7 +232,6 @@ mod tests {
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
 				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(
-					relay_account.into(),
 					100u32.into(),
 					pallet_staking::RewardDestination::Controller
 				)
@@ -396,7 +412,6 @@ mod tests {
 	#[test]
 	fn test_set_controller() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
-		let relay_account: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -404,17 +419,12 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::set_controller {
-			controller: relay_account.clone().into(),
-		}
-		.encode();
+		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::set_controller {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(
-					relay_account.clone().into()
-				)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController
 			),
 			expected_encoded
 		);
