@@ -78,7 +78,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed" ] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
@@ -164,6 +164,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
+pallet-message-queue = { workspace = true }
 
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
