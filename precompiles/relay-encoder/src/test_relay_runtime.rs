@@ -35,7 +35,6 @@ pub enum StakeCall {
 	#[codec(index = 0u16)]
 	// the index should match the position of the dispatchable in the target pallet
 	Bond(
-		<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source,
 		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
 		pallet_staking::RewardDestination<AccountId32>,
 	),
@@ -54,7 +53,7 @@ pub enum StakeCall {
 	#[codec(index = 7u16)]
 	SetPayee(pallet_staking::RewardDestination<AccountId32>),
 	#[codec(index = 8u16)]
-	SetController(<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source),
+	SetController,
 	#[codec(index = 19u16)]
 	Rebond(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
 }
@@ -95,7 +94,7 @@ impl StakeEncodeCall for TestEncoder {
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			AvailableStakeCalls::SetController(a) => {
+			AvailableStakeCalls::SetController => {
 				RelayCall::Stake(StakeCall::SetController).encode()
 			}
 

@@ -90,7 +90,6 @@ fn test_encode_bond() {
 					Alice,
 					Precompile1,
 					PCall::encode_bond {
-						controller_address: [1u8; 32].into(),
 						amount: 100.into(),
 						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
 					},
@@ -200,9 +199,7 @@ fn test_encode_set_controller() {
 				.prepare_test(
 					Alice,
 					Precompile1,
-					PCall::encode_set_controller {
-						controller: [1u8; 32].into(),
-					},
+					PCall::encode_set_controller {},
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
