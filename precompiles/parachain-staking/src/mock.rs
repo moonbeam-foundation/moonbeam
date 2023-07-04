@@ -172,7 +172,7 @@ parameter_types! {
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
-	pub const MaxCandidates: u32 = 5;
+	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
 impl pallet_parachain_staking::Config for Runtime {

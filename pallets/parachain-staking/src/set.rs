@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 /* TODO: use orml_utilities::OrderedSet without leaking substrate v2.0 dependencies*/
-#![allow(dead_code)]
 
 use frame_support::traits::Get;
 use parity_scale_codec::{Decode, Encode};
