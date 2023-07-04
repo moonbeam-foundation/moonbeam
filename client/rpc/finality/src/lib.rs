@@ -19,12 +19,13 @@ use sp_core::H256;
 use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
 // so it's load_hash helper returns an H256 instead of wrapping it in a BlockId?
-use fc_db::Backend as FrontierBackend;
+use fc_db::kv::Backend as FrontierBackend;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block;
 
 /// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
 #[rpc(server)]
+#[async_trait::async_trait]
 pub trait MoonbeamFinalityApi {
 	/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
@@ -67,13 +68,16 @@ where
 	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
 		let backend = self.backend.clone();
 		let client = self.client.clone();
+
 		if let Some((ethereum_block_hash, _ethereum_index)) =
 			frontier_backend_client::load_transactions::<B, C>(
 				&client,
-				backend.as_ref(),
+				backend.clone().as_ref(),
 				tx_hash,
 				true,
-			)? {
+			)
+			.await?
+		{
 			is_block_finalized_inner::<B, C>(&backend, &client, ethereum_block_hash)
 		} else {
 			Ok(false)
@@ -86,13 +90,13 @@ fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {
-	let substrate_hash =
-		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash)? {
-			// If we find this hash in the frontier data base, we know it is an eth hash
-			Some(hash) => hash,
-			// Otherwise, we assume this is a Substrate hash.
-			None => raw_hash,
-		};
+	let substrate_hash = match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash)
+	{
+		// If we find this hash in the frontier data base, we know it is an eth hash
+		Some(hash) => hash,
+		// Otherwise, we assume this is a Substrate hash.
+		None => raw_hash,
+	};
 
 	// First check whether the block is in the best chain
 	if !is_canon(client, substrate_hash) {

@@ -55,7 +55,7 @@ use nimbus_primitives::NimbusId;
 use sc_client_api::ExecutorProvider;
 use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
-use sc_network::{NetworkBlock, NetworkService};
+use sc_network::{config::FullNetworkConfiguration, NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
@@ -64,7 +64,7 @@ use sc_service::{
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::ConstructRuntimeApi;
 use sp_blockchain::HeaderBackend;
-use sp_keystore::SyncCryptoStorePtr;
+use sp_keystore::KeystorePtr;
 use std::sync::Arc;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -460,10 +460,8 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config)?;
-
-	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
+	let frontier_backend = fc_db::Backend::KeyValue(open_frontier_backend(client.clone(), config)?);
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
@@ -559,7 +557,7 @@ where
 			>,
 		>,
 		Arc<NetworkService<Block, Hash>>,
-		SyncCryptoStorePtr,
+		KeystorePtr,
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
@@ -599,6 +597,8 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
+	let net_config = FullNetworkConfiguration::new(&parachain_config.network);
+
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
 		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
 			parachain_config: &parachain_config,
@@ -608,6 +608,7 @@ where
 			import_queue: params.import_queue,
 			para_id: id,
 			relay_chain_interface: relay_chain_interface.clone(),
+			net_config,
 		})
 		.await?;
 
@@ -737,7 +738,7 @@ where
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
 		config: parachain_config,
-		keystore: params.keystore_container.sync_keystore(),
+		keystore: params.keystore_container.keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
 		sync_service: sync_service.clone(),
@@ -779,7 +780,7 @@ where
 			relay_chain_interface.clone(),
 			transaction_pool,
 			network,
-			params.keystore_container.sync_keystore(),
+			params.keystore_container.keystore(),
 			force_authoring,
 		)?;
 
@@ -800,6 +801,7 @@ where
 				"Collator Key is None".to_string(),
 			))?,
 			relay_chain_slot_duration,
+			sync_service,
 		};
 
 		start_collator(params).await?;
@@ -813,6 +815,7 @@ where
 			relay_chain_slot_duration,
 			import_queue: import_queue_service,
 			recovery_handle: Box::new(overseer_handle),
+			sync_service,
 		};
 
 		start_full_node(params)?;
@@ -963,6 +966,8 @@ where
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
+	let net_config = FullNetworkConfiguration::new(&config.network);
+
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -972,6 +977,7 @@ where
 			import_queue,
 			block_announce_validator_builder: None,
 			warp_sync_params: None,
+			net_config,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -1049,7 +1055,7 @@ where
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
 		let client_clone = client.clone();
-		let keystore_clone = keystore_container.sync_keystore().clone();
+		let keystore_clone = keystore_container.keystore().clone();
 		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
@@ -1071,7 +1077,7 @@ where
 				commands_stream,
 				select_chain,
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
-					keystore: keystore_container.sync_keystore(),
+					keystore: keystore_container.keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
 					_phantom: Default::default(),
@@ -1233,7 +1239,7 @@ where
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
 		client,
-		keystore: keystore_container.sync_keystore(),
+		keystore: keystore_container.keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
 		rpc_builder: Box::new(rpc_builder),
@@ -1455,7 +1461,6 @@ mod tests {
 			tokio_handle: runtime.handle().clone(),
 			transaction_pool: Default::default(),
 			network: network_config,
-			keystore_remote: Default::default(),
 			keystore: KeystoreConfig::Path {
 				path: "key".into(),
 				password: None,
@@ -1471,18 +1476,16 @@ mod tests {
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),
 			execution_strategies: Default::default(),
-			rpc_http: None,
 			rpc_id_provider: None,
-			rpc_ipc: None,
-			rpc_ws: None,
-			rpc_ws_max_connections: None,
+			rpc_max_connections: None,
 			rpc_cors: None,
 			rpc_methods: Default::default(),
-			rpc_max_payload: None,
 			rpc_max_request_size: None,
 			rpc_max_response_size: None,
 			rpc_max_subs_per_conn: None,
-			ws_max_out_buffer_capacity: None,
+			rpc_addr: None,
+			rpc_port: Default::default(),
+			data_path: Default::default(),
 			prometheus_config: None,
 			telemetry_endpoints: None,
 			default_heap_pages: None,
