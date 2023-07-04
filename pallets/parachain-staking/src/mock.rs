@@ -120,6 +120,7 @@ parameter_types! {
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
+	pub const MaxCandidates: u32 = 10;
 }
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
@@ -144,6 +145,7 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
+	type MaxCandidates = MaxCandidates;
 }
 
 pub(crate) struct ExtBuilder {

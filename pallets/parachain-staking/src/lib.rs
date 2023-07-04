@@ -80,7 +80,7 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
+	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -177,6 +177,9 @@ pub mod pallet {
 		type OnNewRound: OnNewRound;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+		/// Maximum candidates
+		#[pallet::constant]
+		type MaxCandidates: Get<u32>;
 	}
 
 	#[pallet::error]
@@ -229,8 +232,7 @@ pub mod pallet {
 		TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates,
 		TooLowCandidateCountWeightHint,
 		TooLowCandidateCountWeightHintGoOffline,
-		TooLowCandidateCountWeightHintGoOnline,
-		TooLowCandidateCountWeightHintCandidateBondMore,
+		CandidateLimitReached,
 	}
 
 	#[pallet::event]
@@ -589,8 +591,11 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	pub(crate) type CandidatePool<T: Config> =
-		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
+	pub(crate) type CandidatePool<T: Config> = StorageValue<
+		_,
+		BoundedOrderedSet<Bond<T::AccountId, BalanceOf<T>>, T::MaxCandidates>,
+		ValueQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -970,13 +975,14 @@ pub mod pallet {
 				candidate_count >= old_count,
 				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
 			);
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: acc.clone(),
-					amount: bond
-				}),
-				Error::<T>::CandidateExists
-			);
+					amount: bond,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(maybe_inserted_candidate, Error::<T>::CandidateExists);
+
 			ensure!(
 				Self::get_collator_stakable_free_balance(&acc) >= bond,
 				Error::<T>::InsufficientBalance,
@@ -1065,13 +1071,13 @@ pub mod pallet {
 				candidates.0.len() as u32 <= candidate_count,
 				Error::<T>::TooLowCandidateCountWeightHintCancelLeaveCandidates
 			);
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
-				Error::<T>::AlreadyActive
-			);
+					amount: state.total_counted,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(maybe_inserted_candidate, Error::<T>::AlreadyActive);
 			<CandidatePool<T>>::put(candidates);
 			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CancelledCandidateExit {
@@ -1447,16 +1453,20 @@ pub mod pallet {
 			);
 			state.go_online();
 
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
+					amount: state.total_counted,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(
+				maybe_inserted_candidate,
 				DispatchErrorWithPostInfo {
 					post_info: Some(actual_weight).into(),
 					error: <Error<T>>::AlreadyActive.into(),
 				},
 			);
+
 			<CandidatePool<T>>::put(candidates);
 			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBackOnline {
@@ -1619,10 +1629,14 @@ pub mod pallet {
 		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 			let mut candidates = <CandidatePool<T>>::get();
 			candidates.remove(&Bond::from_owner(candidate.clone()));
-			candidates.insert(Bond {
-				owner: candidate,
-				amount: total,
-			});
+			candidates
+				.try_insert(Bond {
+					owner: candidate,
+					amount: total,
+				})
+				.expect(
+					"the candidate is removed in previous step so the length cannot increase; qed",
+				);
 			<CandidatePool<T>>::put(candidates);
 		}
 
@@ -1853,23 +1867,27 @@ pub mod pallet {
 				return vec![];
 			}
 
-			let mut candidates = <CandidatePool<T>>::get().0;
+			let candidates = <CandidatePool<T>>::get().0;
 
 			// If the number of candidates is greater than top_n, select the candidates with higher
 			// amount. Otherwise, return all the candidates.
 			if candidates.len() > top_n {
 				// Partially sort candidates such that element at index `top_n - 1` is sorted, and
 				// all the elements in the range 0..top_n are the top n elements.
-				candidates.select_nth_unstable_by(top_n - 1, |a, b| {
-					// Order by amount, then owner. The owner is needed to ensure a stable order
-					// when two accounts have the same amount.
-					a.amount
-						.cmp(&b.amount)
-						.then_with(|| a.owner.cmp(&b.owner))
-						.reverse()
-				});
+				let sorted_candidates = candidates
+					.try_mutate(|inner| {
+						inner.select_nth_unstable_by(top_n - 1, |a, b| {
+							// Order by amount, then owner. The owner is needed to ensure a stable order
+							// when two accounts have the same amount.
+							a.amount
+								.cmp(&b.amount)
+								.then_with(|| a.owner.cmp(&b.owner))
+								.reverse()
+						});
+					})
+					.expect("sort cannot increase item count; qed");
 
-				let mut collators = candidates
+				let mut collators = sorted_candidates
 					.into_iter()
 					.take(top_n)
 					.map(|x| x.owner)

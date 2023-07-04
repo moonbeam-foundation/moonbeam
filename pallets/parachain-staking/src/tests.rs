@@ -860,6 +860,43 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 		});
 }
 
+#[test]
+fn join_candidates_fails_if_above_max_candidate_count() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+			(11, 20),
+		])
+		.with_candidates(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(11), 20, 10),
+				Error::<Test>::CandidateLimitReached,
+			);
+		});
+}
+
 // SCHEDULE LEAVE CANDIDATES
 
 #[test]
