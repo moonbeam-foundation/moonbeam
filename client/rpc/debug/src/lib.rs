@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use futures::StreamExt;
+use futures::{executor::block_on, StreamExt};
 use jsonrpsee::core::{async_trait, RpcResult};
 pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams};
 
@@ -186,7 +186,6 @@ where
 										))
 									})?
 								}
-								.await
 								.await,
 							);
 						});
@@ -221,7 +220,6 @@ where
 										))
 									})?
 								}
-								.await
 								.await,
 							);
 						});
@@ -281,7 +279,7 @@ where
 		}
 	}
 
-	async fn handle_block_request(
+	fn handle_block_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::kv::Backend<B>>,
@@ -302,17 +300,17 @@ where
 			RequestBlockId::Tag(RequestBlockTag::Pending) => {
 				Err(internal_err("'pending' blocks are not supported"))
 			}
-			RequestBlockId::Hash(eth_hash) => match frontier_backend_client::load_hash::<B, C>(
-				client.as_ref(),
-				frontier_backend.as_ref(),
-				eth_hash,
-			)
-			.await
-			{
-				Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
-				Ok(_) => Err(internal_err("Block hash not found".to_string())),
-				Err(e) => Err(e),
-			},
+			RequestBlockId::Hash(eth_hash) => {
+				match block_on(frontier_backend_client::load_hash::<B, C>(
+					client.as_ref(),
+					frontier_backend.as_ref(),
+					eth_hash,
+				)) {
+					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
+					Ok(_) => Err(internal_err("Block hash not found".to_string())),
+					Err(e) => Err(e),
+				}
+			}
 		}?;
 
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
@@ -416,7 +414,7 @@ where
 	///
 	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
 	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
-	async fn handle_transaction_request(
+	fn handle_transaction_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::kv::Backend<B>>,
@@ -427,26 +425,22 @@ where
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
-		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
+		let (hash, index) = match block_on(frontier_backend_client::load_transactions::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
 			transaction_hash,
 			false,
-		)
-		.await
-		{
+		)) {
 			Ok(Some((hash, index))) => (hash, index as usize),
 			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
 			Err(e) => return Err(e),
 		};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
+		let reference_id = match block_on(frontier_backend_client::load_hash::<B, C>(
 			client.as_ref(),
 			frontier_backend.as_ref(),
 			hash,
-		)
-		.await
-		{
+		)) {
 			Ok(Some(hash)) => BlockId::Hash(hash),
 			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
 			Err(e) => return Err(e),
