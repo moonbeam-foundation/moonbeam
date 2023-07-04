@@ -21,7 +21,7 @@ use cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
-use moonbeam_cli_opt::{EthApi, RpcConfig};
+use moonbeam_cli_opt::EthApi;
 use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
@@ -270,31 +270,37 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config)?;
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) =
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config)?;
+					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -347,13 +353,14 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			let chain_spec = &runner.config().chain_spec;
+			let rpc_config = cli.run.new_rpc_config();
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
 				spec if spec.is_moonriver() => runner.async_run(|mut config| {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -365,7 +372,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -377,7 +384,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseExecutor,
-					>(&mut config, false)?;
+					>(&mut config, &rpc_config, false)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -522,6 +529,7 @@ pub fn run() -> Result<()> {
 				}
 				BenchmarkCmd::Block(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
+					let rpc_config = cli.run.new_rpc_config();
 					match chain_spec {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => {
@@ -529,7 +537,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})
@@ -540,7 +548,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})
@@ -551,7 +559,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
 							})
@@ -568,6 +576,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
+					let rpc_config = cli.run.new_rpc_config();
 					match chain_spec {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => {
@@ -575,7 +584,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -589,7 +598,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -603,7 +612,7 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -724,18 +733,7 @@ pub fn run() -> Result<()> {
 				let para_id = extension.map(|e| e.para_id);
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
-				let rpc_config = RpcConfig {
-					ethapi: cli.run.ethapi,
-					ethapi_max_permits: cli.run.ethapi_max_permits,
-					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
-					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
-					eth_log_block_cache: cli.run.eth_log_block_cache,
-					eth_statuses_cache: cli.run.eth_statuses_cache,
-					fee_history_limit: cli.run.fee_history_limit,
-					max_past_logs: cli.run.max_past_logs,
-					relay_chain_rpc_urls: cli.run.base.relay_chain_rpc_urls,
-					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
-				};
+				let rpc_config = cli.run.new_rpc_config();
 
 				// If dev service was requested, start up manual or instant seal.
 				// Otherwise continue with the normal parachain node.
@@ -790,7 +788,7 @@ pub fn run() -> Result<()> {
 				);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v2::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v4::AccountId>::into_account_truncating(&id);
 
 				let state_version =
 					RelayChainCli::native_runtime_version(&config.chain_spec).state_version();
@@ -911,14 +909,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 		Ok(self
 			.shared_params()
 			.base_path()?
-			.or_else(|| self.base_path.clone().map(Into::into)))
-	}
-
-	fn rpc_ipc(&self) -> Result<Option<String>> {
-		self.base
-			.base
-			.rpc_ipc()
-			.or_else(|| Some(self.base_path.clone().into()))
+			.or_else(|| Some(self.base_path.clone().into())))
 	}
 
 	fn rpc_addr(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {

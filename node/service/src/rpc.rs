@@ -20,7 +20,6 @@ pub mod tracing;
 
 use std::{sync::Arc, time::Duration};
 
-use fc_rpc::EthBlockDataCacheTask;
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
@@ -269,11 +268,11 @@ where
 			EthFilter::new(
 				client.clone(),
 				frontier_backend.clone(),
+				fc_rpc::TxPool::new(client.clone(), graph.clone()),
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
-				block_data_cache.clone(),
-				EthBlockDataCacheTask::default(),
+				block_data_cache,
 			)
 			.into_rpc(),
 		)?;
@@ -349,7 +348,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub task_manager: &'a TaskManager,
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
-	pub frontier_backend: Arc<fc_db::Backend<B>>,
+	pub frontier_backend: fc_db::Backend<B>,
 	pub filter_pool: Option<FilterPool>,
 	pub overrides: Arc<OverrideHandle<B>>,
 	pub fee_history_limit: u64,
@@ -394,8 +393,8 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					3,
 					0,
 					SyncStrategy::Parachain,
-					params.sync_service.clone(),
-					params.pubsub_notification_sinks.clone(),
+					sync.clone(),
+					pubsub_notification_sinks.clone(),
 				)
 				.for_each(|()| futures::future::ready(())),
 			);
@@ -414,8 +413,8 @@ pub fn spawn_essential_tasks<B, C, BE>(
 						check_indexed_blocks_interval: Duration::from_secs(60),
 					},
 					fc_mapping_sync::SyncStrategy::Parachain,
-					params.sync_service.clone(),
-					params.pubsub_notification_sinks.clone(),
+					sync.clone(),
+					pubsub_notification_sinks.clone(),
 				),
 			);
 		}

@@ -142,7 +142,7 @@ where
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
-		frontier_backend: Arc<fc_db::kv::Backend<B>>,
+		frontier_backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
 		permit_pool: Arc<Semaphore>,
 		overrides: Arc<OverrideHandle<B>>,
 		raw_max_memory_usage: usize,
@@ -186,7 +186,6 @@ where
 										))
 									})?
 								}
-								.await
 								.await,
 							);
 						});
@@ -221,7 +220,6 @@ where
 										))
 									})?
 								}
-								.await
 								.await,
 							);
 						});
@@ -281,10 +279,10 @@ where
 		}
 	}
 
-	async fn handle_block_request(
+	fn handle_block_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
-		frontier_backend: Arc<fc_db::kv::Backend<B>>,
+		frontier_backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
 		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
 		overrides: Arc<OverrideHandle<B>>,
@@ -302,17 +300,17 @@ where
 			RequestBlockId::Tag(RequestBlockTag::Pending) => {
 				Err(internal_err("'pending' blocks are not supported"))
 			}
-			RequestBlockId::Hash(eth_hash) => match frontier_backend_client::load_hash::<B, C>(
-				client.as_ref(),
-				frontier_backend.as_ref(),
-				eth_hash,
-			)
-			.await
-			{
-				Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
-				Ok(_) => Err(internal_err("Block hash not found".to_string())),
-				Err(e) => Err(e),
-			},
+			RequestBlockId::Hash(eth_hash) => {
+				match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+					client.as_ref(),
+					frontier_backend.as_ref(),
+					eth_hash,
+				)) {
+					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
+					Ok(_) => Err(internal_err("Block hash not found".to_string())),
+					Err(e) => Err(e),
+				}
+			}
 		}?;
 
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
@@ -416,10 +414,10 @@ where
 	///
 	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
 	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
-	async fn handle_transaction_request(
+	fn handle_transaction_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
-		frontier_backend: Arc<fc_db::kv::Backend<B>>,
+		frontier_backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 		overrides: Arc<OverrideHandle<B>>,
@@ -427,30 +425,28 @@ where
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
-		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
-			client.as_ref(),
-			frontier_backend.as_ref(),
-			transaction_hash,
-			false,
-		)
-		.await
-		{
-			Ok(Some((hash, index))) => (hash, index as usize),
-			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let (hash, index) =
+			match futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
+				client.as_ref(),
+				frontier_backend.as_ref(),
+				transaction_hash,
+				false,
+			)) {
+				Ok(Some((hash, index))) => (hash, index as usize),
+				Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
-			client.as_ref(),
-			frontier_backend.as_ref(),
-			hash,
-		)
-		.await
-		{
-			Ok(Some(hash)) => BlockId::Hash(hash),
-			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let reference_id =
+			match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+				client.as_ref(),
+				frontier_backend.as_ref(),
+				hash,
+			)) {
+				Ok(Some(hash)) => BlockId::Hash(hash),
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend
