@@ -154,7 +154,7 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for KusamaEncoder {
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController => {
 				RelayCall::Stake(StakeCall::SetController).encode()
-			},
+			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
 				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
@@ -419,7 +419,8 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<kusama_runtime::Runtime>::set_controller {}.encode();
+		let mut expected =
+			pallet_staking::Call::<kusama_runtime::Runtime>::set_controller {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(

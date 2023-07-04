@@ -419,7 +419,8 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::set_controller {}.encode();
+		let mut expected =
+			pallet_staking::Call::<westend_runtime::Runtime>::set_controller {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(

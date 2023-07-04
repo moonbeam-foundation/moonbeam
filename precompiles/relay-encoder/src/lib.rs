@@ -93,11 +93,10 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(
-				AvailableStakeCalls::Bond(relay_amount, reward_destination),
-			)
-		.as_slice()
-		.into();
+		let encoded =
+			RelayRuntime::encode_call(AvailableStakeCalls::Bond(relay_amount, reward_destination))
+				.as_slice()
+				.into();
 
 		Ok(encoded)
 	}
@@ -248,13 +247,10 @@ where
 	#[precompile::public("encodeSetController()")]
 	#[precompile::public("encode_set_controller()")]
 	#[precompile::view]
-	fn encode_set_controller(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<UnboundedBytes> {
+	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
-
 
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController)
 			.as_slice()
