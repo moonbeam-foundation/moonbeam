@@ -115,6 +115,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 pub type ForeignAssetInstance = ();
@@ -392,7 +396,6 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
-	type AssetIsBurnable = Everything;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -721,6 +724,9 @@ impl pallet_xcm::Config for Runtime {
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
 	type WeightInfo = pallet_xcm::TestWeightInfo;
+	type MaxRemoteLockConsumers = ConstU32<0>;
+	type RemoteLockConsumerIdentifier = ();
+	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 // Our AssetType. For now we only handle Xcm Assets

@@ -21,7 +21,7 @@ pub mod statemine_like;
 use cumulus_primitives_core::ParaId;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
-use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
+use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
 use polkadot_runtime_parachains::configuration::{
 	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
@@ -110,7 +110,11 @@ decl_test_parachain! {
 decl_test_relay_chain! {
 	pub struct Relay {
 		Runtime = relay_chain::Runtime,
+		RuntimeCall = relay_chain::RuntimeCall,
+		RuntimeEvent = relay_chain::RuntimeEvent,
 		XcmConfig = relay_chain::XcmConfig,
+		MessageQueue = relay_chain::MessageQueue,
+		System = relay_chain::System,
 		new_ext = relay_ext(vec![1, 2, 3, 4]),
 	}
 }
