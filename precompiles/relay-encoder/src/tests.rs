@@ -99,7 +99,7 @@ fn test_encode_bond() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Bond(
-						[1u8; 32].into(),
+						Some([1u8; 32].into()),
 						100u32.into(),
 						RewardDestination::Controller,
 					))

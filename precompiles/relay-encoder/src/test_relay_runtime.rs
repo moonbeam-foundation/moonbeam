@@ -78,7 +78,7 @@ impl StakeEncodeCall for TestEncoder {
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			AvailableStakeCalls::Bond(a, b, c) => {
-				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
+				RelayCall::Stake(StakeCall::Bond(a.unwrap().into(), b, c)).encode()
 			}
 
 			AvailableStakeCalls::BondExtra(a) => RelayCall::Stake(StakeCall::BondExtra(a)).encode(),
