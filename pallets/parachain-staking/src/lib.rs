@@ -233,6 +233,7 @@ pub mod pallet {
 		TooLowCandidateCountWeightHint,
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
+		CannotSetAboveMaxCandidates,
 	}
 
 	#[pallet::event]
@@ -581,7 +582,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn selected_candidates)]
 	/// The collator candidates selected for the current round
-	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	type SelectedCandidates<T: Config> =
+		StorageValue<_, BoundedVec<T::AccountId, T::MaxCandidates>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
@@ -769,6 +771,11 @@ pub mod pallet {
 				"{:?}",
 				Error::<T>::CannotSetBelowMin
 			);
+			assert!(
+				self.num_selected_candidates <= T::MaxCandidates::get(),
+				"{:?}",
+				Error::<T>::CannotSetAboveMaxCandidates
+			);
 			<TotalSelected<T>>::put(self.num_selected_candidates);
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
@@ -890,6 +897,10 @@ pub mod pallet {
 			ensure!(
 				new >= T::MinSelectedCandidates::get(),
 				Error::<T>::CannotSetBelowMin
+			);
+			ensure!(
+				new <= T::MaxCandidates::get(),
+				Error::<T>::CannotSetAboveMaxCandidates
 			);
 			let old = <TotalSelected<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
@@ -1891,7 +1902,7 @@ pub mod pallet {
 					.into_iter()
 					.take(top_n)
 					.map(|x| x.owner)
-					.collect::<Vec<T::AccountId>>();
+					.collect::<Vec<_>>();
 
 				// Sort collators by AccountId
 				collators.sort();
@@ -1900,10 +1911,7 @@ pub mod pallet {
 			} else {
 				// Return all candidates
 				// The candidates are already sorted by AccountId, so no need to sort again
-				candidates
-					.into_iter()
-					.map(|x| x.owner)
-					.collect::<Vec<T::AccountId>>()
+				candidates.into_iter().map(|x| x.owner).collect::<Vec<_>>()
 			}
 		}
 		/// Best as in most cumulatively supported in terms of stake
@@ -1985,7 +1993,10 @@ pub mod pallet {
 				});
 			}
 			// insert canonical collator set
-			<SelectedCandidates<T>>::put(collators);
+			<SelectedCandidates<T>>::put(
+				BoundedVec::try_from(collators)
+					.expect("subset of collators is always less than or equal to max candidates"),
+			);
 
 			let avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(0);
 			let weight = T::WeightInfo::select_top_candidates(collator_count, avg_delegator_count);
@@ -2167,7 +2178,7 @@ pub mod pallet {
 
 	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
 		fn get() -> Vec<T::AccountId> {
-			Self::selected_candidates()
+			Self::selected_candidates().into_inner()
 		}
 	}
 }

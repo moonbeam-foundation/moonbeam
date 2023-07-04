@@ -93,6 +93,17 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 }
 
 #[test]
+fn set_total_selected_fails_if_above_max_candidates() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(<Test as crate::Config>::MaxCandidates::get(), 10); // test relies on this
+		assert_noop!(
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 15u32),
+			Error::<Test>::CannotSetAboveMaxCandidates,
+		);
+	});
+}
+
+#[test]
 fn set_total_selected_fails_if_equal_to_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -129,10 +140,10 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 		));
 		assert_ok!(ParachainStaking::set_total_selected(
 			RuntimeOrigin::root(),
-			15u32
+			10u32
 		));
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 14u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 9u32),
 			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
 	});
