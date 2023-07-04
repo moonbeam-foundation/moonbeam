@@ -5796,6 +5796,7 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
+ "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",

@@ -223,6 +223,20 @@ fn verify_pallet_prefixes() {
 				max_values: None,
 				max_size: Some(1037),
 			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Holds".to_vec(),
+				prefix: prefix(b"Balances", b"Holds"),
+				max_values: None,
+				max_size: Some(37),
+			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Freezes".to_vec(),
+				prefix: prefix(b"Balances", b"Freezes"),
+				max_values: None,
+				max_size: Some(37),
+			},
 		]
 	);
 	assert_eq!(
@@ -676,14 +690,14 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
+				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				1213666666584000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
@@ -724,7 +738,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
+				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
@@ -732,7 +746,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				1182693333281650000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
@@ -1615,7 +1629,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 
 			// Assert account is frozen
 			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
 				Err(TokenError::Frozen.into())
 			);
 
@@ -1634,7 +1648,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
-				.into_result()
+				.into_result(false)
 				.is_ok());
 		});
 }
@@ -1669,7 +1683,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 
 			// Assert account is frozen
 			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
 				Err(TokenError::Frozen.into())
 			);
 
