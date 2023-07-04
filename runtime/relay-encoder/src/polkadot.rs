@@ -227,7 +227,6 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::bond {
-			controller: relay_account.clone().into(),
 			value: 100u32.into(),
 			payee: pallet_staking::RewardDestination::Controller,
 		}
@@ -426,10 +425,8 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::set_controller {
-			controller: relay_account.clone().into(),
-		}
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::set_controller {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
