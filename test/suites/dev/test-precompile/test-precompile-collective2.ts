@@ -12,7 +12,7 @@ import {
   CHARLETH_PRIVATE_KEY,
   DOROTHY_PRIVATE_KEY,
   PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
   ethan,
 } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
@@ -23,7 +23,7 @@ const successfulTreasuryCouncilCall = async (
   privateKey: `0x${string}`,
   data: `0x${string}`
 ) => {
-  const tx = await createRawTransaction(context, {
+  const tx = await createViemTransaction(context, {
     to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
     gas: 5_000_000n,
     data: data,
@@ -54,7 +54,7 @@ describeSuite({
     });
 
     beforeAll(async () => {
-      const { abi } = await fetchCompiledContract("CollectivePrecompile");
+      const { abi } = fetchCompiledContract("CollectivePrecompile");
       collectivePrecompileAbi = abi;
     });
 

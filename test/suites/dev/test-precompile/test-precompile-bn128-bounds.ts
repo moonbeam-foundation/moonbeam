@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
 
 import { customDevRpcRequest, describeSuite } from "@moonwall/cli";
-import { createRawTransaction, sendRawTransaction } from "@moonwall/util";
+import { createViemTransaction, sendRawTransaction } from "@moonwall/util";
 import { sendPrecompileTx } from "../../../helpers/transactions.js";
-import { createEthersTxn } from "@moonwall/util";
+import { createEthersTransaction } from "@moonwall/util";
 /*
  * These test cases trigger bugs in the bn128 precompiles which perform a from_slice()
  * call on unchecked input.
@@ -45,13 +45,11 @@ describeSuite({
             "02020202020202020202020302020202020202020202020202020202020202020202020202020202" +
             "0302020202020202020202020202") as `0x${string}`;
 
-        const tx = await createRawTransaction(context, {
+        const tx = await createViemTransaction(context, {
           to: "0x0000000000000000000000000000000000000007",
           data,
           skipEstimation: true,
         });
-
-        
 
         // we expect that the node hasn't crashed by here. without a fix, the previous web3 request
         // would have been sufficient to crash our node. now it fails with "ExhaustsResources". if
@@ -66,7 +64,7 @@ describeSuite({
       test: async () => {
         // similar to the above call data, although triggers a slightly different bug
 
-        const tx = await createRawTransaction(context, {
+        const tx = await createViemTransaction(context, {
           to: "0x0000000000000000000000000000000000000007",
           data: "0x0000000000000000000000000000000000000000050000000000008303d0300d901401",
           skipEstimation: true,

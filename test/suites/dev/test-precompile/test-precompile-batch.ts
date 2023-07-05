@@ -4,7 +4,7 @@ import {
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   PRECOMPILE_BATCH_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
   sendRawTransaction,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
@@ -18,10 +18,10 @@ describeSuite({
       id: "T01",
       title: "should consume the same gas",
       test: async function () {
-        const { abi: batchInterface } = await fetchCompiledContract("Batch");
+        const { abi: batchInterface } = fetchCompiledContract("Batch");
 
         // each tx have a different gas limit to ensure it doesn't impact gas used
-        const batchAllTx = await createRawTransaction(context, {
+        const batchAllTx = await createViemTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           gas: 1114112n,
           data: encodeFunctionData({
@@ -36,7 +36,7 @@ describeSuite({
           }),
         });
 
-        const batchSomeTx = await createRawTransaction(context, {
+        const batchSomeTx = await createViemTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           gas: 1179648n,
           nonce: 1,
@@ -52,7 +52,7 @@ describeSuite({
           }),
         });
 
-        const batchSomeUntilFailureTx = await createRawTransaction(context, {
+        const batchSomeUntilFailureTx = await createViemTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           gas: 1245184n,
           nonce: 2,

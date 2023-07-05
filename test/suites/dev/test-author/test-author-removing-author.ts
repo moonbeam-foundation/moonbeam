@@ -20,7 +20,7 @@ describeSuite({
 
     beforeAll(async function () {
       // Remove the keys
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       await api.tx.authorMapping.removeKeys().signAndSend(dorothy);
       await context.createBlock();
     });

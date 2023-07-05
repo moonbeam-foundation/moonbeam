@@ -10,7 +10,7 @@ import {
   GLMR,
   WEIGHT_PER_GAS,
   baltathar,
-  createRawTransaction,
+  createViemTransaction,
   createRawTransfer,
 } from "@moonwall/util";
 
@@ -29,7 +29,7 @@ describeSuite({
       timeout: 10000,
       test: async function () {
         const { block, result } = await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             gas: BigInt(EXTRINSIC_GAS_LIMIT),
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: 0n,

@@ -9,7 +9,7 @@ import {
 import {
   MAX_ETH_POV_PER_TX,
   PRECOMPILE_BATCH_ADDRESS,
-  createEthersTxn
+  createEthersTransaction,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
 import { HeavyContract, deployHeavyContracts } from "../../../helpers/povTests.js";
@@ -38,7 +38,7 @@ describeSuite({
       );
 
       // Get the interface for Batch precompile
-      batchAbi = (await fetchCompiledContract("Batch")).abi;
+      batchAbi = fetchCompiledContract("Batch").abi;
     });
 
     it({
@@ -64,7 +64,7 @@ describeSuite({
           ],
         });
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
           gasLimit: 13_000_000,
@@ -100,7 +100,7 @@ describeSuite({
           ],
         });
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
           gasLimit: 15_000_000,

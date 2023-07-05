@@ -22,7 +22,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: `should return the ${txnType} transaction hash`,
         test: async function () {
-          const { hash } = await deployCreateCompiledContract(context, "MultiplyBy7");
+          const { hash } = await context.deployContract!("MultiplyBy7");
           expect(hash).toBeTruthy();
         },
       });
@@ -31,9 +31,8 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: `${txnType} should return the contract code`,
         test: async () => {
-          const contractData = await fetchCompiledContract("MultiplyBy7");
-          const callCode = (await context.viem("public").call({ data: contractData.bytecode }))
-            .data;
+          const contractData = fetchCompiledContract("MultiplyBy7");
+          const callCode = (await context.viem().call({ data: contractData.bytecode })).data;
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           const deployedCode = await context
             .viem("public")
@@ -48,7 +47,7 @@ describeSuite({
         test: async function () {
           const { contractAddress } = await deployCreateCompiledContract(context, "MultiplyBy7");
           expect(
-            await context.viem("public").getBytecode({ address: contractAddress!, blockNumber: 0n })
+            await context.viem().getBytecode({ address: contractAddress!, blockNumber: 0n })
           ).toBeUndefined();
         },
       });
@@ -59,7 +58,7 @@ describeSuite({
         test: async function () {
           // This is to enable pending tag support
           await context.createBlock();
-          const compiled = await fetchCompiledContract("MultiplyBy7");
+          const compiled = fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
             abi: compiled.abi,
             bytecode: compiled.bytecode,
@@ -70,7 +69,7 @@ describeSuite({
             .viem("public")
             .getTransactionCount({ address: ALITH_ADDRESS });
 
-          await context.viem("wallet").sendTransaction({ data: callData, nonce });
+          await context.viem().sendTransaction({ data: callData, nonce });
 
           const contractAddress = ("0x" +
             keccak256(hexToU8a(toRlp([ALITH_ADDRESS, numberToHex(nonce)])))

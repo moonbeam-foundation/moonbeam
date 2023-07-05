@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { deployCreateCompiledContract, describeSuite } from "@moonwall/cli";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createRawTransaction } from "@moonwall/util";
+import { createViemTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
@@ -18,7 +18,7 @@ describeSuite({
 
         // Execute the contract blake2 call
         const { result } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             data: encodeFunctionData({
               abi,
               functionName: "blake2Check",

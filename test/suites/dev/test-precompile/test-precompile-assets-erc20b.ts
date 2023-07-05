@@ -6,8 +6,8 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   alith,
-  createEthersTxn,
-  createRawTransaction,
+  createEthersTransaction,
+  createViemTransaction,
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -69,7 +69,7 @@ describeSuite({
       id: "T01",
       title: "allows to approve transfer and use transferFrom",
       test: async function () {
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: ADDRESS_ERC20,
           data: encodeFunctionData({
             abi: erc20Abi,
@@ -85,7 +85,7 @@ describeSuite({
 
         expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
         // We are gonna spend 1000 from alith to send it to charleth
-        const rawSigned2 = await createRawTransaction(context, {
+        const rawSigned2 = await createViemTransaction(context, {
           privateKey: BALTATHAR_PRIVATE_KEY,
           to: ADDRESS_ERC20,
           data: encodeFunctionData({
@@ -96,7 +96,7 @@ describeSuite({
         });
 
         const { result } = await context.createBlock(rawSigned2);
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
 

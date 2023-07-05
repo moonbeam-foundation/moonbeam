@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, createRawTransaction } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
 describeSuite({
@@ -67,7 +67,7 @@ describeSuite({
       title: "should return as finalized when true",
       test: async function () {
         await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
             gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
@@ -76,7 +76,7 @@ describeSuite({
           { finalize: true }
         );
 
-        const block = await context.viem("public").getBlock();
+        const block = await context.viem().getBlock();
         const resp = await context
           .polkadotJs()
           .rpc.moon.isTxFinalized(block.transactions[0] as string);
@@ -90,7 +90,7 @@ describeSuite({
       title: "should return as unfinalized when false",
       test: async function () {
         await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
             gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
@@ -99,7 +99,7 @@ describeSuite({
           { finalize: false }
         );
 
-        const block = await context.viem("public").getBlock();
+        const block = await context.viem().getBlock();
         const resp = await context
           .polkadotJs()
           .rpc.moon.isTxFinalized(block.transactions[0] as string);
@@ -122,7 +122,7 @@ describeSuite({
       title: "should return as finalized when new block is true",
       test: async function () {
         await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
             gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
@@ -130,7 +130,7 @@ describeSuite({
           }),
           { finalize: false }
         );
-        const block = await context.viem("public").getBlock();
+        const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: true });
         const resp = await context
           .polkadotJs()
@@ -145,7 +145,7 @@ describeSuite({
       test: async function () {
         const blockHash = (
           await context.createBlock(
-            await createRawTransaction(context, {
+            await createViemTransaction(context, {
               to: BALTATHAR_ADDRESS,
               gas: 12_000_000n,
               gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
@@ -155,7 +155,7 @@ describeSuite({
           )
         ).block.hash;
 
-        const block = await context.viem("public").getBlock();
+        const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: false });
         await context.createBlock([], { finalize: true, parentHash: blockHash });
         const resp = await context

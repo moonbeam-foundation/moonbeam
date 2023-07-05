@@ -19,7 +19,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async function () {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       await (api.tx.authorMapping.setKeys as any)(concatOriginalKeys).signAndSend(charleth);
       await context.createBlock();
 

@@ -1,11 +1,6 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeAll,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect
-} from "@moonwall/cli";
-import { MAX_ETH_POV_PER_TX, createEthersTxn } from "@moonwall/util";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { MAX_ETH_POV_PER_TX, createEthersTransaction } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
 import { HeavyContract, deployHeavyContracts } from "../../../helpers/povTests.js";
 
@@ -52,7 +47,7 @@ describeSuite({
           args: [contracts[0].account, contracts[Number(calculatedMax)].account],
         });
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: proxyAddress,
           data: callData,
           gasLimit: 13_000_000,
@@ -80,7 +75,7 @@ describeSuite({
           args: [contracts[0].account, contracts[Number(calculatedMax) + 1].account],
         });
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: proxyAddress,
           data: callData,
           gasLimit: 15_000_000,

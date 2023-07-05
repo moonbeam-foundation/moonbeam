@@ -7,7 +7,7 @@ import {
   CHARLETH_PRIVATE_KEY,
   DOROTHY_ADDRESS,
   MIN_GAS_PRICE,
-  createEthersTxn,
+  createEthersTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
@@ -39,9 +39,9 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        const { rawSigned: tx1 } = await createEthersTxn(context, {
+        const { rawSigned: tx1 } = await createEthersTransaction(context, {
           to: CHARLETH_ADDRESS,
           nonce,
           gasPrice: parseGwei("15"),
@@ -51,7 +51,7 @@ describeSuite({
 
         await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
 
-        const { rawSigned: tx2 } = await createEthersTxn(context, {
+        const { rawSigned: tx2 } = await createEthersTransaction(context, {
           to: DOROTHY_ADDRESS,
           nonce,
           value: 200,
@@ -69,16 +69,16 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
-        const tx1 = await createEthersTxn(context, {
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+        const tx1 = await createEthersTransaction(context, {
           to: BALTATHAR_ADDRESS,
           value: 1,
           nonce,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
-        await context.createBlock(tx1.rawSigned);
+        await context.createBlock(tx1);
 
-        const tx2 = await createEthersTxn(context, {
+        const tx2 = await createEthersTransaction(context, {
           to: DOROTHY_ADDRESS,
           value: 2,
           nonce: Math.max(nonce - 1, 0),
@@ -86,7 +86,7 @@ describeSuite({
         });
 
         expect(
-          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2.rawSigned]),
+          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2]),
           "tx should be rejected for duplicate nonce"
         ).rejects.toThrowError("nonce too low");
       },

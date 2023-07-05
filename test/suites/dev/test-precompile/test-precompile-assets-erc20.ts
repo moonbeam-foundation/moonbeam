@@ -56,7 +56,7 @@ describeSuite({
       title: "allows to call name",
       test: async function () {
         const result = (
-          await context.viem("public").call({
+          await context.viem().call({
             to: ADDRESS_ERC20,
             data: encodeFunctionData({ abi: erc20Abi, functionName: "name" }),
           })
@@ -75,7 +75,7 @@ describeSuite({
       title: "allows to call name via wrapper",
       test: async function () {
         const result = (
-          await context.viem("public").call({
+          await context.viem().call({
             to: contractInstanceAddress,
             data: encodeFunctionData({ abi: erc20Abi, functionName: "name" }),
           })
@@ -94,7 +94,7 @@ describeSuite({
       id: "T03",
       title: "allows to call symbol",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: ADDRESS_ERC20,
           abi: erc20Abi,
           functionName: "symbol",
@@ -107,7 +107,7 @@ describeSuite({
       id: "T04",
       title: "allows to call symbol via wrapper",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: contractInstanceAddress,
           abi: erc20Abi,
           functionName: "symbol",
@@ -120,7 +120,7 @@ describeSuite({
       id: "T05",
       title: "allows to call decimals",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: ADDRESS_ERC20,
           abi: erc20Abi,
           functionName: "decimals",
@@ -133,7 +133,7 @@ describeSuite({
       id: "T06",
       title: "allows to call decimals via wrapper",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: contractInstanceAddress,
           abi: erc20Abi,
           functionName: "decimals",
@@ -146,7 +146,7 @@ describeSuite({
       id: "T06",
       title: "allows to call getBalance",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: ADDRESS_ERC20,
           abi: erc20Abi,
           functionName: "balanceOf",
@@ -160,7 +160,7 @@ describeSuite({
       id: "T07",
       title: "allows to call getBalance via wrapper",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: contractInstanceAddress,
           abi: erc20Abi,
           functionName: "balanceOf",
@@ -174,7 +174,7 @@ describeSuite({
       id: "T08",
       title: "allows to call totalSupply",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: ADDRESS_ERC20,
           abi: erc20Abi,
           functionName: "totalSupply",
@@ -187,7 +187,7 @@ describeSuite({
       id: "T09",
       title: "allows to call totalSupply via wrapper",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: contractInstanceAddress,
           abi: erc20Abi,
           functionName: "totalSupply",

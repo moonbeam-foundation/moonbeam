@@ -15,7 +15,7 @@ import {
   DOROTHY_PRIVATE_KEY,
   PRECOMPILE_COUNCIL_ADDRESS,
   PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
   ethan,
 } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
@@ -27,7 +27,7 @@ const successfulCouncilCall = async (
   privateKey: `0x${string}`,
   data: `0x${string}`
 ) => {
-  const tx = await createRawTransaction(context, {
+  const tx = await createViemTransaction(context, {
     to: PRECOMPILE_COUNCIL_ADDRESS,
     gas: 5_000_000n,
     data: data,
@@ -59,7 +59,7 @@ describeSuite({
     });
 
     beforeAll(async () => {
-      const { abi } = await fetchCompiledContract("CollectivePrecompile");
+      const { abi } = fetchCompiledContract("CollectivePrecompile");
       collectivePrecompileAbi = abi;
     });
 
@@ -105,7 +105,7 @@ describeSuite({
       test: async function () {
         // A council member attempts to approve the proposal on behalf of the council
         const { result: evmResult } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             from: CHARLETH_ADDRESS,
             to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
@@ -137,7 +137,7 @@ describeSuite({
         // A council member attempts to reject the proposal on behalf of the council
         // (must fail because there is not a quorum)
         const { result: evmResult } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             from: CHARLETH_ADDRESS,
             to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,

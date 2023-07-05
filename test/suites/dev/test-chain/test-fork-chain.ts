@@ -24,11 +24,11 @@ describeSuite({
         await context.createBlock([], { finalize: false });
 
         // Lets grab the ethereum block hashes so far
-        const ethHash1 = (await context.viem("public").getBlock({ blockNumber: 1n })).hash;
-        const ethHash2 = (await context.viem("public").getBlock({ blockNumber: 2n })).hash;
+        const ethHash1 = (await context.viem().getBlock({ blockNumber: 1n })).hash;
+        const ethHash2 = (await context.viem().getBlock({ blockNumber: 2n })).hash;
 
         // Now lets fork the chain
-        const currentHeight = await context.viem("public").getBlockNumber();
+        const currentHeight = await context.viem().getBlockNumber();
 
         // We start parenting to the genesis
         let parentHash = (await context.polkadotJs().rpc.chain.getBlockHash(0)).toString();
@@ -39,14 +39,14 @@ describeSuite({
         // We created at 1 block more than the previous best chain.
         // We should be in the best chain now
         expect(
-          (await context.viem("public").getBlock({ blockNumber: 1n })).hash,
+          (await context.viem().getBlock({ blockNumber: 1n })).hash,
           "Ethereum blocks should have changed"
         ).to.not.equal(ethHash1);
         expect(
-          (await context.viem("public").getBlock({ blockNumber: 2n })).hash,
+          (await context.viem().getBlock({ blockNumber: 2n })).hash,
           "Ethereum blocks should have changed"
         ).to.not.equal(ethHash2);
-        expect((await context.viem("public").getBlock()).number).toBe(currentHeight + 1n);
+        expect((await context.viem().getBlock()).number).toBe(currentHeight + 1n);
       },
     });
 
@@ -66,7 +66,7 @@ describeSuite({
             }
           );
           const insertedTx = result!.hash as `0x${string}`;
-          const retractedTx = await context.viem("public").getTransaction({ hash: insertedTx });
+          const retractedTx = await context.viem().getTransaction({ hash: insertedTx });
           expect(retractedTx).to.not.be.null;
           // Fork
           //   from: 0-1-2
@@ -78,7 +78,7 @@ describeSuite({
             // TODO: investigate why ! Gives extra time (trouble with ci)
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
-          const finalTx = await context.viem("public").getTransaction({ hash: insertedTx });
+          const finalTx = await context.viem().getTransaction({ hash: insertedTx });
           expect(
             finalTx.blockHash,
             "The Tx should have been inserted in the new best chain"

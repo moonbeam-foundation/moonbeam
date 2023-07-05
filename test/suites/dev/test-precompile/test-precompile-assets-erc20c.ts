@@ -1,11 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  BALTATHAR_ADDRESS,
-  alith,
-  createRawTransaction
-} from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createViemTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, encodeFunctionData } from "viem";
@@ -57,7 +52,7 @@ describeSuite({
       title: "allows to transfer",
       test: async function () {
         const { result } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: ADDRESS_ERC20,
             data: encodeFunctionData({
               functionName: "transfer",
@@ -68,7 +63,9 @@ describeSuite({
         );
 
         // const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-        const receipt = await context.viem("public").getTransactionReceipt({ hash: result?.hash as `0x${string}` })
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
         expect(receipt.status).to.equal("success");
 
         // Baltathar balance is 1000

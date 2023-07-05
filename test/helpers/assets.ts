@@ -45,7 +45,7 @@ export async function mockAssetBalance(
   account: string | AccountId20,
   is_sufficient = false
 ) {
-  const api = context.polkadotJs({ type: "moon" });
+  const api = context.polkadotJs();
   // Register the asset
   await context.createBlock(
     api.tx.sudo
@@ -126,7 +126,7 @@ export async function registerLocalAssetWithMeta(
     mints = [],
   }: RegisterLocalAssetOptions
 ): Promise<{ assetId: string; assetAddress: string }> {
-  const api = context.polkadotJs({ type: "moon" });
+  const api = context.polkadotJs();
   const { result } = await context.createBlock(
     api.tx.sudo
       .sudo(

@@ -5,7 +5,7 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   alith,
-  createRawTransaction
+  createViemTransaction,
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -70,67 +70,65 @@ describeSuite({
       id: "T01",
       title: "Bob approves contract and use transferFrom from contract calls",
       test: async function () {
-            const tx = await createRawTransaction(context, {
-      to: ADDRESS_ERC20,
-      data: encodeFunctionData({functionName:"approve",args: [erc20InstanceAddress, 1000], abi: erc20Abi}),
-    });
+        const tx = await createViemTransaction(context, {
+          to: ADDRESS_ERC20,
+          data: encodeFunctionData({
+            functionName: "approve",
+            args: [erc20InstanceAddress, 1000],
+            abi: erc20Abi,
+          }),
+        });
 
-    const { result } = await context.createBlock(tx);
-    const receipt = await context
-    .viem("public")
-    .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+        const { result } = await context.createBlock(tx);
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
 
-    expect(receipt.status).to.equal("success");
-    expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receipt.logs[0].topics.length).to.eq(3);
-    expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
+        expect(receipt.status).to.equal("success");
+        expect(receipt.logs.length).to.eq(1);
+        expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
+        expect(receipt.logs[0].topics.length).to.eq(3);
+        expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
 
-    const approvals = await context.polkadotJs().query.assets.approvals(
-      assetId.toU8a(),
-      ALITH_ADDRESS,
-      erc20InstanceAddress
-    );
+        const approvals = await context
+          .polkadotJs()
+          .query.assets.approvals(assetId.toU8a(), ALITH_ADDRESS, erc20InstanceAddress);
 
-    expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
-    // We are gonna spend 1000 from alith.address to send it to charleth from contract address
-    // even if Bob calls, msg.sender will become the contract with regular calls
-    const blockBaltathar = await context.createBlock(
-      createRawTransaction(context, {
-        privateKey: BALTATHAR_PRIVATE_KEY,
-        to: erc20InstanceAddress,
-        data: encodeFunctionData({functionName:"transferFrom", args:[
-          ALITH_ADDRESS,
-          CHARLETH_ADDRESS,
-          1000,
-        ],
-      abi: erc20Abi}),
-      })
-    );
+        expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
+        // We are gonna spend 1000 from alith.address to send it to charleth from contract address
+        // even if Bob calls, msg.sender will become the contract with regular calls
+        const blockBaltathar = await context.createBlock(
+          createViemTransaction(context, {
+            privateKey: BALTATHAR_PRIVATE_KEY,
+            to: erc20InstanceAddress,
+            data: encodeFunctionData({
+              functionName: "transferFrom",
+              args: [ALITH_ADDRESS, CHARLETH_ADDRESS, 1000],
+              abi: erc20Abi,
+            }),
+          })
+        );
 
-    const receiptBaltathar = await context
-    .viem("public")
-    .getTransactionReceipt({ hash: blockBaltathar.result?.hash as `0x${string}` });
-    expect(receiptBaltathar.logs.length).to.eq(1);
-    expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receiptBaltathar.logs[0].topics.length).to.eq(3);
-    expect(receiptBaltathar.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-    expect(receiptBaltathar.status).to.equal("success");
+        const receiptBaltathar = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: blockBaltathar.result?.hash as `0x${string}` });
+        expect(receiptBaltathar.logs.length).to.eq(1);
+        expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
+        expect(receiptBaltathar.logs[0].topics.length).to.eq(3);
+        expect(receiptBaltathar.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
+        expect(receiptBaltathar.status).to.equal("success");
 
-    // Approve amount is null now
-    const approvalBaltathar = await context.polkadotJs().query.assets.approvals(
-      assetId.toU8a(),
-      ALITH_ADDRESS,
-      erc20InstanceAddress
-    );
-    expect(approvalBaltathar.isNone).to.eq(true);
+        // Approve amount is null now
+        const approvalBaltathar = await context
+          .polkadotJs()
+          .query.assets.approvals(assetId.toU8a(), ALITH_ADDRESS, erc20InstanceAddress);
+        expect(approvalBaltathar.isNone).to.eq(true);
 
-    // Charleth balance is 1000
-    const charletBalance = await context.polkadotJs().query.assets.account(
-      assetId.toU8a(),
-      CHARLETH_ADDRESS
-    );
-    expect(charletBalance.unwrap().balance.toBigInt()).to.equal(1000n);
+        // Charleth balance is 1000
+        const charletBalance = await context
+          .polkadotJs()
+          .query.assets.account(assetId.toU8a(), CHARLETH_ADDRESS);
+        expect(charletBalance.unwrap().balance.toBigInt()).to.equal(1000n);
       },
     });
   },

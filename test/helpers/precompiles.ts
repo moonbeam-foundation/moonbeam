@@ -1,5 +1,11 @@
 import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
-import { PRECOMPILE_AUTHOR_MAPPING_ADDRESS, createRawTransaction } from "@moonwall/util";
+import {
+  PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+  PRECOMPILE_DEMOCRACY_ADDRESS,
+  createViemTransaction,
+} from "@moonwall/util";
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import { encodeFunctionData } from "viem";
 
 export const setKeysThroughPrecompile = async (
@@ -9,10 +15,10 @@ export const setKeysThroughPrecompile = async (
   keys: string,
   handleFail: boolean = false
 ) => {
-  const { abi: authorMappingAbi } = await fetchCompiledContract("AuthorMapping");
+  const { abi: authorMappingAbi } = fetchCompiledContract("AuthorMapping");
 
   await context.createBlock(
-    createRawTransaction(context, {
+    createViemTransaction(context, {
       from: account,
       privateKey,
       to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
@@ -21,7 +27,7 @@ export const setKeysThroughPrecompile = async (
         functionName: "setKeys",
         args: [keys],
       }),
-        skipEstimation: handleFail,
+      skipEstimation: handleFail,
     })
   );
 };
@@ -44,3 +50,29 @@ export const newKeys = [
   "0x0000000000000000000000000000000000000000000000000000000000000004",
 ];
 export const concatNewKeys = `0x${newKeys.map((key) => key.slice(2)).join("")}`;
+
+export const notePreimagePrecompile = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  context: DevModeContext,
+  proposal: Call
+): Promise<`0x${string}`> => {
+  const encodedProposal = proposal.method.toHex();
+
+  const { abi } = fetchCompiledContract("Preimage");
+  const data = encodeFunctionData({
+    abi,
+    functionName: "notePreimage",
+    args: [encodedProposal],
+  });
+
+  const tx = await createViemTransaction(context, {
+    to: PRECOMPILE_DEMOCRACY_ADDRESS,
+    gas: 2_000_000n,
+    data,
+  });
+
+  await context.createBlock(tx);
+  return blake2AsHex(encodedProposal);
+};

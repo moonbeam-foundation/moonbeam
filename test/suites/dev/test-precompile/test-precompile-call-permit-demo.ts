@@ -11,7 +11,7 @@ import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   PRECOMPILE_CALL_PERMIT_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData, fromHex } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
@@ -51,11 +51,11 @@ describeSuite({
       callPermitDemoAbi = demoAbi;
       callPermitDemoAddr = contractAddress;
 
-      const { abi: precompileAbi } = await fetchCompiledContract("CallPermit");
+      const { abi: precompileAbi } = fetchCompiledContract("CallPermit");
       callPermitAbi = precompileAbi;
 
       const bondAmount = (
-        await context.viem("public").call({
+        await context.viem().call({
           to: callPermitDemoAddr,
           data: encodeFunctionData({
             abi: callPermitDemoAbi,
@@ -65,7 +65,7 @@ describeSuite({
       ).data;
 
       const { result: baltatharResult } = await context.createBlock(
-        createRawTransaction(context, {
+        createViemTransaction(context, {
           privateKey: BALTATHAR_PRIVATE_KEY,
           to: callPermitDemoAddr,
           data: encodeFunctionData({ abi: callPermitDemoAbi, functionName: "bond" }),
@@ -76,7 +76,7 @@ describeSuite({
 
       // bond alice via baltathar using call permit
       const alithNonceResult = (
-        await context.viem("public").call({
+        await context.viem().call({
           to: PRECOMPILE_CALL_PERMIT_ADDRESS,
           data: encodeFunctionData({
             abi: callPermitAbi,
@@ -86,7 +86,7 @@ describeSuite({
         })
       ).data;
 
-      const signature = await context.viem("wallet").signTypedData({
+      const signature = await context.viem().signTypedData({
         types: {
           EIP712Domain: [
             {
@@ -157,7 +157,7 @@ describeSuite({
       const { v, r, s } = getSignatureParameters(signature);
 
       const { result: baltatharForAlithResult } = await context.createBlock(
-        createRawTransaction(context, {
+        createViemTransaction(context, {
           privateKey: BALTATHAR_PRIVATE_KEY,
           to: callPermitDemoAddr,
           data: encodeFunctionData({
@@ -186,7 +186,7 @@ describeSuite({
       title: "should have bond for baltathar in contract storage",
       test: async function () {
         const baltatharBond = (
-          await context.viem("public").call({
+          await context.viem().call({
             to: callPermitDemoAddr,
             data: encodeFunctionData({
               abi: callPermitDemoAbi,
@@ -204,7 +204,7 @@ describeSuite({
       title: "should have bond for alith in contract storage",
       test: async function () {
         const alithBond = (
-          await context.viem("public").call({
+          await context.viem().call({
             to: callPermitDemoAddr,
             data: encodeFunctionData({
               abi: callPermitDemoAbi,

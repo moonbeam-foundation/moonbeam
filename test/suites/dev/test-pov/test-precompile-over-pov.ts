@@ -8,7 +8,7 @@ import {
 } from "@moonwall/cli";
 import { HeavyContract, deployHeavyContracts } from "../../../helpers/povTests.js";
 import { Abi, encodeFunctionData, parseGwei } from "viem";
-import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({
@@ -34,7 +34,7 @@ describeSuite({
       contracts = await deployHeavyContracts(context, 6000, 6000 + MAX_CONTRACTS);
 
       // Get the interface for Batch precompile
-      batchAbi = (await fetchCompiledContract("Batch")).abi;
+      batchAbi = fetchCompiledContract("Batch").abi;
 
       callData = encodeFunctionData({
         abi: batchAbi,
@@ -60,7 +60,7 @@ describeSuite({
       test: async function () {
         // Previously this tx cost was ~500K gas -> now it is about 5M due to POV.
         // We pass 1M, so it should fail.
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
           gasLimit: 1_000_000,
@@ -83,13 +83,13 @@ describeSuite({
       id: "T02",
       title: "should be able to create a block using the estimated amount of gas",
       test: async function () {
-        const gasEstimate = await context.viem("public").estimateGas({
+        const gasEstimate = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
         });
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
           gasLimit: gasEstimate,
@@ -108,7 +108,7 @@ describeSuite({
       id: "T03",
       title: "should allow to call a precompile tx with enough gas limit to cover PoV",
       test: async function () {
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
           gasLimit: 6_000_000,

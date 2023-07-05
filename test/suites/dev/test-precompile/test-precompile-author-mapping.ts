@@ -4,7 +4,7 @@ import {
   ALITH_ADDRESS,
   DEFAULT_GENESIS_MAPPING,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
   generateKeyringPair,
 } from "@moonwall/util";
 import { u8aToHex } from "@polkadot/util";
@@ -20,10 +20,10 @@ describeSuite({
       title: "allows to add association",
       test: async function () {
         const mappingAccount = generateKeyringPair("sr25519");
-        const { abi } = await fetchCompiledContract("AuthorMapping");
+        const { abi } = fetchCompiledContract("AuthorMapping");
 
         const { result } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
             data: encodeFunctionData({
               abi,

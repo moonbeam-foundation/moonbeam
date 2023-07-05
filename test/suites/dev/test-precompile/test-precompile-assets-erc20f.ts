@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, alith, createRawTransaction } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, alith, createViemTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, encodeFunctionData } from "viem";
@@ -53,7 +53,7 @@ describeSuite({
       test: async function () {
         // Create approval
         const { result } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: erc20InstanceAddress,
             data: encodeFunctionData({
               abi: erc20Abi,

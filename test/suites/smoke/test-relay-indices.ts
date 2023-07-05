@@ -22,13 +22,13 @@ describeSuite({
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
       const XCM_TRANSACTOR_V2_PRECOMPILE = "0x000000000000000000000000000000000000080D";
 
-      const RELAY_ENCODER_CONTRACT_JSON = await fetchCompiledContract("RelayEncoder");
+      const RELAY_ENCODER_CONTRACT_JSON = fetchCompiledContract("RelayEncoder");
       const RELAY_ENCODER_INTERFACE = RELAY_ENCODER_CONTRACT_JSON.abi as InterfaceAbi;
 
-      const XCM_TRANSACTOR_V1_JSON = await fetchCompiledContract("XcmTransactorV1");
+      const XCM_TRANSACTOR_V1_JSON = fetchCompiledContract("XcmTransactorV1");
       const XCM_TRANSACTOR_V1_INTERFACE = XCM_TRANSACTOR_V1_JSON.abi as InterfaceAbi;
 
-      const XCM_TRANSACTOR_V2_JSON = await fetchCompiledContract("XcmTransactorV2");
+      const XCM_TRANSACTOR_V2_JSON = fetchCompiledContract("XcmTransactorV2");
       const XCM_TRANSACTOR_V2_INTERFACE = XCM_TRANSACTOR_V2_JSON.abi as InterfaceAbi;
 
       relayEncoder = new ethers.Contract(

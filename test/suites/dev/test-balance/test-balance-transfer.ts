@@ -12,7 +12,7 @@ import {
   GLMR,
   MIN_GAS_PRICE,
   checkBalance,
-  createRawTransaction,
+  createViemTransaction,
   createRawTransfer,
   generateKeyringPair,
   sendRawTransaction,
@@ -36,7 +36,7 @@ describeSuite({
       id: "T01",
       title: "should cost 21000 gas for a transfer",
       test: async function () {
-        const estimatedGas = await context.viem("public").estimateGas({
+        const estimatedGas = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           value: 0n * GLMR,
           to: randomAddress,
@@ -214,7 +214,7 @@ describeSuite({
         const freeBal = accountData.free.toBigInt() - accountData.reserved.toBigInt();
         const maxFeePerGas = 10_000_000_000n * 2n;
         await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             gas: 21000n,
             to: randomAddress,

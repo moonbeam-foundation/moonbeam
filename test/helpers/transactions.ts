@@ -10,7 +10,7 @@ import {
   DOROTHY_PRIVATE_KEY,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
-  createRawTransaction,
+  createViemTransaction,
 } from "@moonwall/util";
 import { ethers } from "ethers";
 import { numberToHex, toRlp } from "viem";
@@ -286,11 +286,10 @@ export async function createContract(
   options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract<any[]>; contractAddress: string }> {
-  const contractCompiled = await fetchCompiledContract(contractName);
+  const contractCompiled = fetchCompiledContract(contractName);
   const from = options.from !== undefined ? options.from : ALITH_ADDRESS;
   const nonce =
-    options.nonce ||
-    (await context.viem("public").getTransactionCount({ address: from as `0x${string}` }));
+    options.nonce || (await context.viem().getTransactionCount({ address: from as `0x${string}` }));
 
   const contractAddress = ("0x" +
     keccak256(hexToU8a(toRlp([from as `0x${string}`, numberToHex(nonce)])))
@@ -390,7 +389,7 @@ export async function sendPrecompileTx(
   });
 
   return context.createBlock(
-    createRawTransaction(context, {
+    createViemTransaction(context, {
       from,
       privateKey,
       value: 0n,

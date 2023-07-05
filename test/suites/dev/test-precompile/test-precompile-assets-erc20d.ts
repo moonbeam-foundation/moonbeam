@@ -5,7 +5,7 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   alith,
-  createRawTransaction
+  createViemTransaction,
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -71,7 +71,7 @@ describeSuite({
       test: async function () {
         // Create approval
         const blockAlith = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: erc20InstanceAddress,
             data: encodeFunctionData({
               functionName: "approve",
@@ -100,7 +100,7 @@ describeSuite({
         // Since this is a regular call, it will take contractInstanceAddress as msg.sender
         // thus from & to will be the same, and approval wont be touched
         const blockBaltathar = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             to: erc20InstanceAddress,
             data: encodeFunctionData({
@@ -129,7 +129,7 @@ describeSuite({
 
         // this time we call directly from Baltathar the ERC20 contract
         const directBlock = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             to: ADDRESS_ERC20,
             data: encodeFunctionData({

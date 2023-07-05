@@ -51,7 +51,7 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
     .filter((batch) => batch.length > 0);
 
   // Set the storage of the contracts
-  let nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+  let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
   for (let i = 0; i < batchs.length; i++) {
     const batch = batchs[i];
     await context.createBlock([

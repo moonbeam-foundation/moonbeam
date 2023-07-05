@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, createEthersTxn } from "@moonwall/util";
+import { EXTRINSIC_GAS_LIMIT, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D1301",
@@ -19,7 +19,7 @@ describeSuite({
         const maxSizeShanghai = maxSize - 6474n;
         const data = ("0x" + "FF".repeat(Number(maxSizeShanghai))) as `0x${string}`;
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           value: 0n,
           data,
           gasLimit: EXTRINSIC_GAS_LIMIT,
@@ -40,7 +40,7 @@ describeSuite({
       test: async function () {
         const data = ("0x" + "FF".repeat(Number(maxSize) + 1)) as `0x${string}`;
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           value: 0n,
           data,
           gasLimit: EXTRINSIC_GAS_LIMIT,

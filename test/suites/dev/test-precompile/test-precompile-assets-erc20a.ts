@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { mockAssetBalance } from "../../../helpers/assets.js";
@@ -61,7 +61,7 @@ describeSuite({
       id: "T01",
       title: "allows to approve transfers, and allowance matches",
       test: async function () {
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: ADDRESS_ERC20,
           data: encodeFunctionData({
             abi: erc20Abi,
@@ -91,7 +91,7 @@ describeSuite({
       id: "T02",
       title: "should gather the allowance",
       test: async function () {
-        const data = await context.viem("public").readContract({
+        const data = await context.viem().readContract({
           address: ADDRESS_ERC20,
           abi: erc20Abi,
           functionName: "allowance",

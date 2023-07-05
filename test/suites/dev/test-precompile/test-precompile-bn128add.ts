@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { deployCreateCompiledContract, describeSuite } from "@moonwall/cli";
-import { createRawTransaction } from "@moonwall/util";
+import { createViemTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
@@ -19,7 +19,7 @@ describeSuite({
         );
 
         const { result } = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: contractAddress,
             data: encodeFunctionData({
               abi,

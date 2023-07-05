@@ -22,7 +22,7 @@ describeSuite({
             gas: BigInt(EXTRINSIC_GAS_LIMIT),
           });
           expect(status).toBe("success");
-          const receipt = await context.viem("public").getTransactionReceipt({ hash });
+          const receipt = await context.viem().getTransactionReceipt({ hash });
           expect(receipt.blockHash).toBeTruthy();
         },
       });
@@ -52,9 +52,9 @@ describeSuite({
         );
         expect(await contract.read.getGasLimit([])).to.equal(15000000n);
 
-        const { abi } = await fetchCompiledContract("BlockVariables");
+        const { abi } = fetchCompiledContract("BlockVariables");
         expect(
-          await context.viem("public").readContract({
+          await context.viem().readContract({
             address: contractAddress!,
             abi,
             args: [],

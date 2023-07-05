@@ -11,7 +11,7 @@ import {
   ALITH_ADDRESS,
   PRECOMPILE_CONVICTION_VOTING_ADDRESS,
   alith,
-  createRawTransaction,
+  createViemTransaction,
 } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
@@ -48,7 +48,7 @@ describeSuite({
     let convictionVotingAbi: Abi;
 
     beforeAll(async function () {
-      const { abi } = await fetchCompiledContract("ConvictionVoting");
+      const { abi } = fetchCompiledContract("ConvictionVoting");
       convictionVotingAbi = abi;
     });
 
@@ -60,7 +60,7 @@ describeSuite({
       id: "T01",
       title: "should allow to vote yes for a proposal",
       test: async function () {
-        const rawTx = await createRawTransaction(context, {
+        const rawTx = await createViemTransaction(context, {
           to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
           data: encodeFunctionData({
             abi: convictionVotingAbi,
@@ -99,7 +99,7 @@ describeSuite({
       title: "should allow to vote no for a proposal",
       test: async function () {
         const block = await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
             data: encodeFunctionData({
               abi: convictionVotingAbi,
@@ -137,7 +137,7 @@ describeSuite({
       title: "should allow to replace yes by a no",
       test: async function () {
         const block1 = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
             data: encodeFunctionData({
               abi: convictionVotingAbi,
@@ -149,7 +149,7 @@ describeSuite({
         expectEVMResult(block1.result!.events, "Succeed");
 
         const block2 = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
             data: encodeFunctionData({
               abi: convictionVotingAbi,
@@ -172,7 +172,7 @@ describeSuite({
       title: "should fail to vote for the wrong proposal",
       test: async function () {
         const block = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
             data: encodeFunctionData({
               abi: convictionVotingAbi,
@@ -194,7 +194,7 @@ describeSuite({
       title: "should fail to vote with the wrong conviction",
       test: async function () {
         const block = await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
             data: encodeFunctionData({
               abi: convictionVotingAbi,

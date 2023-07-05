@@ -41,13 +41,11 @@ describeSuite({
           );
           const { result } = await context.createBlock(raw);
 
-          expect(
-            await context.viem("public").getTransactionCount({ address: randomAccount.address })
-          ).toBe(1);
-          expect(result!.successful, result!.error?.name).toBe(true);
-          expect(await context.viem("public").getBalance({ address: randomAccount.address })).toBe(
-            0n
+          expect(await context.viem().getTransactionCount({ address: randomAccount.address })).toBe(
+            1
           );
+          expect(result!.successful, result!.error?.name).toBe(true);
+          expect(await context.viem().getBalance({ address: randomAccount.address })).toBe(0n);
         },
       });
     }
@@ -64,12 +62,10 @@ describeSuite({
             gasPrice: MIN_GAS_PRICE,
           })
         );
-        expect(await context.viem("public").getBalance({ address: randomAccount.address })).toBe(
-          1n
+        expect(await context.viem().getBalance({ address: randomAccount.address })).toBe(1n);
+        expect(await context.viem().getTransactionCount({ address: randomAccount.address })).toBe(
+          1
         );
-        expect(
-          await context.viem("public").getTransactionCount({ address: randomAccount.address })
-        ).toBe(1);
       },
     });
 

@@ -1,14 +1,10 @@
 import "@moonbeam-network/api-augment";
-import {
-  describeSuite,
-  expect,
-  fetchCompiledContract
-} from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   FAITH_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-  createRawTransaction,
-  getBlockExtrinsic
+  createViemTransaction,
+  getBlockExtrinsic,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
@@ -21,10 +17,10 @@ describeSuite({
       id: "T01",
       title: "should revert",
       test: async function () {
-        const { abi } = await fetchCompiledContract("AuthorMapping");
+        const { abi } = fetchCompiledContract("AuthorMapping");
 
         await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
             privateKey: FAITH_PRIVATE_KEY,
             data: encodeFunctionData({ abi, functionName: "removeKeys" }),

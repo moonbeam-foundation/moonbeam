@@ -12,7 +12,7 @@ import {
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-  createRawTransaction,
+  createViemTransaction,
   getBlockExtrinsic,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
@@ -39,10 +39,10 @@ describeSuite({
       id: "T01",
       title: "should revert",
       test: async function () {
-        const { abi } = await fetchCompiledContract("AuthorMapping");
+        const { abi } = fetchCompiledContract("AuthorMapping");
         // Setting same key but with ethan
         await context.createBlock(
-          createRawTransaction(context, {
+          createViemTransaction(context, {
             to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
             privateKey: ETHAN_PRIVATE_KEY,
             data: encodeFunctionData({ abi, functionName: "removeKeys" }),

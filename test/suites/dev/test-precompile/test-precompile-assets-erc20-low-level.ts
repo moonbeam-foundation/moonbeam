@@ -10,7 +10,7 @@ import {
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   alith,
-  createEthersTxn
+  createEthersTransaction,
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -78,7 +78,7 @@ describeSuite({
       id: "T01",
       title: "can make static calls to view functions",
       test: async function () {
-        const callResult = await context.viem("public").call({
+        const callResult = await context.viem().call({
           account: alith.address,
           to: contractInstanceAddress,
           data: encodeFunctionData({
@@ -93,21 +93,19 @@ describeSuite({
 
     for (const txnType of TransactionTypes) {
       it({
-        id: `T${testCounter < 10 ? '0' : ''}${testCounter++}`,
+        id: `T${testCounter < 10 ? "0" : ""}${testCounter++}`,
         title: `can make static calls to view functions and transact ${txnType}`,
         test: async function () {
           await context.createBlock(
-            (
-              await createEthersTxn(context, {
-                to: contractInstanceAddress,
-                data: encodeFunctionData({
-                  abi: contractAbi,
-                  functionName: "approve_max_supply",
-                  args: [CHARLETH_ADDRESS],
-                }),
-                txnType: "eip1559",
-              })
-            ).rawSigned
+            await createEthersTransaction(context, {
+              to: contractInstanceAddress,
+              data: encodeFunctionData({
+                abi: contractAbi,
+                functionName: "approve_max_supply",
+                args: [CHARLETH_ADDRESS],
+              }),
+              txnType: "eip1559",
+            })
           );
 
           const approvals = await context
@@ -119,20 +117,18 @@ describeSuite({
       });
 
       it({
-        id: `T${testCounter < 10 ? '0' : ''}${testCounter++}`,
+        id: `T${testCounter < 10 ? "0" : ""}${testCounter++}`,
         title: `has unchanged state when submitting static call ${txnType}`,
         test: async function () {
           const { result } = await context.createBlock(
-            (
-              await createEthersTxn(context, {
-                to: contractInstanceAddress,
-                data: encodeFunctionData({
-                  abi: contractAbi,
-                  functionName: "approve_static",
-                  args: [BALTATHAR_ADDRESS, 1000],
-                }),
-              })
-            ).rawSigned
+            await createEthersTransaction(context, {
+              to: contractInstanceAddress,
+              data: encodeFunctionData({
+                abi: contractAbi,
+                functionName: "approve_static",
+                args: [BALTATHAR_ADDRESS, 1000],
+              }),
+            })
           );
 
           const approvals = await context
@@ -145,20 +141,18 @@ describeSuite({
       });
 
       it({
-        id: `T${testCounter < 10 ? '0' : ''}${testCounter++}`,
+        id: `T${testCounter < 10 ? "0" : ""}${testCounter++}`,
         title: `visibility preserved for static calls ${txnType}`,
         test: async function () {
           const { result } = await context.createBlock(
-            (
-              await createEthersTxn(context, {
-                to: contractInstanceAddress,
-                data: encodeFunctionData({
-                  abi: contractAbi,
-                  functionName: "approve_ext_static",
-                  args: [BALTATHAR_ADDRESS, 1000],
-                }),
-              })
-            ).rawSigned
+            await createEthersTransaction(context, {
+              to: contractInstanceAddress,
+              data: encodeFunctionData({
+                abi: contractAbi,
+                functionName: "approve_ext_static",
+                args: [BALTATHAR_ADDRESS, 1000],
+              }),
+            })
           );
 
           const approvals = await context
@@ -171,20 +165,18 @@ describeSuite({
       });
 
       it({
-        id: `T${testCounter < 10 ? '0' : ''}${testCounter++}`,
+        id: `T${testCounter < 10 ? "0" : ""}${testCounter++}`,
         title: `visibility preserved for delegate->static calls ${txnType}`,
         test: async function () {
           const { result } = await context.createBlock(
-            (
-              await createEthersTxn(context, {
-                to: contractInstanceAddress,
-                data: encodeFunctionData({
-                  abi: contractAbi,
-                  functionName: "approve_delegate_to_static",
-                  args: [BALTATHAR_ADDRESS, 1000],
-                }),
-              })
-            ).rawSigned
+            await createEthersTransaction(context, {
+              to: contractInstanceAddress,
+              data: encodeFunctionData({
+                abi: contractAbi,
+                functionName: "approve_delegate_to_static",
+                args: [BALTATHAR_ADDRESS, 1000],
+              }),
+            })
           );
 
           const approvals = await context
@@ -197,20 +189,18 @@ describeSuite({
       });
 
       it({
-        id: `T${testCounter < 10 ? '0' : ''}${testCounter++}`,
+        id: `T${testCounter < 10 ? "0" : ""}${testCounter++}`,
         title: `visibility preserved for static->delegate calls ${txnType}`,
         test: async function () {
           const { result } = await context.createBlock(
-            (
-              await createEthersTxn(context, {
-                to: contractInstanceAddress,
-                data: encodeFunctionData({
-                  abi: contractAbi,
-                  functionName: "approve_static_to_delegate",
-                  args: [BALTATHAR_ADDRESS, 1000],
-                }),
-              })
-            ).rawSigned
+            await createEthersTransaction(context, {
+              to: contractInstanceAddress,
+              data: encodeFunctionData({
+                abi: contractAbi,
+                functionName: "approve_static_to_delegate",
+                args: [BALTATHAR_ADDRESS, 1000],
+              }),
+            })
           );
 
           const approvals = await context
