@@ -171,6 +171,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - name: Install prettier
+        run: npm install prettier@2
       - name: Check with Prettier
         run: |
           npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
