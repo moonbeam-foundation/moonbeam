@@ -66,7 +66,8 @@ pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
 		hrmp_max_parachain_inbound_channels: 10,
 		hrmp_max_parachain_outbound_channels: 10,
 		hrmp_channel_max_message_size: u32::MAX,
-		max_downward_message_size: u32::MAX,
+		// Changed to avoid aritmetic errors within hrmp_close
+		max_downward_message_size: 100_000u32,
 		..Default::default()
 	}
 }
