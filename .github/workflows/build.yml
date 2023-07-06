@@ -176,11 +176,11 @@ jobs:
           npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
           || (git diff --quiet \
           || (echo 'Unable to show a diff because there are unstaged changes'; false) \
-          && (npx prettier --ignore-path \
+          && (npx prettier@2 --ignore-path \
               .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
           && git --no-pager diff; git restore .) && false)
 
-          npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+          npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
