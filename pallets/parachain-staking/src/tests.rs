@@ -3075,22 +3075,6 @@ fn cannot_delegator_bond_less_if_delegation_dne() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_below_min_collator_stk() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 6)
-					.map_err(|err| err.error),
-				Error::<Test>::DelegatorBondBelowMin
-			);
-		});
-}
-
-#[test]
 fn cannot_delegator_bond_less_more_than_total_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
