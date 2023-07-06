@@ -1093,7 +1093,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
-impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
+impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
 		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
@@ -1268,7 +1268,7 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 
 impl pallet_randomness::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
