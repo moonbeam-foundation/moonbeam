@@ -2693,8 +2693,6 @@ fn cannot_revoke_delegation_that_dne() {
 }
 
 #[test]
-// See `cannot_execute_revoke_delegation_below_min_delegator_stake` for where the "must be above
-// MinDelegatorStk" rule is now enforced.
 fn can_schedule_revoke_delegation_below_min_delegator_stake() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
@@ -3157,41 +3155,6 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 				delegator: 2,
 				unstaked_amount: 10
 			});
-		});
-}
-
-#[test]
-fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
-		.with_candidates(vec![(1, 20), (3, 20)])
-		.with_delegations(vec![(2, 1, 5), (2, 3, 3)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				RuntimeOrigin::signed(2),
-				1
-			));
-			roll_to(10);
-			assert_noop!(
-				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1)
-					.map_err(|err| err.error),
-				Error::<Test>::DelegatorBondBelowMin
-			);
-			// but delegator can cancel the request and request to leave instead:
-			assert_ok!(ParachainStaking::cancel_delegation_request(
-				RuntimeOrigin::signed(2),
-				1
-			));
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				RuntimeOrigin::signed(2)
-			));
-			roll_to(20);
-			assert_ok!(ParachainStaking::execute_leave_delegators(
-				RuntimeOrigin::signed(2),
-				2,
-				2
-			));
 		});
 }
 

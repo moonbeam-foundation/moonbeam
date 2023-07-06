@@ -8,7 +8,7 @@ import { expectOk } from "../../util/expect";
 
 describeDevMoonbeam("Staking - Delegator Join - bond less than min", (context) => {
   it("should fail", async () => {
-    const minDelegatorStk = context.polkadotApi.consts.parachainStaking.minDelegatorStk;
+    const minDelegatorStk = context.polkadotApi.consts.parachainStaking.minDelegation;
     const block = await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, minDelegatorStk.subn(10), 0, 0)

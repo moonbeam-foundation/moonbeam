@@ -40,7 +40,7 @@
 //! original request was made.
 //!
 //! To join the set of delegators, call `delegate` and pass in an account that is
-//! already a collator candidate and `bond >= MinDelegatorStk`. Each delegator can delegate up to
+//! already a collator candidate and `bond >= MinDelegation`. Each delegator can delegate up to
 //! `T::MaxDelegationsPerDelegator` collator candidates by calling `delegate`.
 //!
 //! To revoke a delegation, call `revoke_delegation` with the collator candidate's account.
@@ -161,9 +161,6 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to delegate
 		#[pallet::constant]
 		type MinDelegation: Get<BalanceOf<Self>>;
-		/// Minimum stake for any registered on-chain account to be a delegator
-		#[pallet::constant]
-		type MinDelegatorStk: Get<BalanceOf<Self>>;
 		/// Get the current block author
 		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
