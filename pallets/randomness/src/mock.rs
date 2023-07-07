@@ -120,7 +120,7 @@ impl pallet_author_mapping::Config for Test {
 pub struct BabeDataGetter;
 impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 	fn get_epoch_index() -> u64 {
-		1u64
+		10u64
 	}
 	fn get_epoch_randomness() -> Option<H256> {
 		Some(H256::default())
@@ -129,7 +129,7 @@ impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const MaxRandomWords: u8 = 1;
+	pub const MaxRandomWords: u8 = 100;
 	pub const MinBlockDelay: u32 = 2;
 	pub const MaxBlockDelay: u32 = 20;
 }

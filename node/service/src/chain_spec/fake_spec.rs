@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(clippy::todo)]
+
 /// Fake specifications, only a workaround to compile with runtime optional features.
 /// It's a zero variant enum to ensure at compile time that we never instantiate this type.
 pub enum FakeSpec {}
