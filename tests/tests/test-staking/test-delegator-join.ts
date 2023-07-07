@@ -15,7 +15,7 @@ describeDevMoonbeam("Staking - Delegator Join - bond less than min", (context) =
         .signAsync(ethan)
     );
     expect(block.result.successful).to.be.false;
-    expect(block.result.error.name).to.equal("DelegatorBondBelowMin");
+    expect(block.result.error.name).to.equal("DelegationBelowMin");
   });
 });
 

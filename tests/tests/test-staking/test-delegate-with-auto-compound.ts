@@ -18,7 +18,7 @@ describeDevMoonbeam("Staking - Delegate With Auto-Compound - bond less than min"
         .signAsync(ethan)
     );
     expect(block.result.successful).to.be.false;
-    expect(block.result.error.name).to.equal("DelegatorBondBelowMin");
+    expect(block.result.error.name).to.equal("DelegationBelowMin");
   });
 });
 
