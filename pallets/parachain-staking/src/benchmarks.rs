@@ -805,7 +805,7 @@ benchmarks! {
 			"delegator",
 			seed.take(),
 			AccountBalance::Value(
-				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()
+				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3000u32.into()
 			),
 			AccountAction::None,
 		)?;
@@ -819,7 +819,7 @@ benchmarks! {
 			)?;
 
 			let mut decreasing_balance = <DecreasingBalance<T>>::new(
-				T::MinDelegation::get() * 2u32.into(),
+				T::MinDelegation::get() * 2000u32.into(),
 				1u32.into(),
 			);
 			let mut col_del_count = 0u32;
@@ -906,7 +906,7 @@ benchmarks! {
 			"delegator",
 			seed.take(),
 			AccountBalance::Value(
-				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()
+				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3000u32.into()
 			),
 			AccountAction::None,
 		)?;
@@ -920,7 +920,7 @@ benchmarks! {
 			)?;
 
 			let mut decreasing_balance = <DecreasingBalance<T>>::new(
-				T::MinDelegation::get() * 2u32.into(),
+				T::MinDelegation::get() * 2000u32.into(),
 				1u32.into(),
 			);
 			let mut col_del_count = 0u32;
@@ -1009,7 +1009,7 @@ benchmarks! {
 			"delegator",
 			seed.take(),
 			AccountBalance::Value(
-				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into()
+				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3000u32.into()
 			),
 			AccountAction::None,
 		)?;
@@ -1030,7 +1030,7 @@ benchmarks! {
 			)?;
 
 			let mut decreasing_balance = <DecreasingBalance<T>>::new(
-				T::MinDelegation::get() * 2u32.into(),
+				T::MinDelegation::get() * 2000u32.into(),
 				1u32.into(),
 			);
 			let mut col_del_count = 0u32;
@@ -1133,7 +1133,7 @@ benchmarks! {
 		)?;
 
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -1246,7 +1246,7 @@ benchmarks! {
 		)?;
 
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -1354,7 +1354,7 @@ benchmarks! {
 		)?;
 
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -1496,7 +1496,7 @@ benchmarks! {
 		)?;
 
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -1626,7 +1626,7 @@ benchmarks! {
 		)?;
 
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -2253,7 +2253,7 @@ benchmarks! {
 		// setup max delegations on prime collator, with a bottom delegation that will be kicked and
 		// has scheduled requests on different collators.
 		let mut decreasing_balance = <DecreasingBalance<T>>::new(
-			T::MinDelegation::get() * 2u32.into(),
+			T::MinDelegation::get() * 2000u32.into(),
 			1u32.into(),
 		);
 		let mut col_del_count = 0u32;
@@ -2339,7 +2339,7 @@ benchmarks! {
 			"delegator",
 			seed.take(),
 			AccountBalance::Value(
-				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3u32.into(),
+				T::MinDelegation::get() * T::MaxDelegationsPerDelegator::get().into() * 3000u32.into(),
 			),
 			AccountAction::None,
 		)?;
