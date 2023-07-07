@@ -172,9 +172,9 @@
       "testFileDir": ["suites/dev/test-precompile"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile -p contracts/precompiles"],
       "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
-      "runScripts": [],
       "reporters": ["html", "basic"],
 
       "foundation": {
@@ -190,6 +190,8 @@
     {
       "name": "dev_moonbase_custom",
       "testFileDir": ["suites/dev/"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile -p contracts/precompiles"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

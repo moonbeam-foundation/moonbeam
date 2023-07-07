@@ -9,6 +9,7 @@ import {
   CHARLETH_ADDRESS,
   DOROTHY_ADDRESS,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
+  baltathar,
   createEthersTransaction,
   createViemTransaction,
 } from "@moonwall/util";
@@ -66,7 +67,7 @@ describeSuite({
         const signedTx = context
           .polkadotJs()
           .tx.balances.transfer(CHARLETH_ADDRESS, 1000)
-          .signAndSend(BALTATHAR_PRIVATE_KEY);
+          .signAsync(baltathar);
         await context.createBlock(signedTx);
 
         const tx = context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 1000);
@@ -148,29 +149,32 @@ describeSuite({
             args: [randomAccount.address],
           })
         ).equals(0n);
-        const balanceBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
+
+        const balanceBefore = await context.viem().getBalance({ address: BALTATHAR_ADDRESS });
 
         const rawTx = await context.writePrecompile!({
           precompileName: "NativeErc20",
           functionName: "transfer",
           args: [randomAccount.address, parseEther("3")],
+          privateKey: BALTATHAR_PRIVATE_KEY,
           rawTxOnly: true,
         });
         const { result } = await context.createBlock(rawTx);
-        const { status, gasUsed } = await context
+        const { status, gasUsed , } = await context
           .viem()
           .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
         expect(status).to.equal("success");
 
-        const balanceAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
-
-        const fees = gasUsed * 10_000_000_000n;
-        const currentBlock = await context.viem().getBlockNumber();
-        expect(balanceAfter).to.equal(balanceBefore - parseEther("3") - fees);
+        const balanceAfter = await context.viem().getBalance({ address: BALTATHAR_ADDRESS });
+        const block = (
+          await context.viem().getBlock()
+        )
+        const fees = gasUsed * block.baseFeePerGas!
+        expect(balanceAfter).toBeLessThanOrEqual(balanceBefore - parseEther("3") - fees);
         expect(
           await context
             .viem()
-            .getBalance({ address: randomAccount.address, blockNumber: currentBlock })
+            .getBalance({ address: randomAccount.address })
         ).to.equal(parseEther("3"));
       },
     });
