@@ -6,7 +6,7 @@ const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 5
 
 describeSmokeSuite("S1500", `Polkadot API - Storage items`, (context, testIt) => {
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let specVersion: number = 0;
 
   before("Setup api", async function () {

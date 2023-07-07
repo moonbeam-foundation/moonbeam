@@ -10,7 +10,7 @@ describeSmokeSuite("S2200", `Verify treasury consistency`, (context, testIt) => 
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
 
   before("Setup api", async function () {
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();

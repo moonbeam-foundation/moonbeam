@@ -14,7 +14,7 @@ const debug = require("debug")("smoke:orbiter");
 
 describeSmokeSuite("S1400", `Verify orbiters`, (context, testIt) => {
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let collatorsPools: [
     StorageKey<[AccountId20]>,
     Option<PalletMoonbeamOrbitersCollatorPoolInfo>
