@@ -8,7 +8,7 @@ describeSmokeSuite("S200", `Verifying deposit for associated nimbus ids`, (conte
   const nimbusIdPerAccount: { [account: string]: string } = {};
 
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
 
   before("Retrieve all associated nimbus ids", async function () {
     // It takes time to load all the nimbus ids.

@@ -38,6 +38,7 @@ enum ReserveType {
   Named = "17",
   SubIdentity = "18",
   PreimageStatus = "19",
+  MultiSig = "20",
 }
 
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
@@ -57,7 +58,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
   let failedLocks = [];
   let failedReserved = [];
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let specVersion: number = 0;
   let runtimeName: string;
   let totalAccounts: bigint = 0n;
@@ -637,6 +638,24 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         })
         .catch((error) => {
           console.error("Error fetching namedReserves:", error);
+          reject(error);
+        });
+    });
+
+    await new Promise((resolve, reject) => {
+      apiAt.query.multisig.multisigs
+        .entries()
+        .then((multisigs) => {
+          multisigs.forEach((multisig) => {
+            const json = (multisig[1] as any).toJSON();
+            updateReserveMap(json.depositor, {
+              [ReserveType.MultiSig]: BigInt(json.deposit),
+            });
+          });
+          resolve("multiSigs scraped");
+        })
+        .catch((error) => {
+          console.error("Error fetching multisigs:", error);
           reject(error);
         });
     });

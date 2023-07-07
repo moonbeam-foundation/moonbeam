@@ -10,7 +10,7 @@ describeSmokeSuite(
 
   (context, testIt) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];

@@ -15,11 +15,11 @@ describeSuite({
     const proxyAccList = [];
     const limiter = rateLimiter();
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       const limit = 1000;
       let last_key = "";
       let count = 0;
