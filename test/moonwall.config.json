@@ -176,6 +176,7 @@
       "envVars": ["DEBUG_COLORS=1"],
       "runScripts": [],
       "reporters": ["html", "basic"],
+
       "foundation": {
         "type": "dev",
         "launchSpec": [

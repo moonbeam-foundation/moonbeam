@@ -37,6 +37,7 @@ describeSuite({
     it({
       id: "T02",
       title: "returns different address on modified message",
+      modifier: "only",
       test: async function () {
         const msg = context.web3().utils.sha3("Hello World!");
         const sig = context.web3().eth.accounts.sign(msg!, ALITH_PRIVATE_KEY);

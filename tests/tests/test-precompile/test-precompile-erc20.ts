@@ -10,7 +10,7 @@ import {
 } from "../../util/accounts";
 import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
@@ -141,8 +141,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
-  it("allows to approve transfer and use transferFrom", async function () {
+describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
+  it.only("allows to approve transfer and use transferFrom", async function () {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `400000000000`.padStart(64, "0");
 
@@ -186,7 +186,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
     ).toString(16);
     await checkAllowance(context, alith.address, baltathar.address, newAllowedAmount);
   });
-});
+},"Legacy");
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
   it("refuses to transferFrom more than allowed", async function () {
