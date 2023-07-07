@@ -642,23 +642,25 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
         });
     });
 
-    await new Promise((resolve, reject) => {
-      apiAt.query.multisig.multisigs
-        .entries()
-        .then((multisigs) => {
-          multisigs.forEach((multisig) => {
-            const json = (multisig[1] as any).toJSON();
-            updateReserveMap(json.depositor, {
-              [ReserveType.MultiSig]: BigInt(json.deposit),
+    if (specVersion >= 2401) {
+      await new Promise((resolve, reject) => {
+        apiAt.query.multisig.multisigs
+          .entries()
+          .then((multisigs) => {
+            multisigs.forEach((multisig) => {
+              const json = (multisig[1] as any).toJSON();
+              updateReserveMap(json.depositor, {
+                [ReserveType.MultiSig]: BigInt(json.deposit),
+              });
             });
+            resolve("multiSigs scraped");
+          })
+          .catch((error) => {
+            console.error("Error fetching multisigs:", error);
+            reject(error);
           });
-          resolve("multiSigs scraped");
-        })
-        .catch((error) => {
-          console.error("Error fetching multisigs:", error);
-          reject(error);
-        });
-    });
+      });
+    }
 
     debug(`Retrieved ${expectedReserveMap.size} deposits`);
     expectedReserveMap.forEach(({ reserved }, key) => {
