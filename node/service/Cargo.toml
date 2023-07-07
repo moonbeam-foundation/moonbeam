@@ -185,7 +185,7 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = [  ]
+test-spec = []
 
 runtime-benchmarks = [
 	"moonbase-native",

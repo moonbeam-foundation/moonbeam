@@ -74,8 +74,7 @@ export function describeParachain(
                   ports: [
                     {
                       p2pPort: 30333,
-                      wsPort: 9944,
-                      rpcPort: 9933,
+                      rpcPort: 9944,
                     },
                   ],
                 },
@@ -89,7 +88,6 @@ export function describeParachain(
                   ports: [
                     {
                       p2pPort: PORT_PREFIX * 1000 + 100,
-                      wsPort: PORT_PREFIX * 1000 + 102,
                       rpcPort: PORT_PREFIX * 1000 + 101,
                     },
                   ],
@@ -108,7 +106,7 @@ export function describeParachain(
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
           const provider =
             protocol == "ws"
-              ? await provideWeb3Api(`ws://localhost:${init.paraPorts[0].ports[0].wsPort}`)
+              ? await provideWeb3Api(`ws://localhost:${init.paraPorts[0].ports[0].rpcPort}`)
               : await provideWeb3Api(`http://localhost:${init.paraPorts[0].ports[0].rpcPort}`);
           context._web3Providers.push((provider as any)._provider);
           return provider;
@@ -116,7 +114,7 @@ export function describeParachain(
         context.createEthers = async () =>
           provideEthersApi(`http://localhost:${init.paraPorts[0].ports[0].rpcPort}`);
         context.createPolkadotApiParachain = async (parachainNumber: number) => {
-          const promise = providePolkadotApi(init.paraPorts[parachainNumber].ports[0].wsPort);
+          const promise = providePolkadotApi(init.paraPorts[parachainNumber].ports[0].rpcPort);
           context._polkadotApiParachains.push({
             parachainId: init.paraPorts[parachainNumber].parachainId,
             apis: [await promise],
@@ -130,7 +128,7 @@ export function describeParachain(
                 parachainId: parachain.parachainId,
                 apis: await Promise.all(
                   parachain.ports.map(async (ports: NodePorts) => {
-                    return providePolkadotApi(ports.wsPort);
+                    return providePolkadotApi(ports.rpcPort);
                   })
                 ),
               };
@@ -154,7 +152,7 @@ export function describeParachain(
         context.createPolkadotApiRelaychains = async () => {
           const apiPromises = await Promise.all(
             init.relayPorts.map(async (ports: NodePorts) => {
-              return await providePolkadotApi(ports.wsPort, true);
+              return await providePolkadotApi(ports.rpcPort, true);
             })
           );
           // We keep track of the polkadotApis to close them at the end of the test

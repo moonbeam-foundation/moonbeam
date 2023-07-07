@@ -182,7 +182,7 @@ export async function customRequest(method: string, params: any[]) {
   });
 }
 
-export const init = (url = "http://localhost:9933") => {
+export const init = (url = "http://localhost:9944") => {
   web3 = new Web3(url);
   gerald = importAccount(GERALD_PRIVATE_KEY);
   return web3;
