@@ -1311,7 +1311,7 @@ construct_runtime! {
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
-		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 9,
+		// Proviously 9: ethereum_chain_id pallet
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
@@ -1355,6 +1355,7 @@ construct_runtime! {
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
+		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
 	}
 }
 

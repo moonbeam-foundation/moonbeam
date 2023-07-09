@@ -1344,9 +1344,11 @@ construct_runtime! {
 		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility.
-		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
+		// Pallet EthereumChain Id has been removed in favor of EvmChainId
+		// EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
+		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 54,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,

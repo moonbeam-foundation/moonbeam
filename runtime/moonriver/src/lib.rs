@@ -1352,9 +1352,10 @@ construct_runtime! {
 		// Sudo was previously index 40
 
 		// Ethereum compatibility
-		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
+		// Ethereum Chain Id had previously index 50
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
+		EvmChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 54,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,

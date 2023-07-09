@@ -464,9 +464,9 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
 	// Ethereum compatibility
-	is_pallet_index::<moonbeam_runtime::EvmChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
 	is_pallet_index::<moonbeam_runtime::Ethereum>(52);
+	is_pallet_index::<moonbeam_runtime::EvmChainId>(54);
 	// Governance
 	is_pallet_index::<moonbeam_runtime::Scheduler>(60);
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
@@ -500,8 +500,9 @@ fn verify_reserved_indices() {
 		_ => panic!("metadata has been bumped, test needs to be updated"),
 	};
 	// 40: Sudo
+	// 50: EthereumChainId
 	// 53: BaseFee
-	let reserved = vec![40, 53];
+	let reserved = vec![40, 50, 53];
 	let existing = metadata
 		.pallets
 		.iter()

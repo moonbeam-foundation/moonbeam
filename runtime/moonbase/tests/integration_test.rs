@@ -465,7 +465,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
 	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
 	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);
-	is_pallet_index::<moonbase_runtime::EvmChainId>(9);
 	is_pallet_index::<moonbase_runtime::EVM>(10);
 	is_pallet_index::<moonbase_runtime::Ethereum>(11);
 	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
@@ -497,6 +496,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
 	is_pallet_index::<moonbase_runtime::OpenTechCommitteeCollective>(46);
+	is_pallet_index::<moonbase_runtime::EvmChainId>(50);
 }
 
 #[test]
@@ -507,8 +507,9 @@ fn verify_reserved_indices() {
 		RuntimeMetadata::V14(metadata) => metadata,
 		_ => panic!("metadata has been bumped, test needs to be updated"),
 	};
+	// 9: EthereumChainId
 	// 35: BaseFee
-	let reserved = vec![35];
+	let reserved = vec![9, 35];
 	let existing = metadata
 		.pallets
 		.iter()
