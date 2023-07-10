@@ -1700,12 +1700,6 @@
 <a href="#1700" id="1700">1700</a>
 <a href="#1701" id="1701">1701</a>
 <a href="#1702" id="1702">1702</a>
-<a href="#1703" id="1703">1703</a>
-<a href="#1704" id="1704">1704</a>
-<a href="#1705" id="1705">1705</a>
-<a href="#1706" id="1706">1706</a>
-<a href="#1707" id="1707">1707</a>
-<a href="#1708" id="1708">1708</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2431,8 +2425,6 @@
 	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">20_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
 	</span><span class="kw">type </span>MinDelegation = ConstU128&lt;{ <span class="number">500 </span>* currency::MILLIGLMR * currency::SUPPLY_FACTOR }&gt;;
-	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
-	</span><span class="kw">type </span>MinDelegatorStk = ConstU128&lt;{ <span class="number">500 </span>* currency::MILLIGLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>BlockAuthor = AuthorInherent;
 	<span class="kw">type </span>OnCollatorPayout = ();
 	<span class="kw">type </span>PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
@@ -3348,10 +3340,6 @@
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinDelegation, u128),
-			Balance::from(<span class="number">50 </span>* GLMR)
-		);
-		<span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_parachain_staking, MinDelegatorStk, u128),
 			Balance::from(<span class="number">50 </span>* GLMR)
 		);
 

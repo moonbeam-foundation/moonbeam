@@ -2150,9 +2150,6 @@
 <a href="#2150" id="2150">2150</a>
 <a href="#2151" id="2151">2151</a>
 <a href="#2152" id="2152">2152</a>
-<a href="#2153" id="2153">2153</a>
-<a href="#2154" id="2154">2154</a>
-<a href="#2155" id="2155">2155</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2195,7 +2192,7 @@
 //! original request was made.
 //!
 //! To join the set of delegators, call `delegate` and pass in an account that is
-//! already a collator candidate and `bond &gt;= MinDelegatorStk`. Each delegator can delegate up to
+//! already a collator candidate and `bond &gt;= MinDelegation`. Each delegator can delegate up to
 //! `T::MaxDelegationsPerDelegator` collator candidates by calling `delegate`.
 //!
 //! To revoke a delegation, call `revoke_delegation` with the collator candidate&#39;s account.
@@ -2316,9 +2313,6 @@
 		<span class="doccomment">/// Minimum stake for any registered on-chain account to delegate
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MinDelegation: Get&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
-		<span class="doccomment">/// Minimum stake for any registered on-chain account to be a delegator
-		</span><span class="attr">#[pallet::constant]
-		</span><span class="kw">type </span>MinDelegatorStk: Get&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
 		<span class="doccomment">/// Get the current block author
 		</span><span class="kw">type </span>BlockAuthor: Get&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// Handler to notify the runtime when a collator is paid.

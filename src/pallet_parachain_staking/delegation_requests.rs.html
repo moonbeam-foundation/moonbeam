@@ -794,13 +794,6 @@
 <a href="#794" id="794">794</a>
 <a href="#795" id="795">795</a>
 <a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -975,8 +968,8 @@
 
 		<span class="comment">// Net Total is total after pending orders are executed
 		</span><span class="kw">let </span>net_total = state.total().saturating_sub(state.less_total);
-		<span class="comment">// Net Total is always &gt;= MinDelegatorStk
-		</span><span class="kw">let </span>max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
+		<span class="comment">// Net Total is always &gt;= MinDelegation
+		</span><span class="kw">let </span>max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get().into());
 		<span class="macro">ensure!</span>(
 			decrease_amount &lt;= max_subtracted_amount,
 			DispatchErrorWithPostInfo {
@@ -1084,10 +1077,7 @@
 					<span class="bool-val">true
 				</span>} <span class="kw">else </span>{
 					<span class="macro">ensure!</span>(
-						state
-							.total()
-							.saturating_sub(T::MinDelegatorStk::get().into())
-							&gt;= amount,
+						state.total().saturating_sub(T::MinDelegation::get().into()) &gt;= amount,
 						DispatchErrorWithPostInfo {
 							post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
 							error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
@@ -1156,10 +1146,6 @@
 									<span class="macro">ensure!</span>(
 										new_total &gt;= T::MinDelegation::get(),
 										&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
-									);
-									<span class="macro">ensure!</span>(
-										new_total &gt;= T::MinDelegatorStk::get(),
-										&lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin
 									);
 
 									<span class="prelude-val">Ok</span>(())
