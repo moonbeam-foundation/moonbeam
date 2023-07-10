@@ -439,7 +439,11 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn gas_limit_multiplier_support() {}
 
-				fn pending_block(xts: Vec<<Block as sp_api::BlockT>::Extrinsic>) -> (Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>) {
+				fn pending_block(
+					xts: Vec<<Block as sp_api::BlockT>::Extrinsic>
+				) -> (
+					Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>
+				) {
 					for ext in xts.into_iter() {
 						let _ = Executive::apply_extrinsic(ext);
 					}
