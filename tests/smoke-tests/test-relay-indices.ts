@@ -106,10 +106,8 @@ describeSmokeSuite(
     });
 
     testIt("C400", "should have matching indices for Staking.Bond", async function () {
-      const callHex = context.relayApi.tx.staking
-        // @ts-ignore
-        .bond(10000000000, "Staked")
-        .method.toHex();
+      // @ts-ignore
+      const callHex = context.relayApi.tx.staking.bond(10000000000, "Staked").method.toHex();
       const resp = await relayEncoder.encodeBond(10000000000, hexToU8a("0x00"));
       expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
     });
