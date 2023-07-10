@@ -181,7 +181,8 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam"
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true
           }
         ]
       }
@@ -207,7 +208,8 @@
               "--sealing=manual",
               "--force-authoring",
               "--no-prometheus"
-            ]
+            ],
+            "newRpcBehaviour": true
           }
         ]
       },
