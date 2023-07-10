@@ -728,6 +728,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
+	type MaxCandidates = ConstU32<200>;
 }
 
 impl pallet_author_inherent::Config for Runtime {

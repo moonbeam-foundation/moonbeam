@@ -171,6 +171,7 @@ parameter_types! {
 	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegation: u128 = 3;
+	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
 impl pallet_parachain_staking::Config for Runtime {
@@ -195,6 +196,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
+	type MaxCandidates = MaxCandidates;
 }
 
 pub(crate) struct ExtBuilder {

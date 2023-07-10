@@ -93,6 +93,17 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 }
 
 #[test]
+fn set_total_selected_fails_if_above_max_candidates() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(<Test as crate::Config>::MaxCandidates::get(), 10); // test relies on this
+		assert_noop!(
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 15u32),
+			Error::<Test>::CannotSetAboveMaxCandidates,
+		);
+	});
+}
+
+#[test]
 fn set_total_selected_fails_if_equal_to_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -129,10 +140,10 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 		));
 		assert_ok!(ParachainStaking::set_total_selected(
 			RuntimeOrigin::root(),
-			15u32
+			10u32
 		));
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 14u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 9u32),
 			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
 	});
@@ -857,6 +868,43 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 				));
 				count += 1u32;
 			}
+		});
+}
+
+#[test]
+fn join_candidates_fails_if_above_max_candidate_count() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+			(11, 20),
+		])
+		.with_candidates(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(11), 20, 10),
+				Error::<Test>::CandidateLimitReached,
+			);
 		});
 }
 
