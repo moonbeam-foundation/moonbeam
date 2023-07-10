@@ -2150,6 +2150,35 @@
 <a href="#2150" id="2150">2150</a>
 <a href="#2151" id="2151">2151</a>
 <a href="#2152" id="2152">2152</a>
+<a href="#2153" id="2153">2153</a>
+<a href="#2154" id="2154">2154</a>
+<a href="#2155" id="2155">2155</a>
+<a href="#2156" id="2156">2156</a>
+<a href="#2157" id="2157">2157</a>
+<a href="#2158" id="2158">2158</a>
+<a href="#2159" id="2159">2159</a>
+<a href="#2160" id="2160">2160</a>
+<a href="#2161" id="2161">2161</a>
+<a href="#2162" id="2162">2162</a>
+<a href="#2163" id="2163">2163</a>
+<a href="#2164" id="2164">2164</a>
+<a href="#2165" id="2165">2165</a>
+<a href="#2166" id="2166">2166</a>
+<a href="#2167" id="2167">2167</a>
+<a href="#2168" id="2168">2168</a>
+<a href="#2169" id="2169">2169</a>
+<a href="#2170" id="2170">2170</a>
+<a href="#2171" id="2171">2171</a>
+<a href="#2172" id="2172">2172</a>
+<a href="#2173" id="2173">2173</a>
+<a href="#2174" id="2174">2174</a>
+<a href="#2175" id="2175">2175</a>
+<a href="#2176" id="2176">2176</a>
+<a href="#2177" id="2177">2177</a>
+<a href="#2178" id="2178">2178</a>
+<a href="#2179" id="2179">2179</a>
+<a href="#2180" id="2180">2180</a>
+<a href="#2181" id="2181">2181</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2232,7 +2261,7 @@
 	<span class="kw">use </span><span class="kw">crate</span>::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	<span class="kw">use crate</span>::{set::OrderedSet, traits::<span class="kw-2">*</span>, types::<span class="kw-2">*</span>, InflationInfo, Range, WeightInfo};
+	<span class="kw">use crate</span>::{set::BoundedOrderedSet, traits::<span class="kw-2">*</span>, types::<span class="kw-2">*</span>, InflationInfo, Range, WeightInfo};
 	<span class="kw">use crate</span>::{AutoCompoundConfig, AutoCompoundDelegations};
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::traits::{
@@ -2326,6 +2355,9 @@
 		</span><span class="kw">type </span>OnNewRound: OnNewRound;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.
 		</span><span class="kw">type </span>WeightInfo: WeightInfo;
+		<span class="doccomment">/// Maximum candidates
+		</span><span class="attr">#[pallet::constant]
+		</span><span class="kw">type </span>MaxCandidates: Get&lt;u32&gt;;
 	}
 
 	<span class="attr">#[pallet::error]
@@ -2378,8 +2410,8 @@
 		TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates,
 		TooLowCandidateCountWeightHint,
 		TooLowCandidateCountWeightHintGoOffline,
-		TooLowCandidateCountWeightHintGoOnline,
-		TooLowCandidateCountWeightHintCandidateBondMore,
+		CandidateLimitReached,
+		CannotSetAboveMaxCandidates,
 	}
 
 	<span class="attr">#[pallet::event]
@@ -2728,7 +2760,8 @@
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>selected_candidates)]
 	</span><span class="doccomment">/// The collator candidates selected for the current round
-	</span><span class="kw">type </span>SelectedCandidates&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;T::AccountId&gt;, ValueQuery&gt;;
+	</span><span class="kw">type </span>SelectedCandidates&lt;T: Config&gt; =
+		StorageValue&lt;<span class="kw">_</span>, BoundedVec&lt;T::AccountId, T::MaxCandidates&gt;, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>total)]
@@ -2738,8 +2771,11 @@
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>candidate_pool)]
 	</span><span class="doccomment">/// The pool of collator candidates, each with their total backing stake
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>CandidatePool&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, OrderedSet&lt;Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;, ValueQuery&gt;;
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>CandidatePool&lt;T: Config&gt; = StorageValue&lt;
+		<span class="kw">_</span>,
+		BoundedOrderedSet&lt;Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;, T::MaxCandidates&gt;,
+		ValueQuery,
+	&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>at_stake)]
@@ -2913,6 +2949,11 @@
 				<span class="string">&quot;{:?}&quot;</span>,
 				Error::&lt;T&gt;::CannotSetBelowMin
 			);
+			<span class="macro">assert!</span>(
+				<span class="self">self</span>.num_selected_candidates &lt;= T::MaxCandidates::get(),
+				<span class="string">&quot;{:?}&quot;</span>,
+				Error::&lt;T&gt;::CannotSetAboveMaxCandidates
+			);
 			&lt;TotalSelected&lt;T&gt;&gt;::put(<span class="self">self</span>.num_selected_candidates);
 			<span class="comment">// Choose top TotalSelected collator candidates
 			</span><span class="kw">let </span>(<span class="kw">_</span>, v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
@@ -3035,6 +3076,10 @@
 				new &gt;= T::MinSelectedCandidates::get(),
 				Error::&lt;T&gt;::CannotSetBelowMin
 			);
+			<span class="macro">ensure!</span>(
+				new &lt;= T::MaxCandidates::get(),
+				Error::&lt;T&gt;::CannotSetAboveMaxCandidates
+			);
 			<span class="kw">let </span>old = &lt;TotalSelected&lt;T&gt;&gt;::get();
 			<span class="macro">ensure!</span>(old != new, Error::&lt;T&gt;::NoWritingSameValue);
 			<span class="macro">ensure!</span>(
@@ -3119,13 +3164,14 @@
 				candidate_count &gt;= old_count,
 				Error::&lt;T&gt;::TooLowCandidateCountWeightHintJoinCandidates
 			);
-			<span class="macro">ensure!</span>(
-				candidates.insert(Bond {
+			<span class="kw">let </span>maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: acc.clone(),
-					amount: bond
-				}),
-				Error::&lt;T&gt;::CandidateExists
-			);
+					amount: bond,
+				})
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CandidateLimitReached)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(maybe_inserted_candidate, Error::&lt;T&gt;::CandidateExists);
+
 			<span class="macro">ensure!</span>(
 				<span class="self">Self</span>::get_collator_stakable_free_balance(<span class="kw-2">&amp;</span>acc) &gt;= bond,
 				Error::&lt;T&gt;::InsufficientBalance,
@@ -3214,13 +3260,13 @@
 				candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32 &lt;= candidate_count,
 				Error::&lt;T&gt;::TooLowCandidateCountWeightHintCancelLeaveCandidates
 			);
-			<span class="macro">ensure!</span>(
-				candidates.insert(Bond {
+			<span class="kw">let </span>maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
-				Error::&lt;T&gt;::AlreadyActive
-			);
+					amount: state.total_counted,
+				})
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CandidateLimitReached)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(maybe_inserted_candidate, Error::&lt;T&gt;::AlreadyActive);
 			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
 			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>collator, state);
 			<span class="self">Self</span>::deposit_event(Event::CancelledCandidateExit {
@@ -3596,16 +3642,20 @@
 			);
 			state.go_online();
 
-			<span class="macro">ensure!</span>(
-				candidates.insert(Bond {
+			<span class="kw">let </span>maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
+					amount: state.total_counted,
+				})
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CandidateLimitReached)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(
+				maybe_inserted_candidate,
 				DispatchErrorWithPostInfo {
 					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
 					error: &lt;Error&lt;T&gt;&gt;::AlreadyActive.into(),
 				},
 			);
+
 			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
 			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>collator, state);
 			<span class="self">Self</span>::deposit_event(Event::CandidateBackOnline {
@@ -3768,10 +3818,14 @@
 		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_active(candidate: T::AccountId, total: BalanceOf&lt;T&gt;) {
 			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get();
 			candidates.remove(<span class="kw-2">&amp;</span>Bond::from_owner(candidate.clone()));
-			candidates.insert(Bond {
-				owner: candidate,
-				amount: total,
-			});
+			candidates
+				.try_insert(Bond {
+					owner: candidate,
+					amount: total,
+				})
+				.expect(
+					<span class="string">&quot;the candidate is removed in previous step so the length cannot increase; qed&quot;</span>,
+				);
 			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
 		}
 
@@ -4002,27 +4056,31 @@
 				<span class="kw">return </span><span class="macro">vec!</span>[];
 			}
 
-			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get().<span class="number">0</span>;
+			<span class="kw">let </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get().<span class="number">0</span>;
 
 			<span class="comment">// If the number of candidates is greater than top_n, select the candidates with higher
 			// amount. Otherwise, return all the candidates.
 			</span><span class="kw">if </span>candidates.len() &gt; top_n {
 				<span class="comment">// Partially sort candidates such that element at index `top_n - 1` is sorted, and
 				// all the elements in the range 0..top_n are the top n elements.
-				</span>candidates.select_nth_unstable_by(top_n - <span class="number">1</span>, |a, b| {
-					<span class="comment">// Order by amount, then owner. The owner is needed to ensure a stable order
-					// when two accounts have the same amount.
-					</span>a.amount
-						.cmp(<span class="kw-2">&amp;</span>b.amount)
-						.then_with(|| a.owner.cmp(<span class="kw-2">&amp;</span>b.owner))
-						.reverse()
-				});
+				</span><span class="kw">let </span>sorted_candidates = candidates
+					.try_mutate(|inner| {
+						inner.select_nth_unstable_by(top_n - <span class="number">1</span>, |a, b| {
+							<span class="comment">// Order by amount, then owner. The owner is needed to ensure a stable order
+							// when two accounts have the same amount.
+							</span>a.amount
+								.cmp(<span class="kw-2">&amp;</span>b.amount)
+								.then_with(|| a.owner.cmp(<span class="kw-2">&amp;</span>b.owner))
+								.reverse()
+						});
+					})
+					.expect(<span class="string">&quot;sort cannot increase item count; qed&quot;</span>);
 
-				<span class="kw">let </span><span class="kw-2">mut </span>collators = candidates
+				<span class="kw">let </span><span class="kw-2">mut </span>collators = sorted_candidates
 					.into_iter()
 					.take(top_n)
 					.map(|x| x.owner)
-					.collect::&lt;Vec&lt;T::AccountId&gt;&gt;();
+					.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 				<span class="comment">// Sort collators by AccountId
 				</span>collators.sort();
@@ -4031,10 +4089,7 @@
 			} <span class="kw">else </span>{
 				<span class="comment">// Return all candidates
 				// The candidates are already sorted by AccountId, so no need to sort again
-				</span>candidates
-					.into_iter()
-					.map(|x| x.owner)
-					.collect::&lt;Vec&lt;T::AccountId&gt;&gt;()
+				</span>candidates.into_iter().map(|x| x.owner).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 			}
 		}
 		<span class="doccomment">/// Best as in most cumulatively supported in terms of stake
@@ -4116,7 +4171,10 @@
 				});
 			}
 			<span class="comment">// insert canonical collator set
-			</span>&lt;SelectedCandidates&lt;T&gt;&gt;::put(collators);
+			</span>&lt;SelectedCandidates&lt;T&gt;&gt;::put(
+				BoundedVec::try_from(collators)
+					.expect(<span class="string">&quot;subset of collators is always less than or equal to max candidates&quot;</span>),
+			);
 
 			<span class="kw">let </span>avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(<span class="number">0</span>);
 			<span class="kw">let </span>weight = T::WeightInfo::select_top_candidates(collator_count, avg_delegator_count);
@@ -4298,7 +4356,7 @@
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Get&lt;Vec&lt;T::AccountId&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
 		<span class="kw">fn </span>get() -&gt; Vec&lt;T::AccountId&gt; {
-			<span class="self">Self</span>::selected_candidates()
+			<span class="self">Self</span>::selected_candidates().into_inner()
 		}
 	}
 }
