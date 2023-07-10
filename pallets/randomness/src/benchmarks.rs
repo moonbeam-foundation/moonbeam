@@ -122,7 +122,7 @@ benchmarks! {
 			RequestType::Local(block_num),
 			RandomnessResult::new().increment_request_count()
 		);
-		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
+		let transcript = make_vrf_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
 		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
 		let digest =  sp_runtime::generic::Digest {
@@ -142,10 +142,11 @@ benchmarks! {
 	}
 	verify {
 		// verify VrfOutput was inserted into storage as expected
-		let pubkey = sp_consensus_vrf::schnorrkel::PublicKey::from_bytes(vrf_id.as_slice())
+		let pubkey = schnorrkel::PublicKey::from_bytes(vrf_id.as_slice())
 			.expect("Expect VrfId is valid schnorrkel Public key");
-		let vrf_output: sp_consensus_vrf::schnorrkel::Randomness = vrf_pre_digest.vrf_output
-			.attach_input_hash(&pubkey, transcript)
+		let vrf_output: sp_consensus_babe::Randomness = vrf_pre_digest.vrf_output
+			.0
+			.attach_input_hash(&pubkey, transcript.0.clone())
 			.ok()
 			.map(|inout| inout.make_bytes(&session_keys_primitives::VRF_INOUT_CONTEXT))
 			.expect("VRF output encoded in pre-runtime digest must be valid");
