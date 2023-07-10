@@ -119,7 +119,7 @@ parameter_types! {
 	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegation: u128 = 3;
-	pub const MaxCandidates: u32 = 10;
+	pub const MaxCandidates: u32 = 200;
 }
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
