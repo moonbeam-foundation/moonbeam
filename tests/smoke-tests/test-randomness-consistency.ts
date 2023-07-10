@@ -9,7 +9,7 @@ const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
 describeSmokeSuite("S1700", `Verify randomness consistency`, (context, testIt) => {
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
 
   const requestStates: { id: number; state: any }[] = [];
   let numRequests: number = 0; // our own count

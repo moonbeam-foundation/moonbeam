@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.31.1"
+version = "0.33.0"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -185,7 +185,7 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = [  ]
+test-spec = []
 
 runtime-benchmarks = [
 	"moonbase-native",

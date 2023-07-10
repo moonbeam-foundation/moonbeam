@@ -171,8 +171,8 @@ impl<T: Config> Pallet<T> {
 
 		// Net Total is total after pending orders are executed
 		let net_total = state.total().saturating_sub(state.less_total);
-		// Net Total is always >= MinDelegatorStk
-		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
+		// Net Total is always >= MinDelegation
+		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get().into());
 		ensure!(
 			decrease_amount <= max_subtracted_amount,
 			DispatchErrorWithPostInfo {
@@ -280,10 +280,7 @@ impl<T: Config> Pallet<T> {
 					true
 				} else {
 					ensure!(
-						state
-							.total()
-							.saturating_sub(T::MinDelegatorStk::get().into())
-							>= amount,
+						state.total().saturating_sub(T::MinDelegation::get().into()) >= amount,
 						DispatchErrorWithPostInfo {
 							post_info: Some(actual_weight).into(),
 							error: <Error<T>>::DelegatorBondBelowMin.into(),
@@ -352,10 +349,6 @@ impl<T: Config> Pallet<T> {
 									ensure!(
 										new_total >= T::MinDelegation::get(),
 										<Error<T>>::DelegationBelowMin
-									);
-									ensure!(
-										new_total >= T::MinDelegatorStk::get(),
-										<Error<T>>::DelegatorBondBelowMin
 									);
 
 									Ok(())

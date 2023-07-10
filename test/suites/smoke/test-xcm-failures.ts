@@ -41,7 +41,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       relayApi = context.polkadotJs({ apiName: "relay" });
 
       const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);

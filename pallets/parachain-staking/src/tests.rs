@@ -93,6 +93,17 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 }
 
 #[test]
+fn set_total_selected_fails_if_above_max_candidates() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(<Test as crate::Config>::MaxCandidates::get(), 200); // test relies on this
+		assert_noop!(
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 201u32),
+			Error::<Test>::CannotSetAboveMaxCandidates,
+		);
+	});
+}
+
+#[test]
 fn set_total_selected_fails_if_equal_to_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -129,10 +140,10 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 		));
 		assert_ok!(ParachainStaking::set_total_selected(
 			RuntimeOrigin::root(),
-			15u32
+			10u32
 		));
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 14u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 9u32),
 			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
 	});
@@ -857,6 +868,33 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 				));
 				count += 1u32;
 			}
+		});
+}
+
+#[test]
+fn join_candidates_fails_if_above_max_candidate_count() {
+	let mut candidates = vec![];
+	for i in 1..=crate::mock::MaxCandidates::get() {
+		candidates.push((i as u64, 80));
+	}
+
+	let new_candidate = crate::mock::MaxCandidates::get() as u64 + 1;
+	let mut balances = candidates.clone();
+	balances.push((new_candidate, 100));
+
+	ExtBuilder::default()
+		.with_balances(balances)
+		.with_candidates(candidates)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::join_candidates(
+					RuntimeOrigin::signed(new_candidate),
+					80,
+					crate::mock::MaxCandidates::get(),
+				),
+				Error::<Test>::CandidateLimitReached,
+			);
 		});
 }
 
@@ -2255,8 +2293,6 @@ fn cannot_revoke_delegation_that_dne() {
 }
 
 #[test]
-// See `cannot_execute_revoke_delegation_below_min_delegator_stake` for where the "must be above
-// MinDelegatorStk" rule is now enforced.
 fn can_schedule_revoke_delegation_below_min_delegator_stake() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
@@ -2620,22 +2656,6 @@ fn cannot_delegator_bond_less_if_delegation_dne() {
 }
 
 #[test]
-fn cannot_delegator_bond_less_below_min_collator_stk() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30), (2, 10)])
-		.with_candidates(vec![(1, 30)])
-		.with_delegations(vec![(2, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 6)
-					.map_err(|err| err.error),
-				Error::<Test>::DelegatorBondBelowMin
-			);
-		});
-}
-
-#[test]
 fn cannot_delegator_bond_less_more_than_total_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
@@ -2700,41 +2720,6 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 				delegator: 2,
 				unstaked_amount: 10
 			});
-		});
-}
-
-#[test]
-fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
-		.with_candidates(vec![(1, 20), (3, 20)])
-		.with_delegations(vec![(2, 1, 5), (2, 3, 3)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				RuntimeOrigin::signed(2),
-				1
-			));
-			roll_to(10);
-			assert_noop!(
-				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1)
-					.map_err(|err| err.error),
-				Error::<Test>::DelegatorBondBelowMin
-			);
-			// but delegator can cancel the request and request to leave instead:
-			assert_ok!(ParachainStaking::cancel_delegation_request(
-				RuntimeOrigin::signed(2),
-				1
-			));
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				RuntimeOrigin::signed(2)
-			));
-			roll_to(20);
-			assert_ok!(ParachainStaking::execute_leave_delegators(
-				RuntimeOrigin::signed(2),
-				2,
-				2
-			));
 		});
 }
 

@@ -1,8 +1,8 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import chalk from "chalk";
-import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
+import { ApiDecoration } from "@polkadot/api/types";
+import chalk from "chalk";
 
 describeSuite({
   id: "S200",
@@ -12,11 +12,11 @@ describeSuite({
     const nimbusIdPerAccount: { [account: string]: string } = {};
 
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       const limit = 1000;
       let last_key = "";
       let count = 0;

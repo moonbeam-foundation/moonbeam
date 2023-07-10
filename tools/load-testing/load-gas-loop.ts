@@ -27,7 +27,7 @@ init(
   argv["net"] == "stagenet"
     ? "https://rpc.stagenet.moonbeam.gcp.purestake.run"
     : argv["net"] == "localhost"
-    ? "http://127.0.0.1:9933"
+    ? "http://127.0.0.1:9944"
     : argv["net"] == "alan"
     ? "http://127.0.0.1:56053"
     : argv["net"] == "alan-standalone"

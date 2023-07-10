@@ -11,7 +11,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     const requestStates: { id: number; state: any }[] = [];
     let numRequests: number = 0; // our own count
     let requestCount: number = 0; // from pallet storage
@@ -19,7 +19,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       const runtimeName = paraApi.runtimeVersion.specName.toString();
       isRandomnessAvailable =

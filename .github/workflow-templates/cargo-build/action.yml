@@ -8,12 +8,6 @@ inputs:
     description: features to include in the build (comma separated)
     required: false
 
-env:
-  RUSTFLAGS: "-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=./mold/bin/mold"
-  RUSTC_WRAPPER: "sccache"
-  CARGO_INCREMENTAL: "0"
-  SCCACHE_CACHE_SIZE: "100GB"
-
 runs:
   using: "composite"
   steps:

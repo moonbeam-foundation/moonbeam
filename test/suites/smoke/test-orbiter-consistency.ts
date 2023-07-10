@@ -17,7 +17,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let collatorsPools: [
       StorageKey<[AccountId20]>,
       Option<PalletMoonbeamOrbitersCollatorPoolInfo>
@@ -31,7 +31,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)

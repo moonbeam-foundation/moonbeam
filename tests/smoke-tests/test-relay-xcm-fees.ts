@@ -13,7 +13,7 @@ describeSmokeSuite("S1800", `Verify XCM weight fees for relay`, (context, testIt
 
   let atBlockNumber: number = 0;
   let relayAtBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let relayApiAt: ApiDecoration<"promise"> = null;
 
   before("Setup api", async function () {
