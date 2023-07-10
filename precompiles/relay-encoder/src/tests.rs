@@ -196,11 +196,7 @@ fn test_encode_set_controller() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile1,
-					PCall::encode_set_controller {},
-				)
+				.prepare_test(Alice, Precompile1, PCall::encode_set_controller {})
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
