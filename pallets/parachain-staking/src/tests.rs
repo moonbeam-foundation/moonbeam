@@ -7341,7 +7341,6 @@ fn revoke_last_removes_lock() {
 		});
 }
 
-
 #[test]
 fn test_set_auto_compound_fails_if_invalid_delegation_hint() {
 	ExtBuilder::default()
