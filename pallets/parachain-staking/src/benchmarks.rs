@@ -310,7 +310,7 @@ benchmarks! {
 	// USER DISPATCHABLES
 
 	join_candidates {
-		let x in 3..1_000;
+		let x in 3..T::MaxCandidates::get();
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
 		for i in 2..x {
@@ -333,7 +333,7 @@ benchmarks! {
 	// This call schedules the collator's exit and removes them from the candidate pool
 	// -> it retains the self-bond and delegator bonds
 	schedule_leave_candidates {
-		let x in 3..1_000;
+		let x in 3..T::MaxCandidates::get();
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
 		for i in 2..x {
@@ -519,7 +519,7 @@ benchmarks! {
 	}
 
 	cancel_leave_candidates {
-		let x in 3..1_000;
+		let x in 3..T::MaxCandidates::get();
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut candidate_count = 1u32;
 		for i in 2..x {
@@ -552,7 +552,7 @@ benchmarks! {
 	}
 
 	go_offline {
-		let x in 1..1_000;
+		let x in 1..T::MaxCandidates::get();
 
 		let mut candidate_count = 1u32;
 		for i in 2..x {
@@ -582,7 +582,7 @@ benchmarks! {
 	}
 
 	go_online {
-		let x in 1..1_000;
+		let x in 1..T::MaxCandidates::get();
 
 		let mut candidate_count = 1u32;
 		for i in 2..x {
@@ -613,7 +613,7 @@ benchmarks! {
 	}
 
 	candidate_bond_more {
-		let x in 1..1_000;
+		let x in 1..T::MaxCandidates::get();
 
 		let more = min_candidate_stk::<T>();
 
@@ -670,7 +670,7 @@ benchmarks! {
 	}
 
 	execute_candidate_bond_less {
-		let x in 1..1_000;
+		let x in 1..T::MaxCandidates::get();
 
 		let min_candidate_stk = min_candidate_stk::<T>();
 

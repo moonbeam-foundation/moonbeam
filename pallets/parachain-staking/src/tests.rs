@@ -95,9 +95,9 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 #[test]
 fn set_total_selected_fails_if_above_max_candidates() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(<Test as crate::Config>::MaxCandidates::get(), 10); // test relies on this
+		assert_eq!(<Test as crate::Config>::MaxCandidates::get(), 200); // test relies on this
 		assert_noop!(
-			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 15u32),
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 201u32),
 			Error::<Test>::CannotSetAboveMaxCandidates,
 		);
 	});
@@ -873,36 +873,26 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 
 #[test]
 fn join_candidates_fails_if_above_max_candidate_count() {
+	let mut candidates = vec![];
+	for i in 1..=crate::mock::MaxCandidates::get() {
+		candidates.push((i as u64, 80));
+	}
+
+	let new_candidate = crate::mock::MaxCandidates::get() as u64 + 1;
+	let mut balances = candidates.clone();
+	balances.push((new_candidate, 100));
+
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 20),
-			(4, 20),
-			(5, 20),
-			(6, 20),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-			(10, 20),
-			(11, 20),
-		])
-		.with_candidates(vec![
-			(1, 20),
-			(2, 20),
-			(3, 20),
-			(4, 20),
-			(5, 20),
-			(6, 20),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-			(10, 20),
-		])
+		.with_balances(balances)
+		.with_candidates(candidates)
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(RuntimeOrigin::signed(11), 20, 10),
+				ParachainStaking::join_candidates(
+					RuntimeOrigin::signed(new_candidate),
+					80,
+					crate::mock::MaxCandidates::get(),
+				),
 				Error::<Test>::CandidateLimitReached,
 			);
 		});
