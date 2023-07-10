@@ -265,7 +265,7 @@ fn test_encode_validate() {
 					Alice,
 					Precompile1,
 					PCall::encode_validate {
-						comission: 100.into(),
+						commission: 100.into(),
 						blocked: true,
 					},
 				)

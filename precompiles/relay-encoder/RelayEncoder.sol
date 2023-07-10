@@ -17,7 +17,7 @@ RelayEncoder constant RELAY_ENCODER_CONTRACT = RelayEncoder(
 /// @custom:address 0x0000000000000000000000000000000000000805
 interface RelayEncoder {
     /// @dev Encode 'bond' relay call
-    /// @custom:selector a82948d4
+    /// @custom:selector 72a9fbc6
     /// @param amount: The amount to bond
     /// @param rewardDestination: the account that should receive the reward
     /// @return result The bytes associated with the encoded call
@@ -52,11 +52,11 @@ interface RelayEncoder {
 
     /// @dev Encode 'validate' relay call
     /// @custom:selector bb64ca0c
-    /// @param comission: Comission of the validator as partsPerBillion
+    /// @param commission: Commission of the validator as partsPerBillion
     /// @param blocked: Whether or not the validator is accepting more nominations
     /// @return result The bytes associated with the encoded call
     function encodeValidate(
-        uint256 comission,
+        uint256 commission,
         bool blocked
     ) external pure returns (bytes memory result);
 
@@ -82,7 +82,7 @@ interface RelayEncoder {
     ) external pure returns (bytes memory result);
 
     /// @dev Encode 'setController' relay call
-    /// @custom:selector 07f7c6dc
+    /// @custom:selector 15490616
     /// @return result The bytes associated with the encoded call
     function encodeSetController() external pure returns (bytes memory result);
 

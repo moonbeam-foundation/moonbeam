@@ -163,14 +163,14 @@ where
 	#[precompile::view]
 	fn encode_validate(
 		handle: &mut impl PrecompileHandle,
-		comission: Convert<U256, u32>,
+		commission: Convert<U256, u32>,
 		blocked: bool,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let fraction = Perbill::from_parts(comission.converted());
+		let fraction = Perbill::from_parts(commission.converted());
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
