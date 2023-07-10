@@ -148,7 +148,9 @@ where
 			None => return DiscriminantResult::None(extra_cost),
 		};
 
-		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
+		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id.clone())
+			.is_some()
+		{
 			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
 			DiscriminantResult::None(extra_cost)
@@ -265,14 +267,14 @@ where
 		handle.record_db_read::<Runtime>(136)?;
 
 		// If previous approval exists, we need to clean it
-		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender)
+		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id.clone(), &owner, &spender)
 			!= 0u32.into()
 		{
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
 				Some(owner.clone()).into(),
 				pallet_assets::Call::<Runtime, Instance>::cancel_approval {
-					id: asset_id.into(),
+					id: asset_id.clone().into(),
 					delegate: Runtime::Lookup::unlookup(spender.clone()),
 				},
 			)?;

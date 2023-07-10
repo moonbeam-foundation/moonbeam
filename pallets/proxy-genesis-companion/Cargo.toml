@@ -12,6 +12,7 @@ pallet-proxy = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 [dev-dependencies]
 serde = { workspace = true }
@@ -30,5 +31,6 @@ std = [
 	"pallet-proxy/std",
 	"scale-info/std",
 	"sp-runtime/std",
+	"sp-std/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]

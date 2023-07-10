@@ -102,6 +102,10 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -198,6 +202,10 @@ impl pallet_treasury::Config for Runtime {
 	>;
 }
 
+parameter_types! {
+	pub MaxProposalWeight: Weight = Weight::from_parts(1024, 1);
+}
+
 impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
@@ -212,6 +220,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = frame_system::EnsureRoot<AccountId>;
+	type MaxProposalWeight = MaxProposalWeight;
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles

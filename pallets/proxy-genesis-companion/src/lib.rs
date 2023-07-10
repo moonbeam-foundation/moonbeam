@@ -28,12 +28,12 @@ mod mock;
 mod tests;
 
 use frame_support::pallet;
-
 pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
+	use sp_std::vec::Vec;
 
 	/// Pallet for configuring proxy at genesis
 	#[pallet::pallet]

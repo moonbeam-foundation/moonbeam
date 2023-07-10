@@ -12,7 +12,6 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
 blake2-rfc = { workspace = true, optional = true }
-hex = { workspace = true }
 impl-serde = { workspace = true }
 libsecp256k1 = { workspace = true, features = [ "hmac" ] }
 log = { workspace = true }

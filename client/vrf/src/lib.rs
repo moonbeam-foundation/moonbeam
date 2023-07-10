@@ -17,17 +17,17 @@
 //! VRF client primitives for client-side verification
 
 use nimbus_primitives::NimbusId;
-use session_keys_primitives::{make_transcript, make_transcript_data, PreDigest, VrfApi, VrfId};
-use sp_application_crypto::{AppKey, ByteArray};
-use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
+use schnorrkel::PublicKey;
+use session_keys_primitives::{make_vrf_transcript, PreDigest, VrfApi, VrfId};
+use sp_application_crypto::{AppCrypto, ByteArray};
 use sp_core::H256;
-use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
+use sp_keystore::{Keystore, KeystorePtr};
 
 /// Uses the runtime API to get the VRF inputs and sign them with the VRF key that
 /// corresponds to the authoring NimbusId.
 pub fn vrf_pre_digest<B, C>(
 	client: &C,
-	keystore: &SyncCryptoStorePtr,
+	keystore: &KeystorePtr,
 	nimbus_id: NimbusId,
 	parent: H256,
 ) -> Option<sp_runtime::generic::DigestItem>
@@ -48,24 +48,28 @@ where
 
 /// Signs the VrfInput using the private key corresponding to the input `key` public key
 /// to be found in the input keystore
-fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &SyncCryptoStorePtr) -> Option<PreDigest> {
-	let transcript = make_transcript(last_vrf_output.clone());
-	let transcript_data = make_transcript_data(last_vrf_output);
-	let try_sign =
-		SyncCryptoStore::sr25519_vrf_sign(&**keystore, VrfId::ID, key.as_ref(), transcript_data);
+fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &KeystorePtr) -> Option<PreDigest> {
+	let transcript = make_vrf_transcript(last_vrf_output);
+	let try_sign = Keystore::sr25519_vrf_sign(
+		&**keystore,
+		VrfId::ID,
+		key.as_ref(),
+		&transcript.clone().into_sign_data(),
+	);
 	if let Ok(Some(signature)) = try_sign {
 		let public = PublicKey::from_bytes(&key.to_raw_vec()).ok()?;
 		if signature
 			.output
-			.attach_input_hash(&public, transcript)
+			.0
+			.attach_input_hash(&public, transcript.0.clone())
 			.is_err()
 		{
 			// VRF signature cannot be validated using key and transcript
 			return None;
 		}
 		Some(PreDigest {
-			vrf_output: VRFOutput(signature.output),
-			vrf_proof: VRFProof(signature.proof),
+			vrf_output: signature.output,
+			vrf_proof: signature.proof,
 		})
 	} else {
 		// VRF key not found in keystore or VRF signing failed

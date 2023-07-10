@@ -21,16 +21,18 @@
 
 pub use ethereum::{TransactionV0 as LegacyTransaction, TransactionV2 as Transaction};
 use parity_scale_codec::{Decode, Encode};
+use sp_runtime::scale_info::TypeInfo;
 use sp_runtime::traits::Block as BlockT;
+use sp_runtime::RuntimeDebug;
 use sp_std::vec::Vec;
 
-#[derive(Eq, PartialEq, Clone, Encode, Decode, sp_runtime::RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct TxPoolResponseLegacy {
 	pub ready: Vec<LegacyTransaction>,
 	pub future: Vec<LegacyTransaction>,
 }
 
-#[derive(Eq, PartialEq, Clone, Encode, Decode, sp_runtime::RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct TxPoolResponse {
 	pub ready: Vec<Transaction>,
 	pub future: Vec<Transaction>,

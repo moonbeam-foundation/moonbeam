@@ -17,6 +17,7 @@ use crate::mock::*;
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
 use sp_core::H256;
+use sp_runtime::TokenError;
 
 #[test]
 fn pallet_account_id() {
@@ -67,26 +68,23 @@ fn cannot_make_request_fulfillable_past_expiry() {
 #[test]
 fn cannot_make_request_with_less_than_deposit() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 9)])
+		// we give some tokens to BOB for TotalIssuance to be greater than Alice's balance
+		// and prevent getting an Underflow related error
+		.with_balances(vec![(ALICE, 9), (BOB, 10)])
 		.build()
 		.execute_with(|| {
+			let total_issuance = Balances::total_issuance();
+			assert!(total_issuance.gt(&Balances::free_balance(ALICE).into()));
+
 			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
-					message: Some("InsufficientBalance")
-				})
+				TokenError::FundsUnavailable
 			);
 			let request = build_default_request(RequestType::Local(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
-					message: Some("InsufficientBalance")
-				})
+				TokenError::FundsUnavailable
 			);
 		});
 }
@@ -94,26 +92,23 @@ fn cannot_make_request_with_less_than_deposit() {
 #[test]
 fn cannot_make_request_with_less_than_deposit_plus_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(ALICE, 14)])
+		// we give some tokens to BOB for TotalIssuance to be greater than Alice's balance
+		// and prevent getting an Underflow related error
+		.with_balances(vec![(ALICE, 14), (BOB, 10)])
 		.build()
 		.execute_with(|| {
+			let total_issuance = Balances::total_issuance();
+			assert!(total_issuance.gt(&Balances::free_balance(ALICE).into()));
+
 			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
-					message: Some("InsufficientBalance")
-				})
+				TokenError::FundsUnavailable
 			);
 			let request = build_default_request(RequestType::Local(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
-					message: Some("InsufficientBalance")
-				})
+				TokenError::FundsUnavailable
 			);
 		});
 }
@@ -609,11 +604,7 @@ fn increase_request_fee_fails_if_insufficient_balance() {
 			assert_ok!(Randomness::request_randomness(request));
 			assert_noop!(
 				Randomness::increase_request_fee(&ALICE, 0u64, 6),
-				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
-					message: Some("InsufficientBalance")
-				})
+				TokenError::FundsUnavailable
 			);
 		});
 }

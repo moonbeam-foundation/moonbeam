@@ -58,8 +58,8 @@ pallet-evm-precompile-parachain-staking = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
 pallet-evm-precompile-randomness = { workspace = true }
-pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-referenda = { workspace = true }
+pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
@@ -78,7 +78,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed" ] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
@@ -164,6 +164,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
+pallet-message-queue = { workspace = true }
 
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
@@ -277,7 +278,7 @@ std = [
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = [  ]
+runtime-wasm = []
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
@@ -301,8 +302,8 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
@@ -337,8 +338,8 @@ try-runtime = [
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
-	"pallet-referenda/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-referenda/try-runtime",
 	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",

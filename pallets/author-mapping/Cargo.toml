@@ -24,7 +24,7 @@ nimbus-primitives = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = ["std"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 
