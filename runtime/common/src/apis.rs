@@ -337,7 +337,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					let validate = true;
 
 					let mut estimated_transaction_len = data.len() +
-						// to: 20
 						// from: 20
 						// value: 32
 						// gas_limit: 32
@@ -345,7 +344,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						210;
+						190;
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
