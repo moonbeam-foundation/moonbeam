@@ -273,6 +273,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// chain id 8 bytes
 						// 65 bytes signature
 						210;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
@@ -345,6 +346,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// chain id 8 bytes
 						// 65 bytes signature
 						190;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
