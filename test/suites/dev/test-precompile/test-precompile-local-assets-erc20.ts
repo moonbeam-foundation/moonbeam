@@ -18,7 +18,7 @@ import {
   baltathar,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData, getAddress, keccak256, toBytes } from "viem";
-import { nToHex } from "@polkadot/util";
+import { nToHex, u8aToString } from "@polkadot/util";
 import { create } from "domain";
 
 describeSuite({
@@ -56,7 +56,7 @@ describeSuite({
           .signAsync(baltathar)
       );
 
-      const {  contractAddress } = await deployCreateCompiledContract(
+      const { contractAddress } = await deployCreateCompiledContract(
         context,
         "LocalAssetExtendedErc20Instance"
       );
@@ -67,9 +67,9 @@ describeSuite({
         contractName: "LocalAssetExtendedErc20Instance",
         functionName: "set_address_interface",
         contractAddress: localAssetContractAddress,
-        args: [getAddress(assetAddress)]
-      })
-      await context.createBlock()
+        args: [getAddress(assetAddress)],
+      });
+      await context.createBlock();
       // const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
     });
 
@@ -470,7 +470,7 @@ describeSuite({
       id: "T15",
       title: "Baltathar approves contract and use transferFrom from contract calls",
       test: async function () {
-        log(assetAddress)
+        log(assetAddress);
         // Create approval
         const rawTxn = await context.writeContract!({
           contractName: "LocalAssetExtendedErc20Instance",
@@ -532,589 +532,441 @@ describeSuite({
         expect(charletBalance.unwrap().balance.toBigInt()).toBe(1000n);
       },
     });
+
+    it({
+      id: "T16",
+      title: "allows to transfer through call from SC",
+      test: async function () {
+        // before we mint asset, since these are non-sufficient, we need to transfer native balance
+        await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.balances.transfer(localAssetContractAddress, 1000)
+            .signAsync(baltathar)
+        );
+
+        // register, setMeta & mint local Asset
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: localAssetContractAddress, amount: 100000000000000n }],
+        }));
+
+        await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          functionName: "set_address_interface",
+          contractAddress: localAssetContractAddress,
+          args: [getAddress(assetAddress)],
+        });
+        await context.createBlock();
+
+        const rawTxn = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: localAssetContractAddress as `0x${string}`,
+          functionName: "transfer",
+          args: [ALITH_ADDRESS, 1000],
+          rawTxOnly: true,
+        });
+        const { result } = await context.createBlock(rawTxn);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const bal = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
+        expect(bal.unwrap().balance.toBigInt()).toBe(1000n);
+      },
+    });
+
+    it({
+      id: "T17",
+      title: "allows to mint",
+      test: async function () {
+        const rawTxn = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "mint",
+          args: [CHARLETH_ADDRESS, 1000],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTxn);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+        expect(receipt.logs.length).to.eq(1);
+        expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
+        expect(receipt.logs[0].topics.length).to.eq(3);
+        expect(receipt.logs[0].topics[0]).toBe(
+          keccak256(toBytes("Transfer(address,address,uint256)"))
+        );
+
+        const bal = await context.polkadotJs().query.localAssets.account(assetId, CHARLETH_ADDRESS);
+
+        expect(bal.unwrap().balance.toBigInt()).to.equal(1000n);
+      },
+    });
+
+    it({
+      id: "T18",
+      title: "allows to burn",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: alith, amount: 100000000000000n }],
+        }));
+
+        const rawTxn = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "burn",
+          args: [ALITH_ADDRESS, 1000000],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+        const { result } = await context.createBlock(rawTxn);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+        expect(receipt.logs.length).to.eq(1);
+        expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
+        expect(receipt.logs[0].topics.length).to.eq(3);
+        expect(receipt.logs[0].topics[0]).toBe(
+          keccak256(toBytes("Transfer(address,address,uint256)"))
+        );
+
+        const bal = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
+
+        expect(bal.unwrap().balance.toBigInt()).toBe(99999999000000n);
+      },
+    });
+
+    it({
+      id: "T19",
+      title: "allows to freeze account",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: alith, amount: 100000000000000n }],
+        }));
+
+        const rawTxn = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "freeze",
+          args: [ALITH_ADDRESS],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+        const { result } = await context.createBlock(rawTxn);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+
+        const frozen = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
+
+        expect(frozen.unwrap().isFrozen.isTrue).to.be.true;
+      },
+    });
+
+    it({
+      id: "T20",
+      title: "allows to thaw account",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: alith, amount: 100000000000000n }],
+        }));
+
+        await context.createBlock(
+          await context
+            .polkadotJs()
+            .tx.localAssets.freeze(assetId, alith.address)
+            .signAsync(baltathar)
+        );
+
+        const rawTxn = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "thaw",
+          args: [ALITH_ADDRESS],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+        const { result } = await context.createBlock(rawTxn);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+
+        const frozen = await context.polkadotJs().query.localAssets.account(assetId, alith.address);
+        expect(frozen.unwrap().isFrozen.isFalse).to.be.true;
+      },
+    });
+
+    it({
+      id: "T21",
+      title: "allows to freeze an asset",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "freeze_asset",
+          args: [],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+
+        const registeredAsset = (
+          await context.polkadotJs().query.localAssets.asset(assetId)
+        ).unwrap();
+
+        expect(registeredAsset.status.isFrozen).to.be.true;
+      },
+    });
+
+    it({
+      id: "T22",
+      title: "allows to thaw an asset",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        await context.createBlock(
+          context.polkadotJs().tx.localAssets.freezeAsset(assetId).signAsync(baltathar)
+        );
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "thaw_asset",
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const registeredAsset = (
+          await context.polkadotJs().query.localAssets.asset(assetId)
+        ).unwrap();
+
+        expect(registeredAsset.status.isFrozen).to.be.false;
+      },
+    });
+
+    it({
+      id: "T23",
+      title: "allows to transfer ownership",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "transfer_ownership",
+          args: [ALITH_ADDRESS],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const registeredAsset = (
+          await context.polkadotJs().query.localAssets.asset(assetId)
+        ).unwrap();
+        expect(registeredAsset.owner.toHex()).to.eq(alith.address.toLowerCase());
+      },
+    });
+
+    it({
+      id: "T24",
+      title: "allows to set team",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "set_team",
+          args: [ALITH_ADDRESS, ALITH_ADDRESS, ALITH_ADDRESS],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const registeredAsset = (
+          await context.polkadotJs().query.localAssets.asset(assetId)
+        ).unwrap();
+
+        expect(registeredAsset.admin.toHex()).to.eq(alith.address.toLowerCase());
+        expect(registeredAsset.freezer.toHex()).to.eq(alith.address.toLowerCase());
+        expect(registeredAsset.issuer.toHex()).to.eq(alith.address.toLowerCase());
+      },
+    });
+
+    it({
+      id: "T25",
+      title: "allows to set metadata",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "set_metadata",
+          args: ["Local", "LOC", 12],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+        const { result } = await context.createBlock(rawTx);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const metadata = await context.polkadotJs().query.localAssets.metadata(assetId);
+        expect(u8aToString(metadata.name)).to.eq("Local");
+        expect(u8aToString(metadata.symbol)).to.eq("LOC");
+        expect(metadata.decimals.toString()).to.eq("12");
+      },
+    });
+
+    it({
+      id: "T26",
+      title: "allows to clear metadata",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "clear_metadata",
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+        const { result } = await context.createBlock(rawTx);
+
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("success");
+
+        const metadata = await context.polkadotJs().query.localAssets.metadata(assetId);
+        expect(metadata.name.isEmpty).toBe(true);
+        expect(metadata.symbol.isEmpty).toBe(true);
+        expect(metadata.decimals.toBigInt()).to.eq(0n);
+      },
+    });
+
+    it({
+      id: "T27",
+      title: "succeeds to mint to 2^128 - 1",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: alith, amount: 2n ** 128n - 3n }],
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "mint",
+          args: [baltathar.address, 2],
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+        expect(receipt.status).to.equal("success");
+      },
+    });
+
+    it({
+      id: "T28",
+      title: "fails to mint over 2^128 total supply",
+      test: async function () {
+        ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+          registrerAccount: baltathar,
+          mints: [{ account: alith, amount: 2n ** 128n - 3n }],
+        }));
+
+        const rawTx = await context.writeContract!({
+          contractName: "LocalAssetExtendedErc20Instance",
+          contractAddress: assetAddress as `0x${string}`,
+          functionName: "mint",
+          args: [baltathar.address, 3],
+          rawTxOnly: true,
+          gas: 100_000n,
+          privateKey: BALTATHAR_PRIVATE_KEY,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        expect(receipt.status).to.equal("reverted");
+
+        expect(
+          async () =>
+            await context.writeContract!({
+              contractName: "LocalAssetExtendedErc20Instance",
+              contractAddress: assetAddress as `0x${string}`,
+              functionName: "mint",
+              args: [baltathar.address, 3],
+              rawTxOnly: true,
+              privateKey: BALTATHAR_PRIVATE_KEY,
+            })
+        ).rejects.toThrowError("Dispatched call failed with error: Arithmetic(Overflow)");
+      },
+    });
   },
 });
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     let contractInstanceAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       contractInstanceAddress = contract.options.address;
-//       await context.createBlock(rawTx);
-
-//       // before we mint asset, since these are non-sufficient, we need to transfer native balance
-//       await context.createBlock(
-//         context.polkadotJs().tx.balances.transfer(contractInstanceAddress, 1000).signAsync(baltathar)
-//       );
-
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: contractInstanceAddress, amount: 100000000000000n }],
-//       }));
-
-//       // set asset address
-//       let setAddressData = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "set_address_interface",
-//         [context.web3.utils.toChecksumAddress(assetAddress)]
-//       );
-
-//       // We need this because the asset addres is random,
-//       // so we need a way to correctly reference it in the contract
-//       await context.createBlock(
-//         createTransaction(context, {
-//           ...ALITH_TRANSACTION_TEMPLATE,
-//           to: contractInstanceAddress,
-//           data: setAddressData,
-//         })
-//       );
-//     }});
-//     it({id:"",title:"allows to transfer through call from SC ",test: async function () {
-//       // Create approval
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "transfer",
-//         [baltathar.address, 1000]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...ALITH_TRANSACTION_TEMPLATE,
-//           to: contractInstanceAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-//       expect(receipt.status).to.equal(true);
-
-//       // Baltathar balance is 1000
-//       let baltatharBalance = await context.polkadotJs().query.localAssets.account(
-//         assetId,
-//         baltathar.address
-//       );
-//       expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-//     it({id:"",title:"allows to mint",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "mint",
-//         [baltathar.address, 1000]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-//       expect(receipt.logs.length).to.eq(1);
-//       expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
-//       expect(receipt.logs[0].topics.length).to.eq(3);
-//       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-
-//       let baltatharBalance = await context.polkadotJs().query.localAssets.account(
-//         assetId,
-//         baltathar.address
-//       );
-
-//       expect(baltatharBalance.unwrap().balance.toBigInt()).to.equal(1000n);
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     let contractInstanceAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: alith, amount: 100000000000000n }],
-//       }));
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-//     it({id:"",title:"allows to burn",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "burn",
-//         [alith.address, 1000000000000]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-//       expect(receipt.logs.length).to.eq(1);
-//       expect(receipt.logs[0].address.toLowerCase()).to.eq(assetAddress);
-//       expect(receipt.logs[0].topics.length).to.eq(3);
-//       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-
-//       let alithBalance = await context.polkadotJs().query.localAssets.account(
-//         assetId,
-//         alith.address
-//       );
-
-//       expect(alithBalance.unwrap()["balance"].eq(new BN(99000000000000))).to.equal(true);
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: alith, amount: 100000000000000n }],
-//       }));
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-//     it({id:"",title:"allows to freeze account",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "freeze",
-//         [alith.address]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       let alithFrozen = await context.polkadotJs().query.localAssets.account(assetId, alith.address);
-
-//       expect(alithFrozen.unwrap().isFrozen.isTrue).to.be.true;
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: alith, amount: 100000000000000n }],
-//       }));
-
-//       await context.createBlock(
-//         await context.polkadotJs().tx.localAssets.freeze(assetId, alith.address).signAsync(baltathar)
-//       );
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-//     it({id:"",title:"allows to thaw account",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "thaw",
-//         [alith.address]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       let baltatharFrozen = await context.polkadotJs().query.localAssets.account(
-//         assetId,
-//         alith.address
-//       );
-
-//       expect(baltatharFrozen.unwrap().isFrozen.isFalse).to.be.true;
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-
-//       await context.createBlock(
-//         context.polkadotJs().tx.localAssets.freeze(assetId, alith.address).signAsync(baltathar)
-//       );
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-//     it({id:"",title:"allows to freeze an asset",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "freeze_asset"
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const registeredAsset = (await context.polkadotJs().query.localAssets.asset(assetId)).unwrap();
-
-//       expect(registeredAsset.status.isFrozen).to.be.true;
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-
-//       await context.createBlock(
-//         context.polkadotJs().tx.localAssets.freezeAsset(assetId).signAsync(baltathar)
-//       );
-
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-
-//     it({id:"",title:"allows to thaw an asset",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "thaw_asset"
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const registeredAsset = (await context.polkadotJs().query.localAssets.asset(assetId)).unwrap();
-
-//       expect(registeredAsset.status.isFrozen).to.be.false;
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-
-//       await context.createBlock(
-//         context.polkadotJs().tx.localAssets.freeze(assetId, alith.address).signAsync(baltathar)
-//       );
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-
-//     it({id:"",title:"allows to transfer ownership",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "transfer_ownership",
-//         [alith.address]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const registeredAsset = (await context.polkadotJs().query.localAssets.asset(assetId)).unwrap();
-
-//       expect(registeredAsset.owner.toHex()).to.eq(alith.address.toLowerCase());
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-
-//     it({id:"",title:"allows to set team",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "set_team",
-//         [alith.address, alith.address, alith.address]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const registeredAsset = (await context.polkadotJs().query.localAssets.asset(assetId)).unwrap();
-
-//       expect(registeredAsset.admin.toHex()).to.eq(alith.address.toLowerCase());
-//       expect(registeredAsset.freezer.toHex()).to.eq(alith.address.toLowerCase());
-//       expect(registeredAsset.issuer.toHex()).to.eq(alith.address.toLowerCase());
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-
-//     it({id:"",title:"allows to set metadata",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "set_metadata",
-//         ["Local", "LOC", 12]
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const metadata = await context.polkadotJs().query.localAssets.metadata(assetId);
-
-//       expect(u8aToString(metadata.name)).to.eq("Local");
-//       expect(u8aToString(metadata.symbol)).to.eq("LOC");
-//       expect(metadata.decimals.toString()).to.eq("12");
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeamAllEthTxTypes(
-//   "Precompiles - Assets-ERC20 Wasm",
-//   (context) => {
-//     let assetId: string;
-//     let assetAddress: string;
-//     before("Setup contract and mock balance", async () => {
-//       // register, setMeta & mint local Asset
-//       ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//       }));
-//       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//       await context.createBlock(rawTx);
-//     }});
-
-//     it({id:"",title:"allows to clear metadata",test: async function () {
-//       let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//         // action
-//         "clear_metadata",
-//         []
-//       );
-
-//       const { result } = await context.createBlock(
-//         createTransaction(context, {
-//           ...BALTATHAR_TRANSACTION_TEMPLATE,
-//           to: assetAddress,
-//           data: data,
-//         })
-//       );
-
-//       const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//       expect(receipt.status).to.equal(true);
-
-//       const metadata = await context.polkadotJs().query.localAssets.metadata(assetId);
-
-//       expect(u8aToString(metadata.name)).to.eq("");
-//       expect(u8aToString(metadata.symbol)).to.eq("");
-//       expect(metadata.decimals.toString()).to.eq("0");
-//     }});
-//   },
-//   true
-// );
-
-// describeDevMoonbeam("Precompiles - Assets-ERC20 Wasm", (context) => {
-//   let assetAddress: string[] = [];
-//   before("Setup contract and mock balance", async () => {
-//     // register, setMeta & mint local Asset
-//     assetAddress[0] = (
-//       await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: alith, amount: 2n ** 128n - 3n }],
-//       })
-//     ).assetAddress;
-//     assetAddress[1] = (
-//       await registerLocalAssetWithMeta(context, alith, {
-//         registrerAccount: baltathar,
-//         mints: [{ account: alith, amount: 2n ** 128n - 3n }],
-//       })
-//     ).assetAddress;
-
-//     const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
-//     await context.createBlock(rawTx);
-//   }});
-
-//   it({id:"",title:"succeeds to mint to 2^128 - 1",test: async function () {
-//     let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//       // action
-//       "mint",
-//       [baltathar.address, 2]
-//     );
-
-//     const { result } = await context.createBlock(
-//       createTransaction(context, {
-//         ...BALTATHAR_TRANSACTION_TEMPLATE,
-//         to: assetAddress[0],
-//         data: data,
-//       })
-//     );
-
-//     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//     expect(receipt.status).to.equal(true);
-//   }});
-
-//   // Depends on previous test
-//   it({id:"",title:"fails to mint over 2^128 total supply",test: async function () {
-//     let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
-//       // action
-//       "mint",
-//       [baltathar.address, 3]
-//     );
-
-//     const { result } = await context.createBlock(
-//       createTransaction(context, {
-//         ...BALTATHAR_TRANSACTION_TEMPLATE,
-//         to: assetAddress[1],
-//         data: data,
-//       })
-//     );
-
-//     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-//     expect(receipt.status).to.equal(false);
-//   }});
-// }});
