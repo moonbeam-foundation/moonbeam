@@ -30,8 +30,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, DelegatorState,
-	DelegatorStatus, Error, Event, Range, DELEGATOR_LOCK_ID,
+	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, Error, Event,
+	Range, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -2053,7 +2053,7 @@ fn can_still_delegate_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_schedule_revoke(
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
 				1,
 			));
@@ -3745,7 +3745,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(5, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(66)),
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(66), 1),
 				Error::<Test>::DelegatorDNE
 			);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
@@ -3872,7 +3872,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 			);
 			roll_to_round_begin(6);
-			assert_ok!(ParachainStaking::execute_leave_delegators(
+			assert_ok!(ParachainStaking::execute_delegation_request(
 				RuntimeOrigin::signed(6),
 				6,
 				10
@@ -5204,16 +5204,17 @@ fn payouts_follow_delegation_changes() {
 			roll_blocks(1);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(66)),
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(66), 1),
 				Error::<Test>::DelegatorDNE
 			);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(6),
 				1,
 			));
-			assert_events_eq!(Event::DelegatorExitScheduled {
+			assert_events_eq!(Event::DelegationRevocationScheduled {
 				round: 4,
 				delegator: 6,
+				candidate: 1,
 				scheduled_exit: 6,
 			});
 			// fast forward to block in which delegator 6 exit executes
@@ -5267,10 +5268,10 @@ fn payouts_follow_delegation_changes() {
 			);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
-			assert_ok!(ParachainStaking::execute_leave_delegators(
+			assert_ok!(ParachainStaking::execute_delegation_request(
 				RuntimeOrigin::signed(6),
 				6,
-				10
+				1,
 			));
 			assert_events_eq!(
 				Event::CollatorChosen {
@@ -5304,6 +5305,11 @@ fn payouts_follow_delegation_changes() {
 					candidate: 1,
 					unstaked_amount: 10,
 					total_candidate_staked: 40,
+				},
+				Event::DelegationRevoked {
+					delegator: 6,
+					candidate: 1,
+					unstaked_amount: 10,
 				},
 				Event::DelegatorLeft {
 					delegator: 6,
@@ -6940,11 +6946,20 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 				RuntimeOrigin::signed(2),
 				3,
 			));
-			assert_events_eq!(Event::DelegatorExitScheduled {
-				round: 1,
-				delegator: 2,
-				scheduled_exit: 3,
-			});
+			assert_events_eq!(
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 1,
+					scheduled_exit: 3,
+				},
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 3,
+					scheduled_exit: 3,
+				},
+			);
 			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
 			assert_eq!(
 				1, collator.delegation_count,
@@ -7009,11 +7024,20 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 				RuntimeOrigin::signed(2),
 				3,
 			));
-			assert_events_eq!(Event::DelegatorExitScheduled {
-				round: 1,
-				delegator: 2,
-				scheduled_exit: 3,
-			});
+			assert_events_eq!(
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 1,
+					scheduled_exit: 3,
+				},
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 3,
+					scheduled_exit: 3,
+				},
+			);
 			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
 			assert_eq!(
 				1, collator.delegation_count,
