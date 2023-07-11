@@ -1,28 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
-  ALITH_ADDRESS,
-  ALITH_PRIVATE_KEY,
   EXTRINSIC_GAS_LIMIT,
-  createViemTransaction,
+  createViemTransaction
 } from "@moonwall/util";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { testVectors } from "../../../helpers/modexp.js";
-// import { expectEVMResult } from "../../util/eth-transactions";
-// import { Contract } from "web3-eth-contract";
-// import testInputs from "../../util/artefacts/modexp.json";
-// import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-// import {
-//   createContract,
-//   createContractExecution,
-//   createTransaction,
-// } from "../../util/transactions";
-// import { ALITH_PRIVATE_KEY, alith, ALITH_ADDRESS } from "../../util/accounts";
-// import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
-// import { customWeb3Request } from "../../util/providers";
-// import { expect } from "chai";
-// import { hexToU8a, u8aToHex } from "@polkadot/util";
 
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
