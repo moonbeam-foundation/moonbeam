@@ -1,12 +1,10 @@
 import "@moonbeam-network/api-augment";
 import {
-  beforeAll,
   beforeEach,
   deployCreateCompiledContract,
   describeSuite,
-  expect,
+  expect
 } from "@moonwall/cli";
-import { registerLocalAssetWithMeta } from "../../../helpers/assets.js";
 import {
   ALITH_ADDRESS,
   ALITH_PRIVATE_KEY,
@@ -17,9 +15,9 @@ import {
   alith,
   baltathar,
 } from "@moonwall/util";
-import { Abi, encodeFunctionData, getAddress, keccak256, toBytes } from "viem";
-import { nToHex, u8aToString } from "@polkadot/util";
-import { create } from "domain";
+import { u8aToString } from "@polkadot/util";
+import { getAddress, keccak256, toBytes } from "viem";
+import { registerLocalAssetWithMeta } from "../../../helpers/assets.js";
 
 describeSuite({
   id: "D2538",
