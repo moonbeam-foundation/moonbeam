@@ -698,7 +698,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn universal_alias() -> Result<Junction, BenchmarkError> {
+						fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn export_message_origin_and_destination()
+							-> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 

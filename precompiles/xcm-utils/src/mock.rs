@@ -226,11 +226,6 @@ parameter_types! {
 	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
-}
-
 parameter_types! {
 	pub MatcherLocation: MultiLocation = MultiLocation::here();
 }
