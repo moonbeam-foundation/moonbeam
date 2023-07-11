@@ -6895,7 +6895,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#fa29db4c3b5f982fd9c739adf6100c8cd72b80e6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#049579b3c004cfdb07e009e35e4f31ca3308caf4"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6925,7 +6925,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#fa29db4c3b5f982fd9c739adf6100c8cd72b80e6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#049579b3c004cfdb07e009e35e4f31ca3308caf4"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -7407,7 +7407,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#fa29db4c3b5f982fd9c739adf6100c8cd72b80e6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#049579b3c004cfdb07e009e35e4f31ca3308caf4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7446,7 +7446,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#fa29db4c3b5f982fd9c739adf6100c8cd72b80e6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#049579b3c004cfdb07e009e35e4f31ca3308caf4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
