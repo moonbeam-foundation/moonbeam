@@ -16,7 +16,6 @@
         "-linfo",
         "--port=${dbgconfig:port_p2p}",
         "--rpc-port=${dbgconfig:port_rpc}",
-        "--ws-port=${dbgconfig:port_ws}",
         "--tmp"
       ],
       "cwd": "${workspaceFolder}",
@@ -39,7 +38,6 @@
         "-linfo",
         "--port=${dbgconfig:port_p2p}",
         "--rpc-port=${dbgconfig:port_rpc}",
-        "--ws-port=${dbgconfig:port_ws}",
         "--tmp"
       ],
       "cwd": "${workspaceFolder}",

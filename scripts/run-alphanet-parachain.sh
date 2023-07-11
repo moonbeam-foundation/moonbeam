@@ -80,14 +80,13 @@ else
 fi
 
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), \
-http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
+rpc-port: $((PARACHAIN_PORT + 10 + 2))"
 
 sha256sum $CHAIN
 $MOONBEAM_BINARY \
   --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
   --listen-addr "/ip4/0.0.0.0/tcp/$((PARACHAIN_PORT + 10))" \
-  --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
-  --ws-port $((PARACHAIN_PORT + 10 + 2)) \
+  --rpc-port $((PARACHAIN_PORT + 10 + 2)) \
   --collator \
   --rpc-cors all \
   --rpc-methods=unsafe \
@@ -103,8 +102,7 @@ $MOONBEAM_BINARY \
     --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
     $PARACHAIN_BASE_PATH \
     --listen-addr "/ip4/0.0.0.0/tcp/$((PARACHAIN_PORT))" \
-    --rpc-port $((PARACHAIN_PORT + 1)) \
-    --ws-port $((PARACHAIN_PORT + 2)) \
+    --rpc-port $((PARACHAIN_PORT + 2)) \
     --chain $ROCOCO_LOCAL_RAW_SPEC \
   $RELAY_BOOTNODES_ARGS;
   

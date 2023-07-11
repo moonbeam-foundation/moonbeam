@@ -40,10 +40,9 @@ RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
 	/moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic
-# 9933 for RPC call
-# 9944 for Websocket
+# 9944 for Websocket & RPC calls
 # 9615 for Prometheus (metrics)
-EXPOSE 30333 9933 9944 9615
+EXPOSE 30333 9944 9615
 
 VOLUME ["/data"]
 
