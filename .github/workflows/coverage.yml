@@ -13,6 +13,7 @@ on:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
+  GRCOV_VERSION: 0.8.18
 
 jobs:
   ####### Check files and formatting #######
@@ -103,14 +104,12 @@ jobs:
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
       - name: Setup grcov
         run: |
-          wget https://alan-stuff.s3.amazonaws.com/grcov -O grcov
+          wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2
+          tar xvf grcov-x86_64-unknown-linux-gnu.tar.bz2
           chmod +x grcov
-      - name: Setup llvmprof-data
-        run: |
-          wget https://alan-stuff.s3.amazonaws.com/llvm-profdata -O llvm-profdata
-          wget https://alan-stuff.s3.amazonaws.com/llvm-cov -O llvm-cov 
-          chmod +x llvm-profdata
-          chmod +x llvm-cov
+      - name: Install llvm tools
+        run:
+          rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
@@ -152,7 +151,7 @@ jobs:
 
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
-            -t html --branch --ignore-not-existing --ignore target/release/build/* \
+            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
             -o coverage/ --llvm-path ./  --llvm 2>&1 \
             | tee grcov.log
 
@@ -166,7 +165,7 @@ jobs:
             rm $INVALID
             cd ..
             ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
-            -t html --branch --ignore-not-existing --ignore target/release/build/* \
+            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
             -o coverage/ --llvm-path ./  --llvm
           fi
 
