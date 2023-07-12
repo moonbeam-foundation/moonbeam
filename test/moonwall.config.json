@@ -155,19 +155,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/moonbeam.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/moonbeam.yml"
           }
         ]
       },
@@ -220,6 +208,7 @@
             "name": "moonbeam",
             "binPath": "./tmp/moonbeam",
             "ports": { "p2pPort": 30333, "rpcPort": 9944 },
+            "newRpcBehaviour": true,
             "options": [
               "--dev",
               "--no-hardware-benchmarks",
@@ -231,8 +220,7 @@
               "--sealing=manual",
               "--force-authoring",
               "--no-prometheus"
-            ],
-            "newRpcBehaviour": true
+            ]
           }
         ]
       },
@@ -264,19 +252,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/moonbeam.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/moonbeam.yml"
           }
         ]
       },
@@ -298,19 +274,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/moonriver.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/moonriver.yml"
           }
         ]
       },
@@ -332,19 +296,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/alphanet.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/alphanet.yml"
           }
         ]
       },
@@ -366,19 +318,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/moonbeam.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/moonbeam.yml"
           }
         ]
       },
@@ -400,19 +340,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/moonriver.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/moonriver.yml"
           }
         ]
       },
@@ -434,19 +362,7 @@
           {
             "name": "mb",
             "type": "parachain",
-            "configPath": "./configs/alphanet.yml",
-            "newRpcBehaviour": true,
-            "options": [
-              "--dev",
-              "--no-hardware-benchmarks",
-              "--no-telemetry",
-              "--reserved-only",
-              "--rpc-cors=all",
-              "--no-grandpa",
-              "--sealing=manual",
-              "--force-authoring",
-              "--no-prometheus"
-            ]
+            "configPath": "./configs/alphanet.yml"
           }
         ]
       },
