@@ -180,7 +180,7 @@ jobs:
           name: coverage
           path: coverage
       - name: Upload coverage s3
-        uses: shallwefootball/s3-upload-action@master
+        uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
