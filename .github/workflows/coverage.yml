@@ -151,7 +151,7 @@ jobs:
           echo "Executing grcov"
           ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
             -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm-path ./  --llvm 2>&1 \
+            -o coverage/ --llvm 2>&1 \
             | tee grcov.log
 
           INVALID="$(grep invalid grcov.log | \
@@ -165,12 +165,12 @@ jobs:
             cd ..
             ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
             -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm-path ./  --llvm
+            -o coverage/ --llvm
           fi
 
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
-          wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/html/coverage.json \
+          wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/coverage/html/coverage.json \
             -O coverage-master.json || true
           echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
           rm -rf proffiles/
