@@ -188,6 +188,7 @@ jobs:
           aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
           destination_dir: "${{ needs.set-tags.outputs.coverage_dir }}"
           source_dir: "coverage"
+          acl: "none"
       - name: Link To Report
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
       - name: Find Comment
