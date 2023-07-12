@@ -13,13 +13,16 @@ import {
   FAITH_PRIVATE_KEY,
   GLMR,
   GOLIATH_ADDRESS,
+  GOLIATH_PRIVATE_KEY,
+  PRECOMPILE_NATIVE_ERC20_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
   alith,
   createViemTransaction,
 } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, parseEther } from "viem";
+import { parse } from "path";
 
 describeSuite({
   id: "D2550",
@@ -374,7 +377,6 @@ describeSuite({
         const { result: result2 } = await context.createBlock(rawTxn2);
         expectEVMResult(result2!.events, "Succeed");
 
-
         const { abi } = fetchCompiledContract("Proxy");
         const rawTxn3 = await createViemTransaction(context, {
           to: PRECOMPILE_PROXY_ADDRESS,
@@ -392,155 +394,155 @@ describeSuite({
 
         expect(
           async () =>
-          await createViemTransaction(context, {
-            to: PRECOMPILE_PROXY_ADDRESS,
-            privateKey: CHARLETH_PRIVATE_KEY,
-            value: 1000n,
-            data: encodeFunctionData({
-              abi,
-              functionName: "proxy",
-              args: [ALITH_ADDRESS, randomAccount, []],
-            }),
-          })
+            await createViemTransaction(context, {
+              to: PRECOMPILE_PROXY_ADDRESS,
+              privateKey: CHARLETH_PRIVATE_KEY,
+              value: 1000n,
+              data: encodeFunctionData({
+                abi,
+                functionName: "proxy",
+                args: [ALITH_ADDRESS, randomAccount, []],
+              }),
+            })
         ).rejects.toThrowError("Not proxy");
+      },
+    });
+
+    it({
+      id: "T13",
+      title: "shouldn't accept instant for delayed proxy",
+      test: async () => {
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Proxy",
+          functionName: "addProxy",
+          args: [FAITH_ADDRESS, CONTRACT_PROXY_TYPE_ANY, 2],
+          rawTxOnly: true,
+        });
+        const { result } = await context.createBlock(rawTxn);
+        expectEVMResult(result!.events, "Succeed");
+
+        const { abi } = fetchCompiledContract("Proxy");
+        const rawTxn2 = await createViemTransaction(context, {
+          to: PRECOMPILE_PROXY_ADDRESS,
+          privateKey: FAITH_PRIVATE_KEY,
+          value: 1000n,
+          skipEstimation: true,
+          data: encodeFunctionData({
+            abi,
+            functionName: "proxy",
+            args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+          }),
+        });
+        const { result: result2 } = await context.createBlock(rawTxn2);
+        expectEVMResult(result2!.events, "Revert");
+
+        expect(
+          async () =>
+            await createViemTransaction(context, {
+              to: PRECOMPILE_PROXY_ADDRESS,
+              privateKey: FAITH_PRIVATE_KEY,
+              value: 1000n,
+              data: encodeFunctionData({
+                abi,
+                functionName: "proxy",
+                args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+              }),
+            })
+        ).rejects.toThrowError("Unannounced");
+      },
+    });
+
+    it({
+      id: "T14",
+      title: "should transfer using value",
+      test: async () => {
+        const privateKey = generatePrivateKey();
+        const randomAccount = privateKeyToAccount(privateKey).address;
+
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Proxy",
+          functionName: "addProxy",
+          args: [GOLIATH_ADDRESS, CONTRACT_PROXY_TYPE_ANY, 0],
+          rawTxOnly: true,
+        });
+        const { result } = await context.createBlock(rawTxn);
+        expectEVMResult(result!.events, "Succeed");
+
+        const contractBalBefore = await context
+          .viem()
+          .getBalance({ address: PRECOMPILE_PROXY_ADDRESS });
+        const alithBalBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        const { abi } = fetchCompiledContract("Proxy");
+        const rawTxn2 = await createViemTransaction(context, {
+          to: PRECOMPILE_PROXY_ADDRESS,
+          privateKey: GOLIATH_PRIVATE_KEY,
+          value: parseEther("5"),
+          data: encodeFunctionData({
+            abi,
+            functionName: "proxy",
+            args: [ALITH_ADDRESS, randomAccount, []],
+          }),
+        });
+        const { result: result2 } = await context.createBlock(rawTxn2);
+        expectEVMResult(result2!.events, "Succeed");
+
+        expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
+        const contractBalAfter = await context
+          .viem()
+          .getBalance({ address: PRECOMPILE_PROXY_ADDRESS });
+        expect(contractBalBefore - contractBalAfter).to.equal(0n);
+        const alithBalAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        expect(alithBalBefore - alithBalAfter).to.equal(parseEther("5"));
+      },
+    });
+
+    it({
+      id: "T15",
+      title: "should transfer using balances precompile",
+      test: async () => {
+        const privateKey = generatePrivateKey();
+        const randomAccount = privateKeyToAccount(privateKey).address;
+
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Proxy",
+          functionName: "addProxy",
+          args: [BALTATHAR_ADDRESS, CONTRACT_PROXY_TYPE_ANY, 0],
+          privateKey: FAITH_PRIVATE_KEY,
+          rawTxOnly: true,
+        });
+        const { result } = await context.createBlock(rawTxn);
+        expectEVMResult(result!.events, "Succeed");
+
+        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
+        const { abi: ierc20Abi } = fetchCompiledContract("IERC20");
+
+        const rawTxn2 = await context.writePrecompile!({
+          precompileName: "Proxy",
+          functionName: "proxy",
+          args: [
+            FAITH_ADDRESS,
+            PRECOMPILE_NATIVE_ERC20_ADDRESS,
+            encodeFunctionData({
+              abi: ierc20Abi,
+              functionName: "transfer",
+              args: [randomAccount, parseEther("5")],
+            }),
+          ],
+          privateKey: BALTATHAR_PRIVATE_KEY,
+          rawTxOnly: true,
+        });
+
+        const { result: result2 } = await context.createBlock(rawTxn2);
+        expectEVMResult(result2!.events, "Succeed");
+
+        const { gasUsed } = await context.viem().getTransactionReceipt({hash: result2!.hash as `0x${string}`});
+        expect(gasUsed).to.equal(33997n);
+
+        expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
+
+        const balAfter = await context.viem().getBalance({ address: FAITH_ADDRESS });
+        expect(balBefore - balAfter).to.equal(parseEther("5"));
       },
     });
   },
 });
-
-
-// describeSuite({id:"", title:"Pallet proxy - shouldn't accept instant for delayed proxy", foundationMethods:"dev",testCases: ({it, log, context}) => {
-//   it({id:"T0",title:"shouldn't accept instant for delayed proxy", test:async () => {
-//     const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-//     const {
-//       result: { events },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...ALITH_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
-//           BALTATHAR_ADDRESS,
-//           CONTRACT_PROXY_TYPE_ANY,
-//           2,
-//         ]),
-//       })
-//     );
-//     expectEVMResult(events, "Succeed");
-
-//     const {
-//       result: { events: events2, hash: hash2 },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...BALTATHAR_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("proxy", [ALITH_ADDRESS, CHARLETH_ADDRESS, []]),
-//         value: "0x64",
-//       })
-//     );
-//     expectEVMResult(events2, "Revert");
-//     const revertReason = await extractRevertReason(hash2, context.ethers);
-//     expect(revertReason).to.contain("Unannounced");
-//     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-//     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
-//   });
-// });
-
-// describeSuite({id:"", title:"Pallet proxy - should transfer using value", foundationMethods:"dev",testCases: ({it, log, context}) => {
-//   it({id:"T0",title:"should transfer using value", test:async () => {
-//     const {
-//       result: { events },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...ALITH_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
-//           BALTATHAR_ADDRESS,
-//           CONTRACT_PROXY_TYPE_ANY,
-//           0,
-//         ]),
-//       })
-//     );
-//     expectEVMResult(events, "Succeed");
-
-//     const beforeAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
-//     const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-//     const value = BigInt(context.web3.utils.toWei("10", "ether"));
-
-//     const {
-//       result: { events: events2, hash: hash2 },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...BALTATHAR_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("proxy", [ALITH_ADDRESS, CHARLETH_ADDRESS, []]),
-//         value: value.toString(),
-//       })
-//     );
-
-//     expectEVMResult(events2, "Succeed");
-
-//     const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
-//     expect(gasUsed).to.equal(40892);
-
-//     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
-//     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-//     const afterProxyPrecompileBalance = BigInt(
-//       await context.web3.eth.getBalance(PRECOMPILE_PROXY_ADDRESS)
-//     );
-
-//     expect(beforeAlithBalance - afterAlithBalance).to.equal(value);
-//     expect(afterCharlethBalance - beforeCharlethBalance).to.equal(value);
-//     expect(afterProxyPrecompileBalance).to.equal(0n);
-//   });
-// });
-
-// describeSuite({id:"", title:"Pallet proxy - should transfer using balances precompile", foundationMethods:"dev",testCases: ({it, log, context}) => {
-//   it({id:"T0",title:"should transfer using balances precompile", test:async () => {
-//     const NATIVE_ERC20_CONTRACT = getCompiled("precompiles/balances-erc20/IERC20");
-//     const NATIVE_ERC20_INTERFACE = new ethers.utils.Interface(NATIVE_ERC20_CONTRACT.contract.abi);
-
-//     const {
-//       result: { events },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...ALITH_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
-//           BALTATHAR_ADDRESS,
-//           CONTRACT_PROXY_TYPE_ANY,
-//           0,
-//         ]),
-//       })
-//     );
-//     expectEVMResult(events, "Succeed");
-
-//     const beforeAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
-//     const beforeCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-//     const value = BigInt(context.web3.utils.toWei("10", "ether"));
-
-//     const {
-//       result: { events: events2, hash: hash2 },
-//     } = await context.createBlock(
-//       createTransaction(context, {
-//         ...BALTATHAR_TRANSACTION_TEMPLATE,
-//         to: PRECOMPILE_PROXY_ADDRESS,
-//         data: PROXY_INTERFACE.encodeFunctionData("proxy", [
-//           ALITH_ADDRESS,
-//           PRECOMPILE_NATIVE_ERC20_ADDRESS,
-//           NATIVE_ERC20_INTERFACE.encodeFunctionData("transfer", [CHARLETH_ADDRESS, value]),
-//         ]),
-//       })
-//     );
-
-//     expectEVMResult(events2, "Succeed");
-
-//     const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
-//     expect(gasUsed).to.equal(33997);
-
-//     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
-//     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
-
-//     expect(beforeAlithBalance - afterAlithBalance).to.equal(value);
-//     expect(afterCharlethBalance - beforeCharlethBalance).to.equal(value);
-//   });
-// });
