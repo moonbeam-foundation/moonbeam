@@ -170,7 +170,7 @@ jobs:
 
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
-          wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/coverage/html/coverage.json \
+          wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/html/coverage.json \
             -O coverage-master.json || true
           echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
           rm -rf proffiles/
