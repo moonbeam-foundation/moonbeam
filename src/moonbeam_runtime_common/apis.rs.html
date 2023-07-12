@@ -885,6 +885,7 @@
 <a href="#885" id="885">885</a>
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1160,6 +1161,7 @@
 						// chain id 8 bytes
 						// 65 bytes signature
 						</span><span class="number">210</span>;
+
 					<span class="kw">if </span>max_fee_per_gas.is_some() {
 						estimated_transaction_len += <span class="number">32</span>;
 					}
@@ -1224,15 +1226,15 @@
 					<span class="kw">let </span>validate = <span class="bool-val">true</span>;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
-						<span class="comment">// to: 20
-						// from: 20
+						<span class="comment">// from: 20
 						// value: 32
 						// gas_limit: 32
 						// nonce: 32
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						</span><span class="number">210</span>;
+						</span><span class="number">190</span>;
+
 					<span class="kw">if </span>max_fee_per_gas.is_some() {
 						estimated_transaction_len += <span class="number">32</span>;
 					}
