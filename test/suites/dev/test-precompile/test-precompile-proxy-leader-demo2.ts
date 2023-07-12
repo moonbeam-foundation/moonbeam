@@ -1,38 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  BALTATHAR_PRIVATE_KEY,
-  CHARLETH_PRIVATE_KEY,
-  DOROTHY_PRIVATE_KEY,
-  createViemTransaction,
-} from "@moonwall/util";
-import { encodeFunctionData, parseEther } from "viem";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-
-const setupPoolWithParticipants = async (context: DevModeContext) => {
-  const { contractAddress, abi } = await context.deployContract!("ProxyLeaderDemo");
-  expect(contractAddress.length).toBeGreaterThan(3);
-
-  // Adds participants
-  for (const [privateKey] of [
-    [BALTATHAR_PRIVATE_KEY],
-    [CHARLETH_PRIVATE_KEY],
-    [DOROTHY_PRIVATE_KEY],
-  ]) {
-    const rawTxn = createViemTransaction(context, {
-      to: contractAddress,
-      value: parseEther("1"),
-      data: encodeFunctionData({
-        abi,
-        functionName: "joinPool",
-      }),
-      privateKey,
-    });
-    const { result } = await context.createBlock(rawTxn);
-    expectEVMResult(result!.events, "Succeed");
-  }
-  return contractAddress;
-};
+import { setupPoolWithParticipants } from "../../../helpers/precompiles.js";
 
 describeSuite({
   id: "D2543",

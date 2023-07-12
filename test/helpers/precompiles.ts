@@ -1,12 +1,18 @@
-import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
+import { DevModeContext, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
+  BALTATHAR_PRIVATE_KEY,
+  CHARLETH_PRIVATE_KEY,
+  DOROTHY_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   PRECOMPILE_DEMOCRACY_ADDRESS,
+  baltathar,
+  charleth,
   createViemTransaction,
 } from "@moonwall/util";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, parseEther } from "viem";
+import { expectEVMResult } from "./eth-transactions.js";
 
 export const setKeysThroughPrecompile = async (
   context: DevModeContext,
@@ -76,3 +82,75 @@ export const notePreimagePrecompile = async <
   await context.createBlock(tx);
   return blake2AsHex(encodedProposal);
 };
+
+export async function getAuthorMappingInfo(
+  context: DevModeContext,
+  authorId: string
+): Promise<void|{ account: string; deposit: BigInt }> {
+  const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
+  if (mapping.isSome) {
+    return {
+      account: mapping.unwrap().account.toString(),
+      deposit: mapping.unwrap().deposit.toBigInt(),
+    };
+  }
+}
+
+export const setupPoolWithParticipants = async (context: DevModeContext) => {
+  const { contractAddress, abi } = await context.deployContract!("ProxyLeaderDemo");
+  expect(contractAddress.length).toBeGreaterThan(3);
+
+  // Adds participants
+  for (const [privateKey] of [
+    [BALTATHAR_PRIVATE_KEY],
+    [CHARLETH_PRIVATE_KEY],
+    [DOROTHY_PRIVATE_KEY],
+  ]) {
+    const rawTxn = createViemTransaction(context, {
+      to: contractAddress,
+      value: parseEther("1"),
+      data: encodeFunctionData({
+        abi,
+        functionName: "joinPool",
+      }),
+      privateKey,
+    });
+    const { result } = await context.createBlock(rawTxn);
+    expectEVMResult(result!.events, "Succeed");
+  }
+  return contractAddress;
+};
+
+export async function setupWithParticipants(context: DevModeContext) {
+  const { abi, contractAddress } = await context.deployContract!("ProxyCallStakingDemo", {
+    gas: 5_000_000n,
+    value: parseEther("5"),
+  });
+  // Add participants
+  for (const { account, privateKey } of [
+    {
+      account: baltathar,
+      privateKey: BALTATHAR_PRIVATE_KEY,
+    },
+    {
+      account: charleth,
+      privateKey: CHARLETH_PRIVATE_KEY,
+    },
+  ]) {
+    // pre-condition provide staking proxy to contract
+    await context.createBlock(
+      context.polkadotJs().tx.proxy.addProxy(contractAddress, "Staking", 0).signAsync(account)
+    );
+
+    const rawTxn = await context.writeContract!({
+      contractAddress,
+      contractName: "ProxyCallStakingDemo",
+      functionName: "join",
+      args: [0],
+      privateKey,
+    });
+
+    await context.createBlock(rawTxn);
+  }
+  return contractAddress;
+}

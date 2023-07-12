@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import {
-  DevModeContext,
   beforeAll,
   describeSuite,
   execCouncilProposal,
@@ -22,19 +21,6 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
-
-export async function getMappingInfo(
-  context: DevModeContext,
-  authorId: string
-): Promise<void | { account: string; deposit: BigInt }> {
-  const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
-  if (mapping.isSome) {
-    return {
-      account: mapping.unwrap().account.toString(),
-      deposit: mapping.unwrap().deposit.toBigInt(),
-    };
-  }
-}
 
 describeSuite({
   id: "D2541",

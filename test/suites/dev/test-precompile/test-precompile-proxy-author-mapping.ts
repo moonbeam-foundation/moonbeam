@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -10,19 +10,8 @@ import {
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { getAuthorMappingInfo } from "../../../helpers/precompiles.js";
 
-export async function getMappingInfo(
-  context: DevModeContext,
-  authorId: string
-): Promise<void | { account: string; deposit: BigInt }> {
-  const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
-  if (mapping.isSome) {
-    return {
-      account: mapping.unwrap().account.toString(),
-      deposit: mapping.unwrap().deposit.toBigInt(),
-    };
-  }
-}
 
 describeSuite({
   id: "D2540",
@@ -63,7 +52,7 @@ describeSuite({
 
         expectEVMResult(result2!.events, "Succeed");
 
-        expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).toBe(
+        expect((await getAuthorMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).toBe(
           ALITH_ADDRESS
         );
       },
