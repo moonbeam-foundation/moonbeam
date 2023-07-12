@@ -37,7 +37,7 @@ do
 done
 
 echo "Node $STANDALONE_INDEX - p2p-port: $((STANDALONE_PORT)), \
-http-port: $((STANDALONE_PORT + 1)) , ws-port: $((STANDALONE_PORT + 2))"
+rpc-port: $((STANDALONE_PORT + 2))"
 
 if [ -z "$BASE_PREFIX" ]; then
   BASE_PATH="--tmp"
@@ -55,10 +55,8 @@ $EXECUTABLE \
   --dev \
   --tmp \
   --port $((STANDALONE_PORT)) \
-  --rpc-port $((STANDALONE_PORT + 1)) \
-  --ws-port $((STANDALONE_PORT + 2)) \
+  --rpc-port $((STANDALONE_PORT + 2)) \
   --validator \
-  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
   --rpc-cors all \
   --rpc-methods=unsafe \
   --execution native \
