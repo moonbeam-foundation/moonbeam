@@ -57,7 +57,6 @@ $EXECUTABLE \
   --port $((STANDALONE_PORT)) \
   --rpc-port $((STANDALONE_PORT + 2)) \
   --validator \
-  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
   --rpc-cors all \
   --rpc-methods=unsafe \
   --execution native \
