@@ -170,7 +170,7 @@ jobs:
 
           echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
-          wget https://${{ vars.S3_COVERAGE_BUCKET }}.s3.amazonaws.com/branches/master/html/coverage.json \
+          wget ${{ vars.S3_COVERAGE_URL }}/branches/master/html/coverage.json \
             -O coverage-master.json || true
           echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
           rm -rf proffiles/
@@ -189,7 +189,7 @@ jobs:
           destination_dir: "${{ needs.set-tags.outputs.coverage_dir }}"
           source_dir: "coverage"
       - name: Link To Report
-        run: echo "https://s3.amazonaws.com/${{ vars.S3_COVERAGE_BUCKET }}/${{steps.S3.outputs.object_key}}/html/index.html"
+        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
       - name: Find Comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         uses: peter-evans/find-comment@v2
@@ -206,7 +206,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             Coverage generated ${{ steps.coverage.outputs.coverage_date }}:
-            https://s3.amazonaws.com/${{ vars.S3_COVERAGE_BUCKET }}/${{steps.S3.outputs.object_key}}/html/index.html
+            ${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html
 
             Master coverage: ${{ steps.coverage.outputs.master_percent }}
             Pull coverage: ${{ steps.coverage.outputs.total_percent }}
