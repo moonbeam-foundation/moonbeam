@@ -65,7 +65,7 @@ interface RelayEncoder {
     /// @param nominees: An array of AccountIds corresponding to the accounts we will nominate
     /// @return result The bytes associated with the encoded call
     function encodeNominate(
-        uint256[] memory nominees
+        bytes32[] memory nominees
     ) external pure returns (bytes memory result);
 
     /// @dev Encode 'chill' relay call

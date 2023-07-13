@@ -52,7 +52,7 @@
     "watch": "npm-watch",
     "build": "tsc && cp -r contracts build/",
     "build-clean": "rm -r node_modules && npm i && npm run build",
-    "test-single": "mocha -r ts-node/register 'tests/test-xcm/test-mock-hrmp-transact-ethereum.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-relay-encoder.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "clean": "rimraf *.log binaries/* runtimes/* specs/*"

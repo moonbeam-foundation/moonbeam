@@ -38,7 +38,7 @@ contract RelayEncoderInstance is RelayEncoder {
     }
 
     function encodeNominate(
-        uint256[] memory nominees
+        bytes32[] memory nominees
     ) external pure override returns (bytes memory result) {
         return "0x00";
     }

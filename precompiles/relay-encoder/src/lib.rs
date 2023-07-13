@@ -183,8 +183,8 @@ where
 		Ok(encoded)
 	}
 
-	#[precompile::public("encodeNominate(uint256[])")]
-	#[precompile::public("encode_nominate(uint256[])")]
+	#[precompile::public("encodeNominate(bytes32[])")]
+	#[precompile::public("encode_nominate(bytes32[])")]
 	#[precompile::view]
 	fn encode_nominate(
 		handle: &mut impl PrecompileHandle,
