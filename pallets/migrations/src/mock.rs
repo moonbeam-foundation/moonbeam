@@ -313,7 +313,7 @@ impl Migration for MockMigration {
 		result
 	}
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
+	fn pre_upgrade(&self) -> Result<(), sp_runtime::DispatchError> {
 		let mut result: Result<(), &'static str> = Err("closure didn't set result");
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_pre_upgrade(self.index);
@@ -321,7 +321,7 @@ impl Migration for MockMigration {
 		result
 	}
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
+	fn post_upgrade(&self) -> Result<(), sp_runtime::DispatchError> {
 		let mut result: Result<(), &'static str> = Err("closure didn't set result");
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_post_upgrade(self.index);

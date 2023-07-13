@@ -300,7 +300,7 @@ where
 						.join(sqlite_db_path)
 						.join("frontier.db3")
 						.to_str()
-						.unwrap(),
+						.expect("frontier sql path error"),
 					create_if_missing: true,
 					thread_count: thread_count,
 					cache_size: cache_size,
