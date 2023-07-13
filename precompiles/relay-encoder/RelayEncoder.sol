@@ -61,7 +61,7 @@ interface RelayEncoder {
     ) external pure returns (bytes memory result);
 
     /// @dev Encode 'nominate' relay call
-    /// @custom:selector d2ea7b08
+    /// @custom:selector dcf06883
     /// @param nominees: An array of AccountIds corresponding to the accounts we will nominate
     /// @return result The bytes associated with the encoded call
     function encodeNominate(
