@@ -27,7 +27,7 @@ xcm = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 
 [features]
