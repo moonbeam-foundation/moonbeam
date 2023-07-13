@@ -38,7 +38,7 @@ do
 done
 
 echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), \
-http-port: $((RELAY_PORT + 1)) , ws-port: $((RELAY_PORT + 2))"
+rpc-port: $((RELAY_PORT + 2))"
 
 if [ -z "$POLKADOT_VERSION" ]; then
   POLKADOT_VERSION="sha-`egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
@@ -51,7 +51,6 @@ echo "Using Polkadot revision #${POLKADOT_VERSION}"
 docker run \
   -v $(pwd)/build:/build \
   -p $RELAY_PORT:$RELAY_PORT \
-  -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
   -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
   -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
     /usr/local/bin/polkadot \
@@ -64,10 +63,8 @@ docker run \
       --name relay_$RELAY_INDEX \
       --rpc-methods=Unsafe \
       --unsafe-rpc-external \
-      --unsafe-ws-external \
       --rpc-cors all \
       --listen-addr /ip4/0.0.0.0/tcp/$((RELAY_PORT)) \
-      --rpc-port $((RELAY_PORT + 1)) \
-      --ws-port $((RELAY_PORT + 2)) \
+      --rpc-port $((RELAY_PORT + 2)) \
       $BOOTNODES_ARGS \
       '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,validation-worker=debug'

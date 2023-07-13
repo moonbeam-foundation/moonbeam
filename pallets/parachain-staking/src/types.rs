@@ -1390,7 +1390,7 @@ impl<
 			false
 		}
 	}
-	// Return Some(remaining balance), must be more than MinDelegatorStk
+	// Return Some(remaining balance), must be more than MinDelegation
 	// Return None if delegation not found
 	pub fn rm_delegation<T: Config>(&mut self, collator: &AccountId) -> Option<Balance>
 	where

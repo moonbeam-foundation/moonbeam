@@ -40,8 +40,8 @@ use xcm_builder::{
 	Account32Hash, AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
 	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
-	FixedWeightBounds, IsConcrete, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
+	FixedWeightBounds, IsConcrete, ProcessXcmMessage, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
@@ -304,7 +304,7 @@ impl ProcessMessage for MessageProcessor {
 		let para = match origin {
 			AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
 		};
-		xcm_builder::ProcessXcmMessage::<Junction, xcm_executor::XcmExecutor<XcmConfig>, RuntimeCall>::process_message(
+		ProcessXcmMessage::<Junction, XcmExecutor<XcmConfig>, RuntimeCall>::process_message(
 			message,
 			Junction::Parachain(para.into()),
 			meter,

@@ -20,7 +20,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       // Configure the api at a specific block
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)

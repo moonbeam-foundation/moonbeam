@@ -26,4 +26,4 @@ nimbus-primitives = { workspace = true, features = [ "std" ] }
 polkadot-primitives = { workspace = true }
 
 # Other
-schnorrkel = { workspace = true, features = ["preaudit_deprecated", "u64_backend"], default-features = false }
+schnorrkel = { workspace = true, default-features = false, features = [ "preaudit_deprecated", "u64_backend" ] }

@@ -165,13 +165,13 @@ where
 			<Pallet<T>>::get_delegator_stakable_free_balance(&delegator) >= amount,
 			Error::<T>::InsufficientBalance
 		);
+		ensure!(
+			amount >= T::MinDelegation::get(),
+			Error::<T>::DelegationBelowMin
+		);
 
 		let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
 			// delegation after first
-			ensure!(
-				amount >= T::MinDelegation::get(),
-				Error::<T>::DelegationBelowMin
-			);
 			ensure!(
 				delegation_count_hint >= state.delegations.0.len() as u32,
 				Error::<T>::TooLowDelegationCountToDelegate
@@ -190,10 +190,6 @@ where
 			state
 		} else {
 			// first delegation
-			ensure!(
-				amount >= T::MinDelegatorStk::get(),
-				Error::<T>::DelegatorBondBelowMin
-			);
 			ensure!(
 				!<Pallet<T>>::is_candidate(&delegator),
 				Error::<T>::CandidateExists

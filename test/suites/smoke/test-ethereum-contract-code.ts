@@ -5,6 +5,9 @@ import { compactStripLength, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import chalk from "chalk";
 import { rateLimiter } from "../../helpers/common.js";
+import { StorageKey } from "@polkadot/types";
+import { Vec } from "@polkadot/types-codec";
+import { AnyTuple } from "@polkadot/types-codec/types";
 const limiter = rateLimiter();
 
 describeSuite({
@@ -100,7 +103,7 @@ describeSuite({
       loopCount = 0;
 
       while (pagedKeys.length) {
-        let batch = [];
+        let batch: any[] | Vec<StorageKey<AnyTuple>> = [];
         for (let i = 0; i < limit && pagedKeys.length; i++) {
           batch.push(pagedKeys.pop());
         }

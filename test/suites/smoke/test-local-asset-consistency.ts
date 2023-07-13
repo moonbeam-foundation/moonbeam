@@ -10,7 +10,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let localAssetDeposits: StorageKey<[u128]>[] = null;
     let localAssetInfo: StorageKey<[u128]>[] = null;
     let localAssetCounter: number = 0;

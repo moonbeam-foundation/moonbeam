@@ -181,7 +181,19 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam"
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--dev",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--reserved-only",
+              "--rpc-cors=all",
+              "--no-grandpa",
+              "--sealing=manual",
+              "--force-authoring",
+              "--no-prometheus"
+            ]
           }
         ]
       }
@@ -195,7 +207,8 @@
           {
             "name": "moonbeam",
             "binPath": "./tmp/moonbeam",
-            "ports": { "p2pPort": 30333, "wsPort": 9944, "rpcPort": 9933 },
+            "ports": { "p2pPort": 30333, "rpcPort": 9944 },
+            "newRpcBehaviour": true,
             "options": [
               "--dev",
               "--no-hardware-benchmarks",
@@ -203,7 +216,7 @@
               "--reserved-only",
               "--rpc-cors=all",
               "--no-grandpa",
-              "--unsafe-ws-external",
+              "--unsafe-rpc-external",
               "--sealing=manual",
               "--force-authoring",
               "--no-prometheus"
