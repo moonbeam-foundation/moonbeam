@@ -22,7 +22,6 @@ import {
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { encodeFunctionData, parseEther } from "viem";
-import { parse } from "path";
 
 describeSuite({
   id: "D2550",
