@@ -90,7 +90,6 @@ fn test_encode_bond() {
 					Alice,
 					Precompile1,
 					PCall::encode_bond {
-						controller_address: [1u8; 32].into(),
 						amount: 100.into(),
 						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
 					},
@@ -99,7 +98,6 @@ fn test_encode_bond() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Bond(
-						[1u8; 32].into(),
 						100u32.into(),
 						RewardDestination::Controller,
 					))
@@ -198,18 +196,11 @@ fn test_encode_set_controller() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile1,
-					PCall::encode_set_controller {
-						controller: [1u8; 32].into(),
-					},
-				)
+				.prepare_test(Alice, Precompile1, PCall::encode_set_controller {})
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
-						.as_slice(),
+					TestEncoder::encode_call(AvailableStakeCalls::SetController).as_slice(),
 				))
 		});
 }
@@ -270,7 +261,7 @@ fn test_encode_validate() {
 					Alice,
 					Precompile1,
 					PCall::encode_validate {
-						comission: 100.into(),
+						commission: 100.into(),
 						blocked: true,
 					},
 				)

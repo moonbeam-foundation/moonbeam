@@ -89,15 +89,8 @@ describeSuite({
       id: "C400",
       title: "should have matching indices for Staking.Bond",
       test: async function () {
-        const callHex = relayApi.tx.staking
-          // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
-          .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
-          .method.toHex();
-        const resp = await relayEncoder.encodeBond(
-          ALITH_SESSION_ADDRESS,
-          10000000000,
-          hexToU8a("0x00")
-        );
+        const callHex = relayApi.tx.staking.bond(10000000000, "Staked").method.toHex();
+        const resp = await relayEncoder.encodeBond(10000000000, hexToU8a("0x00"));
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
     });
@@ -146,9 +139,8 @@ describeSuite({
       id: "C900",
       title: "should have matching indices for Staking.SetController",
       test: async function () {
-        // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
-        const callHex = relayApi.tx.staking.setController(ALITH_SESSION_ADDRESS).method.toHex();
-        const resp = await relayEncoder.encodeSetController(ALITH_SESSION_ADDRESS);
+        const callHex = relayApi.tx.staking.setController().method.toHex();
+        const resp = await relayEncoder.encodeSetController();
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
     });
