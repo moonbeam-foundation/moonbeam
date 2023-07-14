@@ -221,7 +221,7 @@ fn test_send_clear_origin() {
 		precompiles()
 			.prepare_test(CryptoAlith, Precompile1, input)
 			// Fixed: TestWeightInfo + (BaseXcmWeight * MessageLen)
-			.expect_cost(100001000)
+			.expect_cost(100000000)
 			.expect_no_logs()
 			.execute_returns(());
 

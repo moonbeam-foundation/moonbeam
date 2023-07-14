@@ -188,7 +188,7 @@ where
 	#[precompile::view]
 	fn encode_nominate(
 		handle: &mut impl PrecompileHandle,
-		nominees: BoundedVec<U256, GetArrayLimit>,
+		nominees: BoundedVec<H256, GetArrayLimit>,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
