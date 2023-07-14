@@ -7748,6 +7748,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-identity"
+version = "0.1.0"
+dependencies = [
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal",
+ "log",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-identity",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.40#688ad3bf8d1eb28936a51c3a41287dd80804f5a3"

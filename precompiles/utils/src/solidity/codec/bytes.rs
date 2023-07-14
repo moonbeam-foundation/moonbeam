@@ -57,6 +57,12 @@ pub struct BoundedBytesString<K, S> {
 	_phantom: PhantomData<(K, S)>,
 }
 
+impl<K, S> Default for BoundedBytesString<K, S> {
+	fn default() -> Self {
+		Vec::default().into()
+	}
+}
+
 impl<K: Kind, S: Get<u32>> Clone for BoundedBytesString<K, S> {
 	fn clone(&self) -> Self {
 		Self {
