@@ -12,7 +12,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async function () {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       const rando = generateKeyringPair();
       expect((await api.query.system.account(rando.address as string)).data.free.toBigInt()).to.eq(
         0n

@@ -12,7 +12,7 @@ describeSuite({
       id: "T01",
       title: "should succeed in clearing an association",
       test: async function () {
-        const api = context.polkadotJs({ type: "moon" });
+        const api = context.polkadotJs();
         await context.createBlock(
           api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS).signAsync(alith)
         );

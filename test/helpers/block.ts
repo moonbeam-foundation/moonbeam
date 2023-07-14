@@ -303,7 +303,7 @@ export const verifyLatestBlockFees = async (
   context: DevModeContext,
   expectedBalanceDiff: bigint = BigInt(0)
 ) => {
-  const signedBlock = await context.polkadotJs({ type: "moon" }).rpc.chain.getBlock();
+  const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
   return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff);
 };
@@ -312,7 +312,7 @@ export async function jumpToRound(context: DevModeContext, round: number): Promi
   let lastBlockHash = "";
   while (true) {
     const currentRound = (
-      await context.polkadotJs({ type: "moon" }).query.parachainStaking.round()
+      await context.polkadotJs().query.parachainStaking.round()
     ).current.toNumber();
     if (currentRound === round) {
       return lastBlockHash;
@@ -332,7 +332,7 @@ export async function jumpBlocks(context: DevModeContext, blockCount: number) {
 }
 
 export async function jumpRounds(context: DevModeContext, count: Number): Promise<string | null> {
-  const round = (await context.polkadotJs({ type: "moon" }).query.parachainStaking.round()).current
+  const round = (await context.polkadotJs().query.parachainStaking.round()).current
     .addn(count.valueOf())
     .toNumber();
 

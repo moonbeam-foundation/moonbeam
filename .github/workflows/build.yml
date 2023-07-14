@@ -640,29 +640,30 @@ jobs:
           name: failed-node-logs
           path: ${{ env.NODE_LOGS_ZIP }}
 
-  dev-test:
-    runs-on:
-      labels: bare-metal
-    needs: ["set-tags", "build"]
-    strategy:
-      matrix:
-        chain: ["moonbase"]
-    env:
-      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
-      DEBUG_COLORS: 1
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - run: |
-          mkdir -p target/release
-      - name: "Download branch built node"
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: moonbeam
-          path: target/release
-      - name: "Run Moonwall Dev Tests"
-        uses: ./.github/workflow-templates/dev-tests
-        with:
-          moonwall_environment: dev_${{ matrix.chain }}
+  ## DISABLED UNTIL DEV-MIGRATE-2 COMPLETE
+  # dev-test:
+  #   runs-on:
+  #     labels: bare-metal
+  #   needs: ["set-tags", "build"]
+  #   strategy:
+  #     matrix:
+  #       chain: ["moonbase"]
+  #   env:
+  #     GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+  #     DEBUG_COLORS: 1
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - run: |
+  #         mkdir -p target/release
+  #     - name: "Download branch built node"
+  #       uses: actions/download-artifact@v3.0.2
+  #       with:
+  #         name: moonbeam
+  #         path: target/release
+  #     - name: "Run Moonwall Dev Tests"
+  #       uses: ./.github/workflow-templates/dev-tests
+  #       with:
+  #         moonwall_environment: dev_${{ matrix.chain }}

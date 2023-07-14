@@ -29,7 +29,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const blockNumArray = await getBlockArray(paraApi, timePeriod);
       log(`Collecting ${hours} hours worth of events`);
 

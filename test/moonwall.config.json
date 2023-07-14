@@ -42,6 +42,7 @@
     {
       "name": "smoke_stagenet",
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "testFileDir": ["/suites/smoke"],
       "reporters": ["basic", "html"],
       "foundation": {
@@ -55,7 +56,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
@@ -69,6 +70,7 @@
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -81,7 +83,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
@@ -95,6 +97,7 @@
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -107,7 +110,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
@@ -123,6 +126,7 @@
       "contracts": "contracts/",
       "reporters": ["basic", "html"],
       "envVars": ["DEBUG_COLORS=1"],
+      "runScripts": ["compile-contracts.ts compile"],
       "foundation": {
         "type": "read_only"
       },
@@ -134,7 +138,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
@@ -162,7 +166,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -224,7 +228,7 @@
         },
         {
           "name": "mb",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:9944"]
         }
       ]
@@ -246,7 +250,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -268,7 +272,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -290,7 +294,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -312,7 +316,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -334,7 +338,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
@@ -356,7 +360,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]

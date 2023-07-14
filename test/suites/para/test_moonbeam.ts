@@ -15,8 +15,8 @@ describeSuite({
     let ethersSigner: Signer;
 
     beforeAll(async () => {
-      paraApi = context.polkadotJs({ type: "moon", apiName: "parachain" });
-      relayApi = context.polkadotJs({ type: "polkadotJs", apiName: "relaychain" });
+      paraApi = context.polkadotJs("parachain");
+      relayApi = context.polkadotJs("relaychain");
       ethersSigner = context.ethers()!;
 
       const relayNetwork = relayApi.consts.system.version.specName.toString();
@@ -45,10 +45,10 @@ describeSuite({
         const blockNumberBefore = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
-        const currentCode = await paraApi.rpc.state.getStorage(":code");
+        const currentCode = (await paraApi.rpc.state.getStorage(":code")) as `0x${string}`;
         const codeString = currentCode.toString();
 
-        const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath);
+        const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath!);
         const rtHex = `0x${wasm.toString("hex")}`;
 
         if (rtHex === codeString) {
@@ -108,15 +108,15 @@ describeSuite({
       title: "Tags are present on emulated Ethereum blocks",
       test: async function () {
         expect(
-          (await ethersSigner.provider.getBlock("safe")).number,
+          (await ethersSigner.provider!.getBlock("safe"))!.number,
           "Safe tag is not present"
         ).to.be.greaterThan(0);
         expect(
-          (await ethersSigner.provider.getBlock("finalized")).number,
+          (await ethersSigner.provider!.getBlock("finalized"))!.number,
           "Finalized tag is not present"
         ).to.be.greaterThan(0);
         expect(
-          (await ethersSigner.provider.getBlock("latest")).number,
+          (await ethersSigner.provider!.getBlock("latest"))!.number,
           "Latest tag is not present"
         ).to.be.greaterThan(0);
         // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));

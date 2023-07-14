@@ -22,7 +22,7 @@ describeSuite({
       id: "T01",
       title: "should match genesis state",
       test: async function () {
-        api = context.polkadotJs({ type: "moon" });
+        api = context.polkadotJs();
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))?.account).to.eq(
           ALITH_ADDRESS
         );

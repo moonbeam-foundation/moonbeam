@@ -51,7 +51,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
     });
 
     it({

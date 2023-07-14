@@ -18,8 +18,8 @@ describeSuite({
     let relayApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
-      relayApi = context.polkadotJs({ apiName: "relay" });
+      paraApi = context.polkadotJs("para");
+      relayApi = context.polkadotJs("relay");
 
       atBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));

@@ -13,9 +13,7 @@ describeSuite({
       title: "should succeed in rotating account ids for an author",
       test: async function () {
         await context.createBlock(
-          context
-            .polkadotJs({ type: "moon" })
-            .tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
+          context.polkadotJs().tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
         );
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(
           alith.address
@@ -23,7 +21,7 @@ describeSuite({
 
         await context.createBlock(
           context
-            .polkadotJs({ type: "moon" })
+            .polkadotJs()
             .tx.authorMapping.updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
         );
         expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);

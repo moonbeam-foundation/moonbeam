@@ -14,7 +14,7 @@ describeSuite({
       test: async function () {
         await context.createBlock(
           context
-            .polkadotJs({ type: "moon" })
+            .polkadotJs()
             .tx.authorMapping.updateAssociation(
               BALTATHAR_SESSION_ADDRESS,
               CHARLETH_SESSION_ADDRESS

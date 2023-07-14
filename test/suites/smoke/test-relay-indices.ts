@@ -15,9 +15,11 @@ describeSuite({
     let xcmTransactorV1: Contract;
     let xcmTransactorV2: Contract;
     let relayApi: ApiPromise;
+    let relayVersion: number;
 
     beforeAll(async function () {
-      relayApi = context.polkadotJs({ apiName: "relay" });
+      relayApi = context.polkadotJs("relay");
+      relayVersion = relayApi.consts.system.version.specVersion.toNumber();
       const RELAY_ENCODER_PRECOMPILE = "0x0000000000000000000000000000000000000805";
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
       const XCM_TRANSACTOR_V2_PRECOMPILE = "0x000000000000000000000000000000000000080D";
@@ -88,11 +90,15 @@ describeSuite({
     it({
       id: "C400",
       title: "should have matching indices for Staking.Bond",
+      minRtVersion: 2500,
       test: async function () {
-        const callHex = relayApi.tx.staking
-          // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
-          .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
-          .method.toHex();
+        const callHex =
+          relayVersion < 9430
+            ? relayApi.tx.staking
+                // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
+                .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
+                .method.toHex()
+            : relayApi.tx.staking.bond(10000000000, "Staked").method.toHex();
         const resp = await relayEncoder.encodeBond(
           ALITH_SESSION_ADDRESS,
           10000000000,
@@ -145,9 +151,13 @@ describeSuite({
     it({
       id: "C900",
       title: "should have matching indices for Staking.SetController",
+      minRtVersion: 2500,
       test: async function () {
-        // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
-        const callHex = relayApi.tx.staking.setController(ALITH_SESSION_ADDRESS).method.toHex();
+        const callHex =
+          relayVersion < 9430
+            ? // @ts-expect-error - this is changing in 9430 (which polkadot-js is on)
+              relayApi.tx.staking.setController(ALITH_SESSION_ADDRESS).method.toHex()
+            : relayApi.tx.staking.setController().method.toHex();
         const resp = await relayEncoder.encodeSetController(ALITH_SESSION_ADDRESS);
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
@@ -219,9 +229,7 @@ describeSuite({
       title: "should have matching indices for Utility.asDerivative in V2",
       minRtVersion: 2100,
       test: async function () {
-        const chainType = context
-          .polkadotJs({ apiName: "para" })
-          .consts.system.version.specName.toString();
+        const chainType = context.polkadotJs("para").consts.system.version.specName.toString();
         if (chainType !== "moonbase") {
           log(`Chain type ${chainType} does not support V2, skipping.`);
           return; // TODO: replace with skip() when added to vitest;

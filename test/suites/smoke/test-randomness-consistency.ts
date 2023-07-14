@@ -19,7 +19,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       const runtimeName = paraApi.runtimeVersion.specName.toString();
       isRandomnessAvailable =
