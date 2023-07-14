@@ -117,7 +117,7 @@ describeDevMoonbeam("Staking - Locks - candidate balance is locked", (context) =
         .transfer(alith.address, MIN_GLMR_STAKING)
         .signAsync(randomAccount)
     );
-    expect(result.error.name.toString()).to.be.equal("LiquidityRestrictions");
+    expect(result.error.name.toString()).to.be.equal('{"token":"Frozen"}');
   });
 });
 
