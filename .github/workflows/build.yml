@@ -106,6 +106,8 @@ jobs:
           echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
           echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
+      - name: Debug
+        run: echo '${{ toJSON(github) }}'
 
   check-copyright:
     runs-on: ubuntu-latest
