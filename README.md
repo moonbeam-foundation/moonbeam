@@ -1,5 +1,16 @@
 # ![Moonbeam](media/moonbeam-cover.jpg)
 
+
+# ⚠️ Moonbeam repository moving ⚠️ 
+
+Moonbeam repository will soon (within a week) migrate to the Moonbeam Foundation organization:  
+https://github.com/moonbeam-foundation/moonbeam
+
+Github references/cloning as well as cargo build will keep working as expected. It is however
+recommanded to change those references once the migration is done.
+
+# Information 
+
 ![Tests](https://github.com/PureStake/moonbeam/workflows/Release/badge.svg)
 
 **An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with [Substrate](https://substrate.dev).**
