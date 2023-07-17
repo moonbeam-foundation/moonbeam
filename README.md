@@ -7,7 +7,7 @@ Moonbeam repository will soon (within a week) migrate to the Moonbeam Foundation
 https://github.com/moonbeam-foundation/moonbeam
 
 Github references/cloning as well as cargo build will keep working as expected. It is however
-recommanded to change those references once the migration is done.
+recommended to change those references once the migration is done.
 
 # Information 
 
