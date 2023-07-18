@@ -60,7 +60,7 @@ export const MAX_BLOCK_DEV_POV = 4 * 1024 * 1024 + 512;
 // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
 export const MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES;
 
-export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
+export const EXTRINSIC_BASE_WEIGHT = 392_184_000;
 
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;

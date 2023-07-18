@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   KeyringPair,
-  TARGET_FILL_AMOUNT,
+  // TARGET_FILL_AMOUNT,
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
@@ -15,6 +15,9 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../../helpers/xcm.js";
+
+// This has changed due to changes in EXTRINSIC_BASE_WEIGHT
+const TARGET_FILL_AMOUNT = 186_921_200n;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
