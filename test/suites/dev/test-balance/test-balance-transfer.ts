@@ -3,7 +3,6 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_GENESIS_LOCK_BALANCE,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
@@ -17,6 +16,7 @@ import {
   generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { parseGwei } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 

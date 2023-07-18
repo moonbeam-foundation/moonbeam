@@ -24,7 +24,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
 
     // Let's lock some funds by doing a public referendum proposal
     let lock_amount = (await context.polkadotApi.consts.democracy.minimumDeposit) as any;
-    const proposal = context.polkadotApi.tx.balances.setBalance(randomAccount.address, 100, 100);
+    const proposal = context.polkadotApi.tx.balances.forceSetBalance(randomAccount.address, 100);
 
     // We encode the proposal
     let encodedProposal = (proposal as SubmittableExtrinsic)?.method.toHex() || "";

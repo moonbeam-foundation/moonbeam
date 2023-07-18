@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
-import { alith, ALITH_GENESIS_TRANSFERABLE_BALANCE, generateKeyringPair } from "@moonwall/util";
+import { alith, generateKeyringPair } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { checkBalance } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
@@ -23,7 +24,7 @@ describeSuite({
         const minDepositAmount = context.polkadotJs().consts.democracy.minimumDeposit.toBigInt();
         const proposal = context
           .polkadotJs()
-          .tx.balances.setBalance(randomAccount.address, 100, 100);
+          .tx.balances.forceSetBalance(randomAccount.address, 100);
         const encodedProposal = proposal.method.toHex();
         const encodedHash = blake2AsHex(encodedProposal);
         await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));

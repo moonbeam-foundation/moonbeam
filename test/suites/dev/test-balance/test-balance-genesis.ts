@@ -5,8 +5,8 @@ import {
   ALITH_ADDRESS,
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
 } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 
 describeSuite({
   id: "D0303",

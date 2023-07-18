@@ -80,10 +80,9 @@ describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
     // Gives the contract 500M Tokens to allow to quickly pass the referenda
     await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.balances.setBalance(
+        context.polkadotApi.tx.balances.forceSetBalance(
           contractV1.contractAddress,
-          500_000_000n * GLMR,
-          0
+          500_000_000n * GLMR
         )
       )
     );

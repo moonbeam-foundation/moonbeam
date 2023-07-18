@@ -15,8 +15,8 @@ describeSuite({
     let ethersSigner: Signer;
 
     beforeAll(async () => {
-      paraApi = context.polkadotJs("parachain");
-      relayApi = context.polkadotJs("relaychain");
+      paraApi = context.polkadotJs({apiName:"parachain", type: "polkadotJs"});
+      relayApi = context.polkadotJs({apiName: "relaychain", type: "polkadotJs"});
       ethersSigner = context.ethers()!;
 
       const relayNetwork = relayApi.consts.system.version.specName.toString();
@@ -45,7 +45,7 @@ describeSuite({
         const blockNumberBefore = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
-        const currentCode = await paraApi.rpc.state.getStorage(":code") as any
+        const currentCode = (await paraApi.rpc.state.getStorage(":code")) as any;
         const codeString = currentCode.toString();
 
         const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath!);

@@ -46,7 +46,7 @@ describeSuite({
         const blockNumberBefore = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
-        const currentCode = await paraApi.rpc.state.getStorage(":code") as any
+        const currentCode = (await paraApi.rpc.state.getStorage(":code")) as any;
         const codeString = currentCode.toString();
 
         const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath!);

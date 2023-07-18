@@ -1,7 +1,6 @@
 import { afterEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
@@ -11,6 +10,7 @@ import {
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { parseGwei } from "viem";
 
 describeSuite({
