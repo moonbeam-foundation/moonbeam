@@ -67,7 +67,6 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     expect(await context.web3.eth.getBalance(alith.address)).to.equal(
       (
         BigInt(beforeBalance) -
-        BigInt(lock_amount) +
         BigInt(existentialDeposit) -
         BigInt(fee)
       ).toString()
