@@ -29,7 +29,7 @@ describeSuite({
       test: async function () {
         const genesisHash = await context.polkadotJs().rpc.chain.getBlockHash(0);
         const account = await (
-          await context.polkadotJs({ type: "moon" }).at(genesisHash)
+          await context.polkadotJs().at(genesisHash)
         ).query.system.account(ALITH_ADDRESS);
         expect(account.data.free.toBigInt()).toBe(ALITH_GENESIS_FREE_BALANCE);
         expect(account.data.reserved.toBigInt()).toBe(ALITH_GENESIS_RESERVE_BALANCE);

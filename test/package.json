@@ -52,6 +52,7 @@
     "json-bigint": "^1.0.0",
     "json-stable-stringify": "^1.0.2",
     "node-fetch": "^3.3.1",
+    "rimraf": "^5.0.1",
     "semver": "^7.5.2",
     "solc": "0.8.19",
     "viem": "^1.0.7",
