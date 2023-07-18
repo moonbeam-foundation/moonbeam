@@ -1,7 +1,6 @@
 endpoint: wss://wss.api.moonbase.moonbeam.network
 mock-signature-host: true
 db: ./tmp/db_mba.sqlite
-wasm-override: ../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm
 
 import-storage:
   System:
