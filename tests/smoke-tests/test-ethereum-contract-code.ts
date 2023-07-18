@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { compactStripLength, u8aConcat, u8aToHex } from "@polkadot/util";
+import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { expect } from "chai";
 import chalk from "chalk";
-import { rateLimiter } from "../util/common";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { processAllStorage } from "../util/storage";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
@@ -34,137 +34,22 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
 
     // Max RPC response limit is 15728640 bytes (15MB), so pessimistically the pageLimit
     // needs to be lower than if every contract was above the MAX_CONTRACT_SIZE
-    const limit = 500;
     const keyPrefix = u8aToHex(
       u8aConcat(xxhashAsU8a("EVM", 128), xxhashAsU8a("AccountCodes", 128))
     );
-    const growthFactor = 1.5;
-    let last_key = keyPrefix;
-    let count = 0;
-    let loggingFrequency = 10;
-    let loopCount = 0;
 
-    let pagedKeys = [];
-
-    let t0 = performance.now();
-    let t1 = t0;
-    keys: while (true) {
-      const limiter = rateLimiter();
-      const queryResults = (
-        await limiter.schedule(() =>
-          context.polkadotApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
-        )
-      )
-        .map((key) => key.toHex())
-        .filter((key) => key.includes(keyPrefix));
-      pagedKeys.push(...queryResults);
-      count += queryResults.length;
-
-      if (queryResults.length === 0) {
-        break keys;
-      }
-
-      last_key = queryResults[queryResults.length - 1];
-
-      if (count % (limit * loggingFrequency) == 0) {
-        loopCount++;
-        const t2 = performance.now();
-        const duration = t2 - t1;
-        const qps = (limit * loggingFrequency) / (duration / 1000);
-        const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        debug(
-          `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
-        );
-
-        // Increase logging threshold after 5 prints
-        if (loopCount % 5 === 0) {
-          loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-          debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-        }
-      }
-      await limiter.disconnect();
-    }
-
-    let t3 = performance.now();
-    const keyQueryTime = (t3 - t0) / 1000;
-    const keyText =
-      keyQueryTime > 60
-        ? `${(keyQueryTime / 60).toFixed(1)} minutes`
-        : `${keyQueryTime.toFixed(1)} seconds`;
-
-    const totalKeys = pagedKeys.length;
-    debug(`Finished querying ${totalKeys} EVM.AccountCodes storage keys in ${keyText} ✅`);
-
-    count = 0;
-    t0 = performance.now();
-    loggingFrequency = 10;
-    t1 = t0;
-    loopCount = 0;
-
-    while (pagedKeys.length) {
-      const limiter = rateLimiter();
-      let batch = [];
-      for (let i = 0; i < limit && pagedKeys.length; i++) {
-        batch.push(pagedKeys.pop());
-      }
-      let returnedValues = (await limiter.schedule(() =>
-        context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
-      )) as any[];
-
-      const combined = returnedValues.map((value, index) => ({
-        value,
-        address: batch[index],
-      }));
-
-      for (let j = 0; j < combined.length; j++) {
-        totalContracts++;
-        const accountId = "0x" + combined[j].address.slice(-40);
-        const codesize = getBytecodeSize(combined[j].value.unwrap());
+    let total = 0;
+    await processAllStorage(context.polkadotApi, keyPrefix, blockHash, (items) => {
+      for (const item of items) {
+        const codesize = getBytecodeSize(hexToU8a(item.value));
         if (codesize > MAX_CONTRACT_SIZE_BYTES) {
+          const accountId = "0x" + item.key.slice(-40);
           failedContractCodes.push({ accountId, codesize });
         }
       }
-      count += batch.length;
-
-      if (count % (loggingFrequency * limit) === 0) {
-        const t2 = performance.now();
-        const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        const duration = t2 - t1;
-        const qps = (loggingFrequency * limit) / (duration / 1000);
-        debug(
-          `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
-            0
-          )} MB heap used, ${((count * 100) / totalKeys).toFixed(1)}% complete`
-        );
-        loopCount++;
-        t1 = t2;
-
-        // Increase logging threshold after 5 prints
-        if (loopCount % 5 === 0) {
-          loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-          debug(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-        }
-
-        // Print estimated time left every 10 prints
-        if (loopCount % 10 === 0) {
-          const timeLeft = (pagedKeys.length - count) / qps;
-          const text =
-            timeLeft < 60
-              ? `${timeLeft.toFixed(0)} seconds`
-              : `${(timeLeft / 60).toFixed(0)} minutes`;
-          debug(`⏲️  Estimated time left: ${text}`);
-        }
-      }
-      batch = null;
-      returnedValues = null;
-      await limiter.disconnect();
-    }
-
-    t3 = performance.now();
-    const checkTime = (t3 - t0) / 1000;
-    const text =
-      checkTime < 60 ? `${checkTime.toFixed(1)} seconds` : `${(checkTime / 60).toFixed(1)} minutes`;
-    debug(`Finished checking ${totalContracts} EVM.AccountCodes storage values in ${text} ✅`);
+      total += items.length;
+    });
+    debug(`Finished querying ${total} EVM.AccountCodes✅`);
   });
 
   testIt("C100", `should not have excessively long account codes`, function () {

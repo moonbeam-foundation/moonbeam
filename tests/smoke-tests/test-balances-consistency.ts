@@ -15,6 +15,7 @@ import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
 import { TWO_HOURS } from "../util/constants";
+import { queryUnorderedRawStorage } from "../util/storage";
 
 const debug = require("debug")("smoke:balances");
 
@@ -914,12 +915,12 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       for (let i = 0; i < pagedKeys.length; i += limit) {
         const batch = pagedKeys.slice(i, i + limit);
         (
-          (await limiter.schedule(() =>
-            context.polkadotApi.rpc.state.queryStorageAt(batch, blockHash)
-          )) as any
-        ).forEach((value, index) => {
-          const accountId = batch[index].slice(-40);
-          const accountInfo = value.toHex();
+          await limiter.schedule(() =>
+            queryUnorderedRawStorage(context.polkadotApi, batch, blockHash)
+          )
+        ).forEach(({ key, value }) => {
+          const accountId = key.slice(-40);
+          const accountInfo = value;
           const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
           const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
           totalIssuance += freeBal + reservedBalance;
