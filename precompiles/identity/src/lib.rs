@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use enumflags2::BitFlags;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::StaticLookup;
@@ -27,8 +28,8 @@ use precompile_utils::prelude::*;
 use sp_core::{ConstU32, H160, U256};
 use sp_std::marker::PhantomData;
 
-type BalanceOf<Runtime> = <<Runtime as pallet_identity::Config>::Currency as Currency<
-	<Runtime as frame_system::Config>::AccountId,
+type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
+	<T as frame_system::Config>::AccountId,
 >>::Balance;
 
 /// A precompile to wrap the functionality from pallet-identity
@@ -45,7 +46,7 @@ where
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
-	#[precompile::public("addRegistrar()")]
+	#[precompile::public("addRegistrar(address)")]
 	fn add_registrar(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult {
 		let account =
 			Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(account.0));
@@ -57,7 +58,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("setIdentity()")]
+	#[precompile::public("setIdentity((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
@@ -91,16 +92,77 @@ where
 	}
 
 	#[precompile::public("clear_identity()")]
-	fn clear_identity(handle: &mut impl PrecompileHandle, subs: Vec<(Address, Data)>) -> EvmResult {
-		let mut call_subs = vec![];
-		for (i, (addr, data)) in subs.into_iter().enumerate() {
-			let addr = Runtime::AddressMapping::into_account_id(addr.into());
-			let data: pallet_identity::Data = data
-				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("index {i}")))?;
-			call_subs.push((addr, data));
-		}
-		let call = pallet_identity::Call::<Runtime>::set_subs { subs: call_subs };
+	fn clear_identity(handle: &mut impl PrecompileHandle) -> EvmResult {
+		let call = pallet_identity::Call::<Runtime>::clear_identity {  };
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("requestJudgement(uint32,uint256)")]
+	fn request_judgement(handle: &mut impl PrecompileHandle, reg_index: u32, max_fee: U256) -> EvmResult {
+		let max_fee = max_fee.try_into().map_err(|_| RevertReason::value_is_too_large("max_fee"))?;
+		let call = pallet_identity::Call::<Runtime>::request_judgement {  
+			reg_index,
+			max_fee,
+		};
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("cancelRequest(uint32)")]
+	fn cancel_request(handle: &mut impl PrecompileHandle, reg_index: u32) -> EvmResult {
+		let call = pallet_identity::Call::<Runtime>::cancel_request {  
+			reg_index,
+		};
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("setFee(uint32,uint256)")]
+	fn set_fee(handle: &mut impl PrecompileHandle, index: u32, fee: U256) -> EvmResult {
+		let fee = fee.try_into().map_err(|_| RevertReason::value_is_too_large("fee"))?;
+		let call = pallet_identity::Call::<Runtime>::set_fee {  
+			index,
+			fee,
+		};
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("setAccountId(uint32,address)")]
+	fn set_account_id(handle: &mut impl PrecompileHandle, index: u32, new: Address) -> EvmResult {
+		let new = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(new.0));
+		let call = pallet_identity::Call::<Runtime>::set_account_id {  
+			index,
+			new,
+		};
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("setFields(uint32,uint64)")]
+	fn set_fields(handle: &mut impl PrecompileHandle, index: u32, fields: u64) -> EvmResult {
+		let bit_flags = BitFlags::<pallet_identity::IdentityField>::from_bits(fields).map_err(|_| RevertReason::custom("invalid flag").in_field("fields"))?;
+		let fields = pallet_identity::IdentityFields(bit_flags);
+		let call = pallet_identity::Call::<Runtime>::set_fields {  
+			index,
+			fields,
+		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -181,6 +243,7 @@ pub struct Data {
 	value: BoundedBytes<ConstU32<32>>,
 }
 
+// ((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))
 #[derive(Default, solidity::Codec)]
 pub struct IdentityInfo<FieldLimit> {
 	additional: BoundedVec<(Data, Data), FieldLimit>,
