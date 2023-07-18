@@ -107,14 +107,14 @@ describeSuite({
         const nonce = await context
           .viem("public")
           .getTransactionCount({ address: GOLIATH_ADDRESS });
-          
+
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
           nonce: nonce + 1,
           gasPrice: MIN_GAS_PRICE,
           privateKey: GOLIATH_PRIVATE_KEY,
         });
         await context.createBlock(tx1);
- 
+
         expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx1])
         ).rejects.toThrowError("already known");
