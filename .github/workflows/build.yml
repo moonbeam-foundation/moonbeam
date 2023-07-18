@@ -544,16 +544,20 @@ jobs:
           node-version: 18.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: test/runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Install and run upgrade test"
         run: |
           cd test
           pnpm i
-          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
+          pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:

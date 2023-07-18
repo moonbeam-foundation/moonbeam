@@ -1,7 +1,6 @@
 endpoint: wss://wss.api.moonbeam.network
 mock-signature-host: true
 db: ./tmp/db_mb.sqlite
-# block: 3280099
 
 import-storage:
   System:
