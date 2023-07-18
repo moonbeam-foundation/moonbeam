@@ -95,8 +95,10 @@ describeSuite({
       title: "should reflect balance identically on polkadot/web3",
       test: async function () {
         const balance = await context.polkadotJs().query.system.account(ALITH_ADDRESS);
-        expect(await checkBalance(context)).to.equal(
-          balance.data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+        expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).to.equal(
+          balance.data.free.toBigInt() +
+            balance.data.reserved.toBigInt() -
+            balance.data.frozen.toBigInt()
         );
       },
     });

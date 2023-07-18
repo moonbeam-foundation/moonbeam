@@ -70,7 +70,7 @@ describeSuite({
       id: "T02",
       title: "should correctly refund weight from excess gas_limit supplied",
       test: async function () {
-        const gasAmount = Math.floor(EXTRINSIC_GAS_LIMIT * 0.8);
+        const gasAmount = (EXTRINSIC_GAS_LIMIT * 8n) / 10n;
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, GLMR, {
           gas: BigInt(gasAmount),
           maxFeePerGas: 10_000_000_000n,

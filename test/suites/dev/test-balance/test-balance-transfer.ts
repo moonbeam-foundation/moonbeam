@@ -124,13 +124,14 @@ describeSuite({
         ).block.header.number.toBigInt();
 
         const block1Hash = await context.polkadotJs().rpc.chain.getBlockHash(blockNumber);
+        const balance = await (
+          await context.polkadotJs().at(block1Hash)
+        ).query.system.account(ALITH_ADDRESS);
 
-        expect(await checkBalance(context, ALITH_ADDRESS, blockNumber)).to.equal(
-          (
-            (await (
-              await context.polkadotJs().at(block1Hash)
-            ).query.system.account(ALITH_ADDRESS)) as any
-          ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+        expect(await context.viem().getBalance({ blockNumber, address: ALITH_ADDRESS })).to.equal(
+          balance.data.free.toBigInt() +
+            balance.data.reserved.toBigInt() -
+            balance.data.frozen.toBigInt()
         );
       },
     });
