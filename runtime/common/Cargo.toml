@@ -41,6 +41,7 @@ fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
 pallet-base-fee = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm-chain-id = { workspace = true }
 
 # Nimbus
 pallet-author-inherent = { workspace = true }

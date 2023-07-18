@@ -21,10 +21,11 @@
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
+	traits::{Get, Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
+use pallet_evm_chain_id::Config as EvmChainIdConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -101,6 +102,59 @@ where
 	}
 }
 
+pub struct EvmChainIdMigration<T>(PhantomData<T>);
+
+impl<T> Migration for EvmChainIdMigration<T>
+where
+	T: EvmChainIdConfig,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_EvmChainIdMigration"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		// Get the value of the chain Id from the storage.
+		let old_pallet_name = b"EthereumChainId";
+		let new_pallet_name = b"EvmChainId";
+		let storage_name = b"ChainId";
+
+		let weight = T::DbWeight::get().reads_writes(1, 2);
+		frame_support::migration::move_storage_from_pallet(
+			storage_name,
+			old_pallet_name,
+			new_pallet_name,
+		);
+
+		weight
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		let module = b"EthereumChainId";
+		let item = b"ChainId";
+
+		frame_support::migration::get_storage_value::<u64>(module, item, &[])
+			.map(|chain_id| chain_id.to_le_bytes().to_vec())
+			.ok_or("chain id not found")
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+		use pallet_evm_chain_id::ChainId;
+
+		let chain_id = ChainId::<T>::get();
+		let state = u64::from_le_bytes(state.try_into().unwrap());
+
+		if state == chain_id {
+			Ok(())
+		} else {
+			Err("chain id not equal")
+		}
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -116,6 +170,7 @@ where
 	Runtime: pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
+	Runtime: pallet_evm_chain_id::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -181,6 +236,7 @@ where
 		//	PalletAssetManagerMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let xcm_transactor_to_xcm_v3 =
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
+		let evm_chain_id_migration = EvmChainIdMigration::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -227,6 +283,7 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
+			Box::new(evm_chain_id_migration),
 		]
 	}
 }

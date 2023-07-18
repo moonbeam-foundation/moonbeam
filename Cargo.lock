@@ -6001,6 +6001,7 @@ dependencies = [
  "pallet-democracy",
  "pallet-ethereum-xcm",
  "pallet-evm",
+ "pallet-evm-chain-id",
  "pallet-migrations",
  "pallet-parachain-staking",
  "pallet-preimage",
