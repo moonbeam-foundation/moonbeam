@@ -18,7 +18,7 @@ runs:
         node-version: 18.x
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
-    
+
     - name: Setup Moonbeam PolkadotJS types
       shell: bash
       run: |
@@ -33,6 +33,7 @@ runs:
 
         cd ../test
         pnpm i ../typescript-api
+
     - name: "Install and run dev test"
       shell: bash
       env:
@@ -43,6 +44,7 @@ runs:
         cd test
         # pnpm i
         pnpm moonwall test ${{ inputs.moonwall_environment }}
+
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2
