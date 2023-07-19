@@ -43,6 +43,7 @@
       "name": "smoke_stagenet",
       "contracts": "contracts/",
       "testFileDir": ["/suites/smoke"],
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -69,6 +70,7 @@
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -95,6 +97,7 @@
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -121,6 +124,7 @@
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
