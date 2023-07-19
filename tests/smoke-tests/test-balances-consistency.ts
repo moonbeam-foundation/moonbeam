@@ -15,7 +15,7 @@ import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 import { rateLimiter } from "../util/common";
 import { TWO_HOURS } from "../util/constants";
-import { processAllStorage, queryUnorderedRawStorage } from "../util/storage";
+import { processAllStorage } from "../util/storage";
 
 const debug = require("debug")("smoke:balances");
 
