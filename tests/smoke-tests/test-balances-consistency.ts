@@ -101,7 +101,7 @@ describeSmokeSuite("S300", `Verifying balances consistency`, (context, testIt) =
       return;
     }
 
-    let tempRegister;
+    let tempRegister = {};
     Object.keys(newReserve).forEach((key) => {
       if (value.reserved[key]) {
         tempRegister = { [key]: value.reserved[key] + newReserve[key] };

@@ -1,17 +1,16 @@
 import { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../util/common";
 
-const debug = require("debug")("test:storage");
+const debug = require("debug")("smoke:storage-query");
 
 // Timer must be wrapped to be passed
-const startReport = (total: () => number): { timer: NodeJS.Timeout } => {
+const startReport = (total: () => number) => {
   let t0 = performance.now();
-  let t1 = t0;
-  let timer: NodeJS.Timeout = null;
+  let timer: NodeJS.Timeout = undefined;
 
   const report = () => {
-    const t2 = performance.now();
-    const duration = t2 - t1;
+    const t1 = performance.now();
+    const duration = t1 - t0;
     const qps = total() / (duration / 1000);
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     debug(`Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`);
@@ -19,7 +18,12 @@ const startReport = (total: () => number): { timer: NodeJS.Timeout } => {
     timer = setTimeout(report, 5000);
   };
   timer = setTimeout(report, 5000);
-  return { timer };
+
+  const stopReport = () => {
+    clearTimeout(timer);
+  };
+
+  return { stopReport };
 };
 
 export function splitPrefix(prefix: string) {
@@ -60,8 +64,7 @@ export async function concurrentGetKeys(api: ApiPromise, keyPrefix: string, bloc
       })
     )
   );
-  clearTimeout(report.timer);
-  await limiter.disconnect();
+  report.stopReport();
   return allKeys.flat().sort();
 }
 
@@ -75,10 +78,8 @@ export async function queryUnorderedRawStorage(
     value: string;
   }[]
 > {
-  const result = await (api as any)._rpcCore.provider.send("state_queryStorageAt", [
-    keys,
-    blockHash,
-  ]);
+  // @ts-expect-error _rpcCore is not yet exposed
+  const result = await api._rpcCore.provider.send("state_queryStorageAt", [keys, blockHash]);
 
   return result[0].changes.map((pair) => ({
     value: pair[1],
@@ -94,7 +95,6 @@ export async function processAllStorage(
 ) {
   const maxKeys = 1000;
   let total = 0;
-
   let prefixes = splitPrefix(storagePrefix);
   const limiter = rateLimiter();
   const report = startReport(() => total);
@@ -104,13 +104,15 @@ export async function processAllStorage(
       limiter.schedule(async () => {
         let startKey = null;
         while (true) {
-          const keys = await (api as any)._rpcCore.provider.send("state_getKeysPaged", [
+          // @ts-expect-error _rpcCore is not yet exposed
+          const keys = await api._rpcCore.provider.send("state_getKeysPaged", [
             prefix,
             maxKeys,
             startKey,
             blockHash,
           ]);
-          const response = await (api as any)._rpcCore.provider.send("state_queryStorageAt", [
+          // @ts-expect-error _rpcCore is not yet exposed
+          const response = await api._rpcCore.provider.send("state_queryStorageAt", [
             keys,
             blockHash,
           ]);
@@ -126,6 +128,5 @@ export async function processAllStorage(
       })
     )
   );
-  clearTimeout(report.timer);
-  await limiter.disconnect();
+  report.stopReport();
 }

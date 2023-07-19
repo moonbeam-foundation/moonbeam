@@ -10,7 +10,7 @@ const debug = require("debug")("smoke:ethereum-contract");
 
 describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (context, testIt) => {
   let atBlockNumber: number;
-  let totalContracts: bigint = 0n;
+  let total: bigint = 0n;
   const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
   before("Retrieve all contract bytecode", async function () {
@@ -38,7 +38,6 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
       u8aConcat(xxhashAsU8a("EVM", 128), xxhashAsU8a("AccountCodes", 128))
     );
 
-    let total = 0;
     await processAllStorage(context.polkadotApi, keyPrefix, blockHash, (items) => {
       for (const item of items) {
         const codesize = getBytecodeSize(hexToU8a(item.value));
@@ -47,7 +46,7 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
           failedContractCodes.push({ accountId, codesize });
         }
       }
-      total += items.length;
+      total += BigInt(items.length);
     });
     debug(`Finished querying ${total} EVM.AccountCodes✅`);
   });
@@ -60,6 +59,6 @@ describeSmokeSuite("S600", `Ethereum contract bytecode should not be large`, (co
         .join(`, `)}`
     ).to.equal(0);
 
-    debug(`Verified ${totalContracts} total account codes (at #${atBlockNumber})`);
+    debug(`Verified ${total} total account codes (at #${atBlockNumber})`);
   });
 });
