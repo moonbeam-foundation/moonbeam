@@ -88,7 +88,17 @@ export function expectSubstrateEvent<
       event = foundEvents[0];
     }
   }
-  expect(event).to.not.be.undefined;
+  expect(
+    event,
+    `Event ${section.toString()}.${method.toString()} not found:\n${(Array.isArray(block.result)
+      ? block.result.map((r) => r.events).flat()
+      : block.result
+      ? block.result.events
+      : []
+    )
+      .map(({ event }) => `       - ${event.section.toString()}.${event.method.toString()}\n`)
+      .join("")}`
+  ).to.not.be.undefined;
   return event!.event as any;
 }
 
