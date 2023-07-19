@@ -14,6 +14,7 @@ import { TWO_HOURS, extractPreimageDeposit, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
 import { rateLimiter } from "../../helpers/common.js";
 import { ApiPromise } from "@polkadot/api";
+import { processAllStorage } from "../../helpers/storageQueries.js";
 
 enum ReserveType {
   Treasury = "1",
@@ -866,122 +867,30 @@ describeSuite({
         expectedReserveMap.delete(key);
       };
 
-      const limit = 1000;
       const keyPrefix = u8aToHex(
         u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("Account", 128))
       );
-      const growthFactor = 1.5;
-      let last_key = keyPrefix;
-      let count = 0;
-      let loggingFrequency = 10;
-      let loopCount = 0;
 
+      const t0 = performance.now();
       if (process.env.ACCOUNT_ID) {
         const userId = process.env.ACCOUNT_ID;
         const user = await apiAt.query.system.account(userId);
         checkReservedBalance(userId, user.data.reserved.toBigInt());
         totalAccounts++;
       } else {
-        let pagedKeys = [];
-
-        let t0 = performance.now();
-        let t1 = t0;
-        keys: while (true) {
-          const queryResults = (
-            await limiter.schedule(() =>
-              paraApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
-            )
-          )
-            .map((key) => key.toHex())
-            .filter((key) => key.includes(keyPrefix));
-          pagedKeys.push(...queryResults);
-          count += queryResults.length;
-
-          if (queryResults.length === 0) {
-            break keys;
-          }
-          last_key = queryResults[queryResults.length - 1];
-
-          if (count % (limit * loggingFrequency) == 0) {
-            loopCount++;
-            const t2 = performance.now();
-            const duration = t2 - t1;
-            const qps = (limit * loggingFrequency) / (duration / 1000);
-            const used = process.memoryUsage().heapUsed / 1024 / 1024;
-            log(
-              `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
-            );
-
-            // Increase logging threshold after 5 prints
-            if (loopCount % 5 === 0) {
-              loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-              log(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-            }
-          }
-        }
-        let t3 = performance.now();
-        const keyQueryTime = (t3 - t0) / 1000;
-        const keyText =
-          keyQueryTime > 60
-            ? `${(keyQueryTime / 60).toFixed(1)} minutes`
-            : `${keyQueryTime.toFixed(1)} seconds`;
-        log(`Finished querying ${pagedKeys.length} System.Account storage keys in ${keyText} ✅`);
-
-        count = 0;
-        t0 = performance.now();
-        loggingFrequency = 10;
-        t1 = t0;
-        loopCount = 0;
-
-        for (let i = 0; i < pagedKeys.length; i += limit) {
-          const batch = pagedKeys.slice(i, i + limit);
-          (
-            (await limiter.schedule(() =>
-              paraApi.rpc.state.queryStorageAt(batch, blockHash)
-            )) as any
-          ).forEach((value: { toHex: () => any }, index: number) => {
-            const accountId = batch[index].slice(-40);
-            const accountInfo = value.toHex();
+        await processAllStorage(paraApi, keyPrefix, blockHash, (items) => {
+          for (const { key, value } of items) {
+            const accountId = key.slice(-40);
+            const accountInfo = value;
             const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
             const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
             totalIssuance += freeBal + reservedBalance;
             totalAccounts++;
             checkReservedBalance(accountId, reservedBalance);
-          });
-          count += batch.length;
-
-          if (count % (loggingFrequency * limit) === 0) {
-            const t2 = performance.now();
-            const used = process.memoryUsage().heapUsed / 1024 / 1024;
-            const duration = t2 - t1;
-            const qps = (loggingFrequency * limit) / (duration / 1000);
-            log(
-              `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
-                0
-              )} MB heap used, ${((count * 100) / pagedKeys.length).toFixed(1)}% complete`
-            );
-            loopCount++;
-            t1 = t2;
-
-            // Increase logging threshold after 5 prints
-            if (loopCount % 5 === 0) {
-              loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-              log(`⏫ Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-            }
-
-            // Print estimated time left every 10 prints
-            if (loopCount % 10 === 0) {
-              const timeLeft = (pagedKeys.length - count) / qps;
-              const text =
-                timeLeft < 60
-                  ? `${timeLeft.toFixed(0)} seconds`
-                  : `${(timeLeft / 60).toFixed(0)} minutes`;
-              log(`⏲️  Estimated time left: ${text}`);
-            }
           }
-        }
-        t3 = performance.now();
-        const checkTime = (t3 - t0) / 1000;
+        });
+        const t1 = performance.now();
+        const checkTime = (t1 - t0) / 1000;
         const text =
           checkTime < 60
             ? `${checkTime.toFixed(1)} seconds`
