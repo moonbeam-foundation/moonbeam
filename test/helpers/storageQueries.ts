@@ -13,7 +13,8 @@ const startReport = (total: () => number) => {
     const qps = total() / (duration / 1000);
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     log(
-      `🔍️ Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
+      `🔍️ Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec,` +
+        ` ${used.toFixed(0)} MB heap used\n`
     );
 
     timer = setTimeout(report, 5000);
