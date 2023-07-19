@@ -145,7 +145,7 @@ where
 		use pallet_evm_chain_id::ChainId;
 
 		let chain_id = ChainId::<T>::get();
-		let state = u64::from_le_bytes(state.try_into().unwrap());
+		let state = u64::from_le_bytes(state.try_into().expect("chain id should be 8 bytes"));
 
 		if state == chain_id {
 			Ok(())
