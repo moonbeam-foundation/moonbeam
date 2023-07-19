@@ -49,11 +49,19 @@ export async function processAllStorage(
         limiter.schedule(async () => {
           let startKey = null;
           while (true) {
-            const keys: string = await api._rpcCore.provider // @ts-expect-error _rpcCore is not yet exposed
-              .send("state_getKeysPaged", [prefix, maxKeys, startKey, blockHash]);
+            // @ts-expect-error _rpcCore is not yet exposed
+            const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
+              prefix,
+              maxKeys,
+              startKey,
+              blockHash,
+            ]);
 
-            const response = await api._rpcCore.provider // @ts-expect-error _rpcCore is not yet exposed
-              .send("state_queryStorageAt", [keys, blockHash]);
+            // @ts-expect-error _rpcCore is not yet exposed
+            const response = await api._rpcCore.provider.send("state_queryStorageAt", [
+              keys,
+              blockHash,
+            ]);
 
             if (!response[0]) {
               console.log(response);
