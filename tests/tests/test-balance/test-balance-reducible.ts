@@ -65,11 +65,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     );
 
     expect(await context.web3.eth.getBalance(alith.address)).to.equal(
-      (
-        BigInt(beforeBalance) -
-        BigInt(existentialDeposit) -
-        BigInt(fee)
-      ).toString()
+      (BigInt(beforeBalance) - BigInt(existentialDeposit) - BigInt(fee)).toString()
     );
   });
 });

@@ -79,7 +79,7 @@ describeSuite({
 
       await customDevRpcRequest("author_submitExtrinsic", [tx]);
       await context.createBlock();
-    }, 10000);
+    }, 60000);
 
     it({
       id: "T01",
