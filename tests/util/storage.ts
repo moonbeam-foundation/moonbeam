@@ -23,7 +23,7 @@ const startReport = (total: () => number) => {
     clearTimeout(timer);
   };
 
-  return { stopReport };
+  return stopReport;
 };
 
 export function splitPrefix(prefix: string) {
@@ -38,34 +38,37 @@ export async function concurrentGetKeys(api: ApiPromise, keyPrefix: string, bloc
 
   let prefixes = splitPrefix(keyPrefix);
   const limiter = rateLimiter();
-  const report = startReport(() => total);
+  const stopReport = startReport(() => total);
 
-  const allKeys = await Promise.all(
-    prefixes.map(async (prefix) =>
-      limiter.schedule(async () => {
-        let keys = [];
-        let startKey = null;
-        while (true) {
-          const result = await (api as any)._rpcCore.provider.send("state_getKeysPaged", [
-            prefix,
-            maxKeys,
-            startKey,
-            blockHash,
-          ]);
-          total += result.length;
-          keys.push(...result);
-          if (result.length != maxKeys) {
-            break;
+  try {
+    const allKeys = await Promise.all(
+      prefixes.map(async (prefix) =>
+        limiter.schedule(async () => {
+          let keys = [];
+          let startKey = null;
+          while (true) {
+            const result = await (api as any)._rpcCore.provider.send("state_getKeysPaged", [
+              prefix,
+              maxKeys,
+              startKey,
+              blockHash,
+            ]);
+            total += result.length;
+            keys.push(...result);
+            if (result.length != maxKeys) {
+              break;
+            }
+            startKey = result[result.length - 1];
           }
-          startKey = result[result.length - 1];
-        }
-        global.gc();
-        return keys;
-      })
-    )
-  );
-  report.stopReport();
-  return allKeys.flat().sort();
+          global.gc();
+          return keys;
+        })
+      )
+    );
+    return allKeys.flat().sort();
+  } finally {
+    stopReport();
+  }
 }
 
 export async function queryUnorderedRawStorage(
@@ -97,36 +100,44 @@ export async function processAllStorage(
   let total = 0;
   let prefixes = splitPrefix(storagePrefix);
   const limiter = rateLimiter();
-  const report = startReport(() => total);
+  const stopReport = startReport(() => total);
 
-  await Promise.all(
-    prefixes.map(async (prefix) =>
-      limiter.schedule(async () => {
-        let startKey = null;
-        while (true) {
-          // @ts-expect-error _rpcCore is not yet exposed
-          const keys = await api._rpcCore.provider.send("state_getKeysPaged", [
-            prefix,
-            maxKeys,
-            startKey,
-            blockHash,
-          ]);
-          // @ts-expect-error _rpcCore is not yet exposed
-          const response = await api._rpcCore.provider.send("state_queryStorageAt", [
-            keys,
-            blockHash,
-          ]);
+  try {
+    await Promise.all(
+      prefixes.map(async (prefix) =>
+        limiter.schedule(async () => {
+          let startKey = null;
+          while (true) {
+            // @ts-expect-error _rpcCore is not yet exposed
+            const keys = await api._rpcCore.provider.send("state_getKeysPaged", [
+              prefix,
+              maxKeys,
+              startKey,
+              blockHash,
+            ]);
+            // @ts-expect-error _rpcCore is not yet exposed
+            const response = await api._rpcCore.provider.send("state_queryStorageAt", [
+              keys,
+              blockHash,
+            ]);
 
-          processor(response[0].changes.map((pair) => ({ key: pair[0], value: pair[1] })));
-          total += keys.length;
+            if (!response[0]) {
+              console.log(response);
+            }
 
-          if (keys.length != maxKeys) {
-            break;
+            processor(response[0].changes.map((pair) => ({ key: pair[0], value: pair[1] })));
+            total += keys.length;
+
+            if (keys.length != maxKeys) {
+              break;
+            }
+            startKey = keys[keys.length - 1];
           }
-          startKey = keys[keys.length - 1];
-        }
-      })
-    )
-  );
-  report.stopReport();
+        })
+      )
+    );
+  } finally {
+    stopReport();
+  }
+  await limiter.disconnect();
 }
