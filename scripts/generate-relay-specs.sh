@@ -10,7 +10,7 @@ fi
 echo "Using Polkadot revision #${POLKADOT_VERSION}"
 
 echo "=================== Rococo-Local ==================="
-docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
+docker run -it -v $(pwd)/build:/build moonbeamfoundation/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
       --chain rococo-local \

@@ -2,7 +2,7 @@
 
 POLKADOT_REPO=${POLKADOT_REPO:-$(egrep -o 'https.*/polkadot' ../Cargo.lock | head -1)}
 POLKADOT_COMMIT=${POLKADOT_COMMIT:-$(egrep -o '/polkadot.*#([^\"]*)' ../Cargo.lock | head -1 | sed 's/.*#//' |  cut -c1-8)}
-DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+DOCKER_TAG="moonbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
 mkdir -p binaries
 export RELAY_BINARY_PATH="binaries/polkadot-$POLKADOT_COMMIT"

@@ -22,7 +22,7 @@ REPOS=(
 )
 
 for REPO in ${REPOS[@]}; do
-  git clone --depth 1 git@github.com:purestake/$REPO.git -b $BASE_BRANCH
+  git clone --depth 1 git@github.com:moonbeam-foundation/$REPO.git -b $BASE_BRANCH
   cd $REPO
   git checkout -b $NEW_BRANCH
   find . -name "Cargo.toml" -exec sed -i "s/\"$BASE_BRANCH\"/\"$NEW_BRANCH\"/g" {} \;

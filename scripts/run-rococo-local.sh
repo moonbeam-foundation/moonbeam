@@ -53,7 +53,7 @@ docker run \
   -p $RELAY_PORT:$RELAY_PORT \
   -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
   -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
-  -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
+  -it moonbeamfoundation/moonbase-relay-testnet:$POLKADOT_VERSION \
     /usr/local/bin/polkadot \
       --chain rococo-local \
       --${WELL_KNOWN_USERS[$RELAY_INDEX]} \

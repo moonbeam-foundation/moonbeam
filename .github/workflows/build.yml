@@ -94,7 +94,7 @@ jobs:
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker image inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          echo "image_exists=$(docker image inspect moonbeamfoundation/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -251,14 +251,14 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository
         uses: docker/login-action@v2.2.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
           registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="mounbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
           POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
@@ -271,13 +271,13 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="docker.io/mounbeamfoundation/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
           POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
-            MOONBEAM_DOCKER_TAG="docker.io/purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            MOONBEAM_DOCKER_TAG="docker.io/mounbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             # Clear the dummy container if it wasn't properly cleaned up
             docker rm -f dummy 2> /dev/null | true
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
@@ -486,7 +486,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
           TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
@@ -501,8 +501,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2.2.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
       - name: Build and push moonbeam
         id: docker_build
         uses: docker/build-push-action@v4
@@ -520,6 +520,16 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Tag it with purestake for 6 month
+        run: |
+          PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
+          docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
+          docker push $PURESTAKE_TAG
 
   chopsticks-upgrade-test:
     runs-on:
@@ -605,7 +615,7 @@ jobs:
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
+          DOCKER_TAG="mounbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
 
           docker rm -f moonbeam_container 2> /dev/null | true
           docker create --name moonbeam_container $DOCKER_TAG bash
