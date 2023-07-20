@@ -536,6 +536,7 @@ jobs:
       - name: Tag it with purestake for 6 month
         run: |
           PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
+          docker pull ${{ steps.prep.outputs.tags }}
           docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
           docker push $PURESTAKE_TAG
 

@@ -23,7 +23,6 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
-      image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
       polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
@@ -75,13 +74,11 @@ jobs:
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker image inspect mounbeamfoundation/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
           echo sha: ${{ steps.get-sha.outputs.sha }}
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
-          echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
 
