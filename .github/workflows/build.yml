@@ -273,7 +273,7 @@ jobs:
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
-          POLKADOT_EXISTS=$(docker buildx imagetools inspect --raw $DOCKER_TAG > /dev/null && \
+          POLKADOT_EXISTS=$(docker buildx imagetools inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
