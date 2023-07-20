@@ -1,9 +1,9 @@
 # ![Moonbeam](media/moonbeam-cover.jpg)
 
 
-# ⚠️ Moonbeam repository moving ⚠️ 
+# ⚠️ Moonbeam new github organization ⚠️ 
 
-Moonbeam repository will soon (within a week) migrate to the Moonbeam Foundation organization:  
+Moonbeam repository has been migrated from purestake to the Moonbeam Foundation organization:  
 https://github.com/moonbeam-foundation/moonbeam
 
 Github references/cloning as well as cargo build will keep working as expected. It is however
