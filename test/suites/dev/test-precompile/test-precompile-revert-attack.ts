@@ -39,7 +39,7 @@ describeSuite({
 
         const nominatorsAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegatorState(alith.address);
+          .query.parachainStaking.delegatorState(ALITH_ADDRESS);
         expect(nominatorsAfter.isEmpty, "Delegation shouldn't have passed").toBe(true);
 
         expect(

@@ -12,7 +12,6 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { getAuthorMappingInfo } from "../../../helpers/precompiles.js";
 
-
 describeSuite({
   id: "D2540",
   title: "Proxy : Author Mapping - simple association",

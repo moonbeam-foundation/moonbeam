@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
+  ALITH_ADDRESS,
   ALITH_SESSION_ADDRESS,
   baltathar,
   BALTATHAR_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
 } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../helpers/common.js";
 
@@ -36,8 +36,8 @@ describeSuite({
         ).partialFee.toBigInt();
 
         const { result } = await context.createBlock(
-          api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS).signAsync(baltathar),
-          { allowFailures: true }
+          api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS),
+          { allowFailures: true, signer: baltathar }
         );
 
         // should check events for failure
@@ -55,7 +55,7 @@ describeSuite({
           0n
         );
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
       },
     });
@@ -68,17 +68,15 @@ describeSuite({
           api.tx.authorMapping.addAssociation(CHARLETH_SESSION_ADDRESS).signAsync(baltathar)
         );
         const { result } = await context.createBlock(
-          api.tx.authorMapping
-            .updateAssociation(CHARLETH_SESSION_ADDRESS, ALITH_SESSION_ADDRESS)
-            .signAsync(baltathar),
-          { allowFailures: true }
+          api.tx.authorMapping.updateAssociation(CHARLETH_SESSION_ADDRESS, ALITH_SESSION_ADDRESS),
+          { allowFailures: true, signer: baltathar }
         );
 
         expect(result!.error!.name).to.equal("AlreadyAssociated");
 
         //check state
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
       },
     });

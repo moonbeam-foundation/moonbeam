@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { decodeEventLog } from "viem";
@@ -16,7 +16,7 @@ describeSuite({
 
     beforeEach(async function () {
       let nonce = (
-        await context.polkadotJs().rpc.system.accountNextIndex(alith.address)
+        await context.polkadotJs().rpc.system.accountNextIndex(ALITH_ADDRESS)
       ).toNumber();
       const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
       const block = await context.createBlock([

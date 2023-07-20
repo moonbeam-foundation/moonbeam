@@ -89,8 +89,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - fees
     );
     await verifyLatestBlockFees(context, amountTransferred);
   });
@@ -158,8 +158,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - BigInt(fee) - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - BigInt(fee) - fees
     );
     await verifyLatestBlockFees(context, BigInt(amountTransferred + fee));
   });
@@ -238,8 +238,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - fees
     );
     await verifyLatestBlockFees(context, amountTransferred);
   });
@@ -324,8 +324,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - BigInt(fee) - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - BigInt(fee) - fees
     );
     await verifyLatestBlockFees(context, amountTransferred + fee);
   });
@@ -391,8 +391,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(gasPrice);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - fees
     );
     await verifyLatestBlockFees(context, amountTransferred);
   });
@@ -473,8 +473,8 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - amountTransferred - fees
+    expect(await getBalance(context, 2, ALITH_ADDRESS)).to.equal(
+      (await getBalance(context, 1, ALITH_ADDRESS)) - amountTransferred - fees
     );
     await verifyLatestBlockFees(context, amountTransferred);
   });

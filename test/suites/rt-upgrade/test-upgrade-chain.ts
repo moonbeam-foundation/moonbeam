@@ -18,7 +18,7 @@ describeSuite({
       const rtBefore = api.consts.system.version.specVersion.toNumber();
       log(`About to upgrade to runtime at:`);
       log(MoonwallContext.getContext().rtUpgradePath);
-      
+
       await context.upgradeRuntime(context);
 
       const rtafter = api.consts.system.version.specVersion.toNumber();

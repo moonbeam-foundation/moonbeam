@@ -61,7 +61,7 @@ describeSuite({
         assetDetails,
         alith,
         assetId,
-        alith.address,
+        ALITH_ADDRESS,
         true
       );
     });
@@ -95,7 +95,7 @@ describeSuite({
           .query.assets.approvals(assetId.toU8a(), ALITH_ADDRESS, erc20InstanceAddress);
 
         expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
-        // We are gonna spend 1000 from alith.address to send it to charleth from contract address
+        // We are gonna spend 1000 from ALITH_ADDRESS to send it to charleth from contract address
         // even if Bob calls, msg.sender will become the contract with regular calls
         const blockBaltathar = await context.createBlock(
           createViemTransaction(context, {

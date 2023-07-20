@@ -16,8 +16,8 @@ export type Errors = {
   Fatal: EvmCoreErrorExitFatal["type"];
 };
 
-export async function extractRevertReason(responseHash: string, ethers:Signer) {
-  const tx = (await ethers.provider!.getTransaction(responseHash))!
+export async function extractRevertReason(responseHash: string, ethers: Signer) {
+  const tx = (await ethers.provider!.getTransaction(responseHash))!;
   try {
     await ethers.call({ to: tx.to, data: tx.data, gasLimit: tx.gasLimit });
     return null;

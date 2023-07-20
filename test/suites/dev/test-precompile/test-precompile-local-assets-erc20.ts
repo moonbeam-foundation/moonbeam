@@ -1,10 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeEach,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect
-} from "@moonwall/cli";
+import { beforeEach, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_PRIVATE_KEY,
@@ -688,7 +683,7 @@ describeSuite({
         await context.createBlock(
           await context
             .polkadotJs()
-            .tx.localAssets.freeze(assetId, alith.address)
+            .tx.localAssets.freeze(assetId, ALITH_ADDRESS)
             .signAsync(baltathar)
         );
 
@@ -708,7 +703,7 @@ describeSuite({
 
         expect(receipt.status).to.equal("success");
 
-        const frozen = await context.polkadotJs().query.localAssets.account(assetId, alith.address);
+        const frozen = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
         expect(frozen.unwrap().isFrozen.isFalse).to.be.true;
       },
     });
@@ -805,7 +800,7 @@ describeSuite({
         const registeredAsset = (
           await context.polkadotJs().query.localAssets.asset(assetId)
         ).unwrap();
-        expect(registeredAsset.owner.toHex()).to.eq(alith.address.toLowerCase());
+        expect(registeredAsset.owner.toHex()).to.eq(ALITH_ADDRESS.toLowerCase());
       },
     });
 
@@ -836,9 +831,9 @@ describeSuite({
           await context.polkadotJs().query.localAssets.asset(assetId)
         ).unwrap();
 
-        expect(registeredAsset.admin.toHex()).to.eq(alith.address.toLowerCase());
-        expect(registeredAsset.freezer.toHex()).to.eq(alith.address.toLowerCase());
-        expect(registeredAsset.issuer.toHex()).to.eq(alith.address.toLowerCase());
+        expect(registeredAsset.admin.toHex()).to.eq(ALITH_ADDRESS.toLowerCase());
+        expect(registeredAsset.freezer.toHex()).to.eq(ALITH_ADDRESS.toLowerCase());
+        expect(registeredAsset.issuer.toHex()).to.eq(ALITH_ADDRESS.toLowerCase());
       },
     });
 

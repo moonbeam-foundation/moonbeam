@@ -5,7 +5,7 @@ import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  DOROTHY_ADDRESS
+  DOROTHY_ADDRESS,
 } from "@moonwall/util";
 import { setupPoolWithParticipants } from "../../../helpers/precompiles.js";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";

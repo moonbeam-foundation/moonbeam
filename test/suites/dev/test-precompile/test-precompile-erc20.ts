@@ -160,22 +160,18 @@ describeSuite({
           rawTxOnly: true,
         });
         const { result } = await context.createBlock(rawTx);
-        const { status, gasUsed , } = await context
+        const { status, gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
         expect(status).to.equal("success");
 
         const balanceAfter = await context.viem().getBalance({ address: BALTATHAR_ADDRESS });
-        const block = (
-          await context.viem().getBlock()
-        )
-        const fees = gasUsed * block.baseFeePerGas!
+        const block = await context.viem().getBlock();
+        const fees = gasUsed * block.baseFeePerGas!;
         expect(balanceAfter).toBeLessThanOrEqual(balanceBefore - parseEther("3") - fees);
-        expect(
-          await context
-            .viem()
-            .getBalance({ address: randomAccount.address })
-        ).to.equal(parseEther("3"));
+        expect(await context.viem().getBalance({ address: randomAccount.address })).to.equal(
+          parseEther("3")
+        );
       },
     });
 

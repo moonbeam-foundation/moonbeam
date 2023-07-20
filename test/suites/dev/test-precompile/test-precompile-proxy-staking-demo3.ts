@@ -8,7 +8,7 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
   MIN_GLMR_STAKING,
-  ethan
+  ethan,
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { setupWithParticipants } from "../../../helpers/precompiles.js";

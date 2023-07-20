@@ -4,7 +4,7 @@ import {
   ALITH_ADDRESS,
   PRECOMPILE_DEMOCRACY_ADDRESS,
   PROPOSAL_AMOUNT,
-  createViemTransaction
+  createViemTransaction,
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";

@@ -780,7 +780,7 @@ describeSuite({
           contractName: "PairingChecker",
           functionName: "callBn256Pairing",
           args: [u8aToHex(byteArray)],
-          gas:1_000_000n
+          gas: 1_000_000n,
         });
         await context.createBlock();
 

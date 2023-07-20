@@ -7,6 +7,7 @@ import {
   expect,
 } from "@moonwall/cli";
 import {
+  ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   alith,
@@ -67,7 +68,7 @@ describeSuite({
         assetDetails,
         alith,
         assetId,
-        alith.address,
+        ALITH_ADDRESS,
         true
       );
     });
@@ -79,7 +80,7 @@ describeSuite({
       title: "can make static calls to view functions",
       test: async function () {
         const callResult = await context.viem().call({
-          account: alith.address,
+          account: ALITH_ADDRESS,
           to: contractInstanceAddress,
           data: encodeFunctionData({
             abi: contractAbi,

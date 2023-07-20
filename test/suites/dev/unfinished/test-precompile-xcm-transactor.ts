@@ -34,7 +34,7 @@ const XCM_TRANSACTOR_INTERFACE_V2 = new ethers.utils.Interface(
 const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
-      context.polkadotApi.tx.xcmTransactor.register(alith.address, 0)
+      context.polkadotApi.tx.xcmTransactor.register(ALITH_ADDRESS, 0)
     )
   );
 
@@ -62,7 +62,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
 const registerXcmTransactorDerivativeIndex = async (context: DevTestContext) => {
   await context.createBlock(
     context.polkadotApi.tx.sudo.sudo(
-      context.polkadotApi.tx.xcmTransactor.register(alith.address, 0)
+      context.polkadotApi.tx.xcmTransactor.register(ALITH_ADDRESS, 0)
     )
   );
 };
@@ -129,13 +129,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       assetDetails,
       alith,
       assetId,
-      alith.address,
+      ALITH_ADDRESS,
       true
     );
 
     const beforeAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
     const beforeAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
 
@@ -174,7 +174,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // balance and supply should have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const expectedBalance = 100000000000000n - 1000n - 1n;
@@ -223,13 +223,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       assetDetails,
       alith,
       assetId,
-      alith.address,
+      ALITH_ADDRESS,
       true
     );
 
     const beforeAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const beforeAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
@@ -264,7 +264,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const expectedBalance = 100000000000000n - 1000n - 1n;
@@ -561,13 +561,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       assetDetails,
       alith,
       assetId,
-      alith.address,
+      ALITH_ADDRESS,
       true
     );
 
     const beforeAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
     const beforeAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
 
@@ -620,7 +620,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const expectedBalance = 100000000000000n - 1000n;
@@ -677,13 +677,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       assetDetails,
       alith,
       assetId,
-      alith.address,
+      ALITH_ADDRESS,
       true
     );
 
     const beforeAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const beforeAssetDetails = await context.polkadotApi.query.assets.asset(assetId.toU8a());
@@ -726,7 +726,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // balance and supply should have changed
     const afterAssetBalance = await context.polkadotApi.query.assets.account(
       assetId.toU8a(),
-      alith.address
+      ALITH_ADDRESS
     );
 
     const expectedBalance = 100000000000000n - 1000n;

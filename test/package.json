@@ -38,6 +38,9 @@
   },
   "dependencies": {
     "@acala-network/chopsticks": "^0.6.6",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
+    "@ethersproject/signing-key": "^5.7.0",
     "@openzeppelin/contracts": "^4.9.2",
     "@polkadot/api-derive": "^10.9.1",
     "@polkadot/apps-config": "^0.132.1",
@@ -58,6 +61,7 @@
     "solc": "0.8.19",
     "tsx": "^3.12.7",
     "viem": "^1.2.12",
-    "vitest": "^0.31.4"
+    "vitest": "^0.31.4",
+    "web3-eth-abi": "^1.9.0"
   }
 }

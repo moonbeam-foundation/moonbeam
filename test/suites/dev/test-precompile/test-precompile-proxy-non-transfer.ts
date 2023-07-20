@@ -12,7 +12,7 @@ import {
   DOROTHY_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
-  createViemTransaction
+  createViemTransaction,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";

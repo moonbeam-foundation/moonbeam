@@ -1,11 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  BALTATHAR_ADDRESS,
-  CHARLETH_ADDRESS,
-  DOROTHY_ADDRESS,
-  GLMR
-} from "@moonwall/util";
+import { BALTATHAR_ADDRESS, CHARLETH_ADDRESS, DOROTHY_ADDRESS, GLMR } from "@moonwall/util";
 import { setupPoolWithParticipants } from "../../../helpers/precompiles.js";
 
 describeSuite({

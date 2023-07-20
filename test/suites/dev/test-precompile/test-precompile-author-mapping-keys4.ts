@@ -6,7 +6,11 @@ import {
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   getBlockExtrinsic,
 } from "@moonwall/util";
-import { concatOriginalKeys, originalKeys, setKeysThroughPrecompile } from "../../../helpers/precompiles.js";
+import {
+  concatOriginalKeys,
+  originalKeys,
+  setKeysThroughPrecompile,
+} from "../../../helpers/precompiles.js";
 import { sendPrecompileTx } from "../../../helpers/transactions.js";
 
 const SELECTORS = {
@@ -19,7 +23,6 @@ describeSuite({
   title: "Precompile Author Mapping - Remove Faith keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     beforeAll(async function () {
       await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);
       // Remove the keys

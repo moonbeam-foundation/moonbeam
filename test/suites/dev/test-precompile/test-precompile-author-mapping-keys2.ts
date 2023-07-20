@@ -1,22 +1,17 @@
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
 import {
-  beforeAll,
-  describeSuite,
-  expect
-} from "@moonwall/cli";
-import {
-  FAITH_ADDRESS,
-  FAITH_PRIVATE_KEY,
-  getBlockExtrinsic
-} from "@moonwall/util";
-import { concatOriginalKeys, originalKeys, setKeysThroughPrecompile } from "../../../helpers/precompiles.js";
+  concatOriginalKeys,
+  originalKeys,
+  setKeysThroughPrecompile,
+} from "../../../helpers/precompiles.js";
 
 describeSuite({
   id: "D2510",
   title: "Precompile Author Mapping - Update Faith mapping to the same keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     beforeAll(async function () {
       log(`Setting account ${FAITH_ADDRESS} keys: ${concatOriginalKeys}`);
       await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);

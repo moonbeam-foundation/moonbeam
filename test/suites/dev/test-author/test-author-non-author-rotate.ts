@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
+  ALITH_ADDRESS,
   baltathar,
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
 } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../helpers/common.js";
 
@@ -26,17 +26,18 @@ describeSuite({
       test: async function () {
         await context.createBlock(api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS));
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
 
         await context.createBlock(
-          api.tx.authorMapping
-            .updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
-            .signAsync(baltathar),
-          { allowFailures: true }
+          api.tx.authorMapping.updateAssociation(
+            BALTATHAR_SESSION_ADDRESS,
+            CHARLETH_SESSION_ADDRESS
+          ),
+          { allowFailures: true, signer: baltathar }
         );
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
         expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
 

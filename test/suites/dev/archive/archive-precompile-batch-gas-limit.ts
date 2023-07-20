@@ -27,7 +27,7 @@ describeSuite({
         // // each tx have a different gas limit to ensure it doesn't impact gas used
         // let batchAllTx = await context.web3.eth.accounts.signTransaction(
         //   {
-        //     from: alith.address,
+        //     from: ALITH_ADDRESS,
         //     to: PRECOMPILE_BATCH_ADDRESS,
         //     gas: "0x110000",
         //     value: "0x00",

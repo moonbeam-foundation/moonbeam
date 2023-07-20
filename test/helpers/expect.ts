@@ -67,7 +67,10 @@ export function expectSubstrateEvent<
         ({ event }) => event.section.toString() == section && event.method.toString() == method
       );
       if (foundEvents.length > 0) {
-        expect(event, `Event ${section.toString()}.${method.toString()} appeared multiple times`).toBeUndefined();
+        expect(
+          event,
+          `Event ${section.toString()}.${method.toString()} appeared multiple times`
+        ).toBeUndefined();
         expect(
           foundEvents,
           `Event ${section.toString()}.${method.toString()} appeared multiple times`

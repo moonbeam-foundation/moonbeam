@@ -61,7 +61,7 @@ describeSuite({
           log("New runtime hash: " + codeString.slice(0, 10) + "..." + codeString.slice(-10));
         }
 
-        await context.upgradeRuntime({ logger: log});
+        await context.upgradeRuntime({ logger: log });
         await context.waitBlock(2);
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
@@ -82,7 +82,7 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        context.waitBlock(5)
+        context.waitBlock(5);
 
         await new Promise((resolve) => {
           paraApi.tx.balances

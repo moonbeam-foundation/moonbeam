@@ -12,7 +12,6 @@ describeSuite({
       id: "T01",
       title: "should be valid",
       test: async function () {
-
         expect(
           (
             await context.viem().call({

@@ -15,7 +15,7 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
   PRECOMPILES,
-  VOTE_AMOUNT
+  VOTE_AMOUNT,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
@@ -62,13 +62,13 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTx);
 
-        log("Dorothy add proxy right to ethan for governance only")
+        log("Dorothy add proxy right to ethan for governance only");
         expectEVMResult(result!.events, "Succeed");
 
         const dorothyPreBalance = (
           await context.polkadotJs().query.system.account(DOROTHY_ADDRESS)
         ).data.free.toBigInt();
-        
+
         const { abi } = fetchCompiledContract("Democracy");
         const rawTx2 = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -86,7 +86,7 @@ describeSuite({
           privateKey: ETHAN_PRIVATE_KEY,
         });
         const { result: result2 } = await context.createBlock(rawTx2);
-        log("Ethan vote as Dorothy")
+        log("Ethan vote as Dorothy");
         expectEVMResult(result2!.events, "Succeed");
 
         // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens

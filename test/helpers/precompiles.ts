@@ -86,7 +86,7 @@ export const notePreimagePrecompile = async <
 export async function getAuthorMappingInfo(
   context: DevModeContext,
   authorId: string
-): Promise<void|{ account: string; deposit: BigInt }> {
+): Promise<void | { account: string; deposit: BigInt }> {
   const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
