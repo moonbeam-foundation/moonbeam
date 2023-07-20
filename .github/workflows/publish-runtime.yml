@@ -48,7 +48,7 @@ jobs:
         if: github.repository == 'moonbeam-foundation/moonbeam'
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - name: Download original scripts
         uses: actions/download-artifact@v3

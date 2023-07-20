@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
+      debug: ${{ steps.check-git-ref.outputs.debug }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
@@ -52,6 +53,7 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
+          echo "debug=true" >> $GITHUB_OUTPUT
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
@@ -254,7 +256,7 @@ jobs:
         uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
@@ -340,6 +342,7 @@ jobs:
           path: build
 
   build-features:
+    if: needs.set-tags.outputs.debug == 'false'
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
@@ -359,6 +362,7 @@ jobs:
           path: build
 
   rust-test:
+    if: needs.set-tags.outputs.debug == 'false'
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
@@ -504,7 +508,7 @@ jobs:
         uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
         uses: docker/build-push-action@v4
@@ -534,6 +538,7 @@ jobs:
           docker push $PURESTAKE_TAG
 
   chopsticks-upgrade-test:
+    if: needs.set-tags.outputs.debug == 'false'
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -568,6 +573,7 @@ jobs:
           pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
 
   zombie_upgrade_test:
+    if: needs.set-tags.outputs.debug == 'false'
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]

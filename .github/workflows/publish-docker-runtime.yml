@@ -19,7 +19,7 @@ jobs:
         uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_TOKEN }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Publish runtime docker image
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
