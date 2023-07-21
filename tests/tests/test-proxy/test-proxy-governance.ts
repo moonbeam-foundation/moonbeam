@@ -67,8 +67,8 @@ describeDevMoonbeam("Proxing governance", (context) => {
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
     let dorothyAccountData = await context.polkadotApi.query.system.account(dorothy.address);
-    expect(dorothyAccountData.data['free'].toBigInt()).to.equal(dorothyPreBalance);
-    expect(dorothyAccountData.data['frozen'].toBigInt()).to.equal(VOTE_AMOUNT);
+    expect(dorothyAccountData.data["free"].toBigInt()).to.equal(dorothyPreBalance);
+    expect(dorothyAccountData.data["frozen"].toBigInt()).to.equal(VOTE_AMOUNT);
 
     // Verify that vote is registered
     const referendumInfoOf = (
