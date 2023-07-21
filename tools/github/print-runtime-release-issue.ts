@@ -40,7 +40,7 @@ with runtime-${previousVersion} => runtime-${newVersion}
     `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
 - [ ] Create the tracing runtime on moonbeam-runtime-overrides
-(see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
+(see https://github.com/moonbeam-foundation/moonbeam-runtime-overrides/blob/master/README.md)
 - [ ] Upgrade typescript API: Start the github action "Upgrade typescript API"
 - [ ] Add new tracing substitute in network configuration
 - [ ] Upgrade stagenet
@@ -59,7 +59,7 @@ with ${lastClientVersion} and master
 
 ## Pre-Release
 - [ ] Cleanup previous migrations (
-  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
+  https://github.com/moonbeam-foundation/moonbeam/blob/master/runtime/common/src/migrations.rs)
 - [ ] Check that proxy types are adapted to extrinsics changes (
   read all PR descriptions with B7-runtimenoteworthy)
 - [ ] Re-run all extrinsics/hooks benchmarks.
