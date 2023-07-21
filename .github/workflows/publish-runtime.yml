@@ -36,7 +36,7 @@ jobs:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - mounbeamfoundation/srtool
+          - moonbeamfoundation/srtool
         srtool_image_tag:
           - 1.69.0
     steps:
@@ -55,7 +55,7 @@ jobs:
         with:
           name: original-scripts
           path: original-scripts
-      - name: Build & Push mounbeamfoundation/srtool image
+      - name: Build & Push moonbeamfoundation/srtool image
         if: github.repository == 'moonbeam-foundation/moonbeam'
         run: |
           docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false

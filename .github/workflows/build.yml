@@ -260,7 +260,7 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="mounbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="moonbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
 
           POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
@@ -273,13 +273,13 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="docker.io/mounbeamfoundation/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          DOCKER_TAG="docker.io/moonbeamfoundation/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
           POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
-            MOONBEAM_DOCKER_TAG="docker.io/mounbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            MOONBEAM_DOCKER_TAG="docker.io/moonbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             # Clear the dummy container if it wasn't properly cleaned up
             docker rm -f dummy 2> /dev/null | true
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
@@ -620,7 +620,7 @@ jobs:
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="mounbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
+          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
 
           docker rm -f moonbeam_container 2> /dev/null | true
           docker create --name moonbeam_container $DOCKER_TAG bash
