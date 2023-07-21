@@ -8,6 +8,8 @@
 
 ### Notes
 
+2023-07-21 17:13 - Force CI job run
+
 - The `master` branch must refer to frontier `paritytech/frontier/master` or
   `moonbeam-foundation/frontier/moonbeam-polkadot-vX.Y.Z`
 
