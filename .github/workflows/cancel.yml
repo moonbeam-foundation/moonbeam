@@ -7,8 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: styfle/cancel-workflow-action@0.11.0
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
         with:
-          workflow_id: ".github/workflows/build.yml,.github/workflows/coverage.yml"
-          all_but_latest: true
-          access_token: ${{ github.token }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+      - name: Tag it with purestake for 6 month
+        run: |
+          docker pull purestake/moonbeam:sha-030f898f && 
+          docker tag purestake/moonbeam:sha-030f898f moonbeamfoundation/moonbeam:sha-030f898f && 
+          docker push moonbeamfoundation/moonbeam:sha-030f898f
