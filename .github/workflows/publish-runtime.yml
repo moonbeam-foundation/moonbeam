@@ -36,7 +36,7 @@ jobs:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - purestake/srtool
+          - moonbeamfoundation/srtool
         srtool_image_tag:
           - 1.69.0
     steps:
@@ -45,18 +45,18 @@ jobs:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
         uses: docker/login-action@v2.2.0
-        if: github.repository == 'purestake/moonbeam'
+        if: github.repository == 'moonbeam-foundation/moonbeam'
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - name: Download original scripts
         uses: actions/download-artifact@v3
         with:
           name: original-scripts
           path: original-scripts
-      - name: Build & Push purestake/srtool image
-        if: github.repository == 'purestake/moonbeam'
+      - name: Build & Push moonbeamfoundation/srtool image
+        if: github.repository == 'moonbeam-foundation/moonbeam'
         run: |
           docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
 
