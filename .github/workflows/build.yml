@@ -258,7 +258,7 @@ jobs:
           registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
-          curl -s https://gist.githubusercontent.com/crystalin/d41c6d7e382d9108b05592cdad2f497d/raw/c1853548dd1d99bf14a017da3933cb5e31a0e792/docker-migration.sh | bash -s
+          curl -s https://gist.githubusercontent.com/crystalin/d41c6d7e382d9108b05592cdad2f497d/raw/a4d37932c193a97d16e0129cdb324662ebabfffa/docker-migration.sh | bash -s
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
