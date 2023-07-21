@@ -134,7 +134,7 @@ describeSuite({
           ETHEmitter,
           GUARDIAN_SET_INDEX,
           nonce++,
-          1,
+          1n,
           ETHChain
         );
 
@@ -159,7 +159,7 @@ describeSuite({
           signerPKs,
           GUARDIAN_SET_INDEX,
           nonce++,
-          1,
+          1n,
           weth9Addr,
           ETHChain,
           ETHEmitter,
@@ -258,7 +258,7 @@ describeSuite({
         const versionedUserAction = new VersionedUserAction({ V1: userAction });
         console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
         console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
-        let payload = "" + versionedUserAction.toHex();
+        const payload = "" + versionedUserAction.toHex();
 
         await context
           .polkadotJs()
@@ -279,7 +279,7 @@ describeSuite({
           signerPKs,
           GUARDIAN_SET_INDEX,
           nonce++,
-          123, // sequence
+          123n, // sequence
           999, // amount of tokens
           weth9Addr,
           ETHChain,

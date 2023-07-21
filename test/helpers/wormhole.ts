@@ -1,19 +1,16 @@
-import abiCoder from "web3-eth-abi";
-import { SigningKey } from "@ethersproject/signing-key";
-import { keccak256 } from "@ethersproject/keccak256";
-import { arrayify } from "@ethersproject/bytes";
-import { encodeAbiParameters, parseAbiParameter } from "viem";
+import { SigningKey } from "ethers";
+import { encodePacked, keccak256, pad, toBytes, toHex } from "viem";
 
 function encode(type: string, val: any) {
-  if (type == "uint8") return abiCoder.encodeParameter("uint8", val).slice(2 + (64 - 2));
-  if (type == "uint16") return abiCoder.encodeParameter("uint16", val).slice(2 + (64 - 4));
-  if (type == "uint32") return abiCoder.encodeParameter("uint32", val).slice(2 + (64 - 8));
-  if (type == "uint64") return abiCoder.encodeParameter("uint64", val).slice(2 + (64 - 16));
-  if (type == "uint128") return abiCoder.encodeParameter("uint128", val).slice(2 + (64 - 32));
-  if (type == "address32")
-    return abiCoder.encodeParameter("address", "0x" + val.slice(-40)).slice(2 + (64 - 64));
-  if (type == "uint256" || type == "bytes32")
-    return abiCoder.encodeParameter(type, val).slice(2 + (64 - 64));
+  if (type == "uint8") return encodePacked(["uint8"], [val]).slice(2);
+  if (type == "uint16") return encodePacked(["uint16"], [val]).slice(2);
+  if (type == "uint32") return encodePacked(["uint32"], [val]).slice(2);
+  if (type == "uint64") return encodePacked(["uint64"], [val]).slice(2);
+  if (type == "uint128") return encodePacked(["uint128"], [val]).slice(2);
+  if (type == "address32") return pad(encodePacked(["address"], [`0x${val.slice(-40)}`])).slice(2);
+  if (type == "uint256") return encodePacked(["uint256"], [val]).slice(2);
+  if (type == "bytes32")
+    return encodePacked(["bytes32"], [pad(val as `0x${string}`, { size: 32 })]).slice(2);
 }
 
 // Create a signed VAA to be sent to Wormhole bridge
@@ -23,8 +20,8 @@ export async function createSignedVAA(
   timestamp: number,
   nonce: number,
   emitterChainId: number,
-  emitterAddress: string,
-  sequence: number,
+  emitterAddress: `0x${string}`,
+  sequence: bigint,
   consistencyLevel: number,
   payload: string
 ) {
@@ -37,28 +34,19 @@ export async function createSignedVAA(
     encode("uint8", consistencyLevel),
     payload.slice(2),
   ];
-  // const body = [
-  //  encodeAbiParameters([parseAbiParameter("uint32 timestamp")],[timestamp])  ,
-  //  encodeAbiParameters([parseAbiParameter("uint32 nonce")], [nonce]),
-  //  encodeAbiParameters([parseAbiParameter("uint16 emitterChainId")], [emitterChainId]),
-  //  encodeAbiParameters([parseAbiParameter("address32 emitterAddress")], [emitterAddress]),
-  //  encodeAbiParameters([parseAbiParameter("uint64 sequence")], [BigInt(sequence)]),
-  //  encodeAbiParameters([parseAbiParameter("uint8 consistencyLevel")], [consistencyLevel]),
-  //   payload.slice(2),
-  // ];
 
-  const hash = keccak256(keccak256("0x" + body.join("")));
+  const hash = keccak256(keccak256(("0x" + body.join("")) as `0x${string}`));
 
   let signatures = "";
   for (const i in signers) {
     const key = new SigningKey(signers[i]);
-    const signature = key.signDigest(arrayify(hash));
+    const signature = key.sign(toBytes(hash));
 
     const packSig = [
       encode("uint8", i),
       encode("bytes32", signature.r),
       encode("bytes32", signature.s),
-      encode("uint8", signature.recoveryParam ?? 0),
+      encode("uint8", signature.yParity),
     ];
     signatures += packSig.join("");
   }
@@ -80,7 +68,7 @@ export function genRegisterChainVAA(
   tokenEmitter: string,
   guardianSet: number,
   nonce: number,
-  seq: number,
+  seq: bigint,
   chain: number
 ) {
   const b = [
@@ -102,9 +90,8 @@ export function genRegisterChainVAA(
     encode("uint16", chain),
     encode("address32", tokenEmitter),
   ];
-  let emitter = `0x${"04".padStart(64, "0")}`;
-
-  var seconds = Math.floor(new Date().getTime() / 1000.0);
+  const emitter: `0x${string}` = `0x${"04".padStart(64, "0")}`;
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(guardianSet, signers, seconds, nonce, 1, emitter, seq, 32, b.join(""));
 }
@@ -113,10 +100,10 @@ export async function genAssetMeta(
   signers: any,
   guardianSet: number,
   nonce: number,
-  seq: number,
+  seq: bigint,
   tokenAddress: string,
   tokenChain: number,
-  tokenEmitter: string,
+  tokenEmitter: `0x${string}`,
   decimals: number,
   symbol: string,
   name: string
@@ -131,7 +118,7 @@ export async function genAssetMeta(
     encode("bytes32", "0x" + Buffer.from(name).toString("hex")),
   ];
 
-  let seconds = Math.floor(new Date().getTime() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,
@@ -150,12 +137,12 @@ export function genTransferVAA(
   signers: any,
   guardianSet: number,
   nonce: number,
-  seq: number,
+  seq: bigint,
   amount: number,
   tokenAddress: string,
   tokenChain: number,
   tokenEmitterChainId: number,
-  tokenEmitter: string,
+  tokenEmitter: `0x${string}`,
   toAddress: string,
   toChain: string,
   fee: number
@@ -171,7 +158,7 @@ export function genTransferVAA(
     encode("uint256", Math.floor(fee * 100000000)),
   ];
 
-  let seconds = Math.floor(new Date().getTime() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,
@@ -190,12 +177,12 @@ export function genTransferWithPayloadVAA(
   signers: any,
   guardianSet: number,
   nonce: number,
-  seq: number,
+  seq: bigint,
   amount: number,
   tokenAddress: string,
   tokenChain: number,
   tokenEmitterChainId: number,
-  tokenEmitter: string,
+  tokenEmitter: `0x${string}`,
   toAddress: string,
   toChain: string,
   fromAddress: string,
@@ -213,7 +200,7 @@ export function genTransferWithPayloadVAA(
     payload.slice(2),
   ];
 
-  let seconds = Math.floor(new Date().getTime() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,
