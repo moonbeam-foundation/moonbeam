@@ -258,6 +258,8 @@ jobs:
           registry: index.docker.io
       - name: Check & build polkadot docker image
         run: |
+          curl -s https://gist.githubusercontent.com/crystalin/d41c6d7e382d9108b05592cdad2f497d/raw/c1853548dd1d99bf14a017da3933cb5e31a0e792/docker-migration.sh | bash -s
+
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="moonbeamfoundation/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
