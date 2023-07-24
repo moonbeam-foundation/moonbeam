@@ -142,7 +142,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 });
 
 describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
-  it.only("allows to approve transfer and use transferFrom", async function () {
+  it("allows to approve transfer and use transferFrom", async function () {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `400000000000`.padStart(64, "0");
 

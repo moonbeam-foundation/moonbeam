@@ -1,5 +1,5 @@
 import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
-import { PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
 import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -9,6 +9,7 @@ import {
 import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { encodeFunctionData } from "viem";
+import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -831,4 +832,46 @@ function replaceNetworkAny(obj: AnyObject | Array<AnyObject>): any {
 
 type AnyObject = {
   [key: string]: any;
+};
+
+
+export const registerXcmTransactorAndContract = async (context: DevModeContext) => {
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmTransactor.register(ALITH_ADDRESS, 0))
+  );
+
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.xcmTransactor.setTransactInfo(
+            RELAY_V3_SOURCE_LOCATION,
+            { refTime: 1, proofSize: 64 * 1024 } as any,
+            { refTime: 20_000_000_000, proofSize: 256 * 1024 } as any,
+            { refTime: 1, proofSize: 64 * 1024 } as any
+          )
+      )
+  );
+
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.xcmTransactor.setFeePerSecond(RELAY_V3_SOURCE_LOCATION, 1000000000000n)
+      )
+  );
+};
+
+export const registerXcmTransactorDerivativeIndex = async (context: DevModeContext) => {
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmTransactor.register(ALITH_ADDRESS, 0))
+  );
 };

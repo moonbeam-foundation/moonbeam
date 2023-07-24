@@ -361,12 +361,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [dest, asset, weight, transact_call]
     );
 
+    const rawTxn = await   createTransaction(context, {
+      ...ALITH_TRANSACTION_TEMPLATE,
+      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
+      data,
+    })
+
+    console.log(rawTxn)
+
     await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
-        data,
-      })
+      rawTxn
     );
 
     // 1000 fee for the relay is paid with relay assets
