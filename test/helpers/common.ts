@@ -50,7 +50,7 @@ export function sortObjectByKeys(unsortedObject: Record<string, any>): Record<st
 export async function getMappingInfo(
   context: DevModeContext,
   authorId: string
-): Promise<{ account: string; deposit: BigInt } | null> {
+) {
   const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
@@ -58,7 +58,6 @@ export async function getMappingInfo(
       deposit: mapping.unwrap().deposit.toBigInt(),
     };
   }
-  return null;
 }
 
 export async function getProviderPath() {

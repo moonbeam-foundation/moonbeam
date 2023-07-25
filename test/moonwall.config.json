@@ -169,7 +169,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-precompile"],
+      "testFileDir": ["suites/dev/test-proxy"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
