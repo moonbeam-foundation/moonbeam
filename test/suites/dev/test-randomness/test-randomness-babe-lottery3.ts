@@ -89,7 +89,7 @@ const fakeBabeResultTransaction = async (
 };
 
 describeSuite({
-  id: "D2702",
+  id: "D2703",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -149,18 +149,19 @@ describeSuite({
       test: async function () {
         await context.createBlock();
 
-        await context.createBlock(
-          // Faking relay epoch + 2 in randomness storage
-          fakeBabeResultTransaction(context)
-        );
-
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",
           functionName: "fulfillRequest",
           args: [0],
           gas: 500_000n,
+          rawTxOnly: true,
+          privateKey: BALTATHAR_PRIVATE_KEY,
         });
-        const { result } = await context.createBlock([rawTxn]);
+        const { result } = await context.createBlock([
+          // Faking relay epoch + 2 in randomness storage
+          fakeBabeResultTransaction(context),
+          rawTxn,
+        ]);
 
         expectEVMResult(result![1].events, "Succeed");
       },

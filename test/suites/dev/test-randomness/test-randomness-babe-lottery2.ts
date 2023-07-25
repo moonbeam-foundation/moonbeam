@@ -91,7 +91,7 @@ const fakeBabeResultTransaction = async (
 };
 
 describeSuite({
-  id: "D2703",
+  id: "D2702",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
