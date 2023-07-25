@@ -285,10 +285,11 @@ export const verifyBlockFees = async (
                   })) as any
                 ).toBigInt();
 
+                const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
                 // Verify the computed fees are equal to the actual fees
-                expect(expectedPartialFee).to.eq((paymentEvent.data[1] as u128).toBigInt());
+                expect(expectedPartialFee).to.eq((paymentEvent.data[1] as u128).toBigInt() - tip);
 
                 // Verify the computed fees are equal to the rpc computed fees
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
