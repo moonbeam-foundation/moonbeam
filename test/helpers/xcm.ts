@@ -176,16 +176,11 @@ export async function injectHrmpMessage(
 }
 // Weight a particular message using the xcm utils precompile
 export async function weightMessage(context: DevModeContext, message: XcmVersionedXcm) {
-  const XCM_UTILS_CONTRACT = fetchCompiledContract("precompiles/xcm-utils/XcmUtils");
-  const result = await context.viem().call({
-    to: PRECOMPILE_XCM_UTILS_ADDRESS,
-    data: encodeFunctionData({
-      abi: XCM_UTILS_CONTRACT.abi,
-      functionName: "weightMessage",
-      args: [message.toU8a()],
-    }),
-  });
-  return BigInt(result.data as string);
+  return (await context.readPrecompile!({
+    precompileName: "XcmUtils",
+    functionName: "weightMessage",
+    args: [message.toHex()],
+  })) as bigint;
 }
 
 // export async function weightMessage(context: DevModeContext, message?: XcmVersionedXcm) {
