@@ -22,7 +22,7 @@ use core::str::from_utf8;
 use frame_support::sp_runtime::Percent;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use pallet_parachain_staking::Event as StakingEvent;
+use pallet_parachain_staking::Event as ParachainStakingEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
 
@@ -927,7 +927,7 @@ fn join_candidates_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::JoinedCollatorCandidates {
+			let expected: crate::mock::RuntimeEvent = ::JoinedCollatorCandidates {
 				account: Alice.into(),
 				amount_locked: 1000,
 				new_total_amt_locked: 1000,
@@ -956,7 +956,7 @@ fn schedule_leave_candidates_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateScheduledExit {
+			let expected: crate::mock::RuntimeEvent = ::CandidateScheduledExit {
 				exit_allowed_round: 1,
 				candidate: Alice.into(),
 				scheduled_exit: 3,
@@ -991,7 +991,7 @@ fn execute_leave_candidates_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateLeft {
+			let expected: crate::mock::RuntimeEvent = ::CandidateLeft {
 				ex_candidate: Alice.into(),
 				unlocked_amount: 1_000,
 				new_total_amt_locked: 0,
@@ -1024,7 +1024,7 @@ fn cancel_leave_candidates_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledCandidateExit {
+			let expected: crate::mock::RuntimeEvent = ::CancelledCandidateExit {
 				candidate: Alice.into(),
 			}
 			.into();
@@ -1051,7 +1051,7 @@ fn go_online_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBackOnline {
+			let expected: crate::mock::RuntimeEvent = ::CandidateBackOnline {
 				candidate: Alice.into(),
 			}
 			.into();
@@ -1073,7 +1073,7 @@ fn go_offline_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateWentOffline {
+			let expected: crate::mock::RuntimeEvent = ::CandidateWentOffline {
 				candidate: Alice.into(),
 			}
 			.into();
@@ -1096,7 +1096,7 @@ fn candidate_bond_more_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondedMore {
+			let expected: crate::mock::RuntimeEvent = ::CandidateBondedMore {
 				candidate: Alice.into(),
 				amount: 500,
 				new_total_bond: 1500,
@@ -1121,7 +1121,7 @@ fn schedule_candidate_bond_less_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondLessRequested {
+			let expected: crate::mock::RuntimeEvent = ::CandidateBondLessRequested {
 				candidate: Alice.into(),
 				amount_to_decrease: 500,
 				execute_round: 3,
@@ -1155,7 +1155,7 @@ fn execute_candidate_bond_less_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondedLess {
+			let expected: crate::mock::RuntimeEvent = ::CandidateBondedLess {
 				candidate: Alice.into(),
 				amount: 500,
 				new_bond: 1000,
@@ -1185,7 +1185,7 @@ fn cancel_candidate_bond_less_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledCandidateBondLess {
+			let expected: crate::mock::RuntimeEvent = ::CancelledCandidateBondLess {
 				candidate: Alice.into(),
 				amount: 200,
 				execute_round: 3,
@@ -1216,7 +1216,7 @@ fn delegate_works() {
 
 			assert!(ParachainStaking::is_delegator(&Bob.into()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::Delegation {
+			let expected: crate::mock::RuntimeEvent = ::Delegation {
 				delegator: Bob.into(),
 				locked_amount: 1_000,
 				candidate: Alice.into(),
@@ -1244,7 +1244,7 @@ fn schedule_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegatorExitScheduled {
+			let expected: crate::mock::RuntimeEvent = ::DelegatorExitScheduled {
 				round: 1,
 				delegator: Bob.into(),
 				scheduled_exit: 3,
@@ -1279,7 +1279,7 @@ fn execute_leave_delegators_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegatorLeft {
+			let expected: crate::mock::RuntimeEvent = ::DelegatorLeft {
 				delegator: Bob.into(),
 				unstaked_amount: 500,
 			}
@@ -1306,7 +1306,7 @@ fn cancel_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegatorExitCancelled {
+			let expected: crate::mock::RuntimeEvent = ::DelegatorExitCancelled {
 				delegator: Bob.into(),
 			}
 			.into();
@@ -1331,7 +1331,7 @@ fn schedule_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationRevocationScheduled {
+			let expected: crate::mock::RuntimeEvent = ::DelegationRevocationScheduled {
 				round: 1,
 				delegator: Bob.into(),
 				candidate: Alice.into(),
@@ -1359,7 +1359,7 @@ fn delegator_bond_more_works() {
 
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationIncreased {
+			let expected: crate::mock::RuntimeEvent = ::DelegationIncreased {
 				delegator: Bob.into(),
 				candidate: Alice.into(),
 				amount: 500,
@@ -1388,14 +1388,13 @@ fn schedule_delegator_bond_less_works() {
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::RuntimeEvent =
-				StakingEvent::DelegationDecreaseScheduled {
-					delegator: Bob.into(),
-					candidate: Alice.into(),
-					amount_to_decrease: 500,
-					execute_round: 3,
-				}
-				.into();
+			let expected_event: crate::mock::RuntimeEvent = ::DelegationDecreaseScheduled {
+				delegator: Bob.into(),
+				candidate: Alice.into(),
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
+			.into();
 
 			assert!(events().contains(&expected_event));
 		});
@@ -1426,7 +1425,7 @@ fn execute_revoke_delegation_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationRevoked {
+			let expected: crate::mock::RuntimeEvent = ::DelegationRevoked {
 				delegator: Bob.into(),
 				candidate: Alice.into(),
 				unstaked_amount: 1_000,
@@ -1463,7 +1462,7 @@ fn execute_delegator_bond_less_works() {
 				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
 			);
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationDecreased {
+			let expected: crate::mock::RuntimeEvent = ::DelegationDecreased {
 				delegator: Bob.into(),
 				candidate: Alice.into(),
 				amount: 500,
@@ -1496,7 +1495,7 @@ fn cancel_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledDelegationRequest {
+			let expected: crate::mock::RuntimeEvent = ::CancelledDelegationRequest {
 				delegator: Bob.into(),
 				collator: Alice.into(),
 				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
@@ -1532,7 +1531,7 @@ fn cancel_delegator_bonded_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledDelegationRequest {
+			let expected: crate::mock::RuntimeEvent = ::CancelledDelegationRequest {
 				delegator: Bob.into(),
 				collator: Alice.into(),
 				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
@@ -1571,7 +1570,7 @@ fn delegate_with_auto_compound_works() {
 
 				assert!(ParachainStaking::is_delegator(&Bob.into()));
 
-				let expected: crate::mock::RuntimeEvent = StakingEvent::Delegation {
+				let expected: crate::mock::RuntimeEvent = ::Delegation {
 					delegator: Bob.into(),
 					locked_amount: 1_000,
 					candidate: Alice.into(),
@@ -1644,7 +1643,7 @@ fn set_auto_compound_works_if_delegation() {
 					Percent::from_percent(auto_compound_percent)
 				);
 
-				let expected: crate::mock::RuntimeEvent = StakingEvent::AutoCompoundSet {
+				let expected: crate::mock::RuntimeEvent = ::AutoCompoundSet {
 					candidate: Alice.into(),
 					delegator: Bob.into(),
 					value: Percent::from_percent(auto_compound_percent),

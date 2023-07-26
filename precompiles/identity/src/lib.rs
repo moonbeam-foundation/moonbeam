@@ -25,8 +25,13 @@ use frame_support::sp_runtime::traits::StaticLookup;
 use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{ConstU32, Get, H160, H256, U256};
+use sp_core::{ConstU32, H160, H256, U256};
 use sp_std::marker::PhantomData;
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 	<T as frame_system::Config>::AccountId,
@@ -54,12 +59,17 @@ where
 		let call = pallet_identity::Call::<Runtime>::add_registrar { account };
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		let x = RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call);
+		println!("dispatch {x:?}");
+		if let Err(x) = x {
+			println!("ERR!@ {x:?}");
+			return Err(x.into());
+		}
 
 		Ok(())
 	}
 
-	#[precompile::public("setIdentity((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))")]
+	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
@@ -166,7 +176,9 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("provideJudgement(uint32,address,(bool, bool, uint256, bool, bool, bool, bool, bool),bytes32)")]
+	#[precompile::public(
+		"provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)"
+	)]
 	fn provide_judgement(
 		handle: &mut impl PrecompileHandle,
 		reg_index: u32,
@@ -201,7 +213,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("addSub(address,(bool, bytes))")]
+	#[precompile::public("addSub(address,(bool,bytes))")]
 	fn add_sub(handle: &mut impl PrecompileHandle, sub: Address, data: Data) -> EvmResult {
 		let sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.0));
 		let data: pallet_identity::Data = data
@@ -215,7 +227,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("renameSub(address,(bool, bytes))")]
+	#[precompile::public("renameSub(address,(bool,bytes))")]
 	fn rename_sub(handle: &mut impl PrecompileHandle, sub: Address, data: Data) -> EvmResult {
 		let sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.0));
 		let data: pallet_identity::Data = data
