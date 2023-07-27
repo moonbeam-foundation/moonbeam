@@ -1,128 +1,132 @@
-import "@moonbeam-network/api-augment/moonbase";
+import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
-  ALITH_GENESIS_FREE_BALANCE,
-  BALTATHAR_PRIVATE_KEY,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
-  DEFAULT_GENESIS_BALANCE,
+  DOROTHY_ADDRESS,
   GLMR,
   MILLIGLMR,
-  baltathar,
-  charleth,
-  dorothy,
 } from "@moonwall/util";
 import { TransactionReceipt, decodeEventLog } from "viem";
-import {
-  fakeBabeResultTransaction,
-  setupLotteryWithParticipants,
-} from "../../../helpers/randomness.js";
+import { setupLotteryWithParticipants } from "../../../helpers/randomness.js";
 
 describeSuite({
-  id: "D2702",
-  title: "Randomness Babe - Lottery Demo",
+  id: "D2715",
+  title: "Randomness VRF - Fulfilling Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let lotteryAddress: `0x${string}`;
+    let lotteryContract: `0x${string}`;
     let fulFillReceipt: TransactionReceipt;
+    let dorothyBefore: bigint;
+    let baltatharBefore: bigint;
+    let charlethBefore: bigint;
 
     beforeAll(async function () {
-      lotteryAddress = await setupLotteryWithParticipants(context, "BABE");
+      [dorothyBefore, baltatharBefore, charlethBefore] = await Promise.all([
+        context.viem().getBalance({ address: DOROTHY_ADDRESS }),
+        context.viem().getBalance({ address: BALTATHAR_ADDRESS }),
+        context.viem().getBalance({ address: CHARLETH_ADDRESS }),
+      ]);
 
+      lotteryContract = await setupLotteryWithParticipants(context, "VRF");
       await context.writeContract!({
+        contractAddress: lotteryContract,
         contractName: "RandomnessLotteryDemo",
-        contractAddress: lotteryAddress,
         functionName: "startLottery",
-        gas: 500_000n,
         value: 1n * GLMR,
+        gas: 300_000n,
       });
       await context.createBlock();
-
+      await context.createBlock();
+      await context.createBlock();
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
-        rawTxOnly: true,
         gas: 500_000n,
-        privateKey: BALTATHAR_PRIVATE_KEY,
+        rawTxOnly: true,
       });
+      const { result } = await context.createBlock(rawTxn);
 
-      const { result } = await context.createBlock([fakeBabeResultTransaction(context), rawTxn]);
       fulFillReceipt = await context
         .viem()
-        .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
+        .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
     });
-
     it({
       id: "T01",
       title: "should have 4 events",
       test: async function () {
-        const decoded = decodeEventLog({
-          abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
-          data: fulFillReceipt.logs[0].data,
-          topics: fulFillReceipt.logs[0].topics,
-        }) as any;
-
-        expect(decoded.eventName).to.equal("Ended");
-        expect(decoded.args.participantCount).to.equal(3n);
-        expect(decoded.args.jackpot).to.equal(3n * GLMR);
-        expect(decoded.args.winnerCount).to.equal(2n);
+        expect(fulFillReceipt.logs.length).to.equal(4);
       },
     });
 
     it({
       id: "T02",
-      title: "should emit 2 Awarded events. One for each winner",
+      title: "should emit the Ended log first",
       test: async function () {
-        const event2 = decodeEventLog({
+        const log = decodeEventLog({
           abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
-          data: fulFillReceipt.logs[1].data,
-          topics: fulFillReceipt.logs[1].topics,
+          data: fulFillReceipt.logs[0].data,
+          topics: fulFillReceipt.logs[0].topics,
         }) as any;
-
-        // First Awarded event is for Baltathar
-        expect(event2.eventName).to.equal("Awarded");
-        expect(event2.args.winner).to.equal(baltathar.address);
-        expect(event2.args.randomWord).to.equal(
-          74982528826324570542201803903857750688652696143277700801627425400829433687166n
-        );
-        expect(event2.args.amount).to.equal(1500n * MILLIGLMR);
-
-        // Second Awarded event is for Dorothy
-        const event3 = decodeEventLog({
-          abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
-          data: fulFillReceipt.logs[2].data,
-          topics: fulFillReceipt.logs[2].topics,
-        }) as any;
-
-        expect(event3.eventName).to.equal("Awarded");
-        expect(event3.args.winner).to.equal(dorothy.address);
-        expect(event3.args.randomWord).to.equal(
-          77024926561716546406163866328460318332430017365028170366735726122254037052683n
-        );
-        expect(event3.args.amount).to.equal(1500n * MILLIGLMR);
+        expect(log.eventName).to.equal("Ended");
+        expect(log.args.participantCount).to.equal(3n);
+        expect(log.args.jackpot).to.equal(3n * GLMR);
+        expect(log.args.winnerCount).to.equal(2n);
       },
     });
 
     it({
       id: "T03",
-      title: "should emit the FulFillmentSucceeded event last",
+      title: "should emit 2 Awarded events. One for each winner",
       test: async function () {
-        const event4 = decodeEventLog({
-          abi: fetchCompiledContract("Randomness").abi,
-          data: fulFillReceipt.logs[3].data,
-          topics: fulFillReceipt.logs[3].topics,
+        // First Awarded event is for Charleth
+        const log1 = decodeEventLog({
+          abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
+          data: fulFillReceipt.logs[1].data,
+          topics: fulFillReceipt.logs[1].topics,
         }) as any;
+        expect(log1.eventName).to.equal("Awarded");
+        expect(log1.args.winner).to.equal(CHARLETH_ADDRESS);
+        expect(log1.args.randomWord).to.equal(
+          51280808134023849127519136205010243437709812126880363876705674960571546808336n
+        );
+        expect(log1.args.amount).to.equal(1500n * MILLIGLMR);
 
-        expect(event4.eventName).to.equal("FulFillmentSucceeded");
+        // Second Awarded event is for Baltathar
+        const log2 = decodeEventLog({
+          abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
+          data: fulFillReceipt.logs[2].data,
+          topics: fulFillReceipt.logs[2].topics,
+        }) as any;
+        expect(log2.eventName).to.equal("Awarded");
+        expect(log2.args.winner).to.equal(BALTATHAR_ADDRESS);
+        expect(log2.args.randomWord).to.equal(
+          678783957272396545249253726798886852772291908299890430931444896355209850262n
+        );
+        expect(log2.args.amount).to.equal(1500n * MILLIGLMR);
       },
     });
 
     it({
       id: "T04",
+      title: "should emit the FulFillmentSucceeded event last",
+      test: async function () {
+        const log = decodeEventLog({
+          abi: fetchCompiledContract("Randomness").abi,
+          data: fulFillReceipt.logs[3].data,
+          topics: fulFillReceipt.logs[3].topics,
+        }) as any;
+        expect(log.eventName).to.equal("FulFillmentSucceeded");
+      },
+    });
+
+    it({
+      id: "T05",
       title: "should remove the request",
       test: async function () {
         expect(
-          // await randomnessContract.methods.getRequestStatus(0).call()
           await context.readPrecompile!({
             precompileName: "Randomness",
             functionName: "getRequestStatus",
@@ -136,13 +140,13 @@ describeSuite({
     });
 
     it({
-      id: "T05",
+      id: "T06",
       title: "should reset the jackpot",
       test: async function () {
         expect(
           await context.readContract!({
+            contractAddress: lotteryContract,
             contractName: "RandomnessLotteryDemo",
-            contractAddress: lotteryAddress,
             functionName: "jackpot",
           })
         ).to.equal(0n);
@@ -150,33 +154,29 @@ describeSuite({
     });
 
     it({
-      id: "T06",
-      title: "should reward balthazar and alith",
+      id: "T07",
+      title: "should reward baltathar and charleth",
       test: async function () {
-        expect(
-          (
-            await context.polkadotJs().query.system.account(baltathar.address)
-          ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
-        ).to.be.true;
-        expect(
-          (await context.polkadotJs().query.system.account(charleth.address)).data.free.toBigInt() >
-            DEFAULT_GENESIS_BALANCE
-        ).to.be.false;
-        expect(
-          (await context.polkadotJs().query.system.account(dorothy.address)).data.free.toBigInt() >
-            DEFAULT_GENESIS_BALANCE
-        ).to.be.true;
+        expect(await context.viem().getBalance({ address: DOROTHY_ADDRESS })).toBeLessThan(
+          dorothyBefore
+        );
+        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).toBeGreaterThan(
+          baltatharBefore
+        );
+        expect(await context.viem().getBalance({ address: CHARLETH_ADDRESS })).toBeGreaterThan(
+          charlethBefore
+        );
       },
     });
 
     it({
-      id: "T07",
+      id: "T08",
       title: "should be back to open for registrations",
       test: async function () {
         expect(
           await context.readContract!({
+            contractAddress: lotteryContract,
             contractName: "RandomnessLotteryDemo",
-            contractAddress: lotteryAddress,
             functionName: "status",
           })
         ).to.equal(0);

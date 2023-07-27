@@ -1,12 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS, GLMR, alith } from "@moonwall/util";
-import { fromBytes } from "viem";
-
-const SIMPLE_SALT = fromBytes(
-  new Uint8Array([..."my_salt".padEnd(32, " ")].map((a) => a.charCodeAt(0))),
-  "hex"
-);
+import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
 describeSuite({
   id: "D2704",

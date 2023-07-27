@@ -24,6 +24,6 @@
   },
   "typeRoots": ["node_modules/@types"],
   "types": ["node"],
-  "include": ["*suites/**/*.ts"],
+  "include": ["*suites/**/*.ts", "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"],
   "exclude": ["node_modules/"]
 }

@@ -1,12 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
-import { fromBytes } from "viem";
-
-const SIMPLE_SALT = fromBytes(
-  new Uint8Array([..."my_salt".padEnd(32, " ")].map((a) => a.charCodeAt(0))),
-  "hex"
-);
+import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
 describeSuite({
   id: "D2706",
@@ -17,7 +12,7 @@ describeSuite({
       id: "T01",
       title: "should succeed for 100 random words",
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
+        await context.writePrecompile!({
           precompileName: "Randomness",
           functionName: "requestRelayBabeEpochRandomWords",
           args: [

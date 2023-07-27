@@ -1,12 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
-import { fromBytes } from "viem";
+import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
-const SIMPLE_SALT = fromBytes(
-  new Uint8Array([..."my_salt".padEnd(32, " ")].map((a) => a.charCodeAt(0))),
-  "hex"
-);
 
 describeSuite({
   id: "D2705",
