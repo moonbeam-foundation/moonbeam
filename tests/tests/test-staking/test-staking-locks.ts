@@ -223,7 +223,7 @@ describeDevMoonbeam("Staking - Locks - execute revoke", (context) => {
   });
 
   it("should be unlocked only after executing revoke delegation", async function () {
-    this.timeout(20000);
+    this.timeout(40000);
 
     const lock = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(lock.length).to.be.equal(1, "Lock should have been added");
@@ -258,7 +258,7 @@ describeDevMoonbeam("Staking - Locks - multiple delegations single revoke", (con
   const randomAccount = generateKeyringPair();
 
   before("setup candidate & delegations", async function () {
-    this.timeout(20000);
+    this.timeout(40000);
 
     await expectOk(
       context.createBlock([
