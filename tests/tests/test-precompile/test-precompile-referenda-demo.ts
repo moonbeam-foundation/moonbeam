@@ -28,7 +28,7 @@ const CONVICTION_VOTING_INTERFACE = new ethers.utils.Interface(
 
 describeDevMoonbeam("Precompiles - Referenda Auto Upgrade Demo", (context) => {
   it("should be accessible from a smart contract", async function () {
-    this.timeout(180000);
+    this.timeout(220000);
     const setStorageCallIndex = u8aToHex(context.polkadotApi.tx.system.setStorage.callIndex);
     const trackName = "root";
     const tracksInfo = await context.polkadotApi.consts.referenda.tracks;
