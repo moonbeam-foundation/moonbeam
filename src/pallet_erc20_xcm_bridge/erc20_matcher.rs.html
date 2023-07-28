@@ -130,6 +130,27 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -167,8 +188,7 @@
 		};
 		<span class="kw">let </span>contract_address = <span class="self">Self</span>::matches_erc20_multilocation(id)
 			.map_err(|<span class="kw">_</span>| MatchError::AssetIdConversionFailed)<span class="question-mark">?</span>;
-		<span class="kw">let </span>amount =
-			U256::try_from(<span class="kw-2">*</span>amount).map_err(|<span class="kw">_</span>| MatchError::AmountToBalanceConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = U256::from(<span class="kw-2">*</span>amount);
 
 		<span class="prelude-val">Ok</span>((contract_address, amount))
 	}
@@ -243,6 +263,28 @@
 				location, <span class="number">100u128
 			</span>))),
 			(H160([<span class="number">0</span>; <span class="number">20</span>]), U256([<span class="number">100</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]))
+		);
+	}
+
+	<span class="attr">#[test]
+	</span><span class="kw">fn </span>should_match_valid_erc20_location_with_amount_greater_than_u64() {
+		<span class="kw">let </span>location = MultiLocation {
+			parents: <span class="number">0</span>,
+			interior: Junctions::X2(
+				PalletInstance(<span class="number">42u8</span>),
+				AccountKey20 {
+					key: [<span class="number">0</span>; <span class="number">20</span>],
+					network: <span class="prelude-val">None</span>,
+				},
+			),
+		};
+
+		<span class="macro">assert_ok!</span>(
+			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>MultiAsset::from((
+				location,
+				<span class="number">100000000000000000u128
+			</span>))),
+			(H160([<span class="number">0</span>; <span class="number">20</span>]), U256::from(<span class="number">100000000000000000u128</span>))
 		);
 	}
 
