@@ -5,24 +5,21 @@ import { jumpRounds } from "../../../helpers/block.js";
 import { getRewardedAndCompoundedEvents } from "../../../helpers/staking.js";
 
 describeSuite({
-  id: "D2954",
-  title: "Staking - Rewards Auto-Compound - no auto-compound config",
+  id: "D2955",
+  title: "Staking - Rewards Auto-Compound - 0% auto-compound",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
-      await context.createBlock(
-        [
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(context.polkadotJs().tx.parachainStaking.setBlocksPerRound(10))
-            .signAsync(alith),
-          context
-            .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
-            .signAsync(ethan),
-        ],
-        { allowFailures: false }
-      );
+      await context.createBlock([
+        context
+          .polkadotJs()
+          .tx.sudo.sudo(context.polkadotJs().tx.parachainStaking.setBlocksPerRound(10))
+          .signAsync(alith),
+        context
+          .polkadotJs()
+          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .signAsync(ethan),
+      ]);
     });
 
     it({

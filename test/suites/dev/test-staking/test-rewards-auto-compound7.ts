@@ -5,8 +5,8 @@ import { jumpRounds } from "../../../helpers/block.js";
 import { getRewardedAndCompoundedEvents } from "../../../helpers/staking.js";
 
 describeSuite({
-  id: "D2954",
-  title: "Staking - Rewards Auto-Compound - no auto-compound config",
+  id: "D2960",
+  title: "Staking - Rewards Auto-Compound - scheduled revoke request after round snapshot",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
@@ -18,19 +18,36 @@ describeSuite({
             .signAsync(alith),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              100,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
+        { allowFailures: false }
+      );
+      await jumpRounds(
+        context,
+        context.polkadotJs().consts.parachainStaking.rewardPaymentDelay.toNumber()
+      );
+      await context.createBlock(
+        context
+          .polkadotJs()
+          .tx.parachainStaking.scheduleRevokeDelegation(alith.address)
+          .signAsync(ethan),
         { allowFailures: false }
       );
     });
 
     it({
       id: "T01",
-      title: "should not compound reward and emit no event",
+      title: "should reward but not compound",
       test: async () => {
-        const rewardDelay = context.polkadotJs().consts.parachainStaking.rewardPaymentDelay;
-        await jumpRounds(context, rewardDelay.addn(1).toNumber());
+        await jumpRounds(context, 1);
         const blockHash = (await context.createBlock()).block.hash.toString();
         const events = await getRewardedAndCompoundedEvents(context, blockHash);
         const rewardedEvent = events.rewarded.find(({ account }: any) => account === ethan.address);
@@ -39,7 +56,7 @@ describeSuite({
         );
 
         expect(rewardedEvent, "delegator was not rewarded").to.not.be.undefined;
-        expect(compoundedEvent, "delegator reward was erroneously compounded").to.be.undefined;
+        expect(compoundedEvent, "delegator reward was erroneously auto-compounded").to.be.undefined;
       },
     });
   },
