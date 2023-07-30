@@ -1,6 +1,6 @@
 # Functional testing for Moonbeam
 
-:information_source: This is the location of all the typescript based tests for Moonbeam/Moonriver. 
+:information_source: This is the location of all the typescript based tests for Moonbeam/Moonriver.
 In the future this will be replaced by the `/test/` folder which is using the [Moonwall](https://github.com/Moonsong-Labs/moonwall) framework.
 
 This folder contains a set of functional tests designed for Moonbeam network.
@@ -149,24 +149,7 @@ Those tests are intended to run using an exported state from an existing network
 They require to specify the exported state, the runtime name and the parachain id.  
 Also the exported state needs to be modified using the state-modifier.ts script.
 
-> N.B. The most uptodate way of forking live chain state can be found in our tools-repo: https://github.com/PureStake/moonbeam-tools
-
-### End to end script (automated)
-
-You can run the full process using the docker image:
-
-```
-docker run -e GIT_TAG=perm-runtime-1605 -e NETWORK=moonriver -e RUNTIME_NAME=moonriver purestake/moonbeam-fork-tests:0.0.5
-```
-
-or locally (for debugging pruposes) with the script:
-
-```
-ROOT_FOLDER=/tmp/moonbeam-states GIT_TAG=perm-runtime-1604 NETWORK=moonbase-alpha RUNTIME_NAME=moobase ./scripts/run-fork-test.sh
-```
-
-Where `ROOT_FOLDER` should be an empty folder
-
+> N.B. The most uptodate way of forking live chain state can be found in our tools-repo: https://github.com/Moonsong-Labs/moonbeam-tools
 
 ### Starting the node separately
 
@@ -176,10 +159,4 @@ If you want to inspect the forkned network or keep it running after the tests
 PARA_ID=2004 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
 PARA_ID=1000 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
 PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
-```
-
-### Generating moonbeam-fork-test image
-
-```
-docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.5 -f docker/moonbeam-fork-tests.Dockerfile
 ```
