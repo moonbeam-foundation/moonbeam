@@ -10,7 +10,7 @@ recommended to change those references once the migration is done.
 
 # Information
 
-![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Release/badge.svg)
+![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Build/badge.svg)
 
 **An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with [Substrate](https://substrate.dev).**
 
