@@ -932,13 +932,7 @@ where
 				telemetry.clone(),
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-			// TODO: Need to cherry-pick 
-			//
-			// https://github.com/moonbeam-foundation/substrate/commit/
-			// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c06d204f0c
-			// 8b689955e42177731e232115e9a6f
-			//
-			// proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
+			proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
