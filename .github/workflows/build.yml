@@ -54,6 +54,7 @@ jobs:
           fi
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
+          echo "github.event_name": ${{ github.event_name }}"
 
       - uses: actions/checkout@v3
         with:
