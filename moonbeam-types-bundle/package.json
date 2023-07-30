@@ -23,7 +23,7 @@
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PureStake/moonbeam.git"
+    "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
   },
   "dependencies": {
     "@polkadot/api": "^10.9.1",

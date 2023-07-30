@@ -7,7 +7,7 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
     substrate: "paritytech",
     polkadot: "paritytech",
     cumulus: "paritytech",
-    nimbus: "purestake",
+    nimbus: "moonbeam-foundation",
   };
   const prefixes = {
     substrate: "polkadot-",
