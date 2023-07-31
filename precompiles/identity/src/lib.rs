@@ -102,7 +102,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("clear_identity()")]
+	#[precompile::public("clearIdentity()")]
 	fn clear_identity(handle: &mut impl PrecompileHandle) -> EvmResult {
 		let call = pallet_identity::Call::<Runtime>::clear_identity {};
 
@@ -304,7 +304,7 @@ where
 	fn subs_of(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<SubsOf> {
 		// Storage item: SubsOf:
 		// BoundedVec(AccountId(20) * MaxSubAccounts(100))
-		handle.record_db_read::<Runtime>(200)?;
+		handle.record_db_read::<Runtime>(2000)?;
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
