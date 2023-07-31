@@ -10,7 +10,6 @@ import {
 import { jumpBlocks } from "../../../helpers/block.js";
 import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
-
 describeSuite({
   id: "D2709",
   title: "Randomness Result - Fulfilling all of random numbers",

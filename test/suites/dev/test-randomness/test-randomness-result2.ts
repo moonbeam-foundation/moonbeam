@@ -12,7 +12,6 @@ import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks } from "../../../helpers/block.js";
 import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
-
 describeSuite({
   id: "D2708",
   title: "Randomness Result - Fulfilling one of multiple random numbers",

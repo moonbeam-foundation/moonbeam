@@ -47,10 +47,7 @@ export function sortObjectByKeys(unsortedObject: Record<string, any>): Record<st
     }, {});
 }
 
-export async function getMappingInfo(
-  context: DevModeContext,
-  authorId: string
-) {
+export async function getMappingInfo(context: DevModeContext, authorId: string) {
   const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {

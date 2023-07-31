@@ -37,15 +37,18 @@ describeSuite({
         await jumpRounds(context, rewardDelay.addn(1).toNumber());
         const blockHash = (await context.createBlock()).block.hash.toString();
         const allEvents = await (await context.polkadotJs().at(blockHash)).query.system.events();
-        const rewardedEvents = allEvents.reduce((acc: { account: string; amount: bigint }[], event) => {
-          if (context.polkadotJs().events.parachainStaking.Rewarded.is(event.event)) {
-            acc.push({
-              account: event.event.data.account.toString(),
-              amount: event.event.data.rewards.toBigInt(),
-            });
-          }
-          return acc;
-        }, []);
+        const rewardedEvents = allEvents.reduce(
+          (acc: { account: string; amount: bigint }[], event) => {
+            if (context.polkadotJs().events.parachainStaking.Rewarded.is(event.event)) {
+              acc.push({
+                account: event.event.data.account.toString(),
+                amount: event.event.data.rewards.toBigInt(),
+              });
+            }
+            return acc;
+          },
+          []
+        );
 
         expect(
           rewardedEvents.some(({ account }) => account == ethan.address),

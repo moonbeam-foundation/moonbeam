@@ -6,7 +6,7 @@ import {
   CHARLETH_PRIVATE_KEY,
   DOROTHY_PRIVATE_KEY,
   GLMR,
-  alith
+  alith,
 } from "@moonwall/util";
 import { Option } from "@polkadot/types";
 import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";

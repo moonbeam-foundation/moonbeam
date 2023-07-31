@@ -31,7 +31,7 @@ describeSuite({
         expect(result!.successful).to.be.true;
         expect(locks.length).to.be.equal(1, "Missing lock");
         expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_DELEGATOR);
-        expect(fromBytes(locks[0].id.toU8a(),"string")).to.be.equal("stkngdel");
+        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
       },
     });
   },

@@ -834,7 +834,6 @@ type AnyObject = {
   [key: string]: any;
 };
 
-
 export const registerXcmTransactorAndContract = async (context: DevModeContext) => {
   await context.createBlock(
     context

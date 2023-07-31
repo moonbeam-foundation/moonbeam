@@ -32,7 +32,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should be unlocked only after executing revoke delegation",
-      timeout: 20000,
+      timeout: 120000,
       test: async function () {
         const lock = await context.polkadotJs().query.balances.locks(randomAccount.address);
         expect(lock.length).to.be.equal(1, "Lock should have been added");

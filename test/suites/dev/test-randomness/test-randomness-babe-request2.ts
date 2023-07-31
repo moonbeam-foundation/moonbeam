@@ -3,7 +3,6 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
 import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
-
 describeSuite({
   id: "D2705",
   title: "Randomness Babe - Requesting a random number",

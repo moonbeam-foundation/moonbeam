@@ -41,7 +41,7 @@ describeSuite({
         const collator = await context
           .polkadotJs()
           .query.parachainStaking.candidateInfo(alith.address);
-        expect(collator.unwrap().status.isActive).toBe(true)
+        expect(collator.unwrap().status.isActive).toBe(true);
       },
     });
 

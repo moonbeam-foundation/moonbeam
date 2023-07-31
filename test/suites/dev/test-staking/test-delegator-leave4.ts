@@ -3,7 +3,6 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@moonwall/util";
 import { jumpRounds } from "../../../helpers/block.js";
 
-
 describeSuite({
   id: "D2946",
   title: "Staking - Delegator Leave - exact round delay",

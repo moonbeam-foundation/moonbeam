@@ -39,7 +39,7 @@ describeSuite({
 
         // Additional check
         const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(fromBytes(locks[0].id.toU8a(),"string")).to.be.equal("stkngdel");
+        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
       },
     });
   },

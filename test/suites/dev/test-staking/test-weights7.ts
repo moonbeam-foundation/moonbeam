@@ -3,19 +3,26 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
 import { chunk } from "../../../../tests/util/common.js";
 import { countExtrinsics, createAccounts } from "../../../helpers/weights.js";
+import { jumpRounds } from "../../../helpers/block.js";
 
 describeSuite({
-  id: "D2989",
+  id: "D2993",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "delegatorBondMore",
+      title: "executeLeaveDelegators",
       test: async () => {
         const maxTransactions = 350;
         const randomAccounts = await createAccounts(context, maxTransactions);
 
+        await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(context.polkadotJs().tx.parachainStaking.setBlocksPerRound(10))
+            .signAsync(alith)
+        );
         for (const randomAccountsChunk of chunk(randomAccounts, 17)) {
           await context.createBlock(
             randomAccountsChunk.map((account) =>
@@ -29,9 +36,8 @@ describeSuite({
                   maxTransactions,
                   0
                 )
-                .signAsync(account, { nonce: 0 })
-            ),
-            { allowFailures: false }
+                .signAsync(account)
+            )
           );
         }
 
@@ -41,14 +47,23 @@ describeSuite({
             " delegateWithAutoCompound max qty per block"
         ).to.equal(maxTransactions);
 
+        for (const randomAccountsChunk of chunk(randomAccounts, 21)) {
+          await context.createBlock(
+            randomAccountsChunk.map((account) =>
+              context.polkadotJs().tx.parachainStaking.scheduleLeaveDelegators().signAsync(account)
+            )
+          );
+        }
+
+        await jumpRounds(context, 3);
+
         await context.createBlock(
           randomAccounts.map((account) =>
             context
               .polkadotJs()
-              .tx.parachainStaking.delegatorBondMore(alith.address, 1000)
-              .signAsync(account, { nonce: -1 })
-          ),
-          { allowFailures: false }
+              .tx.parachainStaking.executeLeaveDelegators(account.address, 1)
+              .signAsync(account)
+          )
         );
 
         /// Boilerplate to get the number of transactions
@@ -64,7 +79,7 @@ describeSuite({
         expect(
           numTransactions,
           "Quantity of txns that fit inside block below previous max"
-        ).to.be.greaterThanOrEqual(101);
+        ).to.be.greaterThanOrEqual(11);
       },
     });
   },

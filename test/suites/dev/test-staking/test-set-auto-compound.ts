@@ -9,7 +9,7 @@ import {
   dorothy,
   ethan,
   faith,
-  goliath
+  goliath,
 } from "@moonwall/util";
 
 describeSuite({
@@ -70,7 +70,6 @@ describeSuite({
       id: "T03",
       title: "wrong delegation hint should fail",
       test: async () => {
-
         await context.createBlock(
           [
             context
@@ -91,7 +90,7 @@ describeSuite({
           ],
           { allowFailures: false }
         );
-        
+
         const block = await context.createBlock(
           context
             .polkadotJs()
@@ -102,6 +101,5 @@ describeSuite({
         expect(block.result!.error!.name).to.equal("TooLowDelegationCountToAutoCompound");
       },
     });
-    
   },
 });

@@ -25,7 +25,7 @@ describeSuite({
           context
             .polkadotJs()
             .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 1)
-            .signAsync(ethan),
+            .signAsync(ethan)
         );
         expect(block.result!.successful!).to.be.false;
         expect(block.result!.error!.name).to.equal("AlreadyDelegatedCandidate");

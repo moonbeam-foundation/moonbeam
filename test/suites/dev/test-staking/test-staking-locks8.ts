@@ -70,7 +70,7 @@ describeSuite({
           .signAsync(randomAccount),
         { allowFailures: false }
       );
-    }, 20000);
+    }, 120000);
 
     it({
       id: "T01",
