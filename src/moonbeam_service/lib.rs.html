@@ -1500,6 +1500,8 @@
 <a href="#1500" id="1500">1500</a>
 <a href="#1501" id="1501">1501</a>
 <a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2147,6 +2149,7 @@
 		<span class="kw">if </span>ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Debug) || ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				<span class="kw-2">&amp;</span>rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: <span class="kw-2">&amp;</span>task_manager,
 					client: client.clone(),
@@ -2647,6 +2650,7 @@
 		<span class="kw">if </span>ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Debug) || ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				<span class="kw-2">&amp;</span>rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: <span class="kw-2">&amp;</span>task_manager,
 					client: client.clone(),

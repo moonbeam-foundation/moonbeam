@@ -99,6 +99,9 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -119,6 +122,7 @@
 
 <span class="kw">use </span>moonbeam_rpc_debug::{DebugHandler, DebugRequester};
 <span class="kw">use </span>moonbeam_rpc_trace::{CacheRequester <span class="kw">as </span>TraceFilterCacheRequester, CacheTask};
+<span class="kw">use </span>substrate_prometheus_endpoint::Registry <span class="kw">as </span>PrometheusRegistry;
 <span class="kw">use </span>tokio::sync::Semaphore;
 
 <span class="attr">#[derive(Clone)]
@@ -130,6 +134,7 @@
 <span class="comment">// Spawn the tasks that are required to run a Moonbeam tracing node.
 </span><span class="kw">pub fn </span>spawn_tracing_tasks&lt;B, C, BE&gt;(
 	rpc_config: <span class="kw-2">&amp;</span>moonbeam_cli_opt::RpcConfig,
+	prometheus: <span class="prelude-ty">Option</span>&lt;PrometheusRegistry&gt;,
 	params: SpawnTasksParams&lt;B, C, BE&gt;,
 ) -&gt; RpcRequesters
 <span class="kw">where
@@ -155,6 +160,7 @@
 				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
 				Arc::clone(<span class="kw-2">&amp;</span>permit_pool),
 				Arc::clone(<span class="kw-2">&amp;</span>params.overrides),
+				prometheus,
 			);
 			(<span class="prelude-val">Some</span>(trace_filter_task), <span class="prelude-val">Some</span>(trace_filter_requester))
 		} <span class="kw">else </span>{

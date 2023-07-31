@@ -880,6 +880,50 @@
 <a href="#880" id="880">880</a>
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -922,6 +966,9 @@
 	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
 <span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT};
+<span class="kw">use </span>substrate_prometheus_endpoint::{
+	register, Counter, PrometheusError, Registry <span class="kw">as </span>PrometheusRegistry, U64,
+};
 
 <span class="kw">use </span>ethereum_types::H256;
 <span class="kw">use </span>fc_rpc::OverrideHandle;
@@ -1293,6 +1340,7 @@
 	cached_blocks: BTreeMap&lt;H256, CacheBlock&gt;,
 	batches: BTreeMap&lt;u64, Vec&lt;H256&gt;&gt;,
 	next_batch_id: u64,
+	metrics: <span class="prelude-ty">Option</span>&lt;Metrics&gt;,
 	_phantom: PhantomData&lt;B&gt;,
 }
 
@@ -1321,6 +1369,7 @@
 		cache_duration: Duration,
 		blocking_permits: Arc&lt;Semaphore&gt;,
 		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		prometheus: <span class="prelude-ty">Option</span>&lt;PrometheusRegistry&gt;,
 	) -&gt; (<span class="kw">impl </span>Future&lt;Output = ()&gt;, CacheRequester) {
 		<span class="comment">// Communication with the outside world :
 		</span><span class="kw">let </span>(requester_tx, <span class="kw-2">mut </span>requester_rx) =
@@ -1333,7 +1382,17 @@
 			</span><span class="kw">let </span><span class="kw-2">mut </span>batch_expirations = FuturesUnordered::new();
 			<span class="kw">let </span>(blocking_tx, <span class="kw-2">mut </span>blocking_rx) =
 				mpsc::channel(blocking_permits.available_permits() * <span class="number">2</span>);
-
+			<span class="kw">let </span>metrics = <span class="kw">if let </span><span class="prelude-val">Some</span>(registry) = prometheus {
+				<span class="kw">match </span>Metrics::register(<span class="kw-2">&amp;</span>registry) {
+					<span class="prelude-val">Ok</span>(metrics) =&gt; <span class="prelude-val">Some</span>(metrics),
+					<span class="prelude-val">Err</span>(err) =&gt; {
+						<span class="macro">log::error!</span>(target: <span class="string">&quot;tracing&quot;</span>, <span class="string">&quot;Failed to register metrics {err:?}&quot;</span>);
+						<span class="prelude-val">None
+					</span>}
+				}
+			} <span class="kw">else </span>{
+				<span class="prelude-val">None
+			</span>};
 			<span class="comment">// Contains the inner state of the cache task, excluding the pooled futures/channels.
 			// Having this object allow to refactor each event into its own function, simplifying
 			// the main loop.
@@ -1344,6 +1403,7 @@
 				cached_blocks: BTreeMap::new(),
 				batches: BTreeMap::new(),
 				next_batch_id: <span class="number">0</span>,
+				metrics,
 				_phantom: Default::default(),
 			};
 
@@ -1519,6 +1579,9 @@
 						block
 					);
 					waiting_requests.push(sender);
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.metrics {
+						metrics.tracing_cache_misses.inc();
+					}
 				}
 				CacheBlockState::Cached { traces, .. } =&gt; {
 					<span class="macro">tracing::warn!</span>(
@@ -1526,6 +1589,9 @@
 						block
 					);
 					<span class="kw">let _ </span>= sender.send(traces.clone());
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.metrics {
+						metrics.tracing_cache_hits.inc();
+					}
 				}
 			}
 		} <span class="kw">else </span>{
@@ -1760,6 +1826,28 @@
 			}
 		}
 		<span class="prelude-val">Ok</span>(traces)
+	}
+}
+
+<span class="doccomment">/// Prometheus metrics for tracing.
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Metrics {
+	tracing_cache_hits: Counter&lt;U64&gt;,
+	tracing_cache_misses: Counter&lt;U64&gt;,
+}
+
+<span class="kw">impl </span>Metrics {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register(registry: <span class="kw-2">&amp;</span>PrometheusRegistry) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, PrometheusError&gt; {
+		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+			tracing_cache_hits: register(
+				Counter::new(<span class="string">&quot;tracing_cache_hits&quot;</span>, <span class="string">&quot;Number of tracing cache hits.&quot;</span>)<span class="question-mark">?</span>,
+				registry,
+			)<span class="question-mark">?</span>,
+			tracing_cache_misses: register(
+				Counter::new(<span class="string">&quot;tracing_cache_misses&quot;</span>, <span class="string">&quot;Number of tracing cache misses.&quot;</span>)<span class="question-mark">?</span>,
+				registry,
+			)<span class="question-mark">?</span>,
+		})
 	}
 }
 </code></pre></div>
