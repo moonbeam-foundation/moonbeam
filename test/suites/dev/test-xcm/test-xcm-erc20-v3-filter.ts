@@ -9,13 +9,12 @@ import {
   injectHrmpMessage,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
-import { SignedBlock } from "@polkadot/types/interfaces";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
   id: "D2710",
-  title: "Mock XCM V3 - Receive erc20 via XCM",
+  title: "Mock XCM V3 - XCM Weight Limit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
@@ -33,7 +32,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should be able to transfer ERC20 token through incoming XCM message",
+      title: "Check that MaxAssetsIntoHolding limit is enforced",
       test: async function () {
         const paraId = 888;
         const paraSovereign = sovereignAccountOfSibling(context, paraId);
@@ -107,53 +106,48 @@ describeSuite({
           beneficiary: CHARLETH_ADDRESS,
         };
 
-        const xcmMessage = new XcmFragment(config)
-          .withdraw_asset()
-          .clear_origin()
-          .buy_execution()
-          .deposit_asset_v3(100n)
-          .as_v3();
 
-        // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
-          payload: xcmMessage,
-        });
-        const {
-          block: { hash: blockHash },
-        } = await context.createBlock();
+        // first check with n=limit-1 and check n=limit increases weight
+        const getTransferWeight = async function(limit: bigint) {
+          // Mock the reception of the xcm message
+          await injectHrmpMessage(context, paraId, {
+            type: "XcmVersionedXcm",
+            payload: new XcmFragment(config)
+              .withdraw_asset()
+              .clear_origin()
+              .buy_execution()
+              .deposit_asset_v3(limit)
+              .as_v3(),
+          });
+          const {
+            block: { hash: blockHash },
+          } = await context.createBlock();
 
-        const block = await polkadotJs.rpc.chain.getBlock(blockHash);
+          // get the api and events at a specific block
+          const apiAt = await polkadotJs.at(blockHash);
+          const allRecords = await apiAt.query.system.events();
+          const [{ event }] = allRecords.filter(
+            ({ event: { section, method } }) =>
+              section === "xcmpQueue" && method === "OverweightEnqueued"
+          );
+          const [_paraId, _messageId, _weight, proof] = event.data;
+          return proof.proofSize.toNumber();
+        }
 
-        // console.log(blockEvents.block.extrinsics[1].toHuman());
+        const limit = 64n;
+        let weight_under = await getTransferWeight(limit - 1n);
+        let weight_limit = await getTransferWeight(limit);
 
-        // no blockHash is specified, so we retrieve the latest
-        // const signedBlock = await api.rpc.chain.getBlock();
+        // check that n=limit-1 increases weight
+        expect(weight_under).lt(weight_limit);
 
-        // get the api and events at a specific block
-        const apiAt = await polkadotJs.at(blockHash);
-        const allRecords = await apiAt.query.system.events();
+        // now check that n=limit+1 does not increase weight
+        let weight_over = await getTransferWeight(limit + 1n);
+        expect(weight_over).eq(weight_limit);
 
-        // allRecords.forEach(({ event }) => {
-        //   console.log(event.toHuman());
-        // });
-
-        const a = allRecords.filter(
-          ({ event: { section, method } }) =>
-            section === "xcmpQueue" && method === "OverweightEnqueued"
-        );
-
-        expect(a.length).eq(1);
-
-        // Erc20 tokens should have been received
-        expect(
-          await context.readContract!({
-            contractName: "ERC20WithInitialSupply",
-            contractAddress: erc20ContractAddress as `0x${string}`,
-            functionName: "balanceOf",
-            args: [CHARLETH_ADDRESS],
-          })
-        ).equals(0n);
+        // check abusive n>>>limit does not increase weight
+        weight_over = await getTransferWeight(BigInt(1e9));
+        expect(weight_over).eq(weight_limit);
       },
     });
   },
