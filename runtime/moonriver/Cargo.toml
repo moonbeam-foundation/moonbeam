@@ -90,6 +90,7 @@ pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-society = { workspace = true }
+pallet-sudo = { workspace = true, optional = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
@@ -286,10 +287,10 @@ std = [
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
 # Allow to print logs details (no wasm:stripped)
-force-debug = [ "sp-debug-derive/force-debug" ]
+force-debug = [ "sp-debug-derive/force-debug", "pallet-sudo" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = []
+runtime-wasm = [  ]
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm

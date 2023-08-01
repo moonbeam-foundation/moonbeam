@@ -332,6 +332,10 @@ pub fn testnet_genesis(
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(10u128),
 		},
+		#[cfg(feature = "force-debug")]
+		sudo: moonriver_runtime::SudoConfig {
+			key: Some(AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"))),
+		},
 	}
 }
 

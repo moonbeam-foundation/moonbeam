@@ -174,8 +174,22 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
+#[cfg(feature = "force-debug")]
 #[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
+pub const VERSION: RuntimeVersion = RuntimeVersion {	
+	spec_name: create_runtime_str!("moonriver-debug"),
+	impl_name: create_runtime_str!("moonriver-debug"),
+	authoring_version: 3,
+	spec_version: 1,
+	impl_version: 0,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 2,
+	state_version: 0,
+};
+
+#[cfg(not(feature = "force-debug"))]
+#[sp_version::runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {	
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
@@ -366,6 +380,12 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
+}
+
+#[cfg(feature = "force-debug")]
+impl pallet_sudo::Config for Runtime {
+	type RuntimeCall = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
@@ -1365,6 +1385,8 @@ construct_runtime! {
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 
 		// Sudo was previously index 40
+		#[cfg(feature = "force-debug")]
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
