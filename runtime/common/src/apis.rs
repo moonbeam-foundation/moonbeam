@@ -281,6 +281,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// chain id 8 bytes
 						// 65 bytes signature
 						210;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
@@ -345,7 +346,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					let validate = true;
 
 					let mut estimated_transaction_len = data.len() +
-						// to: 20
 						// from: 20
 						// value: 32
 						// gas_limit: 32
@@ -353,7 +353,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						210;
+						190;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
@@ -439,7 +440,11 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn gas_limit_multiplier_support() {}
 
-				fn pending_block(xts: Vec<<Block as sp_api::BlockT>::Extrinsic>) -> (Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>) {
+				fn pending_block(
+					xts: Vec<<Block as sp_api::BlockT>::Extrinsic>
+				) -> (
+					Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>
+				) {
 					for ext in xts.into_iter() {
 						let _ = Executive::apply_extrinsic(ext);
 					}
@@ -694,7 +699,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn universal_alias() -> Result<Junction, BenchmarkError> {
+						fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn export_message_origin_and_destination()
+							-> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 

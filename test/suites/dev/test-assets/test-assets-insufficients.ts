@@ -20,7 +20,7 @@ describeSuite({
     const freshAccount = generateKeyringPair();
 
     beforeAll(async () => {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       assetId = api.createType("u128", ARBITRARY_ASSET_ID);
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay

@@ -66,7 +66,7 @@ pub struct Trace<B, C> {
 impl<B, C> Clone for Trace<B, C> {
 	fn clone(&self) -> Self {
 		Self {
-			_phantom: PhantomData::default(),
+			_phantom: PhantomData,
 			client: Arc::clone(&self.client),
 			requester: self.requester.clone(),
 			max_count: self.max_count,
@@ -87,7 +87,7 @@ where
 			client,
 			requester,
 			max_count,
-			_phantom: PhantomData::default(),
+			_phantom: PhantomData,
 		}
 	}
 

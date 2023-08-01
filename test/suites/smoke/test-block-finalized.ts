@@ -24,7 +24,7 @@ describeSuite({
     let ethers: Signer;
 
     beforeAll(() => {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       ethers = context.ethers();
     });
 

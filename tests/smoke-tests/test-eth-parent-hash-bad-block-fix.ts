@@ -9,7 +9,7 @@ const debug = require("debug")("smoke:ethereum-block-fix");
 describeSmokeSuite("S570", `RPC Eth ParentHash`, async function (context, testIt) {
   let atBlockNumber: number = 0;
   let previousBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let apiAtPrevious: ApiDecoration<"promise"> = null;
 
   before("configure api at block", async function () {

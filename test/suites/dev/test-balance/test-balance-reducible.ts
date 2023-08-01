@@ -1,7 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { alith, ALITH_GENESIS_TRANSFERABLE_BALANCE, generateKeyringPair } from "@moonwall/util";
-import { checkBalance } from "@moonwall/util";
+import { describeSuite, expect } from "@moonwall/cli";
+import {
+  BALTATHAR_ADDRESS,
+  DEFAULT_GENESIS_BALANCE,
+  baltathar,
+  checkBalance,
+  generateKeyringPair,
+} from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({
@@ -13,9 +18,10 @@ describeSuite({
       id: "T01",
       title: "should show the reducible balanced when some amount is locked",
       test: async function () {
-        expect(await checkBalance(context), "Balance should be untouched from genesis amount").toBe(
-          ALITH_GENESIS_TRANSFERABLE_BALANCE
-        );
+        expect(
+          await checkBalance(context, BALTATHAR_ADDRESS),
+          "Balance should be untouched from genesis amount"
+        ).toBe(DEFAULT_GENESIS_BALANCE);
         const randomAccount = generateKeyringPair();
         const existentialDeposit = context
           .polkadotJs()
@@ -23,11 +29,15 @@ describeSuite({
         const minDepositAmount = context.polkadotJs().consts.democracy.minimumDeposit.toBigInt();
         const proposal = context
           .polkadotJs()
-          .tx.balances.setBalance(randomAccount.address, 100, 100);
+          .tx.balances.forceSetBalance(randomAccount.address, 100);
         const encodedProposal = proposal.method.toHex();
         const encodedHash = blake2AsHex(encodedProposal);
-        await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
-        const balanceBefore = await checkBalance(context);
+
+        await context.createBlock(
+          context.polkadotJs().tx.preimage.notePreimage(encodedProposal).signAsync(baltathar)
+        );
+
+        const balanceBefore = await checkBalance(context, BALTATHAR_ADDRESS);
         const fee = (
           await context
             .polkadotJs()
@@ -40,21 +50,26 @@ describeSuite({
               },
               minDepositAmount
             )
-            .paymentInfo(alith)
+            .paymentInfo(baltathar)
         ).partialFee.toBigInt();
+
         await context.createBlock(
-          context.polkadotJs().tx.democracy.propose(
-            {
-              Lookup: {
-                hash: encodedHash,
-                len: proposal.method.encodedLength,
+          context
+            .polkadotJs()
+            .tx.democracy.propose(
+              {
+                Lookup: {
+                  hash: encodedHash,
+                  len: proposal.method.encodedLength,
+                },
               },
-            },
-            minDepositAmount
-          )
+              minDepositAmount
+            )
+            .signAsync(baltathar)
         );
+
         const expectedBalance = balanceBefore - minDepositAmount + existentialDeposit - fee;
-        expect(await checkBalance(context)).toBe(expectedBalance);
+        expect(await checkBalance(context, BALTATHAR_ADDRESS)).toBe(expectedBalance);
       },
     });
   },

@@ -41,17 +41,17 @@ export async function getGithubReleaseBinary(url: string, binaryPath: string): P
 export async function getMoonbeamBinary(binaryTag: string, binaryPath: string): Promise<string> {
   if (binaryTag.startsWith(`v`)) {
     return getGithubReleaseBinary(
-      `https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam`,
+      `https://github.com/moonbeam-foundation/moonbeam/releases/download/${binaryTag}/moonbeam`,
       binaryPath
     );
   } else if (binaryTag.startsWith(`sha`)) {
-    return getDockerBuildBinary(`purestake/moonbeam:${binaryTag}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:${binaryTag}`, binaryPath);
   } else if (/^[0-9]/g.test(binaryTag)) {
     // sha given without prefix
-    return getDockerBuildBinary(`purestake/moonbeam:sha-${binaryTag}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:sha-${binaryTag}`, binaryPath);
   } else {
     const sha = child_process.execSync(`git rev-list -n 1 ${binaryTag}`).toString();
-    return getDockerBuildBinary(`purestake/moonbeam:sha-${sha.slice(0, 8)}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:sha-${sha.slice(0, 8)}`, binaryPath);
   }
 }
 

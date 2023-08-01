@@ -1,5 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
-import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
+import type {
+  RuntimeDispatchInfoV1,
+  RuntimeDispatchInfoV2,
+} from "@polkadot/types/interfaces/payment";
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
@@ -68,7 +71,7 @@ export function calculateFeePortions(amount: bigint): { burnt: bigint; treasury:
 }
 
 export interface TxWithEventAndFee extends TxWithEvent {
-  fee: RuntimeDispatchInfo | RuntimeDispatchInfoV1;
+  fee: RuntimeDispatchInfo | RuntimeDispatchInfoV1 | RuntimeDispatchInfoV2;
 }
 
 export interface BlockDetails {
@@ -88,7 +91,11 @@ const getBlockDetails = async (
   ]);
 
   const fees = await Promise.all(
-    block.extrinsics.map((ext) => api.rpc.payment.queryInfo(ext.toHex(), block.header.parentHash))
+    block.extrinsics.map(async (ext) =>
+      (
+        await api.at(block.header.parentHash)
+      ).call.transactionPaymentApi.queryInfo(ext.toHex(), ext.encodedLength)
+    )
   );
 
   const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
@@ -173,6 +180,11 @@ export const verifyBlockFees = async (
           });
         }
 
+        // Payment event is submitted for substrate transactions
+        let paymentEvent = events.find(
+          (event) => event.section == "transactionPayment" && event.method == "TransactionFeePaid"
+        );
+
         let txFees = 0n;
         let txBurnt = 0n;
         // For every extrinsic, iterate over every event
@@ -253,10 +265,14 @@ export const verifyBlockFees = async (
                 ).toBigInt();
 
                 const unadjustedWeightFee = (
-                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
-                    refTime: fee.weight,
-                    proofSize: 0n,
-                  })) as any
+                  await apiAt.call.transactionPaymentApi.queryWeightToFee(
+                    "refTime" in fee.weight
+                      ? fee.weight
+                      : {
+                          refTime: fee.weight,
+                          proofSize: 0n,
+                        }
+                  )
                 ).toBigInt();
                 const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
                 const denominator = 1_000_000_000_000_000_000n;
@@ -272,6 +288,10 @@ export const verifyBlockFees = async (
                 const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
+                // Verify the computed fees are equal to the actual fees
+                expect(expectedPartialFee).to.eq((paymentEvent.data[1] as u128).toBigInt() - tip);
+
+                // Verify the computed fees are equal to the rpc computed fees
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 

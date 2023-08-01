@@ -89,11 +89,9 @@ export async function startMoonbeamDevNode(
     `--alice`,
     `--chain=${runtime}-dev`,
     `--sealing=manual`,
-    `--in-peers=0`,
-    `--out-peers=0`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,
-    `--ws-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
+    `--rpc-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
     `--tmp`,
   ];
   if (WASM_RUNTIME_OVERRIDES != "") {
@@ -192,7 +190,7 @@ export async function startMoonbeamForkedNode(rpcPort: number): Promise<{
     `--chain=${CUSTOM_SPEC_PATH}`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
-    `--ws-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
+    `--rpc-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
     `--trie-cache-size=0`,
     `--db-cache=5000`,
     `--collator`,

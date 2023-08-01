@@ -45,7 +45,7 @@ describeParachain(
       );
 
       const minDelegatorStk = (
-        await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk
+        await context.polkadotApiParaone.consts.parachainStaking.minDelegation
       ).toBigInt();
 
       process.stdout.write(

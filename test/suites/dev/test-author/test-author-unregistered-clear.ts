@@ -13,7 +13,7 @@ describeSuite({
       title: "should not succeed in clearing an association for an unregistered author",
       test: async function () {
         expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
-        const api = context.polkadotJs({ type: "moon" });
+        const api = context.polkadotJs();
         const { result } = await context.createBlock(
           api.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_ADDRESS),
           { allowFailures: true }

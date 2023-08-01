@@ -300,7 +300,7 @@ where
 						.join(sqlite_db_path)
 						.join("frontier.db3")
 						.to_str()
-						.unwrap(),
+						.expect("frontier sql path error"),
 					create_if_missing: true,
 					thread_count: thread_count,
 					cache_size: cache_size,
@@ -359,7 +359,7 @@ pub fn new_chain_ops(
 
 #[allow(clippy::type_complexity)]
 fn new_chain_ops_inner<RuntimeApi, Executor>(
-	mut config: &mut Configuration,
+	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 ) -> Result<
 	(
@@ -469,6 +469,7 @@ where
 		.with_execution_method(config.wasm_method)
 		.with_onchain_heap_alloc_strategy(heap_pages)
 		.with_offchain_heap_alloc_strategy(heap_pages)
+		.with_ignore_onchain_heap_pages(true)
 		.with_max_runtime_instances(config.max_runtime_instances)
 		.with_runtime_cache_size(config.runtime_cache_size)
 		.build();
@@ -931,8 +932,7 @@ where
 				telemetry.clone(),
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-			// TODO: Need to cherry-pick https://github.com/moonbeam-foundation/substrate/commit/d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c06d204f0c8b689955e42177731e232115e9a6f
-			// proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
+			proposer_factory.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
@@ -1068,7 +1068,12 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		// TODO: Need to cherry-pick https://github.com/moonbeam-foundation/substrate/commit/d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c06d204f0c8b689955e42177731e232115e9a6f
+		// TODO: Need to cherry-pick
+		//
+		// https://github.com/moonbeam-foundation/substrate/commit/
+		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
+		// 06d204f0c8b689955e42177731e232115e9a6f
+		//
 		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =

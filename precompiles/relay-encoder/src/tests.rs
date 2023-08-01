@@ -21,7 +21,6 @@ use crate::*;
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
 use precompile_utils::testing::*;
-use sp_core::U256;
 use sp_runtime::Perbill;
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -30,15 +29,15 @@ fn precompiles() -> Precompiles<Runtime> {
 
 #[test]
 fn selectors() {
-	assert!(PCall::encode_bond_selectors().contains(&0xa82948d4));
+	assert!(PCall::encode_bond_selectors().contains(&0x72a9fbc6));
 	assert!(PCall::encode_bond_extra_selectors().contains(&0x813667a0));
 	assert!(PCall::encode_unbond_selectors().contains(&0x51b14e57));
 	assert!(PCall::encode_withdraw_unbonded_selectors().contains(&0xd5ad108e));
 	assert!(PCall::encode_validate_selectors().contains(&0xbb64ca0c));
-	assert!(PCall::encode_nominate_selectors().contains(&0xd2ea7b08));
+	assert!(PCall::encode_nominate_selectors().contains(&0xdcf06883));
 	assert!(PCall::encode_chill_selectors().contains(&0xb5eaac43));
 	assert!(PCall::encode_set_payee_selectors().contains(&0x414be337));
-	assert!(PCall::encode_set_controller_selectors().contains(&0x07f7c6dc));
+	assert!(PCall::encode_set_controller_selectors().contains(&0x15490616));
 	assert!(PCall::encode_rebond_selectors().contains(&0x0922ee17));
 }
 
@@ -90,7 +89,6 @@ fn test_encode_bond() {
 					Alice,
 					Precompile1,
 					PCall::encode_bond {
-						controller_address: [1u8; 32].into(),
 						amount: 100.into(),
 						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
 					},
@@ -99,7 +97,6 @@ fn test_encode_bond() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Bond(
-						[1u8; 32].into(),
 						100u32.into(),
 						RewardDestination::Controller,
 					))
@@ -156,7 +153,7 @@ fn test_encode_nominate() {
 					Alice,
 					Precompile1,
 					PCall::encode_nominate {
-						nominees: vec![U256::from([1u8; 32]), U256::from([2u8; 32])].into(),
+						nominees: vec![H256::from([1u8; 32]), H256::from([2u8; 32])].into(),
 					},
 				)
 				.expect_cost(1000)
@@ -198,18 +195,11 @@ fn test_encode_set_controller() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile1,
-					PCall::encode_set_controller {
-						controller: [1u8; 32].into(),
-					},
-				)
+				.prepare_test(Alice, Precompile1, PCall::encode_set_controller {})
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
-						.as_slice(),
+					TestEncoder::encode_call(AvailableStakeCalls::SetController).as_slice(),
 				))
 		});
 }
@@ -270,7 +260,7 @@ fn test_encode_validate() {
 					Alice,
 					Precompile1,
 					PCall::encode_validate {
-						comission: 100.into(),
+						commission: 100.into(),
 						blocked: true,
 					},
 				)
@@ -315,15 +305,15 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 #[test]
 fn test_deprecated_solidity_selectors_are_supported() {
 	for deprecated_function in [
-		"encode_bond(uint256,uint256,bytes)",
+		"encode_bond(uint256,bytes)",
 		"encode_bond_extra(uint256)",
 		"encode_unbond(uint256)",
 		"encode_withdraw_unbonded(uint32)",
 		"encode_validate(uint256,bool)",
-		"encode_nominate(uint256[])",
+		"encode_nominate(bytes32[])",
 		"encode_chill()",
 		"encode_set_payee(bytes)",
-		"encode_set_controller(uint256)",
+		"encode_set_controller()",
 		"encode_rebond(uint256)",
 	] {
 		let selector = compute_selector(deprecated_function);

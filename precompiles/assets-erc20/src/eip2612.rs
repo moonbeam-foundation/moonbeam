@@ -135,7 +135,7 @@ where
 
 		let name = if asset_name.is_empty() {
 			let mut name = b"Unnamed XC20 #".to_vec();
-			name.extend_from_slice(asset_id.clone().to_string().as_bytes());
+			name.extend_from_slice(asset_id.to_string().as_bytes());
 			name
 		} else {
 			asset_name

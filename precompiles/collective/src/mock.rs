@@ -203,7 +203,7 @@ impl pallet_treasury::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaxProposalWeight: Weight = Weight::from_parts(1024, 1);
+	pub MaxProposalWeight: Weight = Weight::from_parts(1_000_000_000, 1_000_000_000);
 }
 
 impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {

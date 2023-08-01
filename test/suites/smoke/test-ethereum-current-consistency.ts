@@ -40,7 +40,7 @@ describeSuite({
       title: "should have non default field values",
       timeout: THIRTY_MINS,
       test: async function () {
-        const paraApi = context.polkadotJs({ apiName: "para" });
+        const paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
 
         const lastBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         const roundLength = (await paraApi.query.parachainStaking.round()).length.toNumber();

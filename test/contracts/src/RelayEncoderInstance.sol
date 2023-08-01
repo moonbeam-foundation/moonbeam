@@ -6,7 +6,6 @@ import "../../../precompiles/relay-encoder/RelayEncoder.sol";
 // We only use this to be able to generate the input data, since we need a compiled instance
 contract RelayEncoderInstance is RelayEncoder {
     function encodeBond(
-        uint256 controllerAddress,
         uint256 amount,
         bytes memory reward_destination
     ) external pure override returns (bytes memory result) {
@@ -32,14 +31,14 @@ contract RelayEncoderInstance is RelayEncoder {
     }
 
     function encodeValidate(
-        uint256 comission,
+        uint256 commission,
         bool blocked
     ) external pure override returns (bytes memory result) {
         return "0x00";
     }
 
     function encodeNominate(
-        uint256[] memory nominees
+        bytes32[] memory nominees
     ) external pure override returns (bytes memory result) {
         return "0x00";
     }
@@ -59,9 +58,12 @@ contract RelayEncoderInstance is RelayEncoder {
         return "0x00";
     }
 
-    function encodeSetController(
-        uint256 controller
-    ) external pure override returns (bytes memory result) {
+    function encodeSetController()
+        external
+        pure
+        override
+        returns (bytes memory result)
+    {
         return "0x00";
     }
 
