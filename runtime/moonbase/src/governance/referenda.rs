@@ -24,8 +24,8 @@ use super::*;
 use crate::currency::*;
 use frame_support::traits::{EitherOf, MapSuccess};
 use frame_system::EnsureRootWithSuccess;
-use sp_runtime::traits::Replace;
 use moonbeam_runtime_common::weights as moonbeam_weights;
+use sp_runtime::traits::Replace;
 
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = 1 * DAYS;
