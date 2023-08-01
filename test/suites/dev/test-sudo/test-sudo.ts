@@ -12,7 +12,7 @@ import {
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
-  id: "3101",
+  id: "D3101",
   title: "Sudo - successful setParachainBondAccount",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
