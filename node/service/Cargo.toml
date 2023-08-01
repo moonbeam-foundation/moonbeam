@@ -168,6 +168,8 @@ default = [
 	"westend-native",
 ]
 
+force-debug = [ "moonbase-runtime/force-debug" ]
+
 kusama-native = [
 	"polkadot-cli/kusama-native",
 	"polkadot-service/kusama-native",
@@ -185,7 +187,7 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = []
+test-spec = [  ]
 
 runtime-benchmarks = [
 	"moonbase-native",

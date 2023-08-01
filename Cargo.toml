@@ -451,7 +451,7 @@ opt-level = 3
 panic = "unwind"
 
 [profile.testnet]
-debug = 1 # debug symbols are useful for profilers
+debug = 1               # debug symbols are useful for profilers
 debug-assertions = true
 inherits = "release"
 overflow-checks = true
