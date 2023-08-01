@@ -169,7 +169,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-subscription"],
+      "testFileDir": ["suites/dev/test-sudo"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
