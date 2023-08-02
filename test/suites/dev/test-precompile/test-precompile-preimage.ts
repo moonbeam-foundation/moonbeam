@@ -44,7 +44,7 @@ async function unnotePreimage(context: DevModeContext, PreimageAbi: Abi, data: s
     }),
   });
   const block = await context.createBlock(rawTx);
-  return block;
+  return { block, call };
 }
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
@@ -62,9 +62,7 @@ describeSuite({
       PreimageAbi = abi;
     });
 
-    beforeEach(async function () {
-      // proposalIndex = await createProposal(context);
-    });
+    beforeEach(async function () {});
 
     it({
       id: "T01",
@@ -95,8 +93,8 @@ describeSuite({
       id: "T02",
       title: "should allow to unnote a Preimage",
       test: async function () {
-        const { call, ..._block } = await notePreimage(context, PreimageAbi, "You");
-        const block = await unnotePreimage(context, PreimageAbi, "You");
+        await notePreimage(context, PreimageAbi, "You");
+        const { block, call } = await unnotePreimage(context, PreimageAbi, "You");
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -124,8 +122,7 @@ describeSuite({
       test: async function () {
         await notePreimage(context, PreimageAbi, "Repeated");
         expect(
-          async () =>
-            await notePreimage(context, PreimageAbi, "Repeated"),
+          async () => await notePreimage(context, PreimageAbi, "Repeated"),
           "Transaction should be reverted but instead preimage noted"
         ).rejects.toThrowError("AlreadyNoted");
       },
@@ -136,11 +133,10 @@ describeSuite({
       title: "should fail to unnote a missing Preimage",
       test: async function () {
         expect(
-          async () =>
-            await unnotePreimage(context, PreimageAbi, "Missing Preimage"),
+          async () => await unnotePreimage(context, PreimageAbi, "Missing Preimage"),
           "Transaction should be reverted but instead preimage unnoted"
         ).rejects.toThrowError("NotNoted");
       },
-    })
+    });
   },
 });
