@@ -154,3 +154,4 @@ export async function setupWithParticipants(context: DevModeContext) {
   }
   return contractAddress;
 }
+

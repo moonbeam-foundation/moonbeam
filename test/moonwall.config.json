@@ -169,11 +169,11 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/test-precompile"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "multiThreads": 4,
+      "multiThreads": "turbo",
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
@@ -181,7 +181,23 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/moonbeam"
+            "binPath": "../target/release/moonbeam",
+            "options": [
+              "--execution=Native",
+              "--wasm-execution=interpreted-i-know-what-i-do",
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbase-dev",
+              "--sealing=manual",
+              "--tmp"
+            ]
           }
         ]
       }
