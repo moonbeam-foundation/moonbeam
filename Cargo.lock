@@ -6000,6 +6000,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-base-fee",
  "pallet-collective",
+ "pallet-conviction-voting",
  "pallet-democracy",
  "pallet-ethereum-xcm",
  "pallet-evm",

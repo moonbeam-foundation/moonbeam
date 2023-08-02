@@ -565,6 +565,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_randomness::Pallet as RandomnessBench;
 					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
+					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -585,6 +586,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						MoonbeamXcmGenericBench::<Runtime>
 					);
 					list_benchmark!(list, extra, pallet_migrations, MigrationsBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -716,6 +718,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
 					use pallet_migrations::Pallet as MigrationsBench;
+					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -841,6 +844,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
+
+					add_benchmark!(
+						params,
+						batches,
+						pallet_conviction_voting,
+						PalletConvictionVotingBench::<Runtime>
+					);
+
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());

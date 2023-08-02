@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+//! Moonbeam common weights.
 
-mod apis;
-mod impl_moonbeam_xcm_call;
-mod impl_moonbeam_xcm_call_tracing;
-mod impl_on_charge_evm_transaction;
-mod impl_self_contained_call;
-mod impl_xcm_evm_runner;
-pub mod migrations;
-pub mod weights;
+pub mod pallet_conviction_voting;
