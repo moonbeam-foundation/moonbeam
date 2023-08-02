@@ -27,6 +27,8 @@ describeSuite({
           { expectEvents: [context.polkadotJs().events.sudo.Sudid] }
         );
 
+        context.polkadotJs().query.system.events()
+
         const approvals = await context.polkadotJs().query.treasury.approvals();
         expect(approvals.length).to.equal(1, "One proposal should have been approved");
       },
