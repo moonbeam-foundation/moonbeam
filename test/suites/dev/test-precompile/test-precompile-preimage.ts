@@ -7,17 +7,10 @@ import {
   beforeEach,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  PRECOMPILE_PREIMAGE_ADDRESS,
-  alith,
-  createViemTransaction,
-} from "@moonwall/util";
+import { PRECOMPILE_PREIMAGE_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { preimage } from "@polkadot/api-derive/democracy";
-import { HexString } from "web3";
+import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 async function notePreimage(context: DevModeContext, PreimageAbi: Abi, data: string) {
   const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: data } });
@@ -54,7 +47,6 @@ describeSuite({
   title: "Precompiles - Preimage precompile",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
-    let proposalIndex: number;
     let PreimageAbi: Abi;
 
     beforeAll(async function () {
