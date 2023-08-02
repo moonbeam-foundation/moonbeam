@@ -886,6 +886,17 @@
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1453,6 +1464,7 @@
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
 					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
+					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
 
@@ -1473,6 +1485,7 @@
 						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
 					<span class="macro">list_benchmark!</span>(list, extra, pallet_migrations, MigrationsBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::&lt;Runtime&gt;);
 
 					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1604,6 +1617,7 @@
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
 					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
+					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
@@ -1729,6 +1743,14 @@
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
+
+					<span class="macro">add_benchmark!</span>(
+						params,
+						batches,
+						pallet_conviction_voting,
+						PalletConvictionVotingBench::&lt;Runtime&gt;
+					);
+
 
 					<span class="kw">if </span>batches.is_empty() {
 						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Benchmark not found for this pallet.&quot;</span>.into());

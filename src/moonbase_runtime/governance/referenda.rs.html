@@ -95,6 +95,7 @@
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -121,6 +122,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::currency::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::traits::{EitherOf, MapSuccess};
 <span class="kw">use </span>frame_system::EnsureRootWithSuccess;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>sp_runtime::traits::Replace;
 
 <span class="macro">parameter_types! </span>{
@@ -128,7 +130,7 @@
 }
 
 <span class="kw">impl </span>pallet_conviction_voting::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = pallet_conviction_voting::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_conviction_voting::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>Polls = Referenda;
