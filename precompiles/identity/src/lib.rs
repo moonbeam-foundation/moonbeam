@@ -59,12 +59,7 @@ where
 		let call = pallet_identity::Call::<Runtime>::add_registrar { account };
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let x = RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call);
-		println!("dispatch {x:?}");
-		if let Err(x) = x {
-			println!("ERR!@ {x:?}");
-			return Err(x.into());
-		}
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}
@@ -197,7 +192,9 @@ where
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		let x = RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call);
+		println!("{x:?}");
+		x?;
 
 		Ok(())
 	}

@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::*;
+use crate::{
+	Data, IdentityFields, IdentityInfo, Judgement, Registrar, Registration, SubsOf, SuperOf,
+};
 use frame_support::{assert_ok, dispatch::Dispatchable, BoundedVec};
 use frame_system::RawOrigin;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_identity::{
-	Event as IdentityEvent, IdentityFields, Pallet as IdentityPallet, RegistrarInfo,
+	Event as IdentityEvent, IdentityField, Pallet as IdentityPallet, RegistrarInfo,
 };
+use parity_scale_codec::Encode;
+use precompile_utils::prelude::*;
 use precompile_utils::testing::*;
-use sp_core::{H160, H256, U256};
-use sp_runtime::{traits::PostDispatchInfoOf, DispatchResultWithInfo};
+use sp_core::{ConstU32, H160, H256, U256};
+use sp_runtime::{
+	traits::{Hash, PostDispatchInfoOf},
+	DispatchResultWithInfo,
+};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -74,7 +82,7 @@ fn test_add_registrar_with_registrar_origin_succeeds() {
 				vec![Some(RegistrarInfo {
 					account: Bob.into(),
 					fee: 0,
-					fields: IdentityFields::default(),
+					fields: pallet_identity::IdentityFields::default(),
 				})]
 			);
 		})
@@ -86,36 +94,20 @@ fn test_add_registrar_with_non_registrar_origin_fails() {
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
 		.execute_with(|| {
-			// assert_ok!(RuntimeCall::Evm(evm_call(
-			// 	Charlie,
-			// 	PCall::add_registrar {
-			// 		account: H160::from(Bob).into(),
-			// 	}
-			// 	.into()
-			// ))
-			// .dispatch(RuntimeOrigin::root()));
-			let x = RuntimeCall::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Charlie,
 				PCall::add_registrar {
 					account: H160::from(Bob).into(),
 				}
-				.into(),
+				.into()
 			))
-			.dispatch(RuntimeOrigin::root());
-			println!("{x:?}");
-			assert_ok!(x);
-
-			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
-				IdentityEvent::RegistrarAdded { registrar_index: 0 }
-			)));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::registrars().to_vec(),
-				vec![Some(RegistrarInfo {
-					account: Bob.into(),
-					fee: 0,
-					fields: IdentityFields::default(),
-				})]
+				events(),
+				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
+					address: Precompile1.into()
+				}),]
 			);
 		})
 }
@@ -146,7 +138,7 @@ fn test_set_fee_on_existing_registrar_index_succeeds() {
 				vec![Some(RegistrarInfo {
 					account: Bob.into(),
 					fee: 100,
-					fields: IdentityFields::default(),
+					fields: pallet_identity::IdentityFields::default(),
 				})]
 			);
 		})
@@ -158,6 +150,24 @@ fn test_set_fee_on_non_existing_registrar_index_fails() {
 		.with_balances(vec![(Alice.into(), 100_000)])
 		.build()
 		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_fee {
+					index: 0,
+					fee: 100.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+		})
+}
+
+#[test]
+fn test_set_account_id_on_existing_registrar_index_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
 			assert_ok!(<IdentityPallet<Runtime>>::add_registrar(
 				RuntimeOrigin::root(),
 				Bob.into()
@@ -165,12 +175,756 @@ fn test_set_fee_on_non_existing_registrar_index_fails() {
 
 			assert_ok!(RuntimeCall::Evm(evm_call(
 				Bob,
-				PCall::set_fee {
-					index: 1,
-					fee: 100.into(),
+				PCall::set_account_id {
+					index: 0,
+					new: Address(Charlie.into()),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::registrars().to_vec(),
+				vec![Some(RegistrarInfo {
+					account: Charlie.into(),
+					fee: 0,
+					fields: pallet_identity::IdentityFields::default(),
+				})]
+			);
+		})
+}
+
+#[test]
+fn test_set_account_id_on_non_existing_registrar_index_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_account_id {
+					index: 0,
+					new: Address(Charlie.into()),
 				}
 				.into()
 			))
 			.dispatch(RuntimeOrigin::root()));
 		})
+}
+
+#[test]
+fn test_set_fields_on_existing_registrar_index_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(<IdentityPallet<Runtime>>::add_registrar(
+				RuntimeOrigin::root(),
+				Bob.into()
+			));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_fields {
+					index: 0,
+					fields: IdentityField::Display as u64 | IdentityField::Web as u64,
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::registrars().to_vec(),
+				vec![Some(RegistrarInfo {
+					account: Bob.into(),
+					fee: 0,
+					fields: pallet_identity::IdentityFields(
+						IdentityField::Display | IdentityField::Web
+					),
+				})]
+			);
+		})
+}
+
+#[test]
+fn test_set_fields_on_non_existing_registrar_index_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_fields {
+					index: 0,
+					fields: IdentityField::Display as u64 | IdentityField::Web as u64,
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+		})
+}
+
+#[test]
+fn test_set_identity_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						legal: Data {
+							has_data: true,
+							value: vec![0x02].try_into().expect("succeeds"),
+						},
+						web: Data {
+							has_data: true,
+							value: vec![0x03].try_into().expect("succeeds"),
+						},
+						riot: Data {
+							has_data: true,
+							value: vec![0x04].try_into().expect("succeeds"),
+						},
+						email: Data {
+							has_data: true,
+							value: vec![0x05].try_into().expect("succeeds"),
+						},
+						has_pgp_fingerprint: true,
+						pgp_fingerprint: [0x06; 20].try_into().expect("succeeds"),
+						image: Data {
+							has_data: true,
+							value: vec![0x07].try_into().expect("succeeds"),
+						},
+						twitter: Data {
+							has_data: true,
+							value: vec![0x08].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				Some(
+					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+						judgements: Default::default(),
+						deposit: BasicDeposit::get() as u128,
+						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: pallet_identity::Data::Raw(
+								vec![0x01].try_into().expect("succeeds")
+							),
+							legal: pallet_identity::Data::Raw(
+								vec![0x02].try_into().expect("succeeds")
+							),
+							web: pallet_identity::Data::Raw(
+								vec![0x03].try_into().expect("succeeds")
+							),
+							riot: pallet_identity::Data::Raw(
+								vec![0x04].try_into().expect("succeeds")
+							),
+							email: pallet_identity::Data::Raw(
+								vec![0x05].try_into().expect("succeeds")
+							),
+							pgp_fingerprint: Some([0x06; 20].try_into().expect("succeeds")),
+							image: pallet_identity::Data::Raw(
+								vec![0x07].try_into().expect("succeeds")
+							),
+							twitter: pallet_identity::Data::Raw(
+								vec![0x08].try_into().expect("succeeds")
+							),
+						}
+					}
+				),
+			);
+		})
+}
+
+#[test]
+fn test_set_identity_works_for_already_set_identity() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						legal: Data {
+							has_data: true,
+							value: vec![0x02].try_into().expect("succeeds"),
+						},
+						web: Data {
+							has_data: true,
+							value: vec![0x03].try_into().expect("succeeds"),
+						},
+						riot: Data {
+							has_data: true,
+							value: vec![0x04].try_into().expect("succeeds"),
+						},
+						email: Data {
+							has_data: true,
+							value: vec![0x05].try_into().expect("succeeds"),
+						},
+						has_pgp_fingerprint: true,
+						pgp_fingerprint: [0x06; 20].try_into().expect("succeeds"),
+						image: Data {
+							has_data: true,
+							value: vec![0x07].try_into().expect("succeeds"),
+						},
+						twitter: Data {
+							has_data: true,
+							value: vec![0x08].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				Some(
+					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+						judgements: Default::default(),
+						deposit: BasicDeposit::get() as u128,
+						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: pallet_identity::Data::Raw(
+								vec![0x01].try_into().expect("succeeds")
+							),
+							legal: pallet_identity::Data::Raw(
+								vec![0x02].try_into().expect("succeeds")
+							),
+							web: pallet_identity::Data::Raw(
+								vec![0x03].try_into().expect("succeeds")
+							),
+							riot: pallet_identity::Data::Raw(
+								vec![0x04].try_into().expect("succeeds")
+							),
+							email: pallet_identity::Data::Raw(
+								vec![0x05].try_into().expect("succeeds")
+							),
+							pgp_fingerprint: Some([0x06; 20].try_into().expect("succeeds")),
+							image: pallet_identity::Data::Raw(
+								vec![0x07].try_into().expect("succeeds")
+							),
+							twitter: pallet_identity::Data::Raw(
+								vec![0x08].try_into().expect("succeeds")
+							),
+						}
+					}
+				),
+			);
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0xff].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				Some(
+					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+						judgements: Default::default(),
+						deposit: BasicDeposit::get() as u128,
+						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: pallet_identity::Data::Raw(
+								vec![0xff].try_into().expect("succeeds")
+							),
+							legal: pallet_identity::Data::None,
+							web: pallet_identity::Data::None,
+							riot: pallet_identity::Data::None,
+							email: pallet_identity::Data::None,
+							pgp_fingerprint: None,
+							image: pallet_identity::Data::None,
+							twitter: pallet_identity::Data::None,
+						}
+					}
+				),
+			);
+		})
+}
+
+#[test]
+fn test_set_subs_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				Some(
+					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+						judgements: Default::default(),
+						deposit: BasicDeposit::get() as u128,
+						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: pallet_identity::Data::Raw(
+								vec![0x01].try_into().expect("succeeds")
+							),
+							legal: pallet_identity::Data::None,
+							web: pallet_identity::Data::None,
+							riot: pallet_identity::Data::None,
+							email: pallet_identity::Data::None,
+							pgp_fingerprint: None,
+							image: pallet_identity::Data::None,
+							twitter: pallet_identity::Data::None,
+						}
+					}
+				),
+			);
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_subs {
+					subs: vec![
+						(
+							Address(Charlie.into()),
+							Data {
+								has_data: true,
+								value: vec![0x01].try_into().expect("succeeds"),
+							}
+						),
+						(
+							Address(David.into()),
+							Data {
+								has_data: true,
+								value: vec![0x02].try_into().expect("succeeds"),
+							}
+						)
+					]
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::subs_of(AccountId::from(Bob)),
+				(
+					SubAccountDeposit::get() as u128 * 2,
+					vec![Charlie.into(), David.into(),]
+						.try_into()
+						.expect("succeeds")
+				),
+			);
+		})
+}
+
+#[test]
+fn test_set_subs_fails_if_identity_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_subs {
+					subs: vec![
+						(
+							Address(Charlie.into()),
+							Data {
+								has_data: true,
+								value: vec![0x01].try_into().expect("succeeds"),
+							}
+						),
+						(
+							Address(David.into()),
+							Data {
+								has_data: true,
+								value: vec![0x02].try_into().expect("succeeds"),
+							}
+						)
+					]
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				events(),
+				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
+					address: Precompile1.into()
+				}),]
+			);
+		})
+}
+
+#[test]
+fn test_clear_identity_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				Some(
+					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+						judgements: Default::default(),
+						deposit: BasicDeposit::get() as u128,
+						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: pallet_identity::Data::Raw(
+								vec![0x01].try_into().expect("succeeds")
+							),
+							legal: pallet_identity::Data::None,
+							web: pallet_identity::Data::None,
+							riot: pallet_identity::Data::None,
+							email: pallet_identity::Data::None,
+							pgp_fingerprint: None,
+							image: pallet_identity::Data::None,
+							twitter: pallet_identity::Data::None,
+						}
+					}
+				),
+			);
+
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Bob, PCall::clear_identity {}.into()))
+					.dispatch(RuntimeOrigin::root())
+			);
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::IdentityCleared {
+					who: Bob.into(),
+					deposit: BasicDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				None,
+			);
+		})
+}
+
+#[test]
+fn test_clear_identity_fails_if_no_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Bob, PCall::clear_identity {}.into()))
+					.dispatch(RuntimeOrigin::root())
+			);
+
+			assert_eq!(
+				events(),
+				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
+					address: Precompile1.into()
+				}),]
+			);
+		})
+}
+
+#[test]
+fn test_request_judgement_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// add Alice as registrar
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				RegistrarOrigin,
+				PCall::add_registrar {
+					account: H160::from(Alice).into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Alice,
+				PCall::set_fee {
+					index: 0,
+					fee: 100.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::request_judgement {
+					reg_index: 0,
+					max_fee: 1000u64.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::JudgementRequested {
+					who: Bob.into(),
+					registrar_index: 0,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+					.expect("exists")
+					.judgements
+					.to_vec(),
+				vec![(0, pallet_identity::Judgement::FeePaid(100))],
+			);
+		})
+}
+
+#[test]
+fn test_cancel_request_works_if_identity_judgement_requested() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// add Alice as registrar
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				RegistrarOrigin,
+				PCall::add_registrar {
+					account: H160::from(Alice).into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Alice,
+				PCall::set_fee {
+					index: 0,
+					fee: 100.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			// Request judgement
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::request_judgement {
+					reg_index: 0,
+					max_fee: 1000u64.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::cancel_request { reg_index: 0 }.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::JudgementUnrequested {
+					who: Bob.into(),
+					registrar_index: 0,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+					.expect("exists")
+					.judgements
+					.to_vec(),
+				vec![],
+			);
+		})
+}
+
+#[test]
+fn test_provide_judgement_works_if_identity_judgement_requested() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// add Alice as registrar
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				RegistrarOrigin,
+				PCall::add_registrar {
+					account: H160::from(Alice).into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Alice,
+				PCall::set_fee {
+					index: 0,
+					fee: 100.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			// Request judgement
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::request_judgement {
+					reg_index: 0,
+					max_fee: 1000u64.into(),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			let identity =
+				pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
+					judgements: Default::default(),
+					deposit: BasicDeposit::get() as u128,
+					info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+						additional: Default::default(),
+						display: pallet_identity::Data::Raw(
+							vec![0x01].try_into().expect("succeeds"),
+						),
+						legal: pallet_identity::Data::None,
+						web: pallet_identity::Data::None,
+						riot: pallet_identity::Data::None,
+						email: pallet_identity::Data::None,
+						pgp_fingerprint: None,
+						image: pallet_identity::Data::None,
+						twitter: pallet_identity::Data::None,
+					},
+				};
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+					.expect("")
+					.info,
+				identity.info
+			);
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Alice,
+				PCall::provide_judgement {
+					reg_index: 0,
+					target: Address(Bob.into()),
+					judgement: Judgement {
+						is_reasonable: true,
+						..Default::default()
+					},
+					identity: <Runtime as frame_system::Config>::Hashing::hash_of(&identity.info),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::JudgementGiven {
+					target: Bob.into(),
+					registrar_index: 0,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+					.expect("exists")
+					.judgements
+					.to_vec(),
+				vec![(0, pallet_identity::Judgement::Reasonable)],
+			);
+		})
+}
+
+fn p() {
+	println!("{:?}", events());
 }
