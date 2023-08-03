@@ -706,6 +706,7 @@ where
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				&rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: &task_manager,
 					client: client.clone(),
@@ -1220,6 +1221,7 @@ where
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				&rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: &task_manager,
 					client: client.clone(),
