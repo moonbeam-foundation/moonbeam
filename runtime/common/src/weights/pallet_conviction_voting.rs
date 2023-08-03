@@ -67,8 +67,8 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `13155`
 		//  Estimated: `85835`
-		// Minimum execution time: 101_782_000 picoseconds.
-		Weight::from_parts(105_579_000, 85835)
+		// Minimum execution time: 139_402_000 picoseconds.
+		Weight::from_parts(176_962_000, 85835)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -86,8 +86,8 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `13876`
 		//  Estimated: `127273`
-		// Minimum execution time: 176_472_000 picoseconds.
-		Weight::from_parts(179_026_000, 127273)
+		// Minimum execution time: 234_886_000 picoseconds.
+		Weight::from_parts(267_793_000, 127273)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
 	}
@@ -101,8 +101,8 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `13520`
 		//  Estimated: `118937`
-		// Minimum execution time: 157_035_000 picoseconds.
-		Weight::from_parts(161_313_000, 118937)
+		// Minimum execution time: 212_313_000 picoseconds.
+		Weight::from_parts(234_084_000, 118937)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -114,8 +114,8 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `12644`
 		//  Estimated: `35071`
-		// Minimum execution time: 50_755_000 picoseconds.
-		Weight::from_parts(53_090_000, 35071)
+		// Minimum execution time: 69_291_000 picoseconds.
+		Weight::from_parts(88_825_000, 35071)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -134,10 +134,10 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `7235 + r * (386 ±0)`
 		//  Estimated: `153590 + r * (3387 ±0)`
-		// Minimum execution time: 48_602_000 picoseconds.
-		Weight::from_parts(34_823_147, 153590)
-			// Standard Error: 732_665
-			.saturating_add(Weight::from_parts(82_938_442, 0).saturating_mul(r.into()))
+		// Minimum execution time: 77_662_000 picoseconds.
+		Weight::from_parts(97_655_953, 153590)
+			// Standard Error: 745_838
+			.saturating_add(Weight::from_parts(90_181_684, 0).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(r.into())))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
@@ -155,10 +155,10 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `7020 + r * (386 ±0)`
 		//  Estimated: `145254 + r * (3387 ±0)`
-		// Minimum execution time: 40_486_000 picoseconds.
-		Weight::from_parts(43_021_000, 145254)
-			// Standard Error: 378_061
-			.saturating_add(Weight::from_parts(89_418_651, 0).saturating_mul(r.into()))
+		// Minimum execution time: 60_779_000 picoseconds.
+		Weight::from_parts(65_095_453, 145254)
+			// Standard Error: 747_266
+			.saturating_add(Weight::from_parts(89_963_038, 0).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(r.into())))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
@@ -175,8 +175,8 @@ impl<T: frame_system::Config> pallet_conviction_voting::weights::WeightInfo for 
 		// Proof Size summary in bytes:
 		//  Measured:  `11936`
 		//  Estimated: `39030`
-		// Minimum execution time: 85_281_000 picoseconds.
-		Weight::from_parts(94_197_000, 39030)
+		// Minimum execution time: 95_261_000 picoseconds.
+		Weight::from_parts(119_380_000, 39030)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
