@@ -532,6 +532,9 @@ jobs:
       - uses: oven-sh/setup-bun@v1
         with:
             bun-version: latest 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
@@ -544,7 +547,7 @@ jobs:
         run: |
           cd test
           bun install
-          bun moonwall test CI_upgrade_RT_${{matrix.chain}}
+          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:

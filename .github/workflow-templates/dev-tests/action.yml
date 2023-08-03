@@ -25,6 +25,7 @@ runs:
         chmod uog+x target/release/moonbeam
         cd test
         bun install
+        bun compile-solidity compile
         bun moonwall test ${{ inputs.moonwall_environment }}
     - name: Upload HTML report
       if: always()
