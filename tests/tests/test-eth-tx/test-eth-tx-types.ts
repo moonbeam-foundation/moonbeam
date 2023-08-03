@@ -9,6 +9,8 @@ import {
   createTransfer,
   DEFAULT_TXN_MAX_BASE_FEE,
 } from "../../util/transactions";
+import { numberToHex } from "@polkadot/util";
+import { hexZeroPad } from "ethers/lib/utils";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
@@ -29,11 +31,11 @@ describeDevMoonbeam(
         .args[0] as any;
       expect(extrinsic.isLegacy).to.be.true;
       expect(extrinsic.asLegacy.toJSON()).to.deep.equal({
-        nonce: 0,
-        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
-        gasLimit: 12000000,
+        nonce: hexZeroPad(numberToHex(0), 32),
+        gasPrice: hexZeroPad(numberToHex(DEFAULT_TXN_MAX_BASE_FEE), 32),
+        gasLimit: hexZeroPad(numberToHex(12000000), 32),
         action: { call: baltathar.address.toLowerCase() },
-        value: 512,
+        value: hexZeroPad(numberToHex(512), 32),
         input: "0x",
         signature: {
           v: 2598,
@@ -65,13 +67,13 @@ describeDevMoonbeam(
       expect(extrinsic.isEip2930).to.be.true;
       expect(extrinsic.asEip2930.toJSON()).to.deep.equal({
         chainId: 1281,
-        nonce: 0,
-        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
-        gasLimit: 21000,
+        nonce: hexZeroPad(numberToHex(0), 32),
+        gasPrice: hexZeroPad(numberToHex(DEFAULT_TXN_MAX_BASE_FEE), 32),
+        gasLimit: hexZeroPad(numberToHex(21000), 32),
         action: {
           call: baltathar.address.toLowerCase(),
         },
-        value: 512,
+        value: hexZeroPad(numberToHex(512), 32),
         input: "0x",
         accessList: [],
         oddYParity: true,
@@ -102,14 +104,14 @@ describeDevMoonbeam(
       expect(extrinsic.isEip1559).to.be.true;
       expect(extrinsic.asEip1559.toJSON()).to.deep.equal({
         chainId: 1281,
-        nonce: 0,
-        maxPriorityFeePerGas: 0,
-        maxFeePerGas: DEFAULT_TXN_MAX_BASE_FEE,
-        gasLimit: 21000,
+        nonce: hexZeroPad(numberToHex(0), 32),
+        maxPriorityFeePerGas: hexZeroPad(numberToHex(0), 32),
+        maxFeePerGas: hexZeroPad(numberToHex(DEFAULT_TXN_MAX_BASE_FEE), 32),
+        gasLimit: hexZeroPad(numberToHex(21000), 32),
         action: {
           call: baltathar.address.toLowerCase(),
         },
-        value: 512,
+        value: hexZeroPad(numberToHex(512), 32),
         input: "0x",
         accessList: [],
         oddYParity: false,

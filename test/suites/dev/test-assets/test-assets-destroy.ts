@@ -1,4 +1,3 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
@@ -18,7 +17,7 @@ describeSuite({
     let assetId: u128;
     let api: ApiPromise;
     beforeAll(async () => {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       assetId = api.createType("u128", ARBITRARY_ASSET_ID);
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
@@ -39,7 +38,7 @@ describeSuite({
       id: "T01",
       title: "should destroy asset Balance",
       test: async function () {
-        const metadataBefore = await context.polkadotJs({}).query.assets.metadata(assetId.toU8a());
+        const metadataBefore = await context.polkadotJs().query.assets.metadata(assetId.toU8a());
 
         // Name is equal to "DOT" in hex
         expect(metadataBefore.name.toString()).to.eq("0x444f54");

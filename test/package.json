@@ -14,8 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2400.0",
-    "@moonwall/cli": "^3.0.7",
-    "@moonwall/util": "^3.0.7",
+    "@moonwall/cli": "^3.0.11",
+    "@moonwall/util": "^3.0.11",
     "@polkadot/api": "^10.9.1",
     "@polkadot/api-augment": "^10.9.1",
     "@polkadot/types": "^10.9.1",
@@ -36,7 +36,7 @@
     "yargs": "^17.7.2"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "^0.6.6",
+    "@acala-network/chopsticks": "^0.7.3",
     "@openzeppelin/contracts": "^4.9.2",
     "@polkadot/api-derive": "^10.9.1",
     "@polkadot/apps-config": "^0.132.1",
@@ -52,6 +52,7 @@
     "json-bigint": "^1.0.0",
     "json-stable-stringify": "^1.0.2",
     "node-fetch": "^3.3.1",
+    "rimraf": "^5.0.1",
     "semver": "^7.5.2",
     "solc": "0.8.19",
     "viem": "^1.0.7",

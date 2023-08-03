@@ -19,7 +19,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async function () {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       log(`Setting account ${charleth.address} keys: ${concatOriginalKeys}`);
       // TODO: fix all setKeys with api 1600.1
       await api.tx.authorMapping.setKeys(concatOriginalKeys).signAndSend(charleth);

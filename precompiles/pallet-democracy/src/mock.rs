@@ -95,6 +95,10 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -313,10 +317,9 @@ pub(crate) fn set_balance_proposal(
 	value: u128,
 ) -> BoundedCallOf<Runtime> {
 	let who = who.into();
-	let inner = pallet_balances::Call::set_balance {
+	let inner = pallet_balances::Call::force_set_balance {
 		who,
 		new_free: value,
-		new_reserved: 0,
 	};
 	let outer = RuntimeCall::Balances(inner);
 	Preimage::bound(outer).unwrap()

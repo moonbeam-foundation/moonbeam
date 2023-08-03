@@ -333,7 +333,7 @@ export async function createContractExecution(
 }
 
 /**
- * Send a JSONRPC request to the node at http://localhost:9933.
+ * Send a JSONRPC request to the node at http://localhost:9944.
  *
  * @param method - The JSONRPC request method.
  * @param params - The JSONRPC request params.

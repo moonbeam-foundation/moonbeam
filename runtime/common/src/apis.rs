@@ -38,6 +38,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn metadata() -> OpaqueMetadata {
 					OpaqueMetadata::new(Runtime::metadata().into())
 				}
+
+				fn metadata_at_version(version: u32) -> Option<OpaqueMetadata> {
+					Runtime::metadata_at_version(version)
+				}
+
+				fn metadata_versions() -> Vec<u32> {
+					Runtime::metadata_versions()
+				}
 			}
 
 			impl sp_block_builder::BlockBuilder<Block> for Runtime {
@@ -431,6 +439,23 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn gas_limit_multiplier_support() {}
+
+				fn pending_block(
+					xts: Vec<<Block as sp_api::BlockT>::Extrinsic>
+				) -> (
+					Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>
+				) {
+					for ext in xts.into_iter() {
+						let _ = Executive::apply_extrinsic(ext);
+					}
+
+					Ethereum::on_finalize(System::block_number() + 1);
+
+					(
+						pallet_ethereum::CurrentBlock::<Runtime>::get(),
+						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
+					)
+				 }
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
@@ -563,7 +588,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
-					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 
@@ -585,7 +609,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
-					list_benchmark!(list, extra, pallet_migrations, MigrationsBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
@@ -676,7 +699,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn universal_alias() -> Result<Junction, BenchmarkError> {
+						fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn export_message_origin_and_destination()
+							-> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
@@ -717,7 +745,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
-					use pallet_migrations::Pallet as MigrationsBench;
 					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
@@ -829,13 +856,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_randomness,
 						RandomnessBench::<Runtime>
-					);
-
-					add_benchmark!(
-						params,
-						batches,
-						pallet_migrations,
-						MigrationsBench::<Runtime>
 					);
 
 					add_benchmark!(

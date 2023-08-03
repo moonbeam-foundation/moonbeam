@@ -627,7 +627,6 @@ const parachainTemplate = {
       name: "alice",
       flags: [
         "--unsafe-rpc-external",
-        "--unsafe-ws-external",
         "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",
@@ -640,7 +639,6 @@ const parachainTemplate = {
       name: "bob",
       flags: [
         "--unsafe-rpc-external",
-        "--unsafe-ws-external",
         "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",
