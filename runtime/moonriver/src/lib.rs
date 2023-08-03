@@ -294,9 +294,9 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ConstU128<0>;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
-	type MaxFreezes = ();
+	type MaxFreezes = ConstU32<0>;
 	type HoldIdentifier = ();
-	type MaxHolds = ();
+	type MaxHolds = ConstU32<0>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
