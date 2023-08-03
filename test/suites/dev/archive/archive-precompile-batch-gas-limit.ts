@@ -33,7 +33,8 @@ describeSuite({
         //     value: "0x00",
         //     nonce: 0,
         //     data:
-        //       `${batchInterface.encodeFunctionData("batchAll", [[], [], [], []]).slice(0, 10)}` +
+        //       `${batchInterface.encodeFunctionData("batchAll",
+        // [[], [], [], []]).slice(0, 10)}` +
         //       `${batchInterface
         //         .encodeFunctionData("hackedbatchAll", [
         //           [randomAccount.address],
@@ -49,7 +50,8 @@ describeSuite({
         //   batchAllTx.rawTransaction,
         // ]);
         // await context.createBlock();
-        // const batchAllReceipt = await context.web3.eth.getTransactionReceipt(batchAllResult.result);
+        // const batchAllReceipt = await context.web3.eth
+        //.getTransactionReceipt(batchAllResult.result);
         // expect(batchAllReceipt.status).to.be.true;
         // const account = await context.polkadotApi.query.system.account(randomAccount.address);
         // expect(account.data.free.toBigInt()).to.equal(3_000_000_000_000_000_000n);

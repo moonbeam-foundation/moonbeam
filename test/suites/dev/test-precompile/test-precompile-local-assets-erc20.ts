@@ -63,7 +63,6 @@ describeSuite({
         args: [getAddress(assetAddress)],
       });
       await context.createBlock();
-      // const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
     });
 
     it({
