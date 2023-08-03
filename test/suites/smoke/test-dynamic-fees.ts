@@ -56,6 +56,7 @@ describeSuite({
     let blockData: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
     let paraApi: ApiPromise;
+    let skipAll = false;
 
     const checkMultiplier = (prevBlock: BlockFilteredRecord, curr: u128) => {
       if (!prevBlock) {
@@ -98,7 +99,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const { specVersion, specName } = paraApi.consts.system.version;
       runtime = specName.toUpperCase() as any;
 
@@ -110,7 +111,7 @@ describeSuite({
           `Runtime ${specName.toString()} version ` +
             `${specVersion.toString()} is less than 2200, skipping test suite.`
         );
-        this.skip();
+        skipAll = true;
       }
 
       if (specVersion.toNumber() < 2300 && specName.toString() == "moonbeam") {
@@ -118,7 +119,7 @@ describeSuite({
           `Runtime ${specName.toString()} version ` +
             `${specVersion.toString()} is less than 2300, skipping test suite.`
         );
-        this.skip();
+        skipAll = true;
       }
 
       const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
@@ -164,7 +165,7 @@ describeSuite({
       );
       if (result) {
         log(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
-        this.skip();
+        skipAll = true;
       }
 
       blockData = await Promise.all(
@@ -177,6 +178,10 @@ describeSuite({
       title: "Block utilization by weight corresponds to fee multiplier",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const maxWeights = paraApi.consts.system.blockWeights;
         const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
           const fillPermill = weights.normal.refTime
@@ -218,6 +223,10 @@ describeSuite({
       title: "Block utilization from normal class exts corresponds to fee multiplier",
       timeout: 30000,
       test: async function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const enriched = blockData.map(({ blockNum, nextFeeMultiplier, weights }) => {
           const fillPermill = weights.normal.refTime
             .unwrap()
@@ -260,6 +269,10 @@ describeSuite({
       title: "BaseFeePerGas is within expected min/max",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
           return (
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") <
@@ -284,6 +297,10 @@ describeSuite({
       title: "BaseFeePerGas is correctly calculated",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const supplyFactor =
           paraApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
 
@@ -320,6 +337,11 @@ describeSuite({
       title: "Ext fee matches on chain",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
+
         const extractGasAmount = (item: EthereumReceiptReceiptV3) => {
           switch (true) {
             case item.isEip1559:

@@ -40,8 +40,8 @@ describeSuite({
       id: "T02",
       title: "should calculate effective gas price",
       test: async function () {
-        // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
-        // is 2GWEI and the base fee is 1GWEI.
+        // With this configuration only half of the priority fee will be used,
+        // as the max_fee_per_gas is 2GWEI and the base fee is 1GWEI.
         const maxFeePerGas = 10_000_000_000n * 2n;
 
         const rawTxn = await context.createTxn!({

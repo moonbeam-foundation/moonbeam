@@ -10,7 +10,11 @@ import {
 } from "../../util/accounts";
 import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+  DevTestContext,
+} from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
@@ -141,52 +145,56 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompiles - ERC20 Native", (context) => {
-  it("allows to approve transfer and use transferFrom", async function () {
-    const allowedAmount = `1000000000000`.padStart(64, "0");
-    const transferAmount = `400000000000`.padStart(64, "0");
+describeDevMoonbeam(
+  "Precompiles - ERC20 Native",
+  (context) => {
+    it("allows to approve transfer and use transferFrom", async function () {
+      const allowedAmount = `1000000000000`.padStart(64, "0");
+      const transferAmount = `400000000000`.padStart(64, "0");
 
-    await sendApprove(context, baltathar.address, allowedAmount);
+      await sendApprove(context, baltathar.address, allowedAmount);
 
-    // transferFrom
-    {
-      const from = alith.address.slice(2).padStart(64, "0").toLowerCase();
-      const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
+      // transferFrom
+      {
+        const from = alith.address.slice(2).padStart(64, "0").toLowerCase();
+        const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
 
-      const { result } = await context.createBlock(
-        createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
-          data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
-        })
+        const { result } = await context.createBlock(
+          createTransaction(context, {
+            ...BALTATHAR_TRANSACTION_TEMPLATE,
+            to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+            data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
+          })
+        );
+
+        const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+
+        expect(receipt.logs.length).to.eq(1);
+        expect(receipt.logs[0].address).to.eq(PRECOMPILE_NATIVE_ERC20_ADDRESS);
+        expect(receipt.logs[0].data).to.eq(`0x${transferAmount}`);
+        expect(receipt.logs[0].topics.length).to.eq(3);
+        expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
+        expect(receipt.logs[0].topics[1]).to.eq(`0x${from}`);
+        expect(receipt.logs[0].topics[2]).to.eq(`0x${to}`);
+
+        expect(receipt.status).to.equal(true);
+      }
+
+      expect(await getBalance(context, 2, alith.address)).to.equal(
+        (await getBalance(context, 1, alith.address)) - BigInt(`0x${transferAmount}`)
+      );
+      expect(await getBalance(context, 2, charleth.address)).to.equal(
+        (await getBalance(context, 1, charleth.address)) + BigInt(`0x${transferAmount}`)
       );
 
-      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-      expect(receipt.logs.length).to.eq(1);
-      expect(receipt.logs[0].address).to.eq(PRECOMPILE_NATIVE_ERC20_ADDRESS);
-      expect(receipt.logs[0].data).to.eq(`0x${transferAmount}`);
-      expect(receipt.logs[0].topics.length).to.eq(3);
-      expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-      expect(receipt.logs[0].topics[1]).to.eq(`0x${from}`);
-      expect(receipt.logs[0].topics[2]).to.eq(`0x${to}`);
-
-      expect(receipt.status).to.equal(true);
-    }
-
-    expect(await getBalance(context, 2, alith.address)).to.equal(
-      (await getBalance(context, 1, alith.address)) - BigInt(`0x${transferAmount}`)
-    );
-    expect(await getBalance(context, 2, charleth.address)).to.equal(
-      (await getBalance(context, 1, charleth.address)) + BigInt(`0x${transferAmount}`)
-    );
-
-    const newAllowedAmount = (
-      BigInt(`0x${allowedAmount}`) - BigInt(`0x${transferAmount}`)
-    ).toString(16);
-    await checkAllowance(context, alith.address, baltathar.address, newAllowedAmount);
-  });
-},"Legacy");
+      const newAllowedAmount = (
+        BigInt(`0x${allowedAmount}`) - BigInt(`0x${transferAmount}`)
+      ).toString(16);
+      await checkAllowance(context, alith.address, baltathar.address, newAllowedAmount);
+    });
+  },
+  "Legacy"
+);
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
   it("refuses to transferFrom more than allowed", async function () {

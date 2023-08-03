@@ -173,7 +173,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-txpool"],
+      "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],

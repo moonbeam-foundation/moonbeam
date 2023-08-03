@@ -73,10 +73,10 @@ describeSuite({
       id: "T01",
       title: "should treat eth and substrate txns fairly",
       test: async function () {
-        // tip 1 and 3 will be substrate txns, we express their tip above as per-gas but must send them
-        // expressed as a flat tip. So we query the weight and convert to gas, then multiply by the
-        // per-gas tip. We do this because it's the inverse of the txpool algo, and we want to show that
-        // this algo will order txns by tip in this test.
+        // tip 1 and 3 will be substrate txns, we express their tip above as per-gas but must send
+        // them expressed as a flat tip. So we query the weight and convert to gas, then multiply
+        // by the per-gas tip. We do this because it's the inverse of the txpool algo, and we want
+        // to show that this algo will order txns by tip in this test.
         //
         // so the expected order is:
         // tip_0 (eth)
@@ -192,8 +192,8 @@ describeSuite({
 
         const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        // create a txn we don't expect to execute (because it will be replaced). it would send some
-        // funds to randomAccount
+        // create a txn we don't expect to execute (because it will be replaced). it would send
+        // some funds to randomAccount
         await sendRawTransaction(
           context,
           await createRawTransfer(context, randomAccount.address as `0x${string}`, 1, {
@@ -236,8 +236,8 @@ describeSuite({
 
         const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        // create a txn we don't expect to execute (because it will be replaced). it would send some
-        // funds to randomAccount
+        // create a txn we don't expect to execute (because it will be replaced). it would send
+        // some funds to randomAccount
         await sendRawTransaction(
           context,
           await createRawTransfer(context, randomAccount.address as `0x${string}`, 1, {
@@ -274,8 +274,8 @@ describeSuite({
 
         const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        // create a txn we don't expect to execute (because it will be replaced). it would send some
-        // funds to randomAccount
+        // create a txn we don't expect to execute (because it will be replaced). it would send
+        // some funds to randomAccount
         await context
           .polkadotJs()
           .tx.balances.transfer(randomAccount.address, 1)

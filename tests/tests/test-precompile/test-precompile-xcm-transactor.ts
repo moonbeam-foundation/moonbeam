@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
-
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-
 import { alith } from "../../util/accounts";
 import { mockAssetBalance, RELAY_V3_SOURCE_LOCATION } from "../../util/assets";
 import { verifyLatestBlockFees } from "../../util/block";
@@ -361,17 +359,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [dest, asset, weight, transact_call]
     );
 
-    const rawTxn = await   createTransaction(context, {
+    const rawTxn = await createTransaction(context, {
       ...ALITH_TRANSACTION_TEMPLATE,
       to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
       data,
-    })
+    });
 
-    console.log(rawTxn)
+    console.log(rawTxn);
 
-    await context.createBlock(
-      rawTxn
-    );
+    await context.createBlock(rawTxn);
 
     // 1000 fee for the relay is paid with relay assets
     await verifyLatestBlockFees(context);

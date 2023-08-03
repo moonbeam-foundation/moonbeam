@@ -7,7 +7,6 @@ describeSuite({
   title: "TxPool - Limits",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    
     it({
       id: "T01",
       title: "should be able to fill a block with 260 tx",

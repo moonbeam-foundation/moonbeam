@@ -15,13 +15,13 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true
-    /*"paths": {
-      "@helpers/xcm": ["helpers/xcm.js"],
-      "@helpers/block": ["helpers/block.js"],
-      "@helpers/common": ["helpers/common.js"],
-      "@helpers/assets": ["helpers/assets.js"],
-      "@helpers/expect": ["helpers/expect.js"],
-    } */ // Sadly this isn't supported by vitest yet
+    // "paths": {
+    //   "@helpers/xcm": ["helpers/xcm.js"],
+    //   "@helpers/block": ["helpers/block.js"],
+    //   "@helpers/common": ["helpers/common.js"],
+    //   "@helpers/assets": ["helpers/assets.js"],
+    //   "@helpers/expect": ["helpers/expect.js"],
+    // }  // Sadly this isn't supported by vitest yet
   },
   "typeRoots": ["node_modules/@types"],
   "include": ["*suites/**/*.ts", "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"],

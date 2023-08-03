@@ -20,7 +20,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const chainId = (await paraApi.query.ethereumChainId.chainId()).toString();
       log(`Loading test data for chainId ${chainId}.`);
       traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);

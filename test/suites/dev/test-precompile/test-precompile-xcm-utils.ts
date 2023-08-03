@@ -427,10 +427,11 @@ describeSuite({
 // describeDevMoonbeam(
 //   "Precompiles - xcm utils",
 //   (context) => {
-//     it({id:"",title:"moonriver does not allow to execute a custom xcm message", test: async function () {
+//     it({id:"",title:"moonriver does not allow to execute a custom xcm message",
+// test: async function () {
 //       let random = generateKeyringPair();
 
-//       const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
+//    const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
 //       const transferCallEncoded = transferCall?.method.toHex();
 
 //       const xcmMessage = {
@@ -438,7 +439,8 @@ describeSuite({
 //           {
 //             Transact: {
 //               originType: "SovereignAccount",
-//               requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)), // 21_000 gas limit
+//               requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)),
+// 21_000 gas limit
 //               call: {
 //                 encoded: transferCallEncoded,
 //               },
@@ -480,18 +482,20 @@ describeSuite({
 // describeDevMoonbeam(
 //   "Precompiles - xcm utils",
 //   (context) => {
-//     it({id:"",title:"moonbeam does not allow to execute a custom xcm message", test: async function () {
+//     it({id:"",title:"moonbeam does not allow to execute a custom xcm message",
+// test: async function () {
 //       let random = generateKeyringPair();
 
-//       const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
-//       const transferCallEncoded = transferCall?.method.toHex();
+//   const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
+//     const transferCallEncoded = transferCall?.method.toHex();
 
 //       const xcmMessage = {
 //         V2: [
 //           {
 //             Transact: {
 //               originType: "SovereignAccount",
-//               requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)), // 21_000 gas limit
+//               requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)),
+// 21_000 gas limit
 //               call: {
 //                 encoded: transferCallEncoded,
 //               },
