@@ -52,6 +52,8 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
+          echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
+          echo "github.repository: ${{ github.repository }}"
 
       - uses: actions/checkout@v3
         with:
@@ -59,7 +61,7 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
@@ -72,7 +74,7 @@ jobs:
           head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
           echo "polkadot_ver=$(grep 'frame-system' Cargo.toml | sed -nE 's/.*moonbeam-polkadot-v([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -1)" >> $GITHUB_OUTPUT
 
-          ENDPOINT="https://api.github.com/repos/PureStake/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
+          ENDPOINT="https://api.github.com/repos/moonbeam-foundation/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}"
           RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" $ENDPOINT)
           TYPE=$(echo $RESPONSE | jq -r '.object.type')
 
@@ -94,7 +96,7 @@ jobs:
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo "image_exists=$(docker image inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+          echo "image_exists=$(docker image inspect moonbeamfoundation/moonbeam:$TAG > /dev/null && echo "true" || echo "false")" >> $GITHUB_OUTPUT
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -173,14 +175,14 @@ jobs:
           node-version: 18.x
       - name: Check with Prettier
         run: |
-          npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
+          npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
           || (git diff --quiet \
           || (echo 'Unable to show a diff because there are unstaged changes'; false) \
-          && (npx prettier --ignore-path \
+          && (npx prettier@2 --ignore-path \
               .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
           && git --no-pager diff; git restore .) && false)
 
-          npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+          npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
@@ -229,67 +231,6 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
-  ####### Preparing polkadot binary for parachain tests #######
-  ####### For non-official repo, the script will fail if a new version of
-  ####### polkadot needs to be pushed.
-  ####### This job must not be skipped (otherwise the ts-tests are not run)
-
-  prepare-polkadot:
-    runs-on: bare-metal
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Login to DockerHub
-        # We should make sure that external PRs can't login to docker,
-        # but the check to detect if a PR is "external" not work when
-        # this workflow is trigerred by a push.
-        if: |
-          github.event_name == 'push' ||
-          github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v2.2.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          registry: index.docker.io
-      - name: Check & build polkadot docker image
-        run: |
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-
-          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
-            echo "true" || echo "false")
-          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
-            # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
-            ./scripts/build-alphanet-relay-image.sh
-            docker push $DOCKER_TAG
-          fi
-      - name: Check & prepare para-test docker image
-        run: |
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="docker.io/purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-
-          POLKADOT_EXISTS=$(docker image inspect $DOCKER_TAG > /dev/null && \
-            echo "true" || echo "false")
-          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
-            mkdir -p build
-            MOONBEAM_DOCKER_TAG="docker.io/purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-            # Clear the dummy container if it wasn't properly cleaned up
-            docker rm -f dummy 2> /dev/null | true
-            docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
-            docker cp dummy:/usr/local/bin/polkadot build/polkadot
-            docker rm -f dummy
-            docker build . --pull --no-cache -f docker/polkadot-para-tests.Dockerfile \
-              --network=host \
-              --build-arg HOST_UID="$UID" \
-              -t $DOCKER_TAG
-            docker push $DOCKER_TAG
-          fi
-
   ####### Building and Testing binaries #######
 
   cargo-clippy:
@@ -305,8 +246,15 @@ jobs:
         uses: arduino/setup-protoc@v1
       - name: Setup Rust toolchain
         run: rustup show
-      - name: Clippy
+      # Development branch clippy check
+      - name: Clippy (dev)
+        if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks
+      # Main branch (master, perm-*) clippy check
+      # Disallows: todo
+      - name: Clippy (main)
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'perm-')
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
     runs-on:
@@ -342,7 +290,7 @@ jobs:
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
-          features: "try-runtime,runtime-benchmarks"
+          features: "try-runtime"
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -384,14 +332,14 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --all --features=evm-tracing
+          cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 
   typescript-tests:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "prepare-polkadot"]
+    needs: ["set-tags", "build"]
     env:
       BINARY_PATH: "../build/moonbeam"
     steps:
@@ -466,7 +414,10 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false && ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    if: |
+      needs.set-tags.outputs.image_exists == 'false'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          || github.event_name == 'push')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -479,7 +430,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
           TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
@@ -494,8 +445,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2.2.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
         uses: docker/build-push-action@v4
@@ -513,6 +464,17 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Tag it with purestake for 6 month
+        run: |
+          PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
+          docker pull ${{ steps.prep.outputs.tags }}
+          docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
+          docker push $PURESTAKE_TAG
 
   chopsticks-upgrade-test:
     runs-on:
@@ -597,7 +559,7 @@ jobs:
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="purestake/moonbeam:sha-$MOONBEAM_COMMIT"
+          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
 
           docker rm -f moonbeam_container 2> /dev/null | true
           docker create --name moonbeam_container $DOCKER_TAG bash

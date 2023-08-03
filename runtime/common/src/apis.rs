@@ -273,6 +273,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// chain id 8 bytes
 						// 65 bytes signature
 						210;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
@@ -337,7 +338,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					let validate = true;
 
 					let mut estimated_transaction_len = data.len() +
-						// to: 20
 						// from: 20
 						// value: 32
 						// gas_limit: 32
@@ -345,7 +345,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						// 1 byte transaction action variant
 						// chain id 8 bytes
 						// 65 bytes signature
-						210;
+						190;
+
 					if max_fee_per_gas.is_some() {
 						estimated_transaction_len += 32;
 					}
@@ -564,6 +565,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_randomness::Pallet as RandomnessBench;
 					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
+					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -584,6 +586,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						MoonbeamXcmGenericBench::<Runtime>
 					);
 					list_benchmark!(list, extra, pallet_migrations, MigrationsBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -715,6 +718,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
 					use pallet_migrations::Pallet as MigrationsBench;
+					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -840,6 +844,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
+
+					add_benchmark!(
+						params,
+						batches,
+						pallet_conviction_voting,
+						PalletConvictionVotingBench::<Runtime>
+					);
+
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());

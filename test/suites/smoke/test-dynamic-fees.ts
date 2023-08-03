@@ -98,7 +98,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
       const { specVersion, specName } = paraApi.consts.system.version;
       runtime = specName.toUpperCase() as any;
 

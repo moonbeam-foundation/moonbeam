@@ -37,7 +37,7 @@ describeParachain(
       );
 
       const minDelegatorStk = (
-        (await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk) as any
+        (await context.polkadotApiParaone.consts.parachainStaking.minDelegation) as any
       ).toBigInt();
 
       expect(

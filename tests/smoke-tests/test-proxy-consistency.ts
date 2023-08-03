@@ -22,7 +22,7 @@ describeSmokeSuite("S1600", `Verify account proxies created`, (context, testIt) 
   const proxyAccList = [];
 
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
 
   // If the state structure has changed at a specific version, it should get included in the test
   let specVersion: number = 0;

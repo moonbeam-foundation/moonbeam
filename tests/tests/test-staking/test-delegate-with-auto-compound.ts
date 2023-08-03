@@ -11,14 +11,14 @@ chaiUse(chaiAsPromised);
 
 describeDevMoonbeam("Staking - Delegate With Auto-Compound - bond less than min", (context) => {
   it("should fail", async () => {
-    const minDelegatorStk = context.polkadotApi.consts.parachainStaking.minDelegatorStk;
+    const minDelegatorStk = context.polkadotApi.consts.parachainStaking.minDelegation;
     const block = await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegateWithAutoCompound(alith.address, minDelegatorStk.subn(10), 50, 0, 0, 0)
         .signAsync(ethan)
     );
     expect(block.result.successful).to.be.false;
-    expect(block.result.error.name).to.equal("DelegatorBondBelowMin");
+    expect(block.result.error.name).to.equal("DelegationBelowMin");
   });
 });
 
