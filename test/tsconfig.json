@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["node", "bun-types"],
     "module": "ES2022",
     "target": "ES2020",
     "outDir": "build",
@@ -23,7 +24,6 @@
     } */ // Sadly this isn't supported by vitest yet
   },
   "typeRoots": ["node_modules/@types"],
-  "types": ["node"],
   "include": ["*suites/**/*.ts", "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"],
   "exclude": ["node_modules/"]
 }

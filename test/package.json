@@ -5,10 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "pnpm prettier --write --ignore-path .gitignore '**/*.(yml|js|ts)'",
-    "start": "pnpm moonwall",
-    "compile-solidity": "ts-node --esm --transpileOnly scripts/compile-contracts.ts compile",
-    "typecheck": "pnpm exec tsc --noEmit"
+    "lint": "bun prettier --write --ignore-path .gitignore '**/*.(yml|js|ts)'",
+    "compile-solidity": "bun scripts/compile-contracts.ts compile",
+    "typecheck": "bun tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -25,11 +24,10 @@
     "@types/debug": "^4.1.8",
     "@types/node": "^18.17.1",
     "bottleneck": "^2.19.5",
+    "bun-types": "^0.7.1",
     "debug": "^4.3.4",
     "ethers": "^6.6.7",
-    "pnpm": "^8.6.11",
     "prettier": "^2.8.8",
-    "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
     "web3": "4.0.3",
     "web3-eth": "4.0.1",
@@ -58,7 +56,6 @@
     "rlp": "^3.0.0",
     "semver": "^7.5.4",
     "solc": "0.8.19",
-    "tsx": "^3.12.7",
     "viem": "^1.5.0",
     "vitest": "^0.31.4"
   }

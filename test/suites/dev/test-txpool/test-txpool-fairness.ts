@@ -22,7 +22,7 @@ import {
 // for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
 // However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to
 // be used as-is, e.g. it must be at least (block.baseFee + maxPriorityFeePerGas)
-const HIGH_MAX_FEE_PER_GAS = GLMR
+const HIGH_MAX_FEE_PER_GAS = GLMR;
 
 describeSuite({
   id: "D3301",
@@ -194,20 +194,26 @@ describeSuite({
 
         // create a txn we don't expect to execute (because it will be replaced). it would send some
         // funds to randomAccount
-        await sendRawTransaction(context, await createRawTransfer(context, randomAccount.address as `0x${string}`, 1,{
-          maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-          maxPriorityFeePerGas: LOW_TIP,
-          nonce,
-        }))
+        await sendRawTransaction(
+          context,
+          await createRawTransfer(context, randomAccount.address as `0x${string}`, 1, {
+            maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+            maxPriorityFeePerGas: LOW_TIP,
+            nonce,
+          })
+        );
 
         // replace with a transaction that sends funds to a different account
-        await sendRawTransaction(context, await createRawTransfer(context, randomAccount2.address as `0x${string}`, 1,{
-          maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-          maxPriorityFeePerGas: HIGH_TIP,
-          nonce,
-        }))
+        await sendRawTransaction(
+          context,
+          await createRawTransfer(context, randomAccount2.address as `0x${string}`, 1, {
+            maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+            maxPriorityFeePerGas: HIGH_TIP,
+            nonce,
+          })
+        );
 
-      await context.createBlock();
+        await context.createBlock();
 
         const account1Balance = (
           await context.polkadotJs().query.system.account(randomAccount.address.toString())
@@ -232,9 +238,12 @@ describeSuite({
 
         // create a txn we don't expect to execute (because it will be replaced). it would send some
         // funds to randomAccount
-        await sendRawTransaction(context, await createRawTransfer(context, randomAccount.address as `0x${string}`, 1,{
-          nonce,
-        }))
+        await sendRawTransaction(
+          context,
+          await createRawTransfer(context, randomAccount.address as `0x${string}`, 1, {
+            nonce,
+          })
+        );
 
         // replace with a transaction that sends funds to a different account
         await context
@@ -242,7 +251,7 @@ describeSuite({
           .tx.balances.transfer(randomAccount2.address, 1)
           .signAndSend(alith, { nonce, tip: GLMR });
 
-          await context.createBlock();
+        await context.createBlock();
 
         const account1Balance = (
           await context.polkadotJs().query.system.account(randomAccount.address.toString())
@@ -273,10 +282,13 @@ describeSuite({
           .signAndSend(alith, { nonce, tip: 0 });
 
         // replace with a transaction that sends funds to a different account
-        await sendRawTransaction(context, await createRawTransfer(context, randomAccount2.address as `0x${string}`, 1,{
-          maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
-          nonce,
-        }))
+        await sendRawTransaction(
+          context,
+          await createRawTransfer(context, randomAccount2.address as `0x${string}`, 1, {
+            maxFeePerGas: HIGH_MAX_FEE_PER_GAS,
+            nonce,
+          })
+        );
 
         const result = await context.createBlock();
 

@@ -27,7 +27,7 @@ describeSuite({
               1_000
             )
             .signAsync(charleth),
-            { expectEvents: [context.polkadotJs().events.treasuryCouncilCollective.Executed] }
+          { expectEvents: [context.polkadotJs().events.treasuryCouncilCollective.Executed] }
         );
 
         const approvals = await context.polkadotJs().query.treasury.approvals();

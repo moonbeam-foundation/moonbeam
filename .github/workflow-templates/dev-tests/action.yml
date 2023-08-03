@@ -10,14 +10,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: pnpm/action-setup@v2
+    - uses: oven-sh/setup-bun@v1
       with:
-        version: 8
+        bun-version: latest
     - uses: actions/setup-node@v3
       with:
         node-version: 18.x
-        cache: "pnpm"
-        cache-dependency-path: test/pnpm-lock.yaml
     - name: "Install and run dev test"
       shell: bash
       env:
@@ -26,8 +24,8 @@ runs:
       run: |
         chmod uog+x target/release/moonbeam
         cd test
-        pnpm i
-        pnpm moonwall test ${{ inputs.moonwall_environment }}
+        bun install
+        bun moonwall test ${{ inputs.moonwall_environment }}
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2

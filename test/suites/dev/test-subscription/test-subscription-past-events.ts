@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
-import { web3SubscribeHistoricalLogs, } from "../../../helpers/providers.js";
+import { web3SubscribeHistoricalLogs } from "../../../helpers/providers.js";
 
 describeSuite({
   id: "D3003",

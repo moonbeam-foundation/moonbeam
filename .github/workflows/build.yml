@@ -529,14 +529,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v2
+      - uses: oven-sh/setup-bun@v1
         with:
-          version: 7
+            bun-version: latest 
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
@@ -545,8 +543,8 @@ jobs:
       - name: "Install and run upgrade test"
         run: |
           cd test
-          pnpm i
-          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
+          bun install
+          bun moonwall test CI_upgrade_RT_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:
@@ -564,14 +562,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v2
+      - uses: oven-sh/setup-bun@v1
         with:
-          version: 7
+            bun-version: latest 
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -607,18 +603,18 @@ jobs:
       - name: "Run zombie upgrade test"
         run: |
           cd test
-          pnpm i
+          bun install
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm ts-node --esm --swc scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          bun scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
           chmod uog+x tmp/polkadot
-          pnpm moonwall test zombie_${{ matrix.chain }}
+          bun moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
