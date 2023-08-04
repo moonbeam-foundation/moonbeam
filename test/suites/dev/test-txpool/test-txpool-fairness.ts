@@ -90,7 +90,9 @@ describeSuite({
 
         // here we query the weight of a substrate balance transfer
         const dummyTransfer = context.polkadotJs().tx.balances.transfer(alith.address, GLMR);
-        const info = await context.polkadotJs().rpc.payment.queryInfo(dummyTransfer.toHex());
+        const info = await context
+          .polkadotJs()
+          .call.transactionPaymentApi.queryInfo(dummyTransfer.toHex(), dummyTransfer.encodedLength);
         const weight = info.weight.toBigInt();
         const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 

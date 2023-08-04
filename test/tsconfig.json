@@ -24,6 +24,9 @@
     // }  // Sadly this isn't supported by vitest yet
   },
   // "typeRoots": ["node_modules/@types"],
-  "include": ["*suites/**/*.ts", "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"],
+  "include": [
+    "*suites/**/*.ts",
+    "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"
+  ],
   "exclude": ["node_modules/"]
 }

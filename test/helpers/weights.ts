@@ -20,10 +20,9 @@ export async function createAccounts(
         .tx.sudo.sudo(
           context
             .polkadotJs()
-            .tx.balances.setBalance(
+            .tx.balances.forceSetBalance(
               randomCandidate.address,
-              12n * MIN_GLMR_STAKING + 50n * GLMR,
-              0n
+              12n * MIN_GLMR_STAKING + 50n * GLMR
             )
         )
         .signAsync(alith, { nonce: alithNonce++ })

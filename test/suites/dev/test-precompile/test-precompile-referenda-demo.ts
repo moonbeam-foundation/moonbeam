@@ -60,7 +60,7 @@ describeSuite({
             .tx.sudo.sudo(
               context
                 .polkadotJs()
-                .tx.balances.setBalance(refUpgradeDemoV1Address, 500_000_000n * GLMR, 0)
+                .tx.balances.forceSetBalance(refUpgradeDemoV1Address, 500_000_000n * GLMR)
             )
         );
 

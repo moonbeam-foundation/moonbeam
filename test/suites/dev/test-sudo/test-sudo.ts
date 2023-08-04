@@ -2,13 +2,13 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
   alith,
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({

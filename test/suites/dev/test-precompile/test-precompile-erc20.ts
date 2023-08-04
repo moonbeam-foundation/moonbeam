@@ -1,32 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
-  ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  DOROTHY_ADDRESS,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
   baltathar,
-  createEthersTransaction,
-  createViemTransaction,
 } from "@moonwall/util";
-import { stat } from "fs";
-import { parse } from "path";
-import { encode } from "punycode";
-import {
-  PrivateKeyAccount,
-  encodeFunctionData,
-  formatEther,
-  keccak256,
-  pad,
-  parseEther,
-  toBytes,
-  toHex,
-} from "viem";
+import { PrivateKeyAccount, keccak256, pad, parseEther, toBytes, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 
 // const SELECTORS = {
 //   balanceOf: "70a08231",
