@@ -18,6 +18,9 @@ runs:
         node-version: 20.x
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 8
 
     - name: Setup Moonbeam PolkadotJS types
       shell: bash
