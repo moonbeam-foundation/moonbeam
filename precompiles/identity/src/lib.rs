@@ -70,7 +70,7 @@ where
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
 	) -> EvmResult {
 		let call = pallet_identity::Call::<Runtime>::set_identity {
-			info: Self::input_to_identity(info)?,
+			info: Self::identity_to_input(info)?,
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -182,7 +182,7 @@ where
 		identity: H256,
 	) -> EvmResult {
 		let target = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(target.0));
-		let judgement = Self::convert_judgement(judgement)?;
+		let judgement = Self::judgment_to_input(judgement)?;
 		let identity: Runtime::Hash = identity.into();
 		let call = pallet_identity::Call::<Runtime>::provide_judgement {
 			reg_index,
@@ -271,19 +271,7 @@ where
 		let who = Runtime::AddressMapping::into_account_id(who);
 		let identity = pallet_identity::Pallet::<Runtime>::identity(who);
 
-		let x = Self::identity_to_output(identity.clone());
-		
-		if let Ok(x) = x{
-			println!("returning");
-			println!("{}", hex::encode(solidity::encode_return_value(x)));
-		} else {
-			println!("err");
-		}
-
-		
-
-		let x: Registration<<Runtime as pallet_identity::Config>::MaxAdditionalFields> = Self::identity_to_output(identity)?;
-		Ok(x)
+		Ok(Self::identity_to_output(identity)?)
 	}
 
 	#[precompile::public("superOf(address)")]
@@ -299,7 +287,7 @@ where
 			Ok(SuperOf {
 				is_valid: true,
 				account: Address(account.into()),
-				data: Self::convert_data_to_output(data),
+				data: Self::data_to_output(data),
 			})
 		} else {
 			Ok(SuperOf::default())
@@ -378,7 +366,7 @@ where
 		Ok(registrars)
 	}
 
-	fn input_to_identity(
+	fn identity_to_input(
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
 	) -> MayRevert<Box<pallet_identity::IdentityInfo<Runtime::MaxAdditionalFields>>> {
 		// let additional: Vec<(pallet_identity::Data, pallet_identity::Data)> = info.additional.into();
@@ -453,8 +441,6 @@ where
 			>,
 		>,
 	) -> MayRevert<Registration<Runtime::MaxAdditionalFields>> {
-		println!("reg: {}", registration.is_none());
-
 		if registration.is_none() {
 			return Ok(Registration::<Runtime::MaxAdditionalFields>::default());
 		}
@@ -462,21 +448,21 @@ where
 		let registration = registration.expect("none case checked above; qed");
 		let mut identity_info = IdentityInfo::<Runtime::MaxAdditionalFields> {
 			additional: Default::default(),
-			display: Self::convert_data_to_output(registration.info.display),
-			legal: Self::convert_data_to_output(registration.info.legal),
-			web: Self::convert_data_to_output(registration.info.web),
-			riot: Self::convert_data_to_output(registration.info.riot),
-			email: Self::convert_data_to_output(registration.info.email),
+			display: Self::data_to_output(registration.info.display),
+			legal: Self::data_to_output(registration.info.legal),
+			web: Self::data_to_output(registration.info.web),
+			riot: Self::data_to_output(registration.info.riot),
+			email: Self::data_to_output(registration.info.email),
 			has_pgp_fingerprint: false,
 			pgp_fingerprint: Default::default(),
-			image: Self::convert_data_to_output(registration.info.image),
-			twitter: Self::convert_data_to_output(registration.info.twitter),
+			image: Self::data_to_output(registration.info.image),
+			twitter: Self::data_to_output(registration.info.twitter),
 		};
 
 		let mut additional = vec![];
 		for (k, v) in registration.info.additional.into_iter() {
-			let k: Data = Self::convert_data_to_output(k);
-			let v: Data = Self::convert_data_to_output(v);
+			let k: Data = Self::data_to_output(k);
+			let v: Data = Self::data_to_output(v);
 			additional.push((k, v));
 		}
 
@@ -487,17 +473,53 @@ where
 
 		identity_info.additional = additional.into();
 
+		let mut judgements = vec![];
+		for (index, judgement) in registration.judgements.into_iter() {
+			judgements.push((index, Self::judgement_to_output(judgement)));
+		}
+
 		let reg = Registration::<Runtime::MaxAdditionalFields> {
 			is_valid: true,
-			judgements: vec![],
-			deposit: Default::default(),
+			judgements: judgements.into(),
+			deposit: registration.deposit.into(),
 			info: identity_info,
 		};
 
 		Ok(reg)
 	}
 
-	fn convert_judgement(
+	fn judgement_to_output(value: pallet_identity::Judgement<BalanceOf<Runtime>>) -> Judgement {
+		let mut judgement = Judgement::default();
+
+		match value {
+			pallet_identity::Judgement::Unknown => {
+				judgement.is_unknown = true;
+			}
+			pallet_identity::Judgement::FeePaid(balance) => {
+				judgement.is_fee_paid = true;
+				judgement.fee_paid_amount = balance.into();
+			}
+			pallet_identity::Judgement::Reasonable => {
+				judgement.is_reasonable = true;
+			}
+			pallet_identity::Judgement::KnownGood => {
+				judgement.is_known_good = true;
+			}
+			pallet_identity::Judgement::OutOfDate => {
+				judgement.is_out_of_date = true;
+			}
+			pallet_identity::Judgement::LowQuality => {
+				judgement.is_low_quality = true;
+			}
+			pallet_identity::Judgement::Erroneous => {
+				judgement.is_erroneous = true;
+			}
+		};
+
+		judgement
+	}
+
+	fn judgment_to_input(
 		value: Judgement,
 	) -> Result<pallet_identity::Judgement<BalanceOf<Runtime>>, RevertReason> {
 		if value.is_unknown {
@@ -536,24 +558,29 @@ where
 		return Err(RevertReason::custom("invalid"));
 	}
 
-	fn convert_data_to_output(data: pallet_identity::Data) -> Data {
+	fn data_to_output(data: pallet_identity::Data) -> Data {
 		let mut output = Data::default();
 		match data {
 			pallet_identity::Data::None => (),
 			pallet_identity::Data::Raw(bytes) => {
 				let bytes: Vec<_> = bytes.into();
+				output.has_data = true;
 				output.value = bytes.into();
 			}
 			pallet_identity::Data::BlakeTwo256(bytes) => {
+				output.has_data = true;
 				output.value = bytes.into();
 			}
 			pallet_identity::Data::Sha256(bytes) => {
+				output.has_data = true;
 				output.value = bytes.into();
 			}
 			pallet_identity::Data::Keccak256(bytes) => {
+				output.has_data = true;
 				output.value = bytes.into();
 			}
 			pallet_identity::Data::ShaThree256(bytes) => {
+				output.has_data = true;
 				output.value = bytes.into();
 			}
 		}
@@ -562,7 +589,7 @@ where
 	}
 }
 
-#[derive(Default, Debug, solidity::Codec)]
+#[derive(Default, Debug, Eq, PartialEq, solidity::Codec)]
 pub struct Data {
 	has_data: bool,
 	value: BoundedBytes<ConstU32<32>>,
@@ -584,7 +611,7 @@ impl TryFrom<Data> for pallet_identity::Data {
 }
 
 // ((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))
-#[derive(Debug, solidity::Codec)]
+#[derive(Eq, PartialEq, Debug, solidity::Codec)]
 pub struct IdentityInfo<FieldLimit> {
 	additional: BoundedVec<(Data, Data), FieldLimit>,
 	display: Data,
@@ -635,7 +662,7 @@ impl<T> Default for IdentityInfo<T> {
 // }
 
 // (bool, bool, uint256, bool, bool, bool, bool, bool)
-#[derive(Default, Debug, solidity::Codec)]
+#[derive(Eq, PartialEq, Default, Debug, solidity::Codec)]
 pub struct Judgement {
 	is_unknown: bool,
 	is_fee_paid: bool,
@@ -647,7 +674,7 @@ pub struct Judgement {
 	is_erroneous: bool,
 }
 
-#[derive(Debug, solidity::Codec)]
+#[derive(Eq, PartialEq, Debug, solidity::Codec)]
 pub struct Registration<FieldLimit> {
 	is_valid: bool,
 	judgements: Vec<(u32, Judgement)>,

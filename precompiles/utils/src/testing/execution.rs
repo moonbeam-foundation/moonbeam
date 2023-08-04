@@ -173,10 +173,6 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 				exit_status: ExitSucceed::Returned,
 				output: execution_output,
 			})) => {
-				println!("want");
-				println!("{}", hex::encode(&output));
-				println!("got");
-				println!("{}", hex::encode(&execution_output));
 				if execution_output != output {
 					eprintln!(
 						"Output (bytes): {:?}",

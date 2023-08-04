@@ -274,6 +274,30 @@ fn test_set_identity_works() {
 				Bob,
 				PCall::set_identity {
 					info: IdentityInfo {
+						additional: vec![
+							(
+								Data {
+									has_data: true,
+									value: vec![0xa1].try_into().expect("succeeds"),
+								},
+								Data {
+									has_data: true,
+									value: vec![0xb1].try_into().expect("succeeds"),
+								},
+							),
+							(
+								Data {
+									has_data: true,
+									value: vec![0xa2].try_into().expect("succeeds"),
+								},
+								Data {
+									has_data: true,
+									value: vec![0xb2].try_into().expect("succeeds"),
+								},
+							),
+						]
+						.try_into()
+						.expect("succeeds"),
 						display: Data {
 							has_data: true,
 							value: vec![0x01].try_into().expect("succeeds"),
@@ -304,7 +328,6 @@ fn test_set_identity_works() {
 							has_data: true,
 							value: vec![0x08].try_into().expect("succeeds"),
 						},
-						..Default::default()
 					},
 				}
 				.into()
@@ -316,9 +339,28 @@ fn test_set_identity_works() {
 				Some(
 					pallet_identity::Registration::<Balance, MaxRegistrars, MaxAdditionalFields> {
 						judgements: Default::default(),
-						deposit: BasicDeposit::get() as u128,
+						deposit: BasicDeposit::get() as u128 + FieldDeposit::get() as u128 * 2,
 						info: pallet_identity::IdentityInfo::<MaxAdditionalFields> {
-							additional: Default::default(),
+							additional: vec![
+								(
+									pallet_identity::Data::Raw(
+										vec![0xa1].try_into().expect("succeeds")
+									),
+									pallet_identity::Data::Raw(
+										vec![0xb1].try_into().expect("succeeds")
+									)
+								),
+								(
+									pallet_identity::Data::Raw(
+										vec![0xa2].try_into().expect("succeeds")
+									),
+									pallet_identity::Data::Raw(
+										vec![0xb2].try_into().expect("succeeds")
+									)
+								),
+							]
+							.try_into()
+							.expect("succeeds"),
 							display: pallet_identity::Data::Raw(
 								vec![0x01].try_into().expect("succeeds")
 							),
@@ -1204,51 +1246,11 @@ fn test_quit_sub_works_if_identity_set() {
 }
 
 #[test]
-fn test_identity_returns_valid_data() {
+fn test_identity_returns_none_if_not_set() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
 		.build()
 		.execute_with(|| {
-			// assert_ok!(RuntimeCall::Evm(evm_call(
-			// 	Bob,
-			// 	PCall::set_identity {
-			// 		info: IdentityInfo {
-			// 			display: Data {
-			// 				has_data: true,
-			// 				value: vec![0x01].try_into().expect("succeeds"),
-			// 			},
-			// 			legal: Data {
-			// 				has_data: true,
-			// 				value: vec![0x02].try_into().expect("succeeds"),
-			// 			},
-			// 			web: Data {
-			// 				has_data: true,
-			// 				value: vec![0x03].try_into().expect("succeeds"),
-			// 			},
-			// 			riot: Data {
-			// 				has_data: true,
-			// 				value: vec![0x04].try_into().expect("succeeds"),
-			// 			},
-			// 			email: Data {
-			// 				has_data: true,
-			// 				value: vec![0x05].try_into().expect("succeeds"),
-			// 			},
-			// 			has_pgp_fingerprint: true,
-			// 			pgp_fingerprint: [0x06; 20].try_into().expect("succeeds"),
-			// 			image: Data {
-			// 				has_data: true,
-			// 				value: vec![0x07].try_into().expect("succeeds"),
-			// 			},
-			// 			twitter: Data {
-			// 				has_data: true,
-			// 				value: vec![0x08].try_into().expect("succeeds"),
-			// 			},
-			// 		},
-			// 	}
-			// 	.into()
-			// ))
-			// .dispatch(RuntimeOrigin::root()));
-
 			precompiles()
 				.prepare_test(
 					Alice,
@@ -1258,12 +1260,80 @@ fn test_identity_returns_valid_data() {
 					},
 				)
 				.expect_no_logs()
+				.execute_returns(Registration::<MaxAdditionalFields>::default());
+		})
+}
+
+#[test]
+fn test_identity_returns_valid_data_for_identity_info() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Identity::set_identity(
+				RuntimeOrigin::signed(Bob.into()),
+				Box::new(pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+					additional: vec![
+						(
+							pallet_identity::Data::Raw(vec![0xa1].try_into().expect("succeeds")),
+							pallet_identity::Data::Raw(vec![0xb1].try_into().expect("succeeds"))
+						),
+						(
+							pallet_identity::Data::Raw(vec![0xa2].try_into().expect("succeeds")),
+							pallet_identity::Data::Raw(vec![0xb2].try_into().expect("succeeds"))
+						),
+					]
+					.try_into()
+					.expect("succeeds"),
+					display: pallet_identity::Data::Raw(vec![0x01].try_into().expect("succeeds")),
+					legal: pallet_identity::Data::Raw(vec![0x02].try_into().expect("succeeds")),
+					web: pallet_identity::Data::Raw(vec![0x03].try_into().expect("succeeds")),
+					riot: pallet_identity::Data::Raw(vec![0x04].try_into().expect("succeeds")),
+					email: pallet_identity::Data::Raw(vec![0x05].try_into().expect("succeeds")),
+					pgp_fingerprint: Some([0x06; 20].try_into().expect("succeeds")),
+					image: pallet_identity::Data::Raw(vec![0x07].try_into().expect("succeeds")),
+					twitter: pallet_identity::Data::Raw(vec![0x08].try_into().expect("succeeds")),
+				})
+			));
+
+			precompiles()
+				.prepare_test(
+					Bob,
+					Precompile1,
+					PCall::identity {
+						who: H160::from(Bob).into(),
+					},
+				)
+				.expect_no_logs()
 				.execute_returns(Registration {
 					is_valid: true,
 					judgements: vec![],
-					deposit: BasicDeposit::get().into(),
+					deposit: (BasicDeposit::get() + FieldDeposit::get() * 2).into(),
 					info: IdentityInfo::<MaxAdditionalFields> {
-						additional: vec![].try_into().expect("succeeds"),
+						additional: vec![
+							(
+								Data {
+									has_data: true,
+									value: vec![0xa1].try_into().expect("succeeds"),
+								},
+								Data {
+									has_data: true,
+									value: vec![0xb1].try_into().expect("succeeds"),
+								},
+							),
+							(
+								Data {
+									has_data: true,
+									value: vec![0xa2].try_into().expect("succeeds"),
+								},
+								Data {
+									has_data: true,
+									value: vec![0xb2].try_into().expect("succeeds"),
+								},
+							),
+						]
+						.try_into()
+						.expect("succeeds"),
 						display: Data {
 							has_data: true,
 							value: vec![0x01].try_into().expect("succeeds"),
@@ -1300,22 +1370,203 @@ fn test_identity_returns_valid_data() {
 }
 
 #[test]
-fn test_identity_returns_none_if_not_set() {
+fn test_identity_returns_valid_data_for_requested_judgement() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
 		.build()
 		.execute_with(|| {
+			assert_ok!(Identity::add_registrar(
+				RuntimeOrigin::signed(RegistrarAndForceOrigin.into()),
+				Alice.into(),
+			));
+			assert_ok!(Identity::set_fee(
+				RuntimeOrigin::signed(Alice.into()),
+				0,
+				100,
+			));
+			let identity = pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+				additional: Default::default(),
+				display: pallet_identity::Data::Raw(vec![0x01].try_into().expect("succeeds")),
+				legal: pallet_identity::Data::None,
+				web: pallet_identity::Data::None,
+				riot: pallet_identity::Data::None,
+				email: pallet_identity::Data::None,
+				pgp_fingerprint: None,
+				image: pallet_identity::Data::None,
+				twitter: pallet_identity::Data::None,
+			};
+			let identity_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&identity);
+
+			assert_ok!(Identity::set_identity(
+				RuntimeOrigin::signed(Bob.into()),
+				Box::new(identity),
+			));
+			assert_ok!(Identity::request_judgement(
+				RuntimeOrigin::signed(Bob.into()),
+				0,
+				1000,
+			));
+
 			precompiles()
 				.prepare_test(
-					Alice,
+					Bob,
 					Precompile1,
 					PCall::identity {
-						who: H160::from(Alice).into(),
+						who: H160::from(Bob).into(),
 					},
 				)
 				.expect_no_logs()
-				.execute_returns(Registration::<MaxAdditionalFields>::default());
+				.execute_returns(Registration {
+					is_valid: true,
+					judgements: vec![(
+						0,
+						Judgement {
+							is_fee_paid: true,
+							fee_paid_amount: 100.into(),
+							..Default::default()
+						},
+					)],
+					deposit: BasicDeposit::get().into(),
+					info: IdentityInfo::<MaxAdditionalFields> {
+						additional: Default::default(),
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						legal: Default::default(),
+						web: Default::default(),
+						riot: Default::default(),
+						email: Default::default(),
+						has_pgp_fingerprint: Default::default(),
+						pgp_fingerprint: Default::default(),
+						image: Default::default(),
+						twitter: Default::default(),
+					},
+				});
 		})
+}
+
+#[test]
+fn test_identity_returns_valid_data_for_judged_identity() {
+	struct TestCase {
+		input_judgement: pallet_identity::Judgement<crate::BalanceOf<Runtime>>,
+		expected_judgement: Judgement,
+	}
+	for test_case in [
+		TestCase {
+			input_judgement: pallet_identity::Judgement::Unknown,
+			expected_judgement: Judgement {
+				is_unknown: true,
+				..Default::default()
+			},
+		},
+		TestCase {
+			input_judgement: pallet_identity::Judgement::Reasonable,
+			expected_judgement: Judgement {
+				is_reasonable: true,
+				..Default::default()
+			},
+		},
+		TestCase {
+			input_judgement: pallet_identity::Judgement::KnownGood,
+			expected_judgement: Judgement {
+				is_known_good: true,
+				..Default::default()
+			},
+		},
+		TestCase {
+			input_judgement: pallet_identity::Judgement::OutOfDate,
+			expected_judgement: Judgement {
+				is_out_of_date: true,
+				..Default::default()
+			},
+		},
+		TestCase {
+			input_judgement: pallet_identity::Judgement::LowQuality,
+			expected_judgement: Judgement {
+				is_low_quality: true,
+				..Default::default()
+			},
+		},
+		TestCase {
+			input_judgement: pallet_identity::Judgement::Erroneous,
+			expected_judgement: Judgement {
+				is_erroneous: true,
+				..Default::default()
+			},
+		},
+	] {
+		println!("judgement {:?}", test_case.input_judgement);
+
+		ExtBuilder::default()
+			.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(Identity::add_registrar(
+					RuntimeOrigin::signed(RegistrarAndForceOrigin.into()),
+					Alice.into(),
+				));
+				let identity = pallet_identity::IdentityInfo::<MaxAdditionalFields> {
+					additional: Default::default(),
+					display: pallet_identity::Data::Raw(vec![0x01].try_into().expect("succeeds")),
+					legal: pallet_identity::Data::None,
+					web: pallet_identity::Data::None,
+					riot: pallet_identity::Data::None,
+					email: pallet_identity::Data::None,
+					pgp_fingerprint: None,
+					image: pallet_identity::Data::None,
+					twitter: pallet_identity::Data::None,
+				};
+				let identity_hash = <Runtime as frame_system::Config>::Hashing::hash_of(&identity);
+
+				assert_ok!(Identity::set_identity(
+					RuntimeOrigin::signed(Bob.into()),
+					Box::new(identity),
+				));
+				assert_ok!(Identity::request_judgement(
+					RuntimeOrigin::signed(Bob.into()),
+					0,
+					1000,
+				));
+				assert_ok!(Identity::provide_judgement(
+					RuntimeOrigin::signed(Alice.into()),
+					0,
+					Bob.into(),
+					test_case.input_judgement,
+					identity_hash,
+				));
+
+				precompiles()
+					.prepare_test(
+						Bob,
+						Precompile1,
+						PCall::identity {
+							who: H160::from(Bob).into(),
+						},
+					)
+					.expect_no_logs()
+					.execute_returns(Registration {
+						is_valid: true,
+						judgements: vec![(0, test_case.expected_judgement)],
+						deposit: BasicDeposit::get().into(),
+						info: IdentityInfo::<MaxAdditionalFields> {
+							additional: Default::default(),
+							display: Data {
+								has_data: true,
+								value: vec![0x01].try_into().expect("succeeds"),
+							},
+							legal: Default::default(),
+							web: Default::default(),
+							riot: Default::default(),
+							email: Default::default(),
+							has_pgp_fingerprint: Default::default(),
+							pgp_fingerprint: Default::default(),
+							image: Default::default(),
+							twitter: Default::default(),
+						},
+					});
+			})
+	}
 }
 
 fn p() {
