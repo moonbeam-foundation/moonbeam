@@ -4,6 +4,7 @@ import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { decodeEventLog } from "viem";
+import { cancelProposal } from "../../../helpers/voting.js";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 describeSuite({
@@ -67,6 +68,7 @@ describeSuite({
 
         expect(evmLog.eventName, "Wrong event").to.equal("DecisionDepositPlaced");
         expect(evmLog.args.index!, "Wrong event").to.equal(proposalIndex);
+        expect(evmLog.args.caller!, "Wrong event").to.equal(ALITH_ADDRESS);
       },
     });
 
@@ -136,6 +138,176 @@ describeSuite({
             })
         ).rejects.toThrowError("HasDeposit");
         expectEVMResult(result!.events, "Revert");
+      },
+    });
+
+    it({
+      id: "T04",
+      title: "should allow to submit at a certain block ",
+      test: async function () {
+        const trackId = 0;
+        const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
+        const blockNumber = await context.polkadotJs().query.system.number();
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "submitAt",
+          args: [trackId, call.hash.toHex(), call.length, blockNumber.addn(1)],
+          rawTxOnly: true,
+        });
+
+        const block = await context.createBlock(rawTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.Submitted],
+          signer: alith,
+        });
+
+        expectEVMResult(block!.result!.events, "Succeed");
+        const { data } = expectSubstrateEvent(block, "evm", "Log");
+
+        const evmLog: any = decodeEventLog({
+          abi: referendaAbi,
+          topics: data[0].topics.map((t) => t.toHex()) as [`0x${string}`],
+          data: data[0].data.toHex(),
+        });
+
+        expect(evmLog.eventName, "Wrong event").to.equal("SubmittedAt");
+        expect(evmLog.args.trackId, "Wrong event").to.equal(trackId);
+        expect(evmLog.args.hash, "Wrong event").to.equal(call.hash.toHex());
+      },
+    });
+
+    it({
+      id: "T05",
+      title: "should allow to submit after a certain block ",
+      test: async function () {
+        const trackId = 0;
+        const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
+        const blockNumber = await context.polkadotJs().query.system.number();
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "submitAfter",
+          args: [trackId, call.hash.toHex(), call.length, blockNumber.addn(1)],
+          rawTxOnly: true,
+        });
+
+        const block = await context.createBlock(rawTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.Submitted],
+          signer: alith,
+        });
+
+        expectEVMResult(block!.result!.events, "Succeed");
+        const { data } = expectSubstrateEvent(block, "evm", "Log");
+
+        const evmLog: any = decodeEventLog({
+          abi: referendaAbi,
+          topics: data[0].topics.map((t) => t.toHex()) as [`0x${string}`],
+          data: data[0].data.toHex(),
+        });
+
+        expect(evmLog.eventName, "Wrong event").to.equal("SubmittedAfter");
+        expect(evmLog.args.trackId, "Wrong event").to.equal(trackId);
+        expect(evmLog.args.hash, "Wrong event").to.equal(call.hash.toHex());
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "should allow to refund decision deposit",
+      test: async function () {
+        // Place deposit
+        const rawDepositTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "placeDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+        });
+
+        await context.createBlock(rawDepositTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.DecisionDepositPlaced],
+          signer: alith,
+        });
+
+        // Cancel proposal
+        await cancelProposal(context, proposalIndex);
+
+        // Refund deposit
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "refundDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+        });
+
+        const block = await context.createBlock(rawTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.DecisionDepositRefunded],
+          signer: alith,
+        });
+
+        expectEVMResult(block!.result!.events, "Succeed");
+        const { data } = expectSubstrateEvent(block, "evm", "Log");
+
+        const evmLog: any = decodeEventLog({
+          abi: referendaAbi,
+          topics: data[0].topics.map((t) => t.toHex()) as [`0x${string}`],
+          data: data[0].data.toHex(),
+        });
+
+        expect(evmLog.eventName, "Wrong event").to.equal("DecisionDepositRefunded");
+        expect(evmLog.args.index!, "Wrong event").to.equal(proposalIndex);
+        expect(evmLog.args.caller!, "Wrong event").to.equal(ALITH_ADDRESS);
+      },
+    });
+
+    it({
+      id: "T07",
+      title: "should fail to refund unplaced decision deposit",
+      test: async function () {
+        // Cancel proposal
+        await cancelProposal(context, proposalIndex);
+
+        // Refund deposit
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "refundDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+          gas: 5_000_000n,
+        });
+
+        const block = await context.createBlock(rawTxn);
+
+        expectEVMResult(block!.result!.events, "Revert");
+      },
+    });
+
+    it({
+      id: "T08",
+      title: "should fail to refund decision deposit when the referenda is not closed",
+      test: async function () {
+        // Place deposit
+        const rawDepositTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "placeDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+        });
+
+        await context.createBlock(rawDepositTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.DecisionDepositPlaced],
+          signer: alith,
+        });
+
+        // Refund deposit
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "refundDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+          gas: 5_000_000n,
+        });
+
+        const block = await context.createBlock(rawTxn);
+
+        expectEVMResult(block!.result!.events, "Revert");
       },
     });
   },
