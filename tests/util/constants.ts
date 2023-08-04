@@ -123,8 +123,11 @@ export const MAX_BLOCK_WEIGHT = 500_000_000_000;
 
 // This is the target fill perbill amount accounting for base extrinsic fee, i.e. 187,000,000
 // Defined as a runtime constant: "TargetBlockFullness"
-export const TARGET_FILL_AMOUNT =
-  ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
+// Below should be the calculation:
+// export const TARGET_FILL_AMOUNT =
+//   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
+// In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
+export const TARGET_FILL_AMOUNT = 186_921_200;
 
 export const TARGET_FILL_PERMILL = 0.25 * 1_000_000; // Equivalent to 25%
 export const WEIGHT_FEE = 50n * 1000n;

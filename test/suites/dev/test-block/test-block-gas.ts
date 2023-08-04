@@ -19,7 +19,7 @@ describeSuite({
         title: `${txnType} should be allowed to the max block gas`,
         test: async function () {
           const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
-            gas: BigInt(EXTRINSIC_GAS_LIMIT),
+            gas: EXTRINSIC_GAS_LIMIT,
           });
           expect(status).toBe("success");
           const receipt = await context.viem().getTransactionReceipt({ hash });
@@ -34,7 +34,7 @@ describeSuite({
           expect(
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
-                gas: BigInt(EXTRINSIC_GAS_LIMIT + 1),
+                gas: EXTRINSIC_GAS_LIMIT + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds block gas limit");

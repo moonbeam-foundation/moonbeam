@@ -500,11 +500,16 @@ jobs:
         with:
           node-version: 20.x
           cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
           name: runtimes
-          path: test/runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Install and run upgrade test"
         run: |
           cd test

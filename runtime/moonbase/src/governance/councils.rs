@@ -23,6 +23,11 @@ pub type TechCommitteeInstance = pallet_collective::Instance2;
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
 
+parameter_types! {
+	// TODO: Check value of this parameter
+	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * BlockWeights::get().max_block;
+}
+
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
@@ -37,6 +42,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
+	type MaxProposalWeight = MaxProposalWeight;
 }
 
 impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
@@ -53,6 +59,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
+	type MaxProposalWeight = MaxProposalWeight;
 }
 
 impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
@@ -69,6 +76,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
+	type MaxProposalWeight = MaxProposalWeight;
 }
 
 impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
@@ -85,4 +93,5 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
+	type MaxProposalWeight = MaxProposalWeight;
 }

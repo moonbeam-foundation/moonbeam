@@ -500,7 +500,7 @@ describeDevMoonbeam("Pallet proxy - should transfer using value", (context) => {
     expectEVMResult(events2, "Succeed");
 
     const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
-    expect(gasUsed).to.equal(40892);
+    expect(gasUsed).to.equal(41780);
 
     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));
@@ -555,7 +555,7 @@ describeDevMoonbeam("Pallet proxy - should transfer using balances precompile", 
     expectEVMResult(events2, "Succeed");
 
     const { gasUsed } = await context.web3.eth.getTransactionReceipt(hash2);
-    expect(gasUsed).to.equal(33997);
+    expect(gasUsed).to.equal(34885);
 
     const afterAlithBalance = BigInt(await context.web3.eth.getBalance(ALITH_ADDRESS));
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(CHARLETH_ADDRESS));

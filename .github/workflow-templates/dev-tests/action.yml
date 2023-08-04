@@ -16,6 +16,24 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: 20.x
+        cache: "pnpm"
+        cache-dependency-path: test/pnpm-lock.yaml
+
+    - name: Setup Moonbeam PolkadotJS types
+      shell: bash
+      run: |
+        #### Preparing the legacy types
+        cd moonbeam-types-bundle
+        npm ci
+        npm run build
+
+        #### Preparing the typescript api
+        cd ../typescript-api
+        npm ci
+
+        cd ../test
+        pnpm i ../typescript-api
+
     - name: "Install and run dev test"
       shell: bash
       env:

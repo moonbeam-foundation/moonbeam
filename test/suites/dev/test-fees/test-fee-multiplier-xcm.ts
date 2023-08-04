@@ -1,12 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import {
-  BALTATHAR_ADDRESS,
-  KeyringPair,
-  TARGET_FILL_AMOUNT,
-  alith,
-  generateKeyringPair,
-} from "@moonwall/util";
+import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 import { BN, bnToHex, nToHex } from "@polkadot/util";
 import { expectOk } from "../../../helpers/expect.js";
 import {
@@ -15,6 +9,12 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../../helpers/xcm.js";
+
+// Below should be the calculation:
+// export const TARGET_FILL_AMOUNT =
+//   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
+// In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
+const TARGET_FILL_AMOUNT = 186_921_200;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this

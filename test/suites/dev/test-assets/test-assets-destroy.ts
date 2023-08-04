@@ -1,4 +1,3 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
@@ -39,7 +38,7 @@ describeSuite({
       id: "T01",
       title: "should destroy asset Balance",
       test: async function () {
-        const metadataBefore = await context.polkadotJs({}).query.assets.metadata(assetId.toU8a());
+        const metadataBefore = await context.polkadotJs().query.assets.metadata(assetId.toU8a());
 
         // Name is equal to "DOT" in hex
         expect(metadataBefore.name.toString()).to.eq("0x444f54");
