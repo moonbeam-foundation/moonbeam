@@ -62,14 +62,14 @@ describeSuite({
 
         tx.to = DUMMY_ACCOUNT;
         tx.value = parseEther("2").toString();
-        tx.chainId = (await signer.provider.getNetwork()).chainId;
+        tx.chainId = (await signer.provider!.getNetwork()).chainId;
         tx.nonce = await signer.getNonce();
         tx.maxPriorityFeePerGas = parseUnits("1.5", "gwei");
         tx.maxFeePerGas = parseUnits("5", "gwei");
         tx.gasLimit = 300000;
 
         const signedTx = await signer.signTransaction(tx);
-        const signed = Transaction.from(signedTx).signature;
+        const signed = Transaction.from(signedTx).signature!;
         let transaction = {
           EIP1559: {
             chainId: Transaction.from(signedTx).chainId,

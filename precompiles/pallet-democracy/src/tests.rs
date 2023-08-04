@@ -634,6 +634,11 @@ fn standard_vote_aye_works() {
 						}
 					}
 					.into(),
+					BalancesEvent::Locked {
+						who: Alice.into(),
+						amount: 100000
+					}
+					.into(),
 					EvmEvent::Log {
 						log: log2(
 							Precompile1,
@@ -727,6 +732,11 @@ fn standard_vote_nay_conviction_works() {
 							},
 							balance: 100000
 						}
+					}
+					.into(),
+					BalancesEvent::Locked {
+						who: Alice.into(),
+						amount: 100000
 					}
 					.into(),
 					EvmEvent::Log {
@@ -839,6 +849,11 @@ fn remove_vote_works() {
 						}
 					}
 					.into(),
+					BalancesEvent::Locked {
+						who: Alice.into(),
+						amount: 100
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile1.into()
 					}
@@ -912,6 +927,11 @@ fn delegate_works() {
 			assert_eq!(
 				events(),
 				vec![
+					BalancesEvent::Locked {
+						who: Alice.into(),
+						amount: 100
+					}
+					.into(),
 					DemocracyEvent::Delegated {
 						who: Alice.into(),
 						target: Bob.into()
@@ -1007,6 +1027,11 @@ fn undelegate_works() {
 			assert_eq!(
 				events(),
 				vec![
+					BalancesEvent::Locked {
+						who: Alice.into(),
+						amount: 100
+					}
+					.into(),
 					DemocracyEvent::Delegated {
 						who: Alice.into(),
 						target: Bob.into()

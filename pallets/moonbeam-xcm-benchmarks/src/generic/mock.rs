@@ -131,7 +131,6 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = TestUniversalAliases;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
-	type AssetIsBurnable = Everything;
 }
 
 impl pallet_xcm_benchmarks::Config for Test {
@@ -163,7 +162,12 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 		Err(BenchmarkError::Skip)
 	}
 
-	fn universal_alias() -> Result<Junction, BenchmarkError> {
+	fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+		Err(BenchmarkError::Skip)
+	}
+
+	fn export_message_origin_and_destination(
+	) -> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
 		Err(BenchmarkError::Skip)
 	}
 

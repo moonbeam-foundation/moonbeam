@@ -18,6 +18,7 @@ use super::*;
 
 use moonbeam_rpc_debug::{DebugHandler, DebugRequester};
 use moonbeam_rpc_trace::{CacheRequester as TraceFilterCacheRequester, CacheTask};
+use substrate_prometheus_endpoint::Registry as PrometheusRegistry;
 use tokio::sync::Semaphore;
 
 #[derive(Clone)]
@@ -29,6 +30,7 @@ pub struct RpcRequesters {
 // Spawn the tasks that are required to run a Moonbeam tracing node.
 pub fn spawn_tracing_tasks<B, C, BE>(
 	rpc_config: &moonbeam_cli_opt::RpcConfig,
+	prometheus: Option<PrometheusRegistry>,
 	params: SpawnTasksParams<B, C, BE>,
 ) -> RpcRequesters
 where
@@ -54,6 +56,7 @@ where
 				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
 				Arc::clone(&permit_pool),
 				Arc::clone(&params.overrides),
+				prometheus,
 			);
 			(Some(trace_filter_task), Some(trace_filter_requester))
 		} else {
@@ -64,7 +67,10 @@ where
 		let (debug_task, debug_requester) = DebugHandler::task(
 			Arc::clone(&params.client),
 			Arc::clone(&params.substrate_backend),
-			Arc::clone(&params.frontier_backend),
+			match params.frontier_backend {
+				fc_db::Backend::KeyValue(b) => Arc::new(b),
+				fc_db::Backend::Sql(b) => Arc::new(b),
+			},
 			Arc::clone(&permit_pool),
 			Arc::clone(&params.overrides),
 			rpc_config.tracing_raw_max_memory_usage,
