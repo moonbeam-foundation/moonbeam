@@ -65,7 +65,7 @@ fn test_add_registrar_with_registrar_origin_succeeds() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarOrigin,
+				RegistrarAndForceOrigin,
 				PCall::add_registrar {
 					account: H160::from(Bob).into(),
 				}
@@ -680,7 +680,7 @@ fn test_request_judgement_works_if_identity_set() {
 		.execute_with(|| {
 			// add Alice as registrar
 			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarOrigin,
+				RegistrarAndForceOrigin,
 				PCall::add_registrar {
 					account: H160::from(Alice).into(),
 				}
@@ -748,7 +748,7 @@ fn test_cancel_request_works_if_identity_judgement_requested() {
 		.execute_with(|| {
 			// add Alice as registrar
 			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarOrigin,
+				RegistrarAndForceOrigin,
 				PCall::add_registrar {
 					account: H160::from(Alice).into(),
 				}
@@ -823,7 +823,7 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 		.execute_with(|| {
 			// add Alice as registrar
 			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarOrigin,
+				RegistrarAndForceOrigin,
 				PCall::add_registrar {
 					account: H160::from(Alice).into(),
 				}
@@ -922,6 +922,399 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 					.to_vec(),
 				vec![(0, pallet_identity::Judgement::Reasonable)],
 			);
+		})
+}
+
+#[test]
+fn test_kill_identity_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				RegistrarAndForceOrigin,
+				PCall::kill_identity {
+					target: Address(Bob.into()),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::IdentityKilled {
+					who: Bob.into(),
+					deposit: BasicDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				None,
+			);
+		})
+}
+
+#[test]
+fn test_add_sub_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::add_sub {
+					sub: Address(Charlie.into()),
+					data: Data {
+						has_data: true,
+						value: vec![0x01].try_into().expect("succeeds"),
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::SubIdentityAdded {
+					sub: Charlie.into(),
+					main: Bob.into(),
+					deposit: SubAccountDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::subs_of(AccountId::from(Bob)),
+				(
+					SubAccountDeposit::get() as u128,
+					vec![Charlie.into()].try_into().expect("succeeds")
+				),
+			);
+		})
+}
+
+#[test]
+fn test_rename_sub_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::add_sub {
+					sub: Address(Charlie.into()),
+					data: Data {
+						has_data: true,
+						value: vec![0xff].try_into().expect("succeeds"),
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::rename_sub {
+					sub: Address(Charlie.into()),
+					data: Data {
+						has_data: true,
+						value: vec![0xaa].try_into().expect("succeeds"),
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::SubIdentityAdded {
+					sub: Charlie.into(),
+					main: Bob.into(),
+					deposit: SubAccountDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				Some((
+					AccountId::from(Bob),
+					pallet_identity::Data::Raw(vec![0xaa].try_into().expect("succeeds"))
+				)),
+			);
+		})
+}
+
+#[test]
+fn test_remove_sub_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::add_sub {
+					sub: Address(Charlie.into()),
+					data: Data {
+						has_data: true,
+						value: vec![0xff].try_into().expect("succeeds"),
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::remove_sub {
+					sub: Address(Charlie.into()),
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::SubIdentityRemoved {
+					sub: Charlie.into(),
+					main: Bob.into(),
+					deposit: SubAccountDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				None,
+			);
+		})
+}
+
+#[test]
+fn test_quit_sub_works_if_identity_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// Set Bob's identity
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::set_identity {
+					info: IdentityInfo {
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						..Default::default()
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(RuntimeCall::Evm(evm_call(
+				Bob,
+				PCall::add_sub {
+					sub: Address(Charlie.into()),
+					data: Data {
+						has_data: true,
+						value: vec![0xff].try_into().expect("succeeds"),
+					},
+				}
+				.into()
+			))
+			.dispatch(RuntimeOrigin::root()));
+
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Charlie, PCall::quit_sub {}.into()))
+					.dispatch(RuntimeOrigin::root())
+			);
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::SubIdentityRevoked {
+					sub: Charlie.into(),
+					main: Bob.into(),
+					deposit: SubAccountDeposit::get() as u128,
+				}
+			)));
+
+			assert_eq!(
+				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				None,
+			);
+		})
+}
+
+#[test]
+fn test_identity_returns_valid_data() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			// assert_ok!(RuntimeCall::Evm(evm_call(
+			// 	Bob,
+			// 	PCall::set_identity {
+			// 		info: IdentityInfo {
+			// 			display: Data {
+			// 				has_data: true,
+			// 				value: vec![0x01].try_into().expect("succeeds"),
+			// 			},
+			// 			legal: Data {
+			// 				has_data: true,
+			// 				value: vec![0x02].try_into().expect("succeeds"),
+			// 			},
+			// 			web: Data {
+			// 				has_data: true,
+			// 				value: vec![0x03].try_into().expect("succeeds"),
+			// 			},
+			// 			riot: Data {
+			// 				has_data: true,
+			// 				value: vec![0x04].try_into().expect("succeeds"),
+			// 			},
+			// 			email: Data {
+			// 				has_data: true,
+			// 				value: vec![0x05].try_into().expect("succeeds"),
+			// 			},
+			// 			has_pgp_fingerprint: true,
+			// 			pgp_fingerprint: [0x06; 20].try_into().expect("succeeds"),
+			// 			image: Data {
+			// 				has_data: true,
+			// 				value: vec![0x07].try_into().expect("succeeds"),
+			// 			},
+			// 			twitter: Data {
+			// 				has_data: true,
+			// 				value: vec![0x08].try_into().expect("succeeds"),
+			// 			},
+			// 		},
+			// 	}
+			// 	.into()
+			// ))
+			// .dispatch(RuntimeOrigin::root()));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::identity {
+						who: H160::from(Alice).into(),
+					},
+				)
+				.expect_no_logs()
+				.execute_returns(Registration {
+					is_valid: true,
+					judgements: vec![],
+					deposit: BasicDeposit::get().into(),
+					info: IdentityInfo::<MaxAdditionalFields> {
+						additional: vec![].try_into().expect("succeeds"),
+						display: Data {
+							has_data: true,
+							value: vec![0x01].try_into().expect("succeeds"),
+						},
+						legal: Data {
+							has_data: true,
+							value: vec![0x02].try_into().expect("succeeds"),
+						},
+						web: Data {
+							has_data: true,
+							value: vec![0x03].try_into().expect("succeeds"),
+						},
+						riot: Data {
+							has_data: true,
+							value: vec![0x04].try_into().expect("succeeds"),
+						},
+						email: Data {
+							has_data: true,
+							value: vec![0x05].try_into().expect("succeeds"),
+						},
+						has_pgp_fingerprint: true,
+						pgp_fingerprint: [0x06; 20].try_into().expect("succeeds"),
+						image: Data {
+							has_data: true,
+							value: vec![0x07].try_into().expect("succeeds"),
+						},
+						twitter: Data {
+							has_data: true,
+							value: vec![0x08].try_into().expect("succeeds"),
+						},
+					},
+				});
+		})
+}
+
+#[test]
+fn test_identity_returns_none_if_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::identity {
+						who: H160::from(Alice).into(),
+					},
+				)
+				.expect_no_logs()
+				.execute_returns(Registration::<MaxAdditionalFields>::default());
 		})
 }
 

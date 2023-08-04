@@ -192,9 +192,7 @@ where
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let x = RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call);
-		println!("{x:?}");
-		x?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}
@@ -273,7 +271,19 @@ where
 		let who = Runtime::AddressMapping::into_account_id(who);
 		let identity = pallet_identity::Pallet::<Runtime>::identity(who);
 
-		Ok(Self::identity_to_output(identity)?)
+		let x = Self::identity_to_output(identity.clone());
+		
+		if let Ok(x) = x{
+			println!("returning");
+			println!("{}", hex::encode(solidity::encode_return_value(x)));
+		} else {
+			println!("err");
+		}
+
+		
+
+		let x: Registration<<Runtime as pallet_identity::Config>::MaxAdditionalFields> = Self::identity_to_output(identity)?;
+		Ok(x)
 	}
 
 	#[precompile::public("superOf(address)")]
@@ -443,6 +453,8 @@ where
 			>,
 		>,
 	) -> MayRevert<Registration<Runtime::MaxAdditionalFields>> {
+		println!("reg: {}", registration.is_none());
+
 		if registration.is_none() {
 			return Ok(Registration::<Runtime::MaxAdditionalFields>::default());
 		}
@@ -476,10 +488,12 @@ where
 		identity_info.additional = additional.into();
 
 		let reg = Registration::<Runtime::MaxAdditionalFields> {
+			is_valid: true,
 			judgements: vec![],
 			deposit: Default::default(),
 			info: identity_info,
 		};
+
 		Ok(reg)
 	}
 
@@ -548,7 +562,7 @@ where
 	}
 }
 
-#[derive(Default, Clone, solidity::Codec)]
+#[derive(Default, Debug, solidity::Codec)]
 pub struct Data {
 	has_data: bool,
 	value: BoundedBytes<ConstU32<32>>,
@@ -570,7 +584,7 @@ impl TryFrom<Data> for pallet_identity::Data {
 }
 
 // ((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))
-#[derive(solidity::Codec)]
+#[derive(Debug, solidity::Codec)]
 pub struct IdentityInfo<FieldLimit> {
 	additional: BoundedVec<(Data, Data), FieldLimit>,
 	display: Data,
@@ -601,8 +615,27 @@ impl<T> Default for IdentityInfo<T> {
 	}
 }
 
+// impl<T> Clone for IdentityInfo<T> {
+// 	fn clone(&self) -> Self {
+// 		let additional: BoundedVec::<(Data, Data), T> = self.additional.as_byte_slice().into();
+
+// 		Self {
+// 			additional,
+// 			display: self.display.clone(),
+// 			legal: self.legal.clone(),
+// 			web: self.web.clone(),
+// 			riot: self.riot.clone(),
+// 			email: self.email.clone(),
+// 			has_pgp_fingerprint: self.has_pgp_fingerprint.clone(),
+// 			pgp_fingerprint: self.pgp_fingerprint.clone(),
+// 			image: self.image.clone(),
+// 			twitter: self.twitter.clone(),
+// 		}
+// 	}
+// }
+
 // (bool, bool, uint256, bool, bool, bool, bool, bool)
-#[derive(Default, solidity::Codec)]
+#[derive(Default, Debug, solidity::Codec)]
 pub struct Judgement {
 	is_unknown: bool,
 	is_fee_paid: bool,
@@ -614,8 +647,9 @@ pub struct Judgement {
 	is_erroneous: bool,
 }
 
-#[derive(solidity::Codec)]
+#[derive(Debug, solidity::Codec)]
 pub struct Registration<FieldLimit> {
+	is_valid: bool,
 	judgements: Vec<(u32, Judgement)>,
 	deposit: U256,
 	info: IdentityInfo<FieldLimit>,
@@ -624,6 +658,7 @@ pub struct Registration<FieldLimit> {
 impl<T> Default for Registration<T> {
 	fn default() -> Self {
 		Self {
+			is_valid: false,
 			judgements: vec![],
 			deposit: Default::default(),
 			info: Default::default(),
@@ -631,20 +666,31 @@ impl<T> Default for Registration<T> {
 	}
 }
 
-#[derive(Default, solidity::Codec)]
+// impl<T> Clone for Registration<T> {
+// 	fn clone(&self) -> Self {
+// 		Self {
+// 			is_valid: self.is_valid.clone(),
+// 			judgements: self.judgements.clone(),
+// 			deposit: self.deposit.clone(),
+// 			info: self.info.clone(),
+// 		}
+// 	}
+// }
+
+#[derive(Default, Debug, solidity::Codec)]
 pub struct SuperOf {
 	is_valid: bool,
 	account: Address,
 	data: Data,
 }
 
-#[derive(Default, solidity::Codec)]
+#[derive(Default, Debug, solidity::Codec)]
 pub struct SubsOf {
 	balance: U256,
 	accounts: Vec<Address>,
 }
 
-#[derive(Default, solidity::Codec)]
+#[derive(Default, Debug, solidity::Codec)]
 pub struct IdentityFields {
 	display: bool,
 	legal: bool,
@@ -656,7 +702,7 @@ pub struct IdentityFields {
 	twitter: bool,
 }
 
-#[derive(Default, solidity::Codec)]
+#[derive(Default, Debug, solidity::Codec)]
 pub struct Registrar {
 	index: u32,
 	is_valid: bool,

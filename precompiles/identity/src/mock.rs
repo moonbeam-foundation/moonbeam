@@ -151,17 +151,17 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
-mock_account!(RegistrarOrigin, |_| H160::repeat_byte(0x1C).into());
-impl SortedMembers<MockAccount> for RegistrarOrigin {
+mock_account!(RegistrarAndForceOrigin, |_| H160::repeat_byte(0x1C).into());
+impl SortedMembers<MockAccount> for RegistrarAndForceOrigin {
 	fn sorted_members() -> Vec<MockAccount> {
-		vec![RegistrarOrigin.into()]
+		vec![RegistrarAndForceOrigin.into()]
 	}
 	#[cfg(feature = "runtime-benchmarks")]
 	fn add(_m: &MockAccount) {}
 }
 
-type EnsureRegistrarOriginOrRoot =
-	EitherOfDiverse<EnsureRoot<AccountId>, EnsureSignedBy<RegistrarOrigin, AccountId>>;
+type EnsureRegistrarAndForceOriginOrRoot =
+	EitherOfDiverse<EnsureRoot<AccountId>, EnsureSignedBy<RegistrarAndForceOrigin, AccountId>>;
 
 parameter_types! {
 	pub const BasicDeposit: u64 = 10;
@@ -181,8 +181,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = ();
-	type RegistrarOrigin = EnsureRegistrarOriginOrRoot;
-	type ForceOrigin = EnsureRegistrarOriginOrRoot;
+	type RegistrarOrigin = EnsureRegistrarAndForceOriginOrRoot;
+	type ForceOrigin = EnsureRegistrarAndForceOriginOrRoot;
 	type WeightInfo = ();
 }
 
