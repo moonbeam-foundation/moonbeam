@@ -458,10 +458,7 @@ describeSuite({
         expect(evmLog.args.conviction).to.equal(conviction);
 
         // Verifies the Substrate side
-        const convictionVoting = await context
-          .polkadotJs()
-          .query.convictionVoting.votingFor(ETHAN_ADDRESS, proposalIndex);
-        expect(convictionVoting.asDelegating.balance.toBigInt()).to.equal(amount);
+        expectSubstrateEvent(block, "convictionVoting", "Delegated");
 
         // Undelegates the vote
         {
@@ -490,11 +487,7 @@ describeSuite({
           expect(evmLog.args.caller).to.equal(ETHAN_ADDRESS);
 
           // Verifies the Substrate side
-          // Since the vote is split, the total amount of votes is equal to %10
-          const referendum = await context
-            .polkadotJs()
-            .query.convictionVoting.votingFor(ALITH_ADDRESS, proposalIndex);
-          expect(referendum.asCasting.delegations.capital.toBigInt()).to.equal(0n);
+          expectSubstrateEvent(block, "convictionVoting", "Undelegated");
         }
       },
     });
