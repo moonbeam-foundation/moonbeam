@@ -107,7 +107,7 @@ describeSuite({
         );
 
         expectEVMResult(block.result!.events, "Succeed");
-        const { data } = await expectSubstrateEvent(block, "evm", "Log");
+        const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
           topics: data[0].topics.map((t) => t.toHex()) as any,
@@ -458,8 +458,11 @@ describeSuite({
         expect(evmLog.args.conviction).to.equal(conviction);
 
         // Verifies the Substrate side
-        expectSubstrateEvent(block, "convictionVoting", "Delegated");
-
+        const {
+          data: [who, target],
+        } = expectSubstrateEvent(block, "convictionVoting", "Delegated");
+        expect(who.toString()).to.equal(ETHAN_ADDRESS);
+        expect(target.toString()).to.equal(ALITH_ADDRESS);
         // Undelegates the vote
         {
           const rawTx = await createViemTransaction(context, {
@@ -487,7 +490,10 @@ describeSuite({
           expect(evmLog.args.caller).to.equal(ETHAN_ADDRESS);
 
           // Verifies the Substrate side
-          expectSubstrateEvent(block, "convictionVoting", "Undelegated");
+          const {
+            data: [who],
+          } = expectSubstrateEvent(block, "convictionVoting", "Undelegated");
+          expect(who.toString()).to.equal(ETHAN_ADDRESS);
         }
       },
     });
