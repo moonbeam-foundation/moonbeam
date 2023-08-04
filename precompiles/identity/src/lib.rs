@@ -693,17 +693,6 @@ impl<T> Default for Registration<T> {
 	}
 }
 
-// impl<T> Clone for Registration<T> {
-// 	fn clone(&self) -> Self {
-// 		Self {
-// 			is_valid: self.is_valid.clone(),
-// 			judgements: self.judgements.clone(),
-// 			deposit: self.deposit.clone(),
-// 			info: self.info.clone(),
-// 		}
-// 	}
-// }
-
 #[derive(Default, Debug, solidity::Codec)]
 pub struct SuperOf {
 	is_valid: bool,

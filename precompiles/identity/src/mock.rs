@@ -17,13 +17,13 @@
 //! Test utilities
 use super::*;
 use frame_support::{
-	construct_runtime, ord_parameter_types, parameter_types,
+	construct_runtime, parameter_types,
 	traits::{EitherOfDiverse, Everything, SortedMembers},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::{mock_account, testing::Alice};
+use precompile_utils::mock_account;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::{
