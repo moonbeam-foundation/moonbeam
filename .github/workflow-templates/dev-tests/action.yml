@@ -15,7 +15,7 @@ runs:
         bun-version: latest
     - uses: actions/setup-node@v3
       with:
-        node-version: 18.x
+        node-version: 20.x
     - name: "Install and run dev test"
       shell: bash
       env:
@@ -24,8 +24,8 @@ runs:
       run: |
         chmod uog+x target/release/moonbeam
         cd test
-        bun install
-        bun compile-solidity compile
+        pnpm install
+        bun compile-solidity
         bun moonwall test ${{ inputs.moonwall_environment }}
     - name: Upload HTML report
       if: always()

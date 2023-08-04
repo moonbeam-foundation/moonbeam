@@ -373,7 +373,7 @@ jobs:
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -493,9 +493,12 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: "pnpm"
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
@@ -506,7 +509,7 @@ jobs:
         run: |
           cd test
           pnpm install
-          pnpm moonwall test CI_upgrade_RT_${{matrix.chain}}
+          bun moonwall test CI_upgrade_RT_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:
@@ -529,7 +532,7 @@ jobs:
           bun-version: latest
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -565,7 +568,7 @@ jobs:
       - name: "Run zombie upgrade test"
         run: |
           cd test
-          bun install
+          pnpm install
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
