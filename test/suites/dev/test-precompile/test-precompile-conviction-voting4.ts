@@ -1,8 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_PRIVATE_KEY, GLMR } from "@moonwall/util";
+import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  ETHAN_ADDRESS,
+  ETHAN_PRIVATE_KEY,
+  GLMR,
+} from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
+import { expectSubstrateEvent } from "../../../helpers/expect.js";
+import { cancelProposal, createProposal } from "../../../helpers/voting.js";
+import { decodeEventLog } from "viem";
 
 describeSuite({
   id: "D2529-3",
@@ -10,6 +18,13 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
+    let convictionVotingAbi: Abi;
+
+    beforeAll(async function () {
+      const { abi } = fetchCompiledContract("ConvictionVoting");
+      convictionVotingAbi = abi;
+    });
+
     beforeEach(async function () {
       proposalIndex = await createProposal(context, "generaladmin");
 
@@ -52,20 +67,37 @@ describeSuite({
       id: "T02",
       title: `should be removable using self removeOtherVote`,
       test: async function () {
+        const trackId = 2;
+        // Cancel the proposal
+        await cancelProposal(context, proposalIndex);
         const rawTxn = await context.writePrecompile!({
+          privateKey: ETHAN_PRIVATE_KEY,
           precompileName: "ConvictionVoting",
           functionName: "removeOtherVote",
-          args: [ALITH_ADDRESS, 2, proposalIndex],
+          args: [ALITH_ADDRESS, trackId, proposalIndex],
           rawTxOnly: true,
         });
 
         // general_admin is track 2
         const block = await context.createBlock(rawTxn);
         expectEVMResult(block.result!.events, "Succeed");
+        const { data } = expectSubstrateEvent(block, "evm", "Log");
+        const evmLog = decodeEventLog({
+          abi: convictionVotingAbi,
+          topics: data[0].topics.map((t) => t.toHex()) as any,
+          data: data[0].data.toHex(),
+        }) as any;
+
+        expect(evmLog.eventName, "Wrong event").to.equal("VoteRemovedOther");
+        expect(evmLog.args.caller).to.equal(ETHAN_ADDRESS);
+        expect(evmLog.args.target).to.equal(ALITH_ADDRESS);
+        expect(evmLog.args.pollIndex).to.equal(proposalIndex);
+        expect(evmLog.args.trackId).to.equal(trackId);
+
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
-        expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(0n);
+        expect(referendum.unwrap().isCancelled).to.equal(true);
       },
     });
 

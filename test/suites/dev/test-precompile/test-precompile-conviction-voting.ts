@@ -206,53 +206,6 @@ describeSuite({
 
     it({
       id: "T06",
-      title: "should allow to remove a vote",
-      test: async function () {
-        // Vote Yes
-        let tx = await createViemTransaction(context, {
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "voteYes",
-            args: [proposalIndex, 1n * 10n ** 18n, 1],
-          }),
-        });
-        await context.createBlock(tx);
-
-        // Remove vote
-        const rawTx = await createViemTransaction(context, {
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "removeVote",
-            args: [proposalIndex],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
-
-        // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
-        const { data } = expectSubstrateEvent(block, "evm", "Log");
-        const evmLog = decodeEventLog({
-          abi: convictionVotingAbi,
-          topics: data[0].topics.map((t) => t.toHex()) as any,
-          data: data[0].data.toHex(),
-        }) as any;
-
-        expect(evmLog.eventName, "Wrong event").to.equal("VoteRemoved");
-        expect(evmLog.args.voter).to.equal(ALITH_ADDRESS);
-        expect(evmLog.args.pollIndex).to.equal(proposalIndex);
-
-        // Verifies the Substrate side
-        const referendum = await context
-          .polkadotJs()
-          .query.referenda.referendumInfoFor(proposalIndex);
-        expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(0n);
-      },
-    });
-
-    it({
-      id: "T07",
       title: "should allow to vote split",
       test: async function () {
         const ayes = 1n * 10n ** 18n;
@@ -294,7 +247,7 @@ describeSuite({
     });
 
     it({
-      id: "T08",
+      id: "T07",
       title: "should allow to vote split with abstain",
       test: async function () {
         const ayes = 1n * 10n ** 18n;
@@ -338,92 +291,7 @@ describeSuite({
     });
 
     it({
-      id: "T09",
-      title: "should allow to remove a vote for a track",
-      test: async function () {
-        await voteYes(context, convictionVotingAbi, proposalIndex, 1n * 10n ** 18n, 1);
-
-        const trackId = 0;
-        // Removes the vote for the root track
-        const rawTx = await createViemTransaction(context, {
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "removeVoteForTrack",
-            args: [proposalIndex, trackId],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
-
-        // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
-        const { data } = expectSubstrateEvent(block, "evm", "Log");
-        const evmLog = decodeEventLog({
-          abi: convictionVotingAbi,
-          topics: data[0].topics.map((t) => t.toHex()) as any,
-          data: data[0].data.toHex(),
-        }) as any;
-
-        expect(evmLog.eventName, "Wrong event").to.equal("VoteRemovedForTrack");
-        expect(evmLog.args.voter).to.equal(ALITH_ADDRESS);
-        expect(evmLog.args.pollIndex).to.equal(proposalIndex);
-        expect(evmLog.args.trackId).to.equal(trackId);
-
-        // Verifies the Substrate side
-        const referendum = await context
-          .polkadotJs()
-          .query.referenda.referendumInfoFor(proposalIndex);
-        expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(0n);
-      },
-    });
-
-    it({
-      id: "T10",
-      title: "should allow to remove a vote from another address",
-      test: async function () {
-        // Alith votes yes
-        await voteYes(context, convictionVotingAbi, proposalIndex, 1n * 10n ** 18n, 1);
-        // Cancel the proposal
-        await cancelProposal(context, proposalIndex);
-
-        // Ethan emoves the vote by Alith
-        const trackId = 0n;
-        const rawTx = await createViemTransaction(context, {
-          privateKey: ETHAN_PRIVATE_KEY,
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "removeOtherVote",
-            args: [ALITH_ADDRESS, trackId, proposalIndex],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
-
-        // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
-        const { data } = expectSubstrateEvent(block, "evm", "Log");
-        const evmLog = decodeEventLog({
-          abi: convictionVotingAbi,
-          topics: data[0].topics.map((t) => t.toHex()) as any,
-          data: data[0].data.toHex(),
-        }) as any;
-
-        expect(evmLog.eventName, "Wrong event").to.equal("VoteRemovedOther");
-        expect(evmLog.args.caller).to.equal(ETHAN_ADDRESS);
-        expect(evmLog.args.target).to.equal(ALITH_ADDRESS);
-        expect(evmLog.args.pollIndex).to.equal(proposalIndex);
-        expect(evmLog.args.trackId).to.equal(0);
-
-        // Verifies the Substrate side
-        const referendum = await context
-          .polkadotJs()
-          .query.referenda.referendumInfoFor(proposalIndex);
-        expect(referendum.unwrap().isCancelled).to.equal(true);
-      },
-    });
-
-    it({
-      id: "T11",
+      id: "T08",
       title: "should allow to delegate a vote",
       test: async function () {
         const trackId = 0;
