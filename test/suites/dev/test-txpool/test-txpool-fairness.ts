@@ -70,7 +70,7 @@ describeSuite({
     });
 
     it({
-      id: "T01",
+      id: "T02",
       title: "should treat eth and substrate txns fairly",
       test: async function () {
         // tip 1 and 3 will be substrate txns, we express their tip above as per-gas but must send
@@ -93,7 +93,7 @@ describeSuite({
         const info = await context
           .polkadotJs()
           .call.transactionPaymentApi.queryInfo(dummyTransfer.toHex(), dummyTransfer.encodedLength);
-        const weight = info.weight.toBigInt();
+        const weight = info.weight.refTime.toBigInt();
         const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 
         // tx0 is an eth txn
@@ -149,7 +149,7 @@ describeSuite({
     });
 
     it({
-      id: "T02",
+      id: "T03",
       title: "should allow Substrate txn replacement with higher priority",
       test: async function () {
         const LOW_TIP = 10n * MILLIGLMR;
@@ -183,7 +183,7 @@ describeSuite({
     });
 
     it({
-      id: "T03",
+      id: "T04",
       title: "should allow Ethereum txn replacement with higher priority",
       test: async function () {
         const LOW_TIP = 10n * MILLIGLMR;
@@ -230,7 +230,7 @@ describeSuite({
     });
 
     it({
-      id: "T04",
+      id: "T05",
       title: "should allow Ethereum txn replacement with Substrate txn",
       test: async function () {
         const randomAccount = generateKeyringPair();
@@ -268,7 +268,7 @@ describeSuite({
     });
 
     it({
-      id: "T05",
+      id: "T06",
       title: "should allow Substrate txn replacement with Ethereum txn",
       test: async function () {
         const randomAccount = generateKeyringPair();

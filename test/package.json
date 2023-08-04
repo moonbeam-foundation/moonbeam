@@ -14,7 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2400.0",
-    "@moonwall/cli": "^4.0.8",
+    "@moonwall/cli": "^4.0.9",
     "@moonwall/util": "^4.0.8",
     "@polkadot/api": "^10.9.1",
     "@polkadot/api-augment": "^10.9.1",
@@ -22,11 +22,11 @@
     "@polkadot/types-codec": "^10.9.1",
     "@polkadot/util": "^12.3.2",
     "@types/debug": "^4.1.8",
-    "@types/node": "^18.17.1",
+    "@types/node": "^18.17.2",
     "bottleneck": "^2.19.5",
-    "bun-types": "^0.7.1",
+    "bun-types": "^0.7.2",
     "debug": "^4.3.4",
-    "ethers": "^6.6.7",
+    "ethers": "^6.7.0",
     "prettier": "^2.8.8",
     "typescript": "^5.1.6",
     "web3": "4.0.3",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@acala-network/chopsticks": "^0.7.3",
-    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "@polkadot/api-derive": "^10.9.1",
     "@polkadot/apps-config": "^0.132.1",
     "@polkadot/keyring": "^12.3.2",
@@ -56,7 +56,7 @@
     "rlp": "^3.0.0",
     "semver": "^7.5.4",
     "solc": "0.8.19",
-    "viem": "^1.5.0",
+    "viem": "^1.5.3",
     "vitest": "^0.31.4"
   }
 }

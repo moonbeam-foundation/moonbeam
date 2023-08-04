@@ -21,8 +21,8 @@ describeSuite({
             ),
           { allowFailures: true, signer: alith }
         );
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
-        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
+        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).toBeUndefined();
 
         await context.createBlock();
       },

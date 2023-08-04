@@ -52,6 +52,9 @@ describeDevMoonbeam("Existential Deposit", (context) => {
   });
 
   it("should be disabled (no reaped account on tiny balance - 1)", async function () {
+
+    console.log("balances")
+    console.log(10n * GLMR - 1n - 21000n * MIN_GAS_PRICE)
     await context.createBlock(
       createTransfer(context, baltathar.address, 10n * GLMR - 1n - 21000n * MIN_GAS_PRICE, {
         from: randomWeb3Account.address,

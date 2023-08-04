@@ -31,7 +31,7 @@ describeSuite({
         expect(api.events.system.ExtrinsicSuccess.is(result?.events[6].event)).to.be.true;
 
         // check mapping
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
       },
     });
   },

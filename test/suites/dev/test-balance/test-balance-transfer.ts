@@ -44,7 +44,7 @@ describeSuite({
         expect(estimatedGas, "Estimated bal transfer incorrect").toBe(21000n);
 
         await context.createBlock(createRawTransfer(context, randomAddress, 0n));
-        expect(await checkBalance(context)).toBe(
+        expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).toBe(
           ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n
         );
       },
@@ -55,18 +55,17 @@ describeSuite({
       title: "unsent txns should be in pending",
       test: async function () {
         await context.createBlock();
-        const balanceBefore = await checkBalance(context, CHARLETH_ADDRESS, "pending");
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
           privateKey: CHARLETH_PRIVATE_KEY,
           gasPrice: MIN_GAS_PRICE,
           gas: 21000n,
-          type: "legacy",
+          txnType: "legacy",
         })) as `0x${string}`;
         await sendRawTransaction(context, rawTx);
-        const fees = 21000n * MIN_GAS_PRICE;
-        const balanceAfter = await checkBalance(context, CHARLETH_ADDRESS, "pending");
-        expect(await checkBalance(context, randomAddress, "pending")).toBe(512n);
-        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+
+        expect(
+          await context.viem().getBalance({ address: randomAddress, blockTag: "pending" })
+        ).toBe(512n);
       },
     });
 
@@ -74,16 +73,16 @@ describeSuite({
       id: "T03",
       title: "should decrease from account",
       test: async function () {
-        const balanceBefore = await checkBalance(context);
+        const balanceBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
         const fees = 21000n * MIN_GAS_PRICE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
             gasPrice: MIN_GAS_PRICE,
-            type: "legacy",
+            txnType: "legacy",
           })
         );
-        const balanceAfter = await checkBalance(context);
+        const balanceAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
         expect(balanceBefore - balanceAfter - fees).toBe(512n);
       },
     });

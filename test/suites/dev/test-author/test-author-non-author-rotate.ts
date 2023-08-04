@@ -39,7 +39,7 @@ describeSuite({
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
           ALITH_ADDRESS
         );
-        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).toBeUndefined();
 
         await context.createBlock();
       },
