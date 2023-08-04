@@ -75,8 +75,8 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
-        const tx1 = await createEthersTransaction(context, {
+        const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
+        const tx1 = await context.createTxn!({
           to: BALTATHAR_ADDRESS,
           value: 1n,
           nonce,
@@ -84,7 +84,7 @@ describeSuite({
         });
         await context.createBlock(tx1);
 
-        const tx2 = await createEthersTransaction(context, {
+        const tx2 = await context.createTxn!({
           to: DOROTHY_ADDRESS,
           value: 2n,
           nonce: Math.max(nonce - 1, 0),

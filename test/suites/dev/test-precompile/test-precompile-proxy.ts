@@ -21,7 +21,7 @@ import {
 } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { encodeFunctionData, parseEther } from "viem";
+import { encodeFunctionData, parseEther, toBytes, toHex } from "viem";
 
 describeSuite({
   id: "D2550",
@@ -299,7 +299,7 @@ describeSuite({
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "proxy",
-          args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+          args: [ALITH_ADDRESS, CHARLETH_ADDRESS, [toHex(0)]],
           rawTxOnly: true,
           gas: 1_000_000n,
         });
@@ -311,7 +311,7 @@ describeSuite({
             await context.writePrecompile!({
               precompileName: "Proxy",
               functionName: "proxy",
-              args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+              args: [ALITH_ADDRESS, CHARLETH_ADDRESS, [toHex(0)]],
             })
         ).rejects.toThrowError("Not proxy");
       },

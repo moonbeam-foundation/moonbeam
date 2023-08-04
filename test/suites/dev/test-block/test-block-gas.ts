@@ -46,13 +46,9 @@ describeSuite({
       id: "T07",
       title: "should be accessible within a contract",
       test: async function () {
-        const { contract, contractAddress } = await deployCreateCompiledContract(
-          context,
-          "BlockVariables"
-        );
-        expect(await contract.read.getGasLimit([])).to.equal(15000000n);
-
-        const { abi } = fetchCompiledContract("BlockVariables");
+        const { contractAddress, abi } = await context.deployContract!("BlockVariables", {
+          gas: 500_000n,
+        });
         expect(
           await context.viem().readContract({
             address: contractAddress!,

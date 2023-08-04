@@ -11,7 +11,7 @@ import {
   baltathar,
 } from "@moonwall/util";
 import { u8aToString } from "@polkadot/util";
-import { getAddress, keccak256, toBytes } from "viem";
+import { fromHex, getAddress, keccak256, toBytes } from "viem";
 import { registerLocalAssetWithMeta } from "../../../helpers/assets.js";
 
 describeSuite({
@@ -666,7 +666,7 @@ describeSuite({
 
         const frozen = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
 
-        expect(frozen.unwrap().isFrozen.isTrue).to.be.true;
+        expect(frozen.unwrap().status.isFrozen).to.be.true;
       },
     });
 
@@ -703,7 +703,7 @@ describeSuite({
         expect(receipt.status).to.equal("success");
 
         const frozen = await context.polkadotJs().query.localAssets.account(assetId, ALITH_ADDRESS);
-        expect(frozen.unwrap().isFrozen.isFalse).to.be.true;
+        expect(frozen.unwrap().status.isFrozen).toBe(false);
       },
     });
 

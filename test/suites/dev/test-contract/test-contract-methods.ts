@@ -11,18 +11,13 @@ describeSuite({
     let multiplyAddress: `0x${string}`;
     let multiplyAbi: Abi;
     let deployHash: `0x${string}`;
-    let multiplyContract: any;
 
     beforeAll(async function () {
-      const { contractAddress, abi, hash, contract } = await deployCreateCompiledContract(
-        context,
-        "MultiplyBy7"
-      );
+      const { contractAddress, abi, hash } = await context.deployContract!("MultiplyBy7");
 
       multiplyAddress = contractAddress;
       multiplyAbi = abi;
       deployHash = hash;
-      multiplyContract = contract;
     });
 
     // TODO: Re-enable when viem add txntype support for call method
@@ -51,7 +46,15 @@ describeSuite({
       id: "T03",
       title: "should provide callable methods",
       test: async function () {
-        expect(await multiplyContract.read.multiply([3])).toBe(21n);
+        expect(
+          await context.readContract!({
+            contractName: "MultiplyBy7",
+            contractAddress: multiplyAddress,
+            functionName: "multiply",
+            args: [3],
+          })
+          // multiplyContract.read.multiply([3])
+        ).toBe(21n);
       },
     });
 

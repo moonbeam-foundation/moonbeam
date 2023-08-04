@@ -37,10 +37,7 @@ describeSuite({
           id: `T${testNumber > 9 ? testNumber : "0" + testNumber}`,
           title: `should consume ${gas} for ${loop} loop for ${txnType}`,
           test: async function () {
-            const { abi, contractAddress, contract } = await deployCreateCompiledContract(
-              context,
-              "Looper"
-            );
+            const { abi, contractAddress } = await context.deployContract!("Looper");
 
             const rawSigned = await createEthersTransaction(context, {
               to: contractAddress,
@@ -51,7 +48,13 @@ describeSuite({
 
             await context.createBlock(rawSigned);
 
-            expect(await contract.read.count()).toBe(loop);
+            expect(
+              await context.readContract!({
+                contractName: "Looper",
+                contractAddress,
+                functionName: "count",
+              })
+            ).toBe(loop);
             const block = await context.viem().getBlock();
             expect(block.gasUsed).toBe(gas);
           },

@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
@@ -13,8 +13,8 @@ describeSuite({
       title: "should return as finalized when true",
       test: async function () {
         const blockHash = (await context.createBlock([], { finalize: true })).block.hash;
-        const resp = await context.polkadotJs().rpc.moon.isBlockFinalized(blockHash);
-        expect(resp.isTrue, "Block finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isBlockFinalized", [blockHash]);
+        expect(resp, "Block finalization status mismatch").toBe(true);
       },
     });
 
@@ -23,8 +23,8 @@ describeSuite({
       title: "should return as unfinalized when false",
       test: async function () {
         const blockHash = (await context.createBlock([], { finalize: false })).block.hash;
-        const resp = await context.polkadotJs().rpc.moon.isBlockFinalized(blockHash);
-        expect(resp.isFalse, "Block finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isBlockFinalized", [blockHash]);
+        expect(resp, "Block finalization status mismatch").toBe(false);
       },
     });
 
@@ -33,8 +33,8 @@ describeSuite({
       title: "should return as unfinalized when block not found",
       test: async function () {
         const blockHash = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        const resp = await context.polkadotJs().rpc.moon.isBlockFinalized(blockHash);
-        expect(resp.isFalse, "Block finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isBlockFinalized", [blockHash]);
+        expect(resp, "Block finalization status mismatch").toBe(false);
       },
     });
 
@@ -44,8 +44,8 @@ describeSuite({
       test: async function () {
         const blockHash = (await context.createBlock([], { finalize: false })).block.hash;
         await context.createBlock([], { finalize: true });
-        const resp = await context.polkadotJs().rpc.moon.isBlockFinalized(blockHash);
-        expect(resp.isTrue, "Block finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isBlockFinalized", [blockHash]);
+        expect(resp, "Block finalization status mismatch").toBe(true);
       },
     });
 
@@ -57,8 +57,8 @@ describeSuite({
         await context.createBlock([], { finalize: false });
         await context.createBlock([], { finalize: true, parentHash: blockHash });
 
-        const resp = await context.polkadotJs().rpc.moon.isBlockFinalized(blockHash);
-        expect(resp.isTrue, "Block finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isBlockFinalized", [blockHash]);
+        expect(resp, "Block finalization status mismatch").toBe(true);
       },
     });
 
@@ -77,11 +77,8 @@ describeSuite({
         );
 
         const block = await context.viem().getBlock();
-        const resp = await context
-          .polkadotJs()
-          .rpc.moon.isTxFinalized(block.transactions[0] as string);
-
-        expect(resp.isTrue, "Transaction finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isTxFinalized", [block.transactions[0]]);
+        expect(resp, "Transaction finalization status mismatch").toBe(true);
       },
     });
 
@@ -100,10 +97,8 @@ describeSuite({
         );
 
         const block = await context.viem().getBlock();
-        const resp = await context
-          .polkadotJs()
-          .rpc.moon.isTxFinalized(block.transactions[0] as string);
-        expect(resp.isFalse, "Transaction finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isTxFinalized", [block.transactions[0]]);
+        expect(resp, "Transaction finalization status mismatch").toBe(false);
       },
     });
 
@@ -112,8 +107,8 @@ describeSuite({
       title: "should return as unfinalized when txn not found",
       test: async function () {
         const txnHash = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        const resp = await context.polkadotJs().rpc.moon.isTxFinalized(txnHash);
-        expect(resp.isFalse, "Transaction finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isTxFinalized", [txnHash]);
+        expect(resp, "Transaction finalization status mismatch").toBe(false);
       },
     });
 
@@ -132,10 +127,8 @@ describeSuite({
         );
         const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: true });
-        const resp = await context
-          .polkadotJs()
-          .rpc.moon.isTxFinalized(block.transactions[0] as string);
-        expect(resp.isTrue, "Transaction finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isTxFinalized", [block.transactions[0]]);
+        expect(resp, "Transaction finalization status mismatch").toBe(true);
       },
     });
 
@@ -158,10 +151,8 @@ describeSuite({
         const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: false });
         await context.createBlock([], { finalize: true, parentHash: blockHash });
-        const resp = await context
-          .polkadotJs()
-          .rpc.moon.isTxFinalized(block.transactions[0] as string);
-        expect(resp.isTrue, "Transaction finalization status mismatch").to.be.true;
+        const resp = await customDevRpcRequest("moon_isTxFinalized", [block.transactions[0]]);
+        expect(resp, "Transaction finalization status mismatch").toBe(true);
       },
     });
   },
