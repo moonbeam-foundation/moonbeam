@@ -21,3 +21,14 @@ export async function createProposal(context: DevModeContext, track = "root") {
   ]);
   return expectSubstrateEvent(block, "referenda", "Submitted").data[0].toNumber();
 }
+
+export async function cancelProposal(context: DevModeContext, proposal: number) {
+  let nonce = (await context.polkadotJs().rpc.system.accountNextIndex(ALITH_ADDRESS)).toNumber();
+  const block = await context.createBlock([
+    await context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.referenda.cancel(proposal))
+      .signAsync(alith, { nonce: nonce++ }),
+  ]);
+  expectSubstrateEvent(block, "referenda", "Cancelled");
+}
