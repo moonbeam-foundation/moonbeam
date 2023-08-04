@@ -177,7 +177,7 @@ describeSuite({
 
     it({
       id: "T05",
-      title: "should allow to submit after a certain block ",
+      title: "should allow to submit after a certain block",
       test: async function () {
         const trackId = 0;
         const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
@@ -307,6 +307,56 @@ describeSuite({
 
         const block = await context.createBlock(rawTxn);
 
+        // Check that the transaction failed
+        expectEVMResult(block!.result!.events, "Revert");
+      },
+    });
+
+    it({
+      id: "T09",
+      title: "should fail to refund decision deposit twice",
+      test: async function () {
+        // Place deposit
+        const rawDepositTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "placeDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+        });
+
+        await context.createBlock(rawDepositTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.DecisionDepositPlaced],
+          signer: alith,
+        });
+
+        // Cancel proposal
+        await cancelProposal(context, proposalIndex);
+
+        // Refund deposit
+        const rawRefundTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "refundDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+        });
+
+        await context.createBlock(rawRefundTxn, {
+          expectEvents: [context.polkadotJs().events.referenda.DecisionDepositRefunded],
+          signer: alith,
+        });
+
+        // Refund deposit again
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Referenda",
+          functionName: "refundDecisionDeposit",
+          args: [proposalIndex],
+          rawTxOnly: true,
+          gas: 5_000_000n,
+        });
+
+        const block = await context.createBlock(rawTxn);
+
+        // Check that the transaction failed
         expectEVMResult(block!.result!.events, "Revert");
       },
     });
