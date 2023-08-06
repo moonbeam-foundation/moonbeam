@@ -75,7 +75,10 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> Erc20Matcher<Erc20Multilocati
 
 		let prefix = Erc20MultilocationPrefix::get();
 		match multilocation.interior().at(prefix.interior().len() + 1) {
-			Some(Junction::GeneralIndex { 0: limit }) => Some((*limit).try_into().unwrap()),
+			Some(Junction::GeneralIndex { 0: value }) => match (*value).try_into() {
+				Ok(limit) => Some(limit),
+				Err(_) => None,
+			},
 			_ => None,
 		}
 	}
