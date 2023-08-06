@@ -73,6 +73,7 @@ pub mod pallet {
 			from: H160,
 			to: H160,
 			amount: U256,
+			gas_limit: Option<u64>,
 		) -> Result<(), Erc20TransferError> {
 			let mut input = Vec::with_capacity(ERC20_TRANSFER_CALL_DATA_SIZE);
 			// ERC20.transfer method hash
@@ -82,15 +83,19 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
-			let weight_limit =
-				T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true);
+			let call_gas_limit = match gas_limit {
+				Some(gas) => gas,
+				None => T::Erc20TransferGasLimit::get(),
+			};
+
+			let weight_limit: Weight = T::GasWeightMapping::gas_to_weight(call_gas_limit, true);
 
 			let exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
 				input,
 				U256::default(),
-				T::Erc20TransferGasLimit::get(),
+				call_gas_limit,
 				None,
 				None,
 				None,
@@ -140,6 +145,8 @@ pub mod pallet {
 			let beneficiary = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
+			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(what);
+
 			// Get the global context to recover accounts origins.
 			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
 				match erc20s_origins.drain(contract_address, amount) {
@@ -149,7 +156,13 @@ pub mod pallet {
 						tokens_to_transfer
 							.into_iter()
 							.try_for_each(|(from, subamount)| {
-								Self::erc20_transfer(contract_address, from, beneficiary, subamount)
+								Self::erc20_transfer(
+									contract_address,
+									from,
+									beneficiary,
+									subamount,
+									gas_limit,
+								)
 							})
 					})
 					.map_err(Into::into),
@@ -182,10 +195,12 @@ pub mod pallet {
 			let to = T::AccountIdConverter::convert_ref(to)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
+			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(asset);
+
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
 			frame_support::storage::with_storage_layer(|| {
-				Self::erc20_transfer(contract_address, from, to, amount)
+				Self::erc20_transfer(contract_address, from, to, amount, gas_limit)
 			})?;
 
 			Ok(asset.clone().into())
