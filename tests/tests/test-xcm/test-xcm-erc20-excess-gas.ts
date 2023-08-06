@@ -3,16 +3,14 @@ import { bnToHex } from "@polkadot/util";
 
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { Contract } from "web3-eth-contract";
 
-import { CHARLETH_ADDRESS, ALITH_ADDRESS } from "../../util/accounts";
+import { CHARLETH_ADDRESS } from "../../util/accounts";
 import { web3EthCall } from "../../util/providers";
 import { getCompiled } from "../../util/contracts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createTransaction,
-  setupErc20Contract,
   createContract,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
