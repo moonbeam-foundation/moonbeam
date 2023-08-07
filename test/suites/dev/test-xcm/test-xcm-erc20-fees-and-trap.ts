@@ -110,7 +110,7 @@ describeSuite({
           payload: xcmMessage,
         });
 
-        expectXcmEventMessage(context, "TooExpensive");
+        expect(await expectXcmEventMessage(context, "TooExpensive")).toBe(true);
 
         // Charleth should not receive ERC20 tokens due to failed execution
         expect(
@@ -322,7 +322,7 @@ describeSuite({
           payload: xcmMessageFailedClaim,
         });
 
-        expectXcmEventMessage(context, "UnknownClaim");
+        expect(await expectXcmEventMessage(context, "UnknownClaim")).toBe(true);
 
         // Check the sovereign account has the same initial amount of ERC20 tokens
         expect(

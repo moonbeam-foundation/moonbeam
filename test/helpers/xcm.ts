@@ -875,8 +875,6 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
   const filteredEvents = records
     .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
     .filter((event) => event);
-  expect(filteredEvents).to.have.lengthOf(1);
 
-  const errorMessage = filteredEvents[0]!.data.error.toString();
-  expect(errorMessage).equals(message);
+  return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
 };
