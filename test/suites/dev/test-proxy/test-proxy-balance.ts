@@ -62,7 +62,7 @@ describeSuite({
               context.polkadotJs().tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
             )
             .signAsync(baltathar)
-        )      
+        );
 
         expect(result!.events[1].event.method).to.be.eq("ProxyExecuted");
         expect(result!.events[1].event.data[0].toString()).to.be.eq(
