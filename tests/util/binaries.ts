@@ -26,7 +26,7 @@ export async function getGithubReleaseBinary(url: string, binaryPath: string): P
 export async function getMoonbeamReleaseBinary(binaryTag: string): Promise<string> {
   const binaryPath = path.join(BINARY_DIRECTORY, `moonbeam-${binaryTag}`);
   return getGithubReleaseBinary(
-    `https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam`,
+    `https://github.com/moonbeam-foundation/moonbeam/releases/download/${binaryTag}/moonbeam`,
     binaryPath
   );
 }
@@ -56,7 +56,7 @@ export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string
       console.error(`docker binaries are only supported on linux.`);
       process.exit(1);
     }
-    const dockerImage = `purestake/moonbeam:sha-${sha8}`;
+    const dockerImage = `moonbeamfoundation/moonbeam:sha-${sha8}`;
 
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
@@ -91,7 +91,7 @@ export async function getRuntimeWasm(
     console.log(`     Missing ${runtimePath} locally, downloading it...`);
     child_process.execSync(
       `mkdir -p ${path.dirname(runtimePath)} && ` +
-        `wget -q https://github.com/PureStake/moonbeam/releases/` +
+        `wget -q https://github.com/moonbeam-foundation/moonbeam/releases/` +
         `download/${runtimeTag}/${runtimeName}-${runtimeTag}.wasm ` +
         `-O ${runtimePath}.bin`
     );

@@ -31,6 +31,7 @@ use pallet_xcm_transactor::{
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
+use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
 use xcm_executor::traits::Convert;
 use xcm_mock::*;
 use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
@@ -2438,10 +2439,9 @@ fn empty_account_should_not_be_reset() {
 		);
 		// Because we no longer have consumer references, we can set the balance to Zero.
 		// This would reset the account if our ED were to be > than Zero.
-		assert_ok!(ParaBalances::set_balance(
+		assert_ok!(ParaBalances::force_set_balance(
 			parachain::RuntimeOrigin::root(),
 			evm_account_id,
-			0,
 			0,
 		));
 		// Verify account native balance is Zero.
@@ -3139,7 +3139,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3349,7 +3349,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3476,7 +3476,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();
@@ -3599,7 +3599,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();

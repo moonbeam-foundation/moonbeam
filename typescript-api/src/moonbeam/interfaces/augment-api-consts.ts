@@ -6,13 +6,14 @@
 import "@polkadot/api-base/types/consts";
 
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
-import type { Bytes, Option, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
-import type { Codec } from "@polkadot/types-codec/types";
+import type { Bytes, Option, Vec, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Codec, ITuple } from "@polkadot/types-codec/types";
 import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
+  PalletReferendaTrackInfo,
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
@@ -61,6 +62,24 @@ declare module "@polkadot/api-base/types/consts" {
       maxLocks: u32 & AugmentedConst<ApiType>;
       /** The maximum number of named reserves that can exist on an account. */
       maxReserves: u32 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
+    convictionVoting: {
+      /**
+       * The maximum number of concurrent votes an account may have.
+       *
+       * Also used to compute weight, an overly large value can lead to extrinsics with large weight
+       * estimation: see `delegate` for instance.
+       */
+      maxVotes: u32 & AugmentedConst<ApiType>;
+      /**
+       * The minimum period of vote locking.
+       *
+       * It should be no shorter than enactment period to ensure that in the case of an approval,
+       * those successful voters are locked into the consequences that their votes entail.
+       */
+      voteLockingPeriod: u32 & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -191,6 +210,26 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    multisig: {
+      /**
+       * The base amount of currency needed to reserve for creating a multisig execution or to store
+       * a dispatch call for later.
+       *
+       * This is held for an additional storage item whose value size is `4 + sizeof((BlockNumber,
+       * Balance, AccountId))` bytes and whose key size is `32 + sizeof(AccountId)` bytes.
+       */
+      depositBase: u128 & AugmentedConst<ApiType>;
+      /**
+       * The amount of currency needed per unit threshold when creating a multisig execution.
+       *
+       * This is held for adding 32 bytes more into a pre-existing storage value.
+       */
+      depositFactor: u128 & AugmentedConst<ApiType>;
+      /** The maximum amount of signatories allowed in the multisig. */
+      maxSignatories: u32 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     parachainStaking: {
       /** Number of rounds candidate requests to decrease self-bond must wait to be executable */
       candidateBondLessDelay: u32 & AugmentedConst<ApiType>;
@@ -210,8 +249,6 @@ declare module "@polkadot/api-base/types/consts" {
       minBlocksPerRound: u32 & AugmentedConst<ApiType>;
       /** Minimum stake required for any account to be a collator candidate */
       minCandidateStk: u128 & AugmentedConst<ApiType>;
-      /** Minimum stake required for any candidate to be in `SelectedCandidates` for the round */
-      minCollatorStk: u128 & AugmentedConst<ApiType>;
       /** Minimum stake for any registered on-chain account to delegate */
       minDelegation: u128 & AugmentedConst<ApiType>;
       /** Minimum stake for any registered on-chain account to be a delegator */
@@ -280,6 +317,27 @@ declare module "@polkadot/api-base/types/consts" {
        * they were requested
        */
       minBlockDelay: u32 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
+    referenda: {
+      /**
+       * Quantization level for the referendum wakeup scheduler. A higher number will result in
+       * fewer storage reads/writes needed for smaller voters, but also result in delays to the
+       * automatic referendum status changes. Explicit servicing instructions are unaffected.
+       */
+      alarmInterval: u32 & AugmentedConst<ApiType>;
+      /** Maximum size of the referendum queue for a single track. */
+      maxQueued: u32 & AugmentedConst<ApiType>;
+      /** The minimum amount to be used as a deposit for a public referendum proposal. */
+      submissionDeposit: u128 & AugmentedConst<ApiType>;
+      /** Information concerning the different referendum tracks. */
+      tracks: Vec<ITuple<[u16, PalletReferendaTrackInfo]>> & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks after submission that a referendum must begin being decided by. Once
+       * this passes, then anyone may cancel the referendum.
+       */
+      undecidingTimeout: u32 & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };

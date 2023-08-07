@@ -17,7 +17,7 @@ const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
   const availablePorts = await Promise.all(
-    [null, null, null].map(async (_, index) => {
+    [null, null].map(async (_, index) => {
       let selectedPort = 0;
       let port = 1024 + index * 20000 + (process.pid % 20000);
       let endingPort = 65535;
@@ -38,7 +38,6 @@ export async function findAvailablePorts() {
   return {
     p2pPort: availablePorts[0],
     rpcPort: availablePorts[1],
-    wsPort: availablePorts[2],
   };
 }
 
@@ -58,7 +57,6 @@ export async function startMoonbeamDevNode(
 ): Promise<{
   p2pPort: number;
   rpcPort: number;
-  wsPort: number;
   runningNode: ChildProcess;
 }> {
   while (nodeStarted) {
@@ -68,7 +66,7 @@ export async function startMoonbeamDevNode(
     });
   }
   nodeStarted = true;
-  const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
+  const { p2pPort, rpcPort } = await findAvailablePorts();
 
   if (process.env.FORCE_WASM_EXECUTION == "true") {
     withWasm = true;
@@ -91,12 +89,9 @@ export async function startMoonbeamDevNode(
     `--alice`,
     `--chain=${runtime}-dev`,
     `--sealing=manual`,
-    `--in-peers=0`,
-    `--out-peers=0`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,
-    `--rpc-port=${rpcPort}`,
-    `--ws-port=${wsPort}`,
+    `--rpc-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
     `--tmp`,
   ];
   if (WASM_RUNTIME_OVERRIDES != "") {
@@ -106,7 +101,7 @@ export async function startMoonbeamDevNode(
   } else if (ETHAPI_CMD != "") {
     args.push("--wasm-runtime-overrides=/");
   }
-  debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+  debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort}`);
 
   const onProcessExit = function () {
     runningNode && runningNode.kill();
@@ -124,7 +119,7 @@ export async function startMoonbeamDevNode(
     process.removeListener("exit", onProcessExit);
     process.removeListener("SIGINT", onProcessInterrupt);
     nodeStarted = false;
-    debug(`Exiting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+    debug(`Exiting dev node: --port=${p2pPort} --rpc-port=${rpcPort}`);
   });
 
   runningNode.on("error", (err) => {
@@ -167,17 +162,13 @@ export async function startMoonbeamDevNode(
     runningNode.stdout.on("data", onData);
   });
 
-  return { p2pPort, rpcPort, wsPort, runningNode };
+  return { p2pPort, rpcPort, runningNode };
 }
 
 // This will start a moonbeam dev node from forked state, that has been previously setup with
 // a snapshot of production state via the moonbeam-tools run-fork-solo command
-export async function startMoonbeamForkedNode(
-  rpcPort: number,
-  wsPort: number
-): Promise<{
+export async function startMoonbeamForkedNode(rpcPort: number): Promise<{
   rpcPort: number;
-  wsPort: number;
   runningNode: ChildProcess;
 }> {
   while (nodeStarted) {
@@ -199,15 +190,14 @@ export async function startMoonbeamForkedNode(
     `--chain=${CUSTOM_SPEC_PATH}`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
-    `--rpc-port=${rpcPort}`,
-    `--ws-port=${wsPort}`,
+    `--rpc-port=${rpcPort}`, // This parameter will be renamed to "--rpc-port" in 0.9.43
     `--trie-cache-size=0`,
     `--db-cache=5000`,
     `--collator`,
     `--base-path=${BASE_PATH}`,
   ];
 
-  debug(`Starting dev node: --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+  debug(`Starting dev node: --rpc-port=${rpcPort}`);
 
   const onProcessExit = function () {
     runningNode && runningNode.kill();
@@ -225,7 +215,7 @@ export async function startMoonbeamForkedNode(
     process.removeListener("exit", onProcessExit);
     process.removeListener("SIGINT", onProcessInterrupt);
     nodeStarted = false;
-    debug(`Exiting dev node: --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+    debug(`Exiting dev node: --rpc-port=${rpcPort}`);
   });
 
   runningNode.on("error", (err) => {
@@ -268,5 +258,5 @@ export async function startMoonbeamForkedNode(
     runningNode.stdout.on("data", onData);
   });
 
-  return { rpcPort, wsPort, runningNode };
+  return { rpcPort, runningNode };
 }

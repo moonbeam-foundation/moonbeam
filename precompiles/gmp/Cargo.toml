@@ -46,7 +46,7 @@ hex-literal = { workspace = true }
 serde = { workspace = true }
 sha3 = { workspace = true }
 
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 parity-scale-codec = { workspace = true, features = [ "max-encoded-len", "std" ] }
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
@@ -67,4 +67,9 @@ std = [
 	"sp-io/std",
 	"sp-std/std",
 	"xcm-primitives/std",
+]
+runtime-benchmarks = [
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
 ]

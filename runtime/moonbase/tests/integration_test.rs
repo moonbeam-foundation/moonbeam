@@ -223,6 +223,20 @@ fn verify_pallet_prefixes() {
 				max_values: None,
 				max_size: Some(1037),
 			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Holds".to_vec(),
+				prefix: prefix(b"Balances", b"Holds"),
+				max_values: None,
+				max_size: Some(37),
+			},
+			StorageInfo {
+				pallet_name: b"Balances".to_vec(),
+				storage_name: b"Freezes".to_vec(),
+				prefix: prefix(b"Balances", b"Freezes"),
+				max_values: None,
+				max_size: Some(37),
+			},
 		]
 	);
 	assert_eq!(
@@ -676,14 +690,14 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
+				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				1213666666584000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
@@ -724,7 +738,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
+				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
@@ -732,7 +746,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				1182693333281650000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
@@ -1412,7 +1426,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(25775)
+				.expect_cost(25729)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1464,7 +1478,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(16048)
+				.expect_cost(16213)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1485,7 +1499,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(33145)
+				.expect_cost(31549)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1537,7 +1551,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14932)
+				.expect_cost(14906)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1564,7 +1578,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * UNIT }.into(),
 					},
 				)
-				.expect_cost(15172)
+				.expect_cost(15152)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1609,13 +1623,13 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(8783)
+				.expect_cost(8797)
 				.expect_no_logs()
 				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
 				Err(TokenError::Frozen.into())
 			);
 
@@ -1628,13 +1642,13 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(8803)
+				.expect_cost(8789)
 				.expect_no_logs()
 				.execute_returns(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
-				.into_result()
+				.into_result(false)
 				.is_ok());
 		});
 }
@@ -1663,13 +1677,13 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(7623)
+				.expect_cost(7633)
 				.expect_no_logs()
 				.execute_returns(true);
 
 			// Assert account is frozen
 			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
 				Err(TokenError::Frozen.into())
 			);
 
@@ -1680,7 +1694,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(7634)
+				.expect_cost(7628)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1712,7 +1726,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(8706)
+				.expect_cost(8701)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1746,7 +1760,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(7657)
+				.expect_cost(7652)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1867,7 +1881,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24775)
+				.expect_cost(24729)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1931,7 +1945,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(15048)
+				.expect_cost(15213)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1952,7 +1966,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(32145)
+				.expect_cost(30549)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -3003,7 +3017,7 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::ForeignChainAliasAccount::<AccountId>::convert_ref(
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
 				alice_in_parachain_2000_multilocation.clone(),
 			)
 			.unwrap()

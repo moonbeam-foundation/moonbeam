@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { Contract, ethers, WebSocketProvider } from "ethers";
+import "@polkadot/api-augment/kusama";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_SESSION_ADDRESS } from "@moonwall/util";
-import { hexToU8a } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";
-import { getCompiled } from "../../helpers/contracts.js";
+import { hexToU8a } from "@polkadot/util";
+import { Contract, InterfaceAbi, WebSocketProvider, ethers } from "ethers";
 
 describeSuite({
   id: "S1750",
@@ -15,44 +15,42 @@ describeSuite({
     let xcmTransactorV1: Contract;
     let xcmTransactorV2: Contract;
     let relayApi: ApiPromise;
+    let relayVersion: number;
 
     beforeAll(async function () {
       relayApi = context.polkadotJs({ apiName: "relay" });
+      relayVersion = relayApi.consts.system.version.specVersion.toNumber();
+
+      // TODO: Replace the below with new context methods when upgraded to moonwall v4
       const RELAY_ENCODER_PRECOMPILE = "0x0000000000000000000000000000000000000805";
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
       const XCM_TRANSACTOR_V2_PRECOMPILE = "0x000000000000000000000000000000000000080D";
 
-      const RELAY_ENCODER_CONTRACT_JSON = getCompiled(
-        "compiled/precompiles/relay-encoder/RelayEncoder"
-      );
-      const RELAY_ENCODER_INTERFACE = RELAY_ENCODER_CONTRACT_JSON.contract.abi;
+      const RELAY_ENCODER_CONTRACT_JSON = await fetchCompiledContract("RelayEncoder");
+      const RELAY_ENCODER_INTERFACE = RELAY_ENCODER_CONTRACT_JSON.abi as InterfaceAbi;
 
-      const XCM_TRANSACTOR_V1_JSON = getCompiled(
-        "compiled/precompiles/xcm-transactor/src/v1/XcmTransactorV1"
-      );
-      const XCM_TRANSACTOR_V1_INTERFACE = XCM_TRANSACTOR_V1_JSON.contract.abi;
+      const XCM_TRANSACTOR_V1_JSON = await fetchCompiledContract("XcmTransactorV1");
+      const XCM_TRANSACTOR_V1_INTERFACE = XCM_TRANSACTOR_V1_JSON.abi as InterfaceAbi;
 
-      const XCM_TRANSACTOR_V2_JSON = getCompiled(
-        "compiled/precompiles/xcm-transactor/src/v2/XcmTransactorV2"
-      );
-      const XCM_TRANSACTOR_V2_INTERFACE = XCM_TRANSACTOR_V2_JSON.contract.abi;
+      const XCM_TRANSACTOR_V2_JSON = await fetchCompiledContract("XcmTransactorV2");
+      const XCM_TRANSACTOR_V2_INTERFACE = XCM_TRANSACTOR_V2_JSON.abi as InterfaceAbi;
 
       relayEncoder = new ethers.Contract(
         RELAY_ENCODER_PRECOMPILE,
         RELAY_ENCODER_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
 
       xcmTransactorV1 = new ethers.Contract(
         XCM_TRANSACTOR_V1_PRECOMPILE,
         XCM_TRANSACTOR_V1_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
 
       xcmTransactorV2 = new ethers.Contract(
         XCM_TRANSACTOR_V2_PRECOMPILE,
         XCM_TRANSACTOR_V2_INTERFACE,
-        context.ethersSigner().provider as WebSocketProvider
+        context.ethers().provider as WebSocketProvider
       );
     });
 
@@ -94,15 +92,10 @@ describeSuite({
     it({
       id: "C400",
       title: "should have matching indices for Staking.Bond",
+      minRtVersion: 2500,
       test: async function () {
-        const callHex = relayApi.tx.staking
-          .bond(ALITH_SESSION_ADDRESS, 10000000000, "Staked")
-          .method.toHex();
-        const resp = await relayEncoder.encodeBond(
-          ALITH_SESSION_ADDRESS,
-          10000000000,
-          hexToU8a("0x00")
-        );
+        const callHex = relayApi.tx.staking.bond(10000000000, "Staked").method.toHex();
+        const resp = await relayEncoder.encodeBond(10000000000, hexToU8a("0x00"));
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
     });
@@ -150,9 +143,10 @@ describeSuite({
     it({
       id: "C900",
       title: "should have matching indices for Staking.SetController",
+      minRtVersion: 2500,
       test: async function () {
-        const callHex = relayApi.tx.staking.setController(ALITH_SESSION_ADDRESS).method.toHex();
-        const resp = await relayEncoder.encodeSetController(ALITH_SESSION_ADDRESS);
+        const callHex = relayApi.tx.staking.setController().method.toHex();
+        const resp = await relayEncoder.encodeSetController();
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
     });

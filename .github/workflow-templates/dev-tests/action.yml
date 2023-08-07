@@ -1,0 +1,53 @@
+name: Moonwall Build Contracts and Run Tests
+description: |
+  Setup and run moonwall Dev tests against a local moonbeam node.
+
+inputs:
+  moonwall_environment:
+    description: Name of the moonwall environment to run tests against.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: "pnpm"
+        cache-dependency-path: test/pnpm-lock.yaml
+
+    - name: Setup Moonbeam PolkadotJS types
+      shell: bash
+      run: |
+        #### Preparing the legacy types
+        cd moonbeam-types-bundle
+        npm ci
+        npm run build
+
+        #### Preparing the typescript api
+        cd ../typescript-api
+        npm ci
+
+        cd ../test
+        pnpm i ../typescript-api
+
+    - name: "Install and run dev test"
+      shell: bash
+      env:
+        DEBUG_COLOURS: "1"
+        NODE_OPTIONS: "--max-old-space-size=12288"
+      run: |
+        chmod uog+x target/release/moonbeam
+        cd test
+        # pnpm i
+        pnpm moonwall test ${{ inputs.moonwall_environment }}
+
+    - name: Upload HTML report
+      if: always()
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: dev-test-report
+        path: test/html

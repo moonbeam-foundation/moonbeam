@@ -1,41 +1,18 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/cli/config_schema.json",
+  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
-  "defaultTestTimeout": 30000,
+  "defaultTestTimeout": 60000,
+  "scriptsDir": "scripts/",
   "environments": [
-    {
-      "name": "zombie_moonbeam_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbeam*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbeam_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeamCI.json"
-        }
-      }
-    },
     {
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
       "foundation": {
-        "rtUpgradePath": "tmp/moonbeam-runtime-latest.wasm",
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"
-        }
-      }
-    },
-    {
-      "name": "zombie_moonbase_ci",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*"],
-      "foundation": {
-        "rtUpgradePath": "./tmp/moonbase_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieAlphanetCI.json"
         }
       }
     },
@@ -64,7 +41,9 @@
     },
     {
       "name": "smoke_stagenet",
+      "contracts": "contracts/",
       "testFileDir": ["/suites/smoke"],
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -77,7 +56,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
@@ -90,6 +69,8 @@
     {
       "name": "smoke_moonriver",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -102,7 +83,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
@@ -115,6 +96,8 @@
     {
       "name": "smoke_moonbeam",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "foundation": {
         "type": "read_only"
@@ -127,7 +110,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
@@ -140,7 +123,10 @@
     {
       "name": "smoke_alphanet",
       "testFileDir": ["/suites/smoke"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
         "type": "read_only"
       },
@@ -152,7 +138,7 @@
         },
         {
           "name": "para",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
@@ -180,24 +166,38 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev"],
+      "include": ["**/*test*"],
+      "contracts": "contracts/",
       "multiThreads": true,
-      "html": false,
+      "envVars": ["DEBUG_COLORS=1"],
+      "runScripts": ["compile-contracts.ts compile"],
+      "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
           {
             "name": "moonbeam",
-            "running": true,
-
-            "binPath": "./tmp/moonbeam"
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--dev",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--reserved-only",
+              "--rpc-cors=all",
+              "--no-grandpa",
+              "--sealing=manual",
+              "--force-authoring",
+              "--no-prometheus"
+            ]
           }
         ]
       }
@@ -211,7 +211,8 @@
           {
             "name": "moonbeam",
             "binPath": "./tmp/moonbeam",
-            "ports": { "p2pPort": 30333, "wsPort": 9944, "rpcPort": 9933 },
+            "ports": { "p2pPort": 30333, "rpcPort": 9944 },
+            "newRpcBehaviour": true,
             "options": [
               "--dev",
               "--no-hardware-benchmarks",
@@ -219,7 +220,7 @@
               "--reserved-only",
               "--rpc-cors=all",
               "--no-grandpa",
-              "--unsafe-ws-external",
+              "--unsafe-rpc-external",
               "--sealing=manual",
               "--force-authoring",
               "--no-prometheus"
@@ -240,13 +241,13 @@
         },
         {
           "name": "mb",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:9944"]
         }
       ]
     },
     {
-      "name": "upgrade_moonbeam_local",
+      "name": "upgrade_moonbeam",
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
@@ -262,13 +263,13 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
     },
     {
-      "name": "upgrade_moonriver_local",
+      "name": "upgrade_moonriver",
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
@@ -284,13 +285,13 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]
     },
     {
-      "name": "upgrade_moonbase_local",
+      "name": "upgrade_moonbase",
       "testFileDir": ["suites/rt-upgrade/"],
       "foundation": {
         "type": "chopsticks",
@@ -306,73 +307,7 @@
       "connections": [
         {
           "name": "MB",
-          "type": "moon",
-          "endpoints": ["ws://127.0.0.1:8000"]
-        }
-      ]
-    },
-    {
-      "name": "CI_upgrade_RT_moonbeam",
-      "testFileDir": ["suites/rt-upgrade/"],
-      "foundation": {
-        "type": "chopsticks",
-        "rtUpgradePath": "./runtimes/moonbeam_runtime.compact.compressed.wasm",
-        "launchSpec": [
-          {
-            "name": "mb",
-            "type": "parachain",
-            "configPath": "./configs/moonbeam.yml"
-          }
-        ]
-      },
-      "connections": [
-        {
-          "name": "MB",
-          "type": "moon",
-          "endpoints": ["ws://127.0.0.1:8000"]
-        }
-      ]
-    },
-    {
-      "name": "CI_upgrade_RT_moonriver",
-      "testFileDir": ["suites/rt-upgrade/"],
-      "foundation": {
-        "type": "chopsticks",
-        "rtUpgradePath": "./runtimes/moonriver_runtime.compact.compressed.wasm",
-        "launchSpec": [
-          {
-            "name": "mb",
-            "type": "parachain",
-            "configPath": "./configs/moonriver.yml"
-          }
-        ]
-      },
-      "connections": [
-        {
-          "name": "MB",
-          "type": "moon",
-          "endpoints": ["ws://127.0.0.1:8000"]
-        }
-      ]
-    },
-    {
-      "name": "CI_upgrade_RT_moonbase",
-      "testFileDir": ["suites/rt-upgrade/"],
-      "foundation": {
-        "type": "chopsticks",
-        "rtUpgradePath": "./runtimes/moonbase_runtime.compact.compressed.wasm",
-        "launchSpec": [
-          {
-            "name": "mb",
-            "type": "parachain",
-            "configPath": "./configs/alphanet.yml"
-          }
-        ]
-      },
-      "connections": [
-        {
-          "name": "MB",
-          "type": "moon",
+          "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
       ]

@@ -90,7 +90,7 @@ impl frame_system::Config for Runtime {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -102,6 +102,10 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -170,8 +174,8 @@ parameter_types! {
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const MinCandidateStk: u128 = 10;
-	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
+	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
 impl pallet_parachain_staking::Config for Runtime {
@@ -190,13 +194,13 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type MinCandidateStk = MinCandidateStk;
-	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type PayoutCollatorReward = ();
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
+	type MaxCandidates = MaxCandidates;
 }
 
 pub(crate) struct ExtBuilder {

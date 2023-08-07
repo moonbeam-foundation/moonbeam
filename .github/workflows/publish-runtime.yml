@@ -15,7 +15,7 @@ jobs:
   ####### Build runtimes with srtool #######
 
   setup-scripts:
-    runs-on: self-hosted
+    runs-on: bare-metal
     steps:
       - uses: actions/checkout@v3
       - name: Upload scripts
@@ -31,31 +31,32 @@ jobs:
 
   build-srtool-runtimes:
     needs: ["setup-scripts"]
-    runs-on: self-hosted
+    runs-on: bare-metal
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - purestake/srtool
+          - moonbeamfoundation/srtool
         srtool_image_tag:
-          - 1.66.1
+          - 1.69.0
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
-        if: github.repository == 'purestake/moonbeam'
+        uses: docker/login-action@v2.2.0
+        if: github.repository == 'moonbeam-foundation/moonbeam'
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+          registry: index.docker.io
       - name: Download original scripts
         uses: actions/download-artifact@v3
         with:
           name: original-scripts
           path: original-scripts
-      - name: Build & Push purestake/srtool image
-        if: github.repository == 'purestake/moonbeam'
+      - name: Build & Push moonbeamfoundation/srtool image
+        if: github.repository == 'moonbeam-foundation/moonbeam'
         run: |
           docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
 
@@ -78,6 +79,10 @@ jobs:
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
         run: |
+          # Ensure we have permissions to write to the runtime folder target for the docker user
+          mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
+          chmod uog+rwX runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target
+
           chmod u+x ./original-scripts/build-runtime-srtool.sh
           ./original-scripts/build-runtime-srtool.sh
       - name: Summary
@@ -92,6 +97,14 @@ jobs:
           path: |
             ${{ matrix.chain }}-runtime.compact.compressed.wasm
             ${{ matrix.chain }}-srtool-digest.json
+      - name: Cleanup
+        run: |
+          echo "Removing runtime/${{ matrix.chain }}/target"
+          ls -lna runtime/${{ matrix.chain }}/target
+
+          # Removing using docker root to ensure we have permissions
+          docker run -u 0 -v $(pwd)/runtime/${{ matrix.chain }}/:/runtime \
+            -it --entrypoint bash ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
 
   ####### Prepare the release draft #######
 

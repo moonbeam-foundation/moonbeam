@@ -813,36 +813,36 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking AutoCompoundingDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking BottomDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: Balances Locks (r:1 w:1)
 	/// Proof: Balances Locks (max_values: None, max_size: Some(1287), added: 3762, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking Total (r:1 w:1)
 	/// Proof Skipped: ParachainStaking Total (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
-	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
-	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 350]`.
-	/// The range of component `y` is `[0, 350]`.
-	/// The range of component `z` is `[0, 100]`.
+	/// The range of component `y` is `[0, 349]`.
+	/// The range of component `z` is `[0, 99]`.
 	fn delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `0 + x * (56 ±0) + y * (21 ±0) + z * (41 ±0)`
-		//  Estimated: `38555 + x * (142 ±0) + y * (191 ±0) + z * (291 ±0)`
-		// Minimum execution time: 110_244_000 picoseconds.
-		Weight::from_parts(82_475_228, 38555)
-			// Standard Error: 9_271
-			.saturating_add(Weight::from_parts(37_524, 0).saturating_mul(x.into()))
-			// Standard Error: 9_271
-			.saturating_add(Weight::from_parts(59_736, 0).saturating_mul(y.into()))
-			// Standard Error: 32_357
-			.saturating_add(Weight::from_parts(209_896, 0).saturating_mul(z.into()))
+		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
+		//  Estimated: `114512 + x * (264 ±0) + y * (37 ±0) + z * (189 ±1)`
+		// Minimum execution time: 123_405_000 picoseconds.
+		Weight::from_parts(99_606_447, 114512)
+			// Standard Error: 1_425
+			.saturating_add(Weight::from_parts(181_327, 0).saturating_mul(x.into()))
+			// Standard Error: 1_429
+			.saturating_add(Weight::from_parts(9_131, 0).saturating_mul(y.into()))
+			// Standard Error: 5_033
+			.saturating_add(Weight::from_parts(258_516, 0).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(8_u64))
 			.saturating_add(T::DbWeight::get().writes(8_u64))
-			.saturating_add(Weight::from_parts(0, 142).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(0, 191).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 291).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(0, 264).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 37).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(0, 189).saturating_mul(z.into()))
 	}
 	/// Storage: System Account (r:2 w:2)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
@@ -1587,8 +1587,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 			.saturating_add(Weight::from_parts(0, 46).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(0, 72).saturating_mul(y.into()))
-	}
-	/// Storage: System Account (r:1 w:1)
+	}/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	/// Proof Skipped: ParachainStaking DelegatorState (max_values: None, max_size: None, mode: Measured)
@@ -1596,36 +1595,36 @@ impl WeightInfo for () {
 	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking AutoCompoundingDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
 	/// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	/// Proof Skipped: ParachainStaking BottomDelegations (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: Balances Locks (r:1 w:1)
 	/// Proof: Balances Locks (max_values: None, max_size: Some(1287), added: 3762, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking Total (r:1 w:1)
 	/// Proof Skipped: ParachainStaking Total (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: ParachainStaking TopDelegations (r:1 w:1)
-	/// Proof Skipped: ParachainStaking TopDelegations (max_values: None, max_size: None, mode: Measured)
-	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
 	/// The range of component `x` is `[0, 350]`.
-	/// The range of component `y` is `[0, 350]`.
-	/// The range of component `z` is `[0, 100]`.
+	/// The range of component `y` is `[0, 349]`.
+	/// The range of component `z` is `[0, 99]`.
 	fn delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `0 + x * (56 ±0) + y * (21 ±0) + z * (41 ±0)`
-		//  Estimated: `38555 + x * (142 ±0) + y * (191 ±0) + z * (291 ±0)`
-		// Minimum execution time: 110_244_000 picoseconds.
-		Weight::from_parts(82_475_228, 38555)
-			// Standard Error: 9_271
-			.saturating_add(Weight::from_parts(37_524, 0).saturating_mul(x.into()))
-			// Standard Error: 9_271
-			.saturating_add(Weight::from_parts(59_736, 0).saturating_mul(y.into()))
-			// Standard Error: 32_357
-			.saturating_add(Weight::from_parts(209_896, 0).saturating_mul(z.into()))
+		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
+		//  Estimated: `114512 + x * (264 ±0) + y * (37 ±0) + z * (189 ±1)`
+		// Minimum execution time: 123_405_000 picoseconds.
+		Weight::from_parts(99_606_447, 114512)
+			// Standard Error: 1_425
+			.saturating_add(Weight::from_parts(181_327, 0).saturating_mul(x.into()))
+			// Standard Error: 1_429
+			.saturating_add(Weight::from_parts(9_131, 0).saturating_mul(y.into()))
+			// Standard Error: 5_033
+			.saturating_add(Weight::from_parts(258_516, 0).saturating_mul(z.into()))
 			.saturating_add(RocksDbWeight::get().reads(8_u64))
 			.saturating_add(RocksDbWeight::get().writes(8_u64))
-			.saturating_add(Weight::from_parts(0, 142).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(0, 191).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 291).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(0, 264).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 37).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(0, 189).saturating_mul(z.into()))
 	}
 	/// Storage: System Account (r:2 w:2)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)

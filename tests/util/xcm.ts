@@ -129,28 +129,11 @@ export function descendOriginFromAddress20(
   paraId: number = 1
 ) {
   const toHash = new Uint8Array([
-    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para20"),
-    ...context.polkadotApi.createType("u32", paraId).toU8a(),
+    ...new TextEncoder().encode("SiblingChain"),
+    ...context.polkadotApi.createType("Compact<u32>", paraId).toU8a(),
+    ...context.polkadotApi.createType("Compact<u32>", "AccountKey20".length + 20).toU8a(),
+    ...new TextEncoder().encode("AccountKey20"),
     ...context.polkadotApi.createType("AccountId", address).toU8a(),
-    ...new Uint8Array([1]),
-  ]);
-
-  return {
-    originAddress: address,
-    descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
-  };
-}
-
-export function descendOriginFromAddress32(
-  context: DevTestContext,
-  address: string,
-  paraId: number = 1
-) {
-  const toHash = new Uint8Array([
-    ...new TextEncoder().encode("ForeignChainAliasAccountPrefix_Para32"),
-    ...context.polkadotApi.createType("u32", paraId).toU8a(),
-    ...context.polkadotApi.createType("AccountId", address).toU8a(),
-    ...new Uint8Array([1]),
   ]);
 
   return {

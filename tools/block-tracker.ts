@@ -3,9 +3,9 @@ import Web3 from "web3";
 const HttpProvider = require("ethjs-provider-http");
 const PollingBlockTracker = require("eth-block-tracker");
 
-const provider = new HttpProvider("http://localhost:9933");
+const provider = new HttpProvider("http://localhost:9944");
 const blockTracker = new PollingBlockTracker({ provider, pollingInterval: 500 });
-const web3 = new Web3("http://localhost:9933");
+const web3 = new Web3("http://localhost:9944");
 
 let lastTime = Date.now();
 const displayBlock = async (blockNumber) => {

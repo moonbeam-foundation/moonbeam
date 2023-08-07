@@ -83,7 +83,7 @@ where
 		// Refund weights and compute used weight them record used gas
 		// TODO: refund ref time when precompile will be benchmarked
 		let used_weight = if let Some(actual_weight) = maybe_actual_weight {
-			let refund_weight = weight - actual_weight;
+			let refund_weight = weight.checked_sub(&actual_weight).unwrap_or_default();
 			handle.refund_external_cost(None, Some(refund_weight.proof_size()));
 			actual_weight
 		} else {
