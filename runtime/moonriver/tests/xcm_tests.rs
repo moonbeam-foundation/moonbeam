@@ -3272,7 +3272,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = xcm_builder::ForeignChainAliasAccount::<parachain::AccountId>::convert_ref(
+	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
 		descend_origin_multilocation,
 	)
 	.unwrap();

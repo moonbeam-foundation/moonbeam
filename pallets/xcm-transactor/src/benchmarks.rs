@@ -138,7 +138,7 @@ benchmarks! {
 				// This involves a db Read, hence the None is worst case
 				overall_weight: None
 			},
-			true
+			false
 		);
 
 		// It's expected that the error comes from the fact that the asset is not known
@@ -191,7 +191,7 @@ benchmarks! {
 				// This involves a db Read, hence the None is worst case
 				overall_weight: None
 			},
-			true
+			false
 		);
 
 		// It's expected that the error comes from the fact that the asset is not known
@@ -240,7 +240,7 @@ benchmarks! {
 			// This involves a db Read, hence the None is worst case
 			overall_weight: None
 		},
-		true
+		false
 	)
 
 	hrmp_manage {
