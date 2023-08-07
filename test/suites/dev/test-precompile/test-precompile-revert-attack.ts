@@ -56,7 +56,8 @@ describeSuite({
               value: MIN_GLMR_STAKING,
             })
         ).rejects.toThrowError(
-          'Module(ModuleError { index: 12, error: [10, 0, 0, 0], message: Some("DelegationBelowMin") })'
+          "Module(ModuleError { index: 12, error: [10, 0, 0, 0], " +
+            'message: Some("DelegationBelowMin") })'
         );
       },
     });

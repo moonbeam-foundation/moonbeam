@@ -174,14 +174,14 @@ jobs:
           bun-version: latest
       - name: Check with Prettier
         run: |
-          bunx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
           || (git diff --quiet \
           || (echo 'Unable to show a diff because there are unstaged changes'; false) \
-          && (bunx prettier@2 --ignore-path \
+          && (bun x prettier@2 --ignore-path \
               .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
           && git --no-pager diff; git restore .) && false)
 
-          bunx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
