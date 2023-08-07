@@ -178,7 +178,7 @@ RUSTFLAGS="-C force-frame-pointers=yes" cargo build --release
 3. Run the perf with your node included:
 
 ```
-WASMTIME_PROFILING_STRATEGY=jitdump perf record -F 10000 -k mono ./target/release/moonbeam --dev --sealing manual --ws-port 19933 --rpc-port 19932
+WASMTIME_PROFILING_STRATEGY=jitdump perf record -F 10000 -k mono ./target/release/moonbeam --dev --sealing manual
 ```
 
 4. (Another terminal) run your test:

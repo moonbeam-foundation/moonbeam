@@ -45,8 +45,11 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
       let nonce = (await api.rpc.system.accountNextIndex(options.from.address)).toNumber();
 
       if (options.useGovernance) {
-        // We just prepare the proposals
-        let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
+        // TODO: remove support for old style after all chains upgraded to 2400+
+        let proposal =
+          api.consts.system.version.specVersion.toNumber() >= 2400
+            ? (api.tx.parachainSystem as any).authorizeUpgrade(blake2AsHex(code), false)
+            : (api.tx.parachainSystem as any).authorizeUpgrade(blake2AsHex(code));
         let encodedProposal = proposal.method.toHex();
         let encodedHash = blake2AsHex(encodedProposal);
 

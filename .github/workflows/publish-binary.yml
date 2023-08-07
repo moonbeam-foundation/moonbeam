@@ -8,13 +8,13 @@ on:
         description: tag (ex. v0.8.3) to retrieve commit diff from
         required: true
       to:
-        description: tag (ex. v0.9.0) to generate release note and srtool runtimes from
+        description: tag (ex. v0.9.0) to generate release note and binaries from
         required: true
 
 jobs:
   ####### Building binaries #######
   setup-scripts:
-    runs-on: self-hosted
+    runs-on: bare-metal
     steps:
       - uses: actions/checkout@v3
       - name: Upload tools
@@ -25,35 +25,46 @@ jobs:
 
   build-binary:
     needs: ["setup-scripts"]
-    runs-on: self-hosted
+    runs-on: bare-metal
     strategy:
       matrix:
         cpu: ["", "skylake", "znver3"]
-    env:
-      RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.to }}
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: Build Node
-        run: cargo build --profile=production --all
+      - name: Build production moonbeam
+        run: |
+          # Build moonbeam
+          # (we don't use volumes because of ownership/permissions issues)
+          docker build \
+            --tag prod \
+            --build-arg="COMMIT=${{ github.event.inputs.to }}" \
+            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+            - < docker/moonbeam-production.Dockerfile
+
+          # Copy moonbeam binary 
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy prod bash
+          docker cp dummy:/moonbeam/moonbeam moonbeam
+          docker rm -f dummy
+
+          # Cleanup
+          docker rmi prod
+
       - name: Save parachain binary
         if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam
+          cp moonbeam build/moonbeam
       - name: Save parachain custom binary
         if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam-${{matrix.cpu}}
+          cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: moonbeam
+          name: binaries
           path: build
 
   ####### Prepare the release draft #######
@@ -72,12 +83,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@v3.0.2
         with:
-          name: moonbeam
+          name: binaries
           path: build
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: Download Original Tools
         uses: actions/download-artifact@v3
         with:
@@ -101,30 +112,38 @@ jobs:
           release_name: Moonbeam ${{ github.event.inputs.to }}
           body_path: body.md
           draft: true
+
+  ####### Upload Binaries #######
+
+  upload-binaries:
+    runs-on: ubuntu-latest
+    needs: ["build-binary", "publish-draft-release"]
+    strategy:
+      matrix:
+        cpu: ["", "skylake", "znver3"]
+        node: ["moonbeam"]
+    steps:
+      - uses: actions/download-artifact@v3.0.2
+        with:
+          name: binaries
+          path: build
       - name: Upload moonbeam
         uses: actions/upload-release-asset@v1
+        if: ${{ matrix.cpu == '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: build/moonbeam
-          asset_name: moonbeam
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/${{matrix.node}}
+          asset_name: ${{matrix.node}}
           asset_content_type: application/octet-stream
-      - name: Upload moonbeam skylake
+      - name: Upload moonbeam custom binary
         uses: actions/upload-release-asset@v1
+        if: ${{ matrix.cpu != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: build/moonbeam-skylake
-          asset_name: moonbeam-skylake
-          asset_content_type: application/octet-stream
-      - name: Upload moonbeam znver3
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: build/moonbeam-znver3
-          asset_name: moonbeam-znver3
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/${{matrix.node}}-${{matrix.cpu}}
+          asset_name: ${{matrix.node}}-${{matrix.cpu}}
           asset_content_type: application/octet-stream

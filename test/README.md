@@ -10,10 +10,10 @@ It is written in typescript, using the [Moonwall](https://github.com/Moonsong-La
 
 ## Test Categories
 
-- `smoke`: Read-only tests that execute against live networks, primarily to verify live state consistency.
+- `smoke`: Read-only tests that execute against live networks, primarily to verify state consistency and invariant conditions.
 - `dev`: Tests that execute a single local dev node, using PolkadotJs / Ethers.js / Web3.js, to check the runtime and client in a relatively end-to-end manner.
-- `chopsticks`: Tests that use the [Chopsticks](https://github.com/AcalaNetwork/chopsticks) framework to execute simulations of the state transition function against live state values - but in a sandboxed local environment
-- `zombienet`: Tests that use the [ZombieNet](https://github.com/paritytech/zombienet) framework to verify Moonbeam in the context of a parachain connected to a relay chain, and other topologies.
+- `chopsticks`: Tests that use the [Chopsticks](https://github.com/AcalaNetwork/chopsticks) framework to execute simulations of the state transition function against live state values - but in a sandboxed local environment.
+- `para`: Tests that use the [ZombieNet](https://github.com/paritytech/zombienet) framework to verify Moonbeam in the context of a parachain connected to a relay chain, and other topologies.
 
 ## Installation
 

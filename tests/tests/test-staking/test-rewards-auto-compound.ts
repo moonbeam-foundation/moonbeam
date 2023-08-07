@@ -7,7 +7,7 @@ import { alith, baltathar, ethan, generateKeyringPair } from "../../util/account
 import { expectOk } from "../../util/expect";
 import { jumpRounds } from "../../util/block";
 import { BN, BN_ZERO } from "@polkadot/util";
-import { Percent } from "../../util/common";
+import { Percent, chunk } from "../../util/common";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { KeyringPair } from "@polkadot/keyring/types";
 
@@ -387,33 +387,27 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       ])
     );
 
-    // fill all delegations, we split this into two blocks as it will not fit into one.
-    // we use a maxDelegationCount here, since the transactions can come out of order.
     await expectOk(
-      context.createBlock([
+      context.createBlock(
         context.polkadotApi.tx.parachainStaking
           .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
-          .signAsync(ethan),
-        ...otherDelegators
-          .slice(0, 150)
-          .map((d) =>
+          .signAsync(ethan)
+      )
+    );
+
+    // fill all delegations, we split this into multiple blocks as it will not fit into one.
+    // we use a maxDelegationCount here, since the transactions can come out of order.
+    for (const delChunk of chunk(otherDelegators, 8)) {
+      await expectOk(
+        context.createBlock(
+          delChunk.map((d) =>
             context.polkadotApi.tx.parachainStaking
               .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
               .signAsync(d)
-          ),
-      ])
-    );
-    await expectOk(
-      context.createBlock([
-        ...otherDelegators
-          .slice(150)
-          .map((d) =>
-            context.polkadotApi.tx.parachainStaking
-              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
-              .signAsync(d)
-          ),
-      ])
-    );
+          )
+        )
+      );
+    }
 
     await expectOk(
       context.createBlock(

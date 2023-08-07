@@ -23,6 +23,7 @@ use {
 	},
 	alloc::string::String,
 	frame_support::{ensure, traits::ConstU32},
+	sp_core::H256,
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
 };
@@ -230,20 +231,13 @@ impl Codec for Junction {
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
 			6 => {
-				let mut length: [u8; 1] = Default::default();
-				length.copy_from_slice(
-					encoded_junction
-						.read_raw_bytes(1)
-						.map_err(|_| RevertReason::read_out_of_bounds("General Key length"))?,
-				);
+				let length = encoded_junction
+					.read_raw_bytes(1)
+					.map_err(|_| RevertReason::read_out_of_bounds("General Key length"))?[0];
 
-				let mut data: [u8; 32] = Default::default();
-				data.copy_from_slice(&encoded_junction.read_till_end()?);
+				let data = encoded_junction.read::<H256>().in_field("data")?.into();
 
-				Ok(Junction::GeneralKey {
-					length: u8::from_be_bytes(length),
-					data,
-				})
+				Ok(Junction::GeneralKey { length, data })
 			}
 			7 => Ok(Junction::OnlyChild),
 			8 => Err(RevertReason::custom("Junction::Plurality not supported yet").into()),

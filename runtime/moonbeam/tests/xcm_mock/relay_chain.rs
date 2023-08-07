@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Nothing},
+	traits::{Everything, Nothing, ProcessMessage, ProcessMessageError},
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -26,9 +26,13 @@ use sp_runtime::{
 	AccountId32,
 };
 
-use frame_support::weights::Weight;
+use frame_support::weights::{Weight, WeightMeter};
 use polkadot_parachain::primitives::Id as ParaId;
-use polkadot_runtime_parachains::{configuration, dmp, hrmp, origin, paras, shared, ump};
+use polkadot_runtime_parachains::{
+	configuration, dmp, hrmp,
+	inclusion::{AggregateMessageOrigin, UmpQueueId},
+	origin, paras, shared,
+};
 use sp_runtime::transaction_validity::TransactionPriority;
 use sp_runtime::Permill;
 use xcm::latest::prelude::*;
@@ -36,8 +40,8 @@ use xcm_builder::{
 	Account32Hash, AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
 	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
-	FixedWeightBounds, IsConcrete, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	FixedWeightBounds, IsConcrete, ProcessXcmMessage, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
@@ -91,6 +95,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -139,72 +147,23 @@ parameter_types! {
 	pub MatcherLocation: MultiLocation = MultiLocation::here();
 }
 
-use frame_support::ensure;
-use frame_support::traits::Contains;
-use sp_std::marker::PhantomData;
-use xcm_executor::traits::ShouldExecute;
-/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
-/// payments into account.
-///
-/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
-	fn should_execute<Call>(
-		origin: &MultiLocation,
-		message: &mut [Instruction<Call>],
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
-	) -> Result<(), ()> {
-		log::trace!(
-			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin:
-			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
-			origin, message, max_weight, _weight_credit,
-		);
-		ensure!(T::contains(origin), ());
-		let mut iter = message.iter_mut();
-		let mut i = iter.next().ok_or(())?;
-		match i {
-			DescendOrigin(..) => (),
-			_ => return Err(()),
-		}
-
-		i = iter.next().ok_or(())?;
-		match i {
-			WithdrawAsset(..) => (),
-			_ => return Err(()),
-		}
-
-		i = iter.next().ok_or(())?;
-		match i {
-			BuyExecution {
-				weight_limit: Limited(ref mut weight),
-				..
-			} if weight.all_gte(max_weight) => {
-				*weight = max_weight;
-				Ok(())
-			}
-			BuyExecution {
-				ref mut weight_limit,
-				..
-			} if weight_limit == &Unlimited => {
-				*weight_limit = Limited(max_weight);
-				Ok(())
-			}
-			_ => Err(()),
-		}
-	}
-}
-
 pub type XcmRouter = super::RelayChainXcmRouter;
-pub type Barrier = (
+
+pub type XcmBarrier = (
+	// Weight that is paid for may be consumed.
 	TakeWeightCredit,
-	AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
-	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
+	WithComputedOrigin<
+		(
+			// If the message is one that immediately attemps to pay for execution, then allow it.
+			AllowTopLevelPaidExecutionFrom<Everything>,
+			// Subscriptions for version tracking are OK.
+			AllowSubscriptionsFrom<Everything>,
+		),
+		UniversalLocation,
+		ConstU32<8>,
+	>,
 );
 
 pub struct XcmConfig;
@@ -216,7 +175,7 @@ impl Config for XcmConfig {
 	type IsReserve = ();
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
-	type Barrier = Barrier;
+	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
 	type ResponseHandler = XcmPallet;
@@ -235,6 +194,11 @@ impl Config for XcmConfig {
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+}
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -258,18 +222,15 @@ impl pallet_xcm::Config for Runtime {
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
 	type WeightInfo = pallet_xcm::TestWeightInfo;
+	type MaxRemoteLockConsumers = ConstU32<0>;
+	type RemoteLockConsumerIdentifier = ();
+	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type ReachableDest = ReachableDest;
 }
 
 parameter_types! {
 	pub const FirstMessageFactorPercent: u64 = 100;
-}
-
-impl ump::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type UmpSink = ump::XcmSink<XcmExecutor<XcmConfig>, Runtime>;
-	type FirstMessageFactorPercent = FirstMessageFactorPercent;
-	type ExecuteOverweightOrigin = frame_system::EnsureRoot<AccountId>;
-	type WeightInfo = ump::TestWeightInfo;
 }
 
 parameter_types! {
@@ -299,6 +260,7 @@ impl paras::Config for Runtime {
 	type WeightInfo = paras::TestWeightInfo;
 	type UnsignedPriority = ParasUnsignedPriority;
 	type NextSessionRotation = TestNextSessionRotation;
+	type QueueFootprinter = ();
 }
 
 impl dmp::Config for Runtime {}
@@ -323,6 +285,45 @@ impl origin::Config for Runtime {}
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
+parameter_types! {
+	pub MessageQueueServiceWeight: Weight = Weight::from_parts(1_000_000_000, 1_000_000);
+	pub const MessageQueueHeapSize: u32 = 65_536;
+	pub const MessageQueueMaxStale: u32 = 16;
+}
+
+pub struct MessageProcessor;
+impl ProcessMessage for MessageProcessor {
+	type Origin = AggregateMessageOrigin;
+
+	fn process_message(
+		message: &[u8],
+		origin: Self::Origin,
+		meter: &mut WeightMeter,
+		id: &mut [u8; 32],
+	) -> Result<bool, ProcessMessageError> {
+		let para = match origin {
+			AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
+		};
+		ProcessXcmMessage::<Junction, XcmExecutor<XcmConfig>, RuntimeCall>::process_message(
+			message,
+			Junction::Parachain(para.into()),
+			meter,
+			id,
+		)
+	}
+}
+
+impl pallet_message_queue::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Size = u32;
+	type HeapSize = MessageQueueHeapSize;
+	type MaxStale = MessageQueueMaxStale;
+	type ServiceWeight = MessageQueueServiceWeight;
+	type MessageProcessor = MessageProcessor;
+	type QueueChangeHandler = ();
+	type WeightInfo = ();
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -332,11 +333,11 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		ParasOrigin: origin::{Pallet, Origin},
-		ParasUmp: ump::{Pallet, Call, Storage, Event},
+		MessageQueue: pallet_message_queue::{Pallet, Event<T>},
 		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Hrmp: hrmp::{Pallet, Call, Storage, Event<T>, Config},
-		Dmp: dmp::{Pallet, Call, Storage},
+		Dmp: dmp::{Pallet, Storage},
 		Paras: paras::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
 		Configuration: configuration::{Pallet, Call, Storage, Config<T>},
 	}
@@ -368,30 +369,30 @@ pub struct TestHrmpWeightInfo;
 
 impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	fn hrmp_accept_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_clean_hrmp(_: u32, _: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_close(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_process_hrmp_open(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_cancel_open_request(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_close_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn hrmp_init_open_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn clean_open_channel_requests(_: u32) -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 	fn force_open_hrmp_channel() -> Weight {
-		Weight::from_ref_time(1 as u64)
+		Weight::from_parts(1, 0)
 	}
 }

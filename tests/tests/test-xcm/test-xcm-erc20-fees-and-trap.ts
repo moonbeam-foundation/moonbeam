@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { bnToHex } from "@polkadot/util";
+import { bnToHex, stringToU8a } from "@polkadot/util";
 
 import { expect } from "chai";
 import { ethers } from "ethers";
@@ -21,6 +21,7 @@ import {
   sovereignAccountOfSibling,
   XcmFragment,
   weightMessage,
+  XcmFragmentConfig,
 } from "../../util/xcm";
 
 const ERC20_CONTRACT = getCompiled("ERC20WithInitialSupply");
@@ -70,7 +71,7 @@ describeDevMoonbeam("Mock XCM - Fails trying to pay fees with ERC20", (context) 
 
     // Create xcm message to send ERC20 tokens to Charleth
     // We don't buy any execution with native currency
-    const config = {
+    const config: XcmFragmentConfig = {
       assets: [
         {
           multilocation: {
@@ -83,7 +84,7 @@ describeDevMoonbeam("Mock XCM - Fails trying to pay fees with ERC20", (context) 
                 {
                   AccountKey20: {
                     network: "Any",
-                    key: erc20ContractAddress,
+                    key: stringToU8a(erc20ContractAddress),
                   },
                 },
               ],
@@ -191,7 +192,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     const feeAssetAmount = 1_000_000_000_000_000n;
 
     // Create xcm message to send ERC20 tokens to Charleth
-    const config = {
+    const config: XcmFragmentConfig = {
       assets: [
         {
           multilocation: {
@@ -213,7 +214,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
                 {
                   AccountKey20: {
                     network: "Any",
-                    key: erc20ContractAddress,
+                    key: stringToU8a(erc20ContractAddress),
                   },
                 },
               ],
@@ -305,7 +306,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
     } as RawXcmMessage);
     await context.createBlock();
 
-    const failedClaimConfig = {
+    const failedClaimConfig: XcmFragmentConfig = {
       assets: [
         {
           multilocation: {
@@ -318,7 +319,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
                 {
                   AccountKey20: {
                     network: "Any",
-                    key: erc20ContractAddress,
+                    key: stringToU8a(erc20ContractAddress),
                   },
                 },
               ],

@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiDecoration } from "@polkadot/api/types";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S100",
@@ -8,14 +9,14 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let specVersion: number = 0;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      atBlockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      atBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
     });
 

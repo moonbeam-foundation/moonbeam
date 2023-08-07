@@ -18,7 +18,7 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
-use frame_support::{assert_ok, dispatch::Encode};
+use frame_support::{assert_ok, dispatch::Encode, instances::Instance1};
 use precompile_utils::{solidity::codec::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
@@ -612,4 +612,73 @@ fn view_is_member() {
 			.expect_no_logs()
 			.execute_returns(false);
 	});
+}
+
+mod bounded_proposal_decode {
+	use super::*;
+	use crate::GetProposalLimit;
+	use precompile_utils::prelude::BoundedBytes;
+
+	fn scenario<F>(nesting: usize, call: F)
+	where
+		F: FnOnce(BoundedBytes<GetProposalLimit>) -> PCall,
+	{
+		ExtBuilder::default().build().execute_with(|| {
+			// Some random call.
+			let mut proposal = pallet_collective::Call::<Runtime, Instance1>::set_members {
+				new_members: Vec::new(),
+				prime: None,
+				old_count: 0,
+			};
+
+			// Nest it.
+			for _ in 0..nesting {
+				proposal = pallet_collective::Call::<Runtime, Instance1>::propose {
+					threshold: 10,
+					proposal: Box::new(proposal.into()),
+					length_bound: 1,
+				};
+			}
+
+			let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
+			let proposal = proposal.encode();
+
+			precompiles()
+				.prepare_test(Alice, Precompile1, call(proposal.into()))
+				.expect_no_logs()
+				.execute_reverts(|output| {
+					if nesting < 8 {
+						output.ends_with(b"NotMember\") })")
+					} else {
+						output == b"proposal: Failed to decode proposal"
+					}
+				});
+		});
+	}
+
+	#[test]
+	fn proposal_above_bound() {
+		scenario(8, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
+
+	#[test]
+	fn proposal_below_bound() {
+		scenario(7, |proposal| PCall::propose {
+			threshold: 1,
+			proposal,
+		});
+	}
+
+	#[test]
+	fn execute_above_bound() {
+		scenario(8, |proposal| PCall::execute { proposal });
+	}
+
+	#[test]
+	fn execute_below_bound() {
+		scenario(7, |proposal| PCall::execute { proposal });
+	}
 }

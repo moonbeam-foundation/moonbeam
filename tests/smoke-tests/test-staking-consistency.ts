@@ -16,7 +16,7 @@ const suiteNumber = "S1900";
 
 describeSmokeSuite("S1900", `Verify staking consistency`, (context, testIt) => {
   let atBlockNumber: number = 0;
-  let apiAt: ApiDecoration<"promise"> = null;
+  let apiAt: ApiDecoration<"promise">;
   let specVersion: number = 0;
   let maxTopDelegationsPerCandidate: number = 0;
   let allCandidateInfo: [

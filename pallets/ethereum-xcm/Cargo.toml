@@ -4,7 +4,7 @@ authors = [ "Parity Technologies <admin@parity.io>" ]
 description = "Xcm Transact compatibility for pallet-etherum."
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/paritytech/frontier/"
+repository = "https://github.com/moonbeam-foundation/moonbeam/"
 version = "1.0.0-dev"
 
 [package.metadata.docs.rs]

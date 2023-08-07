@@ -61,12 +61,10 @@ export async function findAvailablePorts(parachainCount: number = 1) {
       ...new Array(relayCount).fill(0).map((_, index) => ({
         p2pPort: PORT_PREFIX * 1000 + 10 * index,
         rpcPort: PORT_PREFIX * 1000 + 10 * index + 1,
-        wsPort: PORT_PREFIX * 1000 + 10 * index + 2,
       })),
       ...new Array(paraNodeCount + paraEmbeddedNodeCount).fill(0).map((_, index) => ({
         p2pPort: PORT_PREFIX * 1000 + 100 + 10 * index,
         rpcPort: PORT_PREFIX * 1000 + 100 + 10 * index + 1,
-        wsPort: PORT_PREFIX * 1000 + 100 + 10 * index + 2,
       })),
     ];
   }
@@ -97,7 +95,6 @@ export async function findAvailablePorts(parachainCount: number = 1) {
   return new Array(nodeCount).fill(0).map((_, index) => ({
     p2pPort: availablePorts[index * 3 + 0],
     rpcPort: availablePorts[index * 3 + 1],
-    wsPort: availablePorts[index * 3 + 2],
   }));
 }
 
@@ -144,7 +141,6 @@ export interface ParachainPorts {
 export interface NodePorts {
   p2pPort: number;
   rpcPort: number;
-  wsPort: number;
 }
 
 // log listeners to kill at the end;
@@ -177,8 +173,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
   const ports = await findAvailablePorts(numberOfParachains);
 
   // For simplicity, forces the first parachain node to run on default ports
-  ports[numberOfParachains + 1].wsPort = 9944;
-  ports[numberOfParachains + 1].rpcPort = 9933;
+  ports[numberOfParachains + 1].rpcPort = 9944;
 
   //Build hrmpChannels, all connected to first parachain
   const hrmpChannels: {
@@ -261,7 +256,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           name: RELAY_CHAIN_NODE_NAMES[i],
           port: ports[i].p2pPort,
           rpcPort: ports[i].rpcPort,
-          wsPort: ports[i].wsPort,
           flags: [
             process.env.FORCE_COMPILED_WASM
               ? `--wasm-execution=compiled`
@@ -286,7 +280,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           {
             port: ports[i * 4 + numberOfParachains + 1].p2pPort,
             rpcPort: ports[i * 4 + numberOfParachains + 1].rpcPort,
-            wsPort: ports[i * 4 + numberOfParachains + 1].wsPort,
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
@@ -317,13 +310,11 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--no-telemetry",
               `--port=${ports[i * 4 + numberOfParachains + 2].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 2].rpcPort}`,
-              `--ws-port=${ports[i * 4 + numberOfParachains + 2].wsPort}`,
             ],
           },
           {
             port: ports[i * 4 + numberOfParachains + 3].p2pPort,
             rpcPort: ports[i * 4 + numberOfParachains + 3].rpcPort,
-            wsPort: ports[i * 4 + numberOfParachains + 3].wsPort,
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 3].key,
             name: "bob",
             flags: [
@@ -354,7 +345,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--no-telemetry",
               `--port=${ports[i * 4 + numberOfParachains + 4].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 4].rpcPort}`,
-              `--ws-port=${ports[i * 4 + numberOfParachains + 4].wsPort}`,
             ],
           },
         ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
@@ -392,10 +382,10 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       listenTo(`${RELAY_CHAIN_NODE_NAMES[i]}.log`, `relay-${i}`);
     });
     parachainArray.forEach(async (_, i) => {
-      const filenameNode1 = `${ports[i * 4 + numberOfParachains + 1].wsPort}.log`;
+      const filenameNode1 = `${ports[i * 4 + numberOfParachains + 1].rpcPort}.log`;
       listenTo(filenameNode1, `para-${i}-0`);
       if (!process.env.SINGLE_PARACHAIN_NODE) {
-        const filenameNode2 = `${ports[i * 4 + numberOfParachains + 3].wsPort}.log`;
+        const filenameNode2 = `${ports[i * 4 + numberOfParachains + 3].rpcPort}.log`;
         listenTo(filenameNode2, `para-${i}-1`);
       }
     });
@@ -419,7 +409,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       return {
         p2pPort: ports[i].p2pPort,
         rpcPort: ports[i].rpcPort,
-        wsPort: ports[i].wsPort,
       };
     }),
 
@@ -430,12 +419,10 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           {
             p2pPort: ports[i * 4 + numberOfParachains + 1].p2pPort,
             rpcPort: ports[i * 4 + numberOfParachains + 1].rpcPort,
-            wsPort: ports[i * 4 + numberOfParachains + 1].wsPort,
           },
           {
             p2pPort: ports[i * 4 + numberOfParachains + 3].p2pPort,
             rpcPort: ports[i * 4 + numberOfParachains + 3].rpcPort,
-            wsPort: ports[i * 4 + numberOfParachains + 3].wsPort,
           },
         ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
       };

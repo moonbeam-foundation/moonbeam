@@ -67,9 +67,17 @@ impl From<[u8; 20]> for AccountId20 {
 	}
 }
 
-impl Into<[u8; 20]> for AccountId20 {
-	fn into(self) -> [u8; 20] {
-		self.0
+impl From<AccountId20> for [u8; 20] {
+	fn from(value: AccountId20) -> Self {
+		value.0
+	}
+}
+
+impl From<[u8; 32]> for AccountId20 {
+	fn from(bytes: [u8; 32]) -> Self {
+		let mut buffer = [0u8; 20];
+		buffer.copy_from_slice(&bytes[..20]);
+		Self(buffer)
 	}
 }
 
@@ -79,9 +87,9 @@ impl From<H160> for AccountId20 {
 	}
 }
 
-impl Into<H160> for AccountId20 {
-	fn into(self) -> H160 {
-		H160(self.0)
+impl From<AccountId20> for H160 {
+	fn from(value: AccountId20) -> Self {
+		H160(value.0)
 	}
 }
 
@@ -112,7 +120,7 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
-				AccountId20(H160::from_slice(&Keccak256::digest(&pubkey).as_slice()[12..32]).0)
+				AccountId20(H160::from_slice(&Keccak256::digest(pubkey).as_slice()[12..32]).0)
 					== *signer
 			}
 			Err(sp_io::EcdsaVerifyError::BadRS) => {
@@ -161,7 +169,7 @@ impl From<ecdsa::Public> for EthereumSigner {
 		.serialize();
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&decompressed[1..65]);
-		let account = H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]);
+		let account = H160::from_slice(&Keccak256::digest(m).as_slice()[12..32]);
 		EthereumSigner(account.into())
 	}
 }
@@ -170,7 +178,7 @@ impl From<libsecp256k1::PublicKey> for EthereumSigner {
 	fn from(x: libsecp256k1::PublicKey) -> Self {
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&x.serialize()[1..65]);
-		let account = H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]);
+		let account = H160::from_slice(&Keccak256::digest(m).as_slice()[12..32]);
 		EthereumSigner(account.into())
 	}
 }

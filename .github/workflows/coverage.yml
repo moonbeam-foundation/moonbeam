@@ -1,0 +1,211 @@
+name: Coverage
+
+# Using a single file workflow is the preferred solution for our CI over workflow_runs.
+# 1. It generates only 1 action item in the list making it more readable
+# 2. It includes the PR/Commit text in the action item
+# 3. Artifacts are not available between workflows.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=12288"
+  GRCOV_VERSION: 0.8.18
+
+jobs:
+  ####### Check files and formatting #######
+
+  set-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
+      git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      sha: ${{ steps.get-sha.outputs.sha }}
+      sha8: ${{ steps.get-sha.outputs.sha8 }}
+      polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
+      polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
+      latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+      coverage_dir: ${{ steps.check-git-ref.outputs.coverage_dir }}
+      coverage_report: ${{ steps.check-git-ref.outputs.coverage_report }}
+    steps:
+      - name: Check git ref
+        id: check-git-ref
+        # if PR
+        # else if manual PR
+        # else (push)
+        run: |
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "coverage_report=true" >> $GITHUB_OUTPUT
+          else
+            echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+            echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
+            echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
+            echo "coverage_report=false" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      - name: Get Latest RT Release
+        id: get-latest-rt
+        run: |
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
+          echo $LATEST_RUNTIME_RELEASE
+          echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
+      - name: Get Sha
+        id: get-sha
+        run: |
+          echo "sha=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
+          echo "sha8=$(git log -1 --format='%H' | cut -c1-8)" >> $GITHUB_OUTPUT
+          echo "polkadot_repo=$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)" >> $GITHUB_OUTPUT
+          echo "polkadot_commit=$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
+          head -1 | sed 's/.*#//' |  cut -c1-8)" >> $GITHUB_OUTPUT
+
+          echo "$(curl -s "https://api.github.com/repos/moonbeam-foundation/moonbeam/git/refs/tags/${{ steps.get-latest-rt.outputs.latest_rt }}" | jq -r '.object.sha' | cut -c 1-8)"
+          echo "latest_rt_sha8=$(curl -s 'https://api.github.com/repos/moonbeam-foundation/moonbeam/git/refs/tags/${{steps.get-latest-rt.outputs.latest_rt }}' | jq -r '.object.sha' | cut -c 1-8 )" >> $GITHUB_OUTPUT
+      - name: Check existing docker image
+        id: check-docker-image
+        run: |
+          TAG=sha-${{ steps.get-sha.outputs.sha8 }}
+      - name: Display variables
+        run: |
+          echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+          echo sha: ${{ steps.get-sha.outputs.sha }}
+          echo sha8: ${{ steps.get-sha.outputs.sha8 }}
+          echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
+          echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+
+  build-and-coverage:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    env:
+      RUSTC_WRAPPER: "sccache"
+      CARGO_INCREMENTAL: "0"
+      SCCACHE_CACHE_SIZE: "100GB"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Variables
+        shell: bash
+        run: |
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+      - name: Setup grcov
+        run: |
+          wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2
+          tar xvf grcov-x86_64-unknown-linux-gnu.tar.bz2
+          chmod +x grcov
+      - name: Install llvm tools
+        run: rustup component add llvm-tools-preview
+      - name: Cargo build
+        uses: ./.github/workflow-templates/cargo-build
+        with:
+          features: evm-tracing
+      - name: Clean-up possible coverage generated during builds
+        run: |
+          rm default_*.profraw
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: runtimes
+          path: runtimes
+      - name: Upload binary
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: moonbeam
+          path: build
+      - name: Unit tests
+        run: |
+          cargo test --release --all --features=evm-tracing
+      - name: Typescript Tests (Dev Service)
+        uses: ./.github/workflow-templates/typescript-tests
+        with:
+          timeout: 10000
+          moonbeam-binary: build/moonbeam
+          force-pass: true
+      - name: Retrieve coverage
+        id: coverage
+        run: |
+          mkdir -p /tmp/proffiles
+
+          find . -type f -name \*.profraw -exec ls -l {}  \;
+
+          echo "Copying profraw files to /tmp/proffiles"
+          find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
+
+          mv /tmp/proffiles proffiles
+          du -sh proffiles
+
+          echo "Executing grcov"
+          ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
+            -o coverage/ --llvm 2>&1 \
+            | tee grcov.log
+
+          INVALID="$(grep invalid grcov.log | \
+            grep -o '[^\ /]*raw' | \
+            sed 's/_1\.profraw/\.profraw/g' || echo '')"
+          echo "Invalid files: $INVALID"
+          if [ -n "$INVALID" ]; then
+            echo "Removing invalid files: $INVALID"
+            cd proffiles/
+            rm $INVALID
+            cd ..
+            ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
+            -o coverage/ --llvm
+          fi
+
+          echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
+          echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
+          wget ${{ vars.S3_COVERAGE_URL }}/branches/master/html/coverage.json \
+            -O coverage-master.json || true
+          echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
+          rm -rf proffiles/
+      - name: Upload coverate to gha
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: coverage
+          path: coverage
+      - name: Upload coverage s3
+        uses: mario-sangar/upload-s3-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+          destination_dir: "${{ needs.set-tags.outputs.coverage_dir }}"
+          source_dir: "coverage"
+          acl: "none"
+      - name: Link To Report
+        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
+      - name: Find Comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Coverage generated
+      - name: Create or update comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Coverage generated ${{ steps.coverage.outputs.coverage_date }}:
+            ${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html
+
+            Master coverage: ${{ steps.coverage.outputs.master_percent }}
+            Pull coverage: ${{ steps.coverage.outputs.total_percent }}
+          edit-mode: replace

@@ -12,7 +12,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(81940601520875n);
+      expect(fee).to.equal(86737801520875n);
     });
   },
   "Legacy",
@@ -36,7 +36,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(99272001520875n);
+      expect(fee).to.equal(105268501520875n);
     });
   },
   "Legacy",
@@ -60,7 +60,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(8194060152087500n);
+      expect(fee).to.equal(8673780152087500n);
     });
   },
   "Legacy",
@@ -141,7 +141,7 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
       {
         from: alith.address,
         to: MODEXP_PRECOMPILE_ADDRESS,
-        gas: EXTRINSIC_GAS_LIMIT,
+        gas: EXTRINSIC_GAS_LIMIT.toString(),
         value: "0x00",
         nonce: 0,
         data:
@@ -171,14 +171,15 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
     //
     // conclusion: the LengthToFee modifier is NOT involved
 
-    const expected = 33908;
+    // was 33908 before Wei added the extra gas modexp cost to solve slow computation
+    const expected = 37708;
     expect(receipt.gasUsed).to.equal(expected);
 
     // furthermore, we can account for the entire fee:
     const non_zero_byte_fee = 3 * 16;
     const zero_byte_fee = 3165 * 4;
     const base_ethereum_fee = 21000;
-    const modexp_min_cost = 200; // see MIN_GAS_COST in frontier's modexp precompile
+    const modexp_min_cost = 200 * 20; // see MIN_GAS_COST in frontier's modexp precompile
     const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
     expect(entire_fee).to.equal(expected);
   });

@@ -31,12 +31,11 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> MatchesFungibles<H160, U256>
 	fn matches_fungibles(multiasset: &MultiAsset) -> Result<(H160, U256), MatchError> {
 		let (amount, id) = match (&multiasset.fun, &multiasset.id) {
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
-			_ => return Err(MatchError::AssetNotFound),
+			_ => return Err(MatchError::AssetNotHandled),
 		};
 		let contract_address = Self::matches_erc20_multilocation(id)
 			.map_err(|_| MatchError::AssetIdConversionFailed)?;
-		let amount =
-			U256::try_from(*amount).map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
+		let amount = U256::from(*amount);
 
 		Ok((contract_address, amount))
 	}
@@ -111,6 +110,28 @@ mod tests {
 				location, 100u128
 			))),
 			(H160([0; 20]), U256([100, 0, 0, 0]))
+		);
+	}
+
+	#[test]
+	fn should_match_valid_erc20_location_with_amount_greater_than_u64() {
+		let location = MultiLocation {
+			parents: 0,
+			interior: Junctions::X2(
+				PalletInstance(42u8),
+				AccountKey20 {
+					key: [0; 20],
+					network: None,
+				},
+			),
+		};
+
+		assert_ok!(
+			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&MultiAsset::from((
+				location,
+				100000000000000000u128
+			))),
+			(H160([0; 20]), U256::from(100000000000000000u128))
 		);
 	}
 

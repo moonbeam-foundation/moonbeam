@@ -79,7 +79,7 @@ impl frame_system::Config for Test {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u64 = 1;
+	pub const ExistentialDeposit: u64 = 0;
 }
 
 impl pallet_balances::Config for Test {
@@ -92,6 +92,10 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 8];
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -107,7 +111,7 @@ parameter_types! {
 	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
 }
 
-pub type AssetId = u32;
+pub type AssetId = u128;
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum MockAssetType {
 	Xcm(MultiLocation),
@@ -125,10 +129,10 @@ impl From<MockAssetType> for AssetId {
 		match asset {
 			MockAssetType::MockAsset(id) => id,
 			MockAssetType::Xcm(id) => {
-				let mut result: [u8; 4] = [0u8; 4];
+				let mut result: [u8; 16] = [0u8; 16];
 				let hash: H256 = id.using_encoded(<Test as frame_system::Config>::Hashing::hash);
-				result.copy_from_slice(&hash.as_fixed_bytes()[0..4]);
-				u32::from_le_bytes(result)
+				result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+				u128::from_le_bytes(result)
 			}
 		}
 	}
@@ -153,7 +157,7 @@ pub struct MockAssetPalletRegistrar;
 
 impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	fn create_foreign_asset(
-		_asset: u32,
+		_asset: u128,
 		_min_balance: u64,
 		_metadata: u32,
 		_is_sufficient: bool,
@@ -162,7 +166,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	}
 
 	fn create_local_asset(
-		_asset: u32,
+		_asset: u128,
 		_account: u64,
 		_min_balance: u64,
 		_is_sufficient: bool,
@@ -171,16 +175,16 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 		Ok(())
 	}
 
-	fn destroy_foreign_asset(_asset: u32) -> Result<(), DispatchError> {
+	fn destroy_foreign_asset(_asset: u128) -> Result<(), DispatchError> {
 		Ok(())
 	}
 
-	fn destroy_local_asset(_asset: u32) -> Result<(), DispatchError> {
+	fn destroy_local_asset(_asset: u128) -> Result<(), DispatchError> {
 		Ok(())
 	}
 
-	fn destroy_asset_dispatch_info_weight(_asset: u32) -> Weight {
-		Weight::from_ref_time(0)
+	fn destroy_asset_dispatch_info_weight(_asset: u128) -> Weight {
+		Weight::from_parts(0, 0)
 	}
 }
 
@@ -189,10 +193,7 @@ impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator
 	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
 		// Our means of converting a creator to an assetId
 		// We basically hash nonce+account
-		let mut result: [u8; 4] = [0u8; 4];
-		let big_endian = local_asset_counter.to_le_bytes();
-		result.copy_from_slice(&big_endian[0..4]);
-		u32::from_le_bytes(result)
+		local_asset_counter
 	}
 }
 
@@ -203,7 +204,7 @@ parameter_types! {
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
-	type AssetId = u32;
+	type AssetId = u128;
 	type AssetRegistrarMetadata = u32;
 	type ForeignAssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;

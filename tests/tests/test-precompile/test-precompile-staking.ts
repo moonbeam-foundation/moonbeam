@@ -113,6 +113,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     await context.createBlock(
       createTransaction(context, {
         ...ETHAN_TRANSACTION_TEMPLATE,
+        gas: undefined,
         to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
         data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
           alith.address,
@@ -196,6 +197,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     await context.createBlock(
       createTransaction(context, {
         ...ETHAN_TRANSACTION_TEMPLATE,
+        gas: undefined,
         to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
         data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
           alith.address,

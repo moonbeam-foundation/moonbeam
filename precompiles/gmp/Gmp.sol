@@ -10,7 +10,7 @@ Gmp constant GMP_CONTRACT = Gmp(GMP_ADDRESS);
 /// @author The Moonbeam Team
 /// @title Gmp precompile
 /// @dev Provides an endpoint to Gmp protocols which can automatically forward to XCM
-/// @custom:address 0x0000000000000000000000000000000000000815
+/// @custom:address 0x0000000000000000000000000000000000000816
 interface Gmp {
     // TODO: Here we would specify the endpoints for each GMP protocol on a case by case basis.
     //       These endpoints are basically the hand offs for each protocol -- where they delegate to

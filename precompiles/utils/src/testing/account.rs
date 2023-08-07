@@ -99,6 +99,12 @@ impl AddressMapping<MockAccount> for MockAccount {
 	}
 }
 
+impl sp_runtime::traits::Convert<H160, MockAccount> for MockAccount {
+	fn convert(address: H160) -> MockAccount {
+		address.into()
+	}
+}
+
 #[macro_export]
 macro_rules! mock_account {
 	($name:ident, $convert:expr) => {

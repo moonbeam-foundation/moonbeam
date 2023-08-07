@@ -17,17 +17,17 @@ jobs:
       - name: Retrieve moonbeam binary
         run: |
           COMMIT_SHA8=$(git log -1 --format="%H" | cut -c1-8)
-          DOCKER_TAG="purestake/moonbeam:sha-$COMMIT_SHA8"
+          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$COMMIT_SHA8"
           # Clear the dummy container if it wasn't properly cleaned up
           docker rm -f dummy 2> /dev/null
           docker create -ti --name dummy $DOCKER_TAG bash
           mkdir -p build
           docker cp dummy:/moonbeam/moonbeam build/moonbeam
           docker rm -f dummy
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
       - name: Upgrade polkadotjs for moonbeam-types-bundle
         run: |
           cd moonbeam-types-bundle

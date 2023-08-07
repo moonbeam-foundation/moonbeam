@@ -16,7 +16,49 @@ jobs:
         with:
           fetch-depth: 0
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+      - run: |
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
+          VERSION="${{ github.event.inputs.tag }}"
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          SHA=sha-${COMMIT::8}
+          echo using "${DOCKER_IMAGE}:${SHA} as base image"
+
+          mkdir -p build 
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
+
+          echo building "${DOCKER_IMAGE}:${VERSION}"
+          docker build \
+            --build-arg DOCKER_IMAGE="$DOCKER_IMAGE" \
+            --build-arg SHA="$SHA" \
+            -f docker/moonbeam-release.Dockerfile \
+            -t "${DOCKER_IMAGE}:${VERSION}" \
+            . 
+
+          docker push "${DOCKER_IMAGE}:${VERSION}"
+
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            echo tagging "${DOCKER_IMAGE}:${MINOR}"
+            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:${MINOR}"
+            docker push "${DOCKER_IMAGE}:${MINOR}"
+
+            MAJOR=${MINOR%.*}
+            echo tagging "${DOCKER_IMAGE}:${MAJOR}"
+            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:${MAJOR}"
+            docker push "${DOCKER_IMAGE}:${MAJOR}"
+
+            echo tagging "${DOCKER_IMAGE}:latest"
+            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:latest"
+            docker push "${DOCKER_IMAGE}:latest"
+          fi
+      - name: Login to Purestake DockerHub
+        uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -28,9 +70,9 @@ jobs:
           echo using "${DOCKER_IMAGE}:${SHA} as base image"
 
           mkdir -p build 
-          wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
-          wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
-          wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
 
           echo building "${DOCKER_IMAGE}:${VERSION}"
           docker build \

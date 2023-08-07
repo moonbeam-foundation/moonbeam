@@ -15,8 +15,7 @@
   },
   "lldb.dbgconfig": {
     "rustc_path": "${env:HOME}/.rustup/toolchains/nightly-2021-01-13-x86_64-unknown-linux-gnu/lib/rustlib/src/rust",
-    "port_p2p": 19931,
-    "port_rpc": 19932,
-    "port_ws": 19933
+    "port_p2p": 30333,
+    "port_rpc": 9944
   }
 }

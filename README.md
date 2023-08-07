@@ -1,12 +1,22 @@
 # ![Moonbeam](media/moonbeam-cover.jpg)
 
-![Tests](https://github.com/PureStake/moonbeam/workflows/Release/badge.svg)
+# ⚠️ Moonbeam new github organization ⚠️
+
+Moonbeam repository has been migrated from purestake to the Moonbeam Foundation organization:  
+https://github.com/moonbeam-foundation/moonbeam
+
+Github references/cloning as well as cargo build will keep working as expected. It is however
+recommended to change those references once the migration is done.
+
+# Information
+
+![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Build/badge.svg)
 
 **An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with [Substrate](https://substrate.dev).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
-👉 _Reference our [crate-level docs (rustdocs)](https://purestake.github.io/moonbeam) to contribute._
+👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
 
 ## Run an alphanet node with Docker
 
@@ -14,7 +24,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" purestake/moonbeam:v0.31.0 --chain alphanet
+docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/full-node/)
@@ -27,7 +37,7 @@ service.
 
 ```bash
 # Run a dev service node
-docker run --network="host" purestake/moonbeam:v0.31.0 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
@@ -38,10 +48,10 @@ The command above will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" purestake/moonbeam:v0.31.0 --dev --sealing 6000
+docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" purestake/moonbeam:v0.31.0 --dev --sealing manual
+docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
@@ -105,11 +115,11 @@ To build Moonbeam, you will need a proper Substrate development environment. If 
 
 If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
-Note that cloning master might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/PureStake/moonbeam/releases).
+Note that cloning master might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/moonbeam-foundation/moonbeam/releases).
 
 ```bash
 # Fetch the code
-git clone https://github.com/PureStake/moonbeam
+git clone https://github.com/moonbeam-foundation/moonbeam
 cd moonbeam
 
 # Build the node (The first build will be long (~30min))
@@ -191,11 +201,11 @@ When modifying the git repository for these dependencies, a tool called [diener]
 ## Rustdocs
 
 Rustdocs for the Moonbeam codebase are automatically generated and published
-[here](https://purestake.github.io/moonbeam/moonbeam_runtime/index.html).
+[here](https://moonbeam-foundation.github.io/moonbeam/moonbeam_runtime/index.html).
 
 ## Contribute
 
 Moonbeam is open source under the terms of the GPL3. We welcome contributions. Please review our
 [CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
 
-Example of version bumping PR (runtime and node): https://github.com/PureStake/moonbeam/pull/601/files
+Example of version bumping PR (runtime and node): https://github.com/moonbeam-foundation/moonbeam/pull/601/files

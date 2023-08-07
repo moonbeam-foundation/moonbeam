@@ -7,6 +7,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING } from "../../util/constants
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { expectOk } from "../../util/expect";
+import { chunk } from "../../util/common";
 
 describeDevMoonbeam("Staking - Consts - MaxDelegationsPerDelegator", (context) => {
   const randomAccount = generateKeyringPair();
@@ -34,15 +35,17 @@ describeDevMoonbeam("Staking - Consts - MaxDelegationsPerDelegator", (context) =
       ])
     );
 
-    await expectOk(
-      context.createBlock(
-        randomCandidates.map((randomCandidate) =>
-          context.polkadotApi.tx.parachainStaking
-            .joinCandidates(MIN_GLMR_STAKING, maxDelegationsPerDelegator)
-            .signAsync(randomCandidate)
+    for (const randomCandidatesChunk of chunk(randomCandidates, 50)) {
+      await expectOk(
+        context.createBlock(
+          randomCandidatesChunk.map((randomCandidate) =>
+            context.polkadotApi.tx.parachainStaking
+              .joinCandidates(MIN_GLMR_STAKING, maxDelegationsPerDelegator)
+              .signAsync(randomCandidate)
+          )
         )
-      )
-    );
+      );
+    }
 
     const candidates = await context.polkadotApi.query.parachainStaking.candidateInfo.entries();
     expect(candidates.length).to.be.equal(
@@ -51,15 +54,24 @@ describeDevMoonbeam("Staking - Consts - MaxDelegationsPerDelegator", (context) =
     );
 
     let nonce = await context.web3.eth.getTransactionCount(randomAccount.address);
-    await expectOk(
-      context.createBlock(
-        randomCandidates.map((randomCandidate) =>
-          context.polkadotApi.tx.parachainStaking
-            .delegate(randomCandidate.address, MIN_GLMR_DELEGATOR, 1, maxDelegationsPerDelegator)
-            .signAsync(randomAccount, { nonce: nonce++ })
+    for (const randomCandidatesChunk of chunk(randomCandidates, 20)) {
+      await expectOk(
+        context.createBlock(
+          randomCandidatesChunk.map((randomCandidate) =>
+            context.polkadotApi.tx.parachainStaking
+              .delegateWithAutoCompound(
+                randomCandidate.address,
+                MIN_GLMR_DELEGATOR,
+                100,
+                1,
+                1,
+                maxDelegationsPerDelegator
+              )
+              .signAsync(randomAccount, { nonce: nonce++ })
+          )
         )
-      )
-    );
+      );
+    }
   });
 
   it("should fail delegation request", async function () {
