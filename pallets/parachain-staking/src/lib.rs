@@ -1436,7 +1436,7 @@ pub mod pallet {
 
 			// If this counter is eq to max_offline_rounds,
 			// the collator should be notified as inactive
-			let mut inactive_counter: RoundIndex = RoundIndex::default();
+			let mut inactive_counter: RoundIndex = 0u32;
 
 			// Iter rounds to check
 			//
@@ -1444,7 +1444,7 @@ pub mod pallet {
 			//
 			// If the previous condition is met in all rounds of rounds_to_check,
 			// the collator is notified as inactive
-			for r in rounds_to_check.clone() {
+			for r in rounds_to_check {
 				let stake = <AtStake<T>>::get(r, &collator);
 				let pts = <AwardedPts<T>>::get(r, &collator);
 
