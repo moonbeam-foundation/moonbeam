@@ -1,8 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
-import { stringToBytes, keccak256, bytesToBigint, hashMessage, recoverMessageAddress } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D2536",
@@ -37,7 +35,6 @@ describeSuite({
     it({
       id: "T02",
       title: "returns different address on modified message",
-      modifier: "only",
       test: async function () {
         const msg = context.web3().utils.sha3("Hello World!");
         const sig = context.web3().eth.accounts.sign(msg!, ALITH_PRIVATE_KEY);
