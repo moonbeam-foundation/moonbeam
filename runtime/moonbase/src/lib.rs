@@ -38,7 +38,7 @@ use account::AccountId20;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, GetDispatchInfo},
+	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -73,7 +73,7 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{InflationInfo, Range};
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -88,7 +88,8 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill,
+	ApplyExtrinsicResult, DispatchErrorWithPostInfo, FixedPointNumber, Perbill, Permill,
+	Perquintill,
 };
 use sp_std::{
 	convert::{From, Into},
@@ -711,16 +712,19 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 	fn on_inactive_collator(
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
-	) -> Weight {
+	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
 		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
-			ParachainStaking::do_go_offline(collator_id).unwrap_or_default()
+			ParachainStaking::go_offline_inner(collator_id)?;
+			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
+				pallet_parachain_staking::MAX_CANDIDATES,
+			)
 		} else {
 			Weight::zero()
 		};
 
-		<Runtime as frame_system::Config>::DbWeight::get()
+		Ok(<Runtime as frame_system::Config>::DbWeight::get()
 			.reads(1)
-			.saturating_add(extra_weight)
+			.saturating_add(extra_weight))
 	}
 }
 
