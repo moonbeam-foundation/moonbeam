@@ -19,7 +19,7 @@ describeSuite({
       id: "T01",
       title: " bond less than min should fail",
       test: async () => {
-        const minDelegatorStk = context.polkadotJs().consts.parachainStaking.minDelegatorStk;
+        const minDelegatorStk = context.polkadotJs().consts.parachainStaking.minDelegation;
         const block = await context.createBlock(
           context
             .polkadotJs()
@@ -34,7 +34,7 @@ describeSuite({
             .signAsync(ethan)
         );
         expect(block.result!.successful).to.be.false;
-        expect(block.result!.error!.name).to.equal("DelegatorBondBelowMin");
+        expect(block.result!.error!.name).to.equal("DelegationBelowMin");
       },
     });
 

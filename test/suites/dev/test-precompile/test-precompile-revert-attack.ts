@@ -55,7 +55,9 @@ describeSuite({
               functionName: "score_a_free_delegation",
               value: MIN_GLMR_STAKING,
             })
-        ).rejects.toThrowError("DelegatorBondBelowMin");
+        ).rejects.toThrowError(
+          'Module(ModuleError { index: 12, error: [10, 0, 0, 0], message: Some("DelegationBelowMin") })'
+        );
       },
     });
   },

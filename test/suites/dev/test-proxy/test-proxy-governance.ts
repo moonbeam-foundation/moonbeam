@@ -48,6 +48,12 @@ describeSuite({
           await context.polkadotJs().query.system.account(dorothy.address)
         ).data.free.toBigInt();
 
+        const expectEvents = [
+          context.polkadotJs().events.proxy.ProxyExecuted,
+          context.polkadotJs().events.democracy.Voted,
+          context.polkadotJs().events.treasury.Deposit,
+        ];
+
         const { result } = await context.createBlock(
           context
             .polkadotJs()
@@ -58,25 +64,24 @@ describeSuite({
                 Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
               })
             )
-            .signAsync(ethan)
+            .signAsync(ethan),
+          { expectEvents, allowFailures: false }
         );
 
-        expect(context.polkadotJs().events.proxy.ProxyExecuted.is(result!.events[2].event)).to.be
-          .true;
-        expect(context.polkadotJs().events.democracy.Voted.is(result!.events[1].event)).to.be.true;
-        expect(result!.events[2].event.data[0].toString()).to.equal("Ok");
-        expect(context.polkadotJs().events.treasury.Deposit.is(result!.events[4].event)).to.be.true;
-        expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(result!.events[6].event)).to
-          .be.true;
+        expect(
+          result!.events.find((event) =>
+            context.polkadotJs().events.proxy.ProxyExecuted.is(event.event)
+          )!.event.data.result.isOk
+        ).toBe(true);
 
         // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
         const dorothyAccountData = await context.polkadotJs().query.system.account(dorothy.address);
         expect(dorothyAccountData.data.free.toBigInt()).to.equal(dorothyPreBalance);
-        expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
+        expect(dorothyAccountData.data.frozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
         const referendumInfoOf = (
           await context.polkadotJs().query.democracy.referendumInfoOf(0)
-        ).unwrap() as any;
+        ).unwrap();
         const onGoing = referendumInfoOf.asOngoing;
 
         expect(onGoing.proposal.asLookup.hash_.toHex(), "Vote is not registerd").to.equal(

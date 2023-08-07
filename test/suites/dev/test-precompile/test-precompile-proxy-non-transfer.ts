@@ -14,7 +14,7 @@ import {
   PRECOMPILE_PROXY_ADDRESS,
   createViemTransaction,
 } from "@moonwall/util";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, fromBytes, toBytes } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { getAuthorMappingInfo } from "../../../helpers/precompiles.js";
 
@@ -49,7 +49,7 @@ describeSuite({
           data: encodeFunctionData({
             abi,
             functionName: "proxy",
-            args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+            args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
           }),
           privateKey: BALTATHAR_PRIVATE_KEY,
           skipEstimation: true,
@@ -65,7 +65,7 @@ describeSuite({
               data: encodeFunctionData({
                 abi,
                 functionName: "proxy",
-                args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+                args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
               }),
             })
         ).rejects.toThrow("CallFiltered");

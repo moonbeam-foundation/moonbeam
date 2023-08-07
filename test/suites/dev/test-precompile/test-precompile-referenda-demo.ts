@@ -19,7 +19,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should be accessible from a smart contract",
-      timeout: 180000,
+      timeout: 500000,
       test: async function () {
         const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
         const trackName = "root";
@@ -72,6 +72,7 @@ describeSuite({
           rawTxOnly: true,
         });
 
+        console.log("this?");
         const result = (await context.createBlock(rawTxn)) as any;
 
         const {

@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "bun prettier --write --ignore-path ../prettierignore '**/*.(yml|js|ts|json)'",
+    "lint": "bun prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "check-lint": "bunx prettier@2 --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
     "compile-solidity": "bun scripts/compile-contracts.ts compile",
     "typecheck": "bun tsc --noEmit"
   },

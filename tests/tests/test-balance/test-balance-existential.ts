@@ -1,7 +1,5 @@
 import "@moonbeam-network/api-augment";
-
 import { expect } from "chai";
-
 import { Account } from "web3-core";
 import { alith, baltathar } from "../../util/accounts";
 import { GLMR, MIN_GAS_PRICE } from "../../util/constants";
@@ -52,9 +50,8 @@ describeDevMoonbeam("Existential Deposit", (context) => {
   });
 
   it("should be disabled (no reaped account on tiny balance - 1)", async function () {
-
-    console.log("balances")
-    console.log(10n * GLMR - 1n - 21000n * MIN_GAS_PRICE)
+    console.log("balances");
+    console.log(10n * GLMR - 1n - 21000n * MIN_GAS_PRICE);
     await context.createBlock(
       createTransfer(context, baltathar.address, 10n * GLMR - 1n - 21000n * MIN_GAS_PRICE, {
         from: randomWeb3Account.address,

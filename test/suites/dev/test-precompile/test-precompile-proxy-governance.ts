@@ -92,7 +92,7 @@ describeSuite({
         // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
         const dorothyAccountData = await context.polkadotJs().query.system.account(DOROTHY_ADDRESS);
         expect(dorothyAccountData.data.free.toBigInt()).to.equal(dorothyPreBalance);
-        expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
+        expect(dorothyAccountData.data.frozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
         // Verify that vote is registered
         const referendumInfoOf = (

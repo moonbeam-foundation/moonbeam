@@ -299,7 +299,7 @@ describeSuite({
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "proxy",
-          args: [ALITH_ADDRESS, CHARLETH_ADDRESS, [toHex(0)]],
+          args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
           rawTxOnly: true,
           gas: 1_000_000n,
         });
@@ -311,7 +311,7 @@ describeSuite({
             await context.writePrecompile!({
               precompileName: "Proxy",
               functionName: "proxy",
-              args: [ALITH_ADDRESS, CHARLETH_ADDRESS, [toHex(0)]],
+              args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
             })
         ).rejects.toThrowError("Not proxy");
       },
@@ -341,7 +341,7 @@ describeSuite({
           data: encodeFunctionData({
             abi,
             functionName: "proxy",
-            args: [ALITH_ADDRESS, randomAccount, []],
+            args: [ALITH_ADDRESS, randomAccount, "0x00"],
           }),
         });
         const { result: result2 } = await context.createBlock(rawTxn2);
@@ -385,7 +385,7 @@ describeSuite({
           data: encodeFunctionData({
             abi,
             functionName: "proxy",
-            args: [ALITH_ADDRESS, randomAccount, []],
+            args: [ALITH_ADDRESS, randomAccount, "0x00"],
           }),
         });
         const { result: result3 } = await context.createBlock(rawTxn3);
@@ -400,7 +400,7 @@ describeSuite({
               data: encodeFunctionData({
                 abi,
                 functionName: "proxy",
-                args: [ALITH_ADDRESS, randomAccount, []],
+                args: [ALITH_ADDRESS, randomAccount, "0x00"],
               }),
             })
         ).rejects.toThrowError("Not proxy");
@@ -429,7 +429,7 @@ describeSuite({
           data: encodeFunctionData({
             abi,
             functionName: "proxy",
-            args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+            args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
           }),
         });
         const { result: result2 } = await context.createBlock(rawTxn2);
@@ -444,7 +444,7 @@ describeSuite({
               data: encodeFunctionData({
                 abi,
                 functionName: "proxy",
-                args: [ALITH_ADDRESS, CHARLETH_ADDRESS, []],
+                args: [ALITH_ADDRESS, CHARLETH_ADDRESS, "0x00"],
               }),
             })
         ).rejects.toThrowError("Unannounced");
@@ -479,7 +479,7 @@ describeSuite({
           data: encodeFunctionData({
             abi,
             functionName: "proxy",
-            args: [ALITH_ADDRESS, randomAccount, []],
+            args: [ALITH_ADDRESS, randomAccount, "0x00"],
           }),
         });
         const { result: result2 } = await context.createBlock(rawTxn2);
@@ -537,7 +537,7 @@ describeSuite({
         const { gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result2!.hash as `0x${string}` });
-        expect(gasUsed).to.equal(33997n);
+        expect(gasUsed).to.equal(34885n);
 
         expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
 

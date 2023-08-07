@@ -15,9 +15,9 @@ describeSuite({
           await context.readPrecompile!({
             precompileName: "RelayEncoder",
             functionName: "encodeBond",
-            args: [ALITH_SESSION_ADDRESS, 100, "0x02"],
+            args: [100, "0x02"],
           })
-        ).toBe("0x060000d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d910102");
+        ).toBe("0x0600910102");
       },
     });
 
@@ -131,9 +131,9 @@ describeSuite({
           await context.readPrecompile!({
             precompileName: "RelayEncoder",
             functionName: "encodeSetController",
-            args: [ALITH_SESSION_ADDRESS],
+            args: [],
           })
-        ).to.equal("0x060800d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d");
+        ).to.equal("0x0608");
       },
     });
 

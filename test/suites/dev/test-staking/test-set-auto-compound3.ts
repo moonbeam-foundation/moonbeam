@@ -29,9 +29,7 @@ describeSuite({
                 .tx.parachainStaking.setAutoCompound(alith.address, 101, 0, 1)
                 .signAsync(ethan)
             )
-        ).rejects.toThrowError(
-          "1002: Verification Error: Runtime error: Execution failed: Execution aborted due to trap"
-        );
+        ).rejects.toThrowError("Value is greater than allowed maximum!");
       },
     });
   },
