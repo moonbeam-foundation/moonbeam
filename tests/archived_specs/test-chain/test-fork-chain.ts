@@ -3,7 +3,10 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 
 import { baltathar } from "../../../util/accounts";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+} from "../../../util/setup-dev-tests";
 import { createTransfer } from "../../../util/transactions";
 
 describeDevMoonbeam("Chain - Fork", (context) => {

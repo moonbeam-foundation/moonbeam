@@ -25,7 +25,10 @@ import {
 import { registerLocalAssetWithMeta } from "../../../util/assets";
 import { getCompiled } from "../../../util/contracts";
 import { customWeb3Request } from "../../../util/providers";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+} from "../../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,

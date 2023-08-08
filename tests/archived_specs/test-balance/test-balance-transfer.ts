@@ -13,7 +13,10 @@ import {
 } from "../../../util/accounts";
 import { verifyLatestBlockFees } from "../../../util/block";
 import { customWeb3Request } from "../../../util/providers";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../../util/setup-dev-tests";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+} from "../../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createTransaction,
