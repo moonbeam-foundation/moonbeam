@@ -82,6 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -231,6 +232,7 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
+		RemovedCall,
 	}
 
 	#[pallet::event]
@@ -1220,14 +1222,26 @@ pub mod pallet {
 			)
 		}
 
-		/// RESERVED
-		/// #[pallet::call_index(19)]
+		/// REMOVED, was schedule_leave_delegators
+		#[pallet::call_index(19)]
+		#[pallet::weight(100_000)]
+		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
+		}
 
-		/// RESERVED
-		/// #[pallet::call_index(20)]
+		/// REMOVED, was execute_leave_delegators
+		#[pallet::call_index(20)]
+		#[pallet::weight(100_000)]
+		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
+		}
 
-		/// RESERVED
-		/// #[pallet::call_index(21)]
+		/// REMOVED, was cancel_leave_delegators
+		#[pallet::call_index(21)]
+		#[pallet::weight(100_000)]
+		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
+		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
