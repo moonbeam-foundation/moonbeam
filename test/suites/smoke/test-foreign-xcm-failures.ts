@@ -57,7 +57,7 @@ describeSuite({
         return { ...chain, endpoints };
       });
 
-      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil }) => {
+      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
         let blockEvents: BlockEventsRecord[];
 
         if (mutedUntil >= new Date().getTime()) {

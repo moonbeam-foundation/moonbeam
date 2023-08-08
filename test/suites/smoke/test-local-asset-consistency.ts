@@ -11,8 +11,8 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise">;
-    let localAssetDeposits: StorageKey<[u128]>[] = null;
-    let localAssetInfo: StorageKey<[u128]>[] = null;
+    let localAssetDeposits: StorageKey<[u128]>[];
+    let localAssetInfo: StorageKey<[u128]>[];
     let localAssetCounter: number = 0;
 
     beforeAll(async function () {
@@ -86,7 +86,7 @@ describeSuite({
         log(
           `Verified ${
             Object.keys(localAssetInfo).length
-          } total loacl assetIds (at #${atBlockNumber})`
+          } total local assetIds (at #${atBlockNumber})`
         );
       },
     });

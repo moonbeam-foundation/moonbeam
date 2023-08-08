@@ -106,6 +106,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.4.8
     version: 20.4.8
+  '@types/semver':
+    specifier: ^7.5.0
+    version: 7.5.0
   bottleneck:
     specifier: ^2.19.5
     version: 2.19.5
@@ -121,6 +124,9 @@ devDependencies:
   prettier:
     specifier: ^2.8.8
     version: 2.8.8
+  tsx:
+    specifier: ^3.12.7
+    version: 3.12.7
   typescript:
     specifier: ^5.1.6
     version: 5.1.6
@@ -3294,6 +3300,10 @@ packages:
     dependencies:
       '@types/node': 20.4.8
     dev: false
+
+  /@types/semver@7.5.0:
+    resolution: {integrity: sha512-G8hZ6XJiHnuhQKR7ZmysCeJWE08o8T0AXtk5darsCaTVsYZhhgUrq53jizaR2FvsoeCwJhlmwTjkXBY5Pn/ZHw==}
+    dev: true
 
   /@types/uuid@9.0.2:
     resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}

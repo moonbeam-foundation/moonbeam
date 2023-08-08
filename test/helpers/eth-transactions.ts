@@ -72,3 +72,9 @@ export function expectEVMResult<T extends Errors, Type extends keyof T>(
       ).to.equal(reason);
   }
 }
+
+export async function getTransactionFees(context: DevModeContext, hash: string): Promise<bigint> {
+  const receipt = await context.viem().getTransactionReceipt({ hash: hash as `0x${string}` });
+
+  return receipt.gasUsed * receipt.effectiveGasPrice;
+}

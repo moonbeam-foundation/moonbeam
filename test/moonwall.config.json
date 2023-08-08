@@ -55,9 +55,27 @@
           "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moondev.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -82,9 +100,27 @@
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+          "endpoints": ["wss://wss.moonriver.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -109,9 +145,27 @@
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -137,9 +191,28 @@
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "description": "Just a test method",
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
