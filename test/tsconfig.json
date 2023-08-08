@@ -1,32 +1,40 @@
 {
   "compilerOptions": {
     "types": ["node", "bun-types"],
-    "module": "ES2022",
-    "target": "ES2020",
-    "outDir": "build",
-    "baseUrl": "./",
-    "moduleResolution": "nodenext",
-    "importHelpers": true,
-    "skipLibCheck": true,
+
+    // enable latest features
+    "lib": ["esnext"],
+    "module": "esnext",
+    "target": "esnext",
+
+
+    "moduleResolution": "bundler",
     "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+
+    "baseUrl": "./",
+    "importHelpers": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+
+    // best practices
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "skipLibCheck": true
+
     // "paths": {
     //   "@helpers/xcm": ["helpers/xcm.js"],
     //   "@helpers/block": ["helpers/block.js"],
     //   "@helpers/common": ["helpers/common.js"],
     //   "@helpers/assets": ["helpers/assets.js"],
     //   "@helpers/expect": ["helpers/expect.js"],
-    // }  // Sadly this isn't supported by vitest yet
+    // }  // We can enable this if we commit to using bun.js
   },
-  // "typeRoots": ["node_modules/@types"],
   "include": [
-    "*suites/**/*.ts",
-    "suites/dev/test-randomness/test-randomness-vrf-lottery5.ts"
+    "*suites/**/*.ts"
   ],
   "exclude": ["node_modules/"]
 }

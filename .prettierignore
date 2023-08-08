@@ -33,5 +33,6 @@ tests/util/tracer/blockscout_tracer*
 /typescript-api/
 
 # Temporary Moonwall files
-contracts/out
-tmp
+**/contracts/out
+**/tmp/
+**/html/

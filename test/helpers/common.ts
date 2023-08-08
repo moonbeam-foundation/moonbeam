@@ -1,18 +1,9 @@
+import { DevModeContext, importJsonConfig } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { u32 } from "@polkadot/types";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
-import {
-  createMetadata,
-  getSpecTypes,
-  KeyringPair,
-  OptionsWithMeta,
-  TypeRegistry,
-} from "@substrate/txwrapper-core";
+import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
-import { DevModeContext, importJsonConfig, MoonwallContext } from "@moonwall/cli";
-import { ethers, Signer } from "ethers";
-import fetch from "node-fetch";
-import { Chain } from "viem";
 
 export function rateLimiter() {
   const settings =
