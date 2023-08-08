@@ -13,7 +13,7 @@ import { parseEther } from "ethers";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2703",
+  id: "D3410",
   title: "Mock XCM - Send two local ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

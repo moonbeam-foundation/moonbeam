@@ -16,7 +16,7 @@ import { parseEther } from "ethers";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2702",
+  id: "D3409",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -84,7 +84,7 @@ describeSuite({
                     {
                       AccountKey20: {
                         network: "Any",
-                        key: stringToU8a(erc20ContractAddress),
+                        key: erc20ContractAddress,
                       },
                     },
                   ],
@@ -101,8 +101,8 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset(2n)
-          .as_v2();
+          .deposit_asset_v3(2n)
+          .as_v3();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
@@ -191,7 +191,7 @@ describeSuite({
                     {
                       AccountKey20: {
                         network: "Any",
-                        key: stringToU8a(erc20ContractAddress),
+                        key: erc20ContractAddress,
                       },
                     },
                   ],
@@ -209,7 +209,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .as_v2();
+          .as_v3();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
@@ -244,8 +244,8 @@ describeSuite({
         const xcmMessageToClaimAssets = new XcmFragment(claimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset()
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v3();
 
         const balanceBefore = (
           await polkadotJs.query.system.account(paraSovereign)
@@ -298,7 +298,7 @@ describeSuite({
                     {
                       AccountKey20: {
                         network: "Any",
-                        key: stringToU8a(erc20ContractAddress),
+                        key: erc20ContractAddress,
                       },
                     },
                   ],
@@ -314,8 +314,8 @@ describeSuite({
         const xcmMessageFailedClaim = new XcmFragment(failedClaimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset()
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
