@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
-import { chunk } from "../../../../tests/util/common.js";
+import { chunk } from "../../../helpers/common.js";
 import { countExtrinsics, createAccounts } from "../../../helpers/weights.js";
 import { jumpRounds } from "../../../helpers/block.js";
 

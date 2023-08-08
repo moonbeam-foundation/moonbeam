@@ -10,7 +10,7 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { chunk } from "../../../../tests/util/common.js";
+import { chunk } from "../../../helpers/common.js";
 
 describeSuite({
   id: "D2974",

@@ -5,12 +5,23 @@ import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
 import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
 
-export function rateLimiter() {
-  const settings =
-    process.env.SKIP_RATE_LIMITER === "true" ? {} : { maxConcurrent: 10, minTime: 150 };
-  return new Bottleneck(settings);
+export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+
+  return chunks;
 }
 
+export function rateLimiter(options?: Bottleneck.ConstructorOptions) {
+  const settings =
+    process.env.SKIP_RATE_LIMITER === "true"
+      ? {}
+      : { maxConcurrent: 10, minTime: 50, ...(options || {}) };
+
+  return new Bottleneck(settings);
+}
 export async function checkTimeSliceForUpgrades(
   api: ApiPromise,
   blockNumbers: number[],

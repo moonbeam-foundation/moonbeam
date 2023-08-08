@@ -9,7 +9,7 @@ import {
   generateKeyringPair,
 } from "@moonwall/util";
 import { fromBytes } from "viem";
-import { chunk } from "../../../../tests/util/common.js";
+import { chunk } from "../../../helpers/common.js";
 
 describeSuite({
   id: "D2986",
