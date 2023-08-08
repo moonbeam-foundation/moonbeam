@@ -29,6 +29,7 @@ use frame_support::{
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;
+use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{Decode, Get, H160, H256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::{boxed::Box, vec::Vec};

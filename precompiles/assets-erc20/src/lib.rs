@@ -31,6 +31,7 @@ use frame_support::{
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
+use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_runtime::traits::{Bounded, Dispatchable};
 use sp_std::vec::Vec;
 

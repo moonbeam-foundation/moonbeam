@@ -27,6 +27,7 @@ use pallet_conviction_voting::{
 };
 use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
+use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{Get, MaxEncodedLen, H160, H256, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
 use sp_std::marker::PhantomData;

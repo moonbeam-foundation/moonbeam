@@ -1,0 +1,18 @@
+[package]
+name = "precompile-utils-common"
+authors = { workspace = true }
+description = "Precompile common logic"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+precompile-utils = { workspace = true }
+sp-core = { workspace = true }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true }
+
+[dev-dependencies]
+
+[features]
+default = ["std"]
+std = ["precompile-utils/std", "sp-core/std", "fp-evm/std", "pallet-evm/std"]

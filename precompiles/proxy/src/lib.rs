@@ -25,6 +25,7 @@ use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::precompile_set::{self, AddressType, SelectorFilter};
 use precompile_utils::prelude::*;
+use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,
@@ -33,7 +34,7 @@ use sp_runtime::{
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
-mod mock;
+pub mod mock;
 #[cfg(test)]
 mod tests;
 

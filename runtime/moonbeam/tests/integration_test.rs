@@ -1933,7 +1933,7 @@ fn xtokens_precompile_transfer() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address.into()),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -1985,7 +1985,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						// We want to transfer the relay token
 						asset: Location::parent(),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination,
 						weight: 4_000_000,
 					},
 				)

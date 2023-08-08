@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,17 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use core::marker::PhantomData;
-
-pub struct Precompile<R>(PhantomData<R>);
-
-#[precompile_utils_macro::precompile]
-#[precompile::precompile_set]
-impl<R> Precompile<R> {
-	#[precompile::public("foo()")]
-	fn foo(_discriminant: u32, _handle: u32) {
-		todo!()
-	}
-}
-
-fn main() { }
+/// System account size in bytes = Pallet_Name_Hash (16) + Storage_name_hash (16) +
+/// Blake2_128Concat (16) + AccountId (20) + AccountInfo (4 + 12 + AccountData (4* 16)) = 148
+pub const SYSTEM_ACCOUNT_SIZE: u64 = 148;

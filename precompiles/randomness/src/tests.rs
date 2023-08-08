@@ -290,6 +290,7 @@ fn request_babe_randomness_works() {
 					},
 				)
 				.execute_returns(U256::zero());
+			use ::pallet_evm_precompile_randomness::mock;
 			assert_event_emitted!(RuntimeEvent::Randomness(
 				RandomnessEvent::RandomnessRequestedBabeEpoch {
 					id: 0,

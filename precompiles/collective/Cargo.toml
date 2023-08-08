@@ -13,22 +13,23 @@ slices = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true }
+precompile-utils-common = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-collective = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
-evm = { workspace = true, features = [ "with-codec" ] }
+evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -37,16 +38,16 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 similar-asserts = { workspace = true }
 
-pallet-balances = { workspace = true, features = [ "std" ] }
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-pallet-treasury = { workspace = true, features = [ "std" ] }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
-scale-info = { workspace = true, features = [ "derive", "std" ] }
-sp-runtime = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+pallet-treasury = { workspace = true, features = ["std"] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
+sp-runtime = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",

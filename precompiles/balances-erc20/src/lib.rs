@@ -32,6 +32,7 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
+use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
