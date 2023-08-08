@@ -13,6 +13,7 @@ rustc-hex = { workspace = true }
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
+precompile-utils-xcm-codec = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate

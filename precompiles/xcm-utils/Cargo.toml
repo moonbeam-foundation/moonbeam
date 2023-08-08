@@ -10,6 +10,7 @@ num_enum = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true }
+precompile-utils-xcm-codec = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate

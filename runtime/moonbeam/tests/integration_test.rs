@@ -2449,7 +2449,7 @@ fn xtokens_precompile_transfer() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address.into()),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
 				)
@@ -2499,9 +2499,9 @@ fn xtokens_precompile_transfer_multiasset() {
 					xtokens_precompile_address,
 					XtokensPCall::transfer_multiasset {
 						// We want to transfer the relay token
-						asset: MultiLocation::parent(),
+						asset: MultiLocation::parent().into(),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
 				)
@@ -2630,9 +2630,9 @@ fn transact_through_signed_precompile_works_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = MultiLocation::parent().into();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = MultiLocation::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -2670,9 +2670,9 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::here();
+			let dest = MultiLocation::here().into();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = MultiLocation::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -2851,7 +2851,7 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: MultiLocation::parent(),
+					multilocation: MultiLocation::parent().into(),
 				},
 			)
 			.expect_cost(1000)
@@ -2871,7 +2871,7 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: parachain_2000_multilocation,
+					multilocation: parachain_2000_multilocation.into(),
 				},
 			)
 			.expect_cost(1000)
@@ -2900,7 +2900,7 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: alice_in_parachain_2000_multilocation,
+					multilocation: alice_in_parachain_2000_multilocation.into(),
 				},
 			)
 			.expect_cost(1000)
@@ -2934,7 +2934,7 @@ fn test_xcm_utils_weight_message() {
 fn test_xcm_utils_get_units_per_second() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let multilocation = SelfReserve::get();
+		let multilocation = SelfReserve::get().into();
 
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 

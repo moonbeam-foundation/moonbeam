@@ -12,5 +12,5 @@ clap = "4.0.18"
 moonbase-runtime = { path = "../moonbase" }
 moonbeam-runtime = { path = "../moonbeam" }
 moonriver-runtime = { path = "../moonriver" }
-precompile-utils = { path = "../../precompiles/utils", features = [ "testing" ] }
+precompile-utils = { workspace = true, features = [ "testing" ] }
 serde_json = "1.0"

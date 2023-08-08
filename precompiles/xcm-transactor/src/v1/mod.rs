@@ -21,9 +21,9 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 
 use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use precompile_utils::prelude::*;
+use precompile_utils_xcm_codec::xcm::XCMMultiLocation;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData};
-use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -52,9 +52,9 @@ where
 	#[precompile::view]
 	fn transact_info(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: XCMMultiLocation,
 	) -> EvmResult<(u64, U256, u64)> {
-		XcmTransactorWrapper::<Runtime>::transact_info(handle, multilocation)
+		XcmTransactorWrapper::<Runtime>::transact_info(handle, multilocation.0)
 	}
 
 	#[precompile::public("transactInfoWithSigned((uint8,bytes[]))")]
@@ -62,9 +62,9 @@ where
 	#[precompile::view]
 	fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: XCMMultiLocation,
 	) -> EvmResult<(u64, u64, u64)> {
-		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, multilocation)
+		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, multilocation.0)
 	}
 
 	#[precompile::public("feePerSecond((uint8,bytes[]))")]
@@ -72,9 +72,9 @@ where
 	#[precompile::view]
 	fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: XCMMultiLocation,
 	) -> EvmResult<U256> {
-		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation)
+		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation.0)
 	}
 
 	#[precompile::public(
@@ -97,12 +97,17 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: XCMMultiLocation,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation(
-			handle, transactor, index, fee_asset, weight, inner_call,
+			handle,
+			transactor,
+			index,
+			fee_asset.0,
+			weight,
+			inner_call,
 		)
 	}
 
@@ -142,13 +147,17 @@ where
 	)]
 	fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: XCMMultiLocation,
+		fee_asset: XCMMultiLocation,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation(
-			handle, dest, fee_asset, weight, call,
+			handle,
+			dest.0,
+			fee_asset.0,
+			weight,
+			call,
 		)
 	}
 
@@ -156,13 +165,13 @@ where
 	#[precompile::public("transact_through_signed((uint8,bytes[]),address,uint64,bytes)")]
 	fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: XCMMultiLocation,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
 		XcmTransactorWrapper::<Runtime>::transact_through_signed(
-			handle, dest, fee_asset, weight, call,
+			handle, dest.0, fee_asset, weight, call,
 		)
 	}
 

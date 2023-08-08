@@ -25,9 +25,7 @@ members = [
 	"precompiles/proxy",
 	"precompiles/referenda",
 	"precompiles/relay-encoder",
-	"precompiles/utils",
-	"precompiles/utils/macro",
-	"precompiles/utils/tests-external",
+	"precompiles/utils/xcm-codec",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
 	"runtime/moonbase",
@@ -90,7 +88,7 @@ pallet-moonbeam-orbiters = { path = "pallets/moonbeam-orbiters", default-feature
 pallet-parachain-staking = { path = "pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
-precompile-utils = { path = "precompiles/utils", default-features = false }
+precompile-utils-xcm-codec = { path = "precompiles/utils/xcm-codec", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
@@ -247,6 +245,7 @@ fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch 
 fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
 fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
 fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
+precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 
 # Cumulus (wasm)
 cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/cumulus", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
@@ -311,7 +310,6 @@ session-keys-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", br
 nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v0.9.43" }
 
 # Other (wasm)
-affix = "0.1.2"
 async-trait = { version = "0.1.42" }
 blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99"

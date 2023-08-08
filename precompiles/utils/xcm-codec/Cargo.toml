@@ -1,0 +1,32 @@
+[package]
+name = "precompile-utils-xcm-codec"
+authors = { workspace = true }
+description = "Utils to use xcm codec."
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+precompile-utils = { workspace = true }
+# Polkadot / XCM (wasm)
+xcm = { workspace = true }
+
+# Substrate FRAME
+frame-support = { workspace = true }
+# Substrate Primitive
+sp-core = { workspace = true }
+sp-std = { workspace = true }
+
+[dev-dependencies]
+hex-literal = { workspace = true }
+pallet-evm = { workspace = true }
+
+
+[features]
+default = ["std"]
+std = [
+    "xcm/std",
+    "frame-support/std",
+    "sp-core/std",
+    "sp-std/std",
+    "pallet-evm/std",
+]

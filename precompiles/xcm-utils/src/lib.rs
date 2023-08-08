@@ -29,6 +29,7 @@ use pallet_evm::AddressMapping;
 use parity_scale_codec::{DecodeLimit, MaxEncodedLen};
 use precompile_utils::precompile_set::SelectorFilter;
 use precompile_utils::prelude::*;
+use precompile_utils_xcm_codec::xcm::XCMMultiLocation;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
@@ -104,18 +105,19 @@ where
 	#[precompile::view]
 	fn multilocation_to_address(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: XCMMultiLocation,
 	) -> EvmResult<Address> {
 		// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
 		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
 
-		let origin =
-			XcmConfig::OriginConverter::convert_origin(multilocation, OriginKind::SovereignAccount)
-				.map_err(|_| {
-					RevertReason::custom("Failed multilocation conversion")
-						.in_field("multilocation")
-				})?;
+		let origin = XcmConfig::OriginConverter::convert_origin(
+			multilocation.0,
+			OriginKind::SovereignAccount,
+		)
+		.map_err(|_| {
+			RevertReason::custom("Failed multilocation conversion").in_field("multilocation")
+		})?;
 
 		let account: H160 = origin
 			.as_signed()
@@ -130,7 +132,7 @@ where
 	#[precompile::view]
 	fn get_units_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: XCMMultiLocation,
 	) -> EvmResult<U256> {
 		// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
@@ -138,7 +140,7 @@ where
 
 		// We will construct an asset with the max amount, and check how much we
 		// get in return to substract
-		let multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
+		let multiasset: xcm::latest::MultiAsset = (multilocation.0.clone(), u128::MAX).into();
 		let weight_per_second = 1_000_000_000_000u64;
 
 		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();
@@ -224,7 +226,7 @@ where
 	#[precompile::public("xcmSend((uint8,bytes[]),bytes)")]
 	fn xcm_send(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: XCMMultiLocation,
 		message: BoundedBytes<GetXcmSizeLimit>,
 	) -> EvmResult {
 		let message: Vec<u8> = message.into();
@@ -239,7 +241,7 @@ where
 		.map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::send {
-			dest: Box::new(dest.into()),
+			dest: Box::new(dest.0.into()),
 			message: Box::new(xcm),
 		};
 

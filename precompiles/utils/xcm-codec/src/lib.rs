@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use core::marker::PhantomData;
+//! Solidity encoding following the
+//! [Contract ABI Specification](https://docs.soliditylang.org/en/v0.8.19/abi-spec.html#abi)
 
-pub struct Precompile<R>(PhantomData<R>);
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[precompile_utils_macro::precompile]
-#[precompile::precompile_set]
-impl<R> Precompile<R> {
-	#[precompile::public("foo()")]
-	fn foo(_discriminant: u32, _handle: u32) {
-		todo!()
-	}
-}
+extern crate alloc;
 
-fn main() { }
+pub mod xcm;
+
+#[cfg(test)]
+mod tests;
