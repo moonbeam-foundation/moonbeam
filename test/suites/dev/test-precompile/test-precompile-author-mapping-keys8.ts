@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
-import { setKeysThroughPrecompile } from "../../../helpers/precompiles.js";
+import { setAuthorMappingKeysViaPrecompile } from "../../../helpers/precompiles.js";
 
 describeSuite({
   id: "D2516",
@@ -12,7 +12,13 @@ describeSuite({
       id: "T01",
       title: "should revert",
       test: async function () {
-        await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, "0x", true);
+        await setAuthorMappingKeysViaPrecompile(
+          context,
+          FAITH_ADDRESS,
+          FAITH_PRIVATE_KEY,
+          "0x",
+          true
+        );
         const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
           context.polkadotJs(),
           await context.polkadotJs().rpc.chain.getBlockHash(),

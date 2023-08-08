@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS } from "@moonwall/util";
-// import { Receipt } from "eth-object";
+import { Receipt } from "eth-object";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import * as RLP from "rlp";
-import { encodeDeployData, toHex } from "viem";
+import { Log, encodeDeployData, toHex } from "viem";
 
 describeSuite({
   id: "D2802",
@@ -77,7 +77,7 @@ describeSuite({
     it({
       id: "T01",
       title: "Receipt root should match",
-      modifier: "skip",
+      // modifier: "skip",
       test: async function () {
         const block = await context.viem().getBlock({ blockNumber: 1n });
         let receipts = [];
@@ -100,7 +100,7 @@ describeSuite({
         const tree = new Trie();
         await Promise.all(
           receipts.map(async (siblingReceipt, index) => {
-            const innerReceipt = {
+            const innerReceipt: InnerReceipt = {
               logs: siblingReceipt.logs,
               // The MPT js library expects `status` to be a number, not the
               // web3 library `TransactionReceipt` boolean.
@@ -109,10 +109,11 @@ describeSuite({
               logsBloom: siblingReceipt.logsBloom,
               type: convertTxnType(siblingReceipt.type as any),
             };
-            let siblingPath = RLP.encode(index);
-            let serializedReceipt = Receipt.fromRpc(innerReceipt);
-            serializedReceipt = serializedReceipt.serialize();
-            return await tree.put(siblingPath, serializedReceipt);
+
+            // const serializedReceipt2 = serializeReceipt(innerReceipt); // This isn't working yet
+            const siblingPath = RLP.encode(index);
+            const serializedReceipt = Receipt.fromRpc(innerReceipt).serialize();
+            return await tree.put(Buffer.from(siblingPath), serializedReceipt);
           })
         );
         // Onchain receipt root == Offchain receipt root
@@ -121,6 +122,30 @@ describeSuite({
     });
   },
 });
+
+interface InnerReceipt {
+  logs: Log<bigint, number>[];
+  status: string;
+  cumulativeGasUsed: `0x${string}`;
+  logsBloom: `0x${string}`;
+  type: string;
+}
+
+// This is incomplete
+function serializeReceipt(input: InnerReceipt) {
+  const logs = input.logs.map((item) => {
+    const topics = item.topics.map((topic) => Buffer.from(topic));
+    return [Buffer.from(item.address), topics, Buffer.from(item.data)];
+  });
+
+  const receipt = [
+    Buffer.from(input.status),
+    Buffer.from(input.cumulativeGasUsed),
+    Buffer.from(input.logsBloom),
+    logs,
+  ];
+  return RLP.encode(receipt);
+}
 
 function convertTxnType(txnType: "legacy" | "eip2930" | "eip1559") {
   switch (txnType) {

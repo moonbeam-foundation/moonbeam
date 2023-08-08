@@ -24,7 +24,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
 
         expectEVMResult(result.result!.events, "Revert", "Reverted");
-        const revertReason = await extractRevertReason(result.result!.hash, context.ethers());
+        const revertReason = await extractRevertReason(context, result.result!.hash);
         expect(revertReason).to.contain("GMP Precompile is not enabled");
       },
     });

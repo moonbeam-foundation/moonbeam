@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { MAX_ETH_POV_PER_TX, createEthersTransaction } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../helpers/povTests.js";
+import { HeavyContract, deployHeavyContracts } from "../../../helpers/contracts.js";
 
 describeSuite({
   id: "D2402",

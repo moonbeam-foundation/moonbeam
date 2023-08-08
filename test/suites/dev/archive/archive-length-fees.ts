@@ -1,12 +1,3 @@
-// import "@moonbeam-network/api-augment";
-
-// import { expect } from "chai";
-
-// import { customWeb3Request } from "../../util/providers";
-// import { alith, ALITH_PRIVATE_KEY, baltathar, generateKeyringPair } from "../../util/accounts";
-// import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-// import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
-
 // TODO: Split these out into moonriver/moonbeam specific suites
 
 // describeDevMoonbeam(

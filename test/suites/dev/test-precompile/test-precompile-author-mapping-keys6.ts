@@ -1,11 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  DevModeContext,
-  beforeAll,
-  describeSuite,
-  expect,
-  fetchCompiledContract,
-} from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
@@ -15,14 +9,8 @@ import {
   createViemTransaction,
   getBlockExtrinsic,
 } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
-import { sendPrecompileTx } from "../../../helpers/transactions.js";
-import { originalKeys, setKeysThroughPrecompile } from "../../../helpers/precompiles.js";
-
-const SELECTORS = {
-  set_keys: "bcb24ddc",
-  remove_keys: "3b6c4284",
-};
+import { encodeFunctionData } from "viem";
+import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../helpers/precompiles.js";
 
 describeSuite({
   id: "D2514",
@@ -32,7 +20,12 @@ describeSuite({
     const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
     beforeAll(async function () {
-      await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);
+      await setAuthorMappingKeysViaPrecompile(
+        context,
+        FAITH_ADDRESS,
+        FAITH_PRIVATE_KEY,
+        concatOriginalKeys
+      );
     });
 
     it({
@@ -123,7 +116,7 @@ describeSuite({
 
 // describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context) => {
 //   it("should fail", async function () {
-//     await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, originalKeys[0]);
+//     await setAuthorMappingKeysViaPrecompile(context, faith.address, FAITH_PRIVATE_KEY, originalKeys[0]);
 //     const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
 //       context.polkadotJs(),
 //       await context.polkadotJs().rpc.chain.getBlockHash(),
@@ -142,7 +135,7 @@ describeSuite({
 
 // describeDevMoonbeam("Precompile Author Mapping - Set Faith mapping with 0 keys", (context) => {
 //   it("should fail", async function () {
-//     await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, "0x");
+//     await setAuthorMappingKeysViaPrecompile(context, faith.address, FAITH_PRIVATE_KEY, "0x");
 //     const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
 //       context.polkadotJs(),
 //       await context.polkadotJs().rpc.chain.getBlockHash(),

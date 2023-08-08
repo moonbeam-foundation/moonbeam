@@ -45,7 +45,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Revert");
 
-        const revertReason = await extractRevertReason(result!.hash, context.ethers() as any);
+        const revertReason = await extractRevertReason(context, result!.hash);
         // Full error expected:
         // Module(ModuleError { index: 39, error: [7, 0, 0, 0],
         // message: Some("RequestCannotYetBeFulfilled") })

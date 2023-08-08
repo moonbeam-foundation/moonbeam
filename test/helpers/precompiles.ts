@@ -14,7 +14,7 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 import { encodeFunctionData, parseEther } from "viem";
 import { expectEVMResult } from "./eth-transactions.js";
 
-export const setKeysThroughPrecompile = async (
+export const setAuthorMappingKeysViaPrecompile = async (
   context: DevModeContext,
   account: string,
   privateKey: `0x${string}`,

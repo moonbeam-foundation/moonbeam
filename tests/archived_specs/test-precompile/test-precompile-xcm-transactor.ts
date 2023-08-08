@@ -365,8 +365,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       data,
     });
 
-    console.log(rawTxn);
-
     await context.createBlock(rawTxn);
 
     // 1000 fee for the relay is paid with relay assets

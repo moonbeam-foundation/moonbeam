@@ -6,7 +6,7 @@ import {
   concatOriginalKeys,
   newKeys,
   originalKeys,
-  setKeysThroughPrecompile,
+  setAuthorMappingKeysViaPrecompile,
 } from "../../../helpers/precompiles.js";
 
 describeSuite({
@@ -15,9 +15,19 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async function () {
-      await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);
+      await setAuthorMappingKeysViaPrecompile(
+        context,
+        FAITH_ADDRESS,
+        FAITH_PRIVATE_KEY,
+        concatOriginalKeys
+      );
       // Updating with different keys
-      await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatNewKeys);
+      await setAuthorMappingKeysViaPrecompile(
+        context,
+        FAITH_ADDRESS,
+        FAITH_PRIVATE_KEY,
+        concatNewKeys
+      );
     });
 
     it({

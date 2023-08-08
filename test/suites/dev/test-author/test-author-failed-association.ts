@@ -3,9 +3,9 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_SESSION_ADDRESS,
-  baltathar,
   BALTATHAR_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
+  baltathar,
 } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../helpers/common.js";
@@ -36,8 +36,8 @@ describeSuite({
         ).partialFee.toBigInt();
 
         const { result } = await context.createBlock(
-          api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS),
-          { allowFailures: true, signer: baltathar }
+          api.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS).signAsync(baltathar),
+          { allowFailures: true }
         );
 
         // should check events for failure
@@ -68,8 +68,10 @@ describeSuite({
           api.tx.authorMapping.addAssociation(CHARLETH_SESSION_ADDRESS).signAsync(baltathar)
         );
         const { result } = await context.createBlock(
-          api.tx.authorMapping.updateAssociation(CHARLETH_SESSION_ADDRESS, ALITH_SESSION_ADDRESS),
-          { allowFailures: true, signer: baltathar }
+          api.tx.authorMapping
+            .updateAssociation(CHARLETH_SESSION_ADDRESS, ALITH_SESSION_ADDRESS)
+            .signAsync(baltathar),
+          { allowFailures: true }
         );
 
         expect(result!.error!.name).to.equal("AlreadyAssociated");

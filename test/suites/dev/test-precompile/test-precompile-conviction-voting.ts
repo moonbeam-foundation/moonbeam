@@ -155,7 +155,7 @@ describeSuite({
         );
 
         expectEVMResult(block.result!.events, "Revert", "Reverted");
-        const revertReason = await extractRevertReason(block.result!.hash, context.ethers());
+        const revertReason = await extractRevertReason(context, block.result!.hash);
         expect(revertReason).toContain("NotOngoing");
       },
     });
@@ -176,7 +176,7 @@ describeSuite({
           })
         );
         expectEVMResult(block.result!.events, "Revert", "Reverted");
-        const revertReason = await extractRevertReason(block.result!.hash, context.ethers());
+        const revertReason = await extractRevertReason(context, block.result!.hash);
         expect(revertReason).to.contain("Must be an integer between 0 and 6 included");
       },
     });

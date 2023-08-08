@@ -58,9 +58,7 @@ describeSuite({
         });
         const block = await context.createBlock(rawTxn);
         expectEVMResult(block.result!.events, "Revert", "Reverted");
-        expect(await extractRevertReason(block.result!.hash, context.ethers())).to.contain(
-          "ClassNeeded"
-        );
+        expect(await extractRevertReason(context, block.result!.hash)).to.contain("ClassNeeded");
       },
     });
 

@@ -1,14 +1,14 @@
 import "@moonbeam-network/api-augment";
+import { DevModeContext, expect } from "@moonwall/cli";
 import { EventRecord } from "@polkadot/types/interfaces";
 import {
-  EvmCoreErrorExitReason,
-  EvmCoreErrorExitSucceed,
   EvmCoreErrorExitError,
-  EvmCoreErrorExitRevert,
   EvmCoreErrorExitFatal,
+  EvmCoreErrorExitReason,
+  EvmCoreErrorExitRevert,
+  EvmCoreErrorExitSucceed,
 } from "@polkadot/types/lookup";
-import { Provider, Signer } from "ethers";
-import { expect } from "@moonwall/cli";
+import { Signer } from "ethers";
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
   Error: EvmCoreErrorExitError["type"];
@@ -16,10 +16,10 @@ export type Errors = {
   Fatal: EvmCoreErrorExitFatal["type"];
 };
 
-export async function extractRevertReason(responseHash: string, ethers: Signer) {
-  const tx = (await ethers.provider!.getTransaction(responseHash))!;
+export async function extractRevertReason(context: DevModeContext, responseHash: string) {
+  const tx = (await context.ethers().provider!.getTransaction(responseHash))!;
   try {
-    await ethers.call({ to: tx.to, data: tx.data, gasLimit: tx.gasLimit });
+    await context.ethers().call({ to: tx.to, data: tx.data, gasLimit: tx.gasLimit });
     return null;
   } catch (e: any) {
     const errorMessage = e.info.error.message;

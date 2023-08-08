@@ -32,7 +32,7 @@ describeSuite({
         expect(result!.successful).to.be.true;
         expectEVMResult(result!.events, "Revert");
 
-        const revertReason = await extractRevertReason(result!.hash, context.ethers() as any);
+        const revertReason = await extractRevertReason(context, result!.hash);
         // Full error expected:
         // Error in pallet_randomness: Module(ModuleError { index: 39, error: [5, 0, 0, 0],
         // message: Some("CannotRequestRandomnessBeforeMinDelay") })
@@ -66,7 +66,7 @@ describeSuite({
         expect(result!.successful).to.be.true;
         expectEVMResult(result!.events, "Revert");
 
-        const revertReason = await extractRevertReason(result!.hash, context.ethers() as any);
+        const revertReason = await extractRevertReason(context, result!.hash);
         // Full error expected:
         // Error in pallet_randomness: Module(ModuleError { index: 39, error: [4, 0, 0, 0],
         // message: Some("CannotRequestRandomnessAfterMaxDelay") })
@@ -93,7 +93,7 @@ describeSuite({
 
         expect(result!.successful).to.be.true;
         expectEVMResult(result!.events, "Revert");
-        const revertReason = await extractRevertReason(result!.hash, context.ethers() as any);
+        const revertReason = await extractRevertReason(context, result!.hash);
         // Full error expected:
         // Error in pallet_randomness: Module(ModuleError { index: 39, error: [2, 0, 0, 0],
         // message: Some("MustRequestAtLeastOneWord") })
@@ -120,7 +120,7 @@ describeSuite({
 
         expect(result!.successful).to.be.true;
         expectEVMResult(result!.events, "Revert");
-        const revertReason = await extractRevertReason(result!.hash, context.ethers() as any);
+        const revertReason = await extractRevertReason(context, result!.hash);
         // Full error expected:
         // Error in pallet_randomness: Module(ModuleError { index: 39, error: [3, 0, 0, 0],
         // message: Some("CannotRequestMoreWordsThanMax") })

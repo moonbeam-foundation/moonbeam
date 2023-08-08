@@ -4,7 +4,7 @@ import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/u
 import {
   concatOriginalKeys,
   originalKeys,
-  setKeysThroughPrecompile,
+  setAuthorMappingKeysViaPrecompile,
 } from "../../../helpers/precompiles.js";
 
 describeSuite({
@@ -14,7 +14,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     beforeAll(async function () {
       log(`Setting account ${FAITH_ADDRESS} keys: ${concatOriginalKeys}`);
-      await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);
+      await setAuthorMappingKeysViaPrecompile(
+        context,
+        FAITH_ADDRESS,
+        FAITH_PRIVATE_KEY,
+        concatOriginalKeys
+      );
     });
 
     it({

@@ -9,7 +9,7 @@ import {
 import {
   concatOriginalKeys,
   originalKeys,
-  setKeysThroughPrecompile,
+  setAuthorMappingKeysViaPrecompile,
 } from "../../../helpers/precompiles.js";
 import { sendPrecompileTx } from "../../../helpers/transactions.js";
 
@@ -24,8 +24,14 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async function () {
-      await setKeysThroughPrecompile(context, FAITH_ADDRESS, FAITH_PRIVATE_KEY, concatOriginalKeys);
+      await setAuthorMappingKeysViaPrecompile(
+        context,
+        FAITH_ADDRESS,
+        FAITH_PRIVATE_KEY,
+        concatOriginalKeys
+      );
       // Remove the keys
+
       await sendPrecompileTx(
         context,
         PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
