@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { KeyringPair, alith } from "@moonwall/util";
 import { createAccounts } from "../../../helpers/accounts.js";
-import { chunk } from "../../../../tests/util/common.js";
+import { chunk } from "../../../helpers/common.js";
 import { expectSubstrateEvents } from "../../../helpers/expect.js";
 
 describeSuite({
