@@ -116,7 +116,8 @@ describeSuite({
 
 // describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context) => {
 //   it("should fail", async function () {
-//     await setAuthorMappingKeysViaPrecompile(context, faith.address, FAITH_PRIVATE_KEY, originalKeys[0]);
+//     await setAuthorMappingKeysViaPrecompile(context, faith.address, FAITH_PRIVATE_KEY,
+// originalKeys[0]);
 //     const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
 //       context.polkadotJs(),
 //       await context.polkadotJs().rpc.chain.getBlockHash(),
