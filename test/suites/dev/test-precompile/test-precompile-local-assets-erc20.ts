@@ -11,7 +11,7 @@ import {
   baltathar,
 } from "@moonwall/util";
 import { u8aToString } from "@polkadot/util";
-import { fromHex, getAddress, keccak256, toBytes } from "viem";
+import { getAddress, keccak256, toBytes } from "viem";
 import { registerLocalAssetWithMeta } from "../../../helpers/assets.js";
 
 describeSuite({
@@ -21,7 +21,6 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let assetAddress: string;
     let assetId: string;
-    // let localAssetAbi: Abi;
     let localAssetContractAddress: `0x${string}`;
 
     beforeEach(async () => {
@@ -54,7 +53,6 @@ describeSuite({
         "LocalAssetExtendedErc20Instance"
       );
       localAssetContractAddress = contractAddress;
-      // log(contractAddress);?
 
       await context.writeContract!({
         contractName: "LocalAssetExtendedErc20Instance",
