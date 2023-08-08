@@ -4,7 +4,11 @@ import { ApiPromise } from "@polkadot/api";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import {
+  EthereumReceiptReceiptV3,
+  FpRpcTransactionStatus,
+  FrameSystemEventRecord,
+} from "@polkadot/types/lookup";
 import { GenericExtrinsic } from "@polkadot/types";
 import { AnyTuple } from "@polkadot/types/types";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
@@ -16,8 +20,8 @@ type BlockFilteredRecord = {
   blockNum: number;
   extrinsics: GenericExtrinsic<AnyTuple>[];
   events: FrameSystemEventRecord[];
-  ethTxns;
-  receipts;
+  ethTxns: FpRpcTransactionStatus[];
+  receipts: EthereumReceiptReceiptV3[];
 };
 
 describeSuite({
@@ -27,6 +31,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let blockData: BlockFilteredRecord[];
     let paraApi: ApiPromise;
+    let skipAllTests = false;
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
@@ -52,9 +57,11 @@ describeSuite({
         blockNumArray,
         paraApi.consts.system.version.specVersion
       );
+
       if (result) {
         log(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
-        this.skip();
+        skipAllTests = true;
+        return;
       }
 
       blockData = await Promise.all(
@@ -69,6 +76,10 @@ describeSuite({
       title: `successful eth exts should always pays_fee: no`,
       timeout: 30000,
       test: function () {
+        if (skipAllTests) {
+          log(`Skipping test C100`);
+          return;
+        }
         const filteredEvents = blockData
           .map(({ blockNum, events }) => {
             const matchedEvents = events
@@ -82,7 +93,7 @@ describeSuite({
           .filter(({ matchedEvents }) => matchedEvents.length > 0);
 
         const isEthereumTxn = (blockNum: number, index: number) => {
-          const extrinsic = blockData.find((a) => a.blockNum === blockNum).extrinsics[index];
+          const extrinsic = blockData.find((a) => a.blockNum === blockNum)!.extrinsics[index];
           return (
             extrinsic.method.section.toString() === "ethereum" &&
             extrinsic.method.method.toString() === "transact"
@@ -122,6 +133,10 @@ describeSuite({
       title: `should have have ExtrinsicSuccess for all ethereum.transact`,
       timeout: TWO_MINS,
       test: function () {
+        if (skipAllTests) {
+          log(`Skipping test C200`);
+          return;
+        }
         log(
           `Checking ${blockData.reduce((curr, acc) => curr + acc.extrinsics.length, 0)}` +
             " eth extrinsics all have corresponding ExtrinsicSuccess events."
@@ -176,6 +191,10 @@ describeSuite({
       title: `should have matching amounts in emulated block as there are ethereum.executed events`,
       timeout: 30000,
       test: function () {
+        if (skipAllTests) {
+          log(`Skipping test C300`);
+          return;
+        }
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
             paraApi.events.ethereum.Executed.is(event)
@@ -206,6 +225,10 @@ describeSuite({
       title: `should have a receipt in emulated block for each ethereum.executed event`,
       timeout: 30000,
       test: function () {
+        if (skipAllTests) {
+          log(`Skipping test C400`);
+          return;
+        }
         const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
           const successes = events.filter(({ event }) =>
             paraApi.events.ethereum.Executed.is(event)

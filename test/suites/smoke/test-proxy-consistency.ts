@@ -12,7 +12,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
-    const proxyAccList = [];
+    const proxyAccList: string[] = [];
     const limiter = rateLimiter();
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise">;

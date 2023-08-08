@@ -58,7 +58,7 @@ describeSuite({
         ).reduce((acc, [key, value]) => {
           acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
           return acc;
-        }, {});
+        }, {} as any);
       }
     });
 

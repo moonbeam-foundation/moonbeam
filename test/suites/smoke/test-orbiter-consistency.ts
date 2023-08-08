@@ -21,12 +21,12 @@ describeSuite({
     let collatorsPools: [
       StorageKey<[AccountId20]>,
       Option<PalletMoonbeamOrbitersCollatorPoolInfo>
-    ][] = null;
-    let registeredOrbiters: [StorageKey<[AccountId20]>, Option<bool>][] = null;
-    let counterForCollatorsPool: u32 = null;
-    let currentRound: number = null;
-    let orbiterPerRound: [StorageKey<[u32, AccountId20]>, Option<AccountId20>][] = null;
-    let events: FrameSystemEventRecord[] = null;
+    ][];
+    let registeredOrbiters: [StorageKey<[AccountId20]>, Option<bool>][];
+    let counterForCollatorsPool: u32;
+    let currentRound: number;
+    let orbiterPerRound: [StorageKey<[u32, AccountId20]>, Option<AccountId20>][];
+    let events: FrameSystemEventRecord[];
     let specVersion: number = 0;
     let paraApi: ApiPromise;
 
