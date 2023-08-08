@@ -7601,15 +7601,6 @@ fn test_execute_leave_delegators_removes_auto_compounding_state() {
 				RuntimeOrigin::signed(2),
 				3,
 			));
-<<<<<<< HEAD
-=======
-
-			<DelegatorState<Test>>::mutate(2, |value| {
-				value.as_mut().map(|state| {
-					state.status = DelegatorStatus::Leaving(2);
-				})
-			});
->>>>>>> master
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
 				RuntimeOrigin::signed(2),
