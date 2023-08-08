@@ -83,10 +83,7 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
-			let call_gas_limit = match gas_limit {
-				Some(gas) => gas,
-				None => T::Erc20TransferGasLimit::get(),
-			};
+			let call_gas_limit = gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get);
 
 			let weight_limit: Weight = T::GasWeightMapping::gas_to_weight(call_gas_limit, true);
 
