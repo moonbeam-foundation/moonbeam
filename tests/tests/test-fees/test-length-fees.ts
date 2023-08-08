@@ -12,7 +12,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(77858601520875n);
+      expect(fee).to.equal(86737801520875n);
     });
   },
   "Legacy",
@@ -36,7 +36,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(94169501520875n);
+      expect(fee).to.equal(105268501520875n);
     });
   },
   "Legacy",
@@ -60,7 +60,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(7785860152087500n);
+      expect(fee).to.equal(8673780152087500n);
     });
   },
   "Legacy",

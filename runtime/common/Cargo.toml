@@ -19,6 +19,7 @@ pallet-author-mapping = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
+pallet-conviction-voting = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
@@ -74,7 +75,10 @@ std = [
 	"xcm-executor/std",
 	"xcm/std",
 ]
-runtime-benchmarks = [ "pallet-ethereum-xcm/runtime-benchmarks", "pallet-referenda/runtime-benchmarks" ]
+runtime-benchmarks = [
+	"pallet-ethereum-xcm/runtime-benchmarks",
+	"pallet-referenda/runtime-benchmarks",
+]
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",

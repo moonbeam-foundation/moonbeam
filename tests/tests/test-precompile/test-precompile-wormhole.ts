@@ -290,7 +290,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const result = await context.createBlock(
       createTransaction(context, {
         to: PRECOMPILE_GMP_ADDRESS,
-        gas: 500_000,
+        gas: 600_000,
         data,
       })
     );

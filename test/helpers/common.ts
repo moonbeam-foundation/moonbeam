@@ -51,9 +51,7 @@ export async function getMappingInfo(
   context: DevModeContext,
   authorId: string
 ): Promise<{ account: string; deposit: BigInt } | null> {
-  const mapping = await context
-    .polkadotJs({ type: "moon" })
-    .query.authorMapping.mappingWithDeposit(authorId);
+  const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
       account: mapping.unwrap().account.toString(),

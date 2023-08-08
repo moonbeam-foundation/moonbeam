@@ -24,6 +24,7 @@ use super::*;
 use crate::currency::*;
 use frame_support::traits::{EitherOf, MapSuccess};
 use frame_system::EnsureRootWithSuccess;
+use moonbeam_runtime_common::weights as moonbeam_weights;
 use sp_runtime::traits::Replace;
 
 parameter_types! {
@@ -31,13 +32,13 @@ parameter_types! {
 }
 
 impl pallet_conviction_voting::Config for Runtime {
-	type WeightInfo = pallet_conviction_voting::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_conviction_voting::SubstrateWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Polls = Referenda;
 	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
 	// Maximum number of concurrent votes an account may have
-	type MaxVotes = ConstU32<512>;
+	type MaxVotes = ConstU32<20>;
 	// Minimum period of vote locking
 	type VoteLockingPeriod = VoteLockingPeriod;
 }

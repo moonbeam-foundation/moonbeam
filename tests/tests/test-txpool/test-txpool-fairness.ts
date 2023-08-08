@@ -79,8 +79,11 @@ describeDevMoonbeam("Tip should be respected", (context) => {
 
     // here we query the weight of a substrate balance transfer
     const dummyTransfer = context.polkadotApi.tx.balances.transfer(alith.address, GLMR);
-    const info = await context.polkadotApi.rpc.payment.queryInfo(dummyTransfer.toHex());
-    const weight = info.weight.toBigInt();
+    const info = await context.polkadotApi.call.transactionPaymentApi.queryInfo(
+      dummyTransfer.toHex(),
+      dummyTransfer.encodedLength
+    );
+    const weight = info.weight.refTime.toBigInt();
     const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 
     // tx0 is an eth txn

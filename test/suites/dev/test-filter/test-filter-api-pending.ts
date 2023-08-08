@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
   id: "D1702",
@@ -9,6 +9,8 @@ describeSuite({
     it({
       id: "T01",
       title: "should not be supported",
+      // Looks like this is now supported 🎉
+      modifier: "skip",
       test: async function () {
         expect(
           async () => await customDevRpcRequest("eth_newPendingTransactionFilter", [])

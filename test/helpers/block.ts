@@ -44,7 +44,11 @@ const getBlockDetails = async (
   ]);
 
   const fees = await Promise.all(
-    block.extrinsics.map((ext) => api.rpc.payment.queryInfo(ext.toHex(), block.header.parentHash))
+    block.extrinsics.map(async (ext) =>
+      (
+        await api.at(block.header.parentHash)
+      ).call.transactionPaymentApi.queryInfo(ext.toHex(), ext.encodedLength)
+    )
   );
 
   const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
@@ -98,7 +102,6 @@ export const verifyBlockFees = async (
   // Get to block hash and totalSupply
   const toBlockHash = (await api.rpc.chain.getBlockHash(toBlockNumber)).toString();
   const toSupply = (await (await api.at(toBlockHash)).query.balances.totalIssuance()) as any;
-
   // fetch block information for all blocks in the range
   await exploreBlockRange(
     api,
@@ -122,6 +125,11 @@ export const verifyBlockFees = async (
             }
           });
         }
+
+        // Payment event is submitted for substrate transactions
+        let paymentEvent = events.find(
+          (event) => event.section == "transactionPayment" && event.method == "TransactionFeePaid"
+        );
 
         let txFees = 0n;
         let txBurnt = 0n;
@@ -207,10 +215,14 @@ export const verifyBlockFees = async (
                 ).toBigInt();
 
                 const unadjustedWeightFee = (
-                  (await apiAt.call.transactionPaymentApi.queryWeightToFee({
-                    refTime: fee.weight,
-                    proofSize: 0n,
-                  })) as any
+                  await apiAt.call.transactionPaymentApi.queryWeightToFee(
+                    "refTime" in fee.weight
+                      ? fee.weight
+                      : {
+                          refTime: fee.weight,
+                          proofSize: 0n,
+                        }
+                  )
                 ).toBigInt();
                 const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
                 const denominator = 1_000_000_000_000_000_000n;
@@ -226,6 +238,10 @@ export const verifyBlockFees = async (
                 const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
+                // Verify the computed fees are equal to the actual fees
+                expect(expectedPartialFee).to.eq((paymentEvent!.data[1] as u128).toBigInt());
+
+                // Verify the computed fees are equal to the rpc computed fees
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 
@@ -303,7 +319,7 @@ export const verifyLatestBlockFees = async (
   context: DevModeContext,
   expectedBalanceDiff: bigint = BigInt(0)
 ) => {
-  const signedBlock = await context.polkadotJs({ type: "moon" }).rpc.chain.getBlock();
+  const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
   return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff);
 };
@@ -312,7 +328,7 @@ export async function jumpToRound(context: DevModeContext, round: number): Promi
   let lastBlockHash = "";
   while (true) {
     const currentRound = (
-      await context.polkadotJs({ type: "moon" }).query.parachainStaking.round()
+      await context.polkadotJs().query.parachainStaking.round()
     ).current.toNumber();
     if (currentRound === round) {
       return lastBlockHash;
@@ -332,7 +348,7 @@ export async function jumpBlocks(context: DevModeContext, blockCount: number) {
 }
 
 export async function jumpRounds(context: DevModeContext, count: Number): Promise<string | null> {
-  const round = (await context.polkadotJs({ type: "moon" }).query.parachainStaking.round()).current
+  const round = (await context.polkadotJs().query.parachainStaking.round()).current
     .addn(count.valueOf())
     .toNumber();
 
@@ -372,7 +388,7 @@ export function extractPreimageDeposit(
   }
 
   return {
-    accountId: deposit.isEmpty ? "" : deposit[0].toHex(),
-    amount: deposit.isEmpty ? 0n : deposit[1],
+    accountId: deposit.isEmpty ? "" : (deposit as any)[0].toHex(),
+    amount: deposit.isEmpty ? 0n : (deposit as any)[1],
   };
 }

@@ -18,7 +18,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async () => {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
     });
 
     it({

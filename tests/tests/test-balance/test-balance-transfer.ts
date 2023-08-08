@@ -6,6 +6,7 @@ import Web3 from "web3";
 import {
   alith,
   ALITH_GENESIS_LOCK_BALANCE,
+  ALITH_GENESIS_RESERVE_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   baltathar,
   generateKeyringPair,
@@ -63,7 +64,9 @@ describeDevMoonbeam("Balance transfer", (context) => {
       (
         (
           await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
-        ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+        ).data.free.toBigInt() +
+        ALITH_GENESIS_RESERVE_BALANCE -
+        ALITH_GENESIS_LOCK_BALANCE
       ).toString()
     );
   });

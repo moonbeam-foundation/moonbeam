@@ -7294,11 +7294,11 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 }
 
 #[test]
-fn locking_zero_amount_is_ignored() {
+fn locking_zero_amount_removes_lock() {
 	use frame_support::traits::{LockableCurrency, WithdrawReasons};
 
 	// this test demonstrates the behavior of pallet Balance's `LockableCurrency` implementation of
-	// `set_locks()` when an amount of 0 is provided: it is a no-op
+	// `set_locks()` when an amount of 0 is provided: any previous lock is removed
 
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100)])
@@ -7313,11 +7313,8 @@ fn locking_zero_amount_is_ignored() {
 			);
 
 			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 0, WithdrawReasons::all());
-			// Note that we tried to call `set_lock(0)` and it ignored it, we still have our lock
-			assert_eq!(
-				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
-				Some(1)
-			);
+			// Note that we tried to call `set_lock(0)` and the previous lock gets removed
+			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
 		});
 }
 
@@ -7604,6 +7601,15 @@ fn test_execute_leave_delegators_removes_auto_compounding_state() {
 				RuntimeOrigin::signed(2),
 				3,
 			));
+<<<<<<< HEAD
+=======
+
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+>>>>>>> master
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
 				RuntimeOrigin::signed(2),

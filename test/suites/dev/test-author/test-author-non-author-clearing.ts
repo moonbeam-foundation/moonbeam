@@ -12,7 +12,7 @@ describeSuite({
       id: "T01",
       title: "should not succeed in clearing an association for a non-author",
       test: async function () {
-        const api = context.polkadotJs({ type: "moon" });
+        const api = context.polkadotJs();
         await context.createBlock(api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS));
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
           alith.address

@@ -953,7 +953,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       let alithFrozen = await context.polkadotApi.query.localAssets.account(assetId, alith.address);
 
-      expect(alithFrozen.unwrap().isFrozen.isTrue).to.be.true;
+      expect(alithFrozen.unwrap().status.isFrozen).to.be.true;
     });
   },
   true
@@ -1002,7 +1002,7 @@ describeDevMoonbeamAllEthTxTypes(
         alith.address
       );
 
-      expect(baltatharFrozen.unwrap().isFrozen.isFalse).to.be.true;
+      expect(baltatharFrozen.unwrap().status.isFrozen).to.be.false;
     });
   },
   true

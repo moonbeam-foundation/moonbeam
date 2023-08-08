@@ -6,7 +6,8 @@ import-storage:
   System:
     Account:
       - - - "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-        - data:
+        - providers: 1
+          data:
             free: "100000000000000000000000"
   TechCommitteeCollective:
     Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]

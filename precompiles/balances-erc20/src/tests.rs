@@ -280,7 +280,7 @@ fn transfer() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(163110756) // 1 weight => 1 gas in mock
+				.expect_cost(185308756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -319,7 +319,10 @@ fn transfer() {
 #[test]
 fn transfer_not_enough_funds() {
 	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000)])
+		.with_balances(vec![
+			(CryptoAlith.into(), 1000),
+			(CryptoBaltathar.into(), 1000),
+		])
 		.build()
 		.execute_with(|| {
 			precompiles()
@@ -335,7 +338,7 @@ fn transfer_not_enough_funds() {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("InsufficientBalance")
+						&& from_utf8(&output).unwrap().contains("FundsUnavailable")
 				});
 		});
 }
@@ -367,7 +370,7 @@ fn transfer_from() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(163110756) // 1 weight => 1 gas in mock
+				.expect_cost(185308756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -463,7 +466,7 @@ fn transfer_from_self() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(163110756) // 1 weight => 1 gas in mock
+				.expect_cost(185308756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,

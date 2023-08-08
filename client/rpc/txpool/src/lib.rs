@@ -181,3 +181,9 @@ where
 		})
 	}
 }
+
+impl<B: BlockT, C, A: ChainApi> Clone for TxPool<B, C, A> {
+	fn clone(&self) -> Self {
+		Self::new(self.client.clone(), self.graph.clone())
+	}
+}
