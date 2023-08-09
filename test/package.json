@@ -56,6 +56,7 @@
     "json-stable-stringify": "^1.0.2",
     "merkle-patricia-tree": "^4.2.4",
     "node-fetch": "^3.3.2",
+    "randomness": "^1.5.32",
     "rlp": "^3.0.0",
     "semver": "^7.5.4",
     "solc": "0.8.19",
