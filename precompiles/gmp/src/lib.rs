@@ -54,6 +54,7 @@ const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32;
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32;
 const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32;
 const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32;
+const TRANSFER_SELECTOR: u32 = 0xa9059cbb_u32;
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -194,6 +195,36 @@ where
 				dest: Box::new(action.destination),
 				dest_weight_limit: WeightLimit::Unlimited,
 			},
+			VersionedUserAction::V2(action) => {
+				// if the specified fee is more than the amount being transferred, we'll be nice to
+				// the sender and pay them the entire amount.
+				let fee = action.fee.min(amount_transferred);
+
+				if fee > U256::zero() {
+					let output = Self::call(
+						handle,
+						wrapped_address.into(),
+						solidity::encode_with_selector(
+							TRANSFER_SELECTOR,
+							(Address::from(handle.context().caller), fee),
+						),
+					)?;
+					let transferred: bool = solidity::decode_return_value(&output[..])?;
+
+					if !transferred {
+						return Err(RevertReason::custom("failed to transfer() fee").into());
+					}
+				}
+
+				// TODO: handle fee >= amount_transferred -- don't bother with xcm transfer?
+				// probably best to rewrite this match statement to not return a orml_xtokens::Call
+				orml_xtokens::Call::<Runtime>::transfer {
+					currency_id,
+					amount,
+					dest: Box::new(action.destination),
+					dest_weight_limit: WeightLimit::Unlimited,
+				}
+			}
 		};
 
 		log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
