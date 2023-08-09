@@ -22,7 +22,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: `should return the ${txnType} transaction hash`,
         test: async function () {
-          const { hash } = await context.deployContract!("MultiplyBy7");
+          const { hash } = await deployCreateCompiledContract(context, "MultiplyBy7");
           expect(hash).toBeTruthy();
         },
       });
