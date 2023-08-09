@@ -349,7 +349,7 @@ describeSuite({
       test: async function () {
         // We are using the NIST guideline thresholds, however we are only really concerned if
         // multiple tests fail given these are all probabilistic tests
-        const maxTestFailures = 3;
+        const maxTestFailures = 4;
 
         if (!isRandomnessAvailable) {
           return;

@@ -23,6 +23,7 @@ describeSuite({
         title: `should return the ${txnType} transaction hash`,
         test: async function () {
           const { hash } = await deployCreateCompiledContract(context, "MultiplyBy7");
+          await context.createBlock();
           expect(hash).toBeTruthy();
         },
       });
