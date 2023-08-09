@@ -347,8 +347,8 @@ describeSuite({
       title: "available randomness outputs should be random",
       timeout: 10000,
       test: async function () {
-        // It is hard to see if number is truly random, so we only fail this test if the generated
-        // random number fails 4 or more randomness tests
+        // We are using the NIST guideline thresholds, however we are only really concerned if
+        // multiple tests fail given these are all probabilistic tests
         const maxTestFailures = 3;
 
         if (!isRandomnessAvailable) {
@@ -417,8 +417,10 @@ describeSuite({
       },
     });
 
-    // Tests whether the input bytes appear to be random by measuring the distribution relative to
-    // what would be expected of a uniformly distributed [u8; 32]
+    // The tests here have been taken from recommendations of the NIST whitepaper on
+    // "A Statistical Test Suite for Random and Pseudorandom Number Generators
+    // for Cryptographic Applications" - Lawrence E Bassham III (2010)
+    // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-22r1a.pdf
     function isRandom(bytes: Uint8Array) {
       const binaryArray = uint8ArrayToBinaryArray(bytes);
       return {
@@ -428,6 +430,8 @@ describeSuite({
         longestRunOnesInABlockTest: randomLib.longestRunOnesInABlockTest(binaryArray)[0],
         monobitTest: randomLib.monobitTest(binaryArray)[0],
         runsTest: randomLib.runsTest(binaryArray)[0],
+
+        // In-house randomness tests
         chiSquareTest: chiSquareTest(bytes),
         // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 81 < X < 175
         averageByteWithinExpectedRange: averageByteWithinExpectedRange(bytes, 81, 175),
