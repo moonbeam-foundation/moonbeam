@@ -6,20 +6,21 @@ export async function web3SubscribeHistoricalLogs(web3: Web3, listenPeriodMs: nu
   const sub = await web3.eth.subscribe("logs", filter);
 
   await new Promise(async (resolve, reject) => {
+    const timeoutId = setTimeout(async () => {
+      await sub.unsubscribe();
+      resolve("finished");
+    }, listenPeriodMs);
+
     sub.on("data", async (event) => {
       eventLogs.push(event);
     });
 
     sub.on("error", (error) => {
+      clearTimeout(timeoutId);
       console.log("Error when subscribing to New block header: ", error);
       sub.unsubscribe().catch((err) => console.error("Error unsubscribing:", err));
       reject(error);
     });
-
-    setTimeout(async () => {
-      await sub.unsubscribe();
-      resolve("finished");
-    }, listenPeriodMs);
   });
 
   return eventLogs;

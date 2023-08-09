@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "bun prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
-    "check-lint": "bunx prettier@2 --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
-    "compile-solidity": "bun scripts/compile-contracts.ts compile",
-    "typecheck": "bun tsc --noEmit"
+    "lint": "pnpm prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "check-lint": "pnpx prettier@2 --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "compile-solidity": "tsx scripts/compile-contracts.ts compile",
+    "typecheck": "pnpm tsc --noEmit"
   },
   "keywords": [],
   "author": "",
