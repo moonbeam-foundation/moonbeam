@@ -28,7 +28,7 @@ export async function cancelProposal(context: DevModeContext, proposal: number) 
     await context
       .polkadotJs()
       .tx.sudo.sudo(context.polkadotJs().tx.referenda.cancel(proposal))
-      .signAsync(alith, { nonce: nonce++ }),
+      .signAsync(alith, { nonce: -1 }),
   ]);
   expectSubstrateEvent(block, "referenda", "Cancelled");
 }

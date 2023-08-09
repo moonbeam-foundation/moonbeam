@@ -26,13 +26,11 @@ async function voteYes(
   amount: bigint,
   conviction: number
 ) {
-  const rawTx = await createViemTransaction(context, {
-    to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-    data: encodeFunctionData({
-      abi: convictionVotingAbi,
-      functionName: "voteYes",
-      args: [proposalIndex, amount, conviction],
-    }),
+  const rawTx = await context.writePrecompile!({
+    precompileName: "ConvictionVoting",
+    functionName: "voteYes",
+    args: [proposalIndex, amount, conviction],
+    rawTxOnly: true,
   });
   const block = await context.createBlock(rawTx);
   return block;
@@ -166,14 +164,12 @@ describeSuite({
       title: "should fail to vote for the wrong proposal",
       test: async function () {
         const block = await context.createBlock(
-          createViemTransaction(context, {
-            to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-            data: encodeFunctionData({
-              abi: convictionVotingAbi,
-              functionName: "voteNo",
-              args: [999999, 1n * 10n ** 18n, 1],
-            }),
-            skipEstimation: true,
+          await context.writePrecompile!({
+            precompileName: "ConvictionVoting",
+            functionName: "voteNo",
+            args: [999999, 1n * 10n ** 18n, 1],
+            rawTxOnly: true,
+            gas: 1_000_000n,
           })
         );
 

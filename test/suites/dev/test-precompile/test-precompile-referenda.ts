@@ -226,7 +226,6 @@ describeSuite({
           signer: alith,
         });
 
-        // Cancel proposal
         await cancelProposal(context, proposalIndex);
 
         // Refund deposit
@@ -261,7 +260,6 @@ describeSuite({
       id: "T07",
       title: "should fail to refund unplaced decision deposit",
       test: async function () {
-        // Cancel proposal
         await cancelProposal(context, proposalIndex);
 
         // Refund deposit
