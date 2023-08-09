@@ -10,9 +10,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: latest
     - uses: pnpm/action-setup@v2
       with:
         version: 8
@@ -46,8 +43,8 @@ runs:
         chmod uog+x target/release/moonbeam
         cd test
         pnpm install
-        bun compile-solidity
-        bun moonwall test ${{ inputs.moonwall_environment }}
+        pnpm compile-solidity
+        pnpm moonwall test ${{ inputs.moonwall_environment }}
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2

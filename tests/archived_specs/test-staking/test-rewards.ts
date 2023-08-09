@@ -43,8 +43,8 @@ describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Rewards - scheduled leave request", (context) => {
-  before("should scheduleLeaveDelegators", async () => {
+describeDevMoonbeam("Staking - Rewards - scheduled revoke request", (context) => {
+  before("should scheduleRevokeDelegation", async () => {
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.sudo
@@ -57,7 +57,9 @@ describeDevMoonbeam("Staking - Rewards - scheduled leave request", (context) => 
     );
     await expectOk(
       context.createBlock(
-        context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+        context.polkadotApi.tx.parachainStaking
+          .scheduleRevokeDelegation(alith.address)
+          .signAsync(ethan)
       )
     );
   });
@@ -132,7 +134,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled bond decrease request", (cont
   const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
   const BOND_AMOUNT = MIN_GLMR_STAKING + EXTRA_BOND_AMOUNT;
 
-  before("should scheduleLeaveDelegators", async () => {
+  before("should scheduleDelegatorBondLess", async () => {
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.sudo

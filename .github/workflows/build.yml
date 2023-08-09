@@ -493,9 +493,6 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
       - uses: actions/setup-node@v3
         with:
           node-version: 20.x
@@ -514,7 +511,7 @@ jobs:
         run: |
           cd test
           pnpm install
-          bun moonwall test upgrade_${{matrix.chain}}
+          pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:
@@ -532,9 +529,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
       - uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -581,13 +575,13 @@ jobs:
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          bun scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
           chmod uog+x tmp/polkadot
-          bun moonwall test zombie_${{ matrix.chain }}
+          pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |

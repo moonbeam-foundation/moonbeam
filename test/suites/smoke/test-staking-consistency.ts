@@ -132,7 +132,7 @@ describeSuite({
         for (const candidate of allCandidateInfo) {
           const accountId = `0x${candidate[0].toHex().slice(-40)}`;
           const topDelegation = allTopDelegations
-            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)[1]
+            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)![1]
             .unwrap();
           expect(topDelegation.total.toBigInt()).to.equal(
             candidate[1].unwrap().totalCounted.toBigInt() - candidate[1].unwrap().bond.toBigInt()
@@ -160,7 +160,7 @@ describeSuite({
             .filter((_, i) => i < maxTopDelegationsPerCandidate);
 
           const topDelegations = allTopDelegations
-            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)[1]
+            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)![1]
             .unwrap();
 
           expect(topDelegations.total.toBigInt()).to.equal(
