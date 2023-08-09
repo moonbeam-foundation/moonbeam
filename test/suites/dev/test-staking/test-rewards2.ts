@@ -5,7 +5,7 @@ import { jumpRounds } from "../../../helpers/block.js";
 
 describeSuite({
   id: "D2965",
-  title: "Staking - Rewards - scheduled leave request",
+  title: "Staking - Rewards - scheduled revoke request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
@@ -24,7 +24,10 @@ describeSuite({
       );
 
       await context.createBlock(
-        context.polkadotJs().tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan),
+        context
+          .polkadotJs()
+          .tx.parachainStaking.scheduleRevokeDelegation(alith.address)
+          .signAsync(ethan),
         { allowFailures: false }
       );
     });

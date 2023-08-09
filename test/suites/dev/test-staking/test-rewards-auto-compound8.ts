@@ -5,7 +5,7 @@ import { jumpRounds } from "../../../helpers/block.js";
 
 describeSuite({
   id: "D2961",
-  title: "Staking - Rewards Auto-Compound - delegator leave",
+  title: "Staking - Rewards Auto-Compound - delegator revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
@@ -49,12 +49,18 @@ describeSuite({
       );
 
       await context.createBlock(
-        context.polkadotJs().tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan),
+        context
+          .polkadotJs()
+          .tx.utility.batch([
+            context.polkadotJs().tx.parachainStaking.scheduleRevokeDelegation(alith.address),
+            context.polkadotJs().tx.parachainStaking.scheduleRevokeDelegation(baltathar.address),
+          ])
+          .signAsync(ethan),
         { allowFailures: false }
       );
       const roundDelay = context
         .polkadotJs()
-        .consts.parachainStaking.leaveDelegatorsDelay.toNumber();
+        .consts.parachainStaking.revokeDelegationDelay.toNumber();
       await jumpRounds(context, roundDelay);
     });
 
@@ -74,8 +80,16 @@ describeSuite({
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.executeLeaveDelegators(ethan.address, 2)
-            .signAsync(ethan)
+            .tx.utility.batch([
+              context
+                .polkadotJs()
+                .tx.parachainStaking.executeDelegationRequest(ethan.address, alith.address),
+              context
+                .polkadotJs()
+                .tx.parachainStaking.executeDelegationRequest(ethan.address, baltathar.address),
+            ])
+            .signAsync(ethan),
+          { allowFailures: false }
         );
 
         const autoCompoundDelegationsAlithAfter = await context
