@@ -344,13 +344,13 @@ export class XcmFragment {
   }
 
   // Add a `DescendOrigin` instruction
-  descend_origin(): this {
+  descend_origin(network: "Any" | XcmV3JunctionNetworkId["type"] | null = "Any"): this {
     if (this.config.descend_origin != null) {
       this.instructions.push({
         DescendOrigin: {
           X1: {
             AccountKey20: {
-              network: "Any",
+              network,
               key: this.config.descend_origin,
             },
           },
@@ -460,7 +460,8 @@ export class XcmFragment {
   /// XCM V3 calls
   as_v3(): any {
     return {
-      V3: replaceNetworkAny(this.instructions),
+      //V3: replaceNetworkAny(this.instructions),
+      V3: this.instructions,
     };
   }
 

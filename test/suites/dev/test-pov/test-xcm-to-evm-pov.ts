@@ -112,7 +112,7 @@ describeSuite({
           } as any,
           descend_origin: sendingAddress,
         })
-          .descend_origin()
+          .descend_origin(null)
           .withdraw_asset()
           .buy_execution()
           .push_any({
@@ -212,7 +212,7 @@ describeSuite({
           } as any,
           descend_origin: sendingAddress,
         })
-          .descend_origin()
+          .descend_origin(null)
           .withdraw_asset()
           .buy_execution()
           .push_any({

@@ -8,7 +8,7 @@ import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "D3407",
+  id: "D3408",
   title: "Mock XCMP - test XCMP execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -17,9 +17,9 @@ describeSuite({
       title: "Should test DMP on_initialization and on_idle",
       test: async function () {
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
-        const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-          (pallet) => pallet.name === "Balances"
-        ).index;
+        const balancesPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Balances")!
+          .index.toNumber();
 
         // TODO this test mostly changes it's nature due to proof size accounting
         // by now we just decrease the number of supported messages from 50 to 20.
