@@ -18,8 +18,7 @@ sp-std = { workspace = true }
 
 [dev-dependencies]
 hex-literal = { workspace = true }
-pallet-evm = { workspace = true }
-
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 [features]
 default = ["std"]
