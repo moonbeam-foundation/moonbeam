@@ -117,7 +117,7 @@ devDependencies:
     version: 0.7.3
   debug:
     specifier: ^4.3.4
-    version: 4.3.4(supports-color@5.5.0)
+    version: 4.3.4(supports-color@8.1.1)
   ethers:
     specifier: ^6.7.0
     version: 6.7.0
@@ -4111,7 +4111,7 @@ packages:
   /canvas-renderer@2.2.1:
     resolution: {integrity: sha512-RrBgVL5qCEDIXpJ6NrzyRNoTnXxYarqm/cS/W6ERhUJts5UQtt/XPEosGN3rqUkZ4fjBArlnCbsISJ+KCFnIAg==}
     dependencies:
-      '@types/node': 18.17.3
+      '@types/node': 20.4.8
     dev: false
 
   /caseless@0.12.0:
@@ -4563,6 +4563,7 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 5.5.0
+    dev: false
 
   /debug@4.3.4(supports-color@8.1.1):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
