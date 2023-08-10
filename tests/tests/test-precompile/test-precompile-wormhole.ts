@@ -85,6 +85,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   let evmChainId;
 
   before("deploy wormhole infrastructure", async function () {
+    // TODO: remove / reduce
     this.timeout(3600 * 1000);
 
     wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
@@ -305,7 +306,11 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     expectEVMResult(result.result.events, "Succeed", "Returned");
-    expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(998999999999999999999n);
   });
 });
 
