@@ -9,31 +9,22 @@ import {
 } from "@moonwall/cli";
 import { PRECOMPILE_PREIMAGE_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
+import { ContractCall } from "../../../helpers/contract-call.js";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
-async function notePreimage(context: DevModeContext, PreimageAbi: Abi, data: string) {
-  const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: data } });
-  const rawTx = await context.writePrecompile!({
-    precompileName: "Preimage",
-    functionName: "notePreimage",
-    args: [call.toHex()],
-    rawTxOnly: true,
-  });
-  const block = await context.createBlock(rawTx);
-  return { block, call };
-}
+class Preimage extends ContractCall {
+  constructor(context: DevModeContext) {
+    super("Preimage", context);
+  }
 
-async function unnotePreimage(context: DevModeContext, PreimageAbi: Abi, data: string) {
-  const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: data } });
-  const rawTx = await context.writePrecompile!({
-    precompileName: "Preimage",
-    functionName: "unnotePreimage",
-    args: [call.hash.toHex()],
-    rawTxOnly: true,
-  });
-  const block = await context.createBlock(rawTx);
-  return { block, call };
+  async notePreimage(data: string) {
+    return await this.callExtrinsic("notePreimage", [data]);
+  }
+
+  async unnotePreimage(data: string) {
+    return await this.callExtrinsic("unnotePreimage", [data]);
+  }
 }
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
@@ -44,19 +35,23 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
     let PreimageAbi: Abi;
+    let preimage: Preimage;
 
     beforeAll(async function () {
       const { abi } = fetchCompiledContract("Preimage");
       PreimageAbi = abi;
     });
 
-    beforeEach(async function () {});
+    beforeEach(async function () {
+      preimage = new Preimage(context);
+    });
 
     it({
       id: "T01",
       title: "should allow to note Preimage",
       test: async function () {
-        const { block, call } = await notePreimage(context, PreimageAbi, "Me");
+        const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
+        const block = await preimage.notePreimage(call.toHex());
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -81,8 +76,9 @@ describeSuite({
       id: "T02",
       title: "should allow to unnote a Preimage",
       test: async function () {
-        await notePreimage(context, PreimageAbi, "You");
-        const { block, call } = await unnotePreimage(context, PreimageAbi, "You");
+        const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "You" } });
+        await preimage.notePreimage(call.toHex());
+        const block = await preimage.unnotePreimage(call.hash.toHex());
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -108,9 +104,10 @@ describeSuite({
       id: "T03",
       title: "should fail to note the same Preimage twice",
       test: async function () {
-        await notePreimage(context, PreimageAbi, "Repeated");
+        const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Repeated" } });
+        await preimage.notePreimage(call.toHex());
         expect(
-          async () => await notePreimage(context, PreimageAbi, "Repeated"),
+          async () => await preimage.notePreimage(call.toHex()),
           "Transaction should be reverted but instead preimage noted"
         ).rejects.toThrowError("AlreadyNoted");
       },
@@ -120,8 +117,11 @@ describeSuite({
       id: "T04",
       title: "should fail to unnote a missing Preimage",
       test: async function () {
+        const call = context
+          .polkadotJs()
+          .tx.identity.setIdentity({ display: { raw: "Missing Preimage" } });
         expect(
-          async () => await unnotePreimage(context, PreimageAbi, "Missing Preimage"),
+          async () => await preimage.unnotePreimage(call.hash.toHex()),
           "Transaction should be reverted but instead preimage unnoted"
         ).rejects.toThrowError("NotNoted");
       },

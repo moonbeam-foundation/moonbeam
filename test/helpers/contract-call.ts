@@ -1,12 +1,14 @@
 import { DevModeContext } from "@moonwall/cli";
 
 export class ContractCall {
+  precompileName: string;
   context: DevModeContext;
   privateKey?: `0x${string}`;
   gas?: bigint;
   rawTxOnly?: boolean = true;
 
-  constructor(context: DevModeContext) {
+  constructor(precompileName: string, context: DevModeContext) {
+    this.precompileName = precompileName;
     this.context = context;
   }
 
@@ -27,7 +29,7 @@ export class ContractCall {
     return this;
   }
 
-  async callExtrinsic(functionName: string, args: (number | bigint | `0x${string}`)[]) {
+  async callExtrinsic(functionName: string, args: any[]) {
     return await this.callRpc(functionName, args, true);
   }
 
@@ -41,7 +43,7 @@ export class ContractCall {
     isExtrinsic: boolean
   ) {
     const params = {
-      precompileName: "ConvictionVoting",
+      precompileName: this.precompileName,
       functionName,
       args,
       privateKey: this.privateKey,

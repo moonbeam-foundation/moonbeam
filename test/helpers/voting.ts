@@ -5,7 +5,7 @@ import { ContractCall } from "./contract-call.js";
 
 export class ConvictionVoting extends ContractCall {
   constructor(context: DevModeContext) {
-    super(context);
+    super("ConvictionVoting", context);
   }
 
   async voteYes(proposalIndex: number, amount: bigint, conviction: bigint) {
