@@ -30,7 +30,7 @@ class PrecompileContract {
     return this;
   }
 
-  withGas(gas: bigint) {
+  withGas(gas: bigint | string) {
     this.gas = gas;
     return this;
   }
