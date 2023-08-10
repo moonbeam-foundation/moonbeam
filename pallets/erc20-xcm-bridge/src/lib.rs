@@ -67,7 +67,7 @@ pub mod pallet {
 		}
 		pub fn gas_limit_of_erc20_transfer(asset: &MultiAsset) -> u64 {
 			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(asset);
-			gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get)		
+			gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get)
 		}
 		pub fn weight_of_erc20_transfer(asset: &MultiAsset) -> Weight {
 			T::GasWeightMapping::gas_to_weight(Self::gas_limit_of_erc20_transfer(asset), true)
