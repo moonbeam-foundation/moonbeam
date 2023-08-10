@@ -65,15 +65,19 @@ pub mod pallet {
 		pub fn is_erc20_asset(asset: &MultiAsset) -> bool {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
-		pub fn weight_of_erc20_transfer() -> Weight {
-			T::GasWeightMapping::gas_to_weight(T::Erc20TransferGasLimit::get(), true)
+		pub fn gas_limit_of_erc20_transfer(asset: &MultiAsset) -> u64 {
+			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(asset);
+			gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get)		
+		}
+		pub fn weight_of_erc20_transfer(asset: &MultiAsset) -> Weight {
+			T::GasWeightMapping::gas_to_weight(Self::gas_limit_of_erc20_transfer(asset), true)
 		}
 		fn erc20_transfer(
 			erc20_contract_address: H160,
 			from: H160,
 			to: H160,
 			amount: U256,
-			gas_limit: Option<u64>,
+			gas_limit: u64,
 		) -> Result<(), Erc20TransferError> {
 			let mut input = Vec::with_capacity(ERC20_TRANSFER_CALL_DATA_SIZE);
 			// ERC20.transfer method hash
@@ -83,16 +87,14 @@ pub mod pallet {
 			// append amount to be transferred
 			input.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
-			let call_gas_limit = gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get);
-
-			let weight_limit: Weight = T::GasWeightMapping::gas_to_weight(call_gas_limit, true);
+			let weight_limit: Weight = T::GasWeightMapping::gas_to_weight(gas_limit, true);
 
 			let exec_info = T::EvmRunner::call(
 				from,
 				erc20_contract_address,
 				input,
 				U256::default(),
-				call_gas_limit,
+				gas_limit,
 				None,
 				None,
 				None,
@@ -142,7 +144,7 @@ pub mod pallet {
 			let beneficiary = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(what);
+			let gas_limit = Self::gas_limit_of_erc20_transfer(what);
 
 			// Get the global context to recover accounts origins.
 			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
@@ -192,7 +194,7 @@ pub mod pallet {
 			let to = T::AccountIdConverter::convert_ref(to)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(asset);
+			let gas_limit = Self::gas_limit_of_erc20_transfer(asset);
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
