@@ -251,8 +251,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
     );
 
-    const userAction = new XcmRoutingUserAction({ destination });
-    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee: 1 });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
     console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
@@ -304,12 +304,17 @@ const registry = new TypeRegistry();
 
 class VersionedUserAction extends Enum {
   constructor(value?: any) {
-    super(registry, { V1: XcmRoutingUserAction }, value);
+    super(registry, { V1: XcmRoutingUserAction, V2: XcmRoutingUserActionWithFee }, value);
   }
 }
 class XcmRoutingUserAction extends Struct {
   constructor(value?: any) {
     super(registry, { destination: "VersionedMultiLocation" }, value);
+  }
+}
+class XcmRoutingUserActionWithFee extends Struct {
+  constructor(value?: any) {
+    super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
   }
 }
 
