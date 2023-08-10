@@ -29,7 +29,6 @@ var sourcesIndex = JSON.parse('{\
 "moonkey":["",[],["main.rs"]],\
 "moonriver_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
-"pallet_author_mapping":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_erc20_xcm_bridge":["",[],["erc20_matcher.rs","erc20_trap.rs","errors.rs","lib.rs","xcm_holding_ext.rs"]],\
 "pallet_ethereum_chain_id":["",[],["lib.rs"]],\
 "pallet_ethereum_xcm":["",[],["lib.rs"]],\
@@ -53,18 +52,14 @@ var sourcesIndex = JSON.parse('{\
 "pallet_evm_precompile_xcm_utils":["",[],["lib.rs"]],\
 "pallet_evm_precompile_xtokens":["",[],["lib.rs"]],\
 "pallet_evm_precompileset_assets_erc20":["",[],["eip2612.rs","lib.rs"]],\
-"pallet_maintenance_mode":["",[],["lib.rs","types.rs"]],\
-"pallet_migrations":["",[],["democracy_preimages.rs","lib.rs","weights.rs"]],\
 "pallet_moonbeam_orbiters":["",[],["lib.rs","types.rs","weights.rs"]],\
 "pallet_parachain_staking":["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]],\
 "pallet_proxy_genesis_companion":["",[],["lib.rs"]],\
-"pallet_randomness":["",[],["lib.rs","types.rs","vrf.rs","weights.rs"]],\
 "pallet_xcm_transactor":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "precompile_utils":["",[["evm",[],["costs.rs","handle.rs","logs.rs","mod.rs"]],["solidity",[["codec",[],["bytes.rs","mod.rs","native.rs","xcm.rs"]]],["mod.rs","modifier.rs","revert.rs"]],["testing",[],["account.rs","execution.rs","handle.rs","mod.rs","modifier.rs","solidity.rs"]]],["lib.rs","precompile_set.rs","substrate.rs"]],\
 "precompile_utils_macro":["",[["precompile",[],["attr.rs","expand.rs","mod.rs","parse.rs"]]],["derive_codec.rs","lib.rs","precompile_name_from_address.rs"]],\
 "precompile_utils_tests_external":["",[],["lib.rs"]],\
-"session_keys_primitives":["",[],["digest.rs","inherent.rs","lib.rs","vrf.rs"]],\
 "summarize_precompile_checks":["",[],["main.rs"]],\
-"xcm_primitives":["",[],["asset_id_conversions.rs","constants.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","origin_conversion.rs","transactor_traits.rs","xcm_execution_traits.rs"]]\
+"xcm_primitives":["",[],["asset_id_conversions.rs","constants.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","origin_conversion.rs","transactor_traits.rs"]]\
 }');
 createSourceSidebar();

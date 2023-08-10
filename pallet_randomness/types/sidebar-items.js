@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["RequestInfo","RequestType"],"struct":["FulfillArgs","RandomnessResult","Request","RequestState"]};

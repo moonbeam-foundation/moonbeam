@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -897,7 +897,27 @@
 <a href="#897" id="897">897</a>
 <a href="#898" id="898">898</a>
 <a href="#899" id="899">899</a>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -936,6 +956,14 @@
 			<span class="kw">impl </span>sp_api::Metadata&lt;Block&gt; <span class="kw">for </span>Runtime {
 				<span class="kw">fn </span>metadata() -&gt; OpaqueMetadata {
 					OpaqueMetadata::new(Runtime::metadata().into())
+				}
+
+				<span class="kw">fn </span>metadata_at_version(version: u32) -&gt; <span class="prelude-ty">Option</span>&lt;OpaqueMetadata&gt; {
+					Runtime::metadata_at_version(version)
+				}
+
+				<span class="kw">fn </span>metadata_versions() -&gt; Vec&lt;u32&gt; {
+					Runtime::metadata_versions()
 				}
 			}
 
@@ -1330,6 +1358,23 @@
 				</span>}
 
 				<span class="kw">fn </span>gas_limit_multiplier_support() {}
+
+				<span class="kw">fn </span>pending_block(
+					xts: Vec&lt;&lt;Block <span class="kw">as </span>sp_api::BlockT&gt;::Extrinsic&gt;
+				) -&gt; (
+					<span class="prelude-ty">Option</span>&lt;pallet_ethereum::Block&gt;, <span class="prelude-ty">Option</span>&lt;sp_std::prelude::Vec&lt;TransactionStatus&gt;&gt;
+				) {
+					<span class="kw">for </span>ext <span class="kw">in </span>xts.into_iter() {
+						<span class="kw">let _ </span>= Executive::apply_extrinsic(ext);
+					}
+
+					Ethereum::on_finalize(System::block_number() + <span class="number">1</span>);
+
+					(
+						pallet_ethereum::CurrentBlock::&lt;Runtime&gt;::get(),
+						pallet_ethereum::CurrentTransactionStatuses::&lt;Runtime&gt;::get()
+					)
+				 }
 			}
 
 			<span class="kw">impl </span>fp_rpc::ConvertTransactionRuntimeApi&lt;Block&gt; <span class="kw">for </span>Runtime {
@@ -1462,7 +1507,6 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
-					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
 
@@ -1484,7 +1528,6 @@
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_migrations, MigrationsBench::&lt;Runtime&gt;);
 					<span class="macro">list_benchmark!</span>(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::&lt;Runtime&gt;);
 
 					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
@@ -1575,7 +1618,12 @@
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
-						<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;Junction, BenchmarkError&gt; {
+						<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, Junction), BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
+						}
+
+						<span class="kw">fn </span>export_message_origin_and_destination()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, NetworkId, Junctions), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
@@ -1616,7 +1664,6 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
-					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
 					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
@@ -1733,13 +1780,6 @@
 					<span class="macro">add_benchmark!</span>(
 						params,
 						batches,
-						pallet_migrations,
-						MigrationsBench::&lt;Runtime&gt;
-					);
-
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
@@ -1796,5 +1836,4 @@
 		}
 	};
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

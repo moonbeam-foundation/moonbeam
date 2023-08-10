@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/relay-encoder/src/westend.rs`."><title>westend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_relay_encoder/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/relay-encoder/src/westend.rs`."><title>westend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_relay_encoder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_relay_encoder/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -580,16 +580,7 @@
 <a href="#580" id="580">580</a>
 <a href="#581" id="581">581</a>
 <a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -627,19 +618,11 @@
 	</span>Hrmp(HrmpCall),
 }
 
-<span class="comment">// Utility call encoding, needed for xcm transactor pallet
-</span><span class="attr">#[derive(Encode, Decode)]
-</span><span class="kw">pub enum </span>UtilityCall {
-	<span class="attr">#[codec(index = <span class="number">1u8</span>)]
-	</span>AsDerivative(u16),
-}
-
 <span class="attr">#[derive(Encode, Decode)]
 </span><span class="kw">pub enum </span>StakeCall {
 	<span class="attr">#[codec(index = <span class="number">0u16</span>)]
 	</span><span class="comment">// the index should match the position of the dispatchable in the target pallet
 	</span>Bond(
-		&lt;AccountIdLookup&lt;AccountId32, ()&gt; <span class="kw">as </span>StaticLookup&gt;::Source,
 		<span class="attr">#[codec(compact)] </span>cumulus_primitives_core::relay_chain::Balance,
 		pallet_staking::RewardDestination&lt;AccountId32&gt;,
 	),
@@ -658,9 +641,16 @@
 	<span class="attr">#[codec(index = <span class="number">7u16</span>)]
 	</span>SetPayee(pallet_staking::RewardDestination&lt;AccountId32&gt;),
 	<span class="attr">#[codec(index = <span class="number">8u16</span>)]
-	</span>SetController(&lt;AccountIdLookup&lt;AccountId32, ()&gt; <span class="kw">as </span>StaticLookup&gt;::Source),
+	</span>SetController,
 	<span class="attr">#[codec(index = <span class="number">19u16</span>)]
 	</span>Rebond(<span class="attr">#[codec(compact)] </span>cumulus_primitives_core::relay_chain::Balance),
+}
+
+<span class="comment">// Utility call encoding, needed for xcm transactor pallet
+</span><span class="attr">#[derive(Encode, Decode)]
+</span><span class="kw">pub enum </span>UtilityCall {
+	<span class="attr">#[codec(index = <span class="number">1u8</span>)]
+	</span>AsDerivative(u16),
 }
 
 <span class="comment">// HRMP call encoding, needed for xcm transactor pallet
@@ -716,8 +706,8 @@
 <span class="kw">impl </span>pallet_evm_precompile_relay_encoder::StakeEncodeCall <span class="kw">for </span>WestendEncoder {
 	<span class="kw">fn </span>encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -&gt; Vec&lt;u8&gt; {
 		<span class="kw">match </span>call {
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(a, b, c) =&gt; {
-				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(b, c) =&gt; {
+				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(a) =&gt; {
@@ -744,8 +734,8 @@
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(a) =&gt; {
-				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController =&gt; {
+				RelayCall::Stake(StakeCall::SetController).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) =&gt; {
@@ -807,7 +797,6 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_stake_bond() {
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-		<span class="kw">let </span>relay_account: AccountId32 = [<span class="number">1u8</span>; <span class="number">32</span>].into();
 
 		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
 			westend_runtime::Staking,
@@ -816,7 +805,6 @@
 		expected_encoded.push(index);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;westend_runtime::Runtime&gt;::bond {
-			controller: relay_account.clone().into(),
 			value: <span class="number">100u32</span>.into(),
 			payee: pallet_staking::RewardDestination::Controller,
 		}
@@ -826,7 +814,6 @@
 		<span class="macro">assert_eq!</span>(
 			&lt;WestendEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
 				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(
-					relay_account.into(),
 					<span class="number">100u32</span>.into(),
 					pallet_staking::RewardDestination::Controller
 				)
@@ -1007,7 +994,6 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_controller() {
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-		<span class="kw">let </span>relay_account: AccountId32 = [<span class="number">1u8</span>; <span class="number">32</span>].into();
 
 		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
 			westend_runtime::Staking,
@@ -1015,17 +1001,13 @@
 		.unwrap() <span class="kw">as </span>u8;
 		expected_encoded.push(index);
 
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;westend_runtime::Runtime&gt;::set_controller {
-			controller: relay_account.clone().into(),
-		}
-		.encode();
+		<span class="kw">let </span><span class="kw-2">mut </span>expected =
+			pallet_staking::Call::&lt;westend_runtime::Runtime&gt;::set_controller {}.encode();
 		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
 
 		<span class="macro">assert_eq!</span>(
 			&lt;WestendEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(
-					relay_account.clone().into()
-				)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController
 			),
 			expected_encoded
 		);
@@ -1180,5 +1162,4 @@
 		);
 	}
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_relay_encoder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

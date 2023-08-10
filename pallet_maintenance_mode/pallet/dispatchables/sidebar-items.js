@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["enter_maintenance_mode","resume_normal_operation"]};

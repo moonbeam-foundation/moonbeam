@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["add_association","clear_association","remove_keys","set_keys","update_association"]};
