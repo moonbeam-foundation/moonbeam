@@ -81,7 +81,8 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
 
   let whNonce = 0;
-  let wethContract;
+  let wethContract: ethers.Contract;
+  let wethAddress: string;
   let evmChainId;
 
   // destination used for xtoken transfers
@@ -102,8 +103,20 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     // TODO: remove / reduce
     this.timeout(3600 * 1000);
 
-    wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
-    debug(`weth contract deployed to ${wethContract.contractAddress}`);
+    const wethDeployment = await deploy(context, "wormhole/bridge/mock/MockWETH9");
+    // wethContract = wethDeployment.contract;
+    
+    // TODO: clean up / avoid using both web3js and ethers
+    const WETH_CONTRACT_JSON = getCompiled("wormhole/bridge/mock/MockWETH9");
+    const WETH_INTERFACE = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
+
+    wethContract = new ethers.Contract(
+      wethDeployment.contractAddress,
+      WETH_INTERFACE,
+      context.ethers,
+    );
+    wethAddress = wethDeployment.contractAddress;
+    debug(`weth contract deployed to ${wethAddress}`);
     const myTokenContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
 
     const initialSigners = [ALITH_ADDRESS];
@@ -147,7 +160,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         governanceChainId,
         governanceContract,
         tokenImplContract.contractAddress,
-        wethContract.contractAddress,
+        wethAddress,
         finality,
         evmChainId
       )
@@ -186,7 +199,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       GUARDIAN_SET_INDEX,
       whNonce++,
       1,
-      wethContract.contractAddress,
+      wethAddress,
       ETHChain,
       ETHEmitter,
       18,
@@ -281,13 +294,16 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
 
+    const alithWHTokenBefore = await wethContract.balanceOf(ALITH_ADDRESS);
+    console.log(alithWHTokenBefore)
+
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
       whNonce++,
       123, // sequence
       999, // amount of tokens
-      wethContract.contractAddress,
+      wethAddress,
       ETHChain,
       ETHChain,
       ETHEmitter, // TODO: review
@@ -331,13 +347,16 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
 
+    const alithWHTokenBefore = await wethContract.balanceOf(ALITH_ADDRESS);
+    console.log(alithWHTokenBefore)
+
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
       whNonce++,
       123, // sequence
       999, // amount of tokens
-      wethContract.contractAddress,
+      wethAddress,
       ETHChain,
       ETHChain,
       ETHEmitter, // TODO: review
@@ -352,7 +371,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const result = await context.createBlock(
       createTransaction(context, {
         to: PRECOMPILE_GMP_ADDRESS,
-        gas: 600_000,
+        gas: 900_000,
         data,
       })
     );
@@ -363,6 +382,9 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expect(transferFungible.isFungible);
     const transferAmount = transferFungible.asFungible.toBigInt();
     expect(transferAmount).to.eq(998999999999999999999n);
+
+    const alithWHTokenAfter = await wethContract.balanceOf(ALITH_ADDRESS);
+    console.log(alithWHTokenBefore)
   });
 });
 

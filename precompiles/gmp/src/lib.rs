@@ -206,7 +206,6 @@ where
 				let fee = action.fee.min(amount_transferred);
 
 				if fee > U256::zero() {
-					log::debug!(target: "gmp-precompile", "charging fee of {:?}", fee);
 					let output = Self::call(
 						handle,
 						wrapped_address.into(),
@@ -265,7 +264,7 @@ where
 
 		log::debug!(
 			target: "gmp-precompile",
-			"calling {} ...", contract_address,
+			"calling {} from {} ...", contract_address, sub_context.caller,
 		);
 
 		let (reason, output) =
