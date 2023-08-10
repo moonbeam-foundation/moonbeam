@@ -84,6 +84,20 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   let wethContract;
   let evmChainId;
 
+  // destination used for xtoken transfers
+  const versionedMultiLocation = {
+    v1: {
+      parents: 1,
+      interior: {
+        X1: {
+          AccountKey20: {
+            id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          },
+        },
+      },
+    },
+  };
+
   before("deploy wormhole infrastructure", async function () {
     // TODO: remove / reduce
     this.timeout(3600 * 1000);
@@ -251,23 +265,61 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
   });
 
-  it("should support Alith VAA", async function () {
+  it("should support V1 user action", async function () {
+    // TODO: remove / reduce
     this.timeout(3600 * 1000);
 
     // create payload
-    const versionedMultiLocation = {
-      v1: {
-        parents: 1,
-        interior: {
-          X1: {
-            AccountKey20: {
-              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
-            },
-          },
-        },
-      },
-    };
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
 
+    const userAction = new XcmRoutingUserAction({ destination });
+    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
+    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
+    let payload = "" + versionedUserAction.toHex();
+
+    const transferVAA = await genTransferWithPayloadVAA(
+      signerPKs,
+      GUARDIAN_SET_INDEX,
+      whNonce++,
+      123, // sequence
+      999, // amount of tokens
+      wethContract.contractAddress,
+      ETHChain,
+      ETHChain,
+      ETHEmitter, // TODO: review
+      PRECOMPILE_GMP_ADDRESS,
+      "0x" + evmChainId.toString(16),
+      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
+      "" + payload
+    );
+
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(999000000000000000000n);
+  });
+
+  it("should support V2 user action with fee", async function () {
+    // TODO: remove / reduce
+    this.timeout(3600 * 1000);
+
+    // create payload
     const destination = context.polkadotApi.registry.createType(
       "VersionedMultiLocation",
       versionedMultiLocation
