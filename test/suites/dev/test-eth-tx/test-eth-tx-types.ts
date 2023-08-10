@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { EthereumTransactionTransactionV2 } from "@polkadot/types/lookup";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
@@ -14,15 +14,13 @@ describeSuite({
       title: "should contain valid legacy Ethereum data",
       test: async function () {
         await context.createBlock(
-          (
-            await createEthersTxn(context, {
-              to: BALTATHAR_ADDRESS,
-              gasLimit: 12_000_000,
-              gasPrice: 10_000_000_000,
-              value: 512,
-              txnType: "legacy",
-            })
-          ).rawSigned
+          await createEthersTransaction(context, {
+            to: BALTATHAR_ADDRESS,
+            gasLimit: 12_000_000,
+            gasPrice: 10_000_000_000,
+            value: 512,
+            txnType: "legacy",
+          })
         );
 
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
@@ -58,15 +56,13 @@ describeSuite({
           .viem("public")
           .getTransactionCount({ address: ALITH_ADDRESS });
         await context.createBlock(
-          (
-            await createEthersTxn(context, {
-              to: BALTATHAR_ADDRESS,
-              accessList: [],
-              value: 512,
-              gasLimit: 21000,
-              txnType: "eip2930",
-            })
-          ).rawSigned
+          await createEthersTransaction(context, {
+            to: BALTATHAR_ADDRESS,
+            accessList: [],
+            value: 512,
+            gasLimit: 21000,
+            txnType: "eip2930",
+          })
         );
 
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
@@ -115,15 +111,13 @@ describeSuite({
           .viem("public")
           .getTransactionCount({ address: ALITH_ADDRESS });
         await context.createBlock(
-          (
-            await createEthersTxn(context, {
-              to: BALTATHAR_ADDRESS,
-              accessList: [],
-              value: 512,
-              gasLimit: 21000,
-              txnType: "eip1559",
-            })
-          ).rawSigned
+          await createEthersTransaction(context, {
+            to: BALTATHAR_ADDRESS,
+            accessList: [],
+            value: 512,
+            gasLimit: 21000,
+            txnType: "eip1559",
+          })
         );
 
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();

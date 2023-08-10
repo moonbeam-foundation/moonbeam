@@ -3,7 +3,7 @@ import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
-  createEthersTxn,
+  createEthersTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
@@ -20,18 +20,18 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: "should not be executed until condition is met",
         test: async function () {
-          const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
+          const { bytecode, abi } = fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
             abi,
             bytecode,
             args: [],
           });
-          const { rawSigned } = await createEthersTxn(context, {
+          const rawSigned = await createEthersTransaction(context, {
             data: callData,
             txnType,
           });
           const txHash = await sendRawTransaction(context, rawSigned);
-          const transaction = await context.viem("public").getTransaction({ hash: txHash });
+          const transaction = await context.viem().getTransaction({ hash: txHash });
           expect(transaction.blockNumber).to.be.null;
           await context.createBlock();
         },
@@ -42,7 +42,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 4}`,
         title: "should be executed after condition is met",
         test: async function () {
-          const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
+          const { bytecode, abi } = fetchCompiledContract("MultiplyBy7");
           const callData = encodeDeployData({
             abi,
             bytecode,
@@ -51,7 +51,7 @@ describeSuite({
           const nonce = await context
             .viem("public")
             .getTransactionCount({ address: ALITH_ADDRESS });
-          const { rawSigned } = await createEthersTxn(context, {
+          const rawSigned = await createEthersTransaction(context, {
             data: callData,
             txnType,
             nonce: nonce + 1,
@@ -60,7 +60,7 @@ describeSuite({
           await context.createBlock(
             await createRawTransfer(context, BALTATHAR_ADDRESS, 512, { nonce })
           );
-          const transaction = await context.viem("public").getTransaction({ hash: txHash });
+          const transaction = await context.viem().getTransaction({ hash: txHash });
           expect(transaction.blockNumber! > 0n).toBe(true);
         },
       });

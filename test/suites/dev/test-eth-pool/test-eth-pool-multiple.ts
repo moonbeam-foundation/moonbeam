@@ -21,7 +21,7 @@ describeSuite({
     let txHashes: string[];
 
     beforeAll(async function () {
-      const { bytecode, abi } = await fetchCompiledContract("MultiplyBy7");
+      const { bytecode, abi } = fetchCompiledContract("MultiplyBy7");
       const callData = encodeDeployData({
         abi,
         bytecode,
@@ -30,9 +30,7 @@ describeSuite({
 
       txHashes = await Promise.all(
         new Array(10).fill(0).map(async (_, i) => {
-          return await context
-            .viem("wallet")
-            .sendTransaction({ nonce: i, data: callData, gas: 200000n });
+          return await context.viem().sendTransaction({ nonce: i, data: callData, gas: 200000n });
         })
       );
     });
@@ -42,9 +40,7 @@ describeSuite({
       title: "should all be available by hash",
       test: async function () {
         const transactions = await Promise.all(
-          txHashes.map((txHash) =>
-            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
-          )
+          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
         );
 
         expect(transactions.length).toBe(10);
@@ -59,9 +55,7 @@ describeSuite({
       title: "should all be marked as pending",
       test: async function () {
         const transactions = await Promise.all(
-          txHashes.map((txHash) =>
-            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
-          )
+          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
         );
 
         expect(transactions.length).toBe(10);
@@ -78,9 +72,7 @@ describeSuite({
       test: async function () {
         await context.createBlock();
         const transactions = await Promise.all(
-          txHashes.map((txHash) =>
-            context.viem("public").getTransaction({ hash: txHash as `0x${string}` })
-          )
+          txHashes.map((txHash) => context.viem().getTransaction({ hash: txHash as `0x${string}` }))
         );
 
         expect(transactions.length).toBe(10);

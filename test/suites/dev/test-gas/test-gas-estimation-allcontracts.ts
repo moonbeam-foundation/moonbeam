@@ -8,7 +8,12 @@ import {
   expect,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTxn, faith, getAllCompiledContracts } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  createEthersTransaction,
+  faith,
+  getAllCompiledContracts,
+} from "@moonwall/util";
 import { randomBytes } from "ethers";
 import { encodeDeployData, Abi } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
@@ -46,7 +51,7 @@ describeSuite({
           id: `T${calculateTestCaseNumber(contractName, txnType).toString().padStart(2, "0")}`,
           title: `should be enough for contract ${contractName} via ${txnType}`,
           test: async function () {
-            const { bytecode, abi } = await fetchCompiledContract(contractName);
+            const { bytecode, abi } = fetchCompiledContract(contractName);
             const constructorAbi = abi.find((call) => call.type == "constructor") as AbiConstructor;
             // ask RPC for an gas estimate of deploying this contract
 
@@ -94,7 +99,7 @@ describeSuite({
             }
 
             // attempt a transaction with our estimated gas
-            const { rawSigned } = await createEthersTxn(context, {
+            const rawSigned = await createEthersTransaction(context, {
               data: callData,
               gasLimit: estimate,
               txnType,

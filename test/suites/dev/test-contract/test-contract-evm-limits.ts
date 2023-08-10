@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D0605",
@@ -24,7 +24,7 @@ describeSuite({
 
         const value = "0x" + 993452714685890559n.toString(16);
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           from: ALITH_ADDRESS,
           to: null,
           value,

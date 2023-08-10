@@ -24,8 +24,8 @@ describeSuite({
       priority_fees: number[],
       max_fee_per_gas: string
     ) {
-      let nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
-      const contractData = await fetchCompiledContract("MultiplyBy7");
+      let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+      const contractData = fetchCompiledContract("MultiplyBy7");
       for (var b = 0; b < block_count; b++) {
         for (var p = 0; p < priority_fees.length; p++) {
           await context.ethers().sendTransaction({
@@ -65,10 +65,10 @@ describeSuite({
         const block_count = 2;
         const reward_percentiles = [20, 50, 70];
         const priority_fees = [1, 2, 3];
-        const startingBlock = await context.viem("public").getBlockNumber();
+        const startingBlock = await context.viem().getBlockNumber();
 
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
-          const unwatch = context.viem("public").watchBlocks({
+          const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) == block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [
@@ -120,10 +120,10 @@ describeSuite({
         let block_count = 11;
         let reward_percentiles = [20, 50, 70, 85, 100];
         let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const startingBlock = await context.viem("public").getBlockNumber();
+        const startingBlock = await context.viem().getBlockNumber();
 
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
-          const unwatch = context.viem("public").watchBlocks({
+          const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) == block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [

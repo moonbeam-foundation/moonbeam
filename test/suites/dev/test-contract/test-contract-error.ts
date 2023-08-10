@@ -6,7 +6,7 @@ import {
   describeSuite,
   expect,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData, Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
@@ -33,7 +33,7 @@ describeSuite({
         test: async function () {
           expect(
             async () =>
-              await context.viem("public").call({
+              await context.viem().call({
                 account: ALITH_ADDRESS,
                 to: looperAddress,
                 data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
@@ -48,7 +48,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) * 2 + 1}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction`,
         test: async function () {
-          const { rawSigned } = await createEthersTxn(context, {
+          const rawSigned = await createEthersTransaction(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
@@ -66,7 +66,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) * 3 + 1}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction - check fees`,
         test: async function () {
-          const { rawSigned } = await createEthersTxn(context, {
+          const rawSigned = await createEthersTransaction(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
