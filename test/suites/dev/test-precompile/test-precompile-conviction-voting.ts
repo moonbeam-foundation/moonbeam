@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import {
-  DevModeContext,
   beforeAll,
   beforeEach,
   describeSuite,
@@ -11,30 +10,11 @@ import {
   ALITH_ADDRESS,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
-  PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-  createViemTransaction,
 } from "@moonwall/util";
-import { Abi, decodeEventLog, encodeFunctionData } from "viem";
+import { Abi, decodeEventLog } from "viem";
 import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { cancelProposal, createProposal } from "../../../helpers/voting.js";
-
-async function voteYes(
-  context: DevModeContext,
-  convictionVotingAbi: Abi,
-  proposalIndex: number,
-  amount: bigint,
-  conviction: number
-) {
-  const rawTx = await context.writePrecompile!({
-    precompileName: "ConvictionVoting",
-    functionName: "voteYes",
-    args: [proposalIndex, amount, conviction],
-    rawTxOnly: true,
-  });
-  const block = await context.createBlock(rawTx);
-  return block;
-}
+import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
 
 describeSuite({
   id: "D2529",
@@ -43,6 +23,7 @@ describeSuite({
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
+    let convictionVoting: ConvictionVoting;
 
     beforeAll(async function () {
       const { abi } = fetchCompiledContract("ConvictionVoting");
@@ -50,6 +31,7 @@ describeSuite({
     });
 
     beforeEach(async function () {
+      convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal(context);
     });
 
@@ -57,13 +39,7 @@ describeSuite({
       id: "T01",
       title: "should allow to vote yes for a proposal",
       test: async function () {
-        const block = await voteYes(
-          context,
-          convictionVotingAbi,
-          proposalIndex,
-          1n * 10n ** 18n,
-          1
-        );
+        const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -93,16 +69,7 @@ describeSuite({
       id: "T02",
       title: "should allow to vote no for a proposal",
       test: async function () {
-        const block = await context.createBlock(
-          await createViemTransaction(context, {
-            to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-            data: encodeFunctionData({
-              abi: convictionVotingAbi,
-              functionName: "voteNo",
-              args: [proposalIndex, 1n * 10n ** 18n, 1],
-            }),
-          })
-        );
+        const block = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n);
 
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
@@ -131,25 +98,10 @@ describeSuite({
       id: "T03",
       title: "should allow to replace yes by a no",
       test: async function () {
-        const block1 = await voteYes(
-          context,
-          convictionVotingAbi,
-          proposalIndex,
-          1n * 10n ** 18n,
-          1
-        );
+        const block1 = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
         expectEVMResult(block1.result!.events, "Succeed");
 
-        const block2 = await context.createBlock(
-          createViemTransaction(context, {
-            to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-            data: encodeFunctionData({
-              abi: convictionVotingAbi,
-              functionName: "voteNo",
-              args: [proposalIndex, 1n * 10n ** 18n, 1],
-            }),
-          })
-        );
+        const block2 = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n);
         expectEVMResult(block2.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -163,15 +115,9 @@ describeSuite({
       id: "T04",
       title: "should fail to vote for the wrong proposal",
       test: async function () {
-        const block = await context.createBlock(
-          await context.writePrecompile!({
-            precompileName: "ConvictionVoting",
-            functionName: "voteNo",
-            args: [999999, 1n * 10n ** 18n, 1],
-            rawTxOnly: true,
-            gas: 1_000_000n,
-          })
-        );
+        const block = await convictionVoting
+          .withGas(1_000_000n)
+          .voteNo(999999, 1n * 10n ** 18n, 1n);
 
         expectEVMResult(block.result!.events, "Revert", "Reverted");
         const revertReason = await extractRevertReason(context, block.result!.hash);
@@ -183,18 +129,11 @@ describeSuite({
       id: "T05",
       title: "should fail to vote with the wrong conviction",
       test: async function () {
-        const block = await context.createBlock(
-          createViemTransaction(context, {
-            to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-            data: encodeFunctionData({
-              abi: convictionVotingAbi,
-              functionName: "voteYes",
-              args: [proposalIndex, 1n * 10n ** 18n, 7],
-            }),
-            skipEstimation: true,
-          })
-        );
+        const block = await convictionVoting
+          .withGas(1_000_000n)
+          .voteYes(proposalIndex, 1n * 10n ** 18n, 7n);
         expectEVMResult(block.result!.events, "Revert", "Reverted");
+
         const revertReason = await extractRevertReason(context, block.result!.hash);
         expect(revertReason).to.contain("Must be an integer between 0 and 6 included");
       },
@@ -207,15 +146,7 @@ describeSuite({
         const ayes = 1n * 10n ** 18n;
         const nays = 2n * 10n ** 18n;
         // Vote split
-        const rawTx = await createViemTransaction(context, {
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "voteSplit",
-            args: [proposalIndex, ayes, nays],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
+        const block = await convictionVoting.voteSplit(proposalIndex, ayes, nays);
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -250,15 +181,7 @@ describeSuite({
         const nays = 2n * 10n ** 18n;
         const abstain = 3n * 10n ** 18n;
         // Vote split
-        const rawTx = await createViemTransaction(context, {
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "voteSplitAbstain",
-            args: [proposalIndex, ayes, nays, abstain],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
+        const block = await convictionVoting.voteSplitAbstain(proposalIndex, ayes, nays, abstain);
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -294,16 +217,9 @@ describeSuite({
         const amount = 1n * 10n ** 10n;
         const conviction = 1;
         // Delegates the vote
-        const rawTx = await createViemTransaction(context, {
-          privateKey: ETHAN_PRIVATE_KEY,
-          to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-          data: encodeFunctionData({
-            abi: convictionVotingAbi,
-            functionName: "delegate",
-            args: [trackId, ALITH_ADDRESS, conviction, amount],
-          }),
-        });
-        const block = await context.createBlock(rawTx);
+        const block = await convictionVoting
+          .withPrivateKey(ETHAN_PRIVATE_KEY)
+          .delegate(trackId, ALITH_ADDRESS, conviction, amount);
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -329,16 +245,9 @@ describeSuite({
         expect(target.toString()).to.equal(ALITH_ADDRESS);
         // Undelegates the vote
         {
-          const rawTx = await createViemTransaction(context, {
-            privateKey: ETHAN_PRIVATE_KEY,
-            to: PRECOMPILE_CONVICTION_VOTING_ADDRESS,
-            data: encodeFunctionData({
-              abi: convictionVotingAbi,
-              functionName: "undelegate",
-              args: [trackId],
-            }),
-          });
-          const block = await context.createBlock(rawTx);
+          const block = await convictionVoting
+            .withPrivateKey(ETHAN_PRIVATE_KEY)
+            .undelegate(trackId);
 
           // Verifies the EVM Side
           expectEVMResult(block.result!.events, "Succeed");

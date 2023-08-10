@@ -327,7 +327,6 @@ describeSuite({
           signer: alith,
         });
 
-        // Cancel proposal
         await cancelProposal(context, proposalIndex);
 
         // Refund deposit

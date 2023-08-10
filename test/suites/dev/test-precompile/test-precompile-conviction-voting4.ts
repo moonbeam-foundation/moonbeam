@@ -9,8 +9,8 @@ import {
 } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { cancelProposal, createProposal } from "../../../helpers/voting.js";
-import { decodeEventLog } from "viem";
+import { cancelProposal, createProposal, ConvictionVoting } from "../../../helpers/voting.js";
+import { Abi, decodeEventLog } from "viem";
 
 describeSuite({
   id: "D2529-3",
@@ -19,6 +19,7 @@ describeSuite({
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
+    let convictionVoting: ConvictionVoting;
 
     beforeAll(async function () {
       const { abi } = fetchCompiledContract("ConvictionVoting");
@@ -26,16 +27,10 @@ describeSuite({
     });
 
     beforeEach(async function () {
+      convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal(context, "generaladmin");
 
-      const rawTxn = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, GLMR, 1],
-        rawTxOnly: true,
-      });
-
-      await context.createBlock(rawTxn);
+      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n);
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -47,14 +42,7 @@ describeSuite({
       id: "T01",
       title: `should be removable`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVote",
-          args: [proposalIndex],
-          rawTxOnly: true,
-        });
-
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.removeVote(proposalIndex);
         expectEVMResult(block.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -70,16 +58,11 @@ describeSuite({
         const trackId = 2;
         // Cancel the proposal
         await cancelProposal(context, proposalIndex);
-        const rawTxn = await context.writePrecompile!({
-          privateKey: ETHAN_PRIVATE_KEY,
-          precompileName: "ConvictionVoting",
-          functionName: "removeOtherVote",
-          args: [ALITH_ADDRESS, trackId, proposalIndex],
-          rawTxOnly: true,
-        });
 
         // general_admin is track 2
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting
+          .withPrivateKey(ETHAN_PRIVATE_KEY)
+          .removeOtherVote(ALITH_ADDRESS, trackId, proposalIndex);
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
@@ -105,15 +88,7 @@ describeSuite({
       id: "T03",
       title: `should be removable by specifying the track general_admin`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVoteForTrack",
-          args: [proposalIndex, 2],
-          rawTxOnly: true,
-        });
-
-        // general_admin is track 2
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 2);
         expectEVMResult(block.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -126,16 +101,10 @@ describeSuite({
       id: "T04",
       title: `should not be removable by specifying the wrong track`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVoteForTrack",
-          args: [proposalIndex, 0],
-          gas: 2_000_000n,
-          rawTxOnly: true,
-        });
-
         // general_admin is track 2
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting
+          .withGas(2_000_000n)
+          .removeVoteForTrack(proposalIndex, 0);
         expectEVMResult(block.result!.events, "Revert");
         const referendum = await context
           .polkadotJs()
@@ -148,17 +117,11 @@ describeSuite({
       id: "T05",
       title: `should not be removable by someone else during voting time`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeOtherVote",
-          args: [ALITH_ADDRESS, 2, proposalIndex],
-          rawTxOnly: true,
-          gas: 2_000_000n,
-          privateKey: BALTATHAR_PRIVATE_KEY,
-        });
-
         // general_admin is track 2
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting
+          .withPrivateKey(BALTATHAR_PRIVATE_KEY)
+          .withGas(2_000_000n)
+          .removeOtherVote(ALITH_ADDRESS, 2, proposalIndex);
         expectEVMResult(block.result!.events, "Revert");
         const referendum = await context
           .polkadotJs()

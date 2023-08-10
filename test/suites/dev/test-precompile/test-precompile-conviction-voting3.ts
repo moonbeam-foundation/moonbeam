@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
+import { ConvictionVoting, createProposal } from "../../../helpers/voting.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { Abi, decodeEventLog } from "viem";
 import { ALITH_ADDRESS } from "@moonwall/util";
@@ -13,22 +13,18 @@ describeSuite({
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
+    let convictionVoting: ConvictionVoting;
 
     beforeAll(async function () {
       const { abi } = fetchCompiledContract("ConvictionVoting");
+      convictionVoting = new ConvictionVoting(context);
       convictionVotingAbi = abi;
     });
 
     beforeEach(async function () {
       proposalIndex = await createProposal(context);
 
-      const rawTxn = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, 1n * 10n ** 18n, 1],
-        rawTxOnly: true,
-      });
-      await context.createBlock(rawTxn);
+      const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -40,14 +36,7 @@ describeSuite({
       id: "T01",
       title: `should be removable`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVote",
-          args: [proposalIndex],
-          rawTxOnly: true,
-        });
-
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.removeVote(proposalIndex);
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
@@ -74,14 +63,7 @@ describeSuite({
       test: async function () {
         const trackId = 0;
 
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVoteForTrack",
-          args: [proposalIndex, trackId],
-          rawTxOnly: true,
-        });
-
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, trackId);
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({

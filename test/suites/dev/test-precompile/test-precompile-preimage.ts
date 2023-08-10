@@ -14,13 +14,11 @@ import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 async function notePreimage(context: DevModeContext, PreimageAbi: Abi, data: string) {
   const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: data } });
-  const rawTx = await createViemTransaction(context, {
-    to: PRECOMPILE_PREIMAGE_ADDRESS,
-    data: encodeFunctionData({
-      abi: PreimageAbi,
-      functionName: "notePreimage",
-      args: [call.toHex()],
-    }),
+  const rawTx = await context.writePrecompile!({
+    precompileName: "Preimage",
+    functionName: "notePreimage",
+    args: [call.toHex()],
+    rawTxOnly: true,
   });
   const block = await context.createBlock(rawTx);
   return { block, call };
@@ -28,13 +26,11 @@ async function notePreimage(context: DevModeContext, PreimageAbi: Abi, data: str
 
 async function unnotePreimage(context: DevModeContext, PreimageAbi: Abi, data: string) {
   const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: data } });
-  const rawTx = await createViemTransaction(context, {
-    to: PRECOMPILE_PREIMAGE_ADDRESS,
-    data: encodeFunctionData({
-      abi: PreimageAbi,
-      functionName: "unnotePreimage",
-      args: [call.hash.toHex()],
-    }),
+  const rawTx = await context.writePrecompile!({
+    precompileName: "Preimage",
+    functionName: "unnotePreimage",
+    args: [call.hash.toHex()],
+    rawTxOnly: true,
   });
   const block = await context.createBlock(rawTx);
   return { block, call };

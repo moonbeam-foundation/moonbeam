@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, BALTATHAR_PRIVATE_KEY, GLMR } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
+import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
@@ -12,49 +12,33 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
+    let convictionVoting: ConvictionVoting;
+
     beforeAll(async function () {
       proposalIndex = await createProposal(context);
 
-      const rawTxn = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, GLMR, 1n],
-        rawTxOnly: true,
-      });
-
-      const blockAlith_1 = await context.createBlock(rawTxn);
+      let convictionVoting = new ConvictionVoting(context);
+      const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n);
       expectEVMResult(blockAlith_1.result!.events, "Succeed");
 
-      const rawTxn2 = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, 2n * GLMR, 2n],
-        rawTxOnly: true,
-      });
-
-      const blockAlith_2 = await context.createBlock(rawTxn2);
+      const blockAlith_2 = await convictionVoting.voteYes(proposalIndex, 2n * GLMR, 2n);
       expectEVMResult(blockAlith_2.result!.events, "Succeed");
 
-      const rawTxn3 = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, 3n * GLMR, 3n],
-        rawTxOnly: true,
-        privateKey: BALTATHAR_PRIVATE_KEY,
-      });
-      const blockBaltathar = await context.createBlock(rawTxn3);
+      const blockBaltathar = await convictionVoting
+        .withPrivateKey(BALTATHAR_PRIVATE_KEY)
+        .voteYes(proposalIndex, 3n * GLMR, 3n);
       expectEVMResult(blockBaltathar.result!.events, "Succeed");
+    });
+
+    beforeEach(async function () {
+      convictionVoting = new ConvictionVoting(context);
     });
 
     it({
       id: "T01",
       title: "should return classLocksFor alith",
       test: async function () {
-        const result = (await context.readPrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "classLocksFor",
-          args: [ALITH_ADDRESS],
-        })) as any;
+        const result = (await convictionVoting.classLocksFor(ALITH_ADDRESS)) as any;
 
         expect(result.length).to.equal(1);
         expect(result[0].trackId).to.equal(0);
@@ -66,11 +50,7 @@ describeSuite({
       id: "T02",
       title: "should return classLocksFor baltathar",
       test: async function () {
-        const result = (await context.readPrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "classLocksFor",
-          args: [BALTATHAR_ADDRESS],
-        })) as any;
+        const result = (await convictionVoting.classLocksFor(BALTATHAR_ADDRESS)) as any;
 
         expect(result.length).to.equal(1);
         expect(result[0].trackId).to.equal(0);
@@ -82,11 +62,7 @@ describeSuite({
       id: "T03",
       title: "should return votingFor alith",
       test: async function () {
-        const result = (await context.readPrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "votingFor",
-          args: [ALITH_ADDRESS, proposalIndex],
-        })) as any;
+        const result = (await convictionVoting.votingFor(ALITH_ADDRESS, proposalIndex)) as any;
 
         expect(result.casting.votes).to.have.lengthOf(1);
         expect(result.casting.votes[0].pollIndex).to.equal(0);
@@ -108,12 +84,7 @@ describeSuite({
       id: "T04",
       title: "should return votingFor baltathar",
       test: async function () {
-        const result = (await context.readPrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "votingFor",
-          args: [BALTATHAR_ADDRESS, proposalIndex],
-        })) as any;
-
+        const result = (await convictionVoting.votingFor(BALTATHAR_ADDRESS, proposalIndex)) as any;
         expect(result.casting.votes).to.have.lengthOf(1);
         expect(result.casting.votes[0].pollIndex).to.equal(0);
         expect(result.casting.votes[0].accountVote.isStandard).to.be.true;

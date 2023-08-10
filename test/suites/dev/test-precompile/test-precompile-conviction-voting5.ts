@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { jumpBlocks } from "../../../helpers/block.js";
 import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
+import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
 
 describeSuite({
   id: "D2529-4",
@@ -11,6 +11,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
     let proposalIndex: number;
+    let convictionVoting: ConvictionVoting;
 
     beforeAll(async function () {
       // Whitelist caller is track 3
@@ -21,17 +22,11 @@ describeSuite({
       );
       const alithAccount = await context.polkadotJs().query.system.account(ALITH_ADDRESS);
 
-      const rawTxn = await context.writePrecompile!({
-        precompileName: "ConvictionVoting",
-        functionName: "voteYes",
-        args: [proposalIndex, alithAccount.data.free.toBigInt() - 20n * 10n ** 18n, 1],
-        rawTxOnly: true,
-      });
-
-      await context.createBlock(
-        rawTxn,
-
-        { allowFailures: false }
+      let convictionVoting = new ConvictionVoting(context);
+      await convictionVoting.voteYes(
+        proposalIndex,
+        alithAccount.data.free.toBigInt() - 20n * 10n ** 18n,
+        1n
       );
       // 20 minutes jump
       await jumpBlocks(context, (20 * 60) / 12);
@@ -43,20 +38,17 @@ describeSuite({
       expect(referendum.unwrap().isApproved).to.be.true;
     });
 
+    beforeEach(async function () {
+      convictionVoting = new ConvictionVoting(context);
+    });
+
     // This and the next "it" and dependant on same state but this one is supposed to
     // revert and so not impact the proposal state
     it({
       id: "T01",
       title: `should failed to be removed without track info`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVote",
-          args: [proposalIndex],
-          rawTxOnly: true,
-          gas: 2_000_000n,
-        });
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.withGas(2_000_000n).removeVote(proposalIndex);
         expectEVMResult(block.result!.events, "Revert", "Reverted");
         expect(await extractRevertReason(context, block.result!.hash)).to.contain("ClassNeeded");
       },
@@ -66,13 +58,7 @@ describeSuite({
       id: "T02",
       title: `should be removable by specifying the track`,
       test: async function () {
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "ConvictionVoting",
-          functionName: "removeVoteForTrack",
-          args: [proposalIndex, 1],
-          rawTxOnly: true,
-        });
-        const block = await context.createBlock(rawTxn);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 1);
         expectEVMResult(block.result!.events, "Succeed");
       },
     });
