@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { ConvictionVoting, createProposal } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers/voting.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { Abi, decodeEventLog } from "viem";
 import { ALITH_ADDRESS } from "@moonwall/util";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 describeSuite({
   id: "D2529-2",
@@ -24,7 +25,7 @@ describeSuite({
     beforeEach(async function () {
       proposalIndex = await createProposal(context);
 
-      const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
+      const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -36,7 +37,7 @@ describeSuite({
       id: "T01",
       title: `should be removable`,
       test: async function () {
-        const block = await convictionVoting.removeVote(proposalIndex);
+        const block = await convictionVoting.removeVote(proposalIndex).block();
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
@@ -63,7 +64,7 @@ describeSuite({
       test: async function () {
         const trackId = 0;
 
-        const block = await convictionVoting.removeVoteForTrack(proposalIndex, trackId);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, trackId).block();
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({

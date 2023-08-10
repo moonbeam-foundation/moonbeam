@@ -3,7 +3,8 @@ import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { jumpBlocks } from "../../../helpers/block.js";
 import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers/voting.js";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 describeSuite({
   id: "D2529-4",
@@ -23,11 +24,9 @@ describeSuite({
       const alithAccount = await context.polkadotJs().query.system.account(ALITH_ADDRESS);
 
       let convictionVoting = new ConvictionVoting(context);
-      await convictionVoting.voteYes(
-        proposalIndex,
-        alithAccount.data.free.toBigInt() - 20n * 10n ** 18n,
-        1n
-      );
+      await convictionVoting
+        .voteYes(proposalIndex, alithAccount.data.free.toBigInt() - 20n * 10n ** 18n, 1n)
+        .block();
       // 20 minutes jump
       await jumpBlocks(context, (20 * 60) / 12);
 
@@ -48,7 +47,7 @@ describeSuite({
       id: "T01",
       title: `should failed to be removed without track info`,
       test: async function () {
-        const block = await convictionVoting.withGas(2_000_000n).removeVote(proposalIndex);
+        const block = await convictionVoting.withGas(2_000_000n).removeVote(proposalIndex).block();
         expectEVMResult(block.result!.events, "Revert", "Reverted");
         expect(await extractRevertReason(context, block.result!.hash)).to.contain("ClassNeeded");
       },
@@ -58,7 +57,7 @@ describeSuite({
       id: "T02",
       title: `should be removable by specifying the track`,
       test: async function () {
-        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 1);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 1).block();
         expectEVMResult(block.result!.events, "Succeed");
       },
     });

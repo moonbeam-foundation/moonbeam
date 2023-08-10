@@ -9,8 +9,9 @@ import {
 } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { cancelProposal, createProposal, ConvictionVoting } from "../../../helpers/voting.js";
+import { cancelProposal, createProposal } from "../../../helpers/voting.js";
 import { Abi, decodeEventLog } from "viem";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 describeSuite({
   id: "D2529-3",
@@ -30,7 +31,7 @@ describeSuite({
       convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal(context, "generaladmin");
 
-      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n);
+      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -42,7 +43,7 @@ describeSuite({
       id: "T01",
       title: `should be removable`,
       test: async function () {
-        const block = await convictionVoting.removeVote(proposalIndex);
+        const block = await convictionVoting.removeVote(proposalIndex).block();
         expectEVMResult(block.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -62,7 +63,8 @@ describeSuite({
         // general_admin is track 2
         const block = await convictionVoting
           .withPrivateKey(ETHAN_PRIVATE_KEY)
-          .removeOtherVote(ALITH_ADDRESS, trackId, proposalIndex);
+          .removeOtherVote(ALITH_ADDRESS, trackId, proposalIndex)
+          .block();
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
@@ -88,7 +90,7 @@ describeSuite({
       id: "T03",
       title: `should be removable by specifying the track general_admin`,
       test: async function () {
-        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 2);
+        const block = await convictionVoting.removeVoteForTrack(proposalIndex, 2).block();
         expectEVMResult(block.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -104,7 +106,8 @@ describeSuite({
         // general_admin is track 2
         const block = await convictionVoting
           .withGas(2_000_000n)
-          .removeVoteForTrack(proposalIndex, 0);
+          .removeVoteForTrack(proposalIndex, 0)
+          .block();
         expectEVMResult(block.result!.events, "Revert");
         const referendum = await context
           .polkadotJs()
@@ -121,7 +124,8 @@ describeSuite({
         const block = await convictionVoting
           .withPrivateKey(BALTATHAR_PRIVATE_KEY)
           .withGas(2_000_000n)
-          .removeOtherVote(ALITH_ADDRESS, 2, proposalIndex);
+          .removeOtherVote(ALITH_ADDRESS, 2, proposalIndex)
+          .block();
         expectEVMResult(block.result!.events, "Revert");
         const referendum = await context
           .polkadotJs()

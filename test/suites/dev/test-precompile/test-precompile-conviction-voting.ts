@@ -14,7 +14,8 @@ import {
 import { Abi, decodeEventLog } from "viem";
 import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers/voting.js";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 describeSuite({
   id: "D2529",
@@ -39,7 +40,7 @@ describeSuite({
       id: "T01",
       title: "should allow to vote yes for a proposal",
       test: async function () {
-        const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
+        const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -69,7 +70,7 @@ describeSuite({
       id: "T02",
       title: "should allow to vote no for a proposal",
       test: async function () {
-        const block = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n);
+        const block = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n).block();
 
         expectEVMResult(block.result!.events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
@@ -98,10 +99,10 @@ describeSuite({
       id: "T03",
       title: "should allow to replace yes by a no",
       test: async function () {
-        const block1 = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n);
+        const block1 = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
         expectEVMResult(block1.result!.events, "Succeed");
 
-        const block2 = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n);
+        const block2 = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n).block();
         expectEVMResult(block2.result!.events, "Succeed");
         const referendum = await context
           .polkadotJs()
@@ -117,7 +118,8 @@ describeSuite({
       test: async function () {
         const block = await convictionVoting
           .withGas(1_000_000n)
-          .voteNo(999999, 1n * 10n ** 18n, 1n);
+          .voteNo(999999, 1n * 10n ** 18n, 1n)
+          .block();
 
         expectEVMResult(block.result!.events, "Revert", "Reverted");
         const revertReason = await extractRevertReason(context, block.result!.hash);
@@ -131,7 +133,8 @@ describeSuite({
       test: async function () {
         const block = await convictionVoting
           .withGas(1_000_000n)
-          .voteYes(proposalIndex, 1n * 10n ** 18n, 7n);
+          .voteYes(proposalIndex, 1n * 10n ** 18n, 7n)
+          .block();
         expectEVMResult(block.result!.events, "Revert", "Reverted");
 
         const revertReason = await extractRevertReason(context, block.result!.hash);
@@ -146,7 +149,7 @@ describeSuite({
         const ayes = 1n * 10n ** 18n;
         const nays = 2n * 10n ** 18n;
         // Vote split
-        const block = await convictionVoting.voteSplit(proposalIndex, ayes, nays);
+        const block = await convictionVoting.voteSplit(proposalIndex, ayes, nays).block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -181,7 +184,9 @@ describeSuite({
         const nays = 2n * 10n ** 18n;
         const abstain = 3n * 10n ** 18n;
         // Vote split
-        const block = await convictionVoting.voteSplitAbstain(proposalIndex, ayes, nays, abstain);
+        const block = await convictionVoting
+          .voteSplitAbstain(proposalIndex, ayes, nays, abstain)
+          .block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -219,7 +224,8 @@ describeSuite({
         // Delegates the vote
         const block = await convictionVoting
           .withPrivateKey(ETHAN_PRIVATE_KEY)
-          .delegate(trackId, ALITH_ADDRESS, conviction, amount);
+          .delegate(trackId, ALITH_ADDRESS, conviction, amount)
+          .block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -247,7 +253,8 @@ describeSuite({
         {
           const block = await convictionVoting
             .withPrivateKey(ETHAN_PRIVATE_KEY)
-            .undelegate(trackId);
+            .undelegate(trackId)
+            .block();
 
           // Verifies the EVM Side
           expectEVMResult(block.result!.events, "Succeed");

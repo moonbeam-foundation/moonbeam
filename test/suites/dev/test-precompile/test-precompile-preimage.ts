@@ -1,31 +1,9 @@
 import "@moonbeam-network/api-augment";
-import {
-  describeSuite,
-  expect,
-  beforeAll,
-  DevModeContext,
-  beforeEach,
-  fetchCompiledContract,
-} from "@moonwall/cli";
-import { PRECOMPILE_PREIMAGE_ADDRESS, createViemTransaction } from "@moonwall/util";
+import { describeSuite, expect, beforeAll, beforeEach, fetchCompiledContract } from "@moonwall/cli";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { ContractCall } from "../../../helpers/contract-call.js";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-
-class Preimage extends ContractCall {
-  constructor(context: DevModeContext) {
-    super("Preimage", context);
-  }
-
-  async notePreimage(data: string) {
-    return await this.callExtrinsic("notePreimage", [data]);
-  }
-
-  async unnotePreimage(data: string) {
-    return await this.callExtrinsic("unnotePreimage", [data]);
-  }
-}
+import { Preimage } from "../../../helpers/precompile-contract-calls.js";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
@@ -51,7 +29,7 @@ describeSuite({
       title: "should allow to note Preimage",
       test: async function () {
         const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
-        const block = await preimage.notePreimage(call.toHex());
+        const block = await preimage.notePreimage(call.toHex()).block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -77,8 +55,8 @@ describeSuite({
       title: "should allow to unnote a Preimage",
       test: async function () {
         const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "You" } });
-        await preimage.notePreimage(call.toHex());
-        const block = await preimage.unnotePreimage(call.hash.toHex());
+        await preimage.notePreimage(call.toHex()).block();
+        const block = await preimage.unnotePreimage(call.hash.toHex()).block();
 
         // Verifies the EVM Side
         expectEVMResult(block.result!.events, "Succeed");
@@ -105,9 +83,9 @@ describeSuite({
       title: "should fail to note the same Preimage twice",
       test: async function () {
         const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Repeated" } });
-        await preimage.notePreimage(call.toHex());
+        await preimage.notePreimage(call.toHex()).block();
         expect(
-          async () => await preimage.notePreimage(call.toHex()),
+          async () => await preimage.notePreimage(call.toHex()).block(),
           "Transaction should be reverted but instead preimage noted"
         ).rejects.toThrowError("AlreadyNoted");
       },
@@ -121,7 +99,7 @@ describeSuite({
           .polkadotJs()
           .tx.identity.setIdentity({ display: { raw: "Missing Preimage" } });
         expect(
-          async () => await preimage.unnotePreimage(call.hash.toHex()),
+          async () => await preimage.unnotePreimage(call.hash.toHex()).block(),
           "Transaction should be reverted but instead preimage unnoted"
         ).rejects.toThrowError("NotNoted");
       },

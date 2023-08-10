@@ -1,7 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { ConvictionVoting, createProposal } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers/voting.js";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];
 
@@ -23,7 +24,9 @@ describeSuite({
         id: "T01",
         title: `should allow to vote with conviction x${conviction}`,
         test: async function () {
-          const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, conviction);
+          const block = await convictionVoting
+            .voteYes(proposalIndex, 1n * 10n ** 18n, conviction)
+            .block();
 
           expectEVMResult(block.result!.events, "Succeed");
 

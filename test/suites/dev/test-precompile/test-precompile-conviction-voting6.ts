@@ -2,7 +2,8 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, BALTATHAR_PRIVATE_KEY, GLMR } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal, ConvictionVoting } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers/voting.js";
+import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
@@ -18,15 +19,16 @@ describeSuite({
       proposalIndex = await createProposal(context);
 
       let convictionVoting = new ConvictionVoting(context);
-      const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n);
+      const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       expectEVMResult(blockAlith_1.result!.events, "Succeed");
 
-      const blockAlith_2 = await convictionVoting.voteYes(proposalIndex, 2n * GLMR, 2n);
+      const blockAlith_2 = await convictionVoting.voteYes(proposalIndex, 2n * GLMR, 2n).block();
       expectEVMResult(blockAlith_2.result!.events, "Succeed");
 
       const blockBaltathar = await convictionVoting
         .withPrivateKey(BALTATHAR_PRIVATE_KEY)
-        .voteYes(proposalIndex, 3n * GLMR, 3n);
+        .voteYes(proposalIndex, 3n * GLMR, 3n)
+        .block();
       expectEVMResult(blockBaltathar.result!.events, "Succeed");
     });
 
@@ -38,7 +40,7 @@ describeSuite({
       id: "T01",
       title: "should return classLocksFor alith",
       test: async function () {
-        const result = (await convictionVoting.classLocksFor(ALITH_ADDRESS)) as any;
+        const result = (await convictionVoting.classLocksFor(ALITH_ADDRESS).tx()) as any;
 
         expect(result.length).to.equal(1);
         expect(result[0].trackId).to.equal(0);
@@ -50,7 +52,7 @@ describeSuite({
       id: "T02",
       title: "should return classLocksFor baltathar",
       test: async function () {
-        const result = (await convictionVoting.classLocksFor(BALTATHAR_ADDRESS)) as any;
+        const result = (await convictionVoting.classLocksFor(BALTATHAR_ADDRESS).tx()) as any;
 
         expect(result.length).to.equal(1);
         expect(result[0].trackId).to.equal(0);
@@ -62,7 +64,7 @@ describeSuite({
       id: "T03",
       title: "should return votingFor alith",
       test: async function () {
-        const result = (await convictionVoting.votingFor(ALITH_ADDRESS, proposalIndex)) as any;
+        const result = (await convictionVoting.votingFor(ALITH_ADDRESS, proposalIndex).tx()) as any;
 
         expect(result.casting.votes).to.have.lengthOf(1);
         expect(result.casting.votes[0].pollIndex).to.equal(0);
@@ -84,7 +86,9 @@ describeSuite({
       id: "T04",
       title: "should return votingFor baltathar",
       test: async function () {
-        const result = (await convictionVoting.votingFor(BALTATHAR_ADDRESS, proposalIndex)) as any;
+        const result = (await convictionVoting
+          .votingFor(BALTATHAR_ADDRESS, proposalIndex)
+          .tx()) as any;
         expect(result.casting.votes).to.have.lengthOf(1);
         expect(result.casting.votes[0].pollIndex).to.equal(0);
         expect(result.casting.votes[0].accountVote.isStandard).to.be.true;
