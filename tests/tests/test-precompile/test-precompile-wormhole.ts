@@ -75,19 +75,27 @@ const deploy = async (context: DevTestContext, contractPath: string, initData?: 
 };
 
 describeDevMoonbeam(`Test local Wormhole`, (context) => {
-  it("should support Alith VAA", async function () {
+
+  const signerPKs = [ALITH_PRIVATE_KEY];
+  const ETHChain = 3;
+  const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
+
+  let whNonce = 0;
+  let wethContract;
+  let evmChainId;
+
+  before("deploy wormhole infrastructure", async function () {
     this.timeout(3600 * 1000);
 
-    const wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
+    wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
     debug(`weth contract deployed to ${wethContract.contractAddress}`);
     const myTokenContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
 
     const initialSigners = [ALITH_ADDRESS];
-    const signerPKs = [ALITH_PRIVATE_KEY];
     const chainId = "0x10";
     const governanceChainId = "0x1";
     const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004";
-    const evmChainId = await context.web3.eth.getChainId(); //"1337"; // "1281";
+    evmChainId = await context.web3.eth.getChainId();
     // Deploy wormhole (based on wormhole)
     // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
     const setupContract = await deploy(context, "wormhole/Setup");
@@ -136,16 +144,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     debug(`bridge contract deployed to ${bridgeContract.contractAddress}`);
 
-    const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
-    const ETHChain = 3;
-    let nonce = 0;
-
     // Register Chain ETH
     const registerChainVm = await genRegisterChainVAA(
       signerPKs,
       ETHEmitter,
       GUARDIAN_SET_INDEX,
-      nonce++,
+      whNonce++,
       1,
       ETHChain
     );
@@ -165,7 +169,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const assetMetaVm = await genAssetMeta(
       signerPKs,
       GUARDIAN_SET_INDEX,
-      nonce++,
+      whNonce++,
       1,
       wethContract.contractAddress,
       ETHChain,
@@ -224,6 +228,31 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
+    const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
+      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
+    );
+    expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
+      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
+    );
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [
+            ENABLED_FLAG_STORAGE_ADDRESS,
+            context.polkadotApi.registry.createType("Option<bool>", true).toHex(),
+          ],
+        ])
+      )
+      .signAndSend(alith);
+    await context.createBlock();
+
+  });
+
+  it("should support Alith VAA", async function () {
+    this.timeout(3600 * 1000);
+
     // create payload
     const versionedMultiLocation = {
       v1: {
@@ -243,36 +272,16 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       versionedMultiLocation
     );
 
-    // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
-    const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
-      u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
-    );
-    expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
-      "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
-    );
-
     const userAction = new XcmRoutingUserActionWithFee({ destination, fee: 1 });
     const versionedUserAction = new VersionedUserAction({ V2: userAction });
     console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
 
-    await context.polkadotApi.tx.sudo
-      .sudo(
-        context.polkadotApi.tx.system.setStorage([
-          [
-            ENABLED_FLAG_STORAGE_ADDRESS,
-            context.polkadotApi.registry.createType("Option<bool>", true).toHex(),
-          ],
-        ])
-      )
-      .signAndSend(alith);
-    await context.createBlock();
-
     const transferVAA = await genTransferWithPayloadVAA(
       signerPKs,
       GUARDIAN_SET_INDEX,
-      nonce++,
+      whNonce++,
       123, // sequence
       999, // amount of tokens
       wethContract.contractAddress,
