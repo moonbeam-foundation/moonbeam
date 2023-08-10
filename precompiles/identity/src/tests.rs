@@ -13,10 +13,18 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::mock::*;
-use crate::{Data, IdentityInfo, Judgement, Registrar, Registration, SubsOf, SuperOf};
+use crate::{
+	mock::*, SELECTOR_LOG_IDENTITY_CLEARED, SELECTOR_LOG_IDENTITY_KILLED,
+	SELECTOR_LOG_IDENTITY_SET, SELECTOR_LOG_JUDGEMENT_GIVEN, SELECTOR_LOG_JUDGEMENT_REQUESTED,
+	SELECTOR_LOG_JUDGEMENT_UNREQUESTED, SELECTOR_LOG_REGISTRAR_ADDED,
+	SELECTOR_LOG_SUB_IDENTITY_ADDED, SELECTOR_LOG_SUB_IDENTITY_REMOVED,
+	SELECTOR_LOG_SUB_IDENTITY_REVOKED,
+};
+use crate::{
+	Data, IdentityFields, IdentityInfo, Judgement, Registrar, Registration, SubsOf, SuperOf,
+};
 use frame_support::{assert_ok, dispatch::Dispatchable};
-use pallet_evm::Call as EvmCall;
+use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_identity::{
 	Event as IdentityEvent, IdentityField, Pallet as IdentityPallet, RegistrarInfo,
 };
@@ -69,6 +77,18 @@ fn test_add_registrar_with_registrar_origin_succeeds() {
 			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
 				IdentityEvent::RegistrarAdded { registrar_index: 0 }
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_REGISTRAR_ADDED,
+						solidity::encode_event_data(
+							0u32, // registrar_index
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::registrars().to_vec(),
@@ -220,7 +240,11 @@ fn test_set_fields_on_existing_registrar_index_succeeds() {
 				Bob,
 				PCall::set_fields {
 					index: 0,
-					fields: IdentityField::Display as u64 | IdentityField::Web as u64,
+					fields: IdentityFields {
+						display: true,
+						web: true,
+						..Default::default()
+					},
 				}
 				.into()
 			))
@@ -249,7 +273,11 @@ fn test_set_fields_on_non_existing_registrar_index_fails() {
 				Bob,
 				PCall::set_fields {
 					index: 0,
-					fields: IdentityField::Display as u64 | IdentityField::Web as u64,
+					fields: IdentityFields {
+						display: true,
+						web: true,
+						..Default::default()
+					},
 				}
 				.into()
 			))
@@ -326,6 +354,22 @@ fn test_set_identity_works() {
 				.into()
 			))
 			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::IdentitySet { who: Bob.into() }
+			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_IDENTITY_SET,
+						solidity::encode_event_data(
+							Address(Bob.into()), // who
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
@@ -429,6 +473,22 @@ fn test_set_identity_works_for_already_set_identity() {
 				.into()
 			))
 			.dispatch(RuntimeOrigin::root()));
+
+			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
+				IdentityEvent::IdentitySet { who: Bob.into() }
+			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_IDENTITY_SET,
+						solidity::encode_event_data(
+							Address(Bob.into()), // who
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
@@ -679,6 +739,18 @@ fn test_clear_identity_works_if_identity_set() {
 					deposit: BasicDeposit::get() as u128,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_IDENTITY_CLEARED,
+						solidity::encode_event_data(
+							Address(Bob.into()), // who
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
@@ -764,6 +836,19 @@ fn test_request_judgement_works_if_identity_set() {
 					registrar_index: 0,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_JUDGEMENT_REQUESTED,
+						solidity::encode_event_data((
+							Address(Bob.into()), // who
+							0u32,                // registrar_index
+						)),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
@@ -839,6 +924,19 @@ fn test_cancel_request_works_if_identity_judgement_requested() {
 					registrar_index: 0,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_JUDGEMENT_UNREQUESTED,
+						solidity::encode_event_data((
+							Address(Bob.into()), // who
+							0u32,                // registrar_index
+						)),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
@@ -949,6 +1047,19 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 					registrar_index: 0,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_JUDGEMENT_GIVEN,
+						solidity::encode_event_data((
+							Address(Bob.into()), // target
+							0u32,                // registrar_index
+						)),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
@@ -997,6 +1108,18 @@ fn test_kill_identity_works_if_identity_set() {
 					deposit: BasicDeposit::get() as u128,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_IDENTITY_KILLED,
+						solidity::encode_event_data(
+							Address(Bob.into()), // who
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
@@ -1047,6 +1170,19 @@ fn test_add_sub_works_if_identity_set() {
 					deposit: SubAccountDeposit::get() as u128,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_SUB_IDENTITY_ADDED,
+						solidity::encode_event_data((
+							Address(Charlie.into()), // sub
+							Address(Bob.into()),     // main
+						)),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::subs_of(AccountId::from(Bob)),
@@ -1105,14 +1241,6 @@ fn test_rename_sub_works_if_identity_set() {
 				.into()
 			))
 			.dispatch(RuntimeOrigin::root()));
-
-			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
-				IdentityEvent::SubIdentityAdded {
-					sub: Charlie.into(),
-					main: Bob.into(),
-					deposit: SubAccountDeposit::get() as u128,
-				}
-			)));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
@@ -1175,6 +1303,19 @@ fn test_remove_sub_works_if_identity_set() {
 					deposit: SubAccountDeposit::get() as u128,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_SUB_IDENTITY_REMOVED,
+						solidity::encode_event_data((
+							Address(Charlie.into()), // sub
+							Address(Bob.into()),     // main
+						)),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
@@ -1230,6 +1371,18 @@ fn test_quit_sub_works_if_identity_set() {
 					deposit: SubAccountDeposit::get() as u128,
 				}
 			)));
+			assert!(events().contains(
+				&EvmEvent::Log {
+					log: log1(
+						Precompile1,
+						SELECTOR_LOG_SUB_IDENTITY_REVOKED,
+						solidity::encode_event_data(
+							Address(Charlie.into()), // sub
+						),
+					),
+				}
+				.into()
+			));
 
 			assert_eq!(
 				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
@@ -1412,7 +1565,7 @@ fn test_identity_returns_valid_data_for_requested_judgement() {
 						0,
 						Judgement {
 							is_fee_paid: true,
-							fee_paid_amount: 100.into(),
+							fee_paid_deposit: 100.into(),
 							..Default::default()
 						},
 					)],
@@ -1673,7 +1826,7 @@ fn test_subs_of_returns_empty_if_not_set() {
 				)
 				.expect_no_logs()
 				.execute_returns(SubsOf {
-					balance: 0.into(),
+					deposit: 0.into(),
 					accounts: vec![],
 				});
 		})
@@ -1715,7 +1868,7 @@ fn test_subs_of_returns_account_if_set() {
 				)
 				.expect_no_logs()
 				.execute_returns(SubsOf {
-					balance: SubAccountDeposit::get().into(),
+					deposit: SubAccountDeposit::get().into(),
 					accounts: vec![H160::from(Charlie).into()],
 				});
 		})

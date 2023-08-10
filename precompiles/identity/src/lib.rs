@@ -18,6 +18,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 use enumflags2::BitFlags;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
@@ -26,7 +28,9 @@ use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{ConstU32, H160, H256, U256};
+use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -36,6 +40,24 @@ mod tests;
 type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 	<T as frame_system::Config>::AccountId,
 >>::Balance;
+
+/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
+pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
+pub(crate) const SELECTOR_LOG_IDENTITY_CLEARED: [u8; 32] = keccak256!("IdentityCleared(address)");
+pub(crate) const SELECTOR_LOG_IDENTITY_KILLED: [u8; 32] = keccak256!("IdentityKilled(address)");
+pub(crate) const SELECTOR_LOG_JUDGEMENT_REQUESTED: [u8; 32] =
+	keccak256!("JudgementRequested(address,uint32)");
+pub(crate) const SELECTOR_LOG_JUDGEMENT_UNREQUESTED: [u8; 32] =
+	keccak256!("JudgementUnrequested(address,uint32)");
+pub(crate) const SELECTOR_LOG_JUDGEMENT_GIVEN: [u8; 32] =
+	keccak256!("JudgementGiven(address,uint32)");
+pub(crate) const SELECTOR_LOG_REGISTRAR_ADDED: [u8; 32] = keccak256!("RegistrarAdded(uint32)");
+pub(crate) const SELECTOR_LOG_SUB_IDENTITY_ADDED: [u8; 32] =
+	keccak256!("SubIdentityAdded(address,address)");
+pub(crate) const SELECTOR_LOG_SUB_IDENTITY_REMOVED: [u8; 32] =
+	keccak256!("SubIdentityRemoved(address,address)");
+pub(crate) const SELECTOR_LOG_SUB_IDENTITY_REVOKED: [u8; 32] =
+	keccak256!("SubIdentityRevoked(address)");
 
 /// A precompile to wrap the functionality from pallet-identity
 pub struct IdentityPrecompile<Runtime>(PhantomData<Runtime>);
@@ -54,12 +76,26 @@ where
 {
 	#[precompile::public("addRegistrar(address)")]
 	fn add_registrar(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult {
+		let reg_index = pallet_identity::Pallet::<Runtime>::registrars().len() as u32;
+		// Storage item: Registrars:
+		// BoundedVec((AccountId(20) + Balance(16) + IdentityFields(8)) * MaxSubAccounts(100))
+		handle.record_db_read::<Runtime>(4400)?;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_REGISTRAR_ADDED,
+			solidity::encode_event_data(reg_index),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let account =
 			Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(account.0));
 		let call = pallet_identity::Call::<Runtime>::add_registrar { account };
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -69,24 +105,35 @@ where
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
 	) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_IDENTITY_SET,
+			solidity::encode_event_data(Address(caller)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let call = pallet_identity::Call::<Runtime>::set_identity {
 			info: Self::identity_to_input(info)?,
 		};
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
 
 	#[precompile::public("setSubs((address,(bool,bytes))[])")]
 	fn set_subs(handle: &mut impl PrecompileHandle, subs: Vec<(Address, Data)>) -> EvmResult {
-		let mut call_subs = vec![];
+		let mut call_subs = Vec::new();
 		for (i, (addr, data)) in subs.into_iter().enumerate() {
 			let addr = Runtime::AddressMapping::into_account_id(addr.into());
 			let data: pallet_identity::Data = data
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("index {i}")))?;
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("index {i}")))?;
 			call_subs.push((addr, data));
 		}
 		let call = pallet_identity::Call::<Runtime>::set_subs { subs: call_subs };
@@ -99,10 +146,21 @@ where
 
 	#[precompile::public("clearIdentity()")]
 	fn clear_identity(handle: &mut impl PrecompileHandle) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_IDENTITY_CLEARED,
+			solidity::encode_event_data(Address(caller)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let call = pallet_identity::Call::<Runtime>::clear_identity {};
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -113,23 +171,45 @@ where
 		reg_index: u32,
 		max_fee: U256,
 	) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_JUDGEMENT_REQUESTED,
+			solidity::encode_event_data((Address(caller), reg_index)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let max_fee = max_fee
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("max_fee"))?;
 		let call = pallet_identity::Call::<Runtime>::request_judgement { reg_index, max_fee };
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
 
 	#[precompile::public("cancelRequest(uint32)")]
 	fn cancel_request(handle: &mut impl PrecompileHandle, reg_index: u32) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_JUDGEMENT_UNREQUESTED,
+			solidity::encode_event_data((Address(caller), reg_index)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let call = pallet_identity::Call::<Runtime>::cancel_request { reg_index };
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -158,11 +238,14 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("setFields(uint32,uint64)")]
-	fn set_fields(handle: &mut impl PrecompileHandle, index: u32, fields: u64) -> EvmResult {
-		let bit_flags = BitFlags::<pallet_identity::IdentityField>::from_bits(fields)
+	#[precompile::public("setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))")]
+	fn set_fields(
+		handle: &mut impl PrecompileHandle,
+		index: u32,
+		fields: IdentityFields,
+	) -> EvmResult {
+		let fields = Self::identity_fields_to_input(fields)
 			.map_err(|_| RevertReason::custom("invalid flag").in_field("fields"))?;
-		let fields = pallet_identity::IdentityFields(bit_flags);
 		let call = pallet_identity::Call::<Runtime>::set_fields { index, fields };
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -181,6 +264,15 @@ where
 		judgement: Judgement,
 		identity: H256,
 	) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_JUDGEMENT_GIVEN,
+			solidity::encode_event_data((target, reg_index)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let target = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(target.0));
 		let judgement = Self::judgment_to_input(judgement)?;
 		let identity: Runtime::Hash = identity.into();
@@ -191,33 +283,55 @@ where
 			identity,
 		};
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
 
 	#[precompile::public("killIdentity(address)")]
 	fn kill_identity(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_IDENTITY_KILLED,
+			solidity::encode_event_data(target),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let target = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(target.0));
 		let call = pallet_identity::Call::<Runtime>::kill_identity { target };
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		event.record(handle)?;
+
 		Ok(())
 	}
 
 	#[precompile::public("addSub(address,(bool,bytes))")]
 	fn add_sub(handle: &mut impl PrecompileHandle, sub: Address, data: Data) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUB_IDENTITY_ADDED,
+			solidity::encode_event_data((sub, Address(caller))),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.0));
 		let data: pallet_identity::Data = data
 			.try_into()
 			.map_err(|e| RevertReason::custom(e).in_field("data"))?;
 		let call = pallet_identity::Call::<Runtime>::add_sub { sub, data };
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -238,21 +352,43 @@ where
 
 	#[precompile::public("removeSub(address)")]
 	fn remove_sub(handle: &mut impl PrecompileHandle, sub: Address) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUB_IDENTITY_REMOVED,
+			solidity::encode_event_data((sub, Address(caller))),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.0));
 		let call = pallet_identity::Call::<Runtime>::remove_sub { sub };
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
 
 	#[precompile::public("quitSub()")]
 	fn quit_sub(handle: &mut impl PrecompileHandle) -> EvmResult {
+		let caller = handle.context().caller;
+
+		let event = log1(
+			handle.context().address,
+			SELECTOR_LOG_SUB_IDENTITY_REVOKED,
+			solidity::encode_event_data(Address(caller)),
+		);
+		handle.record_log_costs(&[&event])?;
+
 		let call = pallet_identity::Call::<Runtime>::quit_sub {};
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		event.record(handle)?;
 
 		Ok(())
 	}
@@ -303,7 +439,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let (balance, accounts) = pallet_identity::Pallet::<Runtime>::subs_of(who);
+		let (deposit, accounts) = pallet_identity::Pallet::<Runtime>::subs_of(who);
 
 		let accounts = accounts
 			.into_iter()
@@ -311,7 +447,7 @@ where
 			.collect();
 
 		Ok(SubsOf {
-			balance: balance.into(),
+			deposit: deposit.into(),
 			accounts,
 		})
 	}
@@ -329,8 +465,8 @@ where
 			.map(|(index, maybe_reg)| {
 				if let Some(reg) = maybe_reg {
 					Registrar {
-						index: index as u32,
 						is_valid: true,
+						index: index as u32,
 						account: Address(reg.account.into()),
 						fee: reg.fee.into(),
 						fields: IdentityFields {
@@ -355,8 +491,8 @@ where
 					}
 				} else {
 					Registrar {
-						index: index as u32,
 						is_valid: false,
+						index: index as u32,
 						..Default::default()
 					}
 				}
@@ -364,6 +500,43 @@ where
 			.collect();
 
 		Ok(registrars)
+	}
+
+	fn identity_fields_to_input(
+		fields: IdentityFields,
+	) -> Result<
+		pallet_identity::IdentityFields,
+		enumflags2::FromBitsError<pallet_identity::IdentityField>,
+	> {
+		let mut field_bits = 0u64;
+		if fields.display {
+			field_bits = field_bits | pallet_identity::IdentityField::Display as u64;
+		}
+		if fields.legal {
+			field_bits = field_bits | pallet_identity::IdentityField::Legal as u64;
+		}
+		if fields.web {
+			field_bits = field_bits | pallet_identity::IdentityField::Web as u64;
+		}
+		if fields.riot {
+			field_bits = field_bits | pallet_identity::IdentityField::Riot as u64;
+		}
+		if fields.email {
+			field_bits = field_bits | pallet_identity::IdentityField::Email as u64;
+		}
+		if fields.pgp_fingerprint {
+			field_bits = field_bits | pallet_identity::IdentityField::PgpFingerprint as u64;
+		}
+		if fields.image {
+			field_bits = field_bits | pallet_identity::IdentityField::Image as u64;
+		}
+		if fields.twitter {
+			field_bits = field_bits | pallet_identity::IdentityField::Twitter as u64;
+		}
+
+		let bit_flags = BitFlags::<pallet_identity::IdentityField>::from_bits(field_bits)?;
+
+		Ok(pallet_identity::IdentityFields(bit_flags))
 	}
 
 	fn identity_to_input(
@@ -376,14 +549,14 @@ where
 		> = Default::default();
 		let iter: Vec<_> = info.additional.into();
 		for (i, (k, v)) in iter.into_iter().enumerate() {
-			let k: pallet_identity::Data = k
-				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("additional.{i}.key")))?;
-			let v: pallet_identity::Data = v
-				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("additional.{i}.value")))?;
+			let k: pallet_identity::Data = k.try_into().map_err(|e| {
+				RevertReason::custom(e).in_field(alloc::format!("additional.{i}.key"))
+			})?;
+			let v: pallet_identity::Data = v.try_into().map_err(|e| {
+				RevertReason::custom(e).in_field(alloc::format!("additional.{i}.value"))
+			})?;
 			additional.try_push((k, v)).map_err(|_| {
-				RevertReason::custom("out of bounds").in_field(format!("additional"))
+				RevertReason::custom("out of bounds").in_field(alloc::format!("additional"))
 			})?;
 		}
 
@@ -401,32 +574,32 @@ where
 			display: info
 				.display
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("display")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("display")))?,
 			legal: info
 				.legal
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("legal")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("legal")))?,
 			web: info
 				.web
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("web")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("web")))?,
 			riot: info
 				.riot
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("riot")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("riot")))?,
 			email: info
 				.email
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("email")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("email")))?,
 			pgp_fingerprint,
 			image: info
 				.image
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("image")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("image")))?,
 			twitter: info
 				.twitter
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(format!("twitter")))?,
+				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("twitter")))?,
 		};
 
 		Ok(Box::new(identity_info))
@@ -459,7 +632,7 @@ where
 			twitter: Self::data_to_output(registration.info.twitter),
 		};
 
-		let mut additional = vec![];
+		let mut additional = Vec::new();
 		for (k, v) in registration.info.additional.into_iter() {
 			let k: Data = Self::data_to_output(k);
 			let v: Data = Self::data_to_output(v);
@@ -473,7 +646,7 @@ where
 
 		identity_info.additional = additional.into();
 
-		let mut judgements = vec![];
+		let mut judgements = Vec::new();
 		for (index, judgement) in registration.judgements.into_iter() {
 			judgements.push((index, Self::judgement_to_output(judgement)));
 		}
@@ -497,7 +670,7 @@ where
 			}
 			pallet_identity::Judgement::FeePaid(balance) => {
 				judgement.is_fee_paid = true;
-				judgement.fee_paid_amount = balance.into();
+				judgement.fee_paid_deposit = balance.into();
 			}
 			pallet_identity::Judgement::Reasonable => {
 				judgement.is_reasonable = true;
@@ -528,9 +701,9 @@ where
 
 		if value.is_fee_paid {
 			let amount: BalanceOf<Runtime> = value
-				.fee_paid_amount
+				.fee_paid_deposit
 				.try_into()
-				.map_err(|_| RevertReason::value_is_too_large("fee_paid_amount").into())?;
+				.map_err(|_| RevertReason::value_is_too_large("fee_paid_deposit").into())?;
 
 			return Ok(pallet_identity::Judgement::FeePaid(amount));
 		}
@@ -620,7 +793,7 @@ pub struct IdentityInfo<FieldLimit> {
 	riot: Data,
 	email: Data,
 	has_pgp_fingerprint: bool,
-	pgp_fingerprint: BoundedBytes<ConstU32<20>>, // validate this
+	pgp_fingerprint: BoundedBytes<ConstU32<20>>,
 	image: Data,
 	twitter: Data,
 }
@@ -642,31 +815,12 @@ impl<T> Default for IdentityInfo<T> {
 	}
 }
 
-// impl<T> Clone for IdentityInfo<T> {
-// 	fn clone(&self) -> Self {
-// 		let additional: BoundedVec::<(Data, Data), T> = self.additional.as_byte_slice().into();
-
-// 		Self {
-// 			additional,
-// 			display: self.display.clone(),
-// 			legal: self.legal.clone(),
-// 			web: self.web.clone(),
-// 			riot: self.riot.clone(),
-// 			email: self.email.clone(),
-// 			has_pgp_fingerprint: self.has_pgp_fingerprint.clone(),
-// 			pgp_fingerprint: self.pgp_fingerprint.clone(),
-// 			image: self.image.clone(),
-// 			twitter: self.twitter.clone(),
-// 		}
-// 	}
-// }
-
 // (bool, bool, uint256, bool, bool, bool, bool, bool)
 #[derive(Eq, PartialEq, Default, Debug, solidity::Codec)]
 pub struct Judgement {
 	is_unknown: bool,
 	is_fee_paid: bool,
-	fee_paid_amount: U256,
+	fee_paid_deposit: U256,
 	is_reasonable: bool,
 	is_known_good: bool,
 	is_out_of_date: bool,
@@ -686,7 +840,7 @@ impl<T> Default for Registration<T> {
 	fn default() -> Self {
 		Self {
 			is_valid: false,
-			judgements: vec![],
+			judgements: Vec::new(),
 			deposit: Default::default(),
 			info: Default::default(),
 		}
@@ -702,7 +856,7 @@ pub struct SuperOf {
 
 #[derive(Default, Debug, solidity::Codec)]
 pub struct SubsOf {
-	balance: U256,
+	deposit: U256,
 	accounts: Vec<Address>,
 }
 
@@ -720,8 +874,8 @@ pub struct IdentityFields {
 
 #[derive(Default, Debug, solidity::Codec)]
 pub struct Registrar {
-	index: u32,
 	is_valid: bool,
+	index: u32,
 	account: Address,
 	fee: U256,
 	fields: IdentityFields,
