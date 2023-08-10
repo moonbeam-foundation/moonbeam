@@ -51,13 +51,10 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 	}
 }
 
-// #[test]
-// fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-// 	check_precompile_implements_solidity_interfaces(
-// 		&["Identity.sol"],
-// 		PCall::supports_selector,
-// 	)
-// }
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	check_precompile_implements_solidity_interfaces(&["Identity.sol"], PCall::supports_selector)
+}
 
 #[test]
 fn test_add_registrar_with_registrar_origin_succeeds() {

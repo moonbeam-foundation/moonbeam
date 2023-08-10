@@ -100,7 +100,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
+	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes20,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,

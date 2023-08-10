@@ -96,7 +96,7 @@ interface Identity {
         Data email;
         /// Set to `true` if `pgpFingerprint` is set, `false` otherwise.
         bool has_pgp_fingerprint;
-        /// Represents the PGP fingerprint info for the identity.
+        /// Represents a 20-byte the PGP fingerprint info for the identity.
         bytes20 pgpFingerprint;
         /// Represents the image info for the identity.
         Data image;
@@ -145,74 +145,74 @@ interface Identity {
     }
 
     /// @dev Retrieve identity information for an account.
-    /// @custom:selector 501447ee
+    /// @custom:selector f0eb5e54
     /// @param who The requested account
     function identity(address who) external view returns (Registration memory);
 
     /// @dev Retrieve super account for an account.
-    /// @custom:selector 501447ee
+    /// @custom:selector c18110d6
     /// @param who The requested account
     function superOf(address who) external view returns (SuperOf memory);
 
     /// @dev Retrieve sub accounts for an account.
-    /// @custom:selector 501447ee
+    /// @custom:selector 3f08986b
     /// @param who The requested account
     function subsOf(address who) external view returns (SubsOf memory);
 
     /// @dev Retrieve the registrars.
-    /// @custom:selector 501447ee
+    /// @custom:selector e88e512e
     function registrars() external view returns (Registrar[] memory);
 
     /// @dev Add a registrar.
-    /// @custom:selector da9df518
+    /// @custom:selector af92a693
     /// @param account The account address
     function addRegistrar(address account) external;
 
     /// @dev Set identity info for the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector 8a1bc82f
     /// @param info The identity info
     function setIdentity(IdentityInfo memory info) external;
 
     /// @dev Set sub accounts for the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector 5a5a3591
     /// @param subs The sub accounts
     function setSubs(SubAccount[] memory subs) external;
 
     /// @dev Clears identity of the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector 7a6a10c7
     function clearIdentity() external;
 
     /// @dev Requests registrar judgement on caller's identity.
-    /// @custom:selector da9df518
+    /// @custom:selector d523ceb9
     /// @param regIndex The registrar's index
     /// @param maxFee The maximum fee the caller is willing to pay
     function requestJudgement(uint32 regIndex, uint256 maxFee) external;
 
     /// @dev Cancels the caller's request for judgement from a registrar.
-    /// @custom:selector da9df518
+    /// @custom:selector c79934a5
     /// @param regIndex The registrar's index
-    function cancelJudgement(uint32 regIndex) external;
+    function cancelRequest(uint32 regIndex) external;
 
     /// @dev Sets the registrar's fee for providing a judgement. Caller must be the account at the index.
-    /// @custom:selector da9df518
+    /// @custom:selector a541b37d
     /// @param regIndex The registrar's index
     /// @param fee The fee the registrar will charge
     function setFee(uint32 regIndex, uint256 fee) external;
 
     /// @dev Sets the registrar's account. Caller must be the account at the index.
-    /// @custom:selector da9df518
+    /// @custom:selector 889bc198
     /// @param regIndex The registrar's index
     /// @param newAccount The new account to set
     function setAccountId(uint32 regIndex, address newAccount) external;
 
     /// @dev Sets the registrar's identity fields. Caller must be the account at the index.
-    /// @custom:selector da9df518
+    /// @custom:selector 05297450
     /// @param regIndex The registrar's index
     /// @param fields The identity fields
     function setFields(uint32 regIndex, IdentityFields memory fields) external;
 
     /// @dev Provides judgement on an accounts identity.
-    /// @custom:selector da9df518
+    /// @custom:selector cd7663a4
     /// @param regIndex The registrar's index
     /// @param target The target account to provide judgment for
     /// @param judgement The judgement to provide
@@ -221,33 +221,33 @@ interface Identity {
         uint32 regIndex,
         address target,
         Judgement memory judgement,
-        bytes memory identity
+        bytes32 identity
     ) external;
 
     /// @dev Remove an account's identity and sub-account information and slash the deposits.
-    /// @custom:selector da9df518
+    /// @custom:selector 72770bfd
     /// @param target The target account
     function killIdentity(address target) external;
 
     /// @dev Add a "sub" identity account for the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector 98717196
     /// @param sub The sub account
     /// @param data The associated data
     function addSub(address sub, Data memory data) external;
 
     /// @dev Rename a "sub" identity account of the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector 452df561
     /// @param sub The sub account
     /// @param data The new assocaited data
     function renameSub(address sub, Data memory data) external;
 
     /// @dev Removes a "sub" identity account of the caller.
-    /// @custom:selector da9df518
+    /// @custom:selector b0a323e0
     /// @param sub The sub account
     function removeSub(address sub) external;
 
     /// @dev Removes the sender as a sub-account.
-    /// @custom:selector da9df518
+    /// @custom:selector d5a3c2c4
     function quitSub() external;
 
     /// @dev An identity was set or reset (which will remove all judgements).
