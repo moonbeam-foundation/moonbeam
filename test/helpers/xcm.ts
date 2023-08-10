@@ -344,7 +344,7 @@ export class XcmFragment {
   }
 
   // Add a `DescendOrigin` instruction
-  descend_origin(network: "Any" | XcmV3JunctionNetworkId["type"] | null = "Any"): this {
+  descend_origin(network: "Any" | XcmV3JunctionNetworkId["type"] | null = null): this {
     if (this.config.descend_origin != null) {
       this.instructions.push({
         DescendOrigin: {
