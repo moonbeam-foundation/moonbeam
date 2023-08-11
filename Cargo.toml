@@ -218,34 +218,34 @@ ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
 evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
 evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
-fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
+fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
-pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
 
 # Frontier (client)
-fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", features = [
+fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", features = [
 	"rpc-binary-search-estimate",
 ] }
-fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43" }
+precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "cem-precompiles-moonbeam-polkadot-v0.9.43", default-features = false }
 
 # Cumulus (wasm)
 cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/cumulus", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
