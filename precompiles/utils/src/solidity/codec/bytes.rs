@@ -95,6 +95,8 @@ impl<K: Kind, S: Get<u32>> Codec for BoundedBytesString<K, S> {
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("length"))?;
 
+		reader.move_cursor(32)?;
+
 		if array_size > S::get() as usize {
 			return Err(RevertReason::value_is_too_large("length").into());
 		}
@@ -106,6 +108,8 @@ impl<K: Kind, S: Get<u32>> Codec for BoundedBytesString<K, S> {
 			.input
 			.get(range)
 			.ok_or_else(|| RevertReason::read_out_of_bounds(K::signature()))?;
+
+		reader.move_cursor(array_size)?;
 
 		let bytes = Self {
 			data: data.to_owned(),
@@ -217,5 +221,31 @@ impl<K, S> From<String> for BoundedBytesString<K, S> {
 			data: value.as_bytes().into(),
 			_phantom: PhantomData,
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_cursor_should_increment() {
+		// Given a reader with a pointer to a bytes/string.
+		let message = "Hello World!";
+		let mut pointer_data = vec![0; 32];
+		U256::from(32).to_big_endian(&mut pointer_data);
+		let mut message_size = vec![0; 32];
+		U256::from(message.len()).to_big_endian(&mut message_size);
+		pointer_data.extend_from_slice(&message_size);
+		pointer_data.extend_from_slice(&message.as_bytes());
+		let mut reader = Reader::new(&pointer_data);
+		assert_eq!(reader.cursor, 0);
+
+		// When reading the bytes/string.
+		let x = BoundedString::<ConstU32<32>>::read(&mut reader).unwrap();
+
+		// Then the cursor should be incremented.
+		assert_eq!(x.as_str().unwrap(), message);
+		assert_eq!(reader.cursor, 32 + 32 + message.len());
 	}
 }
