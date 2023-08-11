@@ -23,7 +23,7 @@ describeSuite({
       );
       const alithAccount = await context.polkadotJs().query.system.account(ALITH_ADDRESS);
 
-      let convictionVoting = new ConvictionVoting(context);
+      convictionVoting = new ConvictionVoting(context);
       await convictionVoting
         .voteYes(proposalIndex, alithAccount.data.free.toBigInt() - 20n * 10n ** 18n, 1n)
         .block();
