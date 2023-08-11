@@ -300,29 +300,15 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const userAction = new XcmRoutingUserAction({ destination });
     const versionedUserAction = new VersionedUserAction({ V1: userAction });
-    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
-    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
 
     const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
     console.log(alithWHTokenBefore)
 
-    const transferVAA = await genTransferWithPayloadVAA(
-      signerPKs,
-      GUARDIAN_SET_INDEX,
-      whNonce++,
-      123, // sequence
-      999, // amount of tokens
-      wethAddress,
-      ETHChain,
-      ETHChain,
-      ETHEmitter, // TODO: review
-      PRECOMPILE_GMP_ADDRESS,
-      "0x" + evmChainId.toString(16),
-      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "" + payload
-    );
+    const whAmount = 999n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
     const result = await context.createBlock(
@@ -338,7 +324,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const transferFungible = events[0].data[1][0].fun;
     expect(transferFungible.isFungible);
     const transferAmount = transferFungible.asFungible.toBigInt();
-    expect(transferAmount).to.eq(999000000000000000000n);
+    expect(transferAmount).to.eq(realAmount);
   });
 
   it("should support V2 user action with fee", async function () {
