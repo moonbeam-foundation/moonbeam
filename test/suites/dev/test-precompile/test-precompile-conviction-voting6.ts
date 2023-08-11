@@ -18,7 +18,7 @@ describeSuite({
     beforeAll(async function () {
       proposalIndex = await createProposal(context);
 
-      let convictionVoting = new ConvictionVoting(context);
+      convictionVoting = new ConvictionVoting(context);
       const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       expectEVMResult(blockAlith_1.result!.events, "Succeed");
 
