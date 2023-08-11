@@ -110,9 +110,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   };
 
   before("deploy wormhole infrastructure", async function () {
-    // TODO: remove / reduce
-    this.timeout(3600 * 1000);
-
     const wethDeployment = await deploy(context, "wormhole/bridge/mock/MockWETH9");
     // wethContract = wethDeployment.contract;
     wethAddress = wethDeployment.contractAddress;
@@ -289,8 +286,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   it("should support V1 user action", async function () {
-    // TODO: remove / reduce
-    this.timeout(3600 * 1000);
+    this.timeout(20000)
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
@@ -328,8 +324,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   it("should support V2 user action with fee", async function () {
-    // TODO: remove / reduce
-    this.timeout(3600 * 1000);
+    this.timeout(20000)
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
