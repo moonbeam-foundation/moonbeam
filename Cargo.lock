@@ -7797,6 +7797,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "log",
  "pallet-evm",
  "parity-scale-codec",
  "scale-info",

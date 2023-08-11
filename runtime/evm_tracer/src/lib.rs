@@ -36,6 +36,7 @@ pub mod tracer {
 	struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 	impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
 		fn event(&mut self, event: evm_gasometer::tracing::Event) {
+			log::warn!("TMP GasometerListener event: {:?}", event);
 			self.0.borrow_mut().event(event);
 		}
 	}

@@ -30,7 +30,9 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 				call: RuntimeCall,
 				origin: RuntimeOrigin,
 			) -> CallResult {
+				log::warn!("TMP tracing: CallDispatcher::dispatch");
 				if let Ok(raw_origin) = TryInto::<RawOrigin<AccountId>>::try_into(origin.clone().caller) {
+					log::warn!("TMP tracing: CallDispatcher::dispatch: raw_origin OK");
 					match (call.clone(), raw_origin) {
 						(
 							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
@@ -39,6 +41,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 							 }),
 							RawOrigin::Signed(account_id)
 						) => {
+							log::warn!("TMP tracing: CallDispatcher::dispatch: runtime call OK");
 							use crate::EthereumXcm;
 							use moonbeam_evm_tracer::tracer::EvmTracer;
 							use xcm_primitives::{
@@ -65,6 +68,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								Some(transaction) => match transaction {
 									// Tracing a block, all calls are done using environmental.
 									EthereumXcmTracingStatus::Block => {
+										log::warn!("TMP tracing: CallDispatcher::dispatch: EthereumXcmTracingStatus::Block");
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
 										let mut res: Option<CallResult> = None;
@@ -76,12 +80,14 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 									// Tracing a transaction, the one matching the trace request
 									// is done using environmental, the rest dispatched normally.
 									EthereumXcmTracingStatus::Transaction(traced_transaction_hash) => {
+										log::warn!("TMP tracing: CallDispatcher::dispatch: EthereumXcmTracingStatus::Transaction({:?})", traced_transaction_hash);
 										let transaction_hash = xcm_transaction.into_transaction_v2(
 											EthereumXcm::nonce(),
 											<Runtime as pallet_evm::Config>::ChainId::get()
 										)
 										.expect("Invalid transaction conversion")
 										.hash();
+										log::warn!("eth-xcm transaction hash: {}", transaction_hash);
 										if transaction_hash == traced_transaction_hash {
 											let mut res: Option<CallResult> = None;
 											EvmTracer::new().trace(|| {
@@ -96,10 +102,16 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										}
 										dispatch_call()
 									},
-									_ => unreachable!()
+									_ => {
+										log::warn!("TMP tracing: CallDispatcher::dispatch: EthereumXcmTracingStatus::TransactionExited");
+										unreachable!()
+									}
 								},
 								// This runtime instance is importing a block.
-								None => dispatch_call()
+								None => {
+									log::warn!("TMP tracing: CallDispatcher::dispatch: ETHEREUM_XCM_TRACING_STORAGE_KEY None");
+									dispatch_call()
+								}
 							};
 						},
 						_ => {}

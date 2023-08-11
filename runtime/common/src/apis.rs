@@ -120,6 +120,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
+						log::warn!("Start tracing...");
 						for ext in extrinsics.into_iter() {
 							let _ = match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
@@ -138,6 +139,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								return Ok(());
 							}
 						}
+						log::warn!("Failed to find Ethereum transaction among the extrinsics.");
 						Err(sp_runtime::DispatchError::Other(
 							"Failed to find Ethereum transaction among the extrinsics.",
 						))

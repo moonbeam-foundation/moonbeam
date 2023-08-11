@@ -74,6 +74,8 @@ pub mod pallet {
 			to: H160,
 			amount: U256,
 		) -> Result<(), Erc20TransferError> {
+			log::warn!("erc20-xcm: erc20_transfer: {}, {}, {}, {}",
+				erc20_contract_address, from, to, amount);
 			let mut input = Vec::with_capacity(ERC20_TRANSFER_CALL_DATA_SIZE);
 			// ERC20.transfer method hash
 			input.extend_from_slice(&ERC20_TRANSFER_SELECTOR);
@@ -101,7 +103,10 @@ pub mod pallet {
 				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
-			.map_err(|_| Erc20TransferError::EvmCallFail)?;
+			.map_err(|e| {
+				log::warn!("erc20-xcm: erc20_transfer: evm call fail: {:?}", e.error.into());
+				Erc20TransferError::EvmCallFail
+			})?;
 
 			ensure!(
 				matches!(
@@ -134,6 +139,7 @@ pub mod pallet {
 			who: &MultiLocation,
 			_context: &XcmContext,
 		) -> XcmResult {
+			log::warn!("erc20-xcm: deposit_asset: {:?}, {:?}", what, who);
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 

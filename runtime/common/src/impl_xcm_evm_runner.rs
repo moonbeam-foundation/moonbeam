@@ -59,6 +59,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				// result in a Some) if and only if there is an available EVM context. Otherwise,
 				// it will return None.
 				if let Some((exit_reason, value)) = with_precompile_handle(|precompile_handle| {
+					log::warn!("TMP: erc20-xcm: evm call: precompile context");
 					let transfer = if value.is_zero() {
 						None
 					} else {
@@ -93,6 +94,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						weight_info: None,
 					})
 				} else {
+					log::warn!("TMP: erc20-xcm: evm call: EthereumXcm pallet context");
 					let xcm_transaction = EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
 						gas_limit: gas_limit.into(),
 						action: pallet_ethereum_xcm::TransactionAction::Call(target),

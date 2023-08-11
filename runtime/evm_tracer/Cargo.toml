@@ -8,6 +8,7 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
+log = { workspace = true }
 
 # Moonbeam
 evm-tracing-events = { workspace = true, features = [ "evm-tracing" ] }
