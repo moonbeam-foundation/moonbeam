@@ -26,6 +26,13 @@ const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
 
+// wormhole internally "compacts" amounts. they don't use a constant (it's more complicated) but we
+// can get away with a constant here.
+// TODO: maybe remove the implicit behavior from the util functions in wormhole.ts?
+// TODO: actually, something is wrong here -- I don't think this matches the WH compacting logic
+const WH_IMPLICIT_DECIMALS = 18n;
+const WH_IMPLICIT_MULTIPLIER = 10n**WH_IMPLICIT_DECIMALS;
+
 const GMP_CONTRACT_JSON = getCompiled("precompiles/gmp/Gmp");
 const GMP_INTERFACE = new ethers.utils.Interface(GMP_CONTRACT_JSON.contract.abi);
 
@@ -81,8 +88,11 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
 
   let whNonce = 0;
-  let wethContract: ethers.Contract;
+  // TODO: ugh, clean this up. we don't need the WETH contract we deployed, we need the wrapped
+  // version of it created by WH.
   let wethAddress: string;
+  let whWethContract: ethers.Contract;
+  let whWethAddress: string;
   let evmChainId;
 
   // destination used for xtoken transfers
@@ -105,16 +115,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const wethDeployment = await deploy(context, "wormhole/bridge/mock/MockWETH9");
     // wethContract = wethDeployment.contract;
-    
-    // TODO: clean up / avoid using both web3js and ethers
-    const WETH_CONTRACT_JSON = getCompiled("wormhole/bridge/mock/MockWETH9");
-    const WETH_INTERFACE = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
-
-    wethContract = new ethers.Contract(
-      wethDeployment.contractAddress,
-      WETH_INTERFACE,
-      context.ethers,
-    );
     wethAddress = wethDeployment.contractAddress;
     debug(`weth contract deployed to ${wethAddress}`);
     const myTokenContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
@@ -219,6 +219,16 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         assetMetaResult.result.error || "good"
       })`
     );
+    
+    // TODO: clean up / avoid using both web3js and ethers
+    // TODO: not the right contract, but it'll probably work
+    const WETH_CONTRACT_JSON = getCompiled("wormhole/bridge/mock/MockWETH9");
+    const WETH_INTERFACE = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
+    whWethContract = new ethers.Contract(
+      wrappedToken,
+      WETH_INTERFACE,
+      context.ethers,
+    );
 
     debug(`wrapped token deployed to ${wrappedToken}`);
 
@@ -294,7 +304,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
     let payload = "" + versionedUserAction.toHex();
 
-    const alithWHTokenBefore = await wethContract.balanceOf(ALITH_ADDRESS);
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
     console.log(alithWHTokenBefore)
 
     const transferVAA = await genTransferWithPayloadVAA(
@@ -341,37 +351,22 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       versionedMultiLocation
     );
 
-    const userAction = new XcmRoutingUserActionWithFee({ destination, fee: 1 });
+    const whAmount = 999n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = 1234500n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
     const versionedUserAction = new VersionedUserAction({ V2: userAction });
-    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
-    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
-    let payload = "" + versionedUserAction.toHex();
 
-    const alithWHTokenBefore = await wethContract.balanceOf(ALITH_ADDRESS);
-    console.log(alithWHTokenBefore)
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-    const transferVAA = await genTransferWithPayloadVAA(
-      signerPKs,
-      GUARDIAN_SET_INDEX,
-      whNonce++,
-      123, // sequence
-      999, // amount of tokens
-      wethAddress,
-      ETHChain,
-      ETHChain,
-      ETHEmitter, // TODO: review
-      PRECOMPILE_GMP_ADDRESS,
-      "0x" + evmChainId.toString(16),
-      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "" + payload
-    );
-
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
     const result = await context.createBlock(
       createTransaction(context, {
         to: PRECOMPILE_GMP_ADDRESS,
-        gas: 900_000,
+        gas: 600_000,
         data,
       })
     );
@@ -381,11 +376,33 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const transferFungible = events[0].data[1][0].fun;
     expect(transferFungible.isFungible);
     const transferAmount = transferFungible.asFungible.toBigInt();
-    expect(transferAmount).to.eq(998999999999999999999n);
+    expect(transferAmount).to.eq(realAmount - fee);
 
-    const alithWHTokenAfter = await wethContract.balanceOf(ALITH_ADDRESS);
-    console.log(alithWHTokenBefore)
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(fee));
   });
+
+  async function makeTestVAA(amount: number, action: VersionedUserAction): Promise<string> {
+    // console.log("Versioned User Action JSON:", JSON.stringify(action.toJSON()));
+    // console.log("Versioned User Action SCALE:", action.toHex());
+    let payload = "" + action.toHex();
+
+    return await genTransferWithPayloadVAA(
+      signerPKs,
+      GUARDIAN_SET_INDEX,
+      whNonce++,
+      123, // sequence
+      amount,
+      wethAddress,
+      ETHChain,
+      ETHChain,
+      ETHEmitter, // TODO: review
+      PRECOMPILE_GMP_ADDRESS,
+      "0x" + evmChainId.toString(16),
+      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
+      "" + payload
+    );
+  }
 });
 
 const registry = new TypeRegistry();
