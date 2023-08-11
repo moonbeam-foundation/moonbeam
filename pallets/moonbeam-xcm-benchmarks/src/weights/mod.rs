@@ -24,17 +24,17 @@ use fungible::WeightInfo as XcmFungibleWeight;
 use generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
 use xcm::{
-	latest::{prelude::*, Weight as XCMWeight},
+	latest::{prelude::*, Weight as XcmWeight},
 	DoubleEncoded,
 };
 use xcm_primitives::MAX_ASSETS;
 
 trait WeighMultiAssets {
-	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
+	fn weigh_multi_assets(&self, weight: Weight) -> XcmWeight;
 }
 
 trait WeighMultiAssetsFilter {
-	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight;
+	fn weigh_multi_assets_filter(&self, weight: Weight) -> XcmWeight;
 }
 
 impl WeighMultiAssetsFilter for AssetFilter {
@@ -96,32 +96,32 @@ where
 		_origin_type: &OriginKind,
 		_require_weight_at_most: &Weight,
 		_call: &DoubleEncoded<Call>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		XcmGeneric::<Runtime>::transact()
 	}
 	fn hrmp_new_channel_open_request(
 		_sender: &u32,
 		_max_message_size: &u32,
 		_max_capacity: &u32,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn hrmp_channel_accepted(_recipient: &u32) -> XCMWeight {
+	fn hrmp_channel_accepted(_recipient: &u32) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn hrmp_channel_closing(_initiator: &u32, _sender: &u32, _recipient: &u32) -> XCMWeight {
+	fn hrmp_channel_closing(_initiator: &u32, _sender: &u32, _recipient: &u32) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn clear_origin() -> XCMWeight {
+	fn clear_origin() -> XcmWeight {
 		XcmGeneric::<Runtime>::clear_origin()
 	}
 	fn descend_origin(_who: &InteriorLocation) -> XCMWeight {
 		XcmGeneric::<Runtime>::descend_origin()
 	}
-	fn report_error(_query_response_info: &QueryResponseInfo) -> XCMWeight {
+	fn report_error(_query_response_info: &QueryResponseInfo) -> XcmWeight {
 		XcmGeneric::<Runtime>::report_error()
 	}
 	fn deposit_asset(assets: &AssetFilter, _dest: &Location) -> XCMWeight {
@@ -137,7 +137,7 @@ where
 		_assets: &AssetFilter,
 		_reserve: &Location,
 		_xcm: &Xcm<()>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		// This is not correct. initiate reserve withdraw does not to that many db reads
 		// the only thing it does based on number of assets is a take from a local variable
 		//assets.weigh_multi_assets(XcmGeneric::<Runtime>::initiate_reserve_withdraw())
@@ -152,28 +152,28 @@ where
 	fn buy_execution(_fees: &Asset, _weight_limit: &WeightLimit) -> XCMWeight {
 		XcmGeneric::<Runtime>::buy_execution()
 	}
-	fn refund_surplus() -> XCMWeight {
+	fn refund_surplus() -> XcmWeight {
 		XcmGeneric::<Runtime>::refund_surplus()
 	}
-	fn set_error_handler(_xcm: &Xcm<Call>) -> XCMWeight {
+	fn set_error_handler(_xcm: &Xcm<Call>) -> XcmWeight {
 		XcmGeneric::<Runtime>::set_error_handler()
 	}
-	fn set_appendix(_xcm: &Xcm<Call>) -> XCMWeight {
+	fn set_appendix(_xcm: &Xcm<Call>) -> XcmWeight {
 		XcmGeneric::<Runtime>::set_appendix()
 	}
-	fn clear_error() -> XCMWeight {
+	fn clear_error() -> XcmWeight {
 		XcmGeneric::<Runtime>::clear_error()
 	}
 	fn claim_asset(_assets: &Assets, _ticket: &Location) -> XCMWeight {
 		XcmGeneric::<Runtime>::claim_asset()
 	}
-	fn trap(_code: &u64) -> XCMWeight {
+	fn trap(_code: &u64) -> XcmWeight {
 		XcmGeneric::<Runtime>::trap()
 	}
-	fn subscribe_version(_query_id: &QueryId, _max_response_weight: &Weight) -> XCMWeight {
+	fn subscribe_version(_query_id: &QueryId, _max_response_weight: &Weight) -> XcmWeight {
 		XcmGeneric::<Runtime>::subscribe_version()
 	}
-	fn unsubscribe_version() -> XCMWeight {
+	fn unsubscribe_version() -> XcmWeight {
 		XcmGeneric::<Runtime>::unsubscribe_version()
 	}
 	fn burn_asset(assets: &Assets) -> Weight {
