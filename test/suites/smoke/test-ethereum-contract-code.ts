@@ -16,7 +16,7 @@ describeSuite({
     const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
     beforeAll(async function () {
-      const paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      const paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
         ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();

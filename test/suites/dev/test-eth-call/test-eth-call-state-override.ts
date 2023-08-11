@@ -7,7 +7,7 @@ import {
   fetchCompiledContract,
   customDevRpcRequest,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, baltathar, createEthersTxn } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, baltathar, createEthersTransaction } from "@moonwall/util";
 import { hexToBigInt, nToHex } from "@polkadot/util";
 import { encodeFunctionData, encodePacked, keccak256, pad, parseEther, Abi } from "viem";
 import { expectOk } from "../../../helpers/expect.js";
@@ -29,7 +29,7 @@ describeSuite({
 
       expect(status).to.equal("success");
 
-      const { rawSigned } = await createEthersTxn(context, {
+      const rawSigned = await createEthersTransaction(context, {
         to: contractAddress,
         data: encodeFunctionData({
           abi,
@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should have a balance of > 100 GLMR without state override",
       test: async function () {
-        const { data } = await context.viem("public").call({
+        const { data } = await context.viem().call({
           account: baltathar.address,
           to: stateOverrideAddress as `0x${string}`,
           data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),
@@ -256,7 +256,7 @@ describeSuite({
       id: "T08",
       title: "should set MultiplyBy7 deployedBytecode with state override",
       test: async function () {
-        const { abi, deployedBytecode } = await fetchCompiledContract("MultiplyBy7");
+        const { abi, deployedBytecode } = fetchCompiledContract("MultiplyBy7");
 
         console.log(deployedBytecode);
         const result = await customDevRpcRequest("eth_call", [

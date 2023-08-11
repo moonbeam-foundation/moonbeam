@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeEach, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { alith, baltathar, createEthersTxn } from "@moonwall/util";
+import { alith, baltathar, createEthersTransaction } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 
@@ -48,7 +48,7 @@ describeSuite({
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
         ).toBigInt();
         expect(multiplier).toBe(100_000_000_000_000_000_000_000n);
-        const gasPrice = await context.viem("public").getGasPrice();
+        const gasPrice = await context.viem().getGasPrice();
         expect(gasPrice).toBe(125_000_000_000_000n);
       },
     });
@@ -122,7 +122,7 @@ describeSuite({
       title: "fibonacci[370] should be spendable",
       test: async function () {
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        let baseFeePerGas = (await context.viem("public").getBlock({ blockNumber: blockNumber }))
+        let baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
         expect(baseFeePerGas).to.equal(125_000_000_000_000n);
 
@@ -132,16 +132,16 @@ describeSuite({
           abi: contractAbi,
         } = await deployCreateCompiledContract(context, "Fibonacci");
 
-        const receipt = await context.viem("public").getTransactionReceipt({ hash: createTxHash });
+        const receipt = await context.viem().getTransactionReceipt({ hash: createTxHash });
         expect(receipt.status).toBe("success");
 
         // the multiplier (and thereby base_fee) will have decreased very slightly...
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        baseFeePerGas = (await context.viem("public").getBlock({ blockNumber: blockNumber }))
+        baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
         expect(baseFeePerGas).to.equal(124880905088510n);
 
-        const { rawSigned } = await createEthersTxn(context, {
+        const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,
           data: encodeFunctionData({
             abi: contractAbi,

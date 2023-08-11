@@ -16,7 +16,7 @@ describeSuite({
       test: async function () {
         const block = 1n;
         const index = 0;
-        const result = await context.viem("public").getTransaction({ blockNumber: block, index });
+        const result = await context.viem().getTransaction({ blockNumber: block, index });
 
         expect(result.transactionIndex).to.equal(index);
       },
@@ -29,7 +29,7 @@ describeSuite({
         const index = 0;
 
         expect(
-          async () => await context.viem("public").getTransaction({ blockNumber: block, index })
+          async () => await context.viem().getTransaction({ blockNumber: block, index })
         ).rejects.toThrowError(`${index} is out of bounds`);
       },
     });

@@ -33,7 +33,7 @@ describeSuite({
 
         await context.createBlock(api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS));
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
         const expectedReservedBalance = 2n * DEFAULT_GENESIS_MAPPING;
         expect((await api.query.system.account(ALITH_ADDRESS)).data.free.toBigInt()).to.eq(
@@ -59,10 +59,10 @@ describeSuite({
         await context.createBlock(api.tx.authorMapping.addAssociation(CHARLETH_SESSION_ADDRESS));
         //check that both are registered
         expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS))?.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
         const expectedReservedBalance = 3n * DEFAULT_GENESIS_MAPPING;
         expect((await api.query.system.account(ALITH_ADDRESS)).data.free.toBigInt()).to.eq(

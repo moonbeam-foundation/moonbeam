@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, charleth } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { Signer, ethers } from "ethers";
+import { Wallet, ethers } from "ethers";
 import fs from "node:fs";
 
 describeSuite({
@@ -12,12 +12,10 @@ describeSuite({
   testCases: function ({ it, context, log }) {
     let paraApi: ApiPromise;
     let relayApi: ApiPromise;
-    let ethersSigner: Signer;
 
     beforeAll(async () => {
-      paraApi = context.polkadotJs({ apiName: "parachain", type: "moon" });
-      relayApi = context.polkadotJs({ apiName: "relaychain", type: "polkadotJs" });
-      ethersSigner = context.ethers();
+      paraApi = context.polkadotJs("parachain");
+      relayApi = context.polkadotJs("relaychain");
 
       const relayNetwork = relayApi.consts.system.version.specName.toString();
       expect(relayNetwork, "Relay API incorrect").to.contain("rococo");
@@ -82,6 +80,8 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
+        context.waitBlock(5);
+
         await new Promise((resolve) => {
           paraApi.tx.balances
             .transfer(BALTATHAR_ADDRESS, ethers.parseEther("2"))
@@ -106,15 +106,15 @@ describeSuite({
       title: "Tags are present on emulated Ethereum blocks",
       test: async function () {
         expect(
-          (await ethersSigner.provider!.getBlock("safe"))!.number,
+          (await context.ethers().provider!.getBlock("safe"))!.number,
           "Safe tag is not present"
         ).to.be.greaterThan(0);
         expect(
-          (await ethersSigner.provider!.getBlock("finalized"))!.number,
+          (await context.ethers().provider!.getBlock("finalized"))!.number,
           "Finalized tag is not present"
         ).to.be.greaterThan(0);
         expect(
-          (await ethersSigner.provider!.getBlock("latest"))!.number,
+          (await context.ethers().provider!.getBlock("latest"))!.number,
           "Latest tag is not present"
         ).to.be.greaterThan(0);
         // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
