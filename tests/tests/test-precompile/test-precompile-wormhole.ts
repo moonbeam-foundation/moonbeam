@@ -299,7 +299,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     let payload = "" + versionedUserAction.toHex();
 
     const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
-    console.log(alithWHTokenBefore)
 
     const whAmount = 999n;
     const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -364,8 +363,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   async function makeTestVAA(amount: number, action: VersionedUserAction): Promise<string> {
-    // console.log("Versioned User Action JSON:", JSON.stringify(action.toJSON()));
-    // console.log("Versioned User Action SCALE:", action.toHex());
     let payload = "" + action.toHex();
 
     return await genTransferWithPayloadVAA(
