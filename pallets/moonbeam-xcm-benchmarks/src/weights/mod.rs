@@ -24,21 +24,21 @@ use moonbeam_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
 use moonbeam_xcm_benchmarks_generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
 use xcm::{
-	latest::{prelude::*, Weight as XCMWeight},
+	latest::{prelude::*, Weight as XcmWeight},
 	DoubleEncoded,
 };
 use xcm_primitives::MAX_ASSETS;
 
 trait WeighMultiAssets {
-	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
+	fn weigh_multi_assets(&self, weight: Weight) -> XcmWeight;
 }
 
 trait WeighMultiAssetsFilter {
-	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight;
+	fn weigh_multi_assets_filter(&self, weight: Weight) -> XcmWeight;
 }
 
 impl WeighMultiAssetsFilter for MultiAssetFilter {
-	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight {
+	fn weigh_multi_assets_filter(&self, weight: Weight) -> XcmWeight {
 		match self {
 			Self::Definite(assets) => {
 				weight.saturating_mul(assets.inner().into_iter().count() as u64)
@@ -52,7 +52,7 @@ impl WeighMultiAssetsFilter for MultiAssetFilter {
 }
 
 impl WeighMultiAssets for MultiAssets {
-	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
+	fn weigh_multi_assets(&self, weight: Weight) -> XcmWeight {
 		weight.saturating_mul(self.inner().into_iter().count() as u64)
 	}
 }
@@ -62,16 +62,16 @@ impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
 	Runtime: frame_system::Config + pallet_erc20_xcm_bridge::Config,
 {
-	fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
+	fn withdraw_asset(assets: &MultiAssets) -> XcmWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
 			acc.saturating_add(XcmFungibleWeight::<Runtime>::withdraw_asset(&asset))
 		})
 	}
 	// Currently there is no trusted reserve
-	fn reserve_asset_deposited(_assets: &MultiAssets) -> XCMWeight {
+	fn reserve_asset_deposited(_assets: &MultiAssets) -> XcmWeight {
 		XcmFungibleWeight::<Runtime>::reserve_asset_deposited()
 	}
-	fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
+	fn receive_teleported_asset(assets: &MultiAssets) -> XcmWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
 	}
 	fn query_response(
@@ -79,10 +79,10 @@ where
 		_response: &Response,
 		_max_weight: &Weight,
 		_querier: &Option<MultiLocation>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		XcmGeneric::<Runtime>::query_response()
 	}
-	fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XCMWeight {
+	fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XcmWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
 			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_asset(&asset))
 		})
@@ -91,7 +91,7 @@ where
 		assets: &MultiAssets,
 		_dest: &MultiLocation,
 		_xcm: &Xcm<()>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
 			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset))
 		})
@@ -100,56 +100,56 @@ where
 		_origin_type: &OriginKind,
 		_require_weight_at_most: &Weight,
 		_call: &DoubleEncoded<Call>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		XcmGeneric::<Runtime>::transact()
 	}
 	fn hrmp_new_channel_open_request(
 		_sender: &u32,
 		_max_message_size: &u32,
 		_max_capacity: &u32,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn hrmp_channel_accepted(_recipient: &u32) -> XCMWeight {
+	fn hrmp_channel_accepted(_recipient: &u32) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn hrmp_channel_closing(_initiator: &u32, _sender: &u32, _recipient: &u32) -> XCMWeight {
+	fn hrmp_channel_closing(_initiator: &u32, _sender: &u32, _recipient: &u32) -> XcmWeight {
 		// XCM Executor does not currently support HRMP channel operations
 		Weight::MAX
 	}
-	fn clear_origin() -> XCMWeight {
+	fn clear_origin() -> XcmWeight {
 		XcmGeneric::<Runtime>::clear_origin()
 	}
-	fn descend_origin(_who: &InteriorMultiLocation) -> XCMWeight {
+	fn descend_origin(_who: &InteriorMultiLocation) -> XcmWeight {
 		XcmGeneric::<Runtime>::descend_origin()
 	}
-	fn report_error(_query_response_info: &QueryResponseInfo) -> XCMWeight {
+	fn report_error(_query_response_info: &QueryResponseInfo) -> XcmWeight {
 		XcmGeneric::<Runtime>::report_error()
 	}
-	fn deposit_asset(assets: &MultiAssetFilter, _dest: &MultiLocation) -> XCMWeight {
+	fn deposit_asset(assets: &MultiAssetFilter, _dest: &MultiLocation) -> XcmWeight {
 		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_asset())
 	}
 	fn deposit_reserve_asset(
 		assets: &MultiAssetFilter,
 		_dest: &MultiLocation,
 		_xcm: &Xcm<()>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
 	}
 	fn exchange_asset(
 		_give: &MultiAssetFilter,
 		_receive: &MultiAssets,
 		_maximal: &bool,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		Weight::MAX
 	}
 	fn initiate_reserve_withdraw(
 		_assets: &MultiAssetFilter,
 		_reserve: &MultiLocation,
 		_xcm: &Xcm<()>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		// This is not correct. initiate reserve withdraw does not to that many db reads
 		// the only thing it does based on number of assets is a take from a local variable
 		//assets.weigh_multi_assets(XcmGeneric::<Runtime>::initiate_reserve_withdraw())
@@ -159,37 +159,37 @@ where
 		_assets: &MultiAssetFilter,
 		_dest: &MultiLocation,
 		_xcm: &Xcm<()>,
-	) -> XCMWeight {
+	) -> XcmWeight {
 		XcmFungibleWeight::<Runtime>::initiate_teleport()
 	}
 	fn report_holding(_response_info: &QueryResponseInfo, _assets: &MultiAssetFilter) -> Weight {
 		XcmGeneric::<Runtime>::report_holding()
 	}
-	fn buy_execution(_fees: &MultiAsset, _weight_limit: &WeightLimit) -> XCMWeight {
+	fn buy_execution(_fees: &MultiAsset, _weight_limit: &WeightLimit) -> XcmWeight {
 		XcmGeneric::<Runtime>::buy_execution()
 	}
-	fn refund_surplus() -> XCMWeight {
+	fn refund_surplus() -> XcmWeight {
 		XcmGeneric::<Runtime>::refund_surplus()
 	}
-	fn set_error_handler(_xcm: &Xcm<Call>) -> XCMWeight {
+	fn set_error_handler(_xcm: &Xcm<Call>) -> XcmWeight {
 		XcmGeneric::<Runtime>::set_error_handler()
 	}
-	fn set_appendix(_xcm: &Xcm<Call>) -> XCMWeight {
+	fn set_appendix(_xcm: &Xcm<Call>) -> XcmWeight {
 		XcmGeneric::<Runtime>::set_appendix()
 	}
-	fn clear_error() -> XCMWeight {
+	fn clear_error() -> XcmWeight {
 		XcmGeneric::<Runtime>::clear_error()
 	}
-	fn claim_asset(_assets: &MultiAssets, _ticket: &MultiLocation) -> XCMWeight {
+	fn claim_asset(_assets: &MultiAssets, _ticket: &MultiLocation) -> XcmWeight {
 		XcmGeneric::<Runtime>::claim_asset()
 	}
-	fn trap(_code: &u64) -> XCMWeight {
+	fn trap(_code: &u64) -> XcmWeight {
 		XcmGeneric::<Runtime>::trap()
 	}
-	fn subscribe_version(_query_id: &QueryId, _max_response_weight: &Weight) -> XCMWeight {
+	fn subscribe_version(_query_id: &QueryId, _max_response_weight: &Weight) -> XcmWeight {
 		XcmGeneric::<Runtime>::subscribe_version()
 	}
-	fn unsubscribe_version() -> XCMWeight {
+	fn unsubscribe_version() -> XcmWeight {
 		XcmGeneric::<Runtime>::unsubscribe_version()
 	}
 	fn burn_asset(assets: &MultiAssets) -> Weight {

@@ -25,7 +25,7 @@ use frame_support::{
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use precompile_utils_xcm_codec::xcm::XCMMultiLocation;
+use precompile_utils_xcm_codec::xcm::XcmMultiLocation;
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
@@ -79,7 +79,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		currency_address: Address,
 		amount: U256,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let to_address: H160 = currency_address.into();
@@ -120,7 +120,7 @@ where
 		currency_address: Address,
 		amount: U256,
 		fee: U256,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let to_address: H160 = currency_address.into();
@@ -167,9 +167,9 @@ where
 	#[precompile::public("transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")]
 	fn transfer_multiasset(
 		handle: &mut impl PrecompileHandle,
-		asset: XCMMultiLocation,
+		asset: XcmMultiLocation,
 		amount: U256,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -205,10 +205,10 @@ where
 	)]
 	fn transfer_multiasset_with_fee(
 		handle: &mut impl PrecompileHandle,
-		asset: XCMMultiLocation,
+		asset: XcmMultiLocation,
 		amount: U256,
 		fee: U256,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -253,7 +253,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		currencies: BoundedVec<Currency, GetMaxAssets<Runtime>>,
 		fee_item: u32,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -313,7 +313,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>>,
 		fee_item: u32,
-		destination: XCMMultiLocation,
+		destination: XcmMultiLocation,
 		weight: u64,
 	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -377,7 +377,7 @@ impl From<(Address, U256)> for Currency {
 
 #[derive(solidity::Codec)]
 pub struct EvmMultiAsset {
-	location: XCMMultiLocation,
+	location: XcmMultiLocation,
 	amount: U256,
 }
 

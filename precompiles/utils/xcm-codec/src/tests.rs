@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::xcm::{XCMJunction, XCMJunctions};
+use crate::xcm::{XcmJunction, XcmJunctions};
 
 use {
 	crate::xcm::{network_id_from_bytes, network_id_to_bytes},
@@ -733,23 +733,23 @@ fn read_complex_solidity_function() {
 #[test]
 fn junctions_decoder_works() {
 	let writer_output = Writer::new()
-		.write(XCMJunctions(Junctions::X1(Junction::OnlyChild)))
+		.write(XcmJunctions(Junctions::X1(Junction::OnlyChild)))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunctions = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunctions = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(parsed.0, Junctions::X1(Junction::OnlyChild));
 
 	let writer_output = Writer::new()
-		.write(XCMJunctions(Junctions::X2(
+		.write(XcmJunctions(Junctions::X2(
 			Junction::OnlyChild,
 			Junction::OnlyChild,
 		)))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunctions = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunctions = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(
 		parsed.0,
@@ -757,7 +757,7 @@ fn junctions_decoder_works() {
 	);
 
 	let writer_output = Writer::new()
-		.write(XCMJunctions(Junctions::X3(
+		.write(XcmJunctions(Junctions::X3(
 			Junction::OnlyChild,
 			Junction::OnlyChild,
 			Junction::OnlyChild,
@@ -765,7 +765,7 @@ fn junctions_decoder_works() {
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunctions = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunctions = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(
 		parsed.0,
@@ -780,23 +780,23 @@ fn junctions_decoder_works() {
 #[test]
 fn junction_decoder_works() {
 	let writer_output = Writer::new()
-		.write(XCMJunction(Junction::Parachain(0)))
+		.write(XcmJunction(Junction::Parachain(0)))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunction = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunction = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(parsed.0, Junction::Parachain(0));
 
 	let writer_output = Writer::new()
-		.write(XCMJunction(Junction::AccountId32 {
+		.write(XcmJunction(Junction::AccountId32 {
 			network: None,
 			id: [1u8; 32],
 		}))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunction = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunction = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(
 		parsed.0,
@@ -807,14 +807,14 @@ fn junction_decoder_works() {
 	);
 
 	let writer_output = Writer::new()
-		.write(XCMJunction(Junction::AccountIndex64 {
+		.write(XcmJunction(Junction::AccountIndex64 {
 			network: None,
 			index: u64::from_be_bytes([1u8; 8]),
 		}))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunction = reader.read().expect("to correctly parse Junctions");
+	let parsed: XcmJunction = reader.read().expect("to correctly parse Junctions");
 
 	assert_eq!(
 		parsed.0,
@@ -825,15 +825,15 @@ fn junction_decoder_works() {
 	);
 
 	let writer_output = Writer::new()
-		.write(XCMJunction(Junction::AccountKey20 {
+		.write(XcmJunction(Junction::AccountKey20 {
 			network: None,
 			key: H160::repeat_byte(0xAA).as_bytes().try_into().unwrap(),
 		}))
 		.build();
 
 	let mut reader = Reader::new(&writer_output);
-	let parsed: XCMJunction = reader
-		.read::<XCMJunction>()
+	let parsed: XcmJunction = reader
+		.read::<XcmJunction>()
 		.expect("to correctly parse Junctions");
 
 	assert_eq!(

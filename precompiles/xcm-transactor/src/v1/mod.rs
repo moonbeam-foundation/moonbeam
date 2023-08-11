@@ -21,7 +21,7 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 
 use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use precompile_utils::prelude::*;
-use precompile_utils_xcm_codec::xcm::XCMMultiLocation;
+use precompile_utils_xcm_codec::xcm::XcmMultiLocation;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData};
 use xcm_primitives::AccountIdToCurrencyId;
@@ -52,7 +52,7 @@ where
 	#[precompile::view]
 	fn transact_info(
 		handle: &mut impl PrecompileHandle,
-		multilocation: XCMMultiLocation,
+		multilocation: XcmMultiLocation,
 	) -> EvmResult<(u64, U256, u64)> {
 		XcmTransactorWrapper::<Runtime>::transact_info(handle, multilocation.0)
 	}
@@ -62,7 +62,7 @@ where
 	#[precompile::view]
 	fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: XCMMultiLocation,
+		multilocation: XcmMultiLocation,
 	) -> EvmResult<(u64, u64, u64)> {
 		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, multilocation.0)
 	}
@@ -72,7 +72,7 @@ where
 	#[precompile::view]
 	fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: XCMMultiLocation,
+		multilocation: XcmMultiLocation,
 	) -> EvmResult<U256> {
 		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation.0)
 	}
@@ -97,7 +97,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: XCMMultiLocation,
+		fee_asset: XcmMultiLocation,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -147,8 +147,8 @@ where
 	)]
 	fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-		dest: XCMMultiLocation,
-		fee_asset: XCMMultiLocation,
+		dest: XcmMultiLocation,
+		fee_asset: XcmMultiLocation,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -165,7 +165,7 @@ where
 	#[precompile::public("transact_through_signed((uint8,bytes[]),address,uint64,bytes)")]
 	fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-		dest: XCMMultiLocation,
+		dest: XcmMultiLocation,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,

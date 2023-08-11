@@ -161,9 +161,9 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Option<
 	}
 }
 
-pub struct XCMJunction(pub Junction);
+pub struct XcmJunction(pub Junction);
 
-impl Codec for XCMJunction {
+impl Codec for XcmJunction {
 	fn read(reader: &mut Reader) -> MayRevert<Self> {
 		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
 		let junction_bytes: Vec<_> = junction.into();
@@ -188,7 +188,7 @@ impl Codec for XCMJunction {
 				let mut data: [u8; 4] = Default::default();
 				data.copy_from_slice(encoded_junction.read_raw_bytes(4)?);
 				let para_id = u32::from_be_bytes(data);
-				Ok(XCMJunction(Junction::Parachain(para_id)))
+				Ok(XcmJunction(Junction::Parachain(para_id)))
 			}
 			1 => {
 				// In the case of Junction::AccountId32, we need 32 additional bytes plus NetworkId
@@ -196,7 +196,7 @@ impl Codec for XCMJunction {
 				account.copy_from_slice(encoded_junction.read_raw_bytes(32)?);
 
 				let network = encoded_junction.read_till_end()?.to_vec();
-				Ok(XCMJunction(Junction::AccountId32 {
+				Ok(XcmJunction(Junction::AccountId32 {
 					network: network_id_from_bytes(network)?,
 					id: account,
 				}))
@@ -207,7 +207,7 @@ impl Codec for XCMJunction {
 				index.copy_from_slice(encoded_junction.read_raw_bytes(8)?);
 				// Now we read the network
 				let network = encoded_junction.read_till_end()?.to_vec();
-				Ok(XCMJunction(Junction::AccountIndex64 {
+				Ok(XcmJunction(Junction::AccountIndex64 {
 					network: network_id_from_bytes(network)?,
 					index: u64::from_be_bytes(index),
 				}))
@@ -218,19 +218,19 @@ impl Codec for XCMJunction {
 				account.copy_from_slice(encoded_junction.read_raw_bytes(20)?);
 
 				let network = encoded_junction.read_till_end()?.to_vec();
-				Ok(XCMJunction(Junction::AccountKey20 {
+				Ok(XcmJunction(Junction::AccountKey20 {
 					network: network_id_from_bytes(network)?,
 					key: account,
 				}))
 			}
-			4 => Ok(XCMJunction(Junction::PalletInstance(
+			4 => Ok(XcmJunction(Junction::PalletInstance(
 				encoded_junction.read_raw_bytes(1)?[0],
 			))),
 			5 => {
 				// In the case of Junction::GeneralIndex, we need 16 additional bytes
 				let mut general_index: [u8; 16] = Default::default();
 				general_index.copy_from_slice(encoded_junction.read_raw_bytes(16)?);
-				Ok(XCMJunction(Junction::GeneralIndex(u128::from_be_bytes(
+				Ok(XcmJunction(Junction::GeneralIndex(u128::from_be_bytes(
 					general_index,
 				))))
 			}
@@ -241,14 +241,14 @@ impl Codec for XCMJunction {
 
 				let data = encoded_junction.read::<H256>().in_field("data")?.into();
 
-				Ok(XCMJunction(Junction::GeneralKey { length, data }))
+				Ok(XcmJunction(Junction::GeneralKey { length, data }))
 			}
-			7 => Ok(XCMJunction(Junction::OnlyChild)),
+			7 => Ok(XcmJunction(Junction::OnlyChild)),
 			8 => Err(RevertReason::custom("Junction::Plurality not supported yet").into()),
 			9 => {
 				let network = encoded_junction.read_till_end()?.to_vec();
 				if let Some(network_id) = network_id_from_bytes(network)? {
-					Ok(XCMJunction(Junction::GlobalConsensus(network_id)))
+					Ok(XcmJunction(Junction::GlobalConsensus(network_id)))
 				} else {
 					Err(RevertReason::custom("Unknown NetworkId").into())
 				}
@@ -324,11 +324,11 @@ impl Codec for XCMJunction {
 	}
 }
 
-pub struct XCMJunctions(pub Junctions);
+pub struct XcmJunctions(pub Junctions);
 
-impl Codec for XCMJunctions {
+impl Codec for XcmJunctions {
 	fn read(reader: &mut Reader) -> MayRevert<Self> {
-		let junctions_bytes: Vec<XCMJunction> = reader.read()?;
+		let junctions_bytes: Vec<XcmJunction> = reader.read()?;
 		let mut junctions = Junctions::Here;
 		for item in junctions_bytes {
 			junctions
@@ -336,14 +336,14 @@ impl Codec for XCMJunctions {
 				.map_err(|_| RevertReason::custom("overflow when reading junctions"))?;
 		}
 
-		Ok(XCMJunctions(junctions))
+		Ok(XcmJunctions(junctions))
 	}
 
 	fn write(writer: &mut Writer, value: Self) {
-		let encoded: Vec<XCMJunction> = value
+		let encoded: Vec<XcmJunction> = value
 			.0
 			.iter()
-			.map(|junction| XCMJunction(*junction))
+			.map(|junction| XcmJunction(*junction))
 			.collect();
 		Codec::write(writer, encoded);
 	}
@@ -353,36 +353,36 @@ impl Codec for XCMJunctions {
 	}
 
 	fn signature() -> String {
-		Vec::<XCMJunction>::signature()
+		Vec::<XcmJunction>::signature()
 	}
 }
 
-pub struct XCMMultiLocation(pub MultiLocation);
+pub struct XcmMultiLocation(pub MultiLocation);
 
 // Cannot used derive macro since it is a foreign struct.
-impl Codec for XCMMultiLocation {
+impl Codec for XcmMultiLocation {
 	fn read(reader: &mut Reader) -> MayRevert<Self> {
-		let (parents, XCMJunctions(interior)) = reader
+		let (parents, XcmJunctions(interior)) = reader
 			.read()
 			.map_in_tuple_to_field(&["parents", "interior"])?;
 		Ok(MultiLocation { parents, interior }.into())
 	}
 
 	fn write(writer: &mut Writer, value: Self) {
-		Codec::write(writer, (value.0.parents, XCMJunctions(value.0.interior)));
+		Codec::write(writer, (value.0.parents, XcmJunctions(value.0.interior)));
 	}
 
 	fn has_static_size() -> bool {
-		<(u8, XCMJunctions)>::has_static_size()
+		<(u8, XcmJunctions)>::has_static_size()
 	}
 
 	fn signature() -> String {
-		<(u8, XCMJunctions)>::signature()
+		<(u8, XcmJunctions)>::signature()
 	}
 }
 
-impl From<MultiLocation> for XCMMultiLocation {
+impl From<MultiLocation> for XcmMultiLocation {
 	fn from(multilocation: MultiLocation) -> Self {
-		XCMMultiLocation(multilocation)
+		XcmMultiLocation(multilocation)
 	}
 }

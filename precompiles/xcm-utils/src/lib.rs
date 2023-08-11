@@ -29,7 +29,7 @@ use pallet_evm::AddressMapping;
 use parity_scale_codec::{DecodeLimit, MaxEncodedLen};
 use precompile_utils::precompile_set::SelectorFilter;
 use precompile_utils::prelude::*;
-use precompile_utils_xcm_codec::xcm::XCMMultiLocation;
+use precompile_utils_xcm_codec::xcm::XcmMultiLocation;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
@@ -105,7 +105,7 @@ where
 	#[precompile::view]
 	fn multilocation_to_address(
 		handle: &mut impl PrecompileHandle,
-		multilocation: XCMMultiLocation,
+		multilocation: XcmMultiLocation,
 	) -> EvmResult<Address> {
 		// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
@@ -132,7 +132,7 @@ where
 	#[precompile::view]
 	fn get_units_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: XCMMultiLocation,
+		multilocation: XcmMultiLocation,
 	) -> EvmResult<U256> {
 		// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
@@ -226,7 +226,7 @@ where
 	#[precompile::public("xcmSend((uint8,bytes[]),bytes)")]
 	fn xcm_send(
 		handle: &mut impl PrecompileHandle,
-		dest: XCMMultiLocation,
+		dest: XcmMultiLocation,
 		message: BoundedBytes<GetXcmSizeLimit>,
 	) -> EvmResult {
 		let message: Vec<u8> = message.into();
