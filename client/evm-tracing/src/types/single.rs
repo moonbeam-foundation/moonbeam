@@ -25,6 +25,7 @@ use serde::Serialize;
 use ethereum_types::{H256, U256};
 use parity_scale_codec::{Decode, Encode};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use crate::types::sentio::SentioCallTrace;
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
 #[serde(rename_all = "camelCase", untagged)]
@@ -33,7 +34,7 @@ pub enum Call {
 	CallTracer(crate::formatters::call_tracer::CallTracerCall),
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum TraceType {
 	/// Classic geth with no javascript based tracing.
 	Raw {
@@ -45,6 +46,9 @@ pub enum TraceType {
 	CallList,
 	/// A single block trace. Use in `debug_traceTransactionByNumber` / `traceTransactionByHash`.
 	Block,
+	SentioCallList {
+		tracerConfig: Option<String>
+	}
 }
 
 /// Single transaction trace.
@@ -64,6 +68,7 @@ pub enum TransactionTrace {
 	CallList(Vec<Call>),
 	/// Used by Geth's callTracer.
 	CallListNested(Call),
+	SentioCallTrace(SentioCallTrace)
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]

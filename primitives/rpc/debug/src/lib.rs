@@ -54,7 +54,7 @@ sp_api::decl_runtime_apis! {
 pub enum TracerInput {
 	None,
 	Blockscout,
-	CallTracer,
+	CallTracer
 }
 
 /// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is

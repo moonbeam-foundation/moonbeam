@@ -25,6 +25,7 @@ use sp_std::vec::Vec;
 pub mod block;
 pub mod serialization;
 pub mod single;
+pub mod sentio;
 
 use serde::Serialize;
 use serialization::*;

@@ -18,6 +18,7 @@ use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use moonbeam_client_evm_tracing::types::single;
 use moonbeam_rpc_core_types::RequestBlockId;
 use serde::Deserialize;
+use serde_json::{Result, Value};
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +29,7 @@ pub struct TraceParams {
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub tracer: Option<String>,
 	pub timeout: Option<String>,
+	pub tracerConfig: Option<Value>
 }
 
 #[rpc(server)]

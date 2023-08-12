@@ -9,6 +9,7 @@ version = "0.1.0"
 
 [dependencies]
 ethereum-types = { workspace = true, features = [ "std" ] }
+log = { workspace = true }
 hex = { workspace = true, features = [ "serde" ] }
 serde = { workspace = true, features = [ "derive", "std" ] }
 serde_json = { workspace = true }

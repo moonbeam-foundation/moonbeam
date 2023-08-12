@@ -25,7 +25,7 @@ use tokio::{
 use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
+use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single, types::sentio};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
@@ -37,6 +37,7 @@ use sp_blockchain::{
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, UniqueSaturatedInto};
 use std::{future::Future, marker::PhantomData, sync::Arc};
+use jsonrpsee::core::__reexports::serde_json;
 
 pub enum RequesterInput {
 	Transaction(H256),
@@ -236,6 +237,7 @@ where
 		match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
+				tracerConfig,
 				..
 			}) => {
 				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
@@ -248,6 +250,10 @@ where
 						Some(TracerInput::Blockscout)
 					} else if tracer == "callTracer" {
 						Some(TracerInput::CallTracer)
+					} else if tracer == "sentioTracer" {
+						// let config = tracerConfig.unwrap_or(serde_json::Value::from("{}"));
+						// TODO find a better way to pass config instead of serialize to string
+						return Ok((TracerInput::None, single::TraceType::SentioCallList { tracerConfig: tracerConfig.map(|x| x.to_string()) }))
 					} else {
 						None
 					};
@@ -558,6 +564,21 @@ where
 								),
 							)?,
 						))
+					}
+					single::TraceType::SentioCallList{tracerConfig} => {
+						let config: sentio::SentioTracerConfig = tracerConfig.map(|x| {
+							let v: sentio::SentioTracerConfig = serde_json::from_str(&x).unwrap();
+							v
+						}).unwrap_or(sentio::SentioTracerConfig::default());
+						let mut proxy = moonbeam_client_evm_tracing::listeners::SentioCallList::new(config);
+						proxy.using(f)?;
+						proxy.finish_transaction();
+
+						let mut res = moonbeam_client_evm_tracing::formatters::SentioTracer::format(proxy)
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))?;
+
+						Ok(Response::Single(res.pop().expect("Trace result is empty.")))
 					}
 					single::TraceType::CallList => {
 						let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();

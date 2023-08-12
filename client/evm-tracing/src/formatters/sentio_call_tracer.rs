@@ -14,25 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod blockscout;
-pub mod call_tracer;
-pub mod raw;
-pub mod trace_filter;
+use crate::types::single::TransactionTrace;
 
-pub mod sentio_call_tracer;
+use crate::listeners::sentio_call_list::Listener;
 
-pub use blockscout::Formatter as Blockscout;
-pub use call_tracer::Formatter as CallTracer;
-pub use raw::Formatter as Raw;
-pub use trace_filter::Formatter as TraceFilter;
-pub use sentio_call_tracer::Formatter as SentioTracer;
+pub struct Formatter;
 
-use evm_tracing_events::Listener;
-use serde::Serialize;
+impl super::ResponseFormatter for Formatter {
+	type Listener = Listener;
+	type Response = Vec<TransactionTrace>;
 
-pub trait ResponseFormatter {
-	type Listener: Listener;
-	type Response: Serialize;
-
-	fn format(listener: Self::Listener) -> Option<Self::Response>;
+	fn format(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
+		if listener.results.is_empty() {
+			None
+		} else {
+			// TODO P2 check if collect will modify original results
+			Some(listener.results.into_iter().map(|call| TransactionTrace::SentioCallTrace(call)).collect())
+		}
+	}
 }
