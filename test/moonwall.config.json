@@ -45,8 +45,15 @@
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -90,8 +97,15 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -135,8 +149,15 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -181,8 +202,15 @@
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "envVars": ["DEBUG_COLORS=1"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
