@@ -19,7 +19,7 @@ describeSuite({
       id: "T02",
       title: "should be deployable",
       test: async function () {
-        const { abi, bytecode } = await fetchCompiledContract("MultiplyBy7");
+        const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const contractFactory = new ethers.ContractFactory(
           abi as ethers.InterfaceAbi,
           bytecode,
@@ -42,7 +42,7 @@ describeSuite({
       id: "T03",
       title: "should be callable",
       test: async function () {
-        const contractData = await fetchCompiledContract("MultiplyBy7");
+        const contractData = fetchCompiledContract("MultiplyBy7");
         const contractFactory = new ethers.ContractFactory(
           contractData.abi as ethers.InterfaceAbi,
           contractData.bytecode,

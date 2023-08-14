@@ -73,9 +73,6 @@ fn selectors() {
 	assert!(PCall::execute_candidate_bond_less_selectors().contains(&0x2e290290));
 	assert!(PCall::cancel_candidate_bond_less_selectors().contains(&0xb5ad5f07));
 	assert!(PCall::delegate_selectors().contains(&0x829f5ee3));
-	assert!(PCall::schedule_leave_delegators_selectors().contains(&0xf939dadb));
-	assert!(PCall::execute_leave_delegators_selectors().contains(&0xfb1e2bf9));
-	assert!(PCall::cancel_leave_delegators_selectors().contains(&0xf7421284));
 	assert!(PCall::schedule_revoke_delegation_selectors().contains(&0x1a1c740c));
 	assert!(PCall::delegator_bond_more_selectors().contains(&0x0465135b));
 	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
@@ -116,9 +113,6 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
 		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
 		tester.test_default_modifier(PCall::delegate_selectors());
-		tester.test_default_modifier(PCall::schedule_leave_delegators_selectors());
-		tester.test_default_modifier(PCall::execute_leave_delegators_selectors());
-		tester.test_default_modifier(PCall::cancel_leave_delegators_selectors());
 		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
 		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
 		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
@@ -1232,90 +1226,6 @@ fn delegate_works() {
 }
 
 #[test]
-fn schedule_leave_delegators_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
-		.with_candidates(vec![(Alice.into(), 1_000)])
-		.with_delegations(vec![(Bob.into(), Alice.into(), 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = PCall::schedule_leave_delegators {}.into();
-
-			// Make sure the call goes through successfully
-			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
-
-			let expected: crate::mock::RuntimeEvent = ::DelegatorExitScheduled {
-				round: 1,
-				delegator: Bob.into(),
-				scheduled_exit: 3,
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-#[test]
-fn execute_leave_delegators_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 1_000), (Bob.into(), 500)])
-		.with_candidates(vec![(Alice.into(), 1_000)])
-		.with_delegations(vec![(Bob.into(), Alice.into(), 500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				RuntimeOrigin::signed(Bob.into())
-			));
-			roll_to(10);
-
-			let input_data = PCall::execute_leave_delegators {
-				delegator: Address(Bob.into()),
-				delegator_delegation_count: 1.into(),
-			}
-			.into();
-
-			// Make sure the call goes through successfully
-			assert_ok!(
-				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
-			);
-
-			let expected: crate::mock::RuntimeEvent = ::DelegatorLeft {
-				delegator: Bob.into(),
-				unstaked_amount: 500,
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-#[test]
-fn cancel_leave_delegators_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 1_000), (Bob.into(), 500)])
-		.with_candidates(vec![(Alice.into(), 1_000)])
-		.with_delegations(vec![(Bob.into(), Alice.into(), 500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(
-				RuntimeOrigin::signed(Bob.into())
-			));
-
-			let input_data = PCall::cancel_leave_delegators {}.into();
-
-			// Make sure the call goes through successfully
-			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
-
-			let expected: crate::mock::RuntimeEvent = ::DelegatorExitCancelled {
-				delegator: Bob.into(),
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-#[test]
 fn schedule_revoke_delegation_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
@@ -1815,9 +1725,6 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"candidate_bond_more(uint256)",
 		"execute_candidate_bond_less(address)",
 		"cancel_candidate_bond_less()",
-		"schedule_leave_delegators()",
-		"execute_leave_delegators(address,uint256)",
-		"cancel_leave_delegators()",
 		"schedule_revoke_delegation(address)",
 		"schedule_delegator_bond_less(address,uint256)",
 		"delegator_bond_more(address,uint256)",

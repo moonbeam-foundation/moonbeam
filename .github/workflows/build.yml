@@ -169,20 +169,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: 18.x
+          bun-version: latest
       - name: Check with Prettier
         run: |
-          npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
           || (git diff --quiet \
           || (echo 'Unable to show a diff because there are unstaged changes'; false) \
-          && (npx prettier@2 --ignore-path \
+          && (bun x prettier@2 --ignore-path \
               .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
           && git --no-pager diff; git restore .) && false)
 
-          npx prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
@@ -374,7 +373,7 @@ jobs:
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -493,10 +492,10 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -511,7 +510,7 @@ jobs:
       - name: "Install and run upgrade test"
         run: |
           cd test
-          pnpm i
+          pnpm install
           pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
@@ -532,12 +531,10 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
+          node-version: 20.x
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -573,12 +570,12 @@ jobs:
       - name: "Run zombie upgrade test"
         run: |
           cd test
-          pnpm i
+          pnpm install
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm ts-node --esm --swc scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests

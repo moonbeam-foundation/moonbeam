@@ -41,7 +41,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" }) as any as ApiPromise;
+      paraApi = context.polkadotJs("para") as any as ApiPromise;
       const blockNumArray = await getBlockArray(paraApi, timePeriod);
       const limits = paraApi.consts.system.blockWeights;
 

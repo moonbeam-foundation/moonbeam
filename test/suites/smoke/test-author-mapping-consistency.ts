@@ -16,7 +16,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const limit = 1000;
       let last_key = "";
       let count = 0;

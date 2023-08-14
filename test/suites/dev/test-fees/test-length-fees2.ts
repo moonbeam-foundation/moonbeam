@@ -3,8 +3,8 @@ import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_PRIVATE_KEY,
   EXTRINSIC_GAS_LIMIT,
-  createEthersTxn,
-  createRawTransaction,
+  createEthersTransaction,
+  createViemTransaction,
 } from "@moonwall/util";
 
 describeSuite({
@@ -30,7 +30,7 @@ describeSuite({
         // byte). What we want to show is that this length fee is applied but our exponential
         // LengthToFee (part of our Substrate-based fees) is not applied.
 
-        const tx = await createRawTransaction(context, {
+        const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           gas: BigInt(EXTRINSIC_GAS_LIMIT),
           data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base

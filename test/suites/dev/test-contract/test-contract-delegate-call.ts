@@ -49,7 +49,7 @@ describeSuite({
           "MultiplyBy7"
         );
 
-        const txCall = await context.viem("public").call({
+        const txCall = await context.viem().call({
           account: ALITH_ADDRESS as `0x${string}`,
           to: forwardAddress,
           data: encodeFunctionData({
@@ -78,7 +78,7 @@ describeSuite({
         test: async function () {
           const precompileAddress = `0x${precompilePrefix.toString(16).padStart(40, "0")}`;
 
-          const txCall = await context.viem("public").call({
+          const txCall = await context.viem().call({
             account: ALITH_ADDRESS as `0x${string}`,
             to: forwardAddress,
             data: encodeFunctionData({
@@ -99,7 +99,7 @@ describeSuite({
         test: async function () {
           const precompileAddress = `0x${precompilePrefix.toString(16).padStart(40, "0")}`;
 
-          const txCall = await context.viem("public").call({
+          const txCall = await context.viem().call({
             account: ALITH_ADDRESS as `0x${string}`,
             to: forwardAddress,
             data: encodeFunctionData({

@@ -11,8 +11,8 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise">;
-    let localAssetDeposits: StorageKey<[u128]>[] = null;
-    let localAssetInfo: StorageKey<[u128]>[] = null;
+    let localAssetDeposits: StorageKey<[u128]>[];
+    let localAssetInfo: StorageKey<[u128]>[];
     let localAssetCounter: number = 0;
 
     beforeAll(async function () {
@@ -21,10 +21,10 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs({ apiName: "para" }).rpc.chain.getHeader()).number.toNumber();
+        : (await context.polkadotJs("para").rpc.chain.getHeader()).number.toNumber();
       apiAt = await context
-        .polkadotJs({ apiName: "para" })
-        .at(await context.polkadotJs({ apiName: "para" }).rpc.chain.getBlockHash(atBlockNumber));
+        .polkadotJs("para")
+        .at(await context.polkadotJs("para").rpc.chain.getBlockHash(atBlockNumber));
       localAssetDeposits = await apiAt.query.assetManager.localAssetDeposit.keys();
       localAssetCounter = await (await apiAt.query.assetManager.localAssetCounter()).toNumber();
       localAssetInfo = await apiAt.query.assetManager.localAssetDeposit.keys();
@@ -86,7 +86,7 @@ describeSuite({
         log(
           `Verified ${
             Object.keys(localAssetInfo).length
-          } total loacl assetIds (at #${atBlockNumber})`
+          } total local assetIds (at #${atBlockNumber})`
         );
       },
     });

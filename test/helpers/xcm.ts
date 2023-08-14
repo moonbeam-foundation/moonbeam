@@ -1,5 +1,5 @@
-import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
-import { PRECOMPILE_XCM_UTILS_ADDRESS } from "@moonwall/util";
+import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -8,7 +8,7 @@ import {
 } from "@polkadot/types/lookup";
 import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { encodeFunctionData } from "viem";
+import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -116,7 +116,7 @@ export async function registerForeignAsset(
 
 export function descendOriginFromAddress20(
   context: DevModeContext,
-  address: string = "0x0101010101010101010101010101010101010101",
+  address: `0x${string}` = "0x0101010101010101010101010101010101010101",
   paraId: number = 1
 ) {
   const toHash = new Uint8Array([
@@ -175,16 +175,11 @@ export async function injectHrmpMessage(
 }
 // Weight a particular message using the xcm utils precompile
 export async function weightMessage(context: DevModeContext, message: XcmVersionedXcm) {
-  const XCM_UTILS_CONTRACT = await fetchCompiledContract("precompiles/xcm-utils/XcmUtils");
-  const result = await context.viem("public").call({
-    to: PRECOMPILE_XCM_UTILS_ADDRESS,
-    data: encodeFunctionData({
-      abi: XCM_UTILS_CONTRACT.abi,
-      functionName: "weightMessage",
-      args: [message.toU8a()],
-    }),
-  });
-  return BigInt(result.data as string);
+  return (await context.readPrecompile!({
+    precompileName: "XcmUtils",
+    functionName: "weightMessage",
+    args: [message.toHex()],
+  })) as bigint;
 }
 
 // export async function weightMessage(context: DevModeContext, message?: XcmVersionedXcm) {
@@ -831,4 +826,55 @@ function replaceNetworkAny(obj: AnyObject | Array<AnyObject>): any {
 
 type AnyObject = {
   [key: string]: any;
+};
+
+export const registerXcmTransactorAndContract = async (context: DevModeContext) => {
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmTransactor.register(ALITH_ADDRESS, 0))
+  );
+
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.xcmTransactor.setTransactInfo(
+            RELAY_V3_SOURCE_LOCATION,
+            { refTime: 1, proofSize: 64 * 1024 } as any,
+            { refTime: 20_000_000_000, proofSize: 256 * 1024 } as any,
+            { refTime: 1, proofSize: 64 * 1024 } as any
+          )
+      )
+  );
+
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.xcmTransactor.setFeePerSecond(RELAY_V3_SOURCE_LOCATION, 1000000000000n)
+      )
+  );
+};
+
+export const registerXcmTransactorDerivativeIndex = async (context: DevModeContext) => {
+  await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmTransactor.register(ALITH_ADDRESS, 0))
+  );
+};
+
+export const expectXcmEventMessage = async (context: DevModeContext, message: string) => {
+  const records = await context.polkadotJs().query.system.events();
+
+  const filteredEvents = records
+    .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
+    .filter((event) => event);
+
+  return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
 };

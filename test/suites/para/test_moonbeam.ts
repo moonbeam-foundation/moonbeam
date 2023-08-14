@@ -15,8 +15,8 @@ describeSuite({
     let ethersSigner: Signer;
 
     beforeAll(async () => {
-      paraApi = context.polkadotJs({ apiName: "parachain", type: "moon" });
-      relayApi = context.polkadotJs({ apiName: "relaychain", type: "polkadotJs" });
+      paraApi = context.polkadotJs("parachain");
+      relayApi = context.polkadotJs("relaychain");
       ethersSigner = context.ethers()!;
 
       const relayNetwork = relayApi.consts.system.version.specName.toString();

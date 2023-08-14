@@ -74,9 +74,9 @@ describeSuite({
             )
         );
         expect(result!.successful).to.be.true;
-        expect(
-          await context.viem("public").getBalance({ address: randomAccount.address })
-        ).to.equal(100n * GLMR);
+        expect(await context.viem().getBalance({ address: randomAccount.address })).to.equal(
+          100n * GLMR
+        );
       },
     });
 
