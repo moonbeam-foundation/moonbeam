@@ -34,16 +34,16 @@ describeSuite({
       id: "T02",
       title: "eth_estimateGas 0x0 gasPrice is equivalent to not setting one",
       test: async function () {
-        const { bytecode } = await fetchCompiledContract("Incrementor");
+        const { bytecode } = fetchCompiledContract("Incrementor");
 
-        const result = await context.viem("public").estimateGas({
+        const result = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           data: bytecode,
           gasPrice: 0n,
         });
         expect(result).to.equal(174798n);
 
-        const result2 = await context.viem("public").estimateGas({
+        const result2 = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           data: bytecode,
         });
@@ -63,7 +63,7 @@ describeSuite({
           context,
           "MultiplyBy7"
         );
-        const batchAbi = (await fetchCompiledContract("Batch")).abi;
+        const batchAbi = fetchCompiledContract("Batch").abi;
 
         const callParameters = [
           [proxyAddress, proxyAddress],
@@ -97,7 +97,7 @@ describeSuite({
           [],
         ];
 
-        const batchSomeGas = await context.viem("public").estimateGas({
+        const batchSomeGas = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -107,7 +107,7 @@ describeSuite({
           }),
         });
 
-        const batchSomeUntilFailureGas = await context.viem("public").estimateGas({
+        const batchSomeUntilFailureGas = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -117,7 +117,7 @@ describeSuite({
           }),
         });
 
-        const batchAllGas = await context.viem("public").estimateGas({
+        const batchAllGas = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           to: PRECOMPILE_BATCH_ADDRESS,
           data: encodeFunctionData({
@@ -136,9 +136,9 @@ describeSuite({
       id: "T04",
       title: "Non-transactional calls allowed from e.g. precompile address",
       test: async function () {
-        const { bytecode } = await fetchCompiledContract("MultiplyBy7");
+        const { bytecode } = fetchCompiledContract("MultiplyBy7");
         expect(
-          await context.viem("public").estimateGas({
+          await context.viem().estimateGas({
             account: PRECOMPILE_BATCH_ADDRESS,
             data: bytecode,
           })
@@ -155,7 +155,7 @@ describeSuite({
 
         expect(
           async () =>
-            await context.viem("public").estimateGas({
+            await context.viem().estimateGas({
               account: ALITH_ADDRESS,
               to: contractAddress,
               data: encodeFunctionData({

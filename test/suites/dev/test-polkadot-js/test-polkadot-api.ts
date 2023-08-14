@@ -35,9 +35,9 @@ describeSuite({
           context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
         );
 
-        expect(
-          BigInt(await context.viem("public").getBalance({ address: randomAddress }))
-        ).to.equal(2n * GLMR);
+        expect(BigInt(await context.viem().getBalance({ address: randomAddress }))).to.equal(
+          2n * GLMR
+        );
       },
     });
 

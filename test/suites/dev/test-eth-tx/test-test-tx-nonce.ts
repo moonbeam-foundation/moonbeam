@@ -16,9 +16,7 @@ describeSuite({
       id: "T01",
       title: "should be at 0 before using it",
       test: async function () {
-        expect(
-          await context.viem("public").getTransactionCount({ address: BALTATHAR_ADDRESS })
-        ).toBe(0);
+        expect(await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS })).toBe(0);
       },
     });
 
@@ -26,9 +24,7 @@ describeSuite({
       id: "T02",
       title: "should be at 0 for genesis account",
       test: async function () {
-        expect(await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS })).toBe(
-          0
-        );
+        expect(await context.viem().getTransactionCount({ address: ALITH_ADDRESS })).toBe(0);
       },
     });
 
@@ -40,9 +36,7 @@ describeSuite({
           await createRawTransfer(context, ALITH_ADDRESS, 512),
         ]);
 
-        expect(await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS })).toBe(
-          0
-        );
+        expect(await context.viem().getTransactionCount({ address: ALITH_ADDRESS })).toBe(0);
         await context.createBlock();
       },
     });
@@ -51,12 +45,12 @@ describeSuite({
       id: "T04",
       title: "should stay at previous before block is created",
       test: async function () {
-        const blockNumber = await context.viem("public").getBlockNumber();
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const blockNumber = await context.viem().getBlockNumber();
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
         await context.createBlock(await createRawTransfer(context, ALITH_ADDRESS, 512));
 
         expect(
-          await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS, blockNumber })
+          await context.viem().getTransactionCount({ address: ALITH_ADDRESS, blockNumber })
         ).toBe(nonce);
       },
     });
@@ -65,15 +59,15 @@ describeSuite({
       id: "T05",
       title: "pending transaction nonce",
       test: async function () {
-        const blockNumber = await context.viem("public").getBlockNumber();
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const blockNumber = await context.viem().getBlockNumber();
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         await customDevRpcRequest("eth_sendRawTransaction", [
           await createRawTransfer(context, CHARLETH_ADDRESS, 512),
         ]);
 
         expect(
-          await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS }),
+          await context.viem().getTransactionCount({ address: ALITH_ADDRESS }),
           "should not increase transaction count"
         ).toBe(nonce);
         expect(
@@ -96,16 +90,16 @@ describeSuite({
       id: "T06",
       title: "transferring Nonce",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         await context.createBlock([await createRawTransfer(context, BALTATHAR_ADDRESS, 512)]);
 
         expect(
-          await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS }),
+          await context.viem().getTransactionCount({ address: ALITH_ADDRESS }),
           "should increase the sender nonce"
         ).toBe(nonce + 1);
         expect(
-          await context.viem("public").getTransactionCount({ address: BALTATHAR_ADDRESS }),
+          await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS }),
           "should not increase the receiver nonce"
         ).toBe(0);
         await context.createBlock();

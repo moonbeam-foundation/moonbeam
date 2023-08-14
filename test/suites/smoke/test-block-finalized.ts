@@ -24,8 +24,8 @@ describeSuite({
     let ethers: Signer;
 
     beforeAll(() => {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
-      ethers = context.ethers();
+      paraApi = context.polkadotJs("para");
+      ethers = context.ethers()!;
     });
 
     it({
@@ -53,7 +53,7 @@ describeSuite({
           return; // TODO: replace with skip() when added to vitest
         }
 
-        const timestamp = (await ethers.provider.getBlock("finalized")).timestamp;
+        const timestamp = (await ethers.provider!.getBlock("finalized"))!.timestamp;
         const diff = Date.now() - timestamp * 1000;
         log(`Last finalized eth block was ${diff / 1000} seconds ago`);
         expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);

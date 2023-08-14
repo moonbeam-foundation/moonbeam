@@ -143,7 +143,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
         ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
