@@ -10,10 +10,12 @@ import {
   descendOriginFromAddress20,
 } from "../../../helpers/xcm.js";
 
+import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3445",
+  id: "D3806",
   title: "Mock XCM - receive horizontal transact ETHEREUM (call)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -53,10 +55,12 @@ describeSuite({
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
 
+        const GAS_LIMIT = 100_000;
+
         const xcmTransactions = [
           {
             V1: {
-              gas_limit: 100000,
+              gas_limit: GAS_LIMIT,
               fee_payment: {
                 Auto: {
                   Low: null,
@@ -76,7 +80,7 @@ describeSuite({
           },
           {
             V2: {
-              gas_limit: 100000,
+              gas_limit: GAS_LIMIT,
               action: {
                 Call: contractDeployed,
               },
@@ -113,7 +117,10 @@ describeSuite({
                 fungible: transferredBalance / 2n,
               },
             ],
-            weight_limit: new BN(4000000000),
+            weight_limit: {
+              refTime: 4000000000,
+              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
+            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -121,14 +128,17 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
-                requireWeightAtMost: new BN(3000000000),
+                originKind: "SovereignAccount",
+                requireWeightAtMost: {
+                  refTime: 3000000000,
+                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v3();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {

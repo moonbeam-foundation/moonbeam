@@ -4,7 +4,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Abi, encodeFunctionData } from "viem";
-import { alith, generateKeyringPair } from "@moonwall/util";
+import { alith, generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -18,7 +18,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3447",
+  id: "D3807",
   title: "Mock XCM - receive horizontal transact ETHEREUM (asset fee)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -136,10 +136,11 @@ describeSuite({
       id: "T01",
       title: "should receive transact and should be able to execute",
       test: async function () {
+        const GAS_LIMIT = 100_000;
         const xcmTransactions = [
           {
             V1: {
-              gas_limit: 100000,
+              gas_limit: GAS_LIMIT,
               fee_payment: {
                 Auto: {
                   Low: null,
@@ -159,7 +160,7 @@ describeSuite({
           },
           {
             V2: {
-              gas_limit: 100000,
+              gas_limit: GAS_LIMIT,
               action: {
                 Call: contractDeployed,
               },
@@ -192,7 +193,10 @@ describeSuite({
                 fungible: assetsToTransfer / 2n,
               },
             ],
-            weight_limit: new BN((assetsToTransfer / 2n).toString()),
+            weight_limit: {
+              refTime: assetsToTransfer / 2n,
+              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
+            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -200,15 +204,18 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
+                originKind: "SovereignAccount",
                 // 100_000 gas + 1 db read
-                requireWeightAtMost: new BN(2_500_000_000).add(new BN(25_000_000)),
+                requireWeightAtMost: {
+                  refTime: 2_525_000_000,
+                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v3();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
