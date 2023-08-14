@@ -189,15 +189,15 @@ where
 			.map_err(|_| revert("Amount overflows balance"))?;
 
 		log::debug!(target: "gmp-precompile", "sending XCM via xtokens::transfer...");
-		let call: orml_xtokens::Call<Runtime> = match user_action {
+		let call: Option<orml_xtokens::Call<Runtime>> = match user_action {
 			VersionedUserAction::V1(action) => {
 				log::debug!(target: "gmp-precompile", "Payload: V1");
-				orml_xtokens::Call::<Runtime>::transfer {
+				Some(orml_xtokens::Call::<Runtime>::transfer {
 					currency_id,
 					amount,
 					dest: Box::new(action.destination),
 					dest_weight_limit: WeightLimit::Unlimited,
-				}
+				})
 			}
 			VersionedUserAction::V2(action) => {
 				log::debug!(target: "gmp-precompile", "Payload: V2");
@@ -227,24 +227,33 @@ where
 
 				log::debug!(target: "gmp-precompile", "deducting fee from transferred amount {:?} - {:?} = {:?}", amount, fee, (amount - fee));
 
-				// TODO: handle fee >= amount_transferred -- don't bother with xcm transfer?
-				// probably best to rewrite this match statement to not return a orml_xtokens::Call
-				orml_xtokens::Call::<Runtime>::transfer {
-					currency_id,
-					amount: amount.saturating_sub(fee),
-					dest: Box::new(action.destination),
-					dest_weight_limit: WeightLimit::Unlimited,
+				let remaining = amount.saturating_sub(fee);
+
+				if Into::<u128>::into(remaining) > 0 {
+					Some(orml_xtokens::Call::<Runtime>::transfer {
+						currency_id,
+						amount: remaining,
+						dest: Box::new(action.destination),
+						dest_weight_limit: WeightLimit::Unlimited,
+					})
+				} else {
+					None
 				}
 			}
 		};
 
-		log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(|e| {
-			log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
-			e
-		})?;
+		if let Some(call) = call {
+			log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
+			let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
+			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(
+				|e| {
+					log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
+					e
+				},
+			)?;
+		} else {
+			log::debug!(target: "gmp-precompile", "no call provided, no XCM transfer");
+		}
 
 		Ok(())
 	}

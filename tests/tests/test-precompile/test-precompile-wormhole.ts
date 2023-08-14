@@ -92,6 +92,9 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   // version of it created by WH.
   let wethAddress: string;
   let whWethContract: ethers.Contract;
+
+  let gmpContract: ethers.Contract;
+
   let whWethAddress: string;
   let evmChainId;
 
@@ -283,6 +286,13 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
+    const gmpJson = getCompiled("wormhole/bridge/mock/MockWETH9");
+    const gmpInterface = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
+    gmpContract = new ethers.Contract(
+      PRECOMPILE_GMP_ADDRESS,
+      gmpInterface,
+      context.ethers,
+    );
   });
 
   it("should support V1 user action", async function () {
@@ -360,6 +370,44 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
     expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(fee));
+  });
+
+  it("should pay entire transfer when fee greater than transfer", async function () {
+    this.timeout(20000)
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    const whAmount = 100n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = realAmount + 1n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
+
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(realAmount));
   });
 
   async function makeTestVAA(amount: number, action: VersionedUserAction): Promise<string> {
