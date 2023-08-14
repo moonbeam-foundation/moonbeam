@@ -95,9 +95,9 @@ interface Identity {
         /// Represents the email info for the identity.
         Data email;
         /// Set to `true` if `pgpFingerprint` is set, `false` otherwise.
-        bool has_pgp_fingerprint;
+        bool hasPgpFingerprint;
         /// Represents a 20-byte the PGP fingerprint info for the identity.
-        bytes20 pgpFingerprint;
+        bytes pgpFingerprint;
         /// Represents the image info for the identity.
         Data image;
         /// Represents the twitter info for the identity.
@@ -124,12 +124,20 @@ interface Identity {
         bool isErroneous;
     }
 
+    /// @dev Judgement item provided by a registrar.
+    struct JudgementInfo {
+        /// The registrar's index that provided this judgement.
+        uint32 registrar_index;
+        /// The registrar's provided judgement.
+        Judgement judgement;
+    }
+
     /// @dev Registrar info.
     struct Registration {
         /// Is `true` if the struct is valid, `false` otherwise.
         bool isValid;
         /// The judgments provided on this identity.
-        Judgement[] judgements;
+        JudgementInfo[] judgements;
         /// Amount required to be given to the registrar for them to provide judgement.
         uint256 deposit;
         /// The associated identity info.

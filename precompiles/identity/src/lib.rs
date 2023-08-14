@@ -74,6 +74,7 @@ where
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
+	// addRegistrar(address) is not supported since it's
 	#[precompile::public("addRegistrar(address)")]
 	fn add_registrar(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult {
 		let reg_index = pallet_identity::Pallet::<Runtime>::registrars().len() as u32;
@@ -100,7 +101,7 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes20,(bool,bytes),(bool,bytes)))")]
+	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
@@ -781,6 +782,12 @@ impl TryFrom<Data> for pallet_identity::Data {
 			value.try_into().map_err(|_| "exceeded bounds")?;
 		Ok(pallet_identity::Data::Raw(value))
 	}
+}
+
+#[derive(Eq, PartialEq, Debug, solidity::Codec)]
+pub struct Additional {
+	key: Data,
+	value: Data,
 }
 
 // ((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))
