@@ -72,13 +72,16 @@ where
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
-	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a force origin.
+	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a
+	// force origin.
 
+	// editorconfig-checker-disable
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
 	) -> EvmResult {
+		// editorconfig-checker-enable
 		let caller = handle.context().caller;
 
 		let event = log1(
@@ -354,7 +357,8 @@ where
 		who: Address,
 	) -> EvmResult<Registration<Runtime::MaxAdditionalFields>> {
 		// Storage item: IdentityOf:
-		// BoundedVec((RegistrarIndex(4) + Judgement(17)) * MaxRegistrars(20)) + Balance(16) + IdentityInfo(BoundedVec(Data(33) * MaxAdditionalFields(100)) + Data(33)*7 + 20)
+		// BoundedVec((RegistrarIndex(4) + Judgement(17)) * MaxRegistrars(20)) + Balance(16)
+		//        + IdentityInfo(BoundedVec(Data(33) * MaxAdditionalFields(100)) + Data(33)*7 + 20)
 		handle.record_db_read::<Runtime>(3987)?;
 
 		let who: H160 = who.into();
@@ -743,7 +747,6 @@ pub struct Additional {
 	value: Data,
 }
 
-// ((bool, bytes)[], (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), (bool, bytes), bool, bytes, (bool, bytes), (bool, bytes))
 #[derive(Eq, PartialEq, Debug, solidity::Codec)]
 pub struct IdentityInfo<FieldLimit> {
 	additional: BoundedVec<(Data, Data), FieldLimit>,
@@ -775,7 +778,6 @@ impl<T> Default for IdentityInfo<T> {
 	}
 }
 
-// (bool, bool, uint256, bool, bool, bool, bool, bool)
 #[derive(Eq, PartialEq, Default, Debug, solidity::Codec)]
 pub struct Judgement {
 	is_unknown: bool,
