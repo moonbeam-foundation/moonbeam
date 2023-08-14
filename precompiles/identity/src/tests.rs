@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
-	mock::*, SELECTOR_LOG_IDENTITY_CLEARED, SELECTOR_LOG_IDENTITY_KILLED,
+	mock::*, SELECTOR_LOG_IDENTITY_CLEARED, 
 	SELECTOR_LOG_IDENTITY_SET, SELECTOR_LOG_JUDGEMENT_GIVEN, SELECTOR_LOG_JUDGEMENT_REQUESTED,
-	SELECTOR_LOG_JUDGEMENT_UNREQUESTED, SELECTOR_LOG_REGISTRAR_ADDED,
+	SELECTOR_LOG_JUDGEMENT_UNREQUESTED,
 	SELECTOR_LOG_SUB_IDENTITY_ADDED, SELECTOR_LOG_SUB_IDENTITY_REMOVED,
 	SELECTOR_LOG_SUB_IDENTITY_REVOKED,
 };
@@ -54,72 +54,6 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	check_precompile_implements_solidity_interfaces(&["Identity.sol"], PCall::supports_selector)
-}
-
-#[test]
-fn test_add_registrar_with_registrar_origin_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 100_000)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarAndForceOrigin,
-				PCall::add_registrar {
-					account: H160::from(Bob).into(),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
-
-			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
-				IdentityEvent::RegistrarAdded { registrar_index: 0 }
-			)));
-			assert!(events().contains(
-				&EvmEvent::Log {
-					log: log1(
-						Precompile1,
-						SELECTOR_LOG_REGISTRAR_ADDED,
-						solidity::encode_event_data(
-							0u32, // registrar_index
-						),
-					),
-				}
-				.into()
-			));
-
-			assert_eq!(
-				<IdentityPallet<Runtime>>::registrars().to_vec(),
-				vec![Some(RegistrarInfo {
-					account: Bob.into(),
-					fee: 0,
-					fields: pallet_identity::IdentityFields::default(),
-				})]
-			);
-		})
-}
-
-#[test]
-fn test_add_registrar_with_non_registrar_origin_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 100_000)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				Charlie,
-				PCall::add_registrar {
-					account: H160::from(Bob).into(),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
-
-			assert_eq!(
-				events(),
-				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
-					address: Precompile1.into()
-				}),]
-			);
-		})
 }
 
 #[test]
@@ -783,14 +717,10 @@ fn test_request_judgement_works_if_identity_set() {
 		.build()
 		.execute_with(|| {
 			// add Alice as registrar
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarAndForceOrigin,
-				PCall::add_registrar {
-					account: H160::from(Alice).into(),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(Identity::add_registrar(
+				RuntimeOrigin::signed(RegistrarAndForceOrigin.into()),
+				Alice.into(),
+			));
 			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::set_fee {
@@ -864,14 +794,10 @@ fn test_cancel_request_works_if_identity_judgement_requested() {
 		.build()
 		.execute_with(|| {
 			// add Alice as registrar
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarAndForceOrigin,
-				PCall::add_registrar {
-					account: H160::from(Alice).into(),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(Identity::add_registrar(
+				RuntimeOrigin::signed(RegistrarAndForceOrigin.into()),
+				Alice.into(),
+			));
 			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::set_fee {
@@ -952,14 +878,10 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 		.build()
 		.execute_with(|| {
 			// add Alice as registrar
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarAndForceOrigin,
-				PCall::add_registrar {
-					account: H160::from(Alice).into(),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
+			assert_ok!(Identity::add_registrar(
+				RuntimeOrigin::signed(RegistrarAndForceOrigin.into()),
+				Alice.into(),
+			));
 			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::set_fee {
@@ -1064,63 +986,6 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 					.judgements
 					.to_vec(),
 				vec![(0, pallet_identity::Judgement::Reasonable)],
-			);
-		})
-}
-
-#[test]
-fn test_kill_identity_works_if_identity_set() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
-		.build()
-		.execute_with(|| {
-			// Set Bob's identity
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				Bob,
-				PCall::set_identity {
-					info: IdentityInfo {
-						display: Data {
-							has_data: true,
-							value: vec![0x01].try_into().expect("succeeds"),
-						},
-						..Default::default()
-					},
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
-
-			assert_ok!(RuntimeCall::Evm(evm_call(
-				RegistrarAndForceOrigin,
-				PCall::kill_identity {
-					target: Address(Bob.into()),
-				}
-				.into()
-			))
-			.dispatch(RuntimeOrigin::root()));
-
-			assert!(events().contains(&Into::<crate::mock::RuntimeEvent>::into(
-				IdentityEvent::IdentityKilled {
-					who: Bob.into(),
-					deposit: BasicDeposit::get() as u128,
-				}
-			)));
-			assert!(events().contains(
-				&EvmEvent::Log {
-					log: log1(
-						Precompile1,
-						SELECTOR_LOG_IDENTITY_KILLED,
-						solidity::encode_event_data(
-							Address(Bob.into()), // who
-						),
-					),
-				}
-				.into()
-			));
-
-			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
-				None,
 			);
 		})
 }

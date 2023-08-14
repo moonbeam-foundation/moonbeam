@@ -171,13 +171,8 @@ interface Identity {
     /// @custom:selector e88e512e
     function registrars() external view returns (Registrar[] memory);
 
-    /// @dev Add a registrar.
-    /// @custom:selector af92a693
-    /// @param account The account address
-    function addRegistrar(address account) external;
-
     /// @dev Set identity info for the caller.
-    /// @custom:selector 8a1bc82f
+    /// @custom:selector 7e08b4cb
     /// @param info The identity info
     function setIdentity(IdentityInfo memory info) external;
 
@@ -231,11 +226,6 @@ interface Identity {
         Judgement memory judgement,
         bytes32 identity
     ) external;
-
-    /// @dev Remove an account's identity and sub-account information and slash the deposits.
-    /// @custom:selector 72770bfd
-    /// @param target The target account
-    function killIdentity(address target) external;
 
     /// @dev Add a "sub" identity account for the caller.
     /// @custom:selector 98717196

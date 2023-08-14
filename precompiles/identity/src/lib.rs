@@ -44,14 +44,12 @@ type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
 pub(crate) const SELECTOR_LOG_IDENTITY_CLEARED: [u8; 32] = keccak256!("IdentityCleared(address)");
-pub(crate) const SELECTOR_LOG_IDENTITY_KILLED: [u8; 32] = keccak256!("IdentityKilled(address)");
 pub(crate) const SELECTOR_LOG_JUDGEMENT_REQUESTED: [u8; 32] =
 	keccak256!("JudgementRequested(address,uint32)");
 pub(crate) const SELECTOR_LOG_JUDGEMENT_UNREQUESTED: [u8; 32] =
 	keccak256!("JudgementUnrequested(address,uint32)");
 pub(crate) const SELECTOR_LOG_JUDGEMENT_GIVEN: [u8; 32] =
 	keccak256!("JudgementGiven(address,uint32)");
-pub(crate) const SELECTOR_LOG_REGISTRAR_ADDED: [u8; 32] = keccak256!("RegistrarAdded(uint32)");
 pub(crate) const SELECTOR_LOG_SUB_IDENTITY_ADDED: [u8; 32] =
 	keccak256!("SubIdentityAdded(address,address)");
 pub(crate) const SELECTOR_LOG_SUB_IDENTITY_REMOVED: [u8; 32] =
@@ -74,32 +72,7 @@ where
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
-	// addRegistrar(address) is not supported since it's
-	#[precompile::public("addRegistrar(address)")]
-	fn add_registrar(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult {
-		let reg_index = pallet_identity::Pallet::<Runtime>::registrars().len() as u32;
-		// Storage item: Registrars:
-		// BoundedVec((AccountId(20) + Balance(16) + IdentityFields(8)) * MaxSubAccounts(100))
-		handle.record_db_read::<Runtime>(4400)?;
-
-		let event = log1(
-			handle.context().address,
-			SELECTOR_LOG_REGISTRAR_ADDED,
-			solidity::encode_event_data(reg_index),
-		);
-		handle.record_log_costs(&[&event])?;
-
-		let account =
-			Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(account.0));
-		let call = pallet_identity::Call::<Runtime>::add_registrar { account };
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		event.record(handle)?;
-
-		Ok(())
-	}
+	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a force origin.
 
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
@@ -285,26 +258,6 @@ where
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		event.record(handle)?;
-
-		Ok(())
-	}
-
-	#[precompile::public("killIdentity(address)")]
-	fn kill_identity(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
-		let event = log1(
-			handle.context().address,
-			SELECTOR_LOG_IDENTITY_KILLED,
-			solidity::encode_event_data(target),
-		);
-		handle.record_log_costs(&[&event])?;
-
-		let target = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(target.0));
-		let call = pallet_identity::Call::<Runtime>::kill_identity { target };
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		event.record(handle)?;
