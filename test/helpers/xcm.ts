@@ -555,7 +555,7 @@ export class XcmFragment {
   ): this {
     this.instructions.push({
       QueryPallet: {
-        module_name: stringToU8a(module_name),
+        module_name,
         response_info: {
           destination,
           query_id,
@@ -577,8 +577,8 @@ export class XcmFragment {
     this.instructions.push({
       ExpectPallet: {
         index,
-        name: stringToU8a(name),
-        module_name: stringToU8a(module_name),
+        name,
+        module_name,
         crate_major,
         min_crate_minor,
       },
