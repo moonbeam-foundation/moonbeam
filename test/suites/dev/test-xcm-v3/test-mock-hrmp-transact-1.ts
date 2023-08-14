@@ -14,7 +14,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3501",
+  id: "D3801",
   title: "Mock XCM - receive horizontal transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -68,7 +68,10 @@ describeSuite({
               fungible: transferredBalance / 2n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 4000000000n,
+            proofSize: 110000n,
+          } as any,
           descend_origin: sendingAddress,
         })
           .descend_origin()
@@ -76,14 +79,17 @@ describeSuite({
           .buy_execution()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              } as any,
               call: {
                 encoded: transferCallEncoded,
               },
             },
           })
-          .as_v2();
+          .as_v3();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {
