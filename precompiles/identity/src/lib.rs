@@ -514,7 +514,7 @@ where
 				RevertReason::custom(e).in_field(alloc::format!("additional.{i}.value"))
 			})?;
 			additional.try_push((k, v)).map_err(|_| {
-				RevertReason::custom("out of bounds").in_field(alloc::format!("additional"))
+				RevertReason::custom("out of bounds").in_field("additional".to_string())
 			})?;
 		}
 
@@ -532,32 +532,32 @@ where
 			display: info
 				.display
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("display")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("display".to_string()))?,
 			legal: info
 				.legal
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("legal")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("legal".to_string()))?,
 			web: info
 				.web
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("web")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("web".to_string()))?,
 			riot: info
 				.riot
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("riot")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("riot".to_string()))?,
 			email: info
 				.email
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("email")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("email".to_string()))?,
 			pgp_fingerprint,
 			image: info
 				.image
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("image")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("image".to_string()))?,
 			twitter: info
 				.twitter
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(alloc::format!("twitter")))?,
+				.map_err(|e| RevertReason::custom(e).in_field("twitter".to_string()))?,
 		};
 
 		Ok(Box::new(identity_info))
