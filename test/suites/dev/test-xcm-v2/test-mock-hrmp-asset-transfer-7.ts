@@ -84,15 +84,13 @@ describeSuite({
       test: async function () {
         const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()) as any;
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
-        const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-          (pallet) => pallet.name === "Balances"
-        ).index;
-
-        const localAssetsPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-          (pallet) => {
-            return pallet.name === "LocalAssets";
-          }
-        ).index;
+        const balancesPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Balances")!
+          .index.toNumber();
+        
+        const localAssetsPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "LocalAssets")!
+          .index.toNumber();
 
         // We are charging 100_000_000 weight for every XCM instruction
         // We are executing 4 instructions
@@ -114,23 +112,20 @@ describeSuite({
               multilocation: {
                 parents: 1,
                 interior: {
-                  X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  X2: [{ Parachain: ownParaId }, { PalletInstance: localAssetsPalletIndex }],
                 },
               },
               fungible: transferredBalance,
             },
           ],
-          weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 80000n,
-          } as any,
+          weight_limit: new BN(4000000000),
           beneficiary: baltathar.address,
         })
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
-          .as_v3();
+          .deposit_asset(2n)
+          .as_v2();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
