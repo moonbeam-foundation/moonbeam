@@ -20,6 +20,7 @@
 
 extern crate alloc;
 
+use alloc::string::ToString;
 use enumflags2::BitFlags;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
