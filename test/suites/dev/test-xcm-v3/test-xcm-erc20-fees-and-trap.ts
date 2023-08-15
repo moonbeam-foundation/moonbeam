@@ -16,7 +16,7 @@ import { parseEther } from "ethers";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D3409",
+  id: "D4002",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -83,7 +83,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
@@ -190,7 +190,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
@@ -297,7 +297,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },

@@ -202,9 +202,9 @@ export async function injectHrmpMessageAndSeal(
 
 interface Junction {
   Parachain?: number;
-  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"]; id: Uint8Array | string };
-  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"]; index: number };
-  AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"]; key: Uint8Array | string };
+  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; id: Uint8Array | string };
+  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; index: number };
+  AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; key: Uint8Array | string };
   PalletInstance?: number;
   GeneralIndex?: bigint;
   GeneralKey?: { length: number; data: Uint8Array };
