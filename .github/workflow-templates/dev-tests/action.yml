@@ -10,6 +10,14 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Check git ref
+      id: check-git-ref
+      run: |
+        if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+          echo "test_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+        else
+          echo "test_dir=branches/master" >> $GITHUB_OUTPUT
+        fi
     - uses: pnpm/action-setup@v2
       with:
         version: 8
@@ -51,3 +59,15 @@ runs:
       with:
         name: dev-test-report
         path: test/html
+    - name: Upload HTML report to s3
+      uses: mario-sangar/upload-s3-action@master
+      id: S3
+      with:
+        aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+        aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+        aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+        destination_dir: "${{ steps.check-git-ref.outputs.coverage_dir }}"
+        source_dir: "test/html"
+        acl: "none"
+    - name: Link To Report
+      run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
