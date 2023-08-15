@@ -4,7 +4,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Abi, encodeFunctionData } from "viem";
-import { alith, generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -15,10 +15,8 @@ import {
   weightMessage,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 describeSuite({
-  id: "D3807",
+  id: "D3524",
   title: "Mock XCM - receive horizontal transact ETHEREUM (asset fee)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

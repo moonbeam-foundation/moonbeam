@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -14,7 +13,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3804",
+  id: "D3521",
   title: "Mock XCM - receive horizontal transact without buy execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

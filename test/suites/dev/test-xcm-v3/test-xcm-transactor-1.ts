@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D3505",
+  id: "D3537",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

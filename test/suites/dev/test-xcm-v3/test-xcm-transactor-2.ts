@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, dispatchAsGeneralAdmin } from "@moonwall/cli";
 
 describeSuite({
-  id: "D3506",
+  id: "D3538",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

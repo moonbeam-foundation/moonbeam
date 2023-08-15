@@ -8,7 +8,7 @@ import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "D3408",
+  id: "D3508",
   title: "Mock XCMP - test XCMP execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

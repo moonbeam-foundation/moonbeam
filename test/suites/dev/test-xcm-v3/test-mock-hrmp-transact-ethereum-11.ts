@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
 import {
@@ -14,7 +13,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3813",
+  id: "D3532",
   title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

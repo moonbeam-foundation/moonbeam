@@ -1,11 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { alith, generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import {
-  registerForeignAsset,
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
@@ -14,31 +12,8 @@ import {
 
 import { expectOk } from "../../../helpers/expect.js";
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
-const statemint_para_id = 1001;
-const statemint_assets_pallet_instance = 50;
-
-const assetMetadata = {
-  name: "FOREIGN",
-  symbol: "FOREIGN",
-  decimals: new BN(12),
-  isFrozen: false,
-};
-const STATEMINT_LOCATION = {
-  Xcm: {
-    parents: 1,
-    interior: {
-      X3: [
-        { Parachain: statemint_para_id },
-        { PalletInstance: statemint_assets_pallet_instance },
-        { GeneralIndex: 0 },
-      ],
-    },
-  },
-};
-
 describeSuite({
-  id: "D3805",
+  id: "D3522",
   title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair, alith, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import {
@@ -14,7 +13,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3812",
+  id: "D3529",
   title: "Mock XCM - transact ETHEREUM (non-proxy) disabled switch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

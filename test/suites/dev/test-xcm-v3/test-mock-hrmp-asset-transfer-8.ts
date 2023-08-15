@@ -10,7 +10,7 @@ import { expectOk } from "../../../helpers/expect.js";
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3416",
+  id: "D3516",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -11,7 +11,7 @@ import {
 import { parseEther } from "ethers";
 
 describeSuite({
-  id: "D3509",
+  id: "D3539",
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

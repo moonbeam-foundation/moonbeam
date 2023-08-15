@@ -10,13 +10,12 @@ import {
   weightMessage,
 } from "../../../helpers/xcm.js";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { stringToU8a } from "@polkadot/util";
 import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D4002",
+  id: "D3535",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

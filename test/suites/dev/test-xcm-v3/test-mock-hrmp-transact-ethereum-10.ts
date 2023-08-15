@@ -13,7 +13,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3454",
+  id: "D3531",
   title: "Mock XCM - transact ETHEREUM input size check succeeds",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
