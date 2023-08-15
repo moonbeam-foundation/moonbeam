@@ -12,6 +12,7 @@ runs:
   steps:
     - name: Check git ref
       id: check-git-ref
+      shell: bash
       run: |
         if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
           echo "test_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
@@ -70,4 +71,5 @@ runs:
         source_dir: "test/html"
         acl: "none"
     - name: Link To Report
+      shell: bash
       run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
