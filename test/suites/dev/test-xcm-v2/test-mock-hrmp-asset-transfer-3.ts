@@ -10,7 +10,7 @@ import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../h
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3712",
+  id: "D3410",
   title: "Mock XCM - receive horizontal transfer of DEV",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

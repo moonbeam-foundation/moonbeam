@@ -10,7 +10,7 @@ import { expectOk } from "../../../helpers/expect.js";
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3416",
+  id: "D3414",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -87,7 +87,7 @@ describeSuite({
         const balancesPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
-        
+
         const localAssetsPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "LocalAssets")!
           .index.toNumber();

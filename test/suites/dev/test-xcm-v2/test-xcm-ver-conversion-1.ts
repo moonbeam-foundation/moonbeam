@@ -17,7 +17,7 @@ import { expectOk } from "../../../helpers/expect.js";
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3507",
+  id: "D3434",
   title: "XCM Moonbase: version compatibility",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

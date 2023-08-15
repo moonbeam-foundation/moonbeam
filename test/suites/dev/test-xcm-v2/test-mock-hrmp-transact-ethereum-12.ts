@@ -1,10 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { GAS_LIMIT_POV_RATIO, generateKeyringPair } from "@moonwall/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -15,7 +13,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3458",
+  id: "D3431",
   title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

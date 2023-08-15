@@ -17,7 +17,7 @@ import { expectOk } from "../../../helpers/expect.js";
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3508",
+  id: "D3435",
   title: "XCM Moonriver: version compatibility",
   foundationMethods: "dev",
   chainType: "moonriver",

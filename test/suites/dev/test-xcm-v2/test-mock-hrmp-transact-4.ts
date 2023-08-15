@@ -14,7 +14,7 @@ import {
 import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
-  id: "D3503",
+  id: "D3419",
   title: "Mock XCM - receive horizontal transact without buy execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
