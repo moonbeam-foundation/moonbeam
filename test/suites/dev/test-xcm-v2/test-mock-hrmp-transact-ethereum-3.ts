@@ -227,11 +227,12 @@ describeSuite({
         expect((await context.polkadotJs().query.assets.account(assetId, descendedAddress)).isNone)
           .to.be.true;
         // Even if the account does not exist in assets aymore, we still have a nonce 1. Reason is:
-        //  - First transact withdrew 1/2 of assets, nonce was increased to 1.
-        //  - Second transact withdrew the last 1/2 of assets, account was reaped and zeroed.
-        //  - The subsequent evm execution increased the nonce to 1, even without sufficient references.
-        // We can expect this to be the behaviour on any xcm fragment that completely drains an account
-        // to transact ethereum-xcm after.
+        // - First transact withdrew 1/2 of assets, nonce was increased to 1.
+        // - Second transact withdrew the last 1/2 of assets, account was reaped and zeroed.
+        // - The subsequent evm execution increased the nonce to 1, even without sufficient
+        //   references.
+        // We can expect this to be the behaviour on any xcm fragment that completely drains an
+        // account to transact ethereum-xcm after.
         let nonce = await context.viem().getTransactionCount({ address: descendedAddress });
         expect(nonce).to.be.eq(1);
       },

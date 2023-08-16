@@ -176,7 +176,8 @@ describeSuite({
           expect(testAccountBalance).to.eq(expectedTransferredAmount);
 
           // The EVM caller (proxy delegator)
-          // Make sure CHARLETH called the evm on behalf DESCENDED, and CHARLETH balance was deducted.
+          // Make sure CHARLETH called the evm on behalf DESCENDED, and CHARLETH balance was
+          // deducted.
           const charlethAccountBalance = await context
             .viem()
             .getBalance({ address: sendingAddress });
