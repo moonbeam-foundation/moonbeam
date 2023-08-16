@@ -87,7 +87,7 @@ describeSuite({
         const balancesPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
-        
+
         const localAssetsPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "LocalAssets")!
           .index.toNumber();
