@@ -10,9 +10,10 @@ import type {
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, extractPreimageDeposit, printTokens } from "@moonwall/util";
+import { TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
 import { rateLimiter } from "../../helpers/common.js";
+import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
 import { processAllStorage } from "../../helpers/storageQueries.js";
 
@@ -462,9 +463,12 @@ describeSuite({
                       ? status[1].unwrap().asUnrequested
                       : status[1].unwrap().asRequested
                   );
-                  return { accountId: deposit.accountId, deposit: deposit.amount };
+                  return !!deposit
+                    ? { accountId: deposit.accountId, deposit: deposit.amount }
+                    : undefined;
                 })
-                .forEach(({ deposit, accountId }) => {
+                .filter((value) => typeof value !== "undefined")
+                .forEach(({ deposit, accountId }: any) => {
                   updateReserveMap(accountId, {
                     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
                   });
