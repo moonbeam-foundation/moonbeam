@@ -150,9 +150,12 @@ describeDevMoonbeam("Trace ERC20 xcm", (context) => {
       transactionHash,
       { tracer: "callTracer" },
     ]);
-    // We traced the transaction, and the traced gas used matches the one recorded
-    // in the ethereum transaction receipt.
-    console.log(trace);
-    expect(receipt.gasUsed).to.eq(context.web3.utils.hexToNumber(trace.result.gasUsed));
+    // We traced the transaction, and the traced gas used should be greater* than or equal to the
+    // one recorded in the ethereum transaction receipt.
+    // *gasUsed on tracing does not take into account gas refund.
+    console.log(receipt);
+    expect(receipt.gasUsed).to.be.at.most(
+      context.web3.utils.hexToNumber(trace.result.gasUsed) as number
+    );
   });
 });
