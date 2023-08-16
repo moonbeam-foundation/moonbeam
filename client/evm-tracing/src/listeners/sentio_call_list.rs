@@ -14,10 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+// Early transact mode:
+//
+// GasometerEvent::RecordTransaction
+// EvmEvent::TransactCall
+// GasometerEvent::RecordTransaction
+//
+// 	EvmEvent::Call // GasometerEvent::RecordTransaction
+// 		StepResult::StaticCall
+// 			EvmEvent::StaticCall
+// 			EvmEvent::Exit
+// 		StepResult::Exit
+// 	EvmEvent::Exit
+//
+// Finish
+//
+// Precompile call will not trigger StepResult::Exit
+
 use crate::types::{ContextType, sentio};
 use ethereum_types::{H160, H256, U256};
 use evm_tracing_events::{runtime::{Capture, ExitError, ExitReason, ExitSucceed}, Event, EvmEvent, GasometerEvent, Listener as ListenerT, RuntimeEvent, StepEventFilter, evm};
 use std::{collections::HashMap, vec, vec::Vec, str::FromStr};
+use std::cmp::max;
 use log::{error, log, warn};
 use evm_tracing_events::runtime::{Memory, Opcode, opcodes_string, Stack};
 use crate::types::sentio::{SentioBaseTrace, FunctionInfo, SentioCallTrace, SentioEventTrace, SentioTrace};
@@ -40,11 +58,12 @@ struct Context {
 	address: H160,
 	code_address: Option<H160>,
 	current_step: Option<Step>,
-	gas_used: u64,
+	gas: u64,
+	start_gas: u64,
 	// global_storage_changes: BTreeMap<H160, BTreeMap<H256, H256>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Step {
 	/// Current opcode.
 	opcode: Vec<u8>,
@@ -144,19 +163,6 @@ impl Listener {
 		evm_tracing_events::using(self, f)
 	}
 
-	// GasometerEvent::RecordTransaction
-	// EvmEvent::TransactCall
-	// GasometerEvent::RecordTransaction
-	//
-	// 	EvmEvent::Call // GasometerEvent::RecordTransaction
-	// 		StepResult::StaticCall
-	// 			EvmEvent::StaticCall
-	// 			EvmEvent::Exit
-	// 		StepResult::Exit
-	// 	EvmEvent::Exit
-	//
-	// Finish
-
 	pub fn finish_transaction(&mut self) {
 		self.context_stack = vec![];
 
@@ -186,33 +192,26 @@ impl Listener {
 	pub fn gasometer_event(&mut self, event: GasometerEvent) {
 		match event {
 			GasometerEvent::RecordTransaction { cost, snapshot } => {
-				// First event of a transaction.
-				// Next step will be the first context.
-				// self.new_context = true;
-				// self.final_gas = cost;
+				// if let Some(call) = self.call_stack.last_mut() {
+				// 	call.base.gas_used = cost;
+				// }
 			}
-			GasometerEvent::RecordCost { cost, snapshot } => {
+			GasometerEvent::RecordCost { cost, snapshot } | GasometerEvent::RecordDynamicCost {
+				gas_cost: cost, snapshot, .. } => {
+				let is_root = self.context_stack.len() == 1;
 				if let Some(context) = self.context_stack.last_mut() {
 					// Register opcode cost. (ignore costs not between Step and StepResult)
 					if let Some(step) = &mut context.current_step {
 						step.gas = snapshot.gas();
 						step.gas_cost = cost;
 					}
-					context.gas_used = snapshot.used_gas + cost;
-					// self.final_gas = snapshot.used_gas;
-				}
-			}
-			GasometerEvent::RecordDynamicCost {
-				gas_cost, snapshot, ..
-			} => {
-				if let Some(context) = self.context_stack.last_mut() {
-					// Register opcode cost. (ignore costs not between Step and StepResult)
-					if let Some(step) = &mut context.current_step {
-						step.gas = snapshot.gas();
-						step.gas_cost = gas_cost;
+					if context.start_gas == 0 {
+						context.start_gas = snapshot.gas();
+						if is_root {
+							self.call_stack[0].base.gas = context.start_gas;
+						}
 					}
-					context.gas_used = snapshot.used_gas + gas_cost
-					// self.final_gas = snapshot.used_gas;
+					context.gas = snapshot.gas();
 				}
 			}
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -231,7 +230,8 @@ impl Listener {
 							address: context.address,
 							code_address: None,
 							current_step: None,
-							gas_used: 0,
+							gas: 0,
+							start_gas: 0,
 						});
 					}
 					_ => ()
@@ -276,6 +276,9 @@ impl Listener {
 							self.index = self.index + 1;
 							let op = to_opcode(&opcode);
 
+							let op_string = std::str::from_utf8(&opcode).unwrap();
+							log::info!("step {}", op_string);
+
 							if self.call_stack[0].base.start_index == -1 && *self.entry_pc.get(&pc).unwrap_or(&false) {
 								self.call_stack[0].base.pc = pc;
 								self.call_stack[0].base.start_index = self.index - 1;
@@ -289,8 +292,7 @@ impl Listener {
 								end_index: self.index,
 								op: opcodes_string(op),
 								gas,
-								gas_used: 0,
-								gas_cost,
+								gas_used: gas_cost,
 								error: vec![],
 								revert_reason: vec![],
 							};
@@ -440,9 +442,16 @@ impl Listener {
 
 				// We match on the capture to handle traps/exits.
 				match result {
-					Err(Capture::Exit(reason)) => {
-						let stack_size = self.context_stack.len();
+					Err(Capture::Exit(reason)) => { // OP could be return & STOP
 						if let Some(mut context) = self.context_stack.pop() {
+							// update gas in previous context, likely not needed
+							// self.context_stack.last_mut().map(|c| c.gas = context.gas);
+
+							// let tmp = &context.current_step.unwrap().opcode;
+							// let op_string = std::str::from_utf8(tmp).unwrap();
+							// log::info!("exit {}", op_string);
+
+							let stack_size = self.call_stack.len();
 							for i in (0..stack_size).rev() {
 								if self.call_stack[i].function.is_some() {
 									continue;
@@ -454,24 +463,24 @@ impl Listener {
 
 								let mut call = self.call_stack.get_mut(i).expect("call should exist");
 								call.base.end_index = self.index;
-								call.base.gas_used = context.gas_used;
-								;
+								call.base.gas_used = context.start_gas - context.gas;
+
 								// TODO P1 process error
 
-								let gas = call.base.gas - context.gas_used;
-								self.pop_stack(i, &return_value, gas);
+								// let gas = call.base.gas - context.gas_used;
+								self.pop_stack(i, &return_value, context.gas);
 								return;
-							}
-
-							// If final context is exited, we store gas and return value.
-							if self.context_stack.is_empty() {
-								//
-								// self.return_value = return_value.to_vec();
 							}
 						}
 					}
 					Err(Capture::Trap(opcode)) if ContextType::from(opcode.clone()).is_some() => {
-						// self.new_context = true;
+
+						// // self.new_context = true;
+						// if let Some(mut context) = self.context_stack.last_mut() {
+						// 	let op_string = std::str::from_utf8(&opcode).unwrap();
+						//
+						// 	log::info!("trap {}", op_string);
+						// }
 					}
 					_ => (),
 				} // match result
@@ -486,11 +495,10 @@ impl Listener {
 			tracer_config: None,
 			op: opcodes_string(op),
 			start_index: -1,
-			gas: gas_limit,
+			gas: 0,
 			pc: 0,
 			end_index: 0,
 			gas_used: 0,
-			gas_cost: 0,
 			error: vec![],
 			revert_reason: vec![],
 		};
@@ -519,24 +527,31 @@ impl Listener {
 			address: to,
 			code_address: None,
 			current_step: None,
-			gas_used: 0,
+			gas: 0,
+			start_gas: 0,
 		});
 	}
 
 	pub fn evm_event(&mut self, event: EvmEvent) {
 		match event {
 			EvmEvent::TransactCall { caller, address, value, data, gas_limit } => {
+				self.version = TracingVersion::EarlyTransact;
 				self.create_root_trace(caller, address, Opcode::CALL, value, data, gas_limit);
 			}
 
 			EvmEvent::TransactCreate { caller, value, init_code, gas_limit, address, }
 			| EvmEvent::TransactCreate2 { caller, value, init_code, gas_limit, address, .. } => {
+				self.version = TracingVersion::EarlyTransact;
 				self.create_root_trace(caller, address, Opcode::CREATE, value, init_code, gas_limit);
 			}
 
 			EvmEvent::Call { code_address, transfer, input, target_gas, is_static, context }
 			| EvmEvent::PrecompileSubcall { code_address, transfer, input, target_gas, is_static, context } => {
-				if self.call_stack.len() > 1 { // the first Call will happen after TransactCall and it's
+				let value = transfer.map(|t| t.value).unwrap_or_default();
+				if self.call_stack.is_empty() {
+					// Legacy mode
+					self.create_root_trace(context.caller, context.address, Opcode::CALL, value, input, target_gas.unwrap_or_default());
+				} else if self.call_stack.len() > 1 { // the first Call will happen after TransactCall and it's
 					let mut call = self.call_stack.last_mut().expect("not none");
 					if call.function != None {
 						panic!("find internal call when setting external call trace")
@@ -544,16 +559,22 @@ impl Listener {
 					call.from = context.caller;
 					call.to = context.address;
 					call.input = input;
-					call.value = transfer.map(|t| t.value).unwrap_or_default();
+					call.value = value;
 
-					let context = self.context_stack.last_mut().expect("context stack should not be empty");
-					context.code_address = Some(code_address);
+					let call_context = self.context_stack.last_mut().expect("context stack should not be empty");
+					call_context.code_address = Some(code_address);
+
+					// If it's precompile, since no exit SteoResult::event will be emitted, direct pop the stack
+
 				}
 			}
 			EvmEvent::Create { caller, address, scheme, value, init_code, target_gas } => {
-				if self.call_stack.len() > 1 {
+				if self.call_stack.is_empty() {
+					// Legacy mode
+					self.create_root_trace(caller, address, Opcode::CREATE, value, init_code, target_gas.unwrap_or_default());
+				} else if self.call_stack.len() > 1 {
 					let mut call = self.call_stack.last_mut().expect("not none");
-					;
+
 					if call.function != None {
 						panic!("find internal call when setting external call trace")
 					}
@@ -567,33 +588,46 @@ impl Listener {
 				// no extra information to add
 			}
 			EvmEvent::Exit { reason, return_value } => {
-				// others except the root call has already captured StepResult
-				if self.context_stack.len() == 1 {
-					let context = self.context_stack.last().expect("should have root context");
-					let call = self.call_stack.get_mut(0).expect("should has root element");
+				// Only try to deal with precompile call here
+				if let Some(context) = self.context_stack.last_mut() {
+					let PRECOMPILE_ADDRESSES: std::collections::BTreeSet<H160> = vec![
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+						2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
+						2069, 2070,
+					]
+						.into_iter()
+						.map(H160::from_low_u64_be)
+						.collect();
 
-					call.base.end_index = self.index;
-					call.base.gas_used = context.gas_used;
-					call.output = return_value.clone();
-					// TODO P1 process error
-
-					let last = self.call_stack.last().expect("should have one");
-					let gas_left = last.base.gas - context.gas_used;
-					self.pop_stack(1, &return_value, gas_left);
+					if PRECOMPILE_ADDRESSES.contains(&context.code_address.unwrap_or(H160::default())) {
+						log::info!("precompile call, {}", context.address);
+						// let gas = self.context_stack.pop().expect("pop one").gas;
+						// self.context_stack.last_mut().expect("context not none").gas = gas;
+						let mut call = self.call_stack.pop().expect("not none");
+						call.output = return_value;
+						self.call_stack.last_mut().expect("last not none").traces.push(SentioTrace::CallTrace(call));
+					}
 				}
 			}
 		}
 	}
 
-	fn pop_stack(&mut self, to: usize, output: &Vec<u8>, current_gas: u64) {
+	fn pop_stack(&mut self, to: usize, output: &Vec<u8>, gas_left: u64) {
 		for j in to..self.call_stack.len() {
 			let mut call = self.call_stack.pop().expect("not null");
 			call.output = output.clone();
 			call.base.end_index = self.index;
-			call.base.gas_used = call.base.gas - current_gas;
+			call.base.gas_used = call.base.gas - gas_left;
 
-			let peek = self.call_stack.last_mut().expect("no element left for push");
-			peek.traces.push(SentioTrace::CallTrace(call));
+			match self.call_stack.last_mut() {
+				Some(peek) => {
+					peek.traces.push(SentioTrace::CallTrace(call));
+				}
+				None => {
+					// keep the root to process in finish transaction
+					self.call_stack.push(call)
+				}
+			}
 		}
 	}
 

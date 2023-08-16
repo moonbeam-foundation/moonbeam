@@ -29,7 +29,7 @@ pub struct TraceParams {
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub tracer: Option<String>,
 	pub timeout: Option<String>,
-	pub tracerConfig: Option<Value>
+	pub tracer_config: Option<Value>
 }
 
 #[rpc(server)]

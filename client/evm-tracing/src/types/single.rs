@@ -47,7 +47,7 @@ pub enum TraceType {
 	/// A single block trace. Use in `debug_traceTransactionByNumber` / `traceTransactionByHash`.
 	Block,
 	SentioCallList {
-		tracerConfig: Option<String>
+		tracer_config: Option<String>
 	}
 }
 

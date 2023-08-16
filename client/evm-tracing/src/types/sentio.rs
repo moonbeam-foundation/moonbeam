@@ -51,9 +51,6 @@ pub struct SentioBaseTrace {
 	pub gas: u64,
 	#[serde(serialize_with = "u64_serialize")]
 	pub gas_used: u64,
-	#[serde(skip)]
-	#[codec(skip)]
-	pub gas_cost: u64,
 
 	#[serde(serialize_with = "string_serialize", skip_serializing_if = "Vec::is_empty")]
 	pub error: Vec<u8>,
@@ -116,6 +113,7 @@ pub struct SentioCallTrace {
 	pub output_stack: Vec<H256>,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub output_memory: Option<Vec<H256>>,
+	#[serde(skip_serializing_if = "is_zero")]
 	pub function_pc: u64,
 	#[serde(skip)]
 	#[codec(skip)]
@@ -141,9 +139,13 @@ pub struct SentioCallTrace {
 //
 // }
 
-pub fn u64_serialize<S>(data: &u64, serializer: S) -> Result<S::Ok, S::Error>
+fn u64_serialize<S>(data: &u64, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 {
 	serializer.serialize_str(&format!("0x{:x}", *data))
+}
+
+fn is_zero(n: &u64) -> bool {
+	return *n == 0;
 }

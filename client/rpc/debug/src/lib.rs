@@ -237,7 +237,7 @@ where
 		match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
-				tracerConfig,
+						 tracer_config,
 				..
 			}) => {
 				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
@@ -253,7 +253,7 @@ where
 					} else if tracer == "sentioTracer" {
 						// let config = tracerConfig.unwrap_or(serde_json::Value::from("{}"));
 						// TODO find a better way to pass config instead of serialize to string
-						return Ok((TracerInput::None, single::TraceType::SentioCallList { tracerConfig: tracerConfig.map(|x| x.to_string()) }))
+						return Ok((TracerInput::None, single::TraceType::SentioCallList { tracer_config: tracer_config.map(|x| x.to_string()) }))
 					} else {
 						None
 					};
@@ -565,8 +565,8 @@ where
 							)?,
 						))
 					}
-					single::TraceType::SentioCallList{tracerConfig} => {
-						let config: sentio::SentioTracerConfig = tracerConfig.map(|x| {
+					single::TraceType::SentioCallList{ tracer_config } => {
+						let config: sentio::SentioTracerConfig = tracer_config.map(|x| {
 							let v: sentio::SentioTracerConfig = serde_json::from_str(&x).unwrap();
 							v
 						}).unwrap_or(sentio::SentioTracerConfig::default());
