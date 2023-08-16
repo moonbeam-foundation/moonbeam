@@ -460,7 +460,6 @@ export class XcmFragment {
   /// XCM V3 calls
   as_v3(): any {
     return {
-      //V3: replaceNetworkAny(this.instructions),
       V3: this.instructions,
     };
   }
@@ -806,23 +805,6 @@ export class XcmFragment {
     }
     return this;
   }
-}
-
-function replaceNetworkAny(obj: AnyObject | Array<AnyObject>): any {
-  if (Array.isArray(obj)) {
-    return obj.map((item) => replaceNetworkAny(item));
-  } else if (typeof obj === "object" && obj !== null) {
-    const newObj: AnyObject = {};
-    for (const key in obj) {
-      if (key === "network" && obj[key] === "Any") {
-        newObj[key] = null;
-      } else {
-        newObj[key] = replaceNetworkAny(obj[key]);
-      }
-    }
-    return newObj;
-  }
-  return obj;
 }
 
 type AnyObject = {
