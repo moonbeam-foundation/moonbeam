@@ -1,30 +1,19 @@
 import "@moonbeam-network/api-augment";
 
-import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId } from "@polkadot/types/interfaces";
-import { BN, hexToU8a, numberToHex, stringToHex, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { expect } from "chai";
 
-import { ALITH_ADDRESS, alith, baltathar, generateKeyringPair } from "../../util/accounts";
-import { PARA_2000_SOURCE_LOCATION, RELAY_SOURCE_LOCATION } from "../../util/assets";
-import {
-  registerForeignAsset,
-  injectHrmpMessageAndSeal,
-  RawXcmMessage,
-  XcmFragment,
-  weightMessage,
-} from "../../util/xcm";
-import { customWeb3Request, web3EthCall } from "../../util/providers";
+import { ALITH_ADDRESS, alith, baltathar } from "../../util/accounts";
+import { RELAY_SOURCE_LOCATION } from "../../util/assets";
+import { registerForeignAsset } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
-import { expectOk } from "../../util/expect";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import {
   ALITH_TRANSACTION_TEMPLATE,
-  CHARLETH_TRANSACTION_TEMPLATE,
   createTransaction,
 } from "../../util/transactions";
 import { DUMMY_REVERT_BYTECODE } from "../../util/constants";
@@ -56,18 +45,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
-
-    // const { result } = await context.createBlock(
-    //   await createTransaction(context, {
-    //     ...CHARLETH_TRANSACTION_TEMPLATE,
-    //     to: ADDRESS_ERC20,
-    //     data: ERC20_INTERFACE.encodeFunctionData("approve", [alith.address, 100000000]),
-    //   })
-    // );
-
-    // const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    // console.log("Zero approve gas used", receipt.gasUsed);
-    // expect(receipt.status).to.equal(true);
 
     // ADD BALANCE TO ALITH
     const assetId = context.polkadotApi.createType("u128", ASSET_ID);
@@ -141,7 +118,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     let gasEst = await context.web3.eth.estimateGas({
       from: alith.address,
       data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 0]),
-      // gasPrice: "0x0",
       to: ADDRESS_ERC20,
     });
 
