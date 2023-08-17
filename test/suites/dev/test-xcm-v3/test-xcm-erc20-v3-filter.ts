@@ -94,7 +94,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
