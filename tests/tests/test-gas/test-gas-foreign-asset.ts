@@ -112,7 +112,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    console.log("First approve gas used", receipt.gasUsed);
     expect(receipt.status).to.equal(true);
 
     let gasEst = await context.web3.eth.estimateGas({
@@ -120,8 +119,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 0]),
       to: ADDRESS_ERC20,
     });
-
-    console.log("Revoke gas estimate", gasEst);
 
     const { result: result2 } = await context.createBlock(
       await createTransaction(context, {
@@ -133,7 +130,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
 
     const receipt2 = await context.web3.eth.getTransactionReceipt(result2.hash);
-    console.log("Revoke gas used", receipt2.gasUsed);
     expect(receipt2.status).to.equal(true);
   });
 });
