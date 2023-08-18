@@ -1432,7 +1432,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[moonbeam_xcm_benchmarks::generic, MoonbeamXcmGenericBench::<Runtime>]
+		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 	);
 }
 
