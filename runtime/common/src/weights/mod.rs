@@ -17,6 +17,7 @@
 //! Moonbeam common weights.
 
 pub mod cumulus_pallet_xcmp_queue;
+pub mod moonbeam_xcm_benchmarks_weights_generic;
 pub mod pallet_asset_manager;
 pub mod pallet_assets;
 pub mod pallet_author_inherent;
@@ -44,4 +45,3 @@ pub mod pallet_utility;
 pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
-pub mod moonbeam_xcm_benchmarks_weights_generic;
