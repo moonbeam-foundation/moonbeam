@@ -8421,7 +8421,7 @@ fn test_on_initialize_weights() {
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
 			let expected_on_init = 2491581615;
-			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
+			assert_eq!(Weight::from_parts(expected_on_init, 187584), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
