@@ -3,7 +3,7 @@ import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 import { u8aToHex } from "@polkadot/util";
 
 import { expectOk } from "../../../helpers/expect.js";
-import { GLMR } from "../../../helpers/constants.js";
+import { GLMR } from "@moonwall/util";
 import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
