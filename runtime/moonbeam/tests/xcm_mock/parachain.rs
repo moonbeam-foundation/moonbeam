@@ -125,6 +125,19 @@ impl pallet_balances::Config for Runtime {
 pub type ForeignAssetInstance = ();
 pub type LocalAssetInstance = pallet_assets::Instance1;
 
+// Required for runtime benchmarks
+pallet_assets::runtime_benchmarks_enabled! {
+	pub struct BenchmarkHelper;
+	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
+	where
+		AssetIdParameter: From<u128>,
+	{
+		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
+			(id as u128).into()
+		}
+	}
+}
+
 parameter_types! {
 	pub const AssetDeposit: Balance = 1; // Does not really matter as this will be only called by root
 	pub const ApprovalDeposit: Balance = 0;
@@ -153,6 +166,9 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 impl pallet_assets::Config<LocalAssetInstance> for Runtime {
@@ -174,6 +190,9 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
