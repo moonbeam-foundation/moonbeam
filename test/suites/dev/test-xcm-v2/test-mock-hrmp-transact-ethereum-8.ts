@@ -37,7 +37,7 @@ describeSuite({
         )
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(descendOriginAddress)) as any
+        await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
 

@@ -101,7 +101,7 @@ describeSuite({
               .buy_execution()
               .deposit_asset()
               .as_v2()
-          ) as any
+          )
       );
 
       // we modify the config now:

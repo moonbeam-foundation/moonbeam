@@ -90,9 +90,9 @@ describeSuite({
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        let alith_dot_balance = (await context
+        let alith_dot_balance = await context
           .polkadotJs()
-          .query.assets.account(assetId, alith.address)) as any;
+          .query.assets.account(assetId, alith.address);
 
         // The message execution failed
         expect(alith_dot_balance.isNone).to.be.true;

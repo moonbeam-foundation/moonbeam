@@ -21,7 +21,7 @@ describeSuite({
 
     beforeAll(async () => {
       random = generateKeyringPair();
-      paraId = context.polkadotJs().createType("ParaId", 2000) as any;
+      paraId = context.polkadotJs().createType("ParaId", 2000);
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -33,7 +33,7 @@ describeSuite({
         context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance)
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+        await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
     });
@@ -42,7 +42,7 @@ describeSuite({
       id: "T01",
       title: "Should NOT receive MOVR from para Id 2000 with old reanchor",
       test: async function () {
-        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()) as any;
+        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()).toNumber();
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
@@ -84,13 +84,13 @@ describeSuite({
         // The message should not have been succesfully executed, since old prefix is not supported
         // anymore
         const balance = (
-          (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+          await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
         expect(balance.toString()).to.eq(transferredBalance.toString());
 
         // the random address does not receive anything
         const randomBalance = (
-          (await context.polkadotJs().query.system.account(random.address)) as any
+          await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
         expect(randomBalance).to.eq(0n);
       },

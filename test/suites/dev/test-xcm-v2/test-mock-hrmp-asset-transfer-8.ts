@@ -83,9 +83,9 @@ describeSuite({
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        const alithAssetZeroBalance = (await context
+        const alithAssetZeroBalance = await context
           .polkadotJs()
-          .query.assets.account(assetId, alith.address)) as any;
+          .query.assets.account(assetId, alith.address);
 
         expect(alithAssetZeroBalance.isNone).to.eq(true);
       },

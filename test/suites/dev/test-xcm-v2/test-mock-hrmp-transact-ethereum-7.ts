@@ -44,7 +44,7 @@ describeSuite({
 
       // Ensure funded
       const balance_delegatee = (
-        (await context.polkadotJs().query.system.account(descendAddress)) as any
+        await context.polkadotJs().query.system.account(descendAddress)
       ).data.free.toBigInt();
       expect(balance_delegatee).to.eq(transferredBalance);
 
@@ -58,12 +58,12 @@ describeSuite({
 
       // Charleth balance after creating the proxy
       charlethBalance = (
-        (await context.polkadotJs().query.system.account(sendingAddress)) as any
+        await context.polkadotJs().query.system.account(sendingAddress)
       ).data.free.toBigInt();
 
       // Charleth nonce
       charlethNonce = parseInt(
-        ((await context.polkadotJs().query.system.account(sendingAddress)) as any).nonce
+        (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
       );
 
       // We activate the suspension switch

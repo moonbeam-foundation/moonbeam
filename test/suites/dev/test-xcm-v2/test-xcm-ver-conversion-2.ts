@@ -29,7 +29,7 @@ describeSuite({
 
     beforeAll(async () => {
       random = generateKeyringPair();
-      paraId = context.polkadotJs().createType("ParaId", 2000) as any;
+      paraId = context.polkadotJs().createType("ParaId", 2000);
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -41,7 +41,7 @@ describeSuite({
         )
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+        await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
     });
@@ -78,7 +78,7 @@ describeSuite({
 
         const chargedWeight = await weightMessage(
           context,
-          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage) as any
+          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
 
         const chargedFee = chargedWeight * 50000n;
@@ -89,14 +89,14 @@ describeSuite({
         } as RawXcmMessage);
 
         const balance = (
-          (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+          await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
         expect(balance.toString(), "Sovereign account not empty, transfer has failed").to.eq(
           0n.toString()
         );
 
         const randomBalance = (
-          (await context.polkadotJs().query.system.account(random.address)) as any
+          await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
         const expectedRandomBalance = transferredBalance - chargedFee;
         expect(randomBalance, "Balance not increased, transfer has failed").to.eq(
