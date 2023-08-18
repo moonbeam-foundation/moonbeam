@@ -43,26 +43,23 @@ describeSuite({
 
       // Ensure funded
       const balance_delegatee = (
-        (await context.polkadotJs().query.system.account(descendAddress)) as any
+        await context.polkadotJs().query.system.account(descendAddress)
       ).data.free.toBigInt();
       expect(balance_delegatee).to.eq(transferredBalance);
 
       // Add proxy
       await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.proxy.addProxy(descendAddress, "Any" as any, 0)
-          .signAsync(charleth)
+        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 0).signAsync(charleth)
       );
 
       // Charleth balance after creating the proxy
       charlethBalance = (
-        (await context.polkadotJs().query.system.account(sendingAddress)) as any
+        await context.polkadotJs().query.system.account(sendingAddress)
       ).data.free.toBigInt();
 
       // Charleth nonce
       charlethNonce = parseInt(
-        ((await context.polkadotJs().query.system.account(sendingAddress)) as any).nonce
+        (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
       );
     });
 

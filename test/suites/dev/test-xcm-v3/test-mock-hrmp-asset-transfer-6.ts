@@ -55,7 +55,7 @@ describeSuite({
           .signAsync(baltathar)
       );
 
-      paraId = context.polkadotJs().createType("ParaId", 2000) as any;
+      paraId = context.polkadotJs().createType("ParaId", 2000);
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -82,15 +82,13 @@ describeSuite({
       title: "Should receive 10 Local Asset tokens and sufficent DEV to pay for fee",
       test: async function () {
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
-        const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-          (pallet) => pallet.name === "Balances"
-        ).index;
+        const balancesPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Balances")!
+          .index.toNumber();
 
-        const localAssetsPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-          (pallet) => {
-            return pallet.name === "LocalAssets";
-          }
-        ).index;
+        const localAssetsPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "LocalAssets")!
+          .index.toNumber();
 
         // We are charging 100_000_000 weight for every XCM instruction
         // We are executing 4 instructions
@@ -141,10 +139,10 @@ describeSuite({
 
         // Make sure the state has ALITH's LOCAL parachain tokens
         const alithLocalTokBalance = (
-          (await context.polkadotJs().query.localAssets.account(assetId, alith.address)) as any
+          await context.polkadotJs().query.localAssets.account(assetId, alith.address)
         )
           .unwrap()
-          ["balance"].toBigInt();
+          .balance.toBigInt();
 
         expect(alithLocalTokBalance.toString()).to.eq(transferredBalance.toString());
       },

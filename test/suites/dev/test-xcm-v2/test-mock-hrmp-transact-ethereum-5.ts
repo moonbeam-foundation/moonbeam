@@ -46,10 +46,7 @@ describeSuite({
 
       // Add proxy with delay 1
       await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.proxy.addProxy(descendAddress, "Any" as any, 1)
-          .signAsync(charleth)
+        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 1).signAsync(charleth)
       );
     });
 

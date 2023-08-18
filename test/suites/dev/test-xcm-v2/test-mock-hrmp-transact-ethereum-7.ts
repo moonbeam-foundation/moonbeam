@@ -50,10 +50,7 @@ describeSuite({
 
       // Add proxy
       await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.proxy.addProxy(descendAddress, "Any" as any, 0)
-          .signAsync(charleth)
+        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 0).signAsync(charleth)
       );
 
       // Charleth balance after creating the proxy

@@ -51,7 +51,7 @@ describeSuite({
 
         // Make sure the state has ALITH's foreign parachain tokens
         let alith_dot_balance = (
-          (await context.polkadotJs().query.assets.account(assetId, alith.address)) as any
+          await context.polkadotJs().query.assets.account(assetId, alith.address)
         )
           .unwrap()
           .balance.toBigInt();

@@ -56,7 +56,7 @@ describeSuite({
         )
       );
 
-      paraId = context.polkadotJs().createType("ParaId", 2000) as any;
+      paraId = context.polkadotJs().createType("ParaId", 2000);
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -82,7 +82,7 @@ describeSuite({
       id: "T01",
       title: "Should NOT receive 10 Local Assets and DEV for fee with old reanchor",
       test: async function () {
-        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()) as any;
+        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()).toNumber();
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "Balances")!
@@ -137,9 +137,9 @@ describeSuite({
         } as RawXcmMessage);
 
         // Old reanchor does not work anymore so no reception of tokens
-        const baltatharLocalTokBalance = (await context
+        const baltatharLocalTokBalance = await context
           .polkadotJs()
-          .query.localAssets.account(assetId, baltathar.address)) as any;
+          .query.localAssets.account(assetId, baltathar.address);
 
         expect(baltatharLocalTokBalance.isNone).to.eq(true);
       },

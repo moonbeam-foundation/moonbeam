@@ -27,7 +27,7 @@ describeSuite({
 
     beforeAll(async () => {
       random = generateKeyringPair();
-      paraId = context.polkadotJs().createType("ParaId", 2000) as any;
+      paraId = context.polkadotJs().createType("ParaId", 2000);
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -41,7 +41,7 @@ describeSuite({
         )
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+        await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
     });
@@ -83,7 +83,7 @@ describeSuite({
 
         const chargedWeight = await weightMessage(
           context,
-          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage) as any
+          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -97,7 +97,7 @@ describeSuite({
 
         // We should expect sovereign balance to be 0, since we have transferred the full amount
         const balance = (
-          (await context.polkadotJs().query.system.account(sovereignAddress)) as any
+          await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
         expect(balance.toString()).to.eq(0n.toString());
 
@@ -105,7 +105,7 @@ describeSuite({
         // but chargedFee have been deducted
         // for weight payment
         const randomBalance = (
-          (await context.polkadotJs().query.system.account(random.address)) as any
+          await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
         const expectedRandomBalance = transferredBalance - chargedFee;
         expect(randomBalance).to.eq(expectedRandomBalance);

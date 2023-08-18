@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 
-import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { BN } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
@@ -14,7 +14,7 @@ import { expectOk } from "../../../helpers/expect.js";
 
 describeSuite({
   id: "D3429",
-  title: "Mock XCM - transact ETHEREUM input size check succeeds",
+  title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
@@ -45,7 +45,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should succeed to call the contract",
+      title: "should fail to call the contract due to BoundedVec restriction",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -56,12 +56,10 @@ describeSuite({
         // Matches the BoundedVec limit in the runtime.
         const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
 
-        const GAS_LIMIT = 1000000;
-
         const xcmTransactions = [
           {
             V1: {
-              gas_limit: GAS_LIMIT,
+              gas_limit: 1000000,
               fee_payment: {
                 Auto: {
                   Low: null,
@@ -78,7 +76,7 @@ describeSuite({
                   "0x0000000000000000000000000000000000000001",
                   context
                     .web3()
-                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 128).fill(0)),
+                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
                 ],
               }),
               access_list: null,
@@ -86,7 +84,7 @@ describeSuite({
           },
           {
             V2: {
-              gas_limit: GAS_LIMIT,
+              gas_limit: 1000000,
               action: {
                 Call: contractDeployed,
               },
@@ -98,7 +96,7 @@ describeSuite({
                   "0x0000000000000000000000000000000000000001",
                   context
                     .web3()
-                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 128).fill(0)),
+                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
                 ],
               }),
               access_list: null,
@@ -123,10 +121,7 @@ describeSuite({
                 fungible: transferredBalance / 2n,
               },
             ],
-            weight_limit: {
-              refTime: 40000000000,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
-            } as any,
+            weight_limit: new BN(40000000000),
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -134,17 +129,14 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originKind: "SovereignAccount",
-                requireWeightAtMost: {
-                  refTime: 30000000000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
-                },
+                originType: "SovereignAccount",
+                requireWeightAtMost: new BN(30000000000),
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v3();
+            .as_v2();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
@@ -153,9 +145,9 @@ describeSuite({
           } as RawXcmMessage);
 
           const block = await context.viem().getBlock({ blockTag: "latest" });
-          // Input size is valid - on the limit -, expect block to include a transaction.
-          // That means the pallet-ethereum-xcm decoded the provided input to a BoundedVec.
-          expect(block.transactions.length).to.be.eq(1);
+          // Input size is invalid by 1 byte, expect block to not include a transaction.
+          // That means the pallet-ethereum-xcm couldn't decode the provided input to a BoundedVec.
+          expect(block.transactions.length).to.be.eq(0);
         }
       },
     });

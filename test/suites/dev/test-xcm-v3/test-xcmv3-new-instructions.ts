@@ -7,6 +7,7 @@ import {
   RawXcmMessage,
   injectHrmpMessage,
   sovereignAccountOfSibling,
+  XcmFragmentConfig,
 } from "../../../helpers/xcm.js";
 import { parseEther } from "ethers";
 
@@ -18,7 +19,7 @@ describeSuite({
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let dotAsset: any;
+    let dotAsset: XcmFragmentConfig;
     let amount: bigint;
     const paraId: number = 888;
 

@@ -43,10 +43,10 @@ describeSuite({
 
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (
-          (await context.polkadotJs().query.assets.account(assetId, alith.address)) as any
+          await context.polkadotJs().query.assets.account(assetId, alith.address)
         )
           .unwrap()
-          ["balance"].toBigInt();
+          .balance.toBigInt();
 
         expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
       },

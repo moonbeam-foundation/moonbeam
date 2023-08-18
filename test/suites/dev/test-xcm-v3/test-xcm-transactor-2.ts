@@ -31,7 +31,7 @@ describeSuite({
             },
           },
           feeAmount: 10000,
-        }) as any;
+        });
 
         // send HrmpManage
         await dispatchAsGeneralAdmin(
@@ -44,7 +44,7 @@ describeSuite({
             },
             fee,
             transactWeights
-          ) as any
+          )
         );
 
         // Filter for HrmpManagementSent events

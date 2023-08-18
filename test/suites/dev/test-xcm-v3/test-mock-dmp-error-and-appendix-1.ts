@@ -71,9 +71,9 @@ describeSuite({
         // Create a block in which the XCM will be executed
         await context.createBlock();
         // Make sure ALITH did not reveive anything
-        const alith_dot_balance = (await context
+        const alith_dot_balance = await context
           .polkadotJs()
-          .query.localAssets.account(assetId, alith.address)) as any;
+          .query.localAssets.account(assetId, alith.address);
 
         expect(alith_dot_balance.isNone).to.be.true;
       },

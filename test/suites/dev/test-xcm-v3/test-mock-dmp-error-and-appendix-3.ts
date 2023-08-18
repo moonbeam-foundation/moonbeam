@@ -59,7 +59,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("XcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
         // Send RPC call to inject XCM message
@@ -69,10 +69,10 @@ describeSuite({
         await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (
-          (await context.polkadotJs().query.assets.account(assetId, alith.address)) as any
+          await context.polkadotJs().query.assets.account(assetId, alith.address)
         )
           .unwrap()
-          ["balance"].toBigInt();
+          .balance.toBigInt();
 
         expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
       },

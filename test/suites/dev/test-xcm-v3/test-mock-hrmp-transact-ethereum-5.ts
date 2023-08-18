@@ -39,16 +39,13 @@ describeSuite({
         )
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(descendOriginAddress)) as any
+        await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
 
       // Add proxy with delay 1
       await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.proxy.addProxy(descendAddress, "Any" as any, 1)
-          .signAsync(charleth)
+        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 1).signAsync(charleth)
       );
     });
 

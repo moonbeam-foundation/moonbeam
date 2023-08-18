@@ -131,10 +131,10 @@ describeSuite({
 
         // Make sure the state has ALITH's foreign parachain tokens
         const alithAssetZeroBalance = (
-          (await context.polkadotJs().query.assets.account(assetIdZero, alith.address)) as any
+          await context.polkadotJs().query.assets.account(assetIdZero, alith.address)
         )
           .unwrap()
-          ["balance"].toBigInt();
+          .balance.toBigInt();
 
         expect(alithAssetZeroBalance).to.eq(10n * FOREIGN_TOKEN);
       },

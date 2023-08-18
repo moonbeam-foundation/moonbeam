@@ -38,7 +38,7 @@ describeSuite({
         )
       );
       const balance = (
-        (await context.polkadotJs().query.system.account(descendOriginAddress)) as any
+        await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
     });
@@ -107,7 +107,7 @@ describeSuite({
         ];
 
         for (const xcmTransaction of xcmTransactions) {
-          const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction as any);
+          const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction);
           const transferCallEncoded = transferCall?.method.toHex();
           // We are going to test that we can receive a transact operation from parachain 1
           // using descendOrigin first
