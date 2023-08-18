@@ -75,7 +75,7 @@ describeSuite({
           .polkadotJs()
           .query.localAssets.account(assetId, alith.address);
 
-        expect(alith_dot_balance.isNone).to.be.true;
+        expect(alith_dot_balance.isNone, "Alith's DOT balance is not empty").to.be.true;
       },
     });
   },

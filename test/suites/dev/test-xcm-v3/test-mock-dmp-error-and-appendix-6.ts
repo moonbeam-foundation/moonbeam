@@ -117,7 +117,7 @@ describeSuite({
           .unwrap()
           .balance.toBigInt();
 
-        expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
+        expect(alith_dot_balance, "Alith's DOT balance is empty").to.eq(10n * RELAY_TOKEN);
       },
     });
   },
