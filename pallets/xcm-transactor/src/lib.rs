@@ -81,12 +81,13 @@ mod tests;
 
 pub mod migrations;
 pub mod weights;
+pub use crate::weights::WeightInfo;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
 #[pallet]
 pub mod pallet {
-
+	use super::*;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};

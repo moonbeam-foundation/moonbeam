@@ -32,3 +32,5 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T, I = ()>(_);
 }
+
+pub use crate::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
