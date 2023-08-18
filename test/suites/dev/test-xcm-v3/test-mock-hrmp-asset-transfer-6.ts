@@ -40,10 +40,10 @@ describeSuite({
       const eventsRegister = result?.events;
 
       // Look for assetId in events
-      assetId = eventsRegister!
-        .find(({ event: { section } }) => section.toString() === "assetManager")
-        .event.data[0].toHex()
-        .replace(/,/g, "");
+      const event = eventsRegister!.find(({ event }) =>
+        context.polkadotJs().events.assetManager.LocalAssetRegistered.is(event)
+      )!;
+      assetId = event.event.data.assetId.toHex();
 
       transferredBalance = 100000000000000n;
 
