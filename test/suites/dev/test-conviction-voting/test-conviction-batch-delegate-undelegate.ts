@@ -10,11 +10,10 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let randomAccounts: KeyringPair[] = [];
-    let alithNonce: number;
 
     beforeAll(async () => {
       randomAccounts = await createAccounts(context, 10);
-      alithNonce = await context
+      let alithNonce = await context
         .viem("public")
         .getTransactionCount({ address: alith.address as `0x{string}` });
 

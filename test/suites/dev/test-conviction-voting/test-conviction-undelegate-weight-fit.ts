@@ -29,7 +29,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should undelegate at least 10 txs in a block",
+      title: "should undelegate at least 46 txs in a block",
       test: async function () {
         const blockResult = await context.createBlock(
           randomAccounts.map((account) =>
@@ -42,7 +42,7 @@ describeSuite({
           "convictionVoting",
           "Undelegated"
         );
-        expect(undelegatedEvents.length).to.be.greaterThanOrEqual(10);
+        expect(undelegatedEvents.length).to.be.greaterThanOrEqual(46);
       },
     });
   },
