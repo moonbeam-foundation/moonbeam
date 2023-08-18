@@ -8441,7 +8441,7 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 187584), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 32562), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
