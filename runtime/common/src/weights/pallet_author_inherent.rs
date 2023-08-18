@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
 //! DATE: 2023-08-18, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `nish-pc`, CPU: `AMD Ryzen 9 5900X 12-Core Processor`
+//! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some("moonbase-dev"), DB CACHE: 1024
 
 // Executed Command:
@@ -61,8 +61,8 @@ impl<T: frame_system::Config> pallet_author_inherent::WeightInfo for WeightInfo<
 		// Proof Size summary in bytes:
 		//  Measured:  `371`
 		//  Estimated: `1856`
-		// Minimum execution time: 12_123_000 picoseconds.
-		Weight::from_parts(12_353_000, 0)
+		// Minimum execution time: 14_801_000 picoseconds.
+		Weight::from_parts(15_273_000, 0)
 			.saturating_add(Weight::from_parts(0, 1856))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(1))

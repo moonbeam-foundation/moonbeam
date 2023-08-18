@@ -18,7 +18,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
 //! DATE: 2023-08-18, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `nish-pc`, CPU: `AMD Ryzen 9 5900X 12-Core Processor`
+//! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some("moonbase-dev"), DB CACHE: 1024
 
 // Executed Command:
@@ -64,11 +64,11 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `75944 + x * (659 ±0)`
 		//  Estimated: `66066 + x * (3161 ±5)`
-		// Minimum execution time: 76_355_000 picoseconds.
-		Weight::from_parts(83_087_000, 0)
+		// Minimum execution time: 114_774_000 picoseconds.
+		Weight::from_parts(82_464_744, 0)
 			.saturating_add(Weight::from_parts(0, 66066))
-			// Standard Error: 18_614
-			.saturating_add(Weight::from_parts(25_635_057, 0).saturating_mul(x.into()))
+			// Standard Error: 29_101
+			.saturating_add(Weight::from_parts(35_418_767, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -91,8 +91,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `513`
 		//  Estimated: `3581`
-		// Minimum execution time: 11_081_000 picoseconds.
-		Weight::from_parts(11_192_000, 0)
+		// Minimum execution time: 13_100_000 picoseconds.
+		Weight::from_parts(13_556_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -113,8 +113,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `935`
 		//  Estimated: `6172`
-		// Minimum execution time: 33_212_000 picoseconds.
-		Weight::from_parts(33_684_000, 0)
+		// Minimum execution time: 40_876_000 picoseconds.
+		Weight::from_parts(41_946_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(7))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -125,8 +125,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `397`
 		//  Estimated: `6337`
-		// Minimum execution time: 11_532_000 picoseconds.
-		Weight::from_parts(11_752_000, 0)
+		// Minimum execution time: 13_598_000 picoseconds.
+		Weight::from_parts(14_043_000, 0)
 			.saturating_add(Weight::from_parts(0, 6337))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -143,8 +143,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `769`
 		//  Estimated: `6172`
-		// Minimum execution time: 73_949_000 picoseconds.
-		Weight::from_parts(74_491_000, 0)
+		// Minimum execution time: 91_513_000 picoseconds.
+		Weight::from_parts(92_998_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -156,11 +156,11 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366 + x * (32 ±0)`
 		//  Estimated: `6306 + x * (32 ±0)`
-		// Minimum execution time: 56_266_000 picoseconds.
-		Weight::from_parts(630_913_763, 0)
+		// Minimum execution time: 69_231_000 picoseconds.
+		Weight::from_parts(9_275_220, 0)
 			.saturating_add(Weight::from_parts(0, 6306))
-			// Standard Error: 563_630
-			.saturating_add(Weight::from_parts(44_565_163, 0).saturating_mul(x.into()))
+			// Standard Error: 2_627
+			.saturating_add(Weight::from_parts(53_802_763, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))
