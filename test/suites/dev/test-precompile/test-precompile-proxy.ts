@@ -537,7 +537,7 @@ describeSuite({
         const { gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result2!.hash as `0x${string}` });
-        expect(gasUsed).to.equal(34885n);
+        expect(gasUsed).to.equal(33344n);
 
         expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
 
