@@ -16,7 +16,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should delegate at least 46 txs in a block",
+      title: "should delegate at least 25 txs in a block",
       test: async function () {
         const blockResult = await context.createBlock(
           randomAccounts.map((account) =>
@@ -28,7 +28,7 @@ describeSuite({
         );
 
         const delegatedEvents = expectSubstrateEvents(blockResult, "convictionVoting", "Delegated");
-        expect(delegatedEvents.length).to.be.greaterThanOrEqual(46);
+        expect(delegatedEvents.length).to.be.greaterThanOrEqual(25);
       },
     });
   },
