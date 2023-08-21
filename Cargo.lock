@@ -5540,7 +5540,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.32.1"
+version = "0.32.2"
 dependencies = [
  "clap",
  "cumulus-client-cli",
@@ -5573,7 +5573,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.32.1"
+version = "0.32.2"
 dependencies = [
  "account",
  "bip32",
@@ -6019,7 +6019,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.32.1"
+version = "0.32.2"
 dependencies = [
  "ansi_term",
  "async-io",
