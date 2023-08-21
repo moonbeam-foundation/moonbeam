@@ -7,7 +7,7 @@
 # to only check the formatting.
 
 if ! type "toml-sort" > /dev/null; then
-  echo "Please install toml-sort with command 'cargo install --git https://github.com/PureStake/toml_sort'"
+  echo "Please install toml-sort with command 'cargo install --git https://github.com/moonsong-labs/toml_sort'"
 else
   find . -name "Cargo.toml" -not -path "*/target/*" -exec toml-sort {} $@ \;
 fi

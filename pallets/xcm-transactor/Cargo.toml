@@ -33,7 +33,7 @@ xcm-executor = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 pallet-xcm = { workspace = true, features = [ "std" ] }
 parity-scale-codec = { workspace = true, features = [ "std" ] }

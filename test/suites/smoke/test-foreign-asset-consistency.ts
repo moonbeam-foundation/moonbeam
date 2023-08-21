@@ -9,7 +9,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];
@@ -18,13 +18,14 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       // Configure the api at a specific block
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
@@ -40,6 +41,7 @@ describeSuite({
       });
 
       query = await apiAt.query.assetManager.assetTypeUnitsPerSecond.entries();
+
       query.forEach(([key, _]) => {
         let assetType = key.args.toString();
         foreignXcmAcceptedAssets.push(assetType);
@@ -51,7 +53,7 @@ describeSuite({
             acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
             return acc;
           },
-          {}
+          {} as any
         );
       }
     });
@@ -131,7 +133,7 @@ describeSuite({
       test: async function () {
         if (specVersion < 2200) {
           log(`ChainSpec ${specVersion} unsupported, skipping.`);
-          this.skip();
+          return;
         }
 
         const notLiveAssets: string[] = [];
@@ -158,7 +160,7 @@ describeSuite({
       test: async function () {
         if (specVersion < 2200) {
           log(`ChainSpec ${specVersion} unsupported, skipping.`);
-          this.skip();
+          return;
         }
 
         const notLiveAssets: string[] = [];

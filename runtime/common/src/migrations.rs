@@ -43,13 +43,13 @@ where
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		pallet_preimage::migration::v1::Migration::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		pallet_preimage::migration::v1::Migration::<T>::post_upgrade(state)
 	}
 }
@@ -69,13 +69,13 @@ where
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
 	}
 }

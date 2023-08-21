@@ -34,7 +34,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const networkName = paraApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName
@@ -57,7 +57,7 @@ describeSuite({
         return { ...chain, endpoints };
       });
 
-      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil }) => {
+      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
         let blockEvents: BlockEventsRecord[];
 
         if (mutedUntil >= new Date().getTime()) {

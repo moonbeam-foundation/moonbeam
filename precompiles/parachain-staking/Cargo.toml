@@ -35,7 +35,7 @@ sha3 = { workspace = true }
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 scale-info = { workspace = true, features = [ "derive", "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }

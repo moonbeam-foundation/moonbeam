@@ -956,16 +956,13 @@ pub mod pallet {
 	impl<T: Config> StakeEncodeCall for Pallet<T> {
 		fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
 			match call {
-				AvailableStakeCalls::Bond(a, b, c) => {
+				AvailableStakeCalls::Bond(b, c) => {
 					let mut encoded_call: Vec<u8> = Vec::new();
 					// pallet index
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.bond);
 					// encoded arguments
-					let a: <AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source =
-						a.into();
-					encoded_call.append(&mut a.encode());
 					encoded_call.append(&mut encode_compact_arg(b));
 					encoded_call.append(&mut c.encode());
 					encoded_call
@@ -1035,17 +1032,12 @@ pub mod pallet {
 					encoded_call
 				}
 
-				AvailableStakeCalls::SetController(a) => {
+				AvailableStakeCalls::SetController => {
 					let mut encoded_call: Vec<u8> = Vec::new();
 					// pallet index
 					encoded_call.push(RelayIndices::<T>::get().pallets.staking);
 					// call index
 					encoded_call.push(RelayIndices::<T>::get().calls.staking.set_controller);
-					// encoded argument
-					let controller: <
-						AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup
-					>::Source = a.into();
-					encoded_call.append(&mut controller.encode());
 					encoded_call
 				}
 

@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.31.1"
+version = "0.33.0"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -99,7 +99,7 @@ substrate-prometheus-endpoint = { workspace = true }
 # Frontier
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
-fc-mapping-sync = { workspace = true }
+fc-mapping-sync = { workspace = true, features = [ "sql" ] }
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
 fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
@@ -186,7 +186,7 @@ moonbase-native = [ "moonbase-runtime", "westend-native" ]
 moonbeam-native = [ "moonbeam-runtime" ]
 moonriver-native = [ "moonriver-runtime" ]
 
-test-spec = [  ]
+test-spec = []
 
 runtime-benchmarks = [
 	"moonbase-native",

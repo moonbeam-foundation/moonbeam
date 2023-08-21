@@ -1855,10 +1855,9 @@ fn empty_account_should_not_be_reset() {
 		);
 		// Because we no longer have consumer references, we can set the balance to Zero.
 		// This would reset the account if our ED were to be > than Zero.
-		assert_ok!(ParaBalances::set_balance(
+		assert_ok!(ParaBalances::force_set_balance(
 			parachain::RuntimeOrigin::root(),
 			evm_account_id,
-			0,
 			0,
 		));
 		// Verify account native balance is Zero.

@@ -10,10 +10,12 @@ import type {
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, extractPreimageDeposit, printTokens } from "@moonwall/util";
+import { TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
 import { rateLimiter } from "../../helpers/common.js";
+import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
+import { processAllStorage } from "../../helpers/storageQueries.js";
 
 enum ReserveType {
   Treasury = "1",
@@ -35,6 +37,7 @@ enum ReserveType {
   Named = "17",
   SubIdentity = "18",
   PreimageStatus = "19",
+  MultiSig = "20",
 }
 
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
@@ -55,10 +58,10 @@ describeSuite({
     const expectedLocksMap = new Map<string, LocksInfo>();
     const locksMap = new Map<string, { total: bigint }>();
     const limiter = rateLimiter();
-    let failedLocks = [];
-    let failedReserved = [];
+    let failedLocks: any[] = [];
+    let failedReserved: any[] = [];
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let specVersion: number = 0;
     let runtimeName: string;
     let totalAccounts: bigint = 0n;
@@ -101,10 +104,10 @@ describeSuite({
         return;
       }
 
-      let tempRegister;
+      let tempRegister = {};
       Object.keys(newReserve).forEach((key) => {
-        if (value.reserved[key]) {
-          tempRegister = { [key]: value.reserved[key] + newReserve[key] };
+        if (value.reserved![key]) {
+          tempRegister = { [key]: value.reserved![key] + newReserve[key] };
         } else {
           tempRegister = { [key]: newReserve[key] };
         }
@@ -133,7 +136,7 @@ describeSuite({
 
     const getReserveTypeByValue = (value: string): string | null => {
       for (const key in ReserveType) {
-        if (ReserveType[key] === value) {
+        if (ReserveType[key as keyof typeof ReserveType] === value) {
           return key;
         }
       }
@@ -141,7 +144,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
         ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
@@ -178,10 +181,10 @@ describeSuite({
           apiAt.query.parachainStaking.delegatorState.entries(),
           specVersion >= 1700 && specVersion < 1800
             ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
-            : [],
+            : undefined,
           specVersion >= 1700 && specVersion < 1800
             ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
-            : [],
+            : undefined,
         ]);
 
       await new Promise((resolve, reject) => {
@@ -200,25 +203,26 @@ describeSuite({
             reject(error);
           });
       });
-      const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
-        (p, migration: any) => {
-          if (migration[1].isTrue) {
-            p[`0x${migration[0].toHex().slice(-40)}`] = true;
-          }
-          return p;
-        },
-        {} as any
-      ) as { [account: string]: boolean };
 
-      const collatorStakingMigrationAccounts = collatorStakingMigrations.reduce(
-        (p, migration: any) => {
-          if (migration[1].isTrue) {
-            p[`0x${migration[0].toHex().slice(-40)}`] = true;
-          }
-          return p;
-        },
-        {} as any
-      ) as { [account: string]: boolean };
+      const delegatorStakingMigrationAccounts =
+        delegatorStakingMigrations !== undefined
+          ? (delegatorStakingMigrations.reduce((p, migration: any) => {
+              if (migration[1].isTrue) {
+                p[`0x${migration[0].toHex().slice(-40)}`] = true;
+              }
+              return p;
+            }, {} as any) as { [account: string]: boolean })
+          : {};
+
+      const collatorStakingMigrationAccounts =
+        collatorStakingMigrations !== undefined
+          ? (collatorStakingMigrations.reduce((p, migration: any) => {
+              if (migration[1].isTrue) {
+                p[`0x${migration[0].toHex().slice(-40)}`] = true;
+              }
+              return p;
+            }, {} as any) as { [account: string]: boolean })
+          : {};
 
       await new Promise((resolve, reject) => {
         apiAt.query.proxy.announcements
@@ -355,19 +359,30 @@ describeSuite({
                     reserved: depositOf[1].unwrap()[1].toBigInt(),
                   }))
                   .flat()
-                  .reduce((p, deposit) => {
-                    // We merge multiple reserves together for same account
-                    if (!p[deposit.accountId]) {
-                      p[deposit.accountId] = {
-                        accountId: deposit.accountId,
+                  .reduce(
+                    (p, deposit) => {
+                      // We merge multiple reserves together for same account
+                      if (!p[deposit.accountId]) {
+                        p[deposit.accountId] = {
+                          accountId: deposit.accountId,
+                          reserved: {
+                            [ReserveType.DemocracyDeposit]: 0n,
+                          },
+                        };
+                      }
+                      p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] +=
+                        deposit.reserved;
+                      return p;
+                    },
+                    {} as {
+                      [account: string]: {
+                        accountId: `0x${string}`;
                         reserved: {
-                          [ReserveType.DemocracyDeposit]: 0n,
-                        },
+                          [ReserveType.DemocracyDeposit]: bigint;
+                        };
                       };
                     }
-                    p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-                    return p;
-                  }, {})
+                  )
               )
               .forEach((deposit: any) => {
                 updateReserveMap(deposit.accountId, deposit.reserved);
@@ -448,9 +463,12 @@ describeSuite({
                       ? status[1].unwrap().asUnrequested
                       : status[1].unwrap().asRequested
                   );
-                  return { accountId: deposit.accountId, deposit: deposit.amount };
+                  return !!deposit
+                    ? { accountId: deposit.accountId, deposit: deposit.amount }
+                    : undefined;
                 })
-                .forEach(({ deposit, accountId }) => {
+                .filter((value) => typeof value !== "undefined")
+                .forEach(({ deposit, accountId }: any) => {
                   updateReserveMap(accountId, {
                     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
                   });
@@ -476,22 +494,22 @@ describeSuite({
                 const deposits = (
                   info[1].unwrap().isApproved
                     ? [
-                        info[1].unwrap().asApproved[1],
+                        info[1].unwrap().asApproved[1].unwrapOr(null),
                         info[1].unwrap().asApproved[2].unwrapOr(null),
                       ]
                     : info[1].unwrap().isRejected
                     ? [
-                        info[1].unwrap().asRejected[1],
+                        info[1].unwrap().asRejected[1].unwrapOr(null),
                         info[1].unwrap().asRejected[2].unwrapOr(null),
                       ]
                     : info[1].unwrap().isCancelled
                     ? [
-                        info[1].unwrap().asCancelled[1],
+                        info[1].unwrap().asCancelled[1].unwrapOr(null),
                         info[1].unwrap().asCancelled[2].unwrapOr(null),
                       ]
                     : info[1].unwrap().isTimedOut
                     ? [
-                        info[1].unwrap().asTimedOut[1],
+                        info[1].unwrap().asTimedOut[1].unwrapOr(null),
                         info[1].unwrap().asTimedOut[2].unwrapOr(null),
                       ]
                     : info[1].unwrap().isOngoing
@@ -500,17 +518,14 @@ describeSuite({
                         info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
                       ]
                     : ([] as PalletReferendaDeposit[])
-                ).filter((value) => !!value && !value.isNone);
+                ).filter((value) => !!value);
 
                 deposits.forEach((deposit) => {
                   // Support for https://github.com/paritytech/substrate/pull/12788
                   // which make deposit optional.
                   // TODO: better handle unwrapping
-                  updateReserveMap((deposit.unwrap ? deposit.unwrap() : deposit).who.toHex(), {
-                    [ReserveType.ReferendumInfo]: (deposit.unwrap
-                      ? deposit.unwrap()
-                      : deposit
-                    ).amount.toBigInt(),
+                  updateReserveMap(deposit!.who.toHex(), {
+                    [ReserveType.ReferendumInfo]: deposit!.amount.toBigInt(),
                   });
                 });
               });
@@ -543,7 +558,7 @@ describeSuite({
                         .find(
                           (asset) =>
                             asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64)
-                        )[1]
+                        )![1]
                         .unwrap()
                         .owner.toHex()
                         .slice(-40),
@@ -589,7 +604,7 @@ describeSuite({
                           (localAsset) =>
                             localAsset[0].toHex().slice(-64) ==
                             localAssetMetadata[0].toHex().slice(-64)
-                        )[1]
+                        )![1]
                         .unwrap()
                         .owner.toHex()
                         .slice(-40),
@@ -650,9 +665,29 @@ describeSuite({
           });
       });
 
+      if (specVersion >= 2401) {
+        await new Promise((resolve, reject) => {
+          apiAt.query.multisig.multisigs
+            .entries()
+            .then((multisigs) => {
+              multisigs.forEach((multisig) => {
+                const json = (multisig[1] as any).toJSON();
+                updateReserveMap(json.depositor, {
+                  [ReserveType.MultiSig]: BigInt(json.deposit),
+                });
+              });
+              resolve("multiSigs scraped");
+            })
+            .catch((error) => {
+              console.error("Error fetching multisigs:", error);
+              reject(error);
+            });
+        });
+      }
+
       log(`Retrieved ${expectedReserveMap.size} deposits`);
       expectedReserveMap.forEach(({ reserved }, key) => {
-        const total = Object.values(reserved).reduce((total, amount) => {
+        const total = Object.values(reserved!).reduce((total, amount) => {
           total += amount;
           return total;
         }, 0n);
@@ -688,30 +723,30 @@ describeSuite({
         await new Promise((resolve, reject) => {
           apiAt.query.convictionVoting.votingFor
             .entries()
-            .then(
-              (votingFor: [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]) => {
-                votingFor.forEach((votes) => {
-                  if (votes[1].isCasting) {
-                    const accountId = votes[0].args[0].toHex().slice(-40);
-                    const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
-                      const amount = curr[1].isStandard
-                        ? curr[1].asStandard.balance.toBigInt()
-                        : curr[1].isSplit
-                        ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-                        : curr[1].isSplitAbstain
-                        ? curr[1].asSplitAbstain.aye.toBigInt() +
-                          curr[1].asSplitAbstain.nay.toBigInt() +
-                          curr[1].asSplitAbstain.abstain.toBigInt()
-                        : 0n;
+            .then((votingFor) => {
+              (
+                votingFor as [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]
+              ).forEach((votes) => {
+                if (votes[1].isCasting) {
+                  const accountId = votes[0].args[0].toHex().slice(-40);
+                  const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
+                    const amount = curr[1].isStandard
+                      ? curr[1].asStandard.balance.toBigInt()
+                      : curr[1].isSplit
+                      ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                      : curr[1].isSplitAbstain
+                      ? curr[1].asSplitAbstain.aye.toBigInt() +
+                        curr[1].asSplitAbstain.nay.toBigInt() +
+                        curr[1].asSplitAbstain.abstain.toBigInt()
+                      : 0n;
 
-                      return acc > amount ? acc : amount;
-                    }, 0n);
-                    updateExpectedLocksMap(accountId, { convictionVoting });
-                  }
-                });
-                resolve("convictionVoting scraped");
-              }
-            )
+                    return acc > amount ? acc : amount;
+                  }, 0n);
+                  updateExpectedLocksMap(accountId, { convictionVoting });
+                }
+              });
+              resolve("convictionVoting scraped");
+            })
             .catch((error) => {
               console.error("Error fetching convictionVoting:", error);
               reject(error);
@@ -768,7 +803,7 @@ describeSuite({
       log(`Retrieved ${expectedLocksMap.size} accounts with locks`);
 
       expectedLocksMap.forEach(({ locks }, key) => {
-        const total = Object.values(locks).reduce((total, amount) => {
+        const total = Object.values(locks!).reduce((total, amount) => {
           total += amount;
           return total;
         }, 0n);
@@ -812,7 +847,7 @@ describeSuite({
 
       const checkReservedBalance = (userId: string, reservedBalance: bigint) => {
         const key = hexToBase64(userId);
-        const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key).total : 0n;
+        const expected = expectedReserveMap.has(key) ? expectedReserveMap.get(key)!.total : 0n;
         if (expected !== reservedBalance) {
           log(`⚠️  Reserve balance mismatch for ${base64ToHex(key)}`);
           // Editor Config doesn't like this string hence the insane fragmentation
@@ -820,12 +855,14 @@ describeSuite({
             `⚠️  ${base64ToHex(key)} (reserved: ${reservedBalance}` +
             ` vs expected: ${expected})\n` +
             "\tℹ️  Expected contains: (" +
-            Object.keys((expectedReserveMap.has(key) && expectedReserveMap.get(key).reserved) || {})
+            Object.keys(
+              (expectedReserveMap.has(key) && expectedReserveMap.get(key)!.reserved) || {}
+            )
               .map(
                 (reserveType) =>
                   getReserveTypeByValue(reserveType) +
                   ":" +
-                  printTokens(paraApi, expectedReserveMap.get(key).reserved[reserveType], 1, 5)
+                  printTokens(paraApi, expectedReserveMap.get(key)!.reserved![reserveType], 1, 5)
               )
               .join(` - `) +
             `)`;
@@ -834,122 +871,30 @@ describeSuite({
         expectedReserveMap.delete(key);
       };
 
-      const limit = 1000;
       const keyPrefix = u8aToHex(
         u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("Account", 128))
       );
-      const growthFactor = 1.5;
-      let last_key = keyPrefix;
-      let count = 0;
-      let loggingFrequency = 10;
-      let loopCount = 0;
 
+      const t0 = performance.now();
       if (process.env.ACCOUNT_ID) {
         const userId = process.env.ACCOUNT_ID;
         const user = await apiAt.query.system.account(userId);
         checkReservedBalance(userId, user.data.reserved.toBigInt());
         totalAccounts++;
       } else {
-        let pagedKeys = [];
-
-        let t0 = performance.now();
-        let t1 = t0;
-        keys: while (true) {
-          const queryResults = (
-            await limiter.schedule(() =>
-              paraApi.rpc.state.getKeysPaged(keyPrefix, limit, last_key, blockHash)
-            )
-          )
-            .map((key) => key.toHex())
-            .filter((key) => key.includes(keyPrefix));
-          pagedKeys.push(...queryResults);
-          count += queryResults.length;
-
-          if (queryResults.length === 0) {
-            break keys;
-          }
-          last_key = queryResults[queryResults.length - 1];
-
-          if (count % (limit * loggingFrequency) == 0) {
-            loopCount++;
-            const t2 = performance.now();
-            const duration = t2 - t1;
-            const qps = (limit * loggingFrequency) / (duration / 1000);
-            const used = process.memoryUsage().heapUsed / 1024 / 1024;
-            log(
-              `Queried ${count} keys @ ${qps.toFixed(0)} keys/sec, ${used.toFixed(0)} MB heap used`
-            );
-
-            // Increase logging threshold after 5 prints
-            if (loopCount % 5 === 0) {
-              loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-              log(`⏫  Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-            }
-          }
-        }
-        let t3 = performance.now();
-        const keyQueryTime = (t3 - t0) / 1000;
-        const keyText =
-          keyQueryTime > 60
-            ? `${(keyQueryTime / 60).toFixed(1)} minutes`
-            : `${keyQueryTime.toFixed(1)} seconds`;
-        log(`Finished querying ${pagedKeys.length} System.Account storage keys in ${keyText} ✅`);
-
-        count = 0;
-        t0 = performance.now();
-        loggingFrequency = 10;
-        t1 = t0;
-        loopCount = 0;
-
-        for (let i = 0; i < pagedKeys.length; i += limit) {
-          const batch = pagedKeys.slice(i, i + limit);
-          (
-            (await limiter.schedule(() =>
-              paraApi.rpc.state.queryStorageAt(batch, blockHash)
-            )) as any
-          ).forEach((value, index) => {
-            const accountId = batch[index].slice(-40);
-            const accountInfo = value.toHex();
+        await processAllStorage(paraApi, keyPrefix, blockHash, (items) => {
+          for (const { key, value } of items) {
+            const accountId = key.slice(-40);
+            const accountInfo = value;
             const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
             const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
             totalIssuance += freeBal + reservedBalance;
             totalAccounts++;
             checkReservedBalance(accountId, reservedBalance);
-          });
-          count += batch.length;
-
-          if (count % (loggingFrequency * limit) === 0) {
-            const t2 = performance.now();
-            const used = process.memoryUsage().heapUsed / 1024 / 1024;
-            const duration = t2 - t1;
-            const qps = (loggingFrequency * limit) / (duration / 1000);
-            log(
-              `⏱️  Checked ${count} accounts, ${qps.toFixed(0)} accounts/sec, ${used.toFixed(
-                0
-              )} MB heap used, ${((count * 100) / pagedKeys.length).toFixed(1)}% complete`
-            );
-            loopCount++;
-            t1 = t2;
-
-            // Increase logging threshold after 5 prints
-            if (loopCount % 5 === 0) {
-              loggingFrequency = Math.floor(loggingFrequency ** growthFactor);
-              log(`⏫ Increased logging threshold to every ${loggingFrequency * limit} accounts`);
-            }
-
-            // Print estimated time left every 10 prints
-            if (loopCount % 10 === 0) {
-              const timeLeft = (pagedKeys.length - count) / qps;
-              const text =
-                timeLeft < 60
-                  ? `${timeLeft.toFixed(0)} seconds`
-                  : `${(timeLeft / 60).toFixed(0)} minutes`;
-              log(`⏲️  Estimated time left: ${text}`);
-            }
           }
-        }
-        t3 = performance.now();
-        const checkTime = (t3 - t0) / 1000;
+        });
+        const t1 = performance.now();
+        const checkTime = (t1 - t0) / 1000;
         const text =
           checkTime < 60
             ? `${checkTime.toFixed(1)} seconds`
@@ -961,12 +906,12 @@ describeSuite({
       // Loose check because we don't have a way to clever way to verify expired but unclaimed locks
       locksMap.forEach((value, key) => {
         if (expectedLocksMap.has(key)) {
-          if (expectedLocksMap.get(key).total > value.total) {
+          if (expectedLocksMap.get(key)!.total! > value.total) {
             failedLocks.push(
               `\t${base64ToHex(key)} (total: actual ${printTokens(
                 paraApi,
                 value.total
-              )} - expected: ${printTokens(paraApi, expectedLocksMap.get(key).total)})`
+              )} - expected: ${printTokens(paraApi, expectedLocksMap.get(key)!.total!)})`
             );
           }
         }
@@ -988,7 +933,7 @@ describeSuite({
 
         log(`Verified ${totalAccounts} total reserve balances (at #${atBlockNumber})`);
 
-        const failuresExpectedReserveMap = [];
+        const failuresExpectedReserveMap: string[] = [];
         if (expectedReserveMap.size > 0) {
           log(`expectedReserveMap size: ${expectedReserveMap.size}`);
           expectedReserveMap.forEach((value, key) => {
@@ -1026,7 +971,7 @@ describeSuite({
       test: async function () {
         if (!!process.env.ACCOUNT_ID) {
           log(`Env var ACCOUNT_ID set, skipping total supply check`);
-          this.skip();
+          return;
         }
         const queriedIssuance = (await apiAt.query.balances.totalIssuance()).toBigInt();
 

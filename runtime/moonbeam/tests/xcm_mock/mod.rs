@@ -30,7 +30,7 @@ use sp_core::{H160, U256};
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
 use std::{collections::BTreeMap, str::FromStr};
-use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
+use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
@@ -66,7 +66,8 @@ pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
 		hrmp_max_parachain_inbound_channels: 10,
 		hrmp_max_parachain_outbound_channels: 10,
 		hrmp_channel_max_message_size: u32::MAX,
-		max_downward_message_size: u32::MAX,
+		// Changed to avoid aritmetic errors within hrmp_close
+		max_downward_message_size: 100_000u32,
 		..Default::default()
 	}
 }
@@ -110,7 +111,11 @@ decl_test_parachain! {
 decl_test_relay_chain! {
 	pub struct Relay {
 		Runtime = relay_chain::Runtime,
+		RuntimeCall = relay_chain::RuntimeCall,
+		RuntimeEvent = relay_chain::RuntimeEvent,
 		XcmConfig = relay_chain::XcmConfig,
+		MessageQueue = relay_chain::MessageQueue,
+		System = relay_chain::System,
 		new_ext = relay_ext(vec![1, 2, 3, 4]),
 	}
 }

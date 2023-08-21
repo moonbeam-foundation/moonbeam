@@ -3,10 +3,10 @@
  *  It contains pre-registered versions to allow easy run using Docker.
  *
  *  ports can be given using --port-prefix xx (default 34) using the following rule:
- *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
- *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
- *  - para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
- *  - para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
+ *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001)
+ *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011)
+ *  - para 1 - p2p (p2p: XX100, rpcPort: XX101)
+ *  - para 2 - p2p (p2p: XX110, rpcPort: XX111)
  *
  */
 
@@ -522,7 +522,6 @@ async function start() {
     parachainConfig.nodes.forEach((node, index) => {
       node.port = startingPort + 100 + i * 100 + index * 10;
       node.rpcPort = startingPort + 101 + i * 100 + index * 10;
-      node.wsPort = startingPort + 102 + i * 100 + index * 10;
     });
 
     launchConfig.parachains.push(parachainConfig);
@@ -531,12 +530,10 @@ async function start() {
     relayNodeConfig[0].name = validatorNames[i * 2];
     relayNodeConfig[0].port = startingPort + i * 20;
     relayNodeConfig[0].rpcPort = startingPort + i * 20 + 1;
-    relayNodeConfig[0].wsPort = startingPort + i * 20 + 2;
 
     relayNodeConfig[1].name = validatorNames[i * 2 + 1];
     relayNodeConfig[1].port = startingPort + i * 20 + 10;
     relayNodeConfig[1].rpcPort = startingPort + i * 20 + 11;
-    relayNodeConfig[1].wsPort = startingPort + i * 20 + 12;
     relay_nodes.push(relayNodeConfig[0]);
     relay_nodes.push(relayNodeConfig[1]);
   }
@@ -609,14 +606,12 @@ const relayNodeTemplate = [
     flags: ["--log=info,parachain::pvf=trace"],
     port: 0,
     rpcPort: 1,
-    wsPort: 2,
   },
   {
     name: "bob",
     flags: ["--log=info,parachain::pvf=trace"],
     port: 10,
     rpcPort: 11,
-    wsPort: 12,
   },
 ];
 
@@ -629,11 +624,9 @@ const parachainTemplate = {
     {
       port: 100,
       rpcPort: 101,
-      wsPort: 102,
       name: "alice",
       flags: [
         "--unsafe-rpc-external",
-        "--unsafe-ws-external",
         "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",
@@ -643,11 +636,9 @@ const parachainTemplate = {
     {
       port: 110,
       rpcPort: 111,
-      wsPort: 112,
       name: "bob",
       flags: [
         "--unsafe-rpc-external",
-        "--unsafe-ws-external",
         "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",

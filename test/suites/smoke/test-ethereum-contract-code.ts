@@ -1,100 +1,67 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
-import chalk from "chalk";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { THIRTY_MINS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
+import chalk from "chalk";
+import { processAllStorage } from "../../helpers/storageQueries.js";
 
-// TODO: Once balanceConsistency refactor PR merged, update this tc to use the new fast query logic
 describeSuite({
   id: "S600",
   title: `Ethereum contract bytecode should not be large`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
-    const accountCodeSizesByAddress: { [account: string]: number } = {};
-    let paraApi: ApiPromise;
-
-    // returns the length in bytes of the byte array represented by the given hex string.
-    // assumes a prefixed "0x".
-    const byteLengthOfHexString = (hex: string): number => {
-      return (hex.length - 2) / 2;
-    };
+    let atBlockNumber: number;
+    let totalContracts: bigint = 0n;
+    const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
-      const limit = 500;
-      let last_key = "";
-      let count = 0;
+      const paraApi = context.polkadotJs("para");
+      const blockHash = process.env.BLOCK_NUMBER
+        ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
+        : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
+      atBlockNumber = (await paraApi.rpc.chain.getHeader(blockHash)).number.toNumber();
 
-      // Configure the api at a specific block
-      // (to avoid inconsistency querying over multiple block when the test takes a long time to
-      // query data and blocks are being produced)
-      atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
-        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
-      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
-
-      const doOneRequest = async () => {
-        const query = await apiAt.query.evm.accountCodes.entriesPaged({
-          args: [],
-          pageSize: limit,
-          startKey: last_key,
-        });
-
-        if (query.length == 0) {
-          return true;
-        }
-        count += query.length;
-
-        for (const accountCode of query) {
-          let accountId = `0x${accountCode[0].toHex().slice(-40)}`;
-          last_key = accountCode[0].toString();
-          accountCodeSizesByAddress[accountId] = byteLengthOfHexString(accountCode[1].toHex());
-        }
-
-        // Debug logs to make sure it keeps progressing
-        if (count % (10 * limit) == 0) {
-          log(`Retrieved ${count} accountCodes`);
-        }
-
-        return false;
+      // taken from geth, e.g. search "MaxCodeSize":
+      // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
+      const MAX_CONTRACT_SIZE_BYTES = 24576;
+      const getBytecodeSize = (storageValue: Uint8Array) => {
+        const [len, bytecode] = compactStripLength(storageValue);
+        const hex = u8aToHex(bytecode);
+        return (hex.length - 2) / 2;
       };
 
-      await new Promise<void>((resolve) => {
-        const run = async () => {
-          const done = await doOneRequest();
-          if (done) {
-            resolve();
-          } else {
-            setTimeout(run, 100);
+      // Max RPC response limit is 15728640 bytes (15MB), so pessimistically the pageLimit
+      // needs to be lower than if every contract was above the MAX_CONTRACT_SIZE
+      const keyPrefix = u8aToHex(
+        u8aConcat(xxhashAsU8a("EVM", 128), xxhashAsU8a("AccountCodes", 128))
+      );
+      const t0 = performance.now();
+      await processAllStorage(paraApi, keyPrefix, blockHash, (items) => {
+        for (const item of items) {
+          const codesize = getBytecodeSize(hexToU8a(item.value));
+          if (codesize > MAX_CONTRACT_SIZE_BYTES) {
+            const accountId = "0x" + item.key.slice(-40);
+            failedContractCodes.push({ accountId, codesize });
           }
-        };
-
-        setTimeout(run, 100);
+        }
+        totalContracts += BigInt(items.length);
       });
 
-      log(`Retrieved ${count} total accountCodes`);
+      const t1 = performance.now();
+      const checkTime = (t1 - t0) / 1000;
+      const text =
+        checkTime < 60
+          ? `${checkTime.toFixed(1)} seconds`
+          : `${(checkTime / 60).toFixed(1)} minutes`;
+
+      log(`Finished checking ${totalContracts} EVM.AccountCodes storage values in ${text} ✅`);
     }, THIRTY_MINS);
 
     it({
       id: "C100",
       title: "should not have excessively long account codes",
       test: async function () {
-        // taken from geth, e.g. search "MaxCodeSize":
-        // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
-        const MAX_CONTRACT_SIZE_BYTES = 24576;
-        const MAX_CONTRACT_SIZE_HEX = 2 + 2 * MAX_CONTRACT_SIZE_BYTES;
-        const failedContractCodes: { accountId: string; codesize: number }[] = [];
-
-        for (const accountId of Object.keys(accountCodeSizesByAddress)) {
-          const codesize = accountCodeSizesByAddress[accountId];
-          if (codesize > MAX_CONTRACT_SIZE_HEX) {
-            failedContractCodes.push({ accountId, codesize });
-          }
-        }
-
         expect(
           failedContractCodes.length,
           `Failed account codes (too long): ${failedContractCodes
@@ -104,8 +71,7 @@ describeSuite({
             .join(`, `)}`
         ).to.equal(0);
 
-        const numAccounts = Object.keys(accountCodeSizesByAddress).length;
-        log(`Verified ${numAccounts} total account codes (at #${atBlockNumber})`);
+        log(`Verified ${totalContracts} total account codes (at #${atBlockNumber})`);
       },
     });
   },

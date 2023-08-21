@@ -68,7 +68,6 @@ pub trait XcmTransact: UtilityEncodeCall {
 
 pub enum AvailableStakeCalls {
 	Bond(
-		relay_chain::AccountId,
 		relay_chain::Balance,
 		pallet_staking::RewardDestination<relay_chain::AccountId>,
 	),
@@ -79,7 +78,7 @@ pub enum AvailableStakeCalls {
 	Nominate(Vec<relay_chain::AccountId>),
 	Chill,
 	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController(relay_chain::AccountId),
+	SetController,
 	Rebond(relay_chain::Balance),
 }
 

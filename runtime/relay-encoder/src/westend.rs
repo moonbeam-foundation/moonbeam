@@ -36,19 +36,11 @@ pub enum RelayCall {
 	Hrmp(HrmpCall),
 }
 
-// Utility call encoding, needed for xcm transactor pallet
-#[derive(Encode, Decode)]
-pub enum UtilityCall {
-	#[codec(index = 1u8)]
-	AsDerivative(u16),
-}
-
 #[derive(Encode, Decode)]
 pub enum StakeCall {
 	#[codec(index = 0u16)]
 	// the index should match the position of the dispatchable in the target pallet
 	Bond(
-		<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source,
 		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
 		pallet_staking::RewardDestination<AccountId32>,
 	),
@@ -67,9 +59,16 @@ pub enum StakeCall {
 	#[codec(index = 7u16)]
 	SetPayee(pallet_staking::RewardDestination<AccountId32>),
 	#[codec(index = 8u16)]
-	SetController(<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source),
+	SetController,
 	#[codec(index = 19u16)]
 	Rebond(#[codec(compact)] cumulus_primitives_core::relay_chain::Balance),
+}
+
+// Utility call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
 }
 
 // HRMP call encoding, needed for xcm transactor pallet
@@ -125,8 +124,8 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 impl xcm_primitives::StakeEncodeCall for WestendEncoder {
 	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
 		match call {
-			xcm_primitives::AvailableStakeCalls::Bond(a, b, c) => {
-				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
+			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
+				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
 			}
 
 			xcm_primitives::AvailableStakeCalls::BondExtra(a) => {
@@ -153,8 +152,8 @@ impl xcm_primitives::StakeEncodeCall for WestendEncoder {
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			xcm_primitives::AvailableStakeCalls::SetController(a) => {
-				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
+			xcm_primitives::AvailableStakeCalls::SetController => {
+				RelayCall::Stake(StakeCall::SetController).encode()
 			}
 
 			xcm_primitives::AvailableStakeCalls::Rebond(a) => {
@@ -235,7 +234,6 @@ mod tests {
 	#[test]
 	fn test_stake_bond() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
-		let relay_account: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -244,7 +242,6 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::bond {
-			controller: relay_account.clone().into(),
 			value: 100u32.into(),
 			payee: pallet_staking::RewardDestination::Controller,
 		}
@@ -254,7 +251,6 @@ mod tests {
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Bond(
-					relay_account.clone().into(),
 					100u32.into(),
 					pallet_staking::RewardDestination::Controller
 				)
@@ -272,7 +268,6 @@ mod tests {
 					moonbase_runtime::Runtime> as StakeEncodeCall
 				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Bond(
-						relay_account.into(),
 						100u32.into(),
 						pallet_staking::RewardDestination::Controller
 					)
@@ -561,7 +556,6 @@ mod tests {
 	#[test]
 	fn test_set_controller() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
-		let relay_account: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -569,15 +563,13 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::set_controller {
-			controller: relay_account.clone().into(),
-		}
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<westend_runtime::Runtime>::set_controller {}.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				xcm_primitives::AvailableStakeCalls::SetController(relay_account.clone().into())
+				xcm_primitives::AvailableStakeCalls::SetController
 			),
 			expected_encoded.clone()
 		);
@@ -591,9 +583,7 @@ mod tests {
 				<pallet_xcm_transactor::Pallet::<
 					moonbase_runtime::Runtime> as StakeEncodeCall
 				>::encode_call(
-					xcm_primitives::AvailableStakeCalls::SetController(
-						relay_account.into()
-					)
+					xcm_primitives::AvailableStakeCalls::SetController
 				),
 				expected_encoded
 			);
