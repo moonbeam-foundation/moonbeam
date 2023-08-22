@@ -145,12 +145,11 @@ describeSuite({
             payload: xcmMessage,
           } as RawXcmMessage);
 
-          const actualCalls = (
-            await context.viem().call({
-              to: contractDeployed,
-              data: encodeFunctionData({ abi: contractABI, functionName: "count" }),
-            })
-          ).data;
+          const actualCalls = await context.readContract!({
+            contractAddress: contractDeployed,
+            contractName: "Incrementor",
+            functionName: "count",
+          });
 
           expect(BigInt(actualCalls!.toString())).to.eq(expectedCalls);
         }
