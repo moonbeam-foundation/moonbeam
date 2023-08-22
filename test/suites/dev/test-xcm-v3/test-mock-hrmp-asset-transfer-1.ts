@@ -14,7 +14,7 @@ const foreign_para_id = 2000;
 const assetMetadata = {
   name: "FOREIGN",
   symbol: "FOREIGN",
-  decimals: new BN(12),
+  decimals: 12n,
   isFrozen: false,
 };
 

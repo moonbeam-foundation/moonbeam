@@ -21,7 +21,7 @@ const statemint_assets_pallet_instance = 50;
 const assetMetadata = {
   name: "FOREIGN",
   symbol: "FOREIGN",
-  decimals: new BN(12),
+  decimals: 12n,
   isFrozen: false,
 };
 const STATEMINT_LOCATION = {
