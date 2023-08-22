@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 import { u8aToHex } from "@polkadot/util";
 
-import { expectOk } from "../../../helpers/expect.js";
 import { GLMR } from "@moonwall/util";
 import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
@@ -28,7 +27,7 @@ describeSuite({
 
         // xcmp reserved is BLOCK/4
         const totalDmpWeight =
-          context.polkadotJs().consts.system.blockWeights.maxBlock.refTime.toBigInt() / BigInt(4);
+          context.polkadotJs().consts.system.blockWeights.maxBlock.refTime.toBigInt() / 4n;
 
         // we want half of numParaMsgs to be executed. That give us how much each message weights
         const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
@@ -107,10 +106,9 @@ describeSuite({
 
         // We first fund the parent sovereign account with 1000
         // we will only withdraw 1, so no problem on this
-        await expectOk(
-          context.createBlock(
-            context.polkadotJs().tx.balances.transfer(sovereignAddress, 1n * GLMR)
-          )
+        await context.createBlock(
+          context.polkadotJs().tx.balances.transfer(sovereignAddress, 1n * GLMR),
+          { allowFailures: false }
         );
 
         // now we start injecting messages
@@ -124,43 +122,31 @@ describeSuite({
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const apiAt = await context.polkadotJs().at(signedBlock.block.header.hash);
         const allRecords = await apiAt.query.system.events();
-        const events = allRecords.map(
-          ({ event }) => `${event.section}.${event.method}.${event.data}`
+        // lets grab at which point the dmp queue was exhausted
+        const exhaustIndex = allRecords.findIndex(({ event }) =>
+          context.polkadotJs().events.dmpQueue.MaxMessagesExhausted.is(event)
         );
 
-        // lets grab at which point the dmp queue was exhausted
-        const index = events.findIndex((event) => {
-          if (event.includes("dmpQueue.MaxMessagesExhausted.")) {
-            return true;
-          } else {
-            return false;
-          }
-        });
-        expect(index).to.be.greaterThanOrEqual(0);
-        const eventsExecutedOnInitialization = events.slice(0, index + 1);
-        const eventsExecutedOnIdle = events.slice(index + 1, events.length);
-
-        // lets count
-        let executedOnIdle = 0;
-        let executedOnInitialization = 0;
+        expect(
+          exhaustIndex,
+          "Index not found where dmpQueue is exhausted"
+        ).to.be.greaterThanOrEqual(0);
 
         // OnInitialization
-        eventsExecutedOnInitialization.forEach((e) => {
-          if (e.toString().includes("ExecutedDownward.")) {
-            executedOnInitialization += 1;
-          }
-        });
+        const eventsExecutedOnInitialization = allRecords.filter(
+          ({ event }, index) =>
+            context.polkadotJs().events.dmpQueue.ExecutedDownward.is(event) && index < exhaustIndex
+        );
 
         // OnIdle
-        eventsExecutedOnIdle.forEach((e) => {
-          if (e.toString().includes("ExecutedDownward")) {
-            executedOnIdle += 1;
-          }
-        });
+        const eventsExecutedOnIdle = allRecords.filter(
+          ({ event }, index) =>
+            context.polkadotJs().events.dmpQueue.ExecutedDownward.is(event) && index > exhaustIndex
+        );
 
         // the test was designed to go half and half
-        expect(executedOnInitialization).to.be.eq(10);
-        expect(executedOnIdle).to.be.eq(10);
+        expect(eventsExecutedOnInitialization.length).to.be.eq(10);
+        expect(eventsExecutedOnIdle.length).to.be.eq(10);
         const pageIndex = await apiAt.query.dmpQueue.pageIndex();
         expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
         expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
