@@ -10,8 +10,6 @@ import {
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 const foreign_para_id = 2000;
 
 describeSuite({
@@ -61,19 +59,15 @@ describeSuite({
       sovereignAddress = sovereignAccountOfSibling(context, 2000);
 
       // We first fund parachain 2000 sovreign account
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        { allowFailures: false }
       );
 
       // transfer to para Id sovereign to emulate having sent the tokens
-      await expectOk(
-        context.createBlock(
-          context
-            .polkadotJs()
-            .tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance),
+        { allowFailures: false }
       );
     });
 

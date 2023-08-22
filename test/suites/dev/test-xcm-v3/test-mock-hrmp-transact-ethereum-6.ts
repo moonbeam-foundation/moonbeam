@@ -10,8 +10,6 @@ import {
   descendOriginFromAddress20,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 describeSuite({
   id: "D3527",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
@@ -35,10 +33,9 @@ describeSuite({
       transferredBalance = 10_000_000_000_000_000_000n;
 
       // We fund the Delegatee, which will send the xcm and pay fees
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(descendAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(descendAddress, transferredBalance),
+        { allowFailures: false }
       );
 
       // Ensure funded

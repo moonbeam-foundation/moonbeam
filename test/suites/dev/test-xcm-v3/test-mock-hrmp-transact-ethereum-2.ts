@@ -11,8 +11,6 @@ import {
 
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 describeSuite({
   id: "D3523",
   title: "Mock XCM - receive horizontal transact ETHEREUM (call)",
@@ -33,11 +31,11 @@ describeSuite({
       transferredBalance = 10_000_000_000_000_000_000n;
 
       // We first fund parachain 2000 sovreign account
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();

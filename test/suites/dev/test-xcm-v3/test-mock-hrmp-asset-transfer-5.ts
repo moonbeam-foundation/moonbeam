@@ -10,7 +10,6 @@ import {
   weightMessage,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
-import { expectOk } from "../../../helpers/expect.js";
 
 const foreign_para_id = 2000;
 
@@ -29,11 +28,11 @@ describeSuite({
       transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();

@@ -11,8 +11,6 @@ import {
   descendOriginFromAddress20,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 describeSuite({
   id: "D3417",
   title: "Mock XCM - receive horizontal transact with two Descends",
@@ -28,11 +26,11 @@ describeSuite({
       random = generateKeyringPair();
       transferredBalance = 10_000_000_000_000_000_000n;
 
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();

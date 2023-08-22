@@ -11,8 +11,6 @@ import {
   descendOriginFromAddress20,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 describeSuite({
   id: "D3424",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
@@ -34,11 +32,11 @@ describeSuite({
       transferredBalance = 10_000_000_000_000_000_000n;
 
       // We first fund the descend origin derivated address
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance)
-        )
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();

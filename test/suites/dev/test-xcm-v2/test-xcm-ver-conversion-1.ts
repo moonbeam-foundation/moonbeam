@@ -12,8 +12,6 @@ import {
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 
-import { expectOk } from "../../../helpers/expect.js";
-
 const foreign_para_id = 2000;
 
 describeSuite({
@@ -28,13 +26,13 @@ describeSuite({
     beforeAll(async () => {
       random = generateKeyringPair();
       sovereignAddress = sovereignAccountOfSibling(context, 2000);
-
       transferredBalance = 100000000000000n;
-      await expectOk(
-        context.createBlock(
-          context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance)
-        )
+
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();
