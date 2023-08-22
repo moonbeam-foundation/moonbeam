@@ -1,15 +1,15 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN, u8aToHex } from "@polkadot/util";
+import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId } from "@polkadot/types/interfaces";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
   weightMessage,
+  sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 
 import { expectOk } from "../../../helpers/expect.js";
@@ -24,14 +24,10 @@ describeSuite({
     let transferredBalance: bigint;
     let sovereignAddress: string;
     let random: KeyringPair;
-    let paraId: ParaId;
 
     beforeAll(async () => {
       random = generateKeyringPair();
-      paraId = context.polkadotJs().createType("ParaId", 2000);
-      sovereignAddress = u8aToHex(
-        new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-      ).padEnd(42, "0");
+      sovereignAddress = sovereignAccountOfSibling(context, 2000);
 
       transferredBalance = 100000000000000n;
       await expectOk(

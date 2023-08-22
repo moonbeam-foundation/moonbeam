@@ -1,10 +1,14 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN, u8aToHex } from "@polkadot/util";
-import { ParaId } from "@polkadot/types/interfaces";
+import { BN } from "@polkadot/util";
 import { alith, baltathar } from "@moonwall/util";
-import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../helpers/xcm.js";
+import {
+  XcmFragment,
+  RawXcmMessage,
+  injectHrmpMessageAndSeal,
+  sovereignAccountOfSibling,
+} from "../../../helpers/xcm.js";
 import { expectOk } from "../../../helpers/expect.js";
 
 const foreign_para_id = 2000;
@@ -15,7 +19,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
-    let paraId: ParaId;
     let transferredBalance: bigint;
     let sovereignAddress: string;
 
@@ -47,19 +50,15 @@ describeSuite({
       transferredBalance = 100000000000000n;
 
       // mint asset
-      await expectOk(
-        context.createBlock(
-          context
-            .polkadotJs()
-            .tx.localAssets.mint(assetId, alith.address, transferredBalance)
-            .signAsync(baltathar)
-        )
+      await context.createBlock(
+        context
+          .polkadotJs()
+          .tx.localAssets.mint(assetId, alith.address, transferredBalance)
+          .signAsync(baltathar),
+        { allowFailures: false }
       );
 
-      paraId = context.polkadotJs().createType("ParaId", 2000);
-      sovereignAddress = u8aToHex(
-        new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-      ).padEnd(42, "0");
+      sovereignAddress = sovereignAccountOfSibling(context, 2000);
 
       // We first fund parachain 2000 sovreign account
       await expectOk(
