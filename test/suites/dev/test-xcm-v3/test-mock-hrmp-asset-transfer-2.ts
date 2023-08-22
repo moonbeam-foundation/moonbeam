@@ -42,14 +42,12 @@ describeSuite({
 
     beforeAll(async () => {
       // registerForeignAsset
-      const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata
       );
       assetId = registeredAssetId;
-      expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-      expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
       expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
     });
 

@@ -63,15 +63,10 @@ describeSuite({
         await registerForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
       assetIdZero = registeredAssetIdZero;
       // registerForeignAsset 1
-      const {
-        registeredAssetId: registeredAssetIdOne,
-        events,
-        registeredAsset: registeredAssetOne,
-      } = await registerForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
+      const { registeredAssetId: registeredAssetIdOne, registeredAsset: registeredAssetOne } =
+        await registerForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
       assetIdOne = registeredAssetIdOne;
 
-      expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-      expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
       expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
     });

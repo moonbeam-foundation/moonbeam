@@ -101,7 +101,11 @@ export async function registerForeignAsset(
         context
           .polkadotJs()
           .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-      )
+      ),
+    {
+      expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
+      allowFailures: false,
+    }
   );
   // check asset in storage
   const registeredAsset = (

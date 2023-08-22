@@ -42,7 +42,7 @@ describeSuite({
 
     beforeAll(async () => {
       // registerForeignAsset
-      const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata
