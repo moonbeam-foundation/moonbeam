@@ -160,8 +160,8 @@ where
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
-			},
-		))
+			}),
+		)
 		.as_slice()
 		.into();
 

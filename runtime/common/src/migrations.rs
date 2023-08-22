@@ -96,15 +96,15 @@ impl<T: pallet_xcm_transactor::Config> Migration for PopulateRelayIndices<T> {
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		// check storage is default pre migration
-		assert!(RelayIndices::<T>::get().is_default());
+		assert_eq!(RelayIndices::<T>::get(), Default::default());
 		Ok(Vec::new())
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		// check storage matches input post migration
 		assert_eq!(RelayIndices::<T>::get(), self.0);
 		Ok(())

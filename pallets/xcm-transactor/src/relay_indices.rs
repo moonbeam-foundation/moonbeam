@@ -17,14 +17,14 @@
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct RelayChainIndices {
 	pub pallets: PalletIndices,
 	pub calls: CallIndices,
 }
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct PalletIndices {
 	pub staking: u8,
@@ -32,7 +32,7 @@ pub struct PalletIndices {
 	pub hrmp: u8,
 }
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct CallIndices {
 	pub staking: StakingIndices,
@@ -40,13 +40,13 @@ pub struct CallIndices {
 	pub hrmp: HrmpIndices,
 }
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct UtilityIndices {
 	pub as_derivative: u8,
 }
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct StakingIndices {
 	pub bond: u8,
@@ -61,7 +61,7 @@ pub struct StakingIndices {
 	pub rebond: u8,
 }
 
-#[derive(Clone, Copy, Default, Encode, Decode, TypeInfo)]
+#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct HrmpIndices {
 	pub init_open_channel: u8,
