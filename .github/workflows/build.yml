@@ -416,7 +416,8 @@ jobs:
     if: |
       needs.set-tags.outputs.image_exists == 'false'
       && (github.event.pull_request.head.repo.full_name == github.repository
-          || github.event_name == 'push')
+          || github.event_name == 'push'
+          || github.event.inputs.pull_request != '')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
