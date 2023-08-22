@@ -127,7 +127,7 @@ describeSuite({
               Transact: {
                 originType: "SovereignAccount",
                 // 21_000 gas limit + db read
-                requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)),
+                requireWeightAtMost: 575_000_000n,
                 call: {
                   encoded: transferCallEncoded,
                 },

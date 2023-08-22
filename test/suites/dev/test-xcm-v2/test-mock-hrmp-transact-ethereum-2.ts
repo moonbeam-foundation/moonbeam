@@ -122,7 +122,7 @@ describeSuite({
             .push_any({
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: new BN(3000000000),
+                requireWeightAtMost: 3000000000n,
                 call: {
                   encoded: transferCallEncoded,
                 },

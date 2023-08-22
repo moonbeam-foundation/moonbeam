@@ -23,7 +23,7 @@ describeSuite({
     const assetMetadata = {
       name: "FOREIGN",
       symbol: "FOREIGN",
-      decimals: new BN(12),
+      decimals: 12n,
       isFrozen: false,
     };
     const statemint_para_id = 1001;
@@ -198,7 +198,7 @@ describeSuite({
               Transact: {
                 originType: "SovereignAccount",
                 // 100_000 gas + 1 db read
-                requireWeightAtMost: new BN(2_500_000_000).add(new BN(25_000_000)),
+                requireWeightAtMost: 2_525_000_000n,
                 call: {
                   encoded: transferCallEncoded,
                 },
