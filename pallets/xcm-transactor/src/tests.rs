@@ -1150,7 +1150,7 @@ fn test_hrmp_manipulator_init_v2_convert_works() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 0u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
 			// Check message contains the new appendix
@@ -1214,7 +1214,7 @@ fn test_hrmp_manipulator_init_v3_convert_works() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 0u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
 			// Check message contains the new appendix
@@ -1444,7 +1444,6 @@ fn test_hrmp_manipulator_close() {
 				fees: (MultiLocation::here(), total_fee).into(),
 				weight_limit: Limited(total_weight),
 			}));
-			println!("{:?}", sent_message);
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
