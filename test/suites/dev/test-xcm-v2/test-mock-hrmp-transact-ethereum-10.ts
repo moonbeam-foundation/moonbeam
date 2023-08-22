@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { BN } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
@@ -23,7 +23,7 @@ describeSuite({
     let contractABI: Abi;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployCreateCompiledContract(context, "CallForwarder");
+      const { contractAddress, abi } = await context.deployContract!("CallForwarder");
       contractDeployed = contractAddress;
       contractABI = abi;
 

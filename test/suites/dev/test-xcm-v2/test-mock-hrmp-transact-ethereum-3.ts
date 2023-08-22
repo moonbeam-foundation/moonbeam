@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
@@ -56,7 +56,7 @@ describeSuite({
     const assetsToTransfer = (3_300_000_000n + 25_000_000n) * 2n;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployCreateCompiledContract(context, "Incrementor");
+      const { contractAddress, abi } = await context.deployContract!("Incrementor");
 
       contractDeployed = contractAddress;
       contractABI = abi;

@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { Abi, encodeFunctionData } from "viem";
 import {
@@ -24,7 +24,7 @@ describeSuite({
     let contractABI: Abi;
 
     beforeAll(async () => {
-      const { contractAddress, abi } = await deployCreateCompiledContract(context, "Incrementor");
+      const { contractAddress, abi } = await context.deployContract!("Incrementor");
       contractDeployed = contractAddress;
       contractABI = abi;
 
