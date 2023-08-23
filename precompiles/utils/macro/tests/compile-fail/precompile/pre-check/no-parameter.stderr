@@ -1,5 +1,0 @@
-error: Precompile methods must have at least 1 parameter (the PrecompileHandle)
-  --> tests/compile-fail/precompile/pre-check/no-parameter.rs:24:2
-   |
-24 |     fn pre_check() {
-   |     ^^

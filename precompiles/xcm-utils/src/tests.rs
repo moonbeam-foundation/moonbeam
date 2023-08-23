@@ -50,7 +50,7 @@ fn modifiers() {
 fn test_get_account_parent() {
 	ExtBuilder::default().build().execute_with(|| {
 		let input = PCall::multilocation_to_address {
-			multilocation: MultiLocation::parent(),
+			multilocation: MultiLocation::parent().into(),
 		};
 
 		let expected_address: H160 = ParentAccount.into();
@@ -70,7 +70,8 @@ fn test_get_account_sibling() {
 			multilocation: MultiLocation {
 				parents: 1,
 				interior: Junctions::X1(Junction::Parachain(2000u32)),
-			},
+			}
+			.into(),
 		};
 
 		let expected_address: H160 = SiblingParachainAccount(2000u32).into();
@@ -104,7 +105,7 @@ fn test_weight_message() {
 fn test_get_units_per_second() {
 	ExtBuilder::default().build().execute_with(|| {
 		let input = PCall::get_units_per_second {
-			multilocation: MultiLocation::parent(),
+			multilocation: MultiLocation::parent().into(),
 		};
 
 		precompiles()
@@ -214,7 +215,7 @@ fn test_send_clear_origin() {
 		let xcm_to_send = VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
 
 		let input = PCall::xcm_send {
-			dest: MultiLocation::parent(),
+			dest: MultiLocation::parent().into(),
 			message: xcm_to_send.into(),
 		};
 
