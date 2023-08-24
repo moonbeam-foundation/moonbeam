@@ -67,28 +67,6 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> Erc20Matcher<Erc20Multilocati
 			_ => Err(()),
 		}
 	}
-	pub(crate) fn matches_gas_limit(multiasset: &MultiAsset) -> Option<u64> {
-		let multilocation = match (&multiasset.fun, &multiasset.id) {
-			(Fungible(_), Concrete(ref id)) => id,
-			_ => return None,
-		};
-
-		// let prefix = Erc20MultilocationPrefix::get();
-		match multilocation.interior().into_iter().next_back() {
-			Some(Junction::GeneralKey { length, data }) => {
-				let content = core::str::from_utf8(data).expect("f");
-				if !content.starts_with("gas_limit:") || *length != 32u8 {
-					return None;
-				}
-				// let mut split = content.split(':');
-				match content.split(':').next_back() {
-					Some(x) => Some(x.parse().unwrap()),
-					None => None,
-				}
-			}
-			_ => None,
-		}
-	}
 }
 
 #[cfg(test)]

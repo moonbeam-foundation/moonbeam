@@ -42,7 +42,8 @@ pub mod pallet {
 	use sp_core::{H160, H256, U256};
 	use sp_std::vec::Vec;
 	use xcm::latest::{
-		Error as XcmError, MultiAsset, MultiLocation, Result as XcmResult, XcmContext,
+		AssetId, Error as XcmError, Junction, MultiAsset, MultiLocation, Result as XcmResult,
+		XcmContext,
 	};
 	use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
 	use xcm_executor::Assets;
@@ -65,12 +66,26 @@ pub mod pallet {
 		pub fn is_erc20_asset(asset: &MultiAsset) -> bool {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
-		pub fn gas_limit_of_erc20_transfer(asset: &MultiAsset) -> u64 {
-			let gas_limit = Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_gas_limit(asset);
-			gas_limit.unwrap_or_else(T::Erc20TransferGasLimit::get)
+		pub fn gas_limit_of_erc20_transfer(asset_id: &AssetId) -> u64 {
+			if let AssetId::Concrete(multilocation) = asset_id {
+				if let Some(Junction::GeneralKey {
+					length: _,
+					ref data,
+				}) = multilocation.interior().into_iter().next_back()
+				{
+					if let Ok(content) = core::str::from_utf8(data) {
+						if let Some((_, asci_limit)) = content.split_once("gas_limit:") {
+							if let Ok(limit) = asci_limit.parse() {
+								return limit;
+							}
+						}
+					}
+				}
+			};
+			T::Erc20TransferGasLimit::get()
 		}
-		pub fn weight_of_erc20_transfer(asset: &MultiAsset) -> Weight {
-			T::GasWeightMapping::gas_to_weight(Self::gas_limit_of_erc20_transfer(asset), true)
+		pub fn weight_of_erc20_transfer(asset_id: &AssetId) -> Weight {
+			T::GasWeightMapping::gas_to_weight(Self::gas_limit_of_erc20_transfer(asset_id), true)
 		}
 		fn erc20_transfer(
 			erc20_contract_address: H160,
@@ -144,7 +159,7 @@ pub mod pallet {
 			let beneficiary = T::AccountIdConverter::convert_ref(who)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			let gas_limit = Self::gas_limit_of_erc20_transfer(what);
+			let gas_limit = Self::gas_limit_of_erc20_transfer(&what.id);
 
 			// Get the global context to recover accounts origins.
 			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
@@ -194,7 +209,7 @@ pub mod pallet {
 			let to = T::AccountIdConverter::convert_ref(to)
 				.map_err(|()| MatchError::AccountIdConversionFailed)?;
 
-			let gas_limit = Self::gas_limit_of_erc20_transfer(asset);
+			let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
