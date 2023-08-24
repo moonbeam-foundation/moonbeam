@@ -25,14 +25,14 @@ export const PARA_1001_SOURCE_LOCATION = {
 export interface AssetMetadata {
   name: string;
   symbol: string;
-  decimals: BN;
+  decimals: bigint;
   isFrozen: boolean;
 }
 
 export const relayAssetMetadata: AssetMetadata = {
   name: "DOT",
   symbol: "DOT",
-  decimals: new BN(12),
+  decimals: 12n,
   isFrozen: false,
 };
 
