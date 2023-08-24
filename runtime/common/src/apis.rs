@@ -271,23 +271,23 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
+					// Estimated encoded transaction size must be based on the heaviest transaction
+					// type (EIP1559Transaction) to be compatible with all transaction types.
 					let mut estimated_transaction_len = data.len() +
-						// to: 20
-						// from: 20
-						// value: 32
-						// gas_limit: 32
+						// pallet ethereum index: 1
+						// transact call index: 1
+						// Transaction enum variant: 1
+						// chain_id 8 bytes
 						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
+						// max_priority_fee_per_gas: 32
+						// max_fee_per_gas: 32
+						// gas_limit: 32
+						// action: 21 (enum varianrt + call address)
+						// value: 32
+						// access_list: 1 (empty vec size)
 						// 65 bytes signature
-						210;
+						258;
 
-					if max_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
 					if access_list.is_some() {
 						estimated_transaction_len += access_list.encoded_size();
 					}
