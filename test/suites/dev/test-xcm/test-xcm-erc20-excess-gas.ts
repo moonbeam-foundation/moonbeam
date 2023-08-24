@@ -231,6 +231,7 @@ describeSuite({
                         key: contractAddress,
                       },
                     },
+                    // Override default gas limit with optional GeneralKey
                     {
                       GeneralKey: {
                         data: "gas_limit:0000000000000000300000",
