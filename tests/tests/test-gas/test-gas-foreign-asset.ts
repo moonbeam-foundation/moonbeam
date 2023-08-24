@@ -12,10 +12,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  createTransaction,
-} from "../../util/transactions";
+import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import { DUMMY_REVERT_BYTECODE } from "../../util/constants";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
