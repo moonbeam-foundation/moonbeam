@@ -410,6 +410,47 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(realAmount));
   });
 
+  it("should pay no fee if fee is zero", async function () {
+    this.timeout(20000)
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    const whAmount = 100n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = 0n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(realAmount);
+
+    // no fee paid
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0);
+  });
+
   async function makeTestVAA(amount: number, action: VersionedUserAction): Promise<string> {
     let payload = "" + action.toHex();
 
