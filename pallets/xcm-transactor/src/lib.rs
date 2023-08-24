@@ -514,7 +514,7 @@ pub mod pallet {
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
 			let appendix = refund
-				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+				.then(|| -> Result<_, DispatchError> {
 					Ok(vec![
 						RefundSurplus,
 						Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?,
@@ -600,7 +600,7 @@ pub mod pallet {
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
 			let appendix = refund
-				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+				.then(|| -> Result<_, DispatchError> {
 					Ok(vec![
 						RefundSurplus,
 						Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?,
@@ -726,7 +726,7 @@ pub mod pallet {
 
 			// If refund is true, the appendix instruction will be a deposit back to the sender
 			let appendix = refund
-				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+				.then(|| -> Result<_, DispatchError> {
 					let sender = T::AccountIdToMultiLocation::convert(who.clone());
 					Ok(vec![
 						RefundSurplus,
