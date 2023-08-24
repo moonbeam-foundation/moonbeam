@@ -1,21 +1,21 @@
-import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { expectEVMResult, getTransactionFees } from "../../../helpers/eth-transactions.js";
+import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+import { parseEther } from "ethers";
+import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import {
   XcmFragment,
   XcmFragmentConfig,
+  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
-import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2704",
-  title: "Mock XCM - Send local erc20",
+  id: "D3536",
+  title: "Mock XCM V3 - XCM Weight Limit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
@@ -33,70 +33,11 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should be able to transfer ERC20 token through xcm with xtokens precompile",
-      test: async function () {
-        const amountTransferred = 10n;
-
-        // Destination as multilocation
-        const destination = [
-          // one parent
-          1,
-          // This represents X1(AccountKey20(BALTATHAR_ADDRESS, NetworkAny))
-          // AccountKey20 variant (03) + the 20 bytes account + Any network variant (00)
-          ["0x03" + BALTATHAR_ADDRESS.slice(2) + "00"],
-        ];
-
-        const balanceBefore = (
-          await polkadotJs.query.system.account(ALITH_ADDRESS)
-        ).data.free.toBigInt();
-
-        const rawTx = await context.writePrecompile!({
-          precompileName: "Xtokens",
-          functionName: "transfer",
-          args: [
-            // address of the multiasset
-            erc20ContractAddress,
-            // amount
-            amountTransferred,
-            // Destination as multilocation
-            destination,
-            // weight
-            500_000n,
-          ],
-          gas: 500_000n,
-          rawTxOnly: true,
-        });
-
-        const { result } = await context.createBlock(rawTx);
-        expectEVMResult(result!.events, "Succeed");
-
-        const balanceAfter = (
-          await polkadotJs.query.system.account(ALITH_ADDRESS)
-        ).data.free.toBigInt();
-
-        const fees = await getTransactionFees(context, result!.hash);
-
-        // Fees should have been spent
-        expect(balanceAfter).to.equal(balanceBefore - fees);
-
-        expect(
-          await context.readContract!({
-            contractName: "ERC20WithInitialSupply",
-            contractAddress: erc20ContractAddress as `0x${string}`,
-            functionName: "balanceOf",
-            args: [ALITH_ADDRESS],
-          })
-        ).equals(ERC20_TOTAL_SUPPLY - amountTransferred);
-      },
-    });
-
-    it({
-      id: "T02",
-      title: "Mock XCM - Receive back erc20",
+      title: "Check that MaxAssetsIntoHolding limit is enforced",
       test: async function () {
         const paraId = 888;
         const paraSovereign = sovereignAccountOfSibling(context, paraId);
-        const amountTransferred = 1_000n;
+        const amountTransferred = 1_000_000n;
 
         // Get pallet indices
         const metadata = await polkadotJs.rpc.state.getMetadata();
@@ -122,7 +63,6 @@ describeSuite({
 
         const { result } = await context.createBlock(rawTx);
         expectEVMResult(result!.events, "Succeed");
-
         expect(
           await context.readContract!({
             contractName: "ERC20WithInitialSupply",
@@ -142,7 +82,7 @@ describeSuite({
                   X1: { PalletInstance: Number(balancesPalletIndex) },
                 },
               },
-              fungible: 100_000_000_000_000_000n,
+              fungible: 1_000_000_000_000_000n,
             },
             {
               multilocation: {
@@ -154,7 +94,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
@@ -167,27 +107,43 @@ describeSuite({
           beneficiary: CHARLETH_ADDRESS,
         };
 
-        const xcmMessage = new XcmFragment(config)
-          .withdraw_asset()
-          .clear_origin()
-          .buy_execution()
-          .deposit_asset(2n)
-          .as_v2();
+        // first check with n=limit-1 and check n=limit increases weight
+        const getTransferWeight = async function (limit: bigint) {
+          // Mock the reception of the xcm message
+          await injectHrmpMessageAndSeal(context, paraId, {
+            type: "XcmVersionedXcm",
+            payload: new XcmFragment(config)
+              .withdraw_asset()
+              .clear_origin()
+              .buy_execution()
+              .deposit_asset_v3(limit)
+              .as_v3(),
+          });
 
-        // Mock the reception of the xcm message
-        await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
-          payload: xcmMessage,
-        });
+          const allRecords = await polkadotJs.query.system.events();
+          const [{ event }] = allRecords.filter(
+            ({ event: { section, method } }) =>
+              section === "xcmpQueue" && method === "OverweightEnqueued"
+          );
+          const [_paraId, _messageId, _weight, proof] = event.data;
+          return proof.proofSize.toNumber();
+        };
 
-        expect(
-          await context.readContract!({
-            contractName: "ERC20WithInitialSupply",
-            contractAddress: erc20ContractAddress as `0x${string}`,
-            functionName: "balanceOf",
-            args: [CHARLETH_ADDRESS],
-          })
-        ).equals(amountTransferred);
+        const limit = 64n;
+        // get weight for n=limit-1 and n=limit
+        let weight_under = await getTransferWeight(limit - 1n);
+        let weight_limit = await getTransferWeight(limit);
+
+        // assert that n=limit-1 increases weight
+        expect(weight_under).lt(weight_limit);
+
+        // now check that n=limit+1 does not increase weight
+        let weight_over = await getTransferWeight(limit + 1n);
+        expect(weight_over).eq(weight_limit);
+
+        // check abusive n>>>limit does not increase weight
+        weight_over = await getTransferWeight(BigInt(1e9));
+        expect(weight_over).eq(weight_limit);
       },
     });
   },

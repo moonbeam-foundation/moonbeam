@@ -6,7 +6,6 @@ import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import {
   XcmFragment,
   XcmFragmentConfig,
-  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
@@ -14,8 +13,8 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2710",
-  title: "Mock XCM V3 - XCM Weight Limit",
+  id: "D3537",
+  title: "Mock XCM V3 - Receive erc20 via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
@@ -33,7 +32,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Check that MaxAssetsIntoHolding limit is enforced",
+      title: "Should be able to transfer ERC20 token through incoming XCM message",
       test: async function () {
         const paraId = 888;
         const paraSovereign = sovereignAccountOfSibling(context, paraId);
@@ -94,7 +93,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
@@ -107,43 +106,28 @@ describeSuite({
           beneficiary: CHARLETH_ADDRESS,
         };
 
-        // first check with n=limit-1 and check n=limit increases weight
-        const getTransferWeight = async function (limit: bigint) {
-          // Mock the reception of the xcm message
-          await injectHrmpMessageAndSeal(context, paraId, {
-            type: "XcmVersionedXcm",
-            payload: new XcmFragment(config)
-              .withdraw_asset()
-              .clear_origin()
-              .buy_execution()
-              .deposit_asset_v3(limit)
-              .as_v3(),
-          });
+        const xcmMessage = new XcmFragment(config)
+          .withdraw_asset()
+          .clear_origin()
+          .buy_execution()
+          .deposit_asset_v3(2n)
+          .as_v3();
 
-          const allRecords = await polkadotJs.query.system.events();
-          const [{ event }] = allRecords.filter(
-            ({ event: { section, method } }) =>
-              section === "xcmpQueue" && method === "OverweightEnqueued"
-          );
-          const [_paraId, _messageId, _weight, proof] = event.data;
-          return proof.proofSize.toNumber();
-        };
+        // Mock the reception of the xcm message
+        await injectHrmpMessageAndSeal(context, paraId, {
+          type: "XcmVersionedXcm",
+          payload: xcmMessage,
+        });
 
-        const limit = 64n;
-        // get weight for n=limit-1 and n=limit
-        let weight_under = await getTransferWeight(limit - 1n);
-        let weight_limit = await getTransferWeight(limit);
-
-        // assert that n=limit-1 increases weight
-        expect(weight_under).lt(weight_limit);
-
-        // now check that n=limit+1 does not increase weight
-        let weight_over = await getTransferWeight(limit + 1n);
-        expect(weight_over).eq(weight_limit);
-
-        // check abusive n>>>limit does not increase weight
-        weight_over = await getTransferWeight(BigInt(1e9));
-        expect(weight_over).eq(weight_limit);
+        // Erc20 tokens should have been received
+        expect(
+          await context.readContract!({
+            contractName: "ERC20WithInitialSupply",
+            contractAddress: erc20ContractAddress as `0x${string}`,
+            functionName: "balanceOf",
+            args: [CHARLETH_ADDRESS],
+          })
+        ).equals(amountTransferred);
       },
     });
   },
