@@ -5,20 +5,26 @@ describeSuite({
   title: "Block Contract - Block variables",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let blockContract: any;
+    let blockContract: `0x${string}`;
 
     beforeAll(async function () {
-      const { contract } = await deployCreateCompiledContract(context, "BlockVariables", {
+      const { contractAddress } = await context.deployContract!("BlockVariables", {
         gas: 1000000n,
       });
-      blockContract = contract;
+      blockContract = contractAddress;
     });
 
     it({
       id: "T01",
       title: "should store the valid block number at creation",
       test: async function () {
-        expect(await blockContract.read.initialnumber()).toBe(1n);
+        expect(
+          await context.readContract!({
+            contractName: "BlockVariables",
+            contractAddress: blockContract,
+            functionName: "initialnumber",
+          })
+        ).toBe(1n);
       },
     });
 
@@ -26,9 +32,21 @@ describeSuite({
       id: "T02",
       title: "should return parent block number + 1 when accessed by RPC call",
       test: async function () {
-        const block = await context.viem("public").getBlock();
-        expect(await blockContract.read.getNumber()).toBe(1n);
-        expect(await blockContract.read.getNumber()).toBe(block.number);
+        const block = await context.viem().getBlock();
+        expect(
+          await context.readContract!({
+            contractName: "BlockVariables",
+            contractAddress: blockContract,
+            functionName: "getNumber",
+          })
+        ).toBe(1n);
+        expect(
+          await context.readContract!({
+            contractName: "BlockVariables",
+            contractAddress: blockContract,
+            functionName: "getNumber",
+          })
+        ).toBe(block.number);
       },
     });
 
@@ -36,7 +54,13 @@ describeSuite({
       id: "T03",
       title: "should store the valid chain id at creation",
       test: async function () {
-        expect(await blockContract.read.initialchainid()).toBe(1281n);
+        expect(
+          await context.readContract!({
+            contractName: "BlockVariables",
+            contractAddress: blockContract,
+            functionName: "initialchainid",
+          })
+        ).toBe(1281n);
       },
     });
   },

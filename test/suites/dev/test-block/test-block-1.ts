@@ -15,7 +15,7 @@ describeSuite({
       id: "T01",
       title: "should be at block 1",
       test: async function () {
-        expect(await context.viem("public").getBlockNumber()).to.equal(1n);
+        expect(await context.viem().getBlockNumber()).to.equal(1n);
       },
     });
 
@@ -25,7 +25,7 @@ describeSuite({
       test: async function () {
         // Originally ,this test required the timestamp be in the last finve minutes.
         // This requirement doesn't make sense when we forge timestamps in manual seal.
-        const block = await context.viem("public").getBlock({ blockTag: "latest" });
+        const block = await context.viem().getBlock({ blockTag: "latest" });
         const next5Minutes = BigInt(Math.floor(Date.now() / 1000 + 300));
         expect(block.timestamp).toBeGreaterThan(0n);
         expect(block.timestamp).toBeLessThan(next5Minutes);
@@ -36,7 +36,7 @@ describeSuite({
       id: "T03",
       title: "should contain block information",
       test: async function () {
-        const block = await context.viem("public").getBlock({ blockTag: "latest" });
+        const block = await context.viem().getBlock({ blockTag: "latest" });
         expect(block).to.include({
           author: ALITH_ADDRESS.toLocaleLowerCase(),
           difficulty: 0n,
@@ -65,8 +65,8 @@ describeSuite({
       id: "T04",
       title: "should be accessible by hash",
       test: async function () {
-        const latestBlock = await context.viem("public").getBlock({ blockTag: "latest" });
-        const block = await context.viem("public").getBlock({ blockHash: latestBlock.hash! });
+        const latestBlock = await context.viem().getBlock({ blockTag: "latest" });
+        const block = await context.viem().getBlock({ blockHash: latestBlock.hash! });
         expect(block.hash).toBe(latestBlock.hash);
       },
     });
@@ -75,8 +75,8 @@ describeSuite({
       id: "T05",
       title: "should be accessible by number",
       test: async function () {
-        const latestBlock = await context.viem("public").getBlock({ blockTag: "latest" });
-        const block = await context.viem("public").getBlock({ blockNumber: 1n });
+        const latestBlock = await context.viem().getBlock({ blockTag: "latest" });
+        const block = await context.viem().getBlock({ blockNumber: 1n });
         expect(block.hash).toBe(latestBlock.hash);
       },
     });
