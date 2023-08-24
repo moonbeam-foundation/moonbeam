@@ -1,8 +1,8 @@
 ---
 mbip: 6
-title: Externally recordable EVM metrics
+title: Externally recordable EVM metrics [rejected]
 author(s): Telmo G. Michelena (@tgmichel)
-status: Draft
+status: Rejected
 created: 2023-05-11
 ---
 
@@ -42,7 +42,7 @@ addition to native gasometer recording.
 
 Another fundamental difference is that unlike native _target_ `Gas`, the _external_ metrics capacity
 is spent transaction wide not on a per-subcall level. This means any subcall can consume up to
-all remaining given external capacity even if the native `Gas` capacity is way lower in proportion. 
+all remaining given external capacity even if the native `Gas` capacity is way lower in proportion.
 
 ## Specification
 
@@ -94,15 +94,15 @@ because the `POV_SIZE_USED` would be greater than POV_LIMIT.
 ## Impact
 
 (S.2) represents the most notable difference between traditional EVM gasometer and Moonbeam's hybrid
-multidimensional gasometer being proposed: one can OutOfGas if any configured metric is exhausted. 
+multidimensional gasometer being proposed: one can OutOfGas if any configured metric is exhausted.
 
 In (S.1) as refunds will be calculated over the highest recorded metric, this also introduces a
 substantial difference on how refunds work in Moonbeam vs. Ethereum and, in some cases, might break
 assumptions done purely on what the cost is supposed to be metered by the traditional gasometer when
- successfully exiting the EVM:
+successfully exiting the EVM:
 
 - Prior to execution: the need of providing a `gas_limit` that is enough to pay for whaveter the most
-used metric will be during the EVM execution.
+  used metric will be during the EVM execution.
 - After the execution: the refund will be calculated over the most used metric on exiting the EVM.
 
 ## Security Considerations

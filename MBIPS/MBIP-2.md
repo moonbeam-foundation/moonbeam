@@ -1,8 +1,8 @@
 ---
 mbip: 2
-title: Storage Data Deposit
+title: Storage Data Deposit [rejected]
 author: Alan Sapède (@crystalin)
-status: Draft
+status: Rejected
 category: Core
 created: 2023-05-11
 ---
@@ -22,7 +22,7 @@ destroys some storage.
 Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
 fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-In order to avoid impacting the gas price, a distinct mechanism is proposed. 
+In order to avoid impacting the gas price, a distinct mechanism is proposed.
 
 ## Specification
 
@@ -30,7 +30,7 @@ Sending a transaction which stores additional state data (deploying a contract, 
 a smart contract storage) **MUST** reserve additional tokens from the sender.
 
 Sending a transaction which reduces the state data (destroying a contract, removing an item in
-a smart contract storage) **MUST** unreserve additional tokens from the sender. 
+a smart contract storage) **MUST** unreserve additional tokens from the sender.
 If the unreserve decreases the deposit amount to 0 or under, the deposit **MUST** be removed.
 
 A sender without enough token to provide the deposit will get its transaction reverted.
@@ -64,7 +64,7 @@ is associated to EOA when they need to deposit tokens for storage data.
 ## Functions
 
 This proposal also adds the RPC endpoint `moon_getStorageDeposit` which accepts a given
-`address` (AccountId20) and optionally a given block number or 
+`address` (AccountId20) and optionally a given block number or
 the string "latest", "earliest" or "pending" and returns a `StorageDeposit` or null:
 
 ```
@@ -75,12 +75,12 @@ interface StorageDeposit {
 
 ## Impact
 
-The deposit will not be visible in the transaction fields. This will break the assumption that a transaction cannot remove more than the "gasLimit * gasPrice" (or their EIP-1559 equivalent).  
+The deposit will not be visible in the transaction fields. This will break the assumption that a transaction cannot remove more than the "gasLimit \* gasPrice" (or their EIP-1559 equivalent).  
 _(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
 
 (see [Addition 3](#addition-3---deposit-from-the-value) for a possible solution)
 
-This proposal impacts mostly the users as each one might get a deposit if they 
+This proposal impacts mostly the users as each one might get a deposit if they
 interact with a smart contract that is increasing the state storage size.
 
 ## Security Considerations
@@ -93,5 +93,5 @@ Additionally some people might gamble that the deposit storage ratio (GLMR/bytes
 
 Instead of having the deposit taken from the user directly, the deposit could be taken from the
 given "value" in the deploying transaction. This would make it visible to the user but would
-require the application to compute the required value. It might also conflict with contract using 
+require the application to compute the required value. It might also conflict with contract using
 the value of the transaction for other matters.

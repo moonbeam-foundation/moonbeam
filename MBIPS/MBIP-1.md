@@ -1,14 +1,15 @@
 ---
 mbip: 1
-title: Smart Contract Creation Deposit
+title: Smart Contract Creation Deposit [rejected]
 author: Alan Sapède (@crystalin)
-status: Draft
+status: Rejected
 category: Core
 created: 2023-05-11
 ---
 
 ## Simple Summary
-A deposit mechanism for smart contracts to deal with storage congestion. 
+
+A deposit mechanism for smart contracts to deal with storage congestion.
 
 ## Abstract
 
@@ -20,7 +21,7 @@ smart contract.
 Moonbeam chain state needs to be sustainable for collators and archive nodes. With its current
 fee mechanism, it doesn't account sufficiently for new storage data being added.
 
-In order to avoid impacting the gas price, a distinct mechanism is proposed. 
+In order to avoid impacting the gas price, a distinct mechanism is proposed.
 
 ## Specification
 
@@ -50,14 +51,14 @@ A deposit ratio of 0.01 GLMR / Byte would lead to:
 ### Example:
 
 Deploying the complex contract (24400 Bytes) would require a deposit of:  
-`(24_400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`, 
+`(24_400 + 68 + 68 + 80)  * 0.01 => 246.16 GLMR`,
 
 Deploying a fast proxy (97 Bytes) would require a deposit of:  
 `(97 + 68 + 68 + 80)  * 0.01 => 3.13 GLMR`
 
 ## Storage changes
 
-A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount 
+A new field `deposit` is added to the `AccountCodeMetadata` structure to keep track of the amount
 and the owner of the deposit:
 
 ```
@@ -70,7 +71,7 @@ and the owner of the deposit:
 ## Functions
 
 This proposal also adds the RPC endpoint `moon_getCodeDeposit` which accepts a given
-`address` (AccountId20) and optionally a given block number or 
+`address` (AccountId20) and optionally a given block number or
 the string "latest", "earliest" or "pending" and returns a `CodeDeposit` or null:
 
 ```
@@ -80,14 +81,12 @@ interface CodeDeposit {
 }
 ```
 
-
 ## Impact
 
-The deposit will not be visible in the transaction fields. 
-This will break the assumption that a transaction cannot remove more than 
-the "gasLimit * gasPrice" (or their EIP-1559 equivalent).  
+The deposit will not be visible in the transaction fields.
+This will break the assumption that a transaction cannot remove more than
+the "gasLimit \* gasPrice" (or their EIP-1559 equivalent).  
 _(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
-
 
 This proposal impacts mostly projects deploying smart contracts. Users however can also be impacted by smart contract functions using CREATE/CREATE2 which would force the user to put a deposit on the new smart contract being created.
 
@@ -95,12 +94,11 @@ This proposal impacts mostly projects deploying smart contracts. Users however c
 
 A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 1](#addition-1-deposit-from-the-value) for a possible solution)
 
-
 ## Addition 1 - Deposit from the "Value"
 
 Instead of having the deposit taken from the user directly, the deposit could be taken from the
 given "value" in the deploying transaction. This would make it visible to the user but would
-require the application to compute the required value. It might also conflict with contract using 
+require the application to compute the required value. It might also conflict with contract using
 the value of the transaction for other matters.
 
 ## Follow-up
