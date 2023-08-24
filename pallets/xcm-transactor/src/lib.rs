@@ -513,13 +513,14 @@ pub mod pallet {
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
-			let appendix: Option<Vec<Instruction<()>>> = if refund {
-				let deposit_appendix =
-					Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?;
-				Some(vec![RefundSurplus, deposit_appendix])
-			} else {
-				None
-			};
+			let appendix = refund
+				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+					Ok(vec![
+						RefundSurplus,
+						Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?,
+					])
+				})
+				.transpose()?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
@@ -598,13 +599,14 @@ pub mod pallet {
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
-			let appendix: Option<Vec<Instruction<()>>> = if refund {
-				let deposit_appendix =
-					Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?;
-				Some(vec![RefundSurplus, deposit_appendix])
-			} else {
-				None
-			};
+			let appendix = refund
+				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+					Ok(vec![
+						RefundSurplus,
+						Self::deposit_instruction(T::SelfLocation::get(), &dest, 1u32)?,
+					])
+				})
+				.transpose()?;
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
@@ -723,13 +725,15 @@ pub mod pallet {
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sender
-			let appendix: Option<Vec<Instruction<()>>> = if refund {
-				let sender = T::AccountIdToMultiLocation::convert(who.clone());
-				let deposit_appendix = Self::deposit_instruction(sender, &dest, 1u32)?;
-				Some(vec![RefundSurplus, deposit_appendix])
-			} else {
-				None
-			};
+			let appendix = refund
+				.then(|| -> Result<Vec<Instruction<()>>, DispatchError> {
+					let sender = T::AccountIdToMultiLocation::convert(who.clone());
+					Ok(vec![
+						RefundSurplus,
+						Self::deposit_instruction(sender, &dest, 1u32)?,
+					])
+				})
+				.transpose()?;
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
