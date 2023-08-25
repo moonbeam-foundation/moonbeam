@@ -201,6 +201,7 @@ mod tests {
 			&mut self,
 			_ref_time: Option<u64>,
 			_proof_size: Option<u64>,
+			_storage_growth: Option<u64>,
 		) -> Result<(), fp_evm::ExitError> {
 			Ok(())
 		}
