@@ -71,7 +71,7 @@ where
 
 		// Make sure there is enough remaining weight
 		// TODO: record ref time when precompile will be benchmarked
-		handle.record_external_cost(None, Some(weight.proof_size()))
+		handle.record_external_cost(None, Some(weight.proof_size()), None)
 	}
 
 	#[inline(always)]
