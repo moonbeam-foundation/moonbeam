@@ -7,7 +7,6 @@ import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js"
 import { ForeignChainsEndpoints, getEndpoints } from "../../helpers/foreign-chains.js";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : TEN_MINS;
-const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
 const limiter = rateLimiter();
 
 type BlockEventsRecord = {
@@ -34,7 +33,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const networkName = paraApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName
@@ -57,10 +56,10 @@ describeSuite({
         return { ...chain, endpoints };
       });
 
-      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil }) => {
-        let blockEvents: BlockEventsRecord[];
+      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
+        let blockEvents: BlockEventsRecord[] = [];
 
-        if (mutedUntil >= new Date().getTime()) {
+        if (mutedUntil && mutedUntil >= new Date().getTime()) {
           log(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }

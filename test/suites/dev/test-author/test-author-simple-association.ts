@@ -22,14 +22,14 @@ describeSuite({
       id: "T01",
       title: "should match genesis state",
       test: async function () {
-        api = context.polkadotJs({ type: "moon" });
+        api = context.polkadotJs();
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))?.account).to.eq(
           ALITH_ADDRESS
         );
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))?.deposit).to.eq(
           DEFAULT_GENESIS_MAPPING
         );
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
         expect((await api.query.system.account(ALITH_ADDRESS)).data.free.toBigInt()).to.eq(
           DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_MAPPING
         );

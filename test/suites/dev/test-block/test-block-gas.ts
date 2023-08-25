@@ -19,10 +19,10 @@ describeSuite({
         title: `${txnType} should be allowed to the max block gas`,
         test: async function () {
           const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
-            gas: BigInt(EXTRINSIC_GAS_LIMIT),
+            gas: EXTRINSIC_GAS_LIMIT,
           });
           expect(status).toBe("success");
-          const receipt = await context.viem("public").getTransactionReceipt({ hash });
+          const receipt = await context.viem().getTransactionReceipt({ hash });
           expect(receipt.blockHash).toBeTruthy();
         },
       });
@@ -34,7 +34,7 @@ describeSuite({
           expect(
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
-                gas: BigInt(EXTRINSIC_GAS_LIMIT + 1),
+                gas: EXTRINSIC_GAS_LIMIT + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds block gas limit");
@@ -46,15 +46,11 @@ describeSuite({
       id: "T07",
       title: "should be accessible within a contract",
       test: async function () {
-        const { contract, contractAddress } = await deployCreateCompiledContract(
-          context,
-          "BlockVariables"
-        );
-        expect(await contract.read.getGasLimit([])).to.equal(15000000n);
-
-        const { abi } = await fetchCompiledContract("BlockVariables");
+        const { contractAddress, abi } = await context.deployContract!("BlockVariables", {
+          gas: 500_000n,
+        });
         expect(
-          await context.viem("public").readContract({
+          await context.viem().readContract({
             address: contractAddress!,
             abi,
             args: [],

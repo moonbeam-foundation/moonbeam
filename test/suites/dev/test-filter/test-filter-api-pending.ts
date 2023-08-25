@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { fromHex } from "viem";
 
 describeSuite({
   id: "D1702",
@@ -9,10 +10,10 @@ describeSuite({
     it({
       id: "T01",
       title: "should not be supported",
+      // Looks like this is now supported 🎉
       test: async function () {
-        expect(
-          async () => await customDevRpcRequest("eth_newPendingTransactionFilter", [])
-        ).rejects.toThrowError("Method not available.");
+        const resp = await customDevRpcRequest("eth_newPendingTransactionFilter", []);
+        expect(fromHex(resp, "bigint")).toBeGreaterThanOrEqual(0n);
       },
     });
   },

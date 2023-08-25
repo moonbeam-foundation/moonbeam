@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { alith, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
 import { expect, describeSuite } from "@moonwall/cli";
 import { getMappingInfo } from "../../../helpers/common.js";
 
@@ -12,12 +12,12 @@ describeSuite({
       id: "T01",
       title: "should succeed in clearing an association",
       test: async function () {
-        const api = context.polkadotJs({ type: "moon" });
+        const api = context.polkadotJs();
         await context.createBlock(
           api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS).signAsync(alith)
         );
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
 
         const { result } = await context.createBlock(
@@ -31,7 +31,7 @@ describeSuite({
         expect(api.events.system.ExtrinsicSuccess.is(result?.events[6].event)).to.be.true;
 
         // check mapping
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
       },
     });
   },

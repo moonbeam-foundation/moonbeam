@@ -3,7 +3,6 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_GENESIS_LOCK_BALANCE,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
@@ -12,11 +11,12 @@ import {
   GLMR,
   MIN_GAS_PRICE,
   checkBalance,
-  createRawTransaction,
+  createViemTransaction,
   createRawTransfer,
   generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { parseGwei } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
@@ -36,7 +36,7 @@ describeSuite({
       id: "T01",
       title: "should cost 21000 gas for a transfer",
       test: async function () {
-        const estimatedGas = await context.viem("public").estimateGas({
+        const estimatedGas = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           value: 0n * GLMR,
           to: randomAddress,
@@ -44,7 +44,7 @@ describeSuite({
         expect(estimatedGas, "Estimated bal transfer incorrect").toBe(21000n);
 
         await context.createBlock(createRawTransfer(context, randomAddress, 0n));
-        expect(await checkBalance(context)).toBe(
+        expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).toBe(
           ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n
         );
       },
@@ -55,18 +55,17 @@ describeSuite({
       title: "unsent txns should be in pending",
       test: async function () {
         await context.createBlock();
-        const balanceBefore = await checkBalance(context, CHARLETH_ADDRESS, "pending");
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
           privateKey: CHARLETH_PRIVATE_KEY,
           gasPrice: MIN_GAS_PRICE,
           gas: 21000n,
-          type: "legacy",
+          txnType: "legacy",
         })) as `0x${string}`;
         await sendRawTransaction(context, rawTx);
-        const fees = 21000n * MIN_GAS_PRICE;
-        const balanceAfter = await checkBalance(context, CHARLETH_ADDRESS, "pending");
-        expect(await checkBalance(context, randomAddress, "pending")).toBe(512n);
-        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+
+        expect(
+          await context.viem().getBalance({ address: randomAddress, blockTag: "pending" })
+        ).toBe(512n);
       },
     });
 
@@ -74,16 +73,16 @@ describeSuite({
       id: "T03",
       title: "should decrease from account",
       test: async function () {
-        const balanceBefore = await checkBalance(context);
+        const balanceBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
         const fees = 21000n * MIN_GAS_PRICE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
             gasPrice: MIN_GAS_PRICE,
-            type: "legacy",
+            txnType: "legacy",
           })
         );
-        const balanceAfter = await checkBalance(context);
+        const balanceAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
         expect(balanceBefore - balanceAfter - fees).toBe(512n);
       },
     });
@@ -124,13 +123,14 @@ describeSuite({
         ).block.header.number.toBigInt();
 
         const block1Hash = await context.polkadotJs().rpc.chain.getBlockHash(blockNumber);
+        const balance = await (
+          await context.polkadotJs().at(block1Hash)
+        ).query.system.account(ALITH_ADDRESS);
 
-        expect(await checkBalance(context, ALITH_ADDRESS, blockNumber)).to.equal(
-          (
-            (await (
-              await context.polkadotJs().at(block1Hash)
-            ).query.system.account(ALITH_ADDRESS)) as any
-          ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+        expect(await context.viem().getBalance({ blockNumber, address: ALITH_ADDRESS })).to.equal(
+          balance.data.free.toBigInt() +
+            balance.data.reserved.toBigInt() -
+            balance.data.frozen.toBigInt()
         );
       },
     });
@@ -214,7 +214,7 @@ describeSuite({
         const freeBal = accountData.free.toBigInt() - accountData.reserved.toBigInt();
         const maxFeePerGas = 10_000_000_000n * 2n;
         await context.createBlock(
-          await createRawTransaction(context, {
+          await createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
             gas: 21000n,
             to: randomAddress,

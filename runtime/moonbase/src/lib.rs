@@ -301,6 +301,10 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ConstU128<0>;
 	type AccountStore = System;
+	type FreezeIdentifier = ();
+	type MaxFreezes = ConstU32<0>;
+	type HoldIdentifier = ();
+	type MaxHolds = ConstU32<0>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -372,6 +376,7 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}
@@ -734,19 +739,19 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinCandidateStk = ConstU128<{ 500 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	/// Minimum stake required to be reserved to be a delegator
-	type MinDelegatorStk = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = ();
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
+	type MaxCandidates = ConstU32<200>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainDataProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
+	type AuthorId = AccountId;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1010,7 +1015,6 @@ impl pallet_migrations::Config for Runtime {
 		>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
-	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
 
 /// Maintenance mode Call filter
@@ -1088,7 +1092,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
-impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
+impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
 		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
@@ -1151,12 +1155,12 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 		AllPalletsWithSystem::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		AllPalletsWithSystem::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		AllPalletsWithSystem::post_upgrade(state)
 	}
 }
@@ -1263,7 +1267,7 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 
 impl pallet_randomness::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type AddressMapping = IdentityAddressMapping;
+	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
@@ -1336,7 +1340,7 @@ construct_runtime! {
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
-		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event<T>} = 32,
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
@@ -1597,10 +1601,6 @@ mod tests {
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),
-			Balance::from(1 * UNIT)
-		);
-		assert_eq!(
-			get!(pallet_parachain_staking, MinDelegatorStk, u128),
 			Balance::from(1 * UNIT)
 		);
 

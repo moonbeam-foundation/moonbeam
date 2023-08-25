@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
+  ALITH_ADDRESS,
   ALITH_SESSION_ADDRESS,
-  baltathar,
   BALTATHAR_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
+  baltathar,
 } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../helpers/common.js";
 
@@ -18,7 +18,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async () => {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
     });
 
     it({
@@ -55,7 +55,7 @@ describeSuite({
           0n
         );
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
       },
     });
@@ -78,7 +78,7 @@ describeSuite({
 
         //check state
         expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS))!.account).to.eq(
-          alith.address
+          ALITH_ADDRESS
         );
       },
     });

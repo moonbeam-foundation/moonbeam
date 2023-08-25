@@ -1,23 +1,29 @@
-import { afterEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { afterEach, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   DOROTHY_ADDRESS,
+  GOLIATH_ADDRESS,
+  GOLIATH_PRIVATE_KEY,
   MIN_GAS_PRICE,
-  createEthersTxn,
+  createEthersTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
 import { parseGwei } from "viem";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 
 describeSuite({
   id: "D1102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    beforeAll(async () => {
+      await context.createBlock(await createRawTransfer(context, BALTATHAR_ADDRESS, 3n));
+    });
+
     afterEach(async () => {
       await context.createBlock();
     });
@@ -39,9 +45,9 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        const { rawSigned: tx1 } = await createEthersTxn(context, {
+        const tx1 = await createEthersTransaction(context, {
           to: CHARLETH_ADDRESS,
           nonce,
           gasPrice: parseGwei("15"),
@@ -51,7 +57,7 @@ describeSuite({
 
         await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
 
-        const { rawSigned: tx2 } = await createEthersTxn(context, {
+        const tx2 = await createEthersTransaction(context, {
           to: DOROTHY_ADDRESS,
           nonce,
           value: 200,
@@ -69,24 +75,23 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
-        const tx1 = await createEthersTxn(context, {
+        const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
+        const tx1 = await context.createTxn!({
           to: BALTATHAR_ADDRESS,
-          value: 1,
+          value: 1n,
           nonce,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
-        await context.createBlock(tx1.rawSigned);
+        await context.createBlock(tx1);
 
-        const tx2 = await createEthersTxn(context, {
+        const tx2 = await context.createTxn!({
           to: DOROTHY_ADDRESS,
-          value: 2,
+          value: 2n,
           nonce: Math.max(nonce - 1, 0),
           privateKey: CHARLETH_PRIVATE_KEY,
         });
-
         expect(
-          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2.rawSigned]),
+          async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2]),
           "tx should be rejected for duplicate nonce"
         ).rejects.toThrowError("nonce too low");
       },
@@ -96,15 +101,17 @@ describeSuite({
       id: "T04",
       title: "already known #2",
       test: async function () {
+        const nonce = await context
+          .viem("public")
+          .getTransactionCount({ address: GOLIATH_ADDRESS });
+
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
-          nonce: 0,
+          nonce: nonce + 1,
           gasPrice: MIN_GAS_PRICE,
+          privateKey: GOLIATH_PRIVATE_KEY,
         });
         await context.createBlock(tx1);
-        const tx2 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
-          nonce: 0,
-          gasPrice: MIN_GAS_PRICE,
-        });
+
         expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx1])
         ).rejects.toThrowError("already known");

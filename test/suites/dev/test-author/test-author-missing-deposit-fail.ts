@@ -12,7 +12,7 @@ describeSuite({
     let api: ApiPromise;
 
     beforeAll(async function () {
-      api = context.polkadotJs({ type: "moon" });
+      api = context.polkadotJs();
       const rando = generateKeyringPair();
       expect((await api.query.system.account(rando.address as string)).data.free.toBigInt()).to.eq(
         0n
@@ -31,7 +31,7 @@ describeSuite({
       id: "T01",
       title: "should not add the association",
       test: async function () {
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
       },
     });
 

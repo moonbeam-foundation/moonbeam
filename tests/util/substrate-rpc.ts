@@ -150,7 +150,23 @@ function getDispatchInfo({ event: { data, method } }: EventRecord): DispatchInfo
 }
 
 export function extractError(events: EventRecord[] = []): DispatchError | undefined {
-  return filterAndApply(events, "system", ["ExtrinsicFailed"], getDispatchError)[0];
+  return (
+    filterAndApply(events, "system", ["ExtrinsicFailed"], getDispatchError)[0] ||
+    extractBatchError(events)
+  );
+}
+
+export function extractBatchError(events: EventRecord[] = []): DispatchError | undefined {
+  return filterAndApply(
+    events,
+    "utility",
+    ["BatchInterrupted"],
+    ({
+      event: {
+        data: [_, error],
+      },
+    }) => getDispatchError({ event: { data: [error] } } as EventRecord)
+  )[0];
 }
 
 export function isExtrinsicSuccessful(events: EventRecord[] = []): boolean {

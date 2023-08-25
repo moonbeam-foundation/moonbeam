@@ -12,8 +12,10 @@ ethereum = { workspace = true, features = [ "with-codec" ] }
 ethereum-types = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
+log = { workspace = true }
 serde = { workspace = true, features = [ "derive" ] }
 sha3 = { workspace = true }
+substrate-prometheus-endpoint = { workspace = true }
 tokio = { workspace = true, features = [ "sync", "time" ] }
 tracing = { workspace = true }
 

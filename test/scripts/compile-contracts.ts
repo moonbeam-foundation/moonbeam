@@ -36,6 +36,12 @@ yargs(hideBin(process.argv))
       description: "Source directory for solidity contracts to compile",
       default: "contracts/src",
     },
+    Verbose: {
+      type: "boolean",
+      alias: "v",
+      description: "Verbose mode for extra logging.",
+      default: false,
+    },
   })
   .command("compile", "Compile contracts", async (argv) => {
     await main(argv as any);
@@ -109,7 +115,7 @@ async function main(args: any) {
       if (contractHash != contractMd5[contract]) {
         console.log(`  - Change in ${chalk.yellow(contract)}, compiling ⚙️`);
         contractsToCompile.push(contract);
-      } else {
+      } else if (args.argv.Verbose) {
         console.log(`  - No change to ${chalk.green(contract)}, skipping ✅`);
       }
     }

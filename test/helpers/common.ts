@@ -1,25 +1,27 @@
+import { DevModeContext, importJsonConfig } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { u32 } from "@polkadot/types";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
-import {
-  createMetadata,
-  getSpecTypes,
-  KeyringPair,
-  OptionsWithMeta,
-  TypeRegistry,
-} from "@substrate/txwrapper-core";
+import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
-import { DevModeContext, importJsonConfig, MoonwallContext } from "@moonwall/cli";
-import { ethers, Signer } from "ethers";
-import fetch from "node-fetch";
-import { Chain } from "viem";
 
-export function rateLimiter() {
-  const settings =
-    process.env.SKIP_RATE_LIMITER === "true" ? {} : { maxConcurrent: 10, minTime: 150 };
-  return new Bottleneck(settings);
+export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+
+  return chunks;
 }
 
+export function rateLimiter(options?: Bottleneck.ConstructorOptions) {
+  const settings =
+    process.env.SKIP_RATE_LIMITER === "true"
+      ? {}
+      : { maxConcurrent: 10, minTime: 50, ...(options || {}) };
+
+  return new Bottleneck(settings);
+}
 export async function checkTimeSliceForUpgrades(
   api: ApiPromise,
   blockNumbers: number[],
@@ -47,20 +49,14 @@ export function sortObjectByKeys(unsortedObject: Record<string, any>): Record<st
     }, {});
 }
 
-export async function getMappingInfo(
-  context: DevModeContext,
-  authorId: string
-): Promise<{ account: string; deposit: BigInt } | null> {
-  const mapping = await context
-    .polkadotJs({ type: "moon" })
-    .query.authorMapping.mappingWithDeposit(authorId);
+export async function getMappingInfo(context: DevModeContext, authorId: string) {
+  const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
       account: mapping.unwrap().account.toString(),
       deposit: mapping.unwrap().deposit.toBigInt(),
     };
   }
-  return null;
 }
 
 export async function getProviderPath() {

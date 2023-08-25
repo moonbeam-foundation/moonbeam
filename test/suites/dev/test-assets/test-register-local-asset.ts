@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+// import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { BN } from "@polkadot/util";

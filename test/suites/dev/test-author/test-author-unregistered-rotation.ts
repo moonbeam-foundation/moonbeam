@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect } from "@moonwall/cli";
+import { BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS, alith } from "@moonwall/util";
 import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({
@@ -14,15 +14,15 @@ describeSuite({
       test: async function () {
         await context.createBlock(
           context
-            .polkadotJs({ type: "moon" })
+            .polkadotJs()
             .tx.authorMapping.updateAssociation(
               BALTATHAR_SESSION_ADDRESS,
               CHARLETH_SESSION_ADDRESS
             ),
-          { allowFailures: true }
+          { allowFailures: true, signer: alith }
         );
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
-        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
+        expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).toBeUndefined();
 
         await context.createBlock();
       },

@@ -1,13 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  ALITH_GENESIS_FREE_BALANCE,
-  ALITH_GENESIS_TRANSFERABLE_BALANCE,
-  GLMR,
-  alith,
-} from "@moonwall/util";
+import { ALITH_ADDRESS, ALITH_GENESIS_FREE_BALANCE, GLMR, alith } from "@moonwall/util";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 import { calculate_vested_amount, getAccountPayable } from "../../../helpers/crowdloan.js";
 
 describeSuite({
@@ -65,7 +60,7 @@ describeSuite({
         ).to.equal(claimed);
 
         expect(
-          (await context.viem("public").getBalance({ address: ALITH_ADDRESS })) -
+          (await context.viem().getBalance({ address: ALITH_ADDRESS })) -
             ALITH_GENESIS_TRANSFERABLE_BALANCE
         ).toBe(claimed - claimFee); // reduce the claim fee part;
         const account = await context.polkadotJs().query.system.account(ALITH_ADDRESS);

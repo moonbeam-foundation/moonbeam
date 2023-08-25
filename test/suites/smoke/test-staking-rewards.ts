@@ -9,6 +9,7 @@ import {
   PalletParachainStakingDelegator,
   PalletParachainStakingCollatorSnapshot,
   PalletParachainStakingBond,
+  PalletParachainStakingBondWithAutoCompound,
 } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
@@ -28,7 +29,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
 
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
@@ -137,7 +138,7 @@ describeSuite({
         // Function to check a single Delegator's delegation to a collator
         const checkDelegatorDelegation = async (
           accountId: AccountId20,
-          delegatorSnapshot,
+          delegatorSnapshot: PalletParachainStakingBondWithAutoCompound,
           scheduledRequests: PalletParachainStakingDelegationRequestsScheduledRequest[]
         ) => {
           const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
@@ -148,7 +149,7 @@ describeSuite({
 
           const delegationAmount = delegatorDelegations.find(
             (candidate) => candidate.owner.toString() == accountId.toString()
-          ).amount;
+          )!.amount;
 
           // Querying for pending withdrawals which affect the total
           const scheduledRequest = scheduledRequests.find((a) => {
@@ -302,11 +303,11 @@ describeSuite({
         log("Verifying autoCompound preferences, estimated time " + estimatedTime + " mins.");
 
         const results: any = await Promise.all(promises);
-        const mismatches = results.filter((item) => item.match == false);
+        const mismatches = results.filter((item: any) => item.match == false);
         expect(
           mismatches,
           `Mismatched autoCompound for ${mismatches
-            .map((a) => `delegator ${a.delegator} collator:${a.collator}`)
+            .map((a: any) => `delegator ${a.delegator} collator:${a.collator}`)
             .join(", ")}`
         ).to.be.empty;
 
@@ -694,7 +695,7 @@ describeSuite({
                 ([key, { autoCompound }]) =>
                   !autoCompound.value().isZero() &&
                   expectedRewardedDelegators.has(key) &&
-                  !outstandingRevokesAtBlock[rewarded.collator]?.has(key)
+                  !outstandingRevokesAtBlock[rewarded.collator!]?.has(key)
               )
               .map(([key, _]) => key)
           );
@@ -796,6 +797,10 @@ describeSuite({
       ).to.be.empty;
     }
 
+    interface Rewards {
+      [key: HexString]: { account: string; amount: u128 };
+    }
+
     async function assertRewardedEventsAtBlock(
       api: ApiPromise,
       specVersion: number,
@@ -817,7 +822,7 @@ describeSuite({
       const round = await apiAtBlock.query.parachainStaking.round();
 
       log(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
-      const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
+      const rewards: Rewards = {};
       const autoCompounds: {
         [key: HexString]: { candidate: string; account: string; amount: u128 };
       } = {};
@@ -851,10 +856,10 @@ describeSuite({
             );
 
             const collator = `0x${collators
-              .find((orbit) => orbit[1].toHex() == event.data[0].toHex())[0]
+              .find((orbit) => orbit[1].toHex() == event.data[0].toHex())![0]
               .toHex()
               .slice(-40)}`;
-            rewards[collator] = {
+            rewards[collator as HexString] = {
               account: collator,
               amount: event.data[1] as u128,
             };
@@ -880,8 +885,7 @@ describeSuite({
 
       let bondReward: BN = new BN(0);
       let collatorInfo: any = {};
-      let rewarded = {
-        collator: null as HexString,
+      let rewarded: Rewarded = {
         delegators: new Set<string>(),
         collatorSharePerbill: new BN(0),
         amount: {
@@ -954,8 +958,8 @@ describeSuite({
           );
 
           const canAutoCompound =
-            !outstandingRevokes[rewarded.collator] ||
-            !outstandingRevokes[rewarded.collator].has(accountId);
+            !outstandingRevokes[rewarded.collator!] ||
+            !outstandingRevokes[rewarded.collator!].has(accountId);
           if (specVersion >= 1900 && canAutoCompound) {
             const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
             // skip assertion if auto-compound 0%
@@ -1019,7 +1023,7 @@ describeSuite({
 
     type Rewarded = {
       // Collator account id
-      collator: HexString | null;
+      collator?: HexString;
       // Set of delegator account ids
       delegators: Set<string>;
       // The percentage point share in Perbill of the collator

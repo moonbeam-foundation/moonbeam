@@ -41,7 +41,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" }) as any as ApiPromise;
+      paraApi = context.polkadotJs("para") as any as ApiPromise;
       const blockNumArray = await getBlockArray(paraApi, timePeriod);
       const limits = paraApi.consts.system.blockWeights;
 
@@ -75,9 +75,9 @@ describeSuite({
         normal: extractWeight(limits.perClass.normal.maxTotal).toBigInt(),
         operational: extractWeight(limits.perClass.operational.maxTotal).toBigInt(),
       };
-      blockInfoArray = await Promise.all(
+      blockInfoArray = (await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
-      );
+      )) as BlockInfo[];
     }, timeout);
 
     // This test is more for verifying that the test code is correctly returning good quality data
@@ -201,7 +201,7 @@ describeSuite({
         expect(
           nonTxnHeavyBlocks,
           `These blocks have non-txn weights >20%, please investigate: ${nonTxnHeavyBlocks
-            .map((a) => a.blockNum)
+            .map((a) => a!.blockNum)
             .join(", ")}`
         ).to.be.empty;
       },
@@ -216,12 +216,14 @@ describeSuite({
       test: async function () {
         // Waiting for bugfixes
         if (paraApi.consts.system.version.specVersion.toNumber() < 2000) {
+          log("Skipping test due to RT ver < 2000 ");
           return; // TODO: replace this with skip() when added to vitest
         }
 
         const apiAt = await paraApi.at(blockInfoArray[0].hash);
         if (apiAt.consts.system.version.specVersion.toNumber() < 2000) {
-          this.skip();
+          log("Skipping test due to RT ver < 2000 ");
+          return;
         }
 
         log(
@@ -288,7 +290,8 @@ describeSuite({
       test: async function () {
         // Waiting for bugfixes
         if (paraApi.consts.system.version.specVersion.toNumber() < 2000) {
-          this.skip();
+          log("Skipping test due to RT ver < 2000 ");
+          return;
         }
 
         log(

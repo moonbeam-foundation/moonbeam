@@ -1,0 +1,85 @@
+import "@moonbeam-network/api-augment";
+import { describeSuite, expect } from "@moonwall/cli";
+import { alith, baltathar, charleth, dorothy, ethan } from "@moonwall/util";
+
+describeSuite({
+  id: "D3210",
+  title: "Treasury proposal #10",
+  foundationMethods: "dev",
+  testCases: ({ context, it, log }) => {
+    it({
+      id: "T01",
+      title: "should be rejected if the half of the treasury council voted against it",
+      test: async function () {
+        await context.createBlock(
+          context.polkadotJs().tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
+        );
+
+        const proposalCount = await context.polkadotJs().query.treasury.proposalCount();
+        expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
+
+        // Charleth proposed that the council reject the treasury proposal
+        // (and therefore implicitly votes for)
+        const { result: proposalResult } = await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.treasuryCouncilCollective.propose(
+              2,
+              context.polkadotJs().tx.treasury.rejectProposal(0),
+              1_000
+            )
+            .signAsync(charleth)
+        );
+
+        const councilProposalHash = proposalResult!.events
+          .find(({ event: { method } }) => method.toString() == "Proposed")
+          .event.data[2].toHex();
+
+        // Charleth & Dorothy vote for against proposal and close it
+        await context.createBlock([
+          context
+            .polkadotJs()
+            .tx.treasuryCouncilCollective.vote(councilProposalHash, 0, true)
+            .signAsync(charleth),
+          context
+            .polkadotJs()
+            .tx.treasuryCouncilCollective.vote(councilProposalHash, 0, true)
+            .signAsync(dorothy),
+        ]);
+
+        const { result: closeResult } = await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.treasuryCouncilCollective.close(
+              councilProposalHash,
+              0,
+              {
+                refTime: 800_000_000,
+                proofSize: 64 * 1024,
+              },
+              1_000
+            )
+            .signAsync(dorothy),
+          {
+            expectEvents: [
+              context.polkadotJs().events.treasuryCouncilCollective.Closed,
+              context.polkadotJs().events.treasuryCouncilCollective.Approved,
+              context.polkadotJs().events.treasury.Rejected,
+              context.polkadotJs().events.balances.Slashed,
+            ],
+          }
+        );
+        expect(
+          closeResult!.events.find((evt) =>
+            context.polkadotJs().events.treasuryCouncilCollective.Executed.is(evt.event)
+          ).event.data.result.isOk
+        ).toBe(true);
+
+        expect((await context.polkadotJs().query.treasury.proposals(0)).toHuman()).to.equal(
+          null,
+          "The proposal must have been deleted"
+        );
+      },
+    });
+  },
+});

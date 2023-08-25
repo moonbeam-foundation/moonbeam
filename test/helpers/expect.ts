@@ -67,8 +67,10 @@ export function expectSubstrateEvent<
         ({ event }) => event.section.toString() == section && event.method.toString() == method
       );
       if (foundEvents.length > 0) {
-        expect(event, `Event ${section.toString()}.${method.toString()} appeared multiple times`).to
-          .be.null;
+        expect(
+          event,
+          `Event ${section.toString()}.${method.toString()} appeared multiple times`
+        ).toBeUndefined();
         expect(
           foundEvents,
           `Event ${section.toString()}.${method.toString()} appeared multiple times`
@@ -77,7 +79,7 @@ export function expectSubstrateEvent<
       }
     });
   } else {
-    const foundEvents = block.result.events.filter(
+    const foundEvents = block.result!.events!.filter(
       ({ event }) => event.section.toString() == section && event.method.toString() == method
     );
     if (foundEvents.length > 0) {
@@ -88,7 +90,17 @@ export function expectSubstrateEvent<
       event = foundEvents[0];
     }
   }
-  expect(event).to.not.be.undefined;
+  expect(
+    event,
+    `Event ${section.toString()}.${method.toString()} not found:\n${(Array.isArray(block.result)
+      ? block.result.map((r) => r.events).flat()
+      : block.result
+      ? block.result.events
+      : []
+    )
+      .map(({ event }) => `       - ${event.section.toString()}.${event.method.toString()}\n`)
+      .join("")}`
+  ).to.not.be.undefined;
   return event!.event as any;
 }
 
