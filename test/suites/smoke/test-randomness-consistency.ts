@@ -395,6 +395,10 @@ describeSuite({
       title: "local VRF output should be random",
       timeout: 10000,
       test: async function () {
+        // We are using the NIST guideline thresholds, however we are only really concerned if
+        // multiple tests fail given these are all probabilistic tests
+        const maxTestFailures = 4;
+
         if (!isRandomnessAvailable) {
           return;
         }
@@ -405,15 +409,15 @@ describeSuite({
         }
 
         const currentOutput = await apiAt.query.randomness.localVrfOutput();
-        const randomTestResults = isRandom(currentOutput.unwrap().toU8a());
+        const randomTestResults = isRandom(currentOutput.unwrapOrDefault().toU8a());
         const failures = Object.entries(randomTestResults).filter(([_, result]) => !result);
 
-        expect(failures.length).to.equal(
-          0,
+        expect(
+          failures.length,
           `Failed random at #${atBlockNumber} for local VRF: ${failures
             .map((test) => test[0])
             .join(", ")}`
-        );
+        ).toBeLessThan(maxTestFailures);
       },
     });
 
