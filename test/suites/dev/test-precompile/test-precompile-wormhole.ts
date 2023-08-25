@@ -288,6 +288,29 @@ describeSuite({
         )
         .signAndSend(alith);
       await context.createBlock();
+
+      // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
+      const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
+        u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
+      );
+      expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
+        "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
+      );
+
+      await context
+        .polkadotJs()
+        .tx.sudo.sudo(
+          context
+            .polkadotJs()
+            .tx.system.setStorage([
+              [
+                ENABLED_FLAG_STORAGE_ADDRESS,
+                context.polkadotJs().registry.createType("Option<bool>", true).toHex(),
+              ],
+            ])
+        )
+        .signAndSend(alith);
+      await context.createBlock();
     });
 
   it({
