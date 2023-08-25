@@ -152,7 +152,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
-        mutedUntil: 1693553400000,
+        mutedUntil: 1695454200000,
       },
       {
         name: "Bifrost",
