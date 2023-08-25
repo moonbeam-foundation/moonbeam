@@ -225,7 +225,11 @@ where
 					.try_into()
 					.map_err(|_| revert("Fee amount overflows balance"))?;
 
-				log::debug!(target: "gmp-precompile", "deducting fee from transferred amount {:?} - {:?} = {:?}", amount, fee, (amount - fee));
+				log::debug!(
+					target: "gmp-precompile",
+					"deducting fee from transferred amount {:?} - {:?} = {:?}",
+					amount, fee, (amount - fee)
+				);
 
 				let remaining = amount.saturating_sub(fee);
 
