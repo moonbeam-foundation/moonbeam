@@ -501,7 +501,7 @@ describeSuite({
       test: async () => {
         // The account cannot be random otherwise the calldata might contain more
         // zero bytes and have a different gas cost
-        const randomAccount = '0x1ced798a66b803d0dbb665680283980a939a6432';
+        const randomAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
