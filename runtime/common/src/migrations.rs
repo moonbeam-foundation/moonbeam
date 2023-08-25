@@ -130,18 +130,18 @@ where
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		let module = b"EthereumChainId";
 		let item = b"ChainId";
 
 		frame_support::migration::get_storage_value::<u64>(module, item, &[])
 			.map(|chain_id| chain_id.to_le_bytes().to_vec())
-			.ok_or("chain id not found")
+			.ok_or(sp_runtime::DispatchError::Other("chain id not found"))
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		use pallet_evm_chain_id::ChainId;
 
 		let chain_id = ChainId::<T>::get();
@@ -150,7 +150,7 @@ where
 		if state == chain_id {
 			Ok(())
 		} else {
-			Err("chain id not equal")
+			Err(sp_runtime::DispatchError::Other("chain id not equal"))
 		}
 	}
 }
