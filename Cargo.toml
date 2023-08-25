@@ -217,36 +217,36 @@ ethereum = { version = "0.14.0", default-features = false, features = [
 	"with-codec",
 ] }
 ethereum-types = { version = "0.14", default-features = false }
-evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
-evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
-evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "tgm-record-external-cost", default-features = false }
-fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
+evm = { path = "/Users/ahmadkaouk/workspace/moonbeam/evm", default-features = false }
+evm-gasometer = { path = "/Users/ahmadkaouk/workspace/moonbeam/evm/gasometer",  default-features = false }
+evm-runtime = { path = "/Users/ahmadkaouk/workspace/moonbeam/evm/runtime",  default-features = false }
+fp-ethereum = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/ethereum", default-features = false }
+fp-evm = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/evm", default-features = false }
+fp-rpc = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/rpc", default-features = false }
+fp-self-contained = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/self-contained", default-features = false }
+pallet-base-fee = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/base-fee", default-features = false }
+pallet-ethereum = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/ethereum", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
-pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
+pallet-evm-precompile-blake2 = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/blake2", default-features = false }
+pallet-evm-precompile-bn128 = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/bn128", default-features = false }
+pallet-evm-precompile-dispatch = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/dispatch", default-features = false }
+pallet-evm-precompile-modexp = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/modexp", default-features = false }
+pallet-evm-precompile-sha3fips = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/sha3fips", default-features = false }
+pallet-evm-precompile-simple = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/frame/evm/precompile/simple", default-features = false }
 
 # Frontier (client)
-fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", features = [
+fc-consensus = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/consensus" }
+fc-db = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/db" }
+fc-mapping-sync = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/mapping-sync" }
+fc-rpc = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/rpc", features = [
 	"rpc-binary-search-estimate",
 ] }
-fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
-fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43" }
+fc-rpc-core = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/rpc-core" }
+fc-storage = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/client/storage" }
+fp-consensus = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/consensus" }
+fp-storage = { path = "/Users/ahmadkaouk/workspace/moonbeam/frontier/primitives/storage" }
 
 # Cumulus (wasm)
 cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/cumulus", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
