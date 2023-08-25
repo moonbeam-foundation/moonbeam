@@ -178,6 +178,7 @@ where
 				),
 				overall_weight: None,
 			},
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -221,6 +222,7 @@ where
 				),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -270,6 +272,7 @@ where
 				overall_weight: None,
 			},
 			inner_call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -322,6 +325,7 @@ where
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
 			inner_call,
+			refund: false,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -356,6 +360,7 @@ where
 				),
 				overall_weight: None,
 			},
+			refund: false,
 			call,
 		};
 
@@ -393,6 +398,7 @@ where
 				),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
+			refund: false,
 			call,
 		};
 
@@ -438,6 +444,7 @@ where
 				),
 				overall_weight: None,
 			},
+			refund: false,
 			call,
 		};
 
@@ -485,6 +492,7 @@ where
 				),
 				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
 			},
+			refund: false,
 			call,
 		};
 
@@ -515,5 +523,207 @@ where
 		.as_slice()
 		.into();
 		Ok(encoded)
+	}
+
+	pub(crate) fn transact_info_with_signed_v3(
+		handle: &mut impl PrecompileHandle,
+		multilocation: MultiLocation,
+	) -> EvmResult<(Weight, Weight, Weight)> {
+		// fetch data from pallet
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// + RemoteTransactInfoWithMaxWeight
+		handle.record_db_read::<Runtime>(
+			16 + MultiLocation::max_encoded_len()
+				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+		)?;
+
+		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
+			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
+				.ok_or(revert("Transact Info not set"))?;
+
+		let transact_extra_weight_signed = remote_transact_info
+			.transact_extra_weight_signed
+			.unwrap_or(Weight::zero());
+
+		Ok((
+			remote_transact_info.transact_extra_weight,
+			transact_extra_weight_signed,
+			remote_transact_info.max_weight,
+		))
+	}
+
+	pub(crate) fn transact_through_derivative_multilocation_v3(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		fee_asset: MultiLocation,
+		weight: Weight,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: Weight,
+		refund: bool,
+	) -> EvmResult {
+		let transactor = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+
+		let inner_call: Vec<_> = inner_call.into();
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
+			dest: transactor,
+			index,
+			fee: CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					fee_asset,
+				))),
+				fee_amount: Some(fee_amount),
+			},
+			inner_call,
+			weight_info: TransactWeights {
+				transact_required_weight_at_most: weight,
+				overall_weight: Some(overall_weight),
+			},
+			refund,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	pub(crate) fn transact_through_derivative_v3(
+		handle: &mut impl PrecompileHandle,
+		transactor: u8,
+		index: u16,
+		fee_asset: Address,
+		weight: Weight,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: Weight,
+		refund: bool,
+	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
+		let transactor = transactor
+			.try_into()
+			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
+		let inner_call: Vec<_> = inner_call.into();
+
+		let to_address: H160 = fee_asset.into();
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
+		// We convert the address into a currency
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(revert("cannot convert into currency id"))?;
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
+			dest: transactor,
+			index,
+			fee: CurrencyPayment {
+				currency: Currency::AsCurrencyId(currency_id),
+				fee_amount: Some(fee_amount),
+			},
+			weight_info: TransactWeights {
+				transact_required_weight_at_most: weight,
+				overall_weight: Some(overall_weight),
+			},
+			inner_call,
+			refund,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	pub(crate) fn transact_through_signed_multilocation_v3(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		fee_asset: MultiLocation,
+		weight: Weight,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: Weight,
+		refund: bool,
+	) -> EvmResult {
+		let call: Vec<_> = call.into();
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			fee: CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+					fee_asset,
+				))),
+				fee_amount: Some(fee_amount),
+			},
+			weight_info: TransactWeights {
+				transact_required_weight_at_most: weight,
+				overall_weight: Some(overall_weight),
+			},
+			refund,
+			call,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	pub(crate) fn transact_through_signed_v3(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		fee_asset: Address,
+		weight: Weight,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: Weight,
+		refund: bool,
+	) -> EvmResult {
+		// No DB access before try_dispatch but lot of logical stuff
+		// To prevent spam, we charge an arbitrary amoun of gas
+		handle.record_cost(1000)?;
+
+		let to_address: H160 = fee_asset.into();
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
+		let call: Vec<_> = call.into();
+
+		// We convert the address into a currency
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(revert("cannot convert into currency id"))?;
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
+			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			fee: CurrencyPayment {
+				currency: Currency::AsCurrencyId(currency_id),
+				fee_amount: Some(fee_amount),
+			},
+			weight_info: TransactWeights {
+				transact_required_weight_at_most: weight,
+				overall_weight: Some(overall_weight),
+			},
+			refund,
+			call,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 }
