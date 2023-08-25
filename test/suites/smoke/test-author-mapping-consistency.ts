@@ -1,7 +1,9 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import chalk from "chalk";
-import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { FIVE_MINS } from "@moonwall/util";
+import { ApiPromise } from "@polkadot/api";
+import { ApiDecoration } from "@polkadot/api/types";
+import chalk from "chalk";
 
 describeSuite({
   id: "S200",
@@ -11,16 +13,13 @@ describeSuite({
     const nimbusIdPerAccount: { [account: string]: string } = {};
 
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
+    let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      // How many entries to query at a time
+      paraApi = context.polkadotJs("para");
       const limit = 1000;
-
-      // Last key to query in a loop
       let last_key = "";
-
-      // current number of queried items
       let count = 0;
 
       // Configure the api at a specific block
@@ -28,10 +27,8 @@ describeSuite({
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context
-        .polkadotJs()
-        .at(await context.polkadotJs().rpc.chain.getBlockHash(atBlockNumber));
+        : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+      apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
       // Query nimbus ids
       while (true) {
@@ -60,14 +57,13 @@ describeSuite({
       }
 
       log(`Retrieved ${count} total nimbus ids`);
-    }, 300_000);
+    }, FIVE_MINS);
 
     it({
       id: "C100",
       title: `should have a deposit for each associated nimbus id`,
-      timeout: 60_000,
+      timeout: FIVE_MINS,
       test: async function () {
-        // Instead of putting an expect in the loop. We track all failed entries instead
         const failedEntries: { accountId: string; nimbusId: string; problem: string }[] = [];
 
         // Verify that there is a deposit for each nimbus id

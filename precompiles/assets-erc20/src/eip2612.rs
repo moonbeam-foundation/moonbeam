@@ -131,7 +131,7 @@ where
 	Runtime::AccountId: Into<H160>,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
-		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
+		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id.clone());
 
 		let name = if asset_name.is_empty() {
 			let mut name = b"Unnamed XC20 #".to_vec();
@@ -197,7 +197,8 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
 
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
@@ -211,8 +212,15 @@ where
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
-		let permit =
-			Self::generate_permit(address, asset_id, owner, spender, value, nonce, deadline);
+		let permit = Self::generate_permit(
+			address,
+			asset_id.clone(),
+			owner,
+			spender,
+			value,
+			nonce,
+			deadline,
+		);
 
 		let mut sig = [0u8; 65];
 		sig[0..32].copy_from_slice(&r.as_bytes());
@@ -251,7 +259,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
 
 		let owner: H160 = owner.into();
 
@@ -264,7 +273,12 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: AssetMetadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		handle.record_db_read::<Runtime>(
+			50 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
+		)?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.code_address(), asset_id).into();

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(clippy::todo)]
+
 /// Fake specifications, only a workaround to compile with runtime optional features.
 /// It's a zero variant enum to ensure at compile time that we never instantiate this type.
 pub enum FakeSpec {}
@@ -44,7 +46,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn boot_nodes(&self) -> &[sc_network_common::config::MultiaddrWithPeerId] {
+	fn boot_nodes(&self) -> &[sc_network::config::MultiaddrWithPeerId] {
 		todo!()
 	}
 
@@ -72,7 +74,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn add_boot_node(&mut self, _addr: sc_network_common::config::MultiaddrWithPeerId) {
+	fn add_boot_node(&mut self, _addr: sc_network::config::MultiaddrWithPeerId) {
 		todo!()
 	}
 

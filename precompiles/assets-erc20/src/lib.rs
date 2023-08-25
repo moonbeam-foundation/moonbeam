@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::fmt::Display;
-use fp_evm::PrecompileHandle;
+use fp_evm::{ExitError, PrecompileHandle};
 use frame_support::traits::fungibles::Inspect;
 use frame_support::traits::fungibles::{
 	approvals::Inspect as ApprovalInspect, metadata::Inspect as MetadataInspect,
@@ -33,7 +33,7 @@ use precompile_utils::prelude::*;
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
 
-use sp_core::{H160, H256, U256};
+use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
@@ -133,20 +133,27 @@ where
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {
-	/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
+	/// PrecompileSet discriminant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
 	#[precompile::discriminant]
-	fn discriminant(address: H160) -> Option<AssetIdOf<Runtime, Instance>> {
+	fn discriminant(address: H160, gas: u64) -> DiscriminantResult<AssetIdOf<Runtime, Instance>> {
+		let extra_cost = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		if gas < extra_cost {
+			return DiscriminantResult::OutOfGas;
+		}
+
 		let account_id = Runtime::AddressMapping::into_account_id(address);
 		let asset_id = match Runtime::account_to_asset_id(account_id) {
 			Some((_, asset_id)) => asset_id,
-			None => return None,
+			None => return DiscriminantResult::None(extra_cost),
 		};
 
-		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
-			Some(asset_id)
+		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id.clone())
+			.is_some()
+		{
+			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
-			None
+			DiscriminantResult::None(extra_cost)
 		}
 	}
 
@@ -156,7 +163,9 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		Ok(pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into())
 	}
@@ -168,7 +177,11 @@ where
 		handle: &mut impl PrecompileHandle,
 		who: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Account:
+		// Blake2_128(16) + AssetId(16) + Blake2_128(16) + AccountId(20) + AssetAccount(19 + Extra)
+		handle.record_db_read::<Runtime>(
+			87 + <Runtime as pallet_assets::Config<Instance>>::Extra::max_encoded_len(),
+		)?;
 
 		let who: H160 = who.into();
 
@@ -190,7 +203,9 @@ where
 		owner: Address,
 		spender: Address,
 	) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Approvals:
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		handle.record_db_read::<Runtime>(136)?;
 
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
@@ -247,18 +262,19 @@ where
 		let amount: BalanceOf<Runtime, Instance> =
 			value.try_into().unwrap_or_else(|_| Bounded::max_value());
 
-		// Allowance read
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Approvals:
+		// Blake2_128(16) + AssetId(16) + (2 * Blake2_128(16) + AccountId(20)) + Approval(32)
+		handle.record_db_read::<Runtime>(136)?;
 
 		// If previous approval exists, we need to clean it
-		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender)
+		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id.clone(), &owner, &spender)
 			!= 0u32.into()
 		{
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
 				Some(owner.clone()).into(),
 				pallet_assets::Call::<Runtime, Instance>::cancel_approval {
-					id: asset_id.into(),
+					id: asset_id.clone().into(),
 					delegate: Runtime::Lookup::unlookup(spender.clone()),
 				},
 			)?;
@@ -384,7 +400,12 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		handle.record_db_read::<Runtime>(
+			50 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
+		)?;
 
 		let name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
 			.as_slice()
@@ -399,7 +420,12 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<UnboundedBytes> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		handle.record_db_read::<Runtime>(
+			50 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
+		)?;
 
 		let symbol = pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
 			.as_slice()
@@ -414,7 +440,12 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<u8> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Metadata:
+		// Blake2_128(16) + AssetId(16) + AssetMetadata[deposit(16) + name(StringLimit)
+		// + symbol(StringLimit) + decimals(1) + is_frozen(1)]
+		handle.record_db_read::<Runtime>(
+			50 + (2 * <Runtime as pallet_assets::Config<Instance>>::StringLimit::get()) as usize,
+		)?;
 
 		Ok(pallet_assets::Pallet::<Runtime, Instance>::decimals(
 			asset_id,
@@ -427,7 +458,9 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let owner: H160 = pallet_assets::Pallet::<Runtime, Instance>::owner(asset_id)
 			.ok_or(revert("No owner set"))?
@@ -442,7 +475,9 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let issuer: H160 = pallet_assets::Pallet::<Runtime, Instance>::issuer(asset_id)
 			.ok_or(revert("No issuer set"))?
@@ -457,7 +492,9 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let admin: H160 = pallet_assets::Pallet::<Runtime, Instance>::admin(asset_id)
 			.ok_or(revert("No admin set"))?
@@ -472,7 +509,9 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<Address> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// Storage item: Asset:
+		// Blake2_128(16) + AssetId(16) + AssetDetails((4 * AccountId(20)) + (3 * Balance(16)) + 15)
+		handle.record_db_read::<Runtime>(175)?;
 
 		let freezer: H160 = pallet_assets::Pallet::<Runtime, Instance>::freezer(asset_id)
 			.ok_or(revert("No freezer set"))?

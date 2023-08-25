@@ -230,6 +230,7 @@ import type {
   ContractConstructorSpecV1,
   ContractConstructorSpecV2,
   ContractConstructorSpecV3,
+  ContractConstructorSpecV4,
   ContractContractSpecV0,
   ContractContractSpecV1,
   ContractContractSpecV2,
@@ -238,6 +239,7 @@ import type {
   ContractCryptoHasher,
   ContractDiscriminant,
   ContractDisplayName,
+  ContractEnvironmentV4,
   ContractEventParamSpecLatest,
   ContractEventParamSpecV0,
   ContractEventParamSpecV2,
@@ -260,6 +262,7 @@ import type {
   ContractMessageSpecV0,
   ContractMessageSpecV1,
   ContractMessageSpecV2,
+  ContractMessageSpecV3,
   ContractMetadata,
   ContractMetadataLatest,
   ContractMetadataV0,
@@ -519,6 +522,7 @@ import type {
   MetadataV12,
   MetadataV13,
   MetadataV14,
+  MetadataV15,
   MetadataV9,
   ModuleConstantMetadataV10,
   ModuleConstantMetadataV11,
@@ -541,10 +545,15 @@ import type {
   PalletEventMetadataV14,
   PalletMetadataLatest,
   PalletMetadataV14,
+  PalletMetadataV15,
   PalletStorageMetadataLatest,
   PalletStorageMetadataV14,
   PortableType,
   PortableTypeV14,
+  RuntimeApiMetadataLatest,
+  RuntimeApiMetadataV15,
+  RuntimeApiMethodMetadataV15,
+  RuntimeApiMethodParamMetadataV15,
   SignedExtensionMetadataLatest,
   SignedExtensionMetadataV14,
   StorageEntryMetadataLatest,
@@ -1395,6 +1404,7 @@ declare module "@polkadot/types/types/registry" {
     ContractConstructorSpecV1: ContractConstructorSpecV1;
     ContractConstructorSpecV2: ContractConstructorSpecV2;
     ContractConstructorSpecV3: ContractConstructorSpecV3;
+    ContractConstructorSpecV4: ContractConstructorSpecV4;
     ContractContractSpecV0: ContractContractSpecV0;
     ContractContractSpecV1: ContractContractSpecV1;
     ContractContractSpecV2: ContractContractSpecV2;
@@ -1403,6 +1413,7 @@ declare module "@polkadot/types/types/registry" {
     ContractCryptoHasher: ContractCryptoHasher;
     ContractDiscriminant: ContractDiscriminant;
     ContractDisplayName: ContractDisplayName;
+    ContractEnvironmentV4: ContractEnvironmentV4;
     ContractEventParamSpecLatest: ContractEventParamSpecLatest;
     ContractEventParamSpecV0: ContractEventParamSpecV0;
     ContractEventParamSpecV2: ContractEventParamSpecV2;
@@ -1439,6 +1450,7 @@ declare module "@polkadot/types/types/registry" {
     ContractMessageSpecV0: ContractMessageSpecV0;
     ContractMessageSpecV1: ContractMessageSpecV1;
     ContractMessageSpecV2: ContractMessageSpecV2;
+    ContractMessageSpecV3: ContractMessageSpecV3;
     ContractMetadata: ContractMetadata;
     ContractMetadataLatest: ContractMetadataLatest;
     ContractMetadataV0: ContractMetadataV0;
@@ -1790,6 +1802,7 @@ declare module "@polkadot/types/types/registry" {
     MetadataV12: MetadataV12;
     MetadataV13: MetadataV13;
     MetadataV14: MetadataV14;
+    MetadataV15: MetadataV15;
     MetadataV9: MetadataV9;
     MigrationStatusResult: MigrationStatusResult;
     MmrBatchProof: MmrBatchProof;
@@ -1901,6 +1914,7 @@ declare module "@polkadot/types/types/registry" {
     PalletId: PalletId;
     PalletMetadataLatest: PalletMetadataLatest;
     PalletMetadataV14: PalletMetadataV14;
+    PalletMetadataV15: PalletMetadataV15;
     PalletsOrigin: PalletsOrigin;
     PalletStorageMetadataLatest: PalletStorageMetadataLatest;
     PalletStorageMetadataV14: PalletStorageMetadataV14;
@@ -2033,6 +2047,10 @@ declare module "@polkadot/types/types/registry" {
     RoundSnapshot: RoundSnapshot;
     RoundState: RoundState;
     RpcMethods: RpcMethods;
+    RuntimeApiMetadataLatest: RuntimeApiMetadataLatest;
+    RuntimeApiMetadataV15: RuntimeApiMetadataV15;
+    RuntimeApiMethodMetadataV15: RuntimeApiMethodMetadataV15;
+    RuntimeApiMethodParamMetadataV15: RuntimeApiMethodParamMetadataV15;
     RuntimeCall: RuntimeCall;
     RuntimeDbWeight: RuntimeDbWeight;
     RuntimeDispatchInfo: RuntimeDispatchInfo;

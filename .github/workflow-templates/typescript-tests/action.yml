@@ -1,0 +1,108 @@
+name: Typescript tests
+description: |
+  Setup and run the typescript tests against a local moonbeam node.
+
+inputs:
+  moonbeam-binary:
+    description: path to the moonbeam binary
+    required: true
+  timeout:
+    description: default timeout for the tests
+    default: "5000"
+  force-pass:
+    description: "Indicate whether the workflow should mark the test step as successful, even if actual test failures occur."
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+    - name: Set binary path and number of CPUs
+      shell: bash
+      run: |
+        #### Ensure the moonbeam binary is executable
+        chmod uog+x ${{ inputs.moonbeam-binary }}
+
+        #### Set the binary path (absolute path to avoid subfolder working directories issues)
+        echo "BINARY_PATH=$(realpath ${{ inputs.moonbeam-binary }})" >> $GITHUB_ENV
+
+        #### Set the number of CPUs to use for parallel tests.
+        echo "CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')" >> $GITHUB_ENV
+
+        echo "BINARY_PATH: $BINARY_PATH"
+        echo "CPUS: $CPUS"
+
+    - name: Setup Moonbeam PolkadotJS types
+      shell: bash
+      run: |
+        #### Preparing the legacy types
+        cd moonbeam-types-bundle
+        npm ci
+        npm run build
+
+        #### Preparing the typescript api
+        cd ../typescript-api
+        npm ci
+
+        cd ../tests
+        npm ci
+
+        #### Prepares and copies the typescript generated API to include in the tests
+        npm run setup-typescript-api
+
+    - name: Compile Typescript tests
+      shell: bash
+      run: |
+        #### Compile typescript tests into javascript (more stable for Mocha)
+        #### This also better display typescript issues
+        cd ./tests
+        npm run build
+
+    - name: Execute tests
+      shell: bash
+      env:
+        NODE_OPTIONS: "--max-old-space-size=12288"
+      run: |
+        cd ./tests
+        node node_modules/.bin/mocha \
+          --timeout ${{ inputs.timeout }} \
+          --parallel -j $((CPUS / 4)) \
+          --exit \
+          'build/tests/**/test-*.js' ||  [[ '${{ inputs.force-pass }}' == 'true' ]]
+
+    # We determine whether there are unmodified package-lock.json files by:
+    # 1. Asking git for a list of all modified files
+    # 2. Using grep to reduce the list to only package-lock.json files
+    # 3. Counting the number of lines of output
+    - name: Check package-lock.json
+      shell: bash
+      env:
+        NODE_OPTIONS: "--max-old-space-size=12288"
+      run: |
+        cd ./tests
+        # Log npm version to make sure it maches with local version
+        npm -v
+        # Make sure git is working, and if not abort early. When git is not working it looks like:
+        # $ git diff-index --name-only HEAD
+        # fatal: not a git repository (or any of the parent directories): .git
+        DIFF_INDEX="$(git diff-index --name-only HEAD)"
+        echo $DIFF_INDEX
+        if [[ -n "$DIFF_INDEX" ]]; then
+          if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
+            echo "There was an error with the git checkout. Can't check package-lock.json file."
+            false
+          fi
+          FILECOUNT=$(echo $DIFF_INDEX | grep package-lock.json | wc -l)
+          echo $FILECOUNT
+          if [[ $FILECOUNT -eq 0 ]]; then
+            echo "All package-lock.json files are valid"
+          else
+            git diff --cached
+            echo "The following package-lock.json files have uncommitted changes"
+            echo $DIFF_INDEX | grep package-lock.json
+            false
+          fi
+        fi

@@ -3,10 +3,10 @@
  *  It contains pre-registered versions to allow easy run using Docker.
  *
  *  ports can be given using --port-prefix xx (default 34) using the following rule:
- *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
- *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
- *  - para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
- *  - para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
+ *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001)
+ *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011)
+ *  - para 1 - p2p (p2p: XX100, rpcPort: XX101)
+ *  - para 2 - p2p (p2p: XX110, rpcPort: XX111)
  *
  */
 
@@ -41,17 +41,17 @@ export async function getGithubReleaseBinary(url: string, binaryPath: string): P
 export async function getMoonbeamBinary(binaryTag: string, binaryPath: string): Promise<string> {
   if (binaryTag.startsWith(`v`)) {
     return getGithubReleaseBinary(
-      `https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam`,
+      `https://github.com/moonbeam-foundation/moonbeam/releases/download/${binaryTag}/moonbeam`,
       binaryPath
     );
   } else if (binaryTag.startsWith(`sha`)) {
-    return getDockerBuildBinary(`purestake/moonbeam:${binaryTag}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:${binaryTag}`, binaryPath);
   } else if (/^[0-9]/g.test(binaryTag)) {
     // sha given without prefix
-    return getDockerBuildBinary(`purestake/moonbeam:sha-${binaryTag}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:sha-${binaryTag}`, binaryPath);
   } else {
     const sha = child_process.execSync(`git rev-list -n 1 ${binaryTag}`).toString();
-    return getDockerBuildBinary(`purestake/moonbeam:sha-${sha.slice(0, 8)}`, binaryPath);
+    return getDockerBuildBinary(`moonbeamfoundation/moonbeam:sha-${sha.slice(0, 8)}`, binaryPath);
   }
 }
 

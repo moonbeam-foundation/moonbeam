@@ -34,6 +34,8 @@ declare module "@polkadot/api-base/types/errors" {
       BadWitness: AugmentedError<ApiType>;
       /** Account balance must be greater than or equal to the transfer amount. */
       BalanceLow: AugmentedError<ApiType>;
+      /** Callback action resulted in error */
+      CallbackFailed: AugmentedError<ApiType>;
       /** The origin account is frozen. */
       Frozen: AugmentedError<ApiType>;
       /** The asset status is not the expected status. */
@@ -119,6 +121,37 @@ declare module "@polkadot/api-base/types/errors" {
       TooManyReserves: AugmentedError<ApiType>;
       /** Vesting balance too high to send value */
       VestingBalance: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    convictionVoting: {
+      /** The account is already delegating. */
+      AlreadyDelegating: AugmentedError<ApiType>;
+      /**
+       * The account currently has votes attached to it and the operation cannot succeed until these
+       * are removed, either through `unvote` or `reap_vote`.
+       */
+      AlreadyVoting: AugmentedError<ApiType>;
+      /** The class ID supplied is invalid. */
+      BadClass: AugmentedError<ApiType>;
+      /** The class must be supplied since it is not easily determinable from the state. */
+      ClassNeeded: AugmentedError<ApiType>;
+      /** Too high a balance was provided that the account cannot afford. */
+      InsufficientFunds: AugmentedError<ApiType>;
+      /** Maximum number of votes reached. */
+      MaxVotesReached: AugmentedError<ApiType>;
+      /** Delegation to oneself makes no sense. */
+      Nonsense: AugmentedError<ApiType>;
+      /** The actor has no permission to conduct the action. */
+      NoPermission: AugmentedError<ApiType>;
+      /** The actor has no permission to conduct the action right now but will do in the future. */
+      NoPermissionYet: AugmentedError<ApiType>;
+      /** The account is not currently delegating. */
+      NotDelegating: AugmentedError<ApiType>;
+      /** Poll is not ongoing. */
+      NotOngoing: AugmentedError<ApiType>;
+      /** The given account did not vote on the poll. */
+      NotVoter: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -228,6 +261,8 @@ declare module "@polkadot/api-base/types/errors" {
       NotSimpleMajority: AugmentedError<ApiType>;
       /** The given account did not vote on the referendum. */
       NotVoter: AugmentedError<ApiType>;
+      /** The preimage does not exist. */
+      PreimageNotExist: AugmentedError<ApiType>;
       /** Proposal still blacklisted */
       ProposalBlacklisted: AugmentedError<ApiType>;
       /** Proposal does not exist */
@@ -263,6 +298,12 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidSignature: AugmentedError<ApiType>;
       /** Pre-log is present, therefore transact is not allowed. */
       PreLogExists: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    ethereumXcm: {
+      /** Xcm to Ethereum execution is suspended */
+      EthereumXcmExecutionSuspended: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -343,6 +384,8 @@ declare module "@polkadot/api-base/types/errors" {
       BadWitness: AugmentedError<ApiType>;
       /** Account balance must be greater than or equal to the transfer amount. */
       BalanceLow: AugmentedError<ApiType>;
+      /** Callback action resulted in error */
+      CallbackFailed: AugmentedError<ApiType>;
       /** The origin account is frozen. */
       Frozen: AugmentedError<ApiType>;
       /** The asset status is not the expected status. */
@@ -426,6 +469,62 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    multisig: {
+      /** Call is already approved by this signatory. */
+      AlreadyApproved: AugmentedError<ApiType>;
+      /** The data to be stored is already stored. */
+      AlreadyStored: AugmentedError<ApiType>;
+      /** The maximum weight information provided was too low. */
+      MaxWeightTooLow: AugmentedError<ApiType>;
+      /** Threshold must be 2 or greater. */
+      MinimumThreshold: AugmentedError<ApiType>;
+      /** Call doesn't need any (more) approvals. */
+      NoApprovalsNeeded: AugmentedError<ApiType>;
+      /** Multisig operation not found when attempting to cancel. */
+      NotFound: AugmentedError<ApiType>;
+      /** No timepoint was given, yet the multisig operation is already underway. */
+      NoTimepoint: AugmentedError<ApiType>;
+      /** Only the account that originally created the multisig is able to cancel it. */
+      NotOwner: AugmentedError<ApiType>;
+      /** The sender was contained in the other signatories; it shouldn't be. */
+      SenderInSignatories: AugmentedError<ApiType>;
+      /** The signatories were provided out of order; they should be ordered. */
+      SignatoriesOutOfOrder: AugmentedError<ApiType>;
+      /** There are too few signatories in the list. */
+      TooFewSignatories: AugmentedError<ApiType>;
+      /** There are too many signatories in the list. */
+      TooManySignatories: AugmentedError<ApiType>;
+      /** A timepoint was given, yet no multisig operation is underway. */
+      UnexpectedTimepoint: AugmentedError<ApiType>;
+      /** A different timepoint was given to the multisig operation that is underway. */
+      WrongTimepoint: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /** Members are already initialized! */
+      AlreadyInitialized: AugmentedError<ApiType>;
+      /** Duplicate proposals not allowed */
+      DuplicateProposal: AugmentedError<ApiType>;
+      /** Duplicate vote ignored */
+      DuplicateVote: AugmentedError<ApiType>;
+      /** Account is not a member */
+      NotMember: AugmentedError<ApiType>;
+      /** Proposal must exist */
+      ProposalMissing: AugmentedError<ApiType>;
+      /** The close call was made too early, before the end of the voting. */
+      TooEarly: AugmentedError<ApiType>;
+      /** There can only be a maximum of `MaxProposals` active proposals. */
+      TooManyProposals: AugmentedError<ApiType>;
+      /** Mismatched index */
+      WrongIndex: AugmentedError<ApiType>;
+      /** The given length bound for the proposal was too low. */
+      WrongProposalLength: AugmentedError<ApiType>;
+      /** The given weight bound for the proposal was too low. */
+      WrongProposalWeight: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     parachainStaking: {
       AlreadyActive: AugmentedError<ApiType>;
       AlreadyDelegatedCandidate: AugmentedError<ApiType>;
@@ -464,8 +563,13 @@ declare module "@polkadot/api-base/types/errors" {
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHint: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintCandidateBondMore: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintGoOffline: AugmentedError<ApiType>;
+      TooLowCandidateCountWeightHintGoOnline: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -476,21 +580,21 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     parachainSystem: {
-      /** The inherent which supplies the host configuration did not run this block */
+      /** The inherent which supplies the host configuration did not run this block. */
       HostConfigurationNotAvailable: AugmentedError<ApiType>;
       /** No code upgrade has been authorized. */
       NothingAuthorized: AugmentedError<ApiType>;
       /** No validation function upgrade is currently scheduled. */
       NotScheduled: AugmentedError<ApiType>;
-      /** Attempt to upgrade validation function while existing upgrade pending */
+      /** Attempt to upgrade validation function while existing upgrade pending. */
       OverlappingUpgrades: AugmentedError<ApiType>;
-      /** Polkadot currently prohibits this parachain from upgrading its validation function */
+      /** Polkadot currently prohibits this parachain from upgrading its validation function. */
       ProhibitedByPolkadot: AugmentedError<ApiType>;
-      /** The supplied validation function has compiled into a blob larger than Polkadot is willing to run */
+      /** The supplied validation function has compiled into a blob larger than Polkadot is willing to run. */
       TooBig: AugmentedError<ApiType>;
       /** The given code upgrade has not been authorized. */
       Unauthorized: AugmentedError<ApiType>;
-      /** The inherent which supplies the validation data did not run this block */
+      /** The inherent which supplies the validation data did not run this block. */
       ValidationDataNotAvailable: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
@@ -597,6 +701,36 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    referenda: {
+      /** The referendum index provided is invalid in this context. */
+      BadReferendum: AugmentedError<ApiType>;
+      /** The referendum status is invalid for this operation. */
+      BadStatus: AugmentedError<ApiType>;
+      /** The track identifier given was invalid. */
+      BadTrack: AugmentedError<ApiType>;
+      /** There are already a full complement of referenda in progress for this track. */
+      Full: AugmentedError<ApiType>;
+      /** Referendum's decision deposit is already paid. */
+      HasDeposit: AugmentedError<ApiType>;
+      /** The deposit cannot be refunded since none was made. */
+      NoDeposit: AugmentedError<ApiType>;
+      /** The deposit refunder is not the depositor. */
+      NoPermission: AugmentedError<ApiType>;
+      /** There was nothing to do in the advancement. */
+      NothingToDo: AugmentedError<ApiType>;
+      /** Referendum is not ongoing. */
+      NotOngoing: AugmentedError<ApiType>;
+      /** No track exists for the proposal origin. */
+      NoTrack: AugmentedError<ApiType>;
+      /** The preimage does not exist. */
+      PreimageNotExist: AugmentedError<ApiType>;
+      /** The queue of the track is empty. */
+      QueueEmpty: AugmentedError<ApiType>;
+      /** Any deposit cannot be refunded until after the decision is over. */
+      Unfinished: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     scheduler: {
       /** Failed to schedule a call */
       FailedToSchedule: AugmentedError<ApiType>;
@@ -696,6 +830,20 @@ declare module "@polkadot/api-base/types/errors" {
     utility: {
       /** Too many calls batched. */
       TooManyCalls: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    whitelist: {
+      /** The call was already whitelisted; No-Op. */
+      CallAlreadyWhitelisted: AugmentedError<ApiType>;
+      /** The call was not whitelisted. */
+      CallIsNotWhitelisted: AugmentedError<ApiType>;
+      /** The weight of the decoded call was higher than the witness. */
+      InvalidCallWeightWitness: AugmentedError<ApiType>;
+      /** The preimage of the call hash could not be loaded. */
+      UnavailablePreImage: AugmentedError<ApiType>;
+      /** The call could not be decoded. */
+      UndecodableCall: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

@@ -87,6 +87,10 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -96,10 +100,16 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 
 pub type PCall = Erc20BalancesPrecompileCall<Runtime, NativeErc20Metadata, ()>;
 
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+
 parameter_types! {
-		pub BlockGasLimit: U256 = U256::max_value();
-		pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-		pub const WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub BlockGasLimit: U256 = U256::from(u64::MAX);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
 }
 
 impl pallet_evm::Config for Runtime {
@@ -120,6 +130,9 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 
 // Configure a mock runtime to test the pallet.

@@ -25,7 +25,7 @@ use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
 use cumulus_primitives_core::ParaId;
-use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
+use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
 	SchemaV2Override, SchemaV3Override, StorageOverride,
@@ -43,6 +43,7 @@ use sc_client_api::{
 };
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_network::NetworkService;
+use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
@@ -104,12 +105,14 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub is_authority: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
+	/// Chain syncing service
+	pub sync: Arc<SyncingService<Block>>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
 	/// Frontier Backend.
-	pub frontier_backend: Arc<fc_db::Backend<Block>>,
+	pub frontier_backend: Arc<dyn fc_db::BackendReader<Block> + Send + Sync>,
 	/// Backend.
 	pub backend: Arc<BE>,
 	/// Manual seal command sink
@@ -126,6 +129,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub overrides: Arc<OverrideHandle<Block>>,
 	/// Cache for Ethereum block data.
 	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
+	/// Mandated parent hashes for a given block hash.
+	pub forced_parent_hashes: Option<BTreeMap<H256, H256>>,
 }
 
 pub struct TracingConfig {
@@ -166,6 +171,11 @@ pub fn create_full<C, P, BE, A>(
 	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	maybe_tracing_config: Option<TracingConfig>,
+	pubsub_notification_sinks: Arc<
+		fc_mapping_sync::EthereumBlockNotificationSinks<
+			fc_mapping_sync::EthereumBlockNotification<Block>,
+		>,
+	>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: Backend<Block> + 'static,
@@ -200,6 +210,7 @@ where
 		deny_unsafe,
 		is_authority,
 		network,
+		sync,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
@@ -211,6 +222,7 @@ where
 		xcm_senders,
 		overrides,
 		block_data_cache,
+		forced_parent_hashes,
 	} = deps;
 
 	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
@@ -236,7 +248,7 @@ where
 			Arc::clone(&pool),
 			graph.clone(),
 			convert_transaction,
-			Arc::clone(&network),
+			Arc::clone(&sync),
 			signers,
 			Arc::clone(&overrides),
 			Arc::clone(&frontier_backend),
@@ -245,6 +257,7 @@ where
 			fee_history_cache,
 			fee_history_limit,
 			10,
+			forced_parent_hashes,
 		)
 		.replace_config::<MoonbeamEthConfig<C, BE>>()
 		.into_rpc(),
@@ -255,10 +268,11 @@ where
 			EthFilter::new(
 				client.clone(),
 				frontier_backend.clone(),
+				fc_rpc::TxPool::new(client.clone(), graph.clone()),
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
-				block_data_cache.clone(),
+				block_data_cache,
 			)
 			.into_rpc(),
 		)?;
@@ -279,9 +293,10 @@ where
 		EthPubSub::new(
 			pool,
 			Arc::clone(&client),
-			network,
+			sync.clone(),
 			subscription_task_executor,
 			overrides,
+			pubsub_notification_sinks.clone(),
 		)
 		.into_rpc(),
 	)?;
@@ -333,7 +348,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub task_manager: &'a TaskManager,
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
-	pub frontier_backend: Arc<fc_db::Backend<B>>,
+	pub frontier_backend: fc_db::Backend<B>,
 	pub filter_pool: Option<FilterPool>,
 	pub overrides: Arc<OverrideHandle<B>>,
 	pub fee_history_limit: u64,
@@ -341,8 +356,15 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 }
 
 /// Spawn the tasks that are required to run Moonbeam.
-pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
-where
+pub fn spawn_essential_tasks<B, C, BE>(
+	params: SpawnTasksParams<B, C, BE>,
+	sync: Arc<SyncingService<B>>,
+	pubsub_notification_sinks: Arc<
+		fc_mapping_sync::EthereumBlockNotificationSinks<
+			fc_mapping_sync::EthereumBlockNotification<B>,
+		>,
+	>,
+) where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<B> + StorageProvider<B, BE>,
@@ -356,21 +378,47 @@ where
 {
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
-	params.task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		Some("frontier"),
-		MappingSyncWorker::new(
-			params.client.import_notification_stream(),
-			Duration::new(6, 0),
-			params.client.clone(),
-			params.substrate_backend.clone(),
-			params.frontier_backend.clone(),
-			3,
-			0,
-			SyncStrategy::Parachain,
-		)
-		.for_each(|()| futures::future::ready(())),
-	);
+	match params.frontier_backend {
+		fc_db::Backend::KeyValue(b) => {
+			params.task_manager.spawn_essential_handle().spawn(
+				"frontier-mapping-sync-worker",
+				Some("frontier"),
+				MappingSyncWorker::new(
+					params.client.import_notification_stream(),
+					Duration::new(6, 0),
+					params.client.clone(),
+					params.substrate_backend.clone(),
+					params.overrides.clone(),
+					Arc::new(b),
+					3,
+					0,
+					SyncStrategy::Parachain,
+					sync.clone(),
+					pubsub_notification_sinks.clone(),
+				)
+				.for_each(|()| futures::future::ready(())),
+			);
+		}
+		fc_db::Backend::Sql(b) => {
+			params.task_manager.spawn_essential_handle().spawn_blocking(
+				"frontier-mapping-sync-worker",
+				Some("frontier"),
+				fc_mapping_sync::sql::SyncWorker::run(
+					params.client.clone(),
+					params.substrate_backend.clone(),
+					Arc::new(b),
+					params.client.import_notification_stream(),
+					fc_mapping_sync::sql::SyncWorkerConfig {
+						read_notification_timeout: Duration::from_secs(10),
+						check_indexed_blocks_interval: Duration::from_secs(60),
+					},
+					fc_mapping_sync::SyncStrategy::Parachain,
+					sync.clone(),
+					pubsub_notification_sinks.clone(),
+				),
+			);
+		}
+	}
 
 	// Frontier `EthFilterApi` maintenance.
 	// Manages the pool of user-created Filters.

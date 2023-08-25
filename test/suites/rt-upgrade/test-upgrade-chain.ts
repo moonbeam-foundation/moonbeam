@@ -1,8 +1,8 @@
-import { describeSuite, beforeAll, expect, MoonwallContext } from "@moonwall/cli";
+import "@moonbeam-network/api-augment";
+import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import "@moonbeam-network/api-augment";
 
 describeSuite({
   id: "CIRT",
@@ -18,7 +18,9 @@ describeSuite({
       const rtBefore = api.consts.system.version.specVersion.toNumber();
       log(`About to upgrade to runtime at:`);
       log(MoonwallContext.getContext().rtUpgradePath);
+
       await context.upgradeRuntime(context);
+
       const rtafter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
@@ -45,7 +47,7 @@ describeSuite({
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         await api.tx.balances.transfer(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
-        await context.createBlock();
+        await context.createBlock({ count: 2 });
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;
       },

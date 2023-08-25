@@ -33,7 +33,7 @@ use sp_runtime::{
 };
 
 use super::*;
-use pallet_ethereum::IntermediateStateRoot;
+use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use sp_runtime::{
 	traits::DispatchInfoOf,
 	transaction_validity::{TransactionValidity, TransactionValidityError},
@@ -64,7 +64,7 @@ frame_support::construct_runtime! {
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
-		frame_system::limits::BlockWeights::simple_max(Weight::from_ref_time(1024));
+		frame_system::limits::BlockWeights::simple_max(Weight::from_parts(1024, 1));
 }
 
 impl frame_system::Config for Test {
@@ -111,6 +111,10 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -141,12 +145,18 @@ impl FindAuthor<H160> for FindAuthorTruncated {
 	}
 }
 
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+
 parameter_types! {
 	pub const TransactionByteFee: u64 = 1;
 	pub const ChainId: u64 = 42;
 	pub const EVMModuleId: PalletId = PalletId(*b"py/evmpa");
 	pub const BlockGasLimit: U256 = U256::MAX;
-	pub WeightPerGas: Weight = Weight::from_ref_time(1);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
 }
 
 pub struct HashedAddressMapping;
@@ -177,15 +187,24 @@ impl pallet_evm::Config for Test {
 	type FindAuthor = FindAuthorTruncated;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
+}
+
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
 }
 
 impl pallet_ethereum::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<Self>;
+	type PostLogContent = PostBlockAndTxnHashes;
+	type ExtraDataLength = ConstU32<30>;
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
+	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 1);
 }
 
 #[derive(

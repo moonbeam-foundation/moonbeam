@@ -130,7 +130,6 @@ where
 
 	pub fn dispatch_inherent_cost() -> u64 {
 		3_000 // cost of ECRecover precompile for reference
-			+ RuntimeHelper::<Runtime>::db_read_gas_cost() * 2 // we read nonce and timestamp
 			+ RuntimeHelper::<Runtime>::db_write_gas_cost() // we write nonce
 	}
 
@@ -149,6 +148,11 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult<UnboundedBytes> {
+		// Now: 8
+		handle.record_db_read::<Runtime>(8)?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
+
 		handle.record_cost(Self::dispatch_inherent_cost())?;
 
 		let from: H160 = from.into();
@@ -234,7 +238,8 @@ where
 	#[precompile::public("nonces(address)")]
 	#[precompile::view]
 	fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
+		handle.record_db_read::<Runtime>(104)?;
 
 		let owner: H160 = owner.into();
 
@@ -246,7 +251,8 @@ where
 	#[precompile::public("DOMAIN_SEPARATOR()")]
 	#[precompile::view]
 	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ChainId
+		handle.record_db_read::<Runtime>(8)?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.context().address).into();

@@ -27,6 +27,14 @@ use {
 };
 
 pub trait PrecompileHandleExt: PrecompileHandle {
+	/// Record cost of one DB read manually.
+	/// The max encoded lenght of the data that will be read should be provided.
+	#[must_use]
+	fn record_db_read<Runtime: pallet_evm::Config>(
+		&mut self,
+		data_max_encoded_len: usize,
+	) -> Result<(), evm::ExitError>;
+
 	/// Record cost of a log manually.
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
@@ -51,6 +59,16 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
+	#[must_use]
+	fn record_db_read<Runtime: pallet_evm::Config>(
+		&mut self,
+		data_max_encoded_len: usize,
+	) -> Result<(), evm::ExitError> {
+		self.record_cost(crate::prelude::RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// TODO: record ref time when precompile will be benchmarked
+		self.record_external_cost(None, Some(data_max_encoded_len as u64))
+	}
+
 	/// Record cost of a log manualy.
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
@@ -178,6 +196,16 @@ mod tests {
 		fn gas_limit(&self) -> Option<u64> {
 			unimplemented!()
 		}
+
+		fn record_external_cost(
+			&mut self,
+			_ref_time: Option<u64>,
+			_proof_size: Option<u64>,
+		) -> Result<(), fp_evm::ExitError> {
+			Ok(())
+		}
+
+		fn refund_external_cost(&mut self, _ref_time: Option<u64>, _proof_size: Option<u64>) {}
 	}
 
 	#[test]

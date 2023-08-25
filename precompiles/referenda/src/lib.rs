@@ -26,7 +26,7 @@ use pallet_referenda::{
 	Call as ReferendaCall, DecidingCount, Deposit, Pallet as Referenda, ReferendumCount,
 	ReferendumInfo, ReferendumInfoFor, TracksInfo,
 };
-use parity_scale_codec::Encode;
+use parity_scale_codec::{Encode, MaxEncodedLen};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
@@ -154,8 +154,8 @@ where
 	#[precompile::public("referendumCount()")]
 	#[precompile::view]
 	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumCount
+		handle.record_db_read::<Runtime>(4)?;
 		let ref_count = ReferendumCount::<Runtime>::get();
 		log::trace!(target: "referendum-precompile", "Referendum count is {:?}", ref_count);
 
@@ -164,9 +164,7 @@ where
 
 	#[precompile::public("submissionDeposit()")]
 	#[precompile::view]
-	fn submission_deposit(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn submission_deposit(_handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		let submission_deposit = Runtime::SubmissionDeposit::get();
 		log::trace!(target: "referendum-precompile", "Submission deposit is {:?}", submission_deposit);
 
@@ -176,8 +174,9 @@ where
 	#[precompile::public("decidingCount(uint16)")]
 	#[precompile::view]
 	fn deciding_count(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<U256> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// DecidingCount:
+		// Twox64Concat(8) + TrackIdOf(2) + 4
+		handle.record_db_read::<Runtime>(14)?;
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
@@ -194,9 +193,7 @@ where
 
 	#[precompile::public("trackIds()")]
 	#[precompile::view]
-	fn track_ids(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
-		// Fetch data from runtime
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn track_ids(_handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
 		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
 			.into_iter()
 			.filter_map(|(id, _)| {
@@ -213,9 +210,7 @@ where
 
 	#[precompile::public("trackInfo(uint16)")]
 	#[precompile::view]
-	fn track_info(handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<TrackInfo> {
-		// Fetch data from runtime
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn track_info(_handle: &mut impl PrecompileHandle, track_id: u16) -> EvmResult<TrackInfo> {
 		let track_id: TrackIdOf<Runtime> = track_id
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
@@ -273,8 +268,8 @@ where
 			proposal.len(),
 			track_id
 		);
-		// for read of referendumCount to get the referendum index
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumCount
+		handle.record_db_read::<Runtime>(4)?;
 		let referendum_index = ReferendumCount::<Runtime>::get();
 
 		let proposal_origin = Self::track_id_to_origin(
@@ -303,8 +298,10 @@ where
 		handle: &mut impl PrecompileHandle,
 		referendum_index: u32,
 	) -> EvmResult<u8> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 
 		let status = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
 			RevertReason::custom("Referendum does not exist for index")
@@ -327,8 +324,10 @@ where
 		handle: &mut impl PrecompileHandle,
 		referendum_index: u32,
 	) -> EvmResult<OngoingReferendumInfo> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 
 		match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
 			RevertReason::custom("Referendum does not exist for index")
@@ -396,8 +395,10 @@ where
 		handle: &mut impl PrecompileHandle,
 		referendum_index: u32,
 	) -> EvmResult<ClosedReferendumInfo> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 
 		let get_closed_ref_info =
 			|status,
@@ -453,8 +454,10 @@ where
 		handle: &mut impl PrecompileHandle,
 		referendum_index: u32,
 	) -> EvmResult<U256> {
-		// Fetch data from pallet
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 
 		let block = match ReferendumInfoFor::<Runtime>::get(referendum_index).ok_or(
 			RevertReason::custom("Referendum does not exist for index")
@@ -550,8 +553,10 @@ where
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
 	#[precompile::public("placeDecisionDeposit(uint32)")]
 	fn place_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
-		// Account later `ensure_ongoing` read cost
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 		handle.record_log_costs_manual(1, 32 * 3)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -591,8 +596,10 @@ where
 	#[precompile::public("refundDecisionDeposit(uint32)")]
 	fn refund_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
 		handle.record_log_costs_manual(1, 32 * 3)?;
-		// Get refunding deposit before dispatch
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 		let (who, refunded_deposit): (H160, U256) = match ReferendumInfoFor::<Runtime>::get(index)
 			.ok_or(
 			RevertReason::custom("Referendum index does not exist").in_field("index"),
@@ -627,8 +634,10 @@ where
 	#[precompile::public("refundSubmissionDeposit(uint32)")]
 	fn refund_submission_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
 		handle.record_log_costs_manual(1, 32 * 3)?;
-		// Get refunding deposit before dispatch
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
+		handle.record_db_read::<Runtime>(
+			20 + pallet_referenda::ReferendumInfoOf::<Runtime, ()>::max_encoded_len(),
+		)?;
 		let (who, refunded_deposit): (H160, U256) =
 			match ReferendumInfoFor::<Runtime>::get(index)
 				.ok_or(RevertReason::custom("Referendum index does not exist").in_field("index"))?

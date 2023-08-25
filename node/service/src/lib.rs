@@ -26,7 +26,6 @@ pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
-use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -36,7 +35,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
-use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface, RelayChainResult};
+use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
 use fc_consensus::FrontierBlockImport;
 use fc_db::DatabaseSource;
@@ -45,7 +44,7 @@ use futures::StreamExt;
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_cli_opt::{EthApi as EthApiCmd, RpcConfig};
+use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
@@ -53,21 +52,26 @@ pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
-use sc_client_api::ExecutorProvider;
+use sc_client_api::{
+	backend::{AuxStore, Backend, StateBackend, StorageProvider},
+	ExecutorProvider,
+};
 use sc_consensus::ImportQueue;
-use sc_executor::NativeElseWasmExecutor;
-use sc_network::{NetworkBlock, NetworkService};
+use sc_executor::{
+	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
+};
+use sc_network::{config::FullNetworkConfiguration, NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
-	TFullBackend, TFullClient, TaskManager,
+	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
+	TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-use sp_api::ConstructRuntimeApi;
-use sp_blockchain::HeaderBackend;
-use sp_keystore::SyncCryptoStorePtr;
+use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
+use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_keystore::KeystorePtr;
 use std::sync::Arc;
-use std::{collections::BTreeMap, sync::Mutex, time::Duration};
+use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
 
 pub use client::*;
@@ -232,47 +236,85 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 }
 
 pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::PathBuf {
-	let config_dir = config
+	config
 		.base_path
-		.as_ref()
-		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
-		.unwrap_or_else(|| {
-			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
-		});
-	config_dir.join("frontier").join(path)
+		.config_dir(config.chain_spec.id())
+		.join("frontier")
+		.join(path)
 }
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend<C>(
+pub fn open_frontier_backend<C, BE>(
 	client: Arc<C>,
 	config: &Configuration,
-) -> Result<Arc<fc_db::Backend<Block>>, String>
+	rpc_config: &RpcConfig,
+) -> Result<fc_db::Backend<Block>, String>
 where
-	C: sp_blockchain::HeaderBackend<Block>,
+	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
+	C: Send + Sync + 'static,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	BE: Backend<Block> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 {
-	Ok(Arc::new(fc_db::Backend::<Block>::new(
-		client,
-		&fc_db::DatabaseSettings {
-			source: match config.database {
-				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-					path: frontier_database_dir(config, "db"),
-					cache_size: 0,
+	let frontier_backend = match rpc_config.frontier_backend_config {
+		FrontierBackendConfig::KeyValue => {
+			fc_db::Backend::KeyValue(fc_db::kv::Backend::<Block>::new(
+				client,
+				&fc_db::kv::DatabaseSettings {
+					source: match config.database {
+						DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+							path: frontier_database_dir(config, "db"),
+							cache_size: 0,
+						},
+						DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+							path: frontier_database_dir(config, "paritydb"),
+						},
+						DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+							rocksdb_path: frontier_database_dir(config, "db"),
+							paritydb_path: frontier_database_dir(config, "paritydb"),
+							cache_size: 0,
+						},
+						_ => {
+							return Err(
+								"Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string()
+							)
+						}
+					},
 				},
-				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-					path: frontier_database_dir(config, "paritydb"),
-				},
-				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
-					rocksdb_path: frontier_database_dir(config, "db"),
-					paritydb_path: frontier_database_dir(config, "paritydb"),
-					cache_size: 0,
-				},
-				_ => {
-					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
-				}
-			},
-		},
-	)?))
+			)?)
+		}
+		FrontierBackendConfig::Sql {
+			pool_size,
+			num_ops_timeout,
+			thread_count,
+			cache_size,
+		} => {
+			let overrides = crate::rpc::overrides_handle(client.clone());
+			let sqlite_db_path = frontier_database_dir(config, "sql");
+			std::fs::create_dir_all(&sqlite_db_path).expect("failed creating sql db directory");
+			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
+				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
+					path: Path::new("sqlite:///")
+						.join(sqlite_db_path)
+						.join("frontier.db3")
+						.to_str()
+						.expect("frontier sql path error"),
+					create_if_missing: true,
+					thread_count: thread_count,
+					cache_size: cache_size,
+				}),
+				pool_size,
+				std::num::NonZeroU32::new(num_ops_timeout),
+				overrides.clone(),
+			))
+			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
+			fc_db::Backend::Sql(backend)
+		}
+	};
+
+	Ok(frontier_backend)
 }
 
 use sp_runtime::{traits::BlakeTwo256, Percent};
@@ -284,6 +326,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 #[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
 	config: &mut Configuration,
+	rpc_config: &RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -295,15 +338,20 @@ pub fn new_chain_ops(
 > {
 	match &config.chain_spec {
 		#[cfg(feature = "moonriver-native")]
-		spec if spec.is_moonriver() => {
-			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
-		}
+		spec if spec.is_moonriver() => new_chain_ops_inner::<
+			moonriver_runtime::RuntimeApi,
+			MoonriverExecutor,
+		>(config, rpc_config),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => {
-			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+				config, rpc_config,
+			)
 		}
 		#[cfg(feature = "moonbase-native")]
-		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+			config, rpc_config,
+		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
 	}
@@ -311,7 +359,8 @@ pub fn new_chain_ops(
 
 #[allow(clippy::type_complexity)]
 fn new_chain_ops_inner<RuntimeApi, Executor>(
-	mut config: &mut Configuration,
+	config: &mut Configuration,
+	rpc_config: &RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -336,7 +385,7 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Executor>(config, rpc_config, config.chain_spec.is_dev())?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -364,6 +413,7 @@ fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceErro
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
+	rpc_config: &RpcConfig,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -381,7 +431,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block>>,
+			fc_db::Backend<Block>,
 			FeeHistoryCache,
 		),
 	>,
@@ -410,12 +460,21 @@ where
 		})
 		.transpose()?;
 
-	let executor = NativeElseWasmExecutor::<Executor>::new(
-		config.wasm_method,
-		config.default_heap_pages,
-		config.max_runtime_instances,
-		config.runtime_cache_size,
-	);
+	let heap_pages = config
+		.default_heap_pages
+		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
+			extra_pages: h as _,
+		});
+	let wasm = WasmExecutor::builder()
+		.with_execution_method(config.wasm_method)
+		.with_onchain_heap_alloc_strategy(heap_pages)
+		.with_offchain_heap_alloc_strategy(heap_pages)
+		.with_ignore_onchain_heap_pages(true)
+		.with_max_runtime_instances(config.max_runtime_instances)
+		.with_runtime_cache_size(config.runtime_cache_size)
+		.build();
+
+	let executor = NativeElseWasmExecutor::<Executor>::new_with_wasm_executor(wasm);
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -461,10 +520,8 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config)?;
-
-	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
+	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
@@ -535,7 +592,7 @@ async fn build_relay_chain_interface(
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v2::Id,
+	id: polkadot_primitives::v4::Id,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
@@ -560,7 +617,7 @@ where
 			>,
 		>,
 		Arc<NetworkService<Block, Hash>>,
-		SyncCryptoStorePtr,
+		KeystorePtr,
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
@@ -570,9 +627,9 @@ where
 		relay_chain_rpc_urls: rpc_config.relay_chain_rpc_urls.clone(),
 	};
 
-	let params = new_partial(&mut parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
-		_block_import,
+		_frontier_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -593,50 +650,63 @@ where
 		hwbench.clone(),
 	)
 	.await
-	.map_err(|e| match e {
-		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
-		s => s.to_string().into(),
-	})?;
-
-	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
+	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
-	let (network, system_rpc_tx, tx_handler_controller, start_network) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &parachain_config,
+	let net_config = FullNetworkConfiguration::new(&parachain_config.network);
+
+	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
+		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
+			parachain_config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			block_announce_validator_builder: Some(Box::new(|_| {
-				Box::new(block_announce_validator)
-			})),
-			warp_sync: None,
-		})?;
+			para_id: id,
+			relay_chain_interface: relay_chain_interface.clone(),
+			net_config,
+		})
+		.await?;
 
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				&rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: &task_manager,
 					client: client.clone(),
@@ -667,6 +737,7 @@ where
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
+		let sync = sync_service.clone();
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
@@ -675,6 +746,7 @@ where
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -684,7 +756,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,
@@ -692,9 +767,11 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
+				sync: sync.clone(),
 				xcm_senders: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
+				forced_parent_hashes: None,
 			};
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
@@ -704,10 +781,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};
@@ -718,9 +802,10 @@ where
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
 		config: parachain_config,
-		keystore: params.keystore_container.sync_keystore(),
+		keystore: params.keystore_container.keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
+		sync_service: sync_service.clone(),
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
@@ -740,11 +825,14 @@ where
 	}
 
 	let announce_block = {
-		let network = network.clone();
-		Arc::new(move |hash, data| network.announce_block(hash, data))
+		let sync_service = sync_service.clone();
+		Arc::new(move |hash, data| sync_service.announce_block(hash, data))
 	};
 
 	let relay_chain_slot_duration = Duration::from_secs(6);
+	let overseer_handle = relay_chain_interface
+		.overseer_handle()
+		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
 	if collator {
 		let parachain_consensus = build_consensus(
@@ -756,7 +844,7 @@ where
 			relay_chain_interface.clone(),
 			transaction_pool,
 			network,
-			params.keystore_container.sync_keystore(),
+			params.keystore_container.keystore(),
 			force_authoring,
 		)?;
 
@@ -772,10 +860,12 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
 			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
 				"Collator Key is None".to_string(),
 			))?,
 			relay_chain_slot_duration,
+			sync_service,
 		};
 
 		start_collator(params).await?;
@@ -788,6 +878,8 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
+			sync_service,
 		};
 
 		start_full_node(params)?;
@@ -804,7 +896,7 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v2::Id,
+	id: polkadot_primitives::v4::Id,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -900,7 +992,7 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub fn new_dev<RuntimeApi, Executor>(
+pub async fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
@@ -936,9 +1028,11 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
+	let net_config = FullNetworkConfiguration::new(&config.network);
+
+	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -946,7 +1040,8 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync: None,
+			warp_sync_params: None,
+			net_config,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -974,7 +1069,13 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		env.enable_ensure_proof_size_limit_after_each_extrinsic();
+		// TODO: Need to cherry-pick
+		//
+		// https://github.com/moonbeam-foundation/substrate/commit/
+		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
+		// 06d204f0c8b689955e42177731e232115e9a6f
+		//
+		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
@@ -1024,7 +1125,7 @@ where
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
 		let client_clone = client.clone();
-		let keystore_clone = keystore_container.sync_keystore().clone();
+		let keystore_clone = keystore_container.keystore().clone();
 		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
@@ -1046,7 +1147,7 @@ where
 				commands_stream,
 				select_chain,
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
-					keystore: keystore_container.sync_keystore(),
+					keystore: keystore_container.keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
 					_phantom: Default::default(),
@@ -1089,21 +1190,38 @@ where
 			}),
 		);
 	}
-	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
-		task_manager: &task_manager,
-		client: client.clone(),
-		substrate_backend: backend.clone(),
-		frontier_backend: frontier_backend.clone(),
-		filter_pool: filter_pool.clone(),
-		overrides: overrides.clone(),
-		fee_history_limit,
-		fee_history_cache: fee_history_cache.clone(),
-	});
+
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(
 				&rpc_config,
+				prometheus_registry.clone(),
 				rpc::SpawnTasksParams {
 					task_manager: &task_manager,
 					client: client.clone(),
@@ -1135,11 +1253,13 @@ where
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
+		let sync = sync_service.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
@@ -1149,7 +1269,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,
@@ -1157,9 +1280,11 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
+				sync: sync.clone(),
 				xcm_senders: xcm_senders.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
+				forced_parent_hashes: None,
 			};
 
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1170,10 +1295,17 @@ where
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
+					pubsub_notification_sinks.clone(),
 				)
 				.map_err(Into::into)
 			} else {
-				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+				)
+				.map_err(Into::into)
 			}
 		}
 	};
@@ -1181,12 +1313,13 @@ where
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
 		client,
-		keystore: keystore_container.sync_keystore(),
+		keystore: keystore_container.keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
 		rpc_builder: Box::new(rpc_builder),
 		backend,
 		system_rpc_tx,
+		sync_service: sync_service.clone(),
 		config,
 		tx_handler_controller,
 		telemetry: None,
@@ -1295,14 +1428,13 @@ mod tests {
 	fn dalek_does_not_panic() {
 		use futures::executor::block_on;
 		use sc_block_builder::BlockBuilderProvider;
+		use sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
 		use sp_api::ProvideRuntimeApi;
 		use sp_consensus::BlockOrigin;
-		use sp_runtime::generic::BlockId;
 		use substrate_test_runtime::TestAPI;
 		use substrate_test_runtime_client::runtime::Block;
 		use substrate_test_runtime_client::{
-			ClientBlockImportExt, DefaultTestClientBuilderExt, TestClientBuilder,
-			TestClientBuilderExt,
+			ClientBlockImportExt, TestClientBuilder, TestClientBuilderExt,
 		};
 
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
@@ -1320,7 +1452,23 @@ mod tests {
 			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
 		}
 
-		let mut client = TestClientBuilder::new().build();
+		let tmp = tempfile::tempdir().unwrap();
+		let backend = Arc::new(
+			Backend::new(
+				DatabaseSettings {
+					trie_cache_maximum_size: Some(1 << 20),
+					state_pruning: Some(PruningMode::ArchiveAll),
+					blocks_pruning: BlocksPruning::KeepAll,
+					source: DatabaseSource::RocksDb {
+						path: tmp.path().into(),
+						cache_size: 1024,
+					},
+				},
+				u64::MAX,
+			)
+			.unwrap(),
+		);
+		let mut client = TestClientBuilder::with_backend(backend).build();
 
 		client
 			.execution_extensions()
@@ -1330,7 +1478,7 @@ mod tests {
 		>::new(1));
 
 		let a1 = client
-			.new_block_at(&BlockId::Number(0), Default::default(), false)
+			.new_block_at(client.chain_info().genesis_hash, Default::default(), false)
 			.unwrap()
 			.build()
 			.unwrap()
@@ -1341,7 +1489,12 @@ mod tests {
 		// shouldnt panic on importing invalid sig
 		assert!(!client
 			.runtime_api()
-			.verify_ed25519(&BlockId::Number(0), invalid_sig(), zero_ed_pub(), vec![])
+			.verify_ed25519(
+				client.chain_info().genesis_hash,
+				invalid_sig(),
+				zero_ed_pub(),
+				vec![]
+			)
 			.unwrap());
 	}
 
@@ -1382,7 +1535,6 @@ mod tests {
 			tokio_handle: runtime.handle().clone(),
 			transaction_pool: Default::default(),
 			network: network_config,
-			keystore_remote: Default::default(),
 			keystore: KeystoreConfig::Path {
 				path: "key".into(),
 				password: None,
@@ -1395,21 +1547,19 @@ mod tests {
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
-			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
+			wasm_method: Default::default(),
 			wasm_runtime_overrides: Default::default(),
 			execution_strategies: Default::default(),
-			rpc_http: None,
 			rpc_id_provider: None,
-			rpc_ipc: None,
-			rpc_ws: None,
-			rpc_ws_max_connections: None,
+			rpc_max_connections: Default::default(),
 			rpc_cors: None,
 			rpc_methods: Default::default(),
-			rpc_max_payload: None,
-			rpc_max_request_size: None,
-			rpc_max_response_size: None,
-			rpc_max_subs_per_conn: None,
-			ws_max_out_buffer_capacity: None,
+			rpc_max_request_size: Default::default(),
+			rpc_max_response_size: Default::default(),
+			rpc_max_subs_per_conn: Default::default(),
+			rpc_addr: None,
+			rpc_port: Default::default(),
+			data_path: Default::default(),
 			prometheus_config: None,
 			telemetry_endpoints: None,
 			default_heap_pages: None,
@@ -1421,7 +1571,7 @@ mod tests {
 			tracing_receiver: Default::default(),
 			max_runtime_instances: 8,
 			announce_block: true,
-			base_path: Some(BasePath::new(Path::new(""))),
+			base_path: BasePath::new(Path::new("")),
 			informant_output_format: Default::default(),
 			runtime_cache_size: 2,
 		}

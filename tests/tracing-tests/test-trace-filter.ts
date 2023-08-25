@@ -27,13 +27,19 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     await context.createBlock([rawTx3, rawTx4]);
 
     await context.createBlock(
-      createContractExecution(context, {
-        contract,
-        contractCall: contract.methods.subcalls(
-          GENESIS_CONTRACT_ADDRESSES[1],
-          GENESIS_CONTRACT_ADDRESSES[2]
-        ),
-      })
+      createContractExecution(
+        context,
+        {
+          contract,
+          contractCall: contract.methods.subcalls(
+            GENESIS_CONTRACT_ADDRESSES[1],
+            GENESIS_CONTRACT_ADDRESSES[2]
+          ),
+        },
+        {
+          gas: 50000,
+        }
+      )
     );
   });
 
@@ -51,12 +57,12 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action).to.include({
       creationMethod: "create",
       from: ALITH_ADDRESS.toLocaleLowerCase(),
-      gas: "0x5da6a",
+      gas: "0x5da6e",
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
       address: ALITH_CONTRACT_ADDRESSES[0].toLocaleLowerCase(),
-      gasUsed: "0x15017", // TODO : Compare with value from another (comparable) network.
+      gasUsed: "0x1509b", // TODO : Compare with value from another (comparable) network.
     });
 
     expect(response.result[0]).to.include({
@@ -82,7 +88,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal(ALITH_ADDRESS.toLocaleLowerCase());
-    expect(response.result[0].action.gas).to.equal("0x10cf");
+    expect(response.result[0].action.gas).to.equal("0x104b");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
