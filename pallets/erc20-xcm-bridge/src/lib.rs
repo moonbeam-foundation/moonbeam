@@ -73,11 +73,11 @@ pub mod pallet {
 					ref data,
 				}) = multilocation.interior().into_iter().next_back()
 				{
-					if let Ok(content) = core::str::from_utf8(data) {
-						if let Some((_, asci_limit)) = content.split_once("gas_limit:") {
-							if let Ok(limit) = asci_limit.parse() {
-								return limit;
-							}
+					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
+						if content == "gas_limit:" {
+							let mut bytes: [u8; 8] = Default::default();
+							bytes.copy_from_slice(&data[10..18]);
+							return u64::from_le_bytes(bytes);
 						}
 					}
 				}

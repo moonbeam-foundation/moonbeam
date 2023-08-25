@@ -231,10 +231,14 @@ describeSuite({
                         key: contractAddress,
                       },
                     },
-                    // Override default gas limit with optional GeneralKey
+                    // Override default gas limit with optional GeneralKey.
+                    // b'gas_limit:' + le(300000) + zeros padding
                     {
                       GeneralKey: {
-                        data: "gas_limit:0000000000000000300000",
+                        data: [
+                          103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 224, 147, 4, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        ],
                         length: 32,
                       },
                     },
