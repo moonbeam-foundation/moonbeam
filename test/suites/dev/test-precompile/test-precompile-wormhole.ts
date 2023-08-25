@@ -373,15 +373,14 @@ describeSuite({
       const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
       const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
-      const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
-      const result = await context.createBlock(
-        createTransaction(context, {
-          to: PRECOMPILE_GMP_ADDRESS,
-          gas: 600_000,
-          data,
-        })
-      );
+      const rawTx = await context.writePrecompile!({
+        precompileName: "Gmp",
+        functionName: "wormholeTransferERC20",
+        args: [`0x${transferVAA}`],
+        rawTxOnly: true,
+      });
+      const result = await context.createBlock(rawTx);
 
       expectEVMResult(result.result.events, "Succeed", "Returned");
       const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
@@ -417,15 +416,14 @@ describeSuite({
       const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
       const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
-      const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
-      const result = await context.createBlock(
-        createTransaction(context, {
-          to: PRECOMPILE_GMP_ADDRESS,
-          gas: 600_000,
-          data,
-        })
-      );
+      const rawTx = await context.writePrecompile!({
+        precompileName: "Gmp",
+        functionName: "wormholeTransferERC20",
+        args: [`0x${transferVAA}`],
+        rawTxOnly: true,
+      });
+      const result = await context.createBlock(rawTx);
 
       expectEVMResult(result.result.events, "Succeed", "Returned");
       // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
@@ -459,15 +457,14 @@ describeSuite({
       const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
       const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
-      const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
-      const result = await context.createBlock(
-        createTransaction(context, {
-          to: PRECOMPILE_GMP_ADDRESS,
-          gas: 600_000,
-          data,
-        })
-      );
+      const rawTx = await context.writePrecompile!({
+        precompileName: "Gmp",
+        functionName: "wormholeTransferERC20",
+        args: [`0x${transferVAA}`],
+        rawTxOnly: true,
+      });
+      const result = await context.createBlock(rawTx);
 
       expectEVMResult(result.result.events, "Succeed", "Returned");
       const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
