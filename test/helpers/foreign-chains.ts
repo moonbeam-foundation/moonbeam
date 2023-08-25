@@ -152,6 +152,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
+        mutedUntil: 1695454200000, // 23/09/2023 08:30:00 UTC
       },
       {
         name: "Bifrost",
