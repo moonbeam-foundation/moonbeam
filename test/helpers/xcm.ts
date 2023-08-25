@@ -101,7 +101,11 @@ export async function registerForeignAsset(
         context
           .polkadotJs()
           .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-      )
+      ),
+    {
+      expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
+      allowFailures: false,
+    }
   );
   // check asset in storage
   const registeredAsset = (
@@ -202,9 +206,12 @@ export async function injectHrmpMessageAndSeal(
 
 interface Junction {
   Parachain?: number;
-  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"]; id: Uint8Array | string };
-  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"]; index: number };
-  AccountKey20?: { network: "Any" | XcmV3JunctionNetworkId["type"]; key: Uint8Array | string };
+  AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; id: Uint8Array | string };
+  AccountIndex64?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; index: number };
+  AccountKey20?: {
+    network: "Any" | XcmV3JunctionNetworkId["type"] | null;
+    key: Uint8Array | string;
+  };
   PalletInstance?: number;
   GeneralIndex?: bigint;
   GeneralKey?: { length: number; data: Uint8Array };
@@ -344,13 +351,13 @@ export class XcmFragment {
   }
 
   // Add a `DescendOrigin` instruction
-  descend_origin(): this {
+  descend_origin(network: "Any" | XcmV3JunctionNetworkId["type"] | null = null): this {
     if (this.config.descend_origin != null) {
       this.instructions.push({
         DescendOrigin: {
           X1: {
             AccountKey20: {
-              network: "Any",
+              network,
               key: this.config.descend_origin,
             },
           },
@@ -460,7 +467,7 @@ export class XcmFragment {
   /// XCM V3 calls
   as_v3(): any {
     return {
-      V3: replaceNetworkAny(this.instructions),
+      V3: this.instructions,
     };
   }
 
@@ -554,7 +561,7 @@ export class XcmFragment {
   ): this {
     this.instructions.push({
       QueryPallet: {
-        module_name: stringToU8a(module_name),
+        module_name,
         response_info: {
           destination,
           query_id,
@@ -576,8 +583,8 @@ export class XcmFragment {
     this.instructions.push({
       ExpectPallet: {
         index,
-        name: stringToU8a(name),
-        module_name: stringToU8a(module_name),
+        name,
+        module_name,
         crate_major,
         min_crate_minor,
       },
@@ -806,27 +813,6 @@ export class XcmFragment {
     return this;
   }
 }
-
-function replaceNetworkAny(obj: AnyObject | Array<AnyObject>): any {
-  if (Array.isArray(obj)) {
-    return obj.map((item) => replaceNetworkAny(item));
-  } else if (typeof obj === "object" && obj !== null) {
-    const newObj: AnyObject = {};
-    for (const key in obj) {
-      if (key === "network" && obj[key] === "Any") {
-        newObj[key] = null;
-      } else {
-        newObj[key] = replaceNetworkAny(obj[key]);
-      }
-    }
-    return newObj;
-  }
-  return obj;
-}
-
-type AnyObject = {
-  [key: string]: any;
-};
 
 export const registerXcmTransactorAndContract = async (context: DevModeContext) => {
   await context.createBlock(

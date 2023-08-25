@@ -36,7 +36,7 @@
     "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts' -- -j 4",
     "test-seq": "mocha -r ts-node/register 'tests/**/test-*.ts'",
     "tracing-test": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha --parallel -r ts-node/register 'tracing-tests/**/*.ts'",
-    "tracing-test-single": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha -r ts-node/register 'tracing-tests/test-trace-filter.ts'",
+    "tracing-test-single": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha -r ts-node/register 'tracing-tests/test-trace-erc20-xcm.ts'",
     "watch": "npm-watch",
     "build": "tsc && cp -r contracts build/",
     "build-clean": "rm -r node_modules && npm i && npm run build",

@@ -15,7 +15,7 @@ import { stringToU8a } from "@polkadot/util";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2701",
+  id: "D3534",
   title: "Mock XCM - Test bad contract with excess gas usage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -141,7 +141,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: contractAddress,
                       },
                     },
