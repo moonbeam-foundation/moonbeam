@@ -20,12 +20,12 @@
 
 extern crate alloc;
 
-use fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
+use fp_evm::{Context, ExitReason, Log, PrecompileHandle};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
-use pallet_evm::GasWeightMapping;
+use pallet_evm::{FeeCalculator, GasWeightMapping};
 use pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
