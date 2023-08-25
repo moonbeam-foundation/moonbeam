@@ -53,7 +53,7 @@ const PRECOMPILE_GMP_ADDRESS = "0x0000000000000000000000000000000000000816";
 // TODO: maybe remove the implicit behavior from the util functions in wormhole.ts?
 // TODO: actually, something is wrong here -- I don't think this matches the WH compacting logic
 const WH_IMPLICIT_DECIMALS = 18n;
-const WH_IMPLICIT_MULTIPLIER = 10n**WH_IMPLICIT_DECIMALS;
+const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
 
 describeSuite({
   id: "D2568",
@@ -61,7 +61,6 @@ describeSuite({
   foundationMethods: "dev",
 
   testCases: ({ context, it, log }) => {
-
     const deploy = async (contractPath: string, initData?: any[]) => {
       const contract = await context.deployContract(contractPath, {
         args: initData,
@@ -70,7 +69,10 @@ describeSuite({
       return contract;
     };
 
-    const makeTestVAA = async function(amount: number, action: VersionedUserAction): Promise<string> {
+    const makeTestVAA = async function (
+      amount: number,
+      action: VersionedUserAction
+    ): Promise<string> {
       let payload = "" + action.toHex();
 
       return await genTransferWithPayloadVAA(
@@ -117,7 +119,7 @@ describeSuite({
       },
     };
 
-    beforeAll(async function() {
+    beforeAll(async function () {
       const wethDeployment = await deploy("MockWETH9");
       // wethContract = wethDeployment.contract;
       wethAddress = wethDeployment.contractAddress;
@@ -127,13 +129,12 @@ describeSuite({
       const initialSigners = [ALITH_ADDRESS];
       const chainId = "0x10";
       const governanceChainId = "0x1";
-      const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004";
+      const governanceContract =
+        "0x0000000000000000000000000000000000000000000000000000000000000004";
       evmChainId = await context.viem().getChainId();
       // Deploy wormhole (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
-      const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!(
-        "Setup"
-      );
+      const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!("Setup");
       const implementationContract = await deploy("Implementation");
       const wormholeSetupData = encodeFunctionData({
         abi: setupAbi,
@@ -144,8 +145,8 @@ describeSuite({
           evmChainId,
           governanceChainId,
           governanceContract,
-          evmChainId
-        ]
+          evmChainId,
+        ],
       });
 
       const { contractAddress: wormholeAddr } = await context.deployContract!("Wormhole", {
@@ -163,8 +164,9 @@ describeSuite({
       log(`wormhole token impl deployed to ${tokenImplAddr}`);
       const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
         await context.deployContract!("BridgeSetup");
-      const { contractAddress: bridgeImplAddr, abi: bridgeImplAbi } =
-        await context.deployContract!("BridgeImplementation");
+      const { contractAddress: bridgeImplAddr, abi: bridgeImplAbi } = await context.deployContract!(
+        "BridgeImplementation"
+      );
 
       const bridgeSetupData = encodeFunctionData({
         abi: bridgeSetupAbi,
@@ -201,9 +203,7 @@ describeSuite({
         contractAddress: bridgeAddr,
         functionName: "registerChain",
         rawTxOnly: true,
-        args: [
-          `0x${registerChainVm}`,
-        ]
+        args: [`0x${registerChainVm}`],
       });
       const registerChainResult = await context.createBlock(rawTx);
 
@@ -225,9 +225,7 @@ describeSuite({
         contractAddress: bridgeAddr,
         functionName: "createWrapped",
         rawTxOnly: true,
-        args: [
-          `0x${assetMetaVm}`,
-        ]
+        args: [`0x${assetMetaVm}`],
       });
       const assetMetaResult = await context.createBlock(rawTx);
       const wrappedToken = (
@@ -240,16 +238,12 @@ describeSuite({
           assetMetaResult.result.error || "good"
         })`
       );
-      
+
       // TODO: clean up / avoid using both web3js and ethers
       // TODO: not the right contract, but it'll probably work
       const WETH_CONTRACT_JSON = fetchCompiledContract("MockWETH9");
       const WETH_INTERFACE = WETH_CONTRACT_JSON.abi as InterfaceAbi;
-      whWethContract = new ethers.Contract(
-        wrappedToken,
-        WETH_INTERFACE,
-        context.ethers(),
-      );
+      whWethContract = new ethers.Contract(wrappedToken, WETH_INTERFACE, context.ethers());
 
       log(`wrapped token deployed to ${wrappedToken}`);
 
@@ -265,9 +259,7 @@ describeSuite({
       await context
         .polkadotJs()
         .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])
+          context.polkadotJs().tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])
         )
         .signAndSend(alith);
       await context.createBlock();
@@ -282,9 +274,7 @@ describeSuite({
       await context
         .polkadotJs()
         .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])
+          context.polkadotJs().tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])
         )
         .signAndSend(alith);
       await context.createBlock();
@@ -313,171 +303,163 @@ describeSuite({
       await context.createBlock();
     });
 
-  it({
-    id: "T01",
-    title: "should support V1 user action",
-    timeout: 3600 * 1000,
-    test: async function () {
+    it({
+      id: "T01",
+      title: "should support V1 user action",
+      timeout: 3600 * 1000,
+      test: async function () {
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
 
-      // create payload
-      const destination = context.polkadotJs().registry.createType(
-        "VersionedMultiLocation",
-        versionedMultiLocation
-      );
+        const userAction = new XcmRoutingUserAction({ destination });
+        const versionedUserAction = new VersionedUserAction({ V1: userAction });
+        let payload = "" + versionedUserAction.toHex();
 
-      const userAction = new XcmRoutingUserAction({ destination });
-      const versionedUserAction = new VersionedUserAction({ V1: userAction });
-      let payload = "" + versionedUserAction.toHex();
+        const whAmount = 999n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
-      const whAmount = 999n;
-      const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
 
-      const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        const result = await context.createBlock(rawTx);
 
-      const rawTx = await context.writePrecompile!({
-        precompileName: "Gmp",
-        functionName: "wormholeTransferERC20",
-        args: [`0x${transferVAA}`],
-        rawTxOnly: true,
-      });
-      const result = await context.createBlock(rawTx);
+        expectEVMResult(result.result.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const transferFungible = events[0].data[1][0].fun;
+        expect(transferFungible.isFungible);
+        const transferAmount = transferFungible.asFungible.toBigInt();
+        expect(transferAmount).to.eq(realAmount);
+      },
+    });
 
-      expectEVMResult(result.result.events, "Succeed", "Returned");
-      const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
-      const transferFungible = events[0].data[1][0].fun;
-      expect(transferFungible.isFungible);
-      const transferAmount = transferFungible.asFungible.toBigInt();
-      expect(transferAmount).to.eq(realAmount);
-    }
-  });
+    it({
+      id: "T02",
+      title: "should support V2 user action with fee",
+      timeout: 3600 * 1000,
+      test: async function () {
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
 
-  it({
-    id: "T02",
-    title: "should support V2 user action with fee",
-    timeout: 3600 * 1000,
-    test: async function () {
+        const whAmount = 999n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const fee = 1234500n;
 
-      // create payload
-      const destination = context.polkadotJs().registry.createType(
-        "VersionedMultiLocation",
-        versionedMultiLocation
-      );
+        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+        const versionedUserAction = new VersionedUserAction({ V2: userAction });
 
-      const whAmount = 999n;
-      const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
-      const fee = 1234500n;
+        const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-      const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-      const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
 
-      const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        const result = await context.createBlock(rawTx);
 
-      const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        expectEVMResult(result.result.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const transferFungible = events[0].data[1][0].fun;
+        expect(transferFungible.isFungible);
+        const transferAmount = transferFungible.asFungible.toBigInt();
+        expect(transferAmount).to.eq(realAmount - fee);
 
-      const rawTx = await context.writePrecompile!({
-        precompileName: "Gmp",
-        functionName: "wormholeTransferERC20",
-        args: [`0x${transferVAA}`],
-        rawTxOnly: true,
-      });
-      const result = await context.createBlock(rawTx);
+        const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+        expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(fee);
+      },
+    });
 
-      expectEVMResult(result.result.events, "Succeed", "Returned");
-      const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
-      const transferFungible = events[0].data[1][0].fun;
-      expect(transferFungible.isFungible);
-      const transferAmount = transferFungible.asFungible.toBigInt();
-      expect(transferAmount).to.eq(realAmount - fee);
+    it({
+      id: "T03",
+      title: "should pay entire transfer when fee greater than transfer",
+      timeout: 3600 * 1000,
+      test: async function () {
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
 
-      const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(fee);
-    }
-  });
+        const whAmount = 100n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const fee = realAmount + 1n;
 
-  it({
-    id: "T03",
-    title: "should pay entire transfer when fee greater than transfer",
-    timeout: 3600 * 1000,
-    test: async function () {
+        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+        const versionedUserAction = new VersionedUserAction({ V2: userAction });
 
-      // create payload
-      const destination = context.polkadotJs().registry.createType(
-        "VersionedMultiLocation",
-        versionedMultiLocation
-      );
+        const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-      const whAmount = 100n;
-      const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
-      const fee = realAmount + 1n;
+        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
 
-      const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-      const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        const result = await context.createBlock(rawTx);
 
-      const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+        expectEVMResult(result.result.events, "Succeed", "Returned");
+        // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
 
-      const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+        expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(realAmount);
+      },
+    });
 
-      const rawTx = await context.writePrecompile!({
-        precompileName: "Gmp",
-        functionName: "wormholeTransferERC20",
-        args: [`0x${transferVAA}`],
-        rawTxOnly: true,
-      });
-      const result = await context.createBlock(rawTx);
+    it({
+      id: "T04",
+      title: "should pay no fee if fee is zero",
+      timeout: 3600 * 1000,
+      test: async function () {
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
 
-      expectEVMResult(result.result.events, "Succeed", "Returned");
-      // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
-      const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
-      expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
+        const whAmount = 100n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const fee = 0n;
 
-      const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(realAmount);
-    }
-  });
+        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+        const versionedUserAction = new VersionedUserAction({ V2: userAction });
 
-  it({
-    id: "T04",
-    title: "should pay no fee if fee is zero",
-    timeout: 3600 * 1000,
-    test: async function () {
+        const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-      // create payload
-      const destination = context.polkadotJs().registry.createType(
-        "VersionedMultiLocation",
-        versionedMultiLocation
-      );
+        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
 
-      const whAmount = 100n;
-      const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
-      const fee = 0n;
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        const result = await context.createBlock(rawTx);
 
-      const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-      const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        expectEVMResult(result.result.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const transferFungible = events[0].data[1][0].fun;
+        expect(transferFungible.isFungible);
+        const transferAmount = transferFungible.asFungible.toBigInt();
+        expect(transferAmount).to.eq(realAmount);
 
-      const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
-
-      const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
-
-      const rawTx = await context.writePrecompile!({
-        precompileName: "Gmp",
-        functionName: "wormholeTransferERC20",
-        args: [`0x${transferVAA}`],
-        rawTxOnly: true,
-      });
-      const result = await context.createBlock(rawTx);
-
-      expectEVMResult(result.result.events, "Succeed", "Returned");
-      const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
-      const transferFungible = events[0].data[1][0].fun;
-      expect(transferFungible.isFungible);
-      const transferAmount = transferFungible.asFungible.toBigInt();
-      expect(transferAmount).to.eq(realAmount);
-
-      // no fee paid
-      const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0n);
-    }
-  });
+        // no fee paid
+        const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+        expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0n);
+      },
+    });
   },
 });
 
