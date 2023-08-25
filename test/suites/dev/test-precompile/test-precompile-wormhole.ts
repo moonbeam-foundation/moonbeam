@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_PRIVATE_KEY,
@@ -7,6 +7,7 @@ import {
   alith,
   createViemTransaction,
 } from "@moonwall/util";
+import { Contract, ethers, InterfaceAbi } from "ethers";
 import { Enum, Struct, TypeRegistry } from "@polkadot/types";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
@@ -50,8 +51,218 @@ describeSuite({
   foundationMethods: "dev",
 
   testCases: ({ context, it, log }) => {
+
+    const deploy = async (contractPath: string, initData?: any[]) => {
+      const contract = await context.deployContract(contractPath, {
+        args: initData,
+      });
+      const result = await context.createBlock(contract.rawTx);
+      return contract;
+    };
+
+    const signerPKs = [ALITH_PRIVATE_KEY];
+    const ETHChain = 3;
+    const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
+
+    let whNonce = 0;
+    // TODO: ugh, clean this up. we don't need the WETH contract we deployed, we need the wrapped
+    // version of it created by WH.
+    let wethAddress: string;
+    let whWethContract: ethers.Contract;
+
+    let whWethAddress: string;
+    let evmChainId;
+
+    // destination used for xtoken transfers
+    const versionedMultiLocation = {
+      v1: {
+        parents: 1,
+        interior: {
+          X1: {
+            AccountKey20: {
+              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            },
+          },
+        },
+      },
+    };
+
+    beforeAll(async function() {
+      const wethDeployment = await deploy("MockWETH9");
+      // wethContract = wethDeployment.contract;
+      wethAddress = wethDeployment.contractAddress;
+      log(`weth contract deployed to ${wethAddress}`);
+      const myTokenContract = await deploy("MockWETH9");
+
+      const initialSigners = [ALITH_ADDRESS];
+      const chainId = "0x10";
+      const governanceChainId = "0x1";
+      const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004";
+      evmChainId = await context.viem().getChainId();
+      // Deploy wormhole (based on wormhole)
+      // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
+      const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!(
+        "Setup"
+      );
+      const implementationContract = await deploy("Implementation");
+      const wormholeSetupData = encodeFunctionData({
+        abi: setupAbi,
+        functionName: "setup",
+        args: [
+          implementationContract.contractAddress,
+          initialSigners,
+          evmChainId,
+          governanceChainId,
+          governanceContract,
+          evmChainId
+        ]
+      });
+
+      const { contractAddress: wormholeAddr } = await context.deployContract!("Wormhole", {
+        args: [setupAddr, wormholeSetupData],
+      });
+
+      log(`wormhole core bridge deployed to ${wormholeAddr}`);
+
+      const finality = 1;
+      // Deploy bridge (based on wormhole)
+      // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
+      const { contractAddress: tokenImplAddr } = await context.deployContract!(
+        "TokenImplementation"
+      );
+      log(`wormhole token impl deployed to ${tokenImplAddr}`);
+      const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
+        await context.deployContract!("BridgeSetup");
+      const { contractAddress: bridgeImplAddr, abi: bridgeImplAbi } =
+        await context.deployContract!("BridgeImplementation");
+
+      const bridgeSetupData = encodeFunctionData({
+        abi: bridgeSetupAbi,
+        functionName: "setup",
+        args: [
+          bridgeImplAddr,
+          evmChainId,
+          wormholeAddr,
+          governanceChainId,
+          governanceContract,
+          tokenImplAddr,
+          wethAddress,
+          finality,
+          evmChainId,
+        ],
+      });
+
+      const { contractAddress: bridgeAddr } = await context.deployContract!("TokenBridge", {
+        args: [bridgeSetupAddr, bridgeSetupData],
+      });
+      log(`bridge contract deployed to ${bridgeAddr}`);
+
+      // Register Chain ETH
+      const registerChainVm = await genRegisterChainVAA(
+        signerPKs,
+        ETHEmitter,
+        GUARDIAN_SET_INDEX,
+        whNonce++,
+        1,
+        ETHChain
+      );
+      let rawTx = await context.writeContract!({
+        contractName: "BridgeImplementation",
+        contractAddress: bridgeAddr,
+        functionName: "registerChain",
+        rawTxOnly: true,
+        args: [
+          `0x${registerChainVm}`,
+        ]
+      });
+      const registerChainResult = await context.createBlock(rawTx);
+
+      // Register Asset MyToken
+      const assetMetaVm = await genAssetMeta(
+        signerPKs,
+        GUARDIAN_SET_INDEX,
+        whNonce++,
+        1,
+        wethAddress,
+        ETHChain,
+        ETHEmitter,
+        18,
+        "WETH",
+        "Wrapped Ether"
+      );
+      rawTx = await context.writeContract!({
+        contractName: "BridgeImplementation",
+        contractAddress: bridgeAddr,
+        functionName: "createWrapped",
+        rawTxOnly: true,
+        args: [
+          `0x${assetMetaVm}`,
+        ]
+      });
+      const assetMetaResult = await context.createBlock(rawTx);
+      const wrappedToken = (
+        await context
+          .viem()
+          .getTransactionReceipt({ hash: assetMetaResult!.result!.hash as `0x${string}` })
+      ).logs[0].address;
+      log(
+        `Created Wrapped Asset ${wrappedToken} => ${assetMetaResult.result.hash} (${
+          assetMetaResult.result.error || "good"
+        })`
+      );
+      
+      // TODO: clean up / avoid using both web3js and ethers
+      // TODO: not the right contract, but it'll probably work
+      const WETH_CONTRACT_JSON = fetchCompiledContract("MockWETH9");
+      const WETH_INTERFACE = WETH_CONTRACT_JSON.abi as InterfaceAbi;
+      whWethContract = new ethers.Contract(
+        wrappedToken,
+        WETH_INTERFACE,
+        context.ethers,
+      );
+
+      log(`wrapped token deployed to ${wrappedToken}`);
+
+      // before interacting with the precompile, we need to set some contract addresses from our
+      // our deployments above
+      const CORE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+        u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("CoreAddress", 128))
+      );
+      expect(CORE_CONTRACT_STORAGE_ADDRESS).to.eq(
+        "0xb7f047395bba5df0367b45771c00de5059ff23ff65cc809711800d9d04e4b14c"
+      );
+
+      await context
+        .polkadotJs()
+        .tx.sudo.sudo(
+          context
+            .polkadotJs()
+            .tx.system.setStorage([[CORE_CONTRACT_STORAGE_ADDRESS, wormholeAddr]])
+        )
+        .signAndSend(alith);
+      await context.createBlock();
+
+      const BRIDGE_CONTRACT_STORAGE_ADDRESS = u8aToHex(
+        u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("BridgeAddress", 128))
+      );
+      expect(BRIDGE_CONTRACT_STORAGE_ADDRESS).to.eq(
+        "0xb7f047395bba5df0367b45771c00de50c1586bde54b249fb7f521faf831ade45"
+      );
+
+      await context
+        .polkadotJs()
+        .tx.sudo.sudo(
+          context
+            .polkadotJs()
+            .tx.system.setStorage([[BRIDGE_CONTRACT_STORAGE_ADDRESS, bridgeAddr]])
+        )
+        .signAndSend(alith);
+      await context.createBlock();
+    });
+
+    // XXX: remove me
     it({
-      id: "T01",
+      id: "T99999",
       title: "should support Alith VAA",
       timeout: 3600 * 1000,
       test: async function () {
