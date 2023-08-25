@@ -248,7 +248,7 @@ describeSuite({
       whWethContract = new ethers.Contract(
         wrappedToken,
         WETH_INTERFACE,
-        context.ethers,
+        context.ethers(),
       );
 
       log(`wrapped token deployed to ${wrappedToken}`);
