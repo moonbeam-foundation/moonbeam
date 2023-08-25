@@ -23,7 +23,7 @@ use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::Saturating,
+	sp_runtime::{traits::Zero, Saturating},
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
@@ -229,7 +229,7 @@ where
 
 				let remaining = amount.saturating_sub(fee);
 
-				if Into::<u128>::into(remaining) > 0 {
+				if !remaining.is_zero() {
 					Some(orml_xtokens::Call::<Runtime>::transfer {
 						currency_id,
 						amount: remaining,
