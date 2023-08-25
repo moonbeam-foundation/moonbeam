@@ -390,7 +390,7 @@ describeSuite({
       expect(transferAmount).to.eq(realAmount - fee);
 
       const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(fee));
+      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(fee);
     }
   });
 
@@ -431,7 +431,7 @@ describeSuite({
       expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
 
       const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(realAmount));
+      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(realAmount);
     }
   });
 
@@ -475,7 +475,7 @@ describeSuite({
 
       // no fee paid
       const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
-      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0);
+      expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0n);
     }
   });
 
