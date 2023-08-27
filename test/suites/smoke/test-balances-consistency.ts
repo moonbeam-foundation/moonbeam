@@ -12,7 +12,6 @@ import type {
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
-import { rateLimiter } from "../../helpers/common.js";
 import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
 import { processAllStorage } from "../../helpers/storageQueries.js";
@@ -57,7 +56,6 @@ describeSuite({
     const expectedReserveMap = new Map<string, ReservedInfo>();
     const expectedLocksMap = new Map<string, LocksInfo>();
     const locksMap = new Map<string, { total: bigint }>();
-    const limiter = rateLimiter();
     let failedLocks: any[] = [];
     let failedReserved: any[] = [];
     let atBlockNumber: number = 0;
@@ -485,7 +483,8 @@ describeSuite({
       await new Promise((resolve, reject) => {
         if (
           (specVersion >= 1900 && runtimeName == "moonbase") ||
-          (specVersion >= 2100 && runtimeName == "moonriver")
+          (specVersion >= 2100 && runtimeName == "moonriver") ||
+          (specVersion >= 2300 && runtimeName == "moonbeam")
         ) {
           apiAt.query.referenda.referendumInfoFor
             .entries()
@@ -718,7 +717,8 @@ describeSuite({
       // Only applies to OpenGov
       if (
         (specVersion >= 1900 && runtimeName == "moonbase") ||
-        (specVersion >= 2100 && runtimeName == "moonriver")
+        (specVersion >= 2100 && runtimeName == "moonriver") ||
+        (specVersion >= 2300 && runtimeName == "moonbeam")
       ) {
         await new Promise((resolve, reject) => {
           apiAt.query.convictionVoting.votingFor
