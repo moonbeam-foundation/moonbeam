@@ -999,6 +999,9 @@ fn notify_inactive_collator_works() {
 			roll_to_round_begin(6);
 			roll_blocks(1);
 
+			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 1);
+			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
+
 			// Call 'notify_inactive_collator' extrinsic
 			assert_ok!(ParachainStaking::notify_inactive_collator(
 				RuntimeOrigin::signed(1),
