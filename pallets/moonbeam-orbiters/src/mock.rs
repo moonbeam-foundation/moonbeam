@@ -88,7 +88,7 @@ impl frame_system::Config for Test {
 // Pallet balances configuration
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
 
 impl pallet_balances::Config for Test {
@@ -101,6 +101,10 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 // Pallet moonbeam-orbiters configuration

@@ -16,7 +16,7 @@ describeSuite({
       test: async function () {
         // As we are testing rpc-level functionality the height at which we access secondary db data
         // is irrelevant. We can just select some arbitrary block numbers to verify block hashes.
-        const latestBlockNumber = await context.ethersSigner().provider.getBlockNumber();
+        const latestBlockNumber = await context.ethers().provider!.getBlockNumber();
         // We asume we only want to run the test if there is enough blocks.
         if (latestBlockNumber > 10000) {
           let failedCheckpoints = [];
@@ -35,8 +35,8 @@ describeSuite({
           ];
 
           for (const block of blocks) {
-            const byNumber = await context.ethersSigner().provider.getBlock(block);
-            const byHash = await context.ethersSigner().provider.getBlock(byNumber.hash);
+            const byNumber = await context.ethers().provider!.getBlock(block);
+            const byHash = await context.ethers().provider!.getBlock(byNumber!.hash!);
             if (JSON.stringify(byNumber) !== JSON.stringify(byHash)) {
               failedCheckpoints.push(block);
             }

@@ -69,6 +69,33 @@ impl FromStr for EthApi {
 	}
 }
 
+/// Available frontier backend types.
+#[derive(Debug, Copy, Clone, Default, clap::ValueEnum)]
+pub enum FrontierBackendType {
+	/// Either RocksDb or ParityDb as per inherited from the global backend settings.
+	#[default]
+	KeyValue,
+	/// Sql database with custom log indexing.
+	Sql,
+}
+
+/// Defines the frontier backend configuration.
+pub enum FrontierBackendConfig {
+	KeyValue,
+	Sql {
+		pool_size: u32,
+		num_ops_timeout: u32,
+		thread_count: u32,
+		cache_size: u64,
+	},
+}
+
+impl Default for FrontierBackendConfig {
+	fn default() -> FrontierBackendConfig {
+		FrontierBackendConfig::KeyValue
+	}
+}
+
 pub struct RpcConfig {
 	pub ethapi: Vec<EthApi>,
 	pub ethapi_max_permits: u32,
@@ -80,4 +107,5 @@ pub struct RpcConfig {
 	pub max_past_logs: u32,
 	pub relay_chain_rpc_urls: Vec<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
+	pub frontier_backend_config: FrontierBackendConfig,
 }

@@ -40,7 +40,7 @@
 //! original request was made.
 //!
 //! To join the set of delegators, call `delegate` and pass in an account that is
-//! already a collator candidate and `bond >= MinDelegatorStk`. Each delegator can delegate up to
+//! already a collator candidate and `bond >= MinDelegation`. Each delegator can delegate up to
 //! `T::MaxDelegationsPerDelegator` collator candidates by calling `delegate`.
 //!
 //! To revoke a delegation, call `revoke_delegation` with the collator candidate's account.
@@ -80,8 +80,9 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
+	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -161,9 +162,6 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to delegate
 		#[pallet::constant]
 		type MinDelegation: Get<BalanceOf<Self>>;
-		/// Minimum stake for any registered on-chain account to be a delegator
-		#[pallet::constant]
-		type MinDelegatorStk: Get<BalanceOf<Self>>;
 		/// Get the current block author
 		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
@@ -177,6 +175,9 @@ pub mod pallet {
 		type OnNewRound: OnNewRound;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+		/// Maximum candidates
+		#[pallet::constant]
+		type MaxCandidates: Get<u32>;
 	}
 
 	#[pallet::error]
@@ -229,8 +230,9 @@ pub mod pallet {
 		TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates,
 		TooLowCandidateCountWeightHint,
 		TooLowCandidateCountWeightHintGoOffline,
-		TooLowCandidateCountWeightHintGoOnline,
-		TooLowCandidateCountWeightHintCandidateBondMore,
+		CandidateLimitReached,
+		CannotSetAboveMaxCandidates,
+		RemovedCall,
 	}
 
 	#[pallet::event]
@@ -579,7 +581,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn selected_candidates)]
 	/// The collator candidates selected for the current round
-	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	type SelectedCandidates<T: Config> =
+		StorageValue<_, BoundedVec<T::AccountId, T::MaxCandidates>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
@@ -589,8 +592,11 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
 	/// The pool of collator candidates, each with their total backing stake
-	pub(crate) type CandidatePool<T: Config> =
-		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
+	pub(crate) type CandidatePool<T: Config> = StorageValue<
+		_,
+		BoundedOrderedSet<Bond<T::AccountId, BalanceOf<T>>, T::MaxCandidates>,
+		ValueQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -764,6 +770,11 @@ pub mod pallet {
 				"{:?}",
 				Error::<T>::CannotSetBelowMin
 			);
+			assert!(
+				self.num_selected_candidates <= T::MaxCandidates::get(),
+				"{:?}",
+				Error::<T>::CannotSetAboveMaxCandidates
+			);
 			<TotalSelected<T>>::put(self.num_selected_candidates);
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
@@ -886,6 +897,10 @@ pub mod pallet {
 				new >= T::MinSelectedCandidates::get(),
 				Error::<T>::CannotSetBelowMin
 			);
+			ensure!(
+				new <= T::MaxCandidates::get(),
+				Error::<T>::CannotSetAboveMaxCandidates
+			);
 			let old = <TotalSelected<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
@@ -970,13 +985,14 @@ pub mod pallet {
 				candidate_count >= old_count,
 				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
 			);
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: acc.clone(),
-					amount: bond
-				}),
-				Error::<T>::CandidateExists
-			);
+					amount: bond,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(maybe_inserted_candidate, Error::<T>::CandidateExists);
+
 			ensure!(
 				Self::get_collator_stakable_free_balance(&acc) >= bond,
 				Error::<T>::InsufficientBalance,
@@ -1065,13 +1081,13 @@ pub mod pallet {
 				candidates.0.len() as u32 <= candidate_count,
 				Error::<T>::TooLowCandidateCountWeightHintCancelLeaveCandidates
 			);
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
-				Error::<T>::AlreadyActive
-			);
+					amount: state.total_counted,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(maybe_inserted_candidate, Error::<T>::AlreadyActive);
 			<CandidatePool<T>>::put(candidates);
 			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CancelledCandidateExit {
@@ -1206,42 +1222,25 @@ pub mod pallet {
 			)
 		}
 
-		/// DEPRECATED use batch util with schedule_revoke_delegation for all delegations
-		/// Request to leave the set of delegators. If successful, the caller is scheduled to be
-		/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.
-		/// Success forbids future delegation requests until the request is invoked or cancelled.
+		/// REMOVED, was schedule_leave_delegators
 		#[pallet::call_index(19)]
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators_worst(
-			T::MaxDelegationsPerDelegator::get()
-		))]
-		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			Self::delegator_schedule_revoke_all(delegator)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
-		/// DEPRECATED use batch util with execute_delegation_request for all delegations
-		/// Execute the right to exit the set of delegators and revoke all ongoing delegations.
+		/// REMOVED, was execute_leave_delegators
 		#[pallet::call_index(20)]
-		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators_worst(*delegation_count))]
-		pub fn execute_leave_delegators(
-			origin: OriginFor<T>,
-			delegator: T::AccountId,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?;
-			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
-		/// DEPRECATED use batch util with cancel_delegation_request for all delegations
-		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
-		/// request (thereby resetting the delay upon another `leave_delegators` call).
+		/// REMOVED, was cancel_leave_delegators
 		#[pallet::call_index(21)]
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators_worst(
-			T::MaxDelegationsPerDelegator::get()
-		))]
-		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			Self::delegator_cancel_scheduled_revoke_all(delegator)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
@@ -1447,16 +1446,20 @@ pub mod pallet {
 			);
 			state.go_online();
 
-			ensure!(
-				candidates.insert(Bond {
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
 					owner: collator.clone(),
-					amount: state.total_counted
-				}),
+					amount: state.total_counted,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(
+				maybe_inserted_candidate,
 				DispatchErrorWithPostInfo {
 					post_info: Some(actual_weight).into(),
 					error: <Error<T>>::AlreadyActive.into(),
 				},
 			);
+
 			<CandidatePool<T>>::put(candidates);
 			<CandidateInfo<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CandidateBackOnline {
@@ -1619,10 +1622,14 @@ pub mod pallet {
 		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 			let mut candidates = <CandidatePool<T>>::get();
 			candidates.remove(&Bond::from_owner(candidate.clone()));
-			candidates.insert(Bond {
-				owner: candidate,
-				amount: total,
-			});
+			candidates
+				.try_insert(Bond {
+					owner: candidate,
+					amount: total,
+				})
+				.expect(
+					"the candidate is removed in previous step so the length cannot increase; qed",
+				);
 			<CandidatePool<T>>::put(candidates);
 		}
 
@@ -1853,27 +1860,31 @@ pub mod pallet {
 				return vec![];
 			}
 
-			let mut candidates = <CandidatePool<T>>::get().0;
+			let candidates = <CandidatePool<T>>::get().0;
 
 			// If the number of candidates is greater than top_n, select the candidates with higher
 			// amount. Otherwise, return all the candidates.
 			if candidates.len() > top_n {
 				// Partially sort candidates such that element at index `top_n - 1` is sorted, and
 				// all the elements in the range 0..top_n are the top n elements.
-				candidates.select_nth_unstable_by(top_n - 1, |a, b| {
-					// Order by amount, then owner. The owner is needed to ensure a stable order
-					// when two accounts have the same amount.
-					a.amount
-						.cmp(&b.amount)
-						.then_with(|| a.owner.cmp(&b.owner))
-						.reverse()
-				});
+				let sorted_candidates = candidates
+					.try_mutate(|inner| {
+						inner.select_nth_unstable_by(top_n - 1, |a, b| {
+							// Order by amount, then owner. The owner is needed to ensure a stable order
+							// when two accounts have the same amount.
+							a.amount
+								.cmp(&b.amount)
+								.then_with(|| a.owner.cmp(&b.owner))
+								.reverse()
+						});
+					})
+					.expect("sort cannot increase item count; qed");
 
-				let mut collators = candidates
+				let mut collators = sorted_candidates
 					.into_iter()
 					.take(top_n)
 					.map(|x| x.owner)
-					.collect::<Vec<T::AccountId>>();
+					.collect::<Vec<_>>();
 
 				// Sort collators by AccountId
 				collators.sort();
@@ -1882,10 +1893,7 @@ pub mod pallet {
 			} else {
 				// Return all candidates
 				// The candidates are already sorted by AccountId, so no need to sort again
-				candidates
-					.into_iter()
-					.map(|x| x.owner)
-					.collect::<Vec<T::AccountId>>()
+				candidates.into_iter().map(|x| x.owner).collect::<Vec<_>>()
 			}
 		}
 		/// Best as in most cumulatively supported in terms of stake
@@ -1967,7 +1975,10 @@ pub mod pallet {
 				});
 			}
 			// insert canonical collator set
-			<SelectedCandidates<T>>::put(collators);
+			<SelectedCandidates<T>>::put(
+				BoundedVec::try_from(collators)
+					.expect("subset of collators is always less than or equal to max candidates"),
+			);
 
 			let avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(0);
 			let weight = T::WeightInfo::select_top_candidates(collator_count, avg_delegator_count);
@@ -2149,7 +2160,7 @@ pub mod pallet {
 
 	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
 		fn get() -> Vec<T::AccountId> {
-			Self::selected_candidates()
+			Self::selected_candidates().into_inner()
 		}
 	}
 }

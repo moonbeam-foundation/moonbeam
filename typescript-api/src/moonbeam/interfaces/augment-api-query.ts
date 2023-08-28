@@ -33,6 +33,7 @@ import type {
 import type {
   CumulusPalletDmpQueueConfigData,
   CumulusPalletDmpQueuePageIndexData,
+  CumulusPalletParachainSystemCodeUpgradeAuthorization,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletXcmpQueueInboundChannelDetails,
   CumulusPalletXcmpQueueOutboundChannelDetails,
@@ -59,13 +60,17 @@ import type {
   PalletBalancesBalanceLock,
   PalletBalancesReserveData,
   PalletCollectiveVotes,
+  PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
+  PalletDemocracyMetadataOwner,
   PalletDemocracyReferendumInfo,
   PalletDemocracyVoteThreshold,
   PalletDemocracyVoteVoting,
+  PalletEvmCodeMetadata,
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
   PalletParachainStakingCandidateMetadata,
@@ -84,6 +89,7 @@ import type {
   PalletRandomnessRandomnessResult,
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
+  PalletReferendaReferendumInfo,
   PalletSchedulerScheduled,
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
@@ -321,6 +327,34 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    convictionVoting: {
+      /**
+       * The voting classes which have a non-zero lock requirement and the lock amounts which they
+       * require. The actual amount locked on behalf of this pallet should always be the maximum of
+       * this list.
+       */
+      classLocksFor: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<ITuple<[u16, u128]>>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * All voting for a particular voter in a particular voting class. We store the balance for
+       * the number of votes that we have recorded.
+       */
+      votingFor: AugmentedQuery<
+        ApiType,
+        (
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: u16 | AnyNumber | Uint8Array
+        ) => Observable<PalletConvictionVotingVoteVoting>,
+        [AccountId20, u16]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, u16]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     councilCollective: {
       /** The current members of the collective. This is stored sorted (just by value). */
       members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
@@ -432,6 +466,27 @@ declare module "@polkadot/api-base/types/storage" {
        */
       lowestUnbaked: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * General information concerning any proposal or referendum. The `PreimageHash` refers to the
+       * preimage of the `Preimages` provider which can be a JSON dump or IPFS hash of a JSON file.
+       *
+       * Consider a garbage collection for a metadata of finished referendums to `unrequest`
+       * (remove) large preimages.
+       */
+      metadataOf: AugmentedQuery<
+        ApiType,
+        (
+          arg:
+            | PalletDemocracyMetadataOwner
+            | { External: any }
+            | { Proposal: any }
+            | { Referendum: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<H256>>,
+        [PalletDemocracyMetadataOwner]
+      > &
+        QueryableStorageEntry<ApiType, [PalletDemocracyMetadataOwner]>;
       /**
        * The referendum to be tabled whenever it would be valid to table an external proposal. This
        * happens when a referendum needs to be tabled and one of two conditions are met:
@@ -563,10 +618,26 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    ethereumXcm: {
+      /** Whether or not Ethereum-XCM is suspended from executing */
+      ethereumXcmSuspended: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Global nonce used for building Ethereum transaction payload. */
+      nonce: AugmentedQuery<ApiType, () => Observable<U256>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     evm: {
       accountCodes: AugmentedQuery<
         ApiType,
         (arg: H160 | string | Uint8Array) => Observable<Bytes>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
+      accountCodesMetadata: AugmentedQuery<
+        ApiType,
+        (arg: H160 | string | Uint8Array) => Observable<Option<PalletEvmCodeMetadata>>,
         [H160]
       > &
         QueryableStorageEntry<ApiType, [H160]>;
@@ -754,6 +825,50 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    multisig: {
+      /** The set of open multisig operations. */
+      multisigs: AugmentedQuery<
+        ApiType,
+        (
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: U8aFixed | string | Uint8Array
+        ) => Observable<Option<PalletMultisigMultisig>>,
+        [AccountId20, U8aFixed]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, U8aFixed]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    openTechCommitteeCollective: {
+      /** The current members of the collective. This is stored sorted (just by value). */
+      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** The prime member that helps determine the default vote behavior in case of absentations. */
+      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Proposals so far. */
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Actual proposal for a given hash, if it's current. */
+      proposalOf: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /** The hashes of the active proposals. */
+      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Votes on a given proposal, if it is ongoing. */
+      voting: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     parachainInfo: {
       parachainId: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -905,7 +1020,11 @@ declare module "@polkadot/api-base/types/storage" {
       announcedHrmpMessagesPerCandidate: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** The next authorized upgrade, if there is one. */
-      authorizedUpgrade: AugmentedQuery<ApiType, () => Observable<Option<H256>>, []> &
+      authorizedUpgrade: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<CumulusPalletParachainSystemCodeUpgradeAuthorization>>,
+        []
+      > &
         QueryableStorageEntry<ApiType, []>;
       /**
        * A custom head data that should be returned as result of `validate_block`.
@@ -1179,6 +1298,9 @@ declare module "@polkadot/api-base/types/storage" {
         [u32, XcmVersionedMultiLocation]
       > &
         QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
+      /** Global suspension state of the XCM executor. */
+      xcmExecutionSuspended: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1269,6 +1391,52 @@ declare module "@polkadot/api-base/types/storage" {
         [u64]
       > &
         QueryableStorageEntry<ApiType, [u64]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    referenda: {
+      /** The number of referenda being decided currently. */
+      decidingCount: AugmentedQuery<
+        ApiType,
+        (arg: u16 | AnyNumber | Uint8Array) => Observable<u32>,
+        [u16]
+      > &
+        QueryableStorageEntry<ApiType, [u16]>;
+      /**
+       * The metadata is a general information concerning the referendum. The `PreimageHash` refers
+       * to the preimage of the `Preimages` provider which can be a JSON dump or IPFS hash of a JSON file.
+       *
+       * Consider a garbage collection for a metadata of finished referendums to `unrequest`
+       * (remove) large preimages.
+       */
+      metadataOf: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<H256>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /** The next free referendum index, aka the number of referenda started so far. */
+      referendumCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Information concerning any given referendum. */
+      referendumInfoFor: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletReferendaReferendumInfo>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The sorted list of referenda ready to be decided but not yet being decided, ordered by
+       * conviction-weighted approvals.
+       *
+       * This should be empty if `DecidingCount` is less than `TrackInfo::max_deciding`.
+       */
+      trackQueue: AugmentedQuery<
+        ApiType,
+        (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<ITuple<[u32, u128]>>>,
+        [u16]
+      > &
+        QueryableStorageEntry<ApiType, [u16]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1493,6 +1661,16 @@ declare module "@polkadot/api-base/types/storage" {
       voting: AugmentedQuery<
         ApiType,
         (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    whitelist: {
+      whitelistedCall: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Null>>,
         [H256]
       > &
         QueryableStorageEntry<ApiType, [H256]>;

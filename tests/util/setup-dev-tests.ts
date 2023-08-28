@@ -17,7 +17,7 @@ import {
   providePolkadotApi,
   provideWeb3Api,
 } from "./providers";
-import { extractError, ExtrinsicCreation } from "./substrate-rpc";
+import { extractBatchError, extractError, ExtrinsicCreation } from "./substrate-rpc";
 
 import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 const debug = require("debug")("test:setup");
@@ -96,13 +96,12 @@ export function describeDevMoonbeam(
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
       const init = forkedMode
-        ? await startMoonbeamForkedNode(9933, 9944)
+        ? await startMoonbeamForkedNode(9944)
         : !DEBUG_MODE
         ? await startMoonbeamDevNode(withWasm, runtime)
         : {
             runningNode: null,
             p2pPort: 30333,
-            wsPort: 9944,
             rpcPort: 9944,
           };
       moonbeamProcess = init.runningNode;
@@ -118,14 +117,14 @@ export function describeDevMoonbeam(
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
         const provider =
           protocol == "ws"
-            ? await provideWeb3Api(`ws://localhost:${init.wsPort}`)
+            ? await provideWeb3Api(`ws://localhost:${init.rpcPort}`)
             : await provideWeb3Api(`http://localhost:${init.rpcPort}`);
         context._web3Providers.push((provider as any)._provider);
         return provider;
       };
       context.createEthers = async () => provideEthersApi(`http://localhost:${init.rpcPort}`);
       context.createPolkadotApi = async () => {
-        const apiPromise = await providePolkadotApi(init.wsPort);
+        const apiPromise = await providePolkadotApi(init.rpcPort);
         // We keep track of the polkadotApis to close them at the end of the test
         context._polkadotApis.push(apiPromise);
         await apiPromise.isReady;

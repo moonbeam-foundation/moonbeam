@@ -12,14 +12,14 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
-    const proxyAccList = [];
+    const proxyAccList: string[] = [];
     const limiter = rateLimiter();
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const limit = 1000;
       let last_key = "";
       let count = 0;

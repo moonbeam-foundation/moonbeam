@@ -29,7 +29,7 @@ use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	opaque, Error as XcmError, Instruction, InteriorMultiLocation,
-	Junction::{AccountKey20, PalletInstance, Parachain},
+	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
 	SendXcm, Xcm, XcmContext, XcmHash,
 };
@@ -112,6 +112,10 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -220,8 +224,7 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 1000u64);
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation =
-		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
+	pub SelfLocation: MultiLocation = MultiLocation::here();
 
 	pub SelfReserve: MultiLocation = MultiLocation::new(
 		1,
@@ -233,7 +236,8 @@ parameter_types! {
 		));
 	pub MaxInstructions: u32 = 100;
 
-	pub UniversalLocation: InteriorMultiLocation = RelayNetwork::get().into();
+	pub UniversalLocation: InteriorMultiLocation =
+		Junctions::X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()));
 }
 
 #[derive(Encode, Decode)]

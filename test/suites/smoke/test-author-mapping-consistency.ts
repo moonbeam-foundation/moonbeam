@@ -1,8 +1,9 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import chalk from "chalk";
-import { ApiDecoration } from "@polkadot/api/types";
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { FIVE_MINS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+import { ApiDecoration } from "@polkadot/api/types";
+import chalk from "chalk";
 
 describeSuite({
   id: "S200",
@@ -12,11 +13,11 @@ describeSuite({
     const nimbusIdPerAccount: { [account: string]: string } = {};
 
     let atBlockNumber: number = 0;
-    let apiAt: ApiDecoration<"promise"> = null;
+    let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const limit = 1000;
       let last_key = "";
       let count = 0;
@@ -56,12 +57,12 @@ describeSuite({
       }
 
       log(`Retrieved ${count} total nimbus ids`);
-    }, 300_000);
+    }, FIVE_MINS);
 
     it({
       id: "C100",
       title: `should have a deposit for each associated nimbus id`,
-      timeout: 60_000,
+      timeout: FIVE_MINS,
       test: async function () {
         const failedEntries: { accountId: string; nimbusId: string; problem: string }[] = [];
 

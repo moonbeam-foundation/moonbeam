@@ -78,7 +78,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed" ] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
@@ -125,19 +125,6 @@ pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 
-# Cumulus / Nimbus
-cumulus-pallet-dmp-queue = { workspace = true }
-cumulus-pallet-parachain-system = { workspace = true }
-cumulus-pallet-xcm = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true }
-cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
-cumulus-primitives-utility = { workspace = true }
-nimbus-primitives = { workspace = true }
-pallet-author-inherent = { workspace = true }
-pallet-author-slot-filter = { workspace = true }
-parachain-info = { workspace = true }
-
 # Polkadot / XCM
 orml-traits = { workspace = true }
 orml-xcm-support = { workspace = true }
@@ -149,6 +136,22 @@ polkadot-parachain = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+
+# Cumulus
+cumulus-pallet-dmp-queue = { workspace = true }
+cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-xcm = { workspace = true }
+cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-primitives-core = { workspace = true }
+cumulus-primitives-timestamp = { workspace = true }
+cumulus-primitives-utility = { workspace = true }
+parachain-info = { workspace = true }
+
+# Moonkit
+moonkit-xcm-primitives = { workspace = true }
+nimbus-primitives = { workspace = true }
+pallet-author-inherent = { workspace = true }
+pallet-author-slot-filter = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true }
@@ -163,6 +166,7 @@ sha3 = { workspace = true, features = [ "std" ] }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
+pallet-message-queue = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
@@ -196,6 +200,7 @@ std = [
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
 	"moonbeam-xcm-benchmarks/std",
+	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
@@ -305,8 +310,8 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",

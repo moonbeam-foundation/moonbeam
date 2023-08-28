@@ -51,7 +51,7 @@ describeSuite({
     let paraApi: ApiPromise;
 
     beforeAll(function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
     });
 
     it({
@@ -62,12 +62,12 @@ describeSuite({
         const specVersion = paraApi.consts.system.version.specVersion.toNumber();
         if (specVersion < 2000) {
           log(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
-          this.skip();
+          return;
         }
         const currentBlock = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         if (currentBlock < 1000) {
           log(`Current block is < 1000 (probably for Fork test), skipping test`);
-          this.skip();
+          return;
         }
 
         const atBlockNumber = process.env.BLOCK_NUMBER

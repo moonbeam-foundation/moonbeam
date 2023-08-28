@@ -32,10 +32,9 @@ interface ParachainStaking {
     /// @custom:selector 740d7d2a
     /// @param candidate the address that we want to confirm is a part of the active set
     /// @return A boolean confirming whether the address is a part of the active set
-    function isSelectedCandidate(address candidate)
-        external
-        view
-        returns (bool);
+    function isSelectedCandidate(
+        address candidate
+    ) external view returns (bool);
 
     /// @dev Total points awarded to all collators in a particular round
     /// @custom:selector 9799b4e7
@@ -49,30 +48,30 @@ interface ParachainStaking {
     /// @param round the round for which we are querying the awarded points
     /// @param candidate The candidate to whom the points are awarded
     /// @return The total points awarded to the collator for the provided round
-    function awardedPoints(uint32 round, address candidate)
-        external
-        view
-        returns (uint32);
+    function awardedPoints(
+        uint32 round,
+        address candidate
+    ) external view returns (uint32);
 
     /// @dev The amount delegated in support of the candidate by the delegator
     /// @custom:selector a73e51bc
     /// @param delegator Who made this delegation
     /// @param candidate The candidate for which the delegation is in support of
     /// @return The amount of the delegation in support of the candidate by the delegator
-    function delegationAmount(address delegator, address candidate)
-        external
-        view
-        returns (uint256);
+    function delegationAmount(
+        address delegator,
+        address candidate
+    ) external view returns (uint256);
 
     /// @dev Whether the delegation is in the top delegations
     /// @custom:selector 91cc8657
     /// @param delegator Who made this delegation
     /// @param candidate The candidate for which the delegation is in support of
     /// @return If delegation is in top delegations (is counted)
-    function isInTopDelegations(address delegator, address candidate)
-        external
-        view
-        returns (bool);
+    function isInTopDelegations(
+        address delegator,
+        address candidate
+    ) external view returns (bool);
 
     /// @dev Get the minimum delegation amount
     /// @custom:selector 02985992
@@ -93,29 +92,26 @@ interface ParachainStaking {
     /// @custom:selector 2ec087eb
     /// @param candidate The address for which we are querying the nomination count
     /// @return The number of nominations backing the collator
-    function candidateDelegationCount(address candidate)
-        external
-        view
-        returns (uint32);
+    function candidateDelegationCount(
+        address candidate
+    ) external view returns (uint32);
 
     /// @dev Get the CandidateAutoCompoundingDelegationCount weight hint
     /// @custom:selector 905f0806
     /// @param candidate The address for which we are querying the auto compounding
     ///     delegation count
     /// @return The number of auto compounding delegations
-    function candidateAutoCompoundingDelegationCount(address candidate)
-        external
-        view
-        returns (uint32);
+    function candidateAutoCompoundingDelegationCount(
+        address candidate
+    ) external view returns (uint32);
 
     /// @dev Get the DelegatorDelegationCount weight hint
     /// @custom:selector 067ec822
     /// @param delegator The address for which we are querying the delegation count
     /// @return The number of delegations made by the delegator
-    function delegatorDelegationCount(address delegator)
-        external
-        view
-        returns (uint256);
+    function delegatorDelegationCount(
+        address delegator
+    ) external view returns (uint256);
 
     /// @dev Get the selected candidates for the current round
     /// @custom:selector bcf868a6
@@ -127,38 +123,36 @@ interface ParachainStaking {
     /// @param delegator the delegator that made the delegation
     /// @param candidate the candidate for which the delegation was made
     /// @return Whether a pending request exists for such delegation
-    function delegationRequestIsPending(address delegator, address candidate)
-        external
-        view
-        returns (bool);
+    function delegationRequestIsPending(
+        address delegator,
+        address candidate
+    ) external view returns (bool);
 
     /// @dev Whether there exists a pending exit for candidate
     /// @custom:selector 43443682
     /// @param candidate the candidate for which the exit request was made
     /// @return Whether a pending request exists for such delegation
-    function candidateExitIsPending(address candidate)
-        external
-        view
-        returns (bool);
+    function candidateExitIsPending(
+        address candidate
+    ) external view returns (bool);
 
     /// @dev Whether there exists a pending bond less request made by a candidate
     /// @custom:selector d0deec11
     /// @param candidate the candidate which made the request
     /// @return Whether a pending bond less request was made by the candidate
-    function candidateRequestIsPending(address candidate)
-        external
-        view
-        returns (bool);
+    function candidateRequestIsPending(
+        address candidate
+    ) external view returns (bool);
 
     /// @dev Returns the percent value of auto-compound set for a delegation
     /// @custom:selector b4d4c7fd
     /// @param delegator the delegator that made the delegation
     /// @param candidate the candidate for which the delegation was made
     /// @return Percent of rewarded amount that is auto-compounded on each payout
-    function delegationAutoCompound(address delegator, address candidate)
-        external
-        view
-        returns (uint8);
+    function delegationAutoCompound(
+        address delegator,
+        address candidate
+    ) external view returns (uint8);
 
     /// @dev Join the set of collator candidates
     /// @custom:selector 1f2f83ad
@@ -212,6 +206,7 @@ interface ParachainStaking {
     /// @custom:selector b5ad5f07
     function cancelCandidateBondLess() external;
 
+    /// @notice DEPRECATED use delegateWithAutoCompound instead for lower weight and better UX
     /// @dev Make a delegation in support of a collator candidate
     /// @custom:selector 829f5ee3
     /// @param candidate The address of the supported collator candidate
@@ -243,26 +238,6 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
-    /// @notice DEPRECATED use batch util with scheduleRevokeDelegation for all delegations
-    /// @dev Request to leave the set of delegators
-    /// @custom:selector f939dadb
-    function scheduleLeaveDelegators() external;
-
-    /// @notice DEPRECATED use batch util with executeDelegationRequest for all delegations
-    /// @dev Execute request to leave the set of delegators and revoke all delegations
-    /// @custom:selector fb1e2bf9
-    /// @param delegator The leaving delegator
-    /// @param delegatorDelegationCount The number of active delegations to be revoked by delegator
-    function executeLeaveDelegators(
-        address delegator,
-        uint256 delegatorDelegationCount
-    ) external;
-
-    /// @notice DEPRECATED use batch util with cancelDelegationRequest for all delegations
-    /// @dev Cancel request to leave the set of delegators
-    /// @custom:selector f7421284
-    function cancelLeaveDelegators() external;
-
     /// @dev Request to revoke an existing delegation
     /// @custom:selector 1a1c740c
     /// @param candidate The address of the collator candidate which will no longer be supported
@@ -278,15 +253,19 @@ interface ParachainStaking {
     /// @custom:selector c172fd2b
     /// @param candidate The address of the collator candidate for which delegation shall decrease
     /// @param less The amount by which the delegation is decreased (upon execution)
-    function scheduleDelegatorBondLess(address candidate, uint256 less)
-        external;
+    function scheduleDelegatorBondLess(
+        address candidate,
+        uint256 less
+    ) external;
 
     /// @dev Execute pending delegation request (if exists && is due)
     /// @custom:selector e98c8abe
     /// @param delegator The address of the delegator
     /// @param candidate The address of the candidate
-    function executeDelegationRequest(address delegator, address candidate)
-        external;
+    function executeDelegationRequest(
+        address delegator,
+        address candidate
+    ) external;
 
     /// @dev Cancel pending delegation request (already made in support of input by caller)
     /// @custom:selector c90eee83
@@ -312,17 +291,15 @@ interface ParachainStaking {
     /// @custom:selector e6861713
     /// @param delegator Address of the delegator.
     /// @return Total amount of stake.
-    function getDelegatorTotalStaked(address delegator)
-        external
-        view
-        returns (uint256);
+    function getDelegatorTotalStaked(
+        address delegator
+    ) external view returns (uint256);
 
     /// @dev Fetch the total staked towards a candidate.
     /// @custom:selector bc5a1043
     /// @param candidate Address of the candidate.
     /// @return Total amount of stake.
-    function getCandidateTotalCounted(address candidate)
-        external
-        view
-        returns (uint256);
+    function getCandidateTotalCounted(
+        address candidate
+    ) external view returns (uint256);
 }

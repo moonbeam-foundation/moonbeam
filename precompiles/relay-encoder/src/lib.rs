@@ -44,7 +44,6 @@ mod tests;
 
 pub enum AvailableStakeCalls {
 	Bond(
-		relay_chain::AccountId,
 		relay_chain::Balance,
 		pallet_staking::RewardDestination<relay_chain::AccountId>,
 	),
@@ -55,7 +54,7 @@ pub enum AvailableStakeCalls {
 	Nominate(Vec<relay_chain::AccountId>),
 	Chill,
 	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController(relay_chain::AccountId),
+	SetController,
 	Rebond(relay_chain::Balance),
 }
 
@@ -79,12 +78,11 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	#[precompile::public("encodeBond(uint256,uint256,bytes)")]
-	#[precompile::public("encode_bond(uint256,uint256,bytes)")]
+	#[precompile::public("encodeBond(uint256,bytes)")]
+	#[precompile::public("encode_bond(uint256,bytes)")]
 	#[precompile::view]
 	fn encode_bond(
 		handle: &mut impl PrecompileHandle,
-		controller_address: U256,
 		amount: U256,
 		reward_destination: RewardDestinationWrapper,
 	) -> EvmResult<UnboundedBytes> {
@@ -92,17 +90,13 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-			address.into(),
-			relay_amount,
-			reward_destination,
-		))
-		.as_slice()
-		.into();
+		let encoded =
+			RelayRuntime::encode_call(AvailableStakeCalls::Bond(relay_amount, reward_destination))
+				.as_slice()
+				.into();
 
 		Ok(encoded)
 	}
@@ -169,14 +163,14 @@ where
 	#[precompile::view]
 	fn encode_validate(
 		handle: &mut impl PrecompileHandle,
-		comission: Convert<U256, u32>,
+		commission: Convert<U256, u32>,
 		blocked: bool,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let fraction = Perbill::from_parts(comission.converted());
+		let fraction = Perbill::from_parts(commission.converted());
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
@@ -189,12 +183,12 @@ where
 		Ok(encoded)
 	}
 
-	#[precompile::public("encodeNominate(uint256[])")]
-	#[precompile::public("encode_nominate(uint256[])")]
+	#[precompile::public("encodeNominate(bytes32[])")]
+	#[precompile::public("encode_nominate(bytes32[])")]
 	#[precompile::view]
 	fn encode_nominate(
 		handle: &mut impl PrecompileHandle,
-		nominees: BoundedVec<U256, GetArrayLimit>,
+		nominees: BoundedVec<H256, GetArrayLimit>,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
@@ -250,23 +244,17 @@ where
 		Ok(encoded)
 	}
 
-	#[precompile::public("encodeSetController(uint256)")]
-	#[precompile::public("encode_set_controller(uint256)")]
+	#[precompile::public("encodeSetController()")]
+	#[precompile::public("encode_set_controller()")]
 	#[precompile::view]
-	fn encode_set_controller(
-		handle: &mut impl PrecompileHandle,
-		controller: U256,
-	) -> EvmResult<UnboundedBytes> {
+	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let controller: [u8; 32] = controller.into();
-
-		let encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
-				.as_slice()
-				.into();
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController)
+			.as_slice()
+			.into();
 
 		Ok(encoded)
 	}

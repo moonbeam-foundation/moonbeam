@@ -22,7 +22,7 @@ import { THIRTY_MINS } from "@moonwall/util";
 // It outputs the following constant:
 const EMPTY_TRIE_ROOT = "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421";
 
-function* range(from, to, step = 1) {
+function* range(from: number, to: number, step = 1) {
   let value = from;
   while (value <= to) {
     yield value;
@@ -40,7 +40,7 @@ describeSuite({
       title: "should have non default field values",
       timeout: THIRTY_MINS,
       test: async function () {
-        const paraApi = context.polkadotJs({ apiName: "para" });
+        const paraApi = context.polkadotJs("para");
 
         const lastBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         const roundLength = (await paraApi.query.parachainStaking.round()).length.toNumber();

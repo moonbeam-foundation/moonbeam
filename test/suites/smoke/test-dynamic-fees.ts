@@ -1,26 +1,23 @@
-import { BN } from "@polkadot/util";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import { WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { checkTimeSliceForUpgrades, rateLimiter } from "../../helpers/common.js";
-import type { DispatchInfo } from "@polkadot/types/interfaces";
-import { ethers } from "ethers";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { TARGET_FILL_PERMILL, WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
+import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic, u256 } from "@polkadot/types";
+import type { u128 } from "@polkadot/types-codec";
+import type { DispatchInfo } from "@polkadot/types/interfaces";
 import {
-  FrameSupportDispatchPerDispatchClassWeight,
   EthereumBlock,
   EthereumReceiptReceiptV3,
   FpRpcTransactionStatus,
+  FrameSupportDispatchPerDispatchClassWeight,
+  FrameSystemEventRecord,
   SpWeightsWeightV2Weight,
 } from "@polkadot/types/lookup";
 import { AnyTuple } from "@polkadot/types/types";
-import type { u128 } from "@polkadot/types-codec";
+import { BN, BN_MILLION } from "@polkadot/util";
+import { ethers } from "ethers";
 import { RUNTIME_CONSTANTS } from "../../../tests/util/constants.js"; // TODO: Remove on next mw ver
-import { TARGET_FILL_PERMILL, WEIGHT_FEE } from "@moonwall/util";
-import { BN_MILLION } from "@polkadot/util";
-import { ApiPromise } from "@polkadot/api";
+import { checkTimeSliceForUpgrades, rateLimiter } from "../../helpers/common.js";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = rateLimiter();
@@ -56,6 +53,7 @@ describeSuite({
     let blockData: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
     let paraApi: ApiPromise;
+    let skipAll = false;
 
     const checkMultiplier = (prevBlock: BlockFilteredRecord, curr: u128) => {
       if (!prevBlock) {
@@ -98,7 +96,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para" });
+      paraApi = context.polkadotJs("para");
       const { specVersion, specName } = paraApi.consts.system.version;
       runtime = specName.toUpperCase() as any;
 
@@ -110,7 +108,7 @@ describeSuite({
           `Runtime ${specName.toString()} version ` +
             `${specVersion.toString()} is less than 2200, skipping test suite.`
         );
-        this.skip();
+        skipAll = true;
       }
 
       if (specVersion.toNumber() < 2300 && specName.toString() == "moonbeam") {
@@ -118,7 +116,7 @@ describeSuite({
           `Runtime ${specName.toString()} version ` +
             `${specVersion.toString()} is less than 2300, skipping test suite.`
         );
-        this.skip();
+        skipAll = true;
       }
 
       const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
@@ -130,16 +128,13 @@ describeSuite({
         const signedBlock = await paraApi.rpc.chain.getBlock(blockHash);
         const apiAt = await paraApi.at(blockHash);
         const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrapOrDefault();
-        const ethersBlock = await context.ethersSigner().provider.getBlock(blockNum);
+        const ethersBlock = await context.ethers().provider!.getBlock(blockNum);
         const transactionStatuses = (
           await apiAt.query.ethereum.currentTransactionStatuses()
         ).unwrapOrDefault();
         const ethersTransactionsFees = await Promise.all(
-          ethersBlock.transactions.map(
-            async (hash) =>
-              (
-                await context.ethersSigner().provider.getTransactionReceipt(hash)
-              ).gasUsed
+          ethersBlock!.transactions.map(
+            async (hash) => (await context.ethers().provider!.getTransactionReceipt(hash))!.gasUsed
           )
         );
         const weights = await apiAt.query.system.blockWeight();
@@ -152,7 +147,7 @@ describeSuite({
           ethersTransactionsFees,
           transactionStatuses,
           extrinsics: signedBlock.block.extrinsics,
-          baseFeePerGasInGwei: ethers.formatUnits(ethersBlock.baseFeePerGas, "gwei"),
+          baseFeePerGasInGwei: ethers.formatUnits(ethersBlock!.baseFeePerGas!, "gwei"),
           weights,
           receipts,
           events,
@@ -167,7 +162,7 @@ describeSuite({
       );
       if (result) {
         log(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
-        this.skip();
+        skipAll = true;
       }
 
       blockData = await Promise.all(
@@ -180,6 +175,10 @@ describeSuite({
       title: "Block utilization by weight corresponds to fee multiplier",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const maxWeights = paraApi.consts.system.blockWeights;
         const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
           const fillPermill = weights.normal.refTime
@@ -188,7 +187,7 @@ describeSuite({
             .div(maxWeights.perClass.normal.maxTotal.unwrap().refTime.toBn());
 
           const change = checkMultiplier(
-            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1),
+            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
 
@@ -221,6 +220,10 @@ describeSuite({
       title: "Block utilization from normal class exts corresponds to fee multiplier",
       timeout: 30000,
       test: async function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const enriched = blockData.map(({ blockNum, nextFeeMultiplier, weights }) => {
           const fillPermill = weights.normal.refTime
             .unwrap()
@@ -231,7 +234,7 @@ describeSuite({
             );
 
           const change = checkMultiplier(
-            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1),
+            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
           const valid = isChangeDirectionValid(
@@ -263,6 +266,10 @@ describeSuite({
       title: "BaseFeePerGas is within expected min/max",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
           return (
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") <
@@ -287,6 +294,10 @@ describeSuite({
       title: "BaseFeePerGas is correctly calculated",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
         const supplyFactor =
           paraApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
 
@@ -323,6 +334,11 @@ describeSuite({
       title: "Ext fee matches on chain",
       timeout: 30000,
       test: function () {
+        if (skipAll) {
+          log("Skipping test suite due to runtime version");
+          return;
+        }
+
         const extractGasAmount = (item: EthereumReceiptReceiptV3) => {
           switch (true) {
             case item.isEip1559:
@@ -337,7 +353,7 @@ describeSuite({
         };
 
         const isEthereumTxn = (blockNum: number, index: number) => {
-          const extrinsic = blockData.find((blockDatum) => blockDatum.blockNum === blockNum)
+          const extrinsic = blockData.find((blockDatum) => blockDatum.blockNum === blockNum)!
             .extrinsics[index];
           return (
             extrinsic.method.section.toString() === "ethereum" &&
