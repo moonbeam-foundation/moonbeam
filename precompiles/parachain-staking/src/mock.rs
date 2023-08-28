@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{ConstBool, Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
@@ -204,6 +204,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnNewRound = ();
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
+	type EnableMarkingOffline = ConstBool<false>;
 }
 
 pub(crate) struct ExtBuilder {
