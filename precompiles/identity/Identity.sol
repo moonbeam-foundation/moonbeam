@@ -258,11 +258,6 @@ interface Identity {
     /// @param who Address of the target account
     event IdentityCleared(address who);
 
-    /// @dev An identity was removed and the given balance slashed.
-    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
-    /// @param who Address of the target account
-    event IdentityKilled(address who);
-
     /// @dev A judgement was asked from a registrar.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
     /// @param who Address of the requesting account
@@ -280,11 +275,6 @@ interface Identity {
     /// @param target Address of the target account
     /// @param registrar_index The registrar's index
     event JudgementGiven(address target, uint32 registrar_index);
-
-    /// @dev A registrar was added.
-    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
-    /// @param registrar_index The registrar's index
-    event RegistrarAdded(uint32 registrar_index);
 
     /// @dev A sub-identity was added to an identity and the deposit paid.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
