@@ -3,7 +3,7 @@ name: Check licenses
 on:
   pull_request:
   workflow_dispatch:
-  
+
 jobs:
   verify:
     runs-on: ubuntu-latest
