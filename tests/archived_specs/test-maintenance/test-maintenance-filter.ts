@@ -158,7 +158,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       await context
         .createBlock(
           context.polkadotApi.tx.xcmTransactor
-            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeights as any)
+            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeights as any, false)
             .signAsync(baltathar)
         )
         .catch((e) => e.toString())
