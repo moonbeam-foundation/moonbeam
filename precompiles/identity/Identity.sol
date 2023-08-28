@@ -2,7 +2,7 @@
 pragma solidity >=0.8.3;
 
 /// @dev The Identity contract's address.
-address constant IDENTITY_ADDRESS = 0x0000000000000000000000000000000000000817;
+address constant IDENTITY_ADDRESS = 0x0000000000000000000000000000000000000818;
 
 /// @dev The Identity contract's instance.
 Identity constant IDENTITY_CONTRACT = Identity(IDENTITY_ADDRESS);
@@ -10,7 +10,7 @@ Identity constant IDENTITY_CONTRACT = Identity(IDENTITY_ADDRESS);
 /// @author The Moonbeam Team
 /// @title Pallet Identity Interface
 /// @title The interface through which solidity contracts will interact with the Identity pallet
-/// @custom:address 0x0000000000000000000000000000000000000817
+/// @custom:address 0x0000000000000000000000000000000000000818
 interface Identity {
     /// @dev Associated raw data.
     struct Data {

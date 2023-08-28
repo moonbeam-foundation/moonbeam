@@ -234,7 +234,7 @@ type MoonbasePrecompilesAt<R> = (
 	>,
 	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
 	PrecompileAt<
-		AddressU64<2071>,
+		AddressU64<2072>,
 		IdentityPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
