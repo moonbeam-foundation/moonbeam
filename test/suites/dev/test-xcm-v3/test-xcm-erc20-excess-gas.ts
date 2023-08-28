@@ -10,11 +10,12 @@ import {
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 import { parseEther } from "ethers";
+import { stringToU8a } from "@polkadot/util";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2701",
+  id: "D3534",
   title: "Mock XCM - Test bad contract with excess gas usage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -140,7 +141,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: contractAddress,
                       },
                     },
@@ -178,95 +179,101 @@ describeSuite({
       },
     });
 
-    // UNCOMMENT when https://github.com/moonbeam-foundation/moonbeam/pull/2422 is merged
+    it({
+      id: "T03",
+      title: "Incoming ERC20 transfer should succeed if setting a custom gas limit",
+      test: async function () {
+        const amountTransferred = 1_000_000n;
+        const paraSovereign = sovereignAccountOfSibling(context, paraId);
 
-    // it({
-    //   id: "T03",
-    //   title: "Incoming ERC20 transfer should succeed if setting a custom gas limit",
-    //   test: async function () {
-    //     const amountTransferred = 1_000_000n;
-    //     const paraSovereign = sovereignAccountOfSibling(context, paraId);
+        // Deploy contract
+        const { contractAddress, status } = await context.deployContract!("ERC20ExcessGas", {
+          args: ["ERC20", "20S", paraSovereign, ERC20_TOTAL_SUPPLY],
+        });
+        expect(status).eq("success");
 
-    //     // Deploy contract
-    //     const { contractAddress, status } = await context.deployContract!("ERC20ExcessGas", {
-    //       args: ["ERC20", "20S", paraSovereign, ERC20_TOTAL_SUPPLY],
-    //     });
-    //     expect(status).eq("success");
+        // Get pallet indices
+        const metadata = await polkadotJs.rpc.state.getMetadata();
+        const balancesPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Balances")!
+          .index.toNumber();
+        const erc20XcmPalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .index.toNumber();
 
-    //     // Get pallet indices
-    //     const metadata = await polkadotJs.rpc.state.getMetadata();
-    //     const balancesPalletIndex = metadata.asLatest.pallets
-    //       .find(({ name }) => name.toString() == "Balances")!
-    //       .index.toNumber();
-    //     const erc20XcmPalletIndex = metadata.asLatest.pallets
-    //       .find(({ name }) => name.toString() == "Erc20XcmBridge")!
-    //       .index.toNumber();
+        // Send some native tokens to the sovereign account of paraId (to pay fees)
+        await polkadotJs.tx.balances.transfer(paraSovereign, parseEther("1")).signAndSend(alith);
+        await context.createBlock();
 
-    //     // Send some native tokens to the sovereign account of paraId (to pay fees)
-    //     await polkadotJs.tx.balances.transfer(paraSovereign, parseEther("1")).signAndSend(alith);
-    //     await context.createBlock();
+        // Create the incoming xcm message
+        const config: XcmFragmentConfig = {
+          assets: [
+            {
+              multilocation: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: Number(balancesPalletIndex) },
+                },
+              },
+              fungible: 100_000_000_000_000_000n,
+            },
+            {
+              multilocation: {
+                parents: 0,
+                interior: {
+                  X3: [
+                    {
+                      PalletInstance: erc20XcmPalletIndex,
+                    },
+                    {
+                      AccountKey20: {
+                        network: null,
+                        key: contractAddress,
+                      },
+                    },
+                    // Override default gas limit with optional GeneralKey.
+                    // b'gas_limit:' + 300000(little endian) + zeros padding
+                    {
+                      GeneralKey: {
+                        data: [
+                          103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 224, 147, 4, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        ],
+                        length: 32,
+                      },
+                    },
+                  ],
+                },
+              },
+              fungible: amountTransferred,
+            },
+          ],
+          beneficiary: CHARLETH_ADDRESS,
+        };
 
-    //     // Create the incoming xcm message
-    //     const config: XcmFragmentConfig = {
-    //       assets: [
-    //         {
-    //           multilocation: {
-    //             parents: 0,
-    //             interior: {
-    //               X1: { PalletInstance: Number(balancesPalletIndex) },
-    //             },
-    //           },
-    //           fungible: 100_000_000_000_000_000n,
-    //         },
-    //         {
-    //           multilocation: {
-    //             parents: 0,
-    //             interior: {
-    //               X3: [
-    //                 {
-    //                   PalletInstance: erc20XcmPalletIndex,
-    //                 },
-    //                 {
-    //                   AccountKey20: {
-    //                     network: "Any",
-    //                     key: contractAddress,
-    //                   },
-    //                 },
-    //                 {
-    //                   GeneralIndex: 300_000n,
-    //                 },
-    //               ],
-    //             },
-    //           },
-    //           fungible: amountTransferred,
-    //         },
-    //       ],
-    //       beneficiary: CHARLETH_ADDRESS,
-    //     };
+        const xcmMessage = new XcmFragment(config)
+          .withdraw_asset()
+          .clear_origin()
+          .buy_execution()
+          .deposit_asset_v3(2n)
+          .as_v3();
 
-    //     const xcmMessage = new XcmFragment(config)
-    //       .withdraw_asset()
-    //       .clear_origin()
-    //       .buy_execution()
-    //       .deposit_asset_v3(2n)
-    //       .as_v3();
+        // Mock the reception of the xcm message
+        await injectHrmpMessageAndSeal(context, paraId, {
+          type: "XcmVersionedXcm",
+          payload: xcmMessage,
+        });
 
-    //     // Mock the reception of the xcm message
-    //     await injectHrmpMessageAndSeal(context, paraId, {
-    //       type: "XcmVersionedXcm",
-    //       payload: xcmMessage,
-    //     });
-
-    //     // Charleth should have received the tokens
-    //     expect(
-    //       await context.readContract!({
-    //         contractName: "ERC20ExcessGas",
-    //         contractAddress: contractAddress as `0x${string}`,
-    //         functionName: "balanceOf",
-    //         args: [CHARLETH_ADDRESS],
-    //       })
-    //     ).equals(amountTransferred);
-    //   },
-    // });
+        // Charleth should have received the tokens
+        expect(
+          await context.readContract!({
+            contractName: "ERC20ExcessGas",
+            contractAddress: contractAddress as `0x${string}`,
+            functionName: "balanceOf",
+            args: [CHARLETH_ADDRESS],
+          })
+        ).equals(amountTransferred);
+      },
+    });
   },
 });

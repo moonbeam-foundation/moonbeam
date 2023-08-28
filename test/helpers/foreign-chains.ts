@@ -14,7 +14,7 @@ export interface ForeignChainsInfo {
 export interface ForeignChainInfo {
   readonly name: string;
   readonly paraId: number;
-  readonly mutedUntil?: number;
+  readonly mutedUntil?: number | false;
   readonly endpoints?: readonly string[];
 }
 
@@ -64,6 +64,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Statemine",
         paraId: 1000,
+        mutedUntil: false,
       },
       {
         name: "Karura",
@@ -130,6 +131,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Statemint",
         paraId: 1000,
+        mutedUntil: false,
       },
       {
         name: "Acala",
@@ -150,6 +152,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
+        mutedUntil: 1695454200000, // 23/09/2023 08:30:00 UTC
       },
       {
         name: "Bifrost",
@@ -181,7 +184,7 @@ export const ForeignChainsEndpoints = [
       },
     ],
   },
-] as const satisfies ReadonlyArray<ForeignChainsInfo>;
+] satisfies ReadonlyArray<ForeignChainsInfo>;
 
 type ValueOf<T> = T extends readonly (infer U)[] ? U : never;
 export type MoonbeamNetworkName = ValueOf<typeof ForeignChainsEndpoints>["moonbeamNetworkName"];

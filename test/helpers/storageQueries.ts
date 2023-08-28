@@ -49,7 +49,7 @@ export async function processAllStorage(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey = null;
-          while (true) {
+          loop: while (true) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
@@ -58,26 +58,31 @@ export async function processAllStorage(
               blockHash,
             ]);
 
+            if (!keys.length) {
+              break loop;
+            }
+
             // @ts-expect-error _rpcCore is not yet exposed
             const response = await api._rpcCore.provider.send("state_queryStorageAt", [
               keys,
               blockHash,
             ]);
 
-            if (!response[0]) {
-              console.log(response);
+            try {
+              processor(
+                response[0].changes.map((pair: [string, string]) => ({
+                  key: pair[0],
+                  value: pair[1],
+                }))
+              );
+            } catch (e) {
+              console.log(`Error processing ${prefix}: ${e}`);
             }
 
-            processor(
-              response[0].changes.map((pair: [string, string]) => ({
-                key: pair[0],
-                value: pair[1],
-              }))
-            );
             total += keys.length;
 
-            if (keys.length != maxKeys) {
-              break;
+            if (keys.length !== maxKeys) {
+              break loop;
             }
             startKey = keys[keys.length - 1];
           }
@@ -87,5 +92,6 @@ export async function processAllStorage(
   } finally {
     stopReport();
   }
+
   await limiter.disconnect();
 }

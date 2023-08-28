@@ -1,20 +1,21 @@
+import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import { expectEVMResult, getTransactionFees } from "../../../helpers/eth-transactions.js";
 import { ApiPromise } from "@polkadot/api";
-import { parseEther } from "ethers";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import {
   XcmFragment,
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
+import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D2705",
-  title: "Mock XCM V3 - Receive erc20 via XCM",
+  id: "D3431",
+  title: "Mock XCM - Send local erc20",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
@@ -32,11 +33,70 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should be able to transfer ERC20 token through incoming XCM message",
+      title: "Should be able to transfer ERC20 token through xcm with xtokens precompile",
+      test: async function () {
+        const amountTransferred = 10n;
+
+        // Destination as multilocation
+        const destination = [
+          // one parent
+          1,
+          // This represents X1(AccountKey20(BALTATHAR_ADDRESS, NetworkAny))
+          // AccountKey20 variant (03) + the 20 bytes account + Any network variant (00)
+          ["0x03" + BALTATHAR_ADDRESS.slice(2) + "00"],
+        ];
+
+        const balanceBefore = (
+          await polkadotJs.query.system.account(ALITH_ADDRESS)
+        ).data.free.toBigInt();
+
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Xtokens",
+          functionName: "transfer",
+          args: [
+            // address of the multiasset
+            erc20ContractAddress,
+            // amount
+            amountTransferred,
+            // Destination as multilocation
+            destination,
+            // weight
+            500_000n,
+          ],
+          gas: 500_000n,
+          rawTxOnly: true,
+        });
+
+        const { result } = await context.createBlock(rawTx);
+        expectEVMResult(result!.events, "Succeed");
+
+        const balanceAfter = (
+          await polkadotJs.query.system.account(ALITH_ADDRESS)
+        ).data.free.toBigInt();
+
+        const fees = await getTransactionFees(context, result!.hash);
+
+        // Fees should have been spent
+        expect(balanceAfter).to.equal(balanceBefore - fees);
+
+        expect(
+          await context.readContract!({
+            contractName: "ERC20WithInitialSupply",
+            contractAddress: erc20ContractAddress as `0x${string}`,
+            functionName: "balanceOf",
+            args: [ALITH_ADDRESS],
+          })
+        ).equals(ERC20_TOTAL_SUPPLY - amountTransferred);
+      },
+    });
+
+    it({
+      id: "T02",
+      title: "Mock XCM - Receive back erc20",
       test: async function () {
         const paraId = 888;
         const paraSovereign = sovereignAccountOfSibling(context, paraId);
-        const amountTransferred = 1_000_000n;
+        const amountTransferred = 1_000n;
 
         // Get pallet indices
         const metadata = await polkadotJs.rpc.state.getMetadata();
@@ -62,6 +122,7 @@ describeSuite({
 
         const { result } = await context.createBlock(rawTx);
         expectEVMResult(result!.events, "Succeed");
+
         expect(
           await context.readContract!({
             contractName: "ERC20WithInitialSupply",
@@ -81,7 +142,7 @@ describeSuite({
                   X1: { PalletInstance: Number(balancesPalletIndex) },
                 },
               },
-              fungible: 1_000_000_000_000_000n,
+              fungible: 100_000_000_000_000_000n,
             },
             {
               multilocation: {
@@ -110,8 +171,8 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
-          .as_v3();
+          .deposit_asset(2n)
+          .as_v2();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
@@ -119,7 +180,6 @@ describeSuite({
           payload: xcmMessage,
         });
 
-        // Erc20 tokens should have been received
         expect(
           await context.readContract!({
             contractName: "ERC20WithInitialSupply",
