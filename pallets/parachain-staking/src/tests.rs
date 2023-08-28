@@ -1049,7 +1049,7 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 			ParachainStaking::on_finalize(5);
 
 			// Round 4
-			roll_to_round_begin(4);
+			roll_to_round_begin(3);
 			roll_blocks(1);
 
 			// Call 'notify_inactive_collator' extrinsic
