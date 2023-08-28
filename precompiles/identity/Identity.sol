@@ -127,7 +127,7 @@ interface Identity {
     /// @dev Judgement item provided by a registrar.
     struct JudgementInfo {
         /// The registrar's index that provided this judgement.
-        uint32 registrar_index;
+        uint32 registrarIndex;
         /// The registrar's provided judgement.
         Judgement judgement;
     }
@@ -261,20 +261,20 @@ interface Identity {
     /// @dev A judgement was asked from a registrar.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
     /// @param who Address of the requesting account
-    /// @param registrar_index The registrar's index
-    event JudgementRequested(address who, uint32 registrar_index);
+    /// @param registrarIndex The registrar's index
+    event JudgementRequested(address who, uint32 registrarIndex);
 
     /// @dev A judgement request was retracted.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
     /// @param who Address of the target account.
-    /// @param registrar_index The registrar's index
-    event JudgementUnrequested(address who, uint32 registrar_index);
+    /// @param registrarIndex The registrar's index
+    event JudgementUnrequested(address who, uint32 registrarIndex);
 
     /// @dev A judgement was given by a registrar.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
     /// @param target Address of the target account
-    /// @param registrar_index The registrar's index
-    event JudgementGiven(address target, uint32 registrar_index);
+    /// @param registrarIndex The registrar's index
+    event JudgementGiven(address target, uint32 registrarIndex);
 
     /// @dev A sub-identity was added to an identity and the deposit paid.
     /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e
