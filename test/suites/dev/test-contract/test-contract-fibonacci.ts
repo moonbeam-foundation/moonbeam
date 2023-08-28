@@ -24,6 +24,7 @@ describeSuite({
               data,
               txnType,
               libraryType: "ethers",
+              gasLimit: 260_000n,
             })
           );
 
