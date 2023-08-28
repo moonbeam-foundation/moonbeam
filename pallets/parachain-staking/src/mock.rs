@@ -126,6 +126,7 @@ parameter_types! {
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 200;
+	pub const EnableMarkingOffline: bool = true;
 }
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
@@ -152,6 +153,7 @@ impl Config for Test {
 	type OnNewRound = ();
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
+	type EnableMarkingOffline = EnableMarkingOffline;
 }
 
 pub(crate) struct ExtBuilder {

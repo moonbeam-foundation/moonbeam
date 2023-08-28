@@ -177,6 +177,9 @@ pub mod pallet {
 		/// The default behavior is to mark the collator as offline.
 		/// If you need to use the default implementation, specify the type `()`.
 		type OnInactiveCollator: OnInactiveCollator<Self>;
+		// Killswitch to enable/disable marking offline feature.
+		#[pallet::constant]
+		type EnableMarkingOffline: Get<bool>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -242,6 +245,7 @@ pub mod pallet {
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
 		RemovedCall,
+		MarkingOfflineNotEnabled,
 	}
 
 	#[pallet::event]
@@ -1394,6 +1398,10 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 		) -> DispatchResult {
+			ensure!(
+				T::EnableMarkingOffline::get(),
+				<Error<T>>::MarkingOfflineNotEnabled
+			);
 			ensure_signed(origin)?;
 
 			let collators = <SelectedCandidates<T>>::get();

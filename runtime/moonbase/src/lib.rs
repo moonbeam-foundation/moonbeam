@@ -770,6 +770,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 	type MaxCandidates = ConstU32<200>;
+	type EnableMarkingOffline = ConstBool<true>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
