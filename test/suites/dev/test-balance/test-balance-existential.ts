@@ -1,23 +1,35 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeEach, TransactionTypes } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util";
+import {
+  alith,
+  ALITH_ADDRESS,
+  baltathar,
+  createEthersTransaction,
+  GLMR,
+  MIN_GAS_PRICE,
+  sendRawTransaction,
+} from "@moonwall/util";
 import { PrivateKeyAccount } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { createRawTransfer } from "@moonwall/util";
+import { Wallet } from "ethers";
 
 describeSuite({
   id: "D0301",
   title: "Existential Deposit disabled",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
-    let randomAccount: PrivateKeyAccount;
+    // let randomAccount: PrivateKeyAccount;
     let privateKey: `0x${string}`;
+    let randomWeb3Account: any;
 
     beforeEach(async function () {
-      privateKey = generatePrivateKey();
-      randomAccount = privateKeyToAccount(privateKey);
+      // privateKey = generatePrivateKey();
+      // randomAccount = privateKeyToAccount(privateKey);
+      randomWeb3Account = context.web3().eth.accounts.create();
+      privateKey = randomWeb3Account.privateKey;
       const { result, block } = await context.createBlock(
-        context.polkadotJs().tx.balances.transferKeepAlive(randomAccount.address, 10n * GLMR)
+        context.polkadotJs().tx.balances.transferAllowDeath(randomWeb3Account.address, 10n * GLMR)
       );
       expect(result!.successful, result!.error?.name).to.be.true;
     });
@@ -42,12 +54,10 @@ describeSuite({
           const { result } = await context.createBlock(raw);
 
           expect(
-            await context.viem("public").getTransactionCount({ address: randomAccount.address })
+            await context.viem().getTransactionCount({ address: randomWeb3Account.address })
           ).toBe(1);
           expect(result!.successful, result!.error?.name).toBe(true);
-          expect(await context.viem("public").getBalance({ address: randomAccount.address })).toBe(
-            0n
-          );
+          expect(await context.viem().getBalance({ address: randomWeb3Account.address })).toBe(0n);
         },
       });
     }
@@ -56,19 +66,19 @@ describeSuite({
       id: "T04",
       title: "should not reap on tiny balance",
       test: async function () {
-        await context.createBlock(
-          createRawTransfer(context, baltathar.address, 10n * GLMR - 1n - 21000n * MIN_GAS_PRICE, {
-            privateKey,
-            type: "legacy",
-            gas: 21000n,
-            gasPrice: MIN_GAS_PRICE,
-          })
-        );
-        expect(await context.viem("public").getBalance({ address: randomAccount.address })).toBe(
-          1n
-        );
+        const signer = new Wallet(privateKey, context.ethers().provider);
+        await signer.sendTransaction({
+          to: baltathar.address,
+          value: 10n * GLMR - 21000n * MIN_GAS_PRICE - 1n,
+          gasPrice: MIN_GAS_PRICE,
+          gasLimit: 21000n,
+        });
+
+        await context.createBlock();
+
+        expect(await context.viem().getBalance({ address: randomWeb3Account.address })).toBe(1n);
         expect(
-          await context.viem("public").getTransactionCount({ address: randomAccount.address })
+          await context.viem().getTransactionCount({ address: randomWeb3Account.address })
         ).toBe(1);
       },
     });

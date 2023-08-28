@@ -16,10 +16,10 @@ log = "0.4"
 moonbeam-xcm-benchmarks = { workspace = true, optional = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
+pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
-pallet-conviction-voting = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }

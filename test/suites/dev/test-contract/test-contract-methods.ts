@@ -11,18 +11,13 @@ describeSuite({
     let multiplyAddress: `0x${string}`;
     let multiplyAbi: Abi;
     let deployHash: `0x${string}`;
-    let multiplyContract: any;
 
     beforeAll(async function () {
-      const { contractAddress, abi, hash, contract } = await deployCreateCompiledContract(
-        context,
-        "MultiplyBy7"
-      );
+      const { contractAddress, abi, hash } = await context.deployContract!("MultiplyBy7");
 
       multiplyAddress = contractAddress;
       multiplyAbi = abi;
       deployHash = hash;
-      multiplyContract = contract;
     });
 
     // TODO: Re-enable when viem add txntype support for call method
@@ -32,7 +27,7 @@ describeSuite({
       id: "T01",
       title: "should appear in the block transaction list",
       test: async () => {
-        const block = await context.viem("public").getBlock();
+        const block = await context.viem().getBlock();
         const txHash = block.transactions[0];
         expect(txHash).toBe(deployHash);
       },
@@ -42,7 +37,7 @@ describeSuite({
       id: "T02",
       title: "should be in the transaction list",
       test: async () => {
-        const tx = await context.viem("public").getTransaction({ hash: deployHash });
+        const tx = await context.viem().getTransaction({ hash: deployHash });
         expect(tx.hash).to.equal(deployHash);
       },
     });
@@ -51,7 +46,15 @@ describeSuite({
       id: "T03",
       title: "should provide callable methods",
       test: async function () {
-        expect(await multiplyContract.read.multiply([3])).toBe(21n);
+        expect(
+          await context.readContract!({
+            contractName: "MultiplyBy7",
+            contractAddress: multiplyAddress,
+            functionName: "multiply",
+            args: [3],
+          })
+          // multiplyContract.read.multiply([3])
+        ).toBe(21n);
       },
     });
 
@@ -61,7 +64,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viem("public").call({
+            await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({
@@ -81,7 +84,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viem("public").call({
+            await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({
@@ -109,7 +112,7 @@ describeSuite({
       test: async function () {
         expect(
           async () =>
-            await context.viem("public").call({
+            await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,
               to: multiplyAddress,
               data: encodeFunctionData({

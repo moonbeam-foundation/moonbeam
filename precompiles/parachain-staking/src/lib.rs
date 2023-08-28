@@ -727,58 +727,6 @@ where
 		Ok(())
 	}
 
-	/// Deprecated in favor of batch util
-	#[precompile::public("scheduleLeaveDelegators()")]
-	#[precompile::public("schedule_leave_delegators()")]
-	fn schedule_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult {
-		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
-	}
-
-	/// Deprecated in favor of batch util
-	#[precompile::public("executeLeaveDelegators(address,uint256)")]
-	#[precompile::public("execute_leave_delegators(address,uint256)")]
-	fn execute_leave_delegators(
-		handle: &mut impl PrecompileHandle,
-		delegator: Address,
-		delegator_delegation_count: Convert<U256, u32>,
-	) -> EvmResult {
-		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
-		let delegator_delegation_count = delegator_delegation_count.converted();
-
-		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_delegators {
-			delegator,
-			delegation_count: delegator_delegation_count,
-		};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
-	}
-
-	/// Deprecated in favor of batch util
-	#[precompile::public("cancelLeaveDelegators()")]
-	#[precompile::public("cancel_leave_delegators()")]
-	fn cancel_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult {
-		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
-	}
-
 	#[precompile::public("scheduleRevokeDelegation(address)")]
 	#[precompile::public("schedule_revoke_delegation(address)")]
 	fn schedule_revoke_delegation(

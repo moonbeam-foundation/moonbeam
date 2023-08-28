@@ -108,7 +108,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 					pallet_ethereum::catch_exec_info(&mut execution_info, || {
 						CallDispatcher::dispatch(
 							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }),
-							pallet_ethereum_xcm::RawOrigin::XcmEthereumTransaction(source.into()).into(),
+							RawOrigin::Signed(source.into()).into(),
 						)
 						.map_err(|DispatchErrorWithPostInfo { error, .. }| RunnerError {
 							error,
