@@ -31,7 +31,7 @@ const GUARDIAN_SET_INDEX = 0;
 // TODO: maybe remove the implicit behavior from the util functions in wormhole.ts?
 // TODO: actually, something is wrong here -- I don't think this matches the WH compacting logic
 const WH_IMPLICIT_DECIMALS = 18n;
-const WH_IMPLICIT_MULTIPLIER = 10n**WH_IMPLICIT_DECIMALS;
+const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
 
 const GMP_CONTRACT_JSON = getCompiled("precompiles/gmp/Gmp");
 const GMP_INTERFACE = new ethers.utils.Interface(GMP_CONTRACT_JSON.contract.abi);
@@ -82,7 +82,6 @@ const deploy = async (context: DevTestContext, contractPath: string, initData?: 
 };
 
 describeDevMoonbeam(`Test local Wormhole`, (context) => {
-
   const signerPKs = [ALITH_PRIVATE_KEY];
   const ETHChain = 3;
   const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
@@ -219,16 +218,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         assetMetaResult.result.error || "good"
       })`
     );
-    
+
     // TODO: clean up / avoid using both web3js and ethers
     // TODO: not the right contract, but it'll probably work
     const WETH_CONTRACT_JSON = getCompiled("wormhole/bridge/mock/MockWETH9");
     const WETH_INTERFACE = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
-    whWethContract = new ethers.Contract(
-      wrappedToken,
-      WETH_INTERFACE,
-      context.ethers,
-    );
+    whWethContract = new ethers.Contract(wrappedToken, WETH_INTERFACE, context.ethers);
 
     debug(`wrapped token deployed to ${wrappedToken}`);
 
@@ -288,15 +283,11 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     const gmpJson = getCompiled("wormhole/bridge/mock/MockWETH9");
     const gmpInterface = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
-    gmpContract = new ethers.Contract(
-      PRECOMPILE_GMP_ADDRESS,
-      gmpInterface,
-      context.ethers,
-    );
+    gmpContract = new ethers.Contract(PRECOMPILE_GMP_ADDRESS, gmpInterface, context.ethers);
   });
 
   it("should support V1 user action", async function () {
-    this.timeout(20000)
+    this.timeout(20000);
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
@@ -333,7 +324,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   it("should support V2 user action with fee", async function () {
-    this.timeout(20000)
+    this.timeout(20000);
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
@@ -373,7 +364,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   it("should pay entire transfer when fee greater than transfer", async function () {
-    this.timeout(20000)
+    this.timeout(20000);
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
@@ -411,7 +402,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
   });
 
   it("should pay no fee if fee is zero", async function () {
-    this.timeout(20000)
+    this.timeout(20000);
 
     // create payload
     const destination = context.polkadotApi.registry.createType(
