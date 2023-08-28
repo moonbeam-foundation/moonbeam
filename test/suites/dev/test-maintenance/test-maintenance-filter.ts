@@ -213,7 +213,9 @@ describeSuite({
                   0,
                   fee as any,
                   "",
-                  transactWeights as any
+                  transactWeights as any,
+                  //@ts-ignore
+                  false
                 )
                 .signAsync(baltathar)
             )

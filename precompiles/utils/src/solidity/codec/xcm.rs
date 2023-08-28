@@ -22,7 +22,7 @@ use {
 		revert::{BacktraceExt, InjectBacktrace, MayRevert, RevertReason},
 	},
 	alloc::string::String,
-	frame_support::{ensure, traits::ConstU32},
+	frame_support::{dispatch::Weight, ensure, traits::ConstU32},
 	sp_core::H256,
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
@@ -366,5 +366,26 @@ impl Codec for MultiLocation {
 
 	fn signature() -> String {
 		<(u8, Junctions)>::signature()
+	}
+}
+
+impl Codec for Weight {
+	fn read(reader: &mut Reader) -> MayRevert<Self> {
+		let (ref_time, proof_size) = reader
+			.read()
+			.map_in_tuple_to_field(&["ref_time", "proof_size"])?;
+		Ok(Weight::from_parts(ref_time, proof_size))
+	}
+
+	fn write(writer: &mut Writer, value: Self) {
+		Codec::write(writer, (value.ref_time(), value.proof_size()));
+	}
+
+	fn has_static_size() -> bool {
+		<(u64, u64)>::has_static_size()
+	}
+
+	fn signature() -> String {
+		<(u64, u64)>::signature()
 	}
 }
