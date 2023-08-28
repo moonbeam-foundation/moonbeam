@@ -127,12 +127,11 @@ impl DebugServer for Debug {
 		id: RequestBlockId,
 		trace_params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		let mut requester = self.requester.clone();
+		let requester = self.requester.clone();
 		let (tx, rx) = oneshot::channel();
 		// Send a message from the rpc handler to the service level task.
 		requester
-			.send(((RequesterInput::Call((id, call_params)), trace_params), tx))
-			.await
+			.unbounded_send(((RequesterInput::Call((id, call_params)), trace_params), tx))
 			.map_err(|err| {
 				internal_err(format!(
 					"failed to send request to debug service : {:?}",
@@ -661,7 +660,7 @@ where
 
 	fn handle_call_request(
 		client: Arc<C>,
-		frontier_backend: Arc<fc_db::Backend<B>>,
+		frontier_backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
 		request_block_id: RequestBlockId,
 		call_params: TraceCallParams,
 		trace_params: Option<TraceParams>,
@@ -681,12 +680,12 @@ where
 				Err(internal_err("'pending' blocks are not supported"))
 			}
 			RequestBlockId::Hash(eth_hash) => {
-				match frontier_backend_client::load_hash::<B, C>(
-					&client,
+				match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+					client.as_ref(),
 					frontier_backend.as_ref(),
 					eth_hash,
-				) {
-					Ok(Some(id)) => Ok(BlockId::Hash(id)),
+				)) {
+					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
 					Ok(_) => Err(internal_err("Block hash not found".to_string())),
 					Err(e) => Err(e),
 				}
@@ -704,10 +703,10 @@ where
 			_ => return Err(internal_err("Block header not found")),
 		};
 		// Get parent blockid.
-		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		let parent_block_hash = *header.parent_hash();
 
 		let api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(&parent_block_id)
+			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(parent_block_hash)
 		{
 			api_version
 		} else {
@@ -767,11 +766,11 @@ where
 			Some(amount) => amount,
 			None => {
 				let block = if api_version > 1 {
-					api.current_block(&parent_block_id)
+					api.current_block(parent_block_hash)
 						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
 				} else {
 					#[allow(deprecated)]
-					let legacy_block = api.current_block_before_version_2(&parent_block_id)
+					let legacy_block = api.current_block_before_version_2(parent_block_hash)
 						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
 					if let Some(block) = legacy_block {
 						Some(block.into())
@@ -794,12 +793,12 @@ where
 		let access_list = access_list.unwrap_or_default();
 
 		let f = || -> RpcResult<_> {
-			api.initialize_block(&parent_block_id, &header)
+			api.initialize_block(parent_block_hash, &header)
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
 				.trace_call(
-					&parent_block_id,
+					parent_block_hash,
 					from.unwrap_or_default(),
 					to,
 					data,
