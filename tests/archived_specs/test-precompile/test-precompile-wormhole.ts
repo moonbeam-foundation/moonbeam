@@ -26,6 +26,13 @@ const debug = require("debug")("test:wormhole");
 
 const GUARDIAN_SET_INDEX = 0;
 
+// wormhole internally "compacts" amounts. they don't use a constant (it's more complicated) but we
+// can get away with a constant here.
+// TODO: maybe remove the implicit behavior from the util functions in wormhole.ts?
+// TODO: actually, something is wrong here -- I don't think this matches the WH compacting logic
+const WH_IMPLICIT_DECIMALS = 18n;
+const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
+
 const GMP_CONTRACT_JSON = getCompiled("precompiles/gmp/Gmp");
 const GMP_INTERFACE = new ethers.utils.Interface(GMP_CONTRACT_JSON.contract.abi);
 
@@ -75,19 +82,47 @@ const deploy = async (context: DevTestContext, contractPath: string, initData?: 
 };
 
 describeDevMoonbeam(`Test local Wormhole`, (context) => {
-  it("should support Alith VAA", async function () {
-    this.timeout(3600 * 1000);
+  const signerPKs = [ALITH_PRIVATE_KEY];
+  const ETHChain = 3;
+  const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
 
-    const wethContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
-    debug(`weth contract deployed to ${wethContract.contractAddress}`);
+  let whNonce = 0;
+  // TODO: ugh, clean this up. we don't need the WETH contract we deployed, we need the wrapped
+  // version of it created by WH.
+  let wethAddress: string;
+  let whWethContract: ethers.Contract;
+
+  let gmpContract: ethers.Contract;
+
+  let whWethAddress: string;
+  let evmChainId;
+
+  // destination used for xtoken transfers
+  const versionedMultiLocation = {
+    v1: {
+      parents: 1,
+      interior: {
+        X1: {
+          AccountKey20: {
+            id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          },
+        },
+      },
+    },
+  };
+
+  before("deploy wormhole infrastructure", async function () {
+    const wethDeployment = await deploy(context, "wormhole/bridge/mock/MockWETH9");
+    // wethContract = wethDeployment.contract;
+    wethAddress = wethDeployment.contractAddress;
+    debug(`weth contract deployed to ${wethAddress}`);
     const myTokenContract = await deploy(context, "wormhole/bridge/mock/MockWETH9");
 
     const initialSigners = [ALITH_ADDRESS];
-    const signerPKs = [ALITH_PRIVATE_KEY];
     const chainId = "0x10";
     const governanceChainId = "0x1";
     const governanceContract = "0x0000000000000000000000000000000000000000000000000000000000000004";
-    const evmChainId = await context.web3.eth.getChainId(); //"1337"; // "1281";
+    evmChainId = await context.web3.eth.getChainId();
     // Deploy wormhole (based on wormhole)
     // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
     const setupContract = await deploy(context, "wormhole/Setup");
@@ -124,7 +159,7 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         governanceChainId,
         governanceContract,
         tokenImplContract.contractAddress,
-        wethContract.contractAddress,
+        wethAddress,
         finality,
         evmChainId
       )
@@ -136,16 +171,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
 
     debug(`bridge contract deployed to ${bridgeContract.contractAddress}`);
 
-    const ETHEmitter = "0x0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585";
-    const ETHChain = 3;
-    let nonce = 0;
-
     // Register Chain ETH
     const registerChainVm = await genRegisterChainVAA(
       signerPKs,
       ETHEmitter,
       GUARDIAN_SET_INDEX,
-      nonce++,
+      whNonce++,
       1,
       ETHChain
     );
@@ -165,9 +196,9 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     const assetMetaVm = await genAssetMeta(
       signerPKs,
       GUARDIAN_SET_INDEX,
-      nonce++,
+      whNonce++,
       1,
-      wethContract.contractAddress,
+      wethAddress,
       ETHChain,
       ETHEmitter,
       18,
@@ -187,6 +218,12 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
         assetMetaResult.result.error || "good"
       })`
     );
+
+    // TODO: clean up / avoid using both web3js and ethers
+    // TODO: not the right contract, but it'll probably work
+    const WETH_CONTRACT_JSON = getCompiled("wormhole/bridge/mock/MockWETH9");
+    const WETH_INTERFACE = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
+    whWethContract = new ethers.Contract(wrappedToken, WETH_INTERFACE, context.ethers);
 
     debug(`wrapped token deployed to ${wrappedToken}`);
 
@@ -224,25 +261,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-    // create payload
-    const versionedMultiLocation = {
-      v1: {
-        parents: 1,
-        interior: {
-          X1: {
-            AccountKey20: {
-              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
-            },
-          },
-        },
-      },
-    };
-
-    const destination = context.polkadotApi.registry.createType(
-      "VersionedMultiLocation",
-      versionedMultiLocation
-    );
-
     // we also need to disable the killswitch by setting the 'enabled' flag to Some(true)
     const ENABLED_FLAG_STORAGE_ADDRESS = u8aToHex(
       u8aConcat(xxhashAsU8a("gmp", 128), xxhashAsU8a("PrecompileEnabled", 128))
@@ -250,12 +268,6 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     expect(ENABLED_FLAG_STORAGE_ADDRESS).to.eq(
       "0xb7f047395bba5df0367b45771c00de502551bba17abb82ef3498bab688e470b8"
     );
-
-    const userAction = new XcmRoutingUserAction({ destination });
-    const versionedUserAction = new VersionedUserAction({ V1: userAction });
-    console.log("Versioned User Action JSON:", JSON.stringify(versionedUserAction.toJSON()));
-    console.log("Versioned User Action SCALE:", versionedUserAction.toHex());
-    let payload = "" + versionedUserAction.toHex();
 
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -269,22 +281,30 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
       .signAndSend(alith);
     await context.createBlock();
 
-    const transferVAA = await genTransferWithPayloadVAA(
-      signerPKs,
-      GUARDIAN_SET_INDEX,
-      nonce++,
-      123, // sequence
-      999, // amount of tokens
-      wethContract.contractAddress,
-      ETHChain,
-      ETHChain,
-      ETHEmitter, // TODO: review
-      PRECOMPILE_GMP_ADDRESS,
-      "0x" + evmChainId.toString(16),
-      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
-      "" + payload
+    const gmpJson = getCompiled("wormhole/bridge/mock/MockWETH9");
+    const gmpInterface = new ethers.utils.Interface(WETH_CONTRACT_JSON.contract.abi);
+    gmpContract = new ethers.Contract(PRECOMPILE_GMP_ADDRESS, gmpInterface, context.ethers);
+  });
+
+  it("should support V1 user action", async function () {
+    this.timeout(20000);
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
     );
 
+    const userAction = new XcmRoutingUserAction({ destination });
+    const versionedUserAction = new VersionedUserAction({ V1: userAction });
+    let payload = "" + versionedUserAction.toHex();
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const whAmount = 999n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
     const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
 
     const result = await context.createBlock(
@@ -296,20 +316,168 @@ describeDevMoonbeam(`Test local Wormhole`, (context) => {
     );
 
     expectEVMResult(result.result.events, "Succeed", "Returned");
-    expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(realAmount);
   });
+
+  it("should support V2 user action with fee", async function () {
+    this.timeout(20000);
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    const whAmount = 999n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = 1234500n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(realAmount - fee);
+
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(fee));
+  });
+
+  it("should pay entire transfer when fee greater than transfer", async function () {
+    this.timeout(20000);
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    const whAmount = 100n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = realAmount + 1n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
+
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(Number(realAmount));
+  });
+
+  it("should pay no fee if fee is zero", async function () {
+    this.timeout(20000);
+
+    // create payload
+    const destination = context.polkadotApi.registry.createType(
+      "VersionedMultiLocation",
+      versionedMultiLocation
+    );
+
+    const whAmount = 100n;
+    const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+    const fee = 0n;
+
+    const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
+    const versionedUserAction = new VersionedUserAction({ V2: userAction });
+
+    const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
+
+    const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+    const data = GMP_INTERFACE.encodeFunctionData("wormholeTransferERC20", [`0x${transferVAA}`]);
+
+    const result = await context.createBlock(
+      createTransaction(context, {
+        to: PRECOMPILE_GMP_ADDRESS,
+        gas: 600_000,
+        data,
+      })
+    );
+
+    expectEVMResult(result.result.events, "Succeed", "Returned");
+    const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+    const transferFungible = events[0].data[1][0].fun;
+    expect(transferFungible.isFungible);
+    const transferAmount = transferFungible.asFungible.toBigInt();
+    expect(transferAmount).to.eq(realAmount);
+
+    // no fee paid
+    const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
+    expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0);
+  });
+
+  async function makeTestVAA(amount: number, action: VersionedUserAction): Promise<string> {
+    let payload = "" + action.toHex();
+
+    return await genTransferWithPayloadVAA(
+      signerPKs,
+      GUARDIAN_SET_INDEX,
+      whNonce++,
+      123, // sequence
+      amount,
+      wethAddress,
+      ETHChain,
+      ETHChain,
+      ETHEmitter, // TODO: review
+      PRECOMPILE_GMP_ADDRESS,
+      "0x" + evmChainId.toString(16),
+      "0x0000000000000000000000000000000000000001", // TODO: fromAddress
+      "" + payload
+    );
+  }
 });
 
 const registry = new TypeRegistry();
 
 class VersionedUserAction extends Enum {
   constructor(value?: any) {
-    super(registry, { V1: XcmRoutingUserAction }, value);
+    super(registry, { V1: XcmRoutingUserAction, V2: XcmRoutingUserActionWithFee }, value);
   }
 }
 class XcmRoutingUserAction extends Struct {
   constructor(value?: any) {
     super(registry, { destination: "VersionedMultiLocation" }, value);
+  }
+}
+class XcmRoutingUserActionWithFee extends Struct {
+  constructor(value?: any) {
+    super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
   }
 }
 
