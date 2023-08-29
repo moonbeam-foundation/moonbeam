@@ -2055,7 +2055,6 @@ pub mod pallet {
 				<DelegationScheduledRequests<T>>::get(&candidate).len() as u32,
 			);
 
-			// Hotfix for MOON-2552
 			// If we have called delegator_bond_more for this deletagor before, the weight
 			// returned will be an over-estimate since the read was already performed on the first
 			// call and subsequent calls do not increase PoV size further.
