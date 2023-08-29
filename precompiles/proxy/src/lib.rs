@@ -197,12 +197,7 @@ where
 		}
 		.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(
-			handle,
-			Some(origin).into(),
-			call,
-			0,
-		)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
