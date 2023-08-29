@@ -217,9 +217,9 @@ ethereum = { version = "0.14.0", default-features = false, features = [
 	"with-codec",
 ] }
 ethereum-types = { version = "0.14", default-features = false }
-evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "master", default-features = false }
-evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "master", default-features = false }
-evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "master", default-features = false }
+evm = { git = "https://github.com/moonbeam-foundation/evm", rev = "a33ac87ad7462b7e7029d12c385492b2a8311d1c", default-features = false }
+evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", rev = "a33ac87ad7462b7e7029d12c385492b2a8311d1c", default-features = false }
+evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", rev = "a33ac87ad7462b7e7029d12c385492b2a8311d1c", default-features = false }
 fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }

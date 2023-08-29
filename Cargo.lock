@@ -2744,34 +2744,14 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 [[package]]
 name = "evm"
 version = "0.39.1"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=master#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "auto_impl",
  "environmental",
  "ethereum",
- "evm-core 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-gasometer 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-runtime 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "log",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "scale-info",
- "serde",
- "sha3",
-]
-
-[[package]]
-name = "evm"
-version = "0.39.1"
-source = "git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
-dependencies = [
- "auto_impl",
- "environmental",
- "ethereum",
- "evm-core 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
- "evm-gasometer 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
- "evm-runtime 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "log",
  "parity-scale-codec",
  "primitive-types",
@@ -2784,18 +2764,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=master#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
-dependencies = [
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
- "serde",
-]
-
-[[package]]
-name = "evm-core"
-version = "0.39.0"
-source = "git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2806,45 +2775,22 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=master#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "environmental",
- "evm-core 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-runtime 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "primitive-types",
-]
-
-[[package]]
-name = "evm-gasometer"
-version = "0.39.0"
-source = "git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
-dependencies = [
- "environmental",
- "evm-core 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
- "evm-runtime 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm-core",
+ "evm-runtime",
  "primitive-types",
 ]
 
 [[package]]
 name = "evm-runtime"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=master#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "auto_impl",
  "environmental",
- "evm-core 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "primitive-types",
- "sha3",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.39.0"
-source = "git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
-dependencies = [
- "auto_impl",
- "environmental",
- "evm-core 0.39.0 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm-core",
  "primitive-types",
  "sha3",
 ]
@@ -2856,9 +2802,9 @@ dependencies = [
  "environmental",
  "ethereum",
  "ethereum-types",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-gasometer 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-runtime 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "parity-scale-codec",
  "sp-runtime-interface",
 ]
@@ -2983,7 +2929,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -2999,7 +2945,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3029,7 +2975,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3052,11 +2998,11 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "evm 0.39.1 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm",
  "fc-db",
  "fc-mapping-sync",
  "fc-rpc-core",
@@ -3102,7 +3048,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3115,7 +3061,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3295,7 +3241,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -3314,7 +3260,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3326,7 +3272,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3340,9 +3286,9 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
- "evm 0.39.1 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm",
  "frame-support",
  "parity-scale-codec",
  "scale-info",
@@ -3355,7 +3301,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3372,7 +3318,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3384,7 +3330,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -6059,9 +6005,9 @@ name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-gasometer 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
- "evm-runtime 0.39.0 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "evm-tracing-events",
  "fp-evm",
  "moonbeam-primitives-ext",
@@ -7666,7 +7612,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -7908,12 +7854,12 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "environmental",
  "ethereum",
  "ethereum-types",
- "evm 0.39.1 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm",
  "fp-consensus",
  "fp-ethereum",
  "fp-evm",
@@ -7975,10 +7921,10 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "environmental",
- "evm 0.39.1 (git+https://github.com/rust-blockchain/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c)",
+ "evm",
  "fp-account",
  "fp-evm",
  "frame-benchmarking",
@@ -8057,7 +8003,7 @@ name = "pallet-evm-precompile-batch"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -8083,7 +8029,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
 ]
@@ -8091,7 +8037,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -8103,7 +8049,7 @@ name = "pallet-evm-precompile-call-permit"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -8132,7 +8078,7 @@ name = "pallet-evm-precompile-collective"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -8247,7 +8193,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -8260,7 +8206,7 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -8294,7 +8240,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "num",
@@ -8358,7 +8304,7 @@ name = "pallet-evm-precompile-proxy"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -8497,7 +8443,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -8506,7 +8452,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#b1ef3fa9779b9657c9d87ff9b115e61961074840"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -8519,7 +8465,7 @@ version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -11046,7 +10992,7 @@ dependencies = [
  "affix",
  "derive_more",
  "environmental",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -11095,7 +11041,7 @@ name = "precompile-utils-tests-external"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.39.1 (git+https://github.com/moonbeam-foundation/evm?branch=master)",
+ "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
