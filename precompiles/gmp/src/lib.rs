@@ -23,6 +23,7 @@ use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	codec::Decode,
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	sp_runtime::{traits::Zero, Saturating},
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
@@ -54,6 +55,7 @@ const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32;
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32;
 const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32;
 const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32;
+const TRANSFER_SELECTOR: u32 = 0xa9059cbb_u32;
 
 /// Gmp precompile.
 #[derive(Debug, Clone)]
@@ -187,22 +189,75 @@ where
 			.map_err(|_| revert("Amount overflows balance"))?;
 
 		log::debug!(target: "gmp-precompile", "sending XCM via xtokens::transfer...");
-		let call: orml_xtokens::Call<Runtime> = match user_action {
-			VersionedUserAction::V1(action) => orml_xtokens::Call::<Runtime>::transfer {
-				currency_id,
-				amount,
-				dest: Box::new(action.destination),
-				dest_weight_limit: WeightLimit::Unlimited,
-			},
+		let call: Option<orml_xtokens::Call<Runtime>> = match user_action {
+			VersionedUserAction::V1(action) => {
+				log::debug!(target: "gmp-precompile", "Payload: V1");
+				Some(orml_xtokens::Call::<Runtime>::transfer {
+					currency_id,
+					amount,
+					dest: Box::new(action.destination),
+					dest_weight_limit: WeightLimit::Unlimited,
+				})
+			}
+			VersionedUserAction::V2(action) => {
+				log::debug!(target: "gmp-precompile", "Payload: V2");
+				// if the specified fee is more than the amount being transferred, we'll be nice to
+				// the sender and pay them the entire amount.
+				let fee = action.fee.min(amount_transferred);
+
+				if fee > U256::zero() {
+					let output = Self::call(
+						handle,
+						wrapped_address.into(),
+						solidity::encode_with_selector(
+							TRANSFER_SELECTOR,
+							(Address::from(handle.context().caller), fee),
+						),
+					)?;
+					let transferred: bool = solidity::decode_return_value(&output[..])?;
+
+					if !transferred {
+						return Err(RevertReason::custom("failed to transfer() fee").into());
+					}
+				}
+
+				let fee = fee
+					.try_into()
+					.map_err(|_| revert("Fee amount overflows balance"))?;
+
+				log::debug!(
+					target: "gmp-precompile",
+					"deducting fee from transferred amount {:?} - {:?} = {:?}",
+					amount, fee, (amount - fee)
+				);
+
+				let remaining = amount.saturating_sub(fee);
+
+				if !remaining.is_zero() {
+					Some(orml_xtokens::Call::<Runtime>::transfer {
+						currency_id,
+						amount: remaining,
+						dest: Box::new(action.destination),
+						dest_weight_limit: WeightLimit::Unlimited,
+					})
+				} else {
+					None
+				}
+			}
 		};
 
-		log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(|e| {
-			log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
-			e
-		})?;
+		if let Some(call) = call {
+			log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
+			let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
+			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(
+				|e| {
+					log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
+					e
+				},
+			)?;
+		} else {
+			log::debug!(target: "gmp-precompile", "no call provided, no XCM transfer");
+		}
 
 		Ok(())
 	}
@@ -222,7 +277,7 @@ where
 
 		log::debug!(
 			target: "gmp-precompile",
-			"calling {} ...", contract_address,
+			"calling {} from {} ...", contract_address, sub_context.caller,
 		);
 
 		let (reason, output) =
