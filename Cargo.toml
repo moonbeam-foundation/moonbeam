@@ -225,7 +225,9 @@ fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "mo
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
-pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
+	"forbid-evm-reentrancy",
+] }
 pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
@@ -351,7 +353,10 @@ parking_lot = "0.12.0"
 primitive-types = "0.12.0"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
-schnorrkel = { version = "0.9.1", default-features = false, features = [ "preaudit_deprecated", "u64_backend" ] }
+schnorrkel = { version = "0.9.1", default-features = false, features = [
+	"preaudit_deprecated",
+	"u64_backend",
+] }
 serde_json = { version = "1.0" }
 similar-asserts = "1.1.0"
 tempfile = "3.2.0"

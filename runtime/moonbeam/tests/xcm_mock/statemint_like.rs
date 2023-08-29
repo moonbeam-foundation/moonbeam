@@ -107,6 +107,19 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ();
 }
 
+// Required for runtime benchmarks
+pallet_assets::runtime_benchmarks_enabled! {
+	pub struct BenchmarkHelper;
+	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
+	where
+		AssetIdParameter: From<u128>,
+	{
+		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
+			(id as u128).into()
+		}
+	}
+}
+
 parameter_types! {
 	pub const AssetDeposit: Balance = 0; // 1 UNIT deposit to create asset
 	pub const ApprovalDeposit: Balance = 0;
@@ -138,6 +151,9 @@ impl pallet_assets::Config for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 parameter_types! {
