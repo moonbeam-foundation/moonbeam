@@ -5,7 +5,7 @@ import { Abi, encodeDeployData } from "viem";
 
 describeSuite({
   id: "D4003",
-  title: "Storage Block (40Kb) - Stroage Growth Limit",
+  title: "Storage Block (40Kb) - Storage Growth Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     it({
