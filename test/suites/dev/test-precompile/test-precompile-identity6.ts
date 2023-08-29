@@ -66,7 +66,7 @@ describeSuite({
 
       expect(evmLog.eventName).to.equal("JudgementGiven");
       expect(evmLog.args.target).to.equal(baltathar.address);
-      expect(evmLog.args.registrar_index).to.equal(0);
+      expect(evmLog.args.registrarIndex).to.equal(0);
     });
 
     it({
