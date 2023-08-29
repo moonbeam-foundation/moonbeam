@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 use crate::{
 	mock::*, SELECTOR_LOG_IDENTITY_CLEARED, SELECTOR_LOG_IDENTITY_SET,
 	SELECTOR_LOG_JUDGEMENT_GIVEN, SELECTOR_LOG_JUDGEMENT_REQUESTED,
@@ -558,6 +559,7 @@ fn test_set_subs_works_if_identity_set() {
 							}
 						)
 					]
+					.into()
 				}
 				.into()
 			))
@@ -600,6 +602,7 @@ fn test_set_subs_fails_if_identity_not_set() {
 							}
 						)
 					]
+					.into()
 				}
 				.into()
 			))

@@ -20,15 +20,15 @@
 
 extern crate alloc;
 
-use alloc::string::ToString;
 use enumflags2::BitFlags;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::StaticLookup;
 use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
+use parity_scale_codec::MaxEncodedLen;
 use precompile_utils::prelude::*;
-use sp_core::{ConstU32, H160, H256, U256};
+use sp_core::{ConstU32, Get, H160, H256, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
 use sp_std::vec::Vec;
@@ -105,8 +105,12 @@ where
 	}
 
 	#[precompile::public("setSubs((address,(bool,bytes))[])")]
-	fn set_subs(handle: &mut impl PrecompileHandle, subs: Vec<(Address, Data)>) -> EvmResult {
-		let mut call_subs = Vec::new();
+	fn set_subs(
+		handle: &mut impl PrecompileHandle,
+		subs: BoundedVec<(Address, Data), Runtime::MaxSubAccounts>,
+	) -> EvmResult {
+		let subs: Vec<_> = subs.into();
+		let mut call_subs = Vec::with_capacity(subs.len());
 		for (i, (addr, data)) in subs.into_iter().enumerate() {
 			let addr = Runtime::AddressMapping::into_account_id(addr.into());
 			let data: pallet_identity::Data = data
@@ -357,10 +361,12 @@ where
 		handle: &mut impl PrecompileHandle,
 		who: Address,
 	) -> EvmResult<Registration<Runtime::MaxAdditionalFields>> {
-		// Storage item: IdentityOf:
-		// BoundedVec((RegistrarIndex(4) + Judgement(17)) * MaxRegistrars(20)) + Balance(16)
-		//        + IdentityInfo(BoundedVec(Data(33) * MaxAdditionalFields(100)) + Data(33)*7 + 20)
-		handle.record_db_read::<Runtime>(3987)?;
+		// Storage item: IdentityOf -> Registration<BalanceOf<T>, T::MaxRegistrars, T::MaxAdditionalFields>
+		handle.record_db_read::<Runtime>(pallet_identity::Registration::<
+			BalanceOf<Runtime>,
+			Runtime::MaxRegistrars,
+			Runtime::MaxAdditionalFields,
+		>::max_encoded_len())?;
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
@@ -372,9 +378,10 @@ where
 	#[precompile::public("superOf(address)")]
 	#[precompile::view]
 	fn super_of(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<SuperOf> {
-		// Storage item: SuperOf:
-		// AccountId(20) + Data(33)
-		handle.record_db_read::<Runtime>(53)?;
+		// Storage item: SuperOf -> (T::AccountId, Data)
+		handle.record_db_read::<Runtime>(
+			Runtime::AccountId::max_encoded_len() + pallet_identity::Data::max_encoded_len(),
+		)?;
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
@@ -392,9 +399,11 @@ where
 	#[precompile::public("subsOf(address)")]
 	#[precompile::view]
 	fn subs_of(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<SubsOf> {
-		// Storage item: SubsOf:
-		// BoundedVec(AccountId(20) * MaxSubAccounts(100))
-		handle.record_db_read::<Runtime>(2000)?;
+		// Storage item: SubsOf -> (BalanceOf<T>, BoundedVec<T::AccountId, T::MaxSubAccounts>)
+		handle.record_db_read::<Runtime>(
+			BalanceOf::<Runtime>::max_encoded_len()
+				+ (Runtime::AccountId::max_encoded_len() * Runtime::MaxSubAccounts::get() as usize),
+		)?;
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
@@ -414,9 +423,8 @@ where
 	#[precompile::public("registrars()")]
 	#[precompile::view]
 	fn registrars(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Registrar>> {
-		// Storage item: Registrars:
-		// BoundedVec((AccountId(20) + Balance(16) + IdentityFields(8)) * MaxSubAccounts(100))
-		handle.record_db_read::<Runtime>(4400)?;
+		// Storage item: Registrars -> BoundedVec<Option<RegistrarInfo<BalanceOf<T>, T::AccountId>>, T::MaxRegistrars>,
+		handle.record_db_read::<Runtime>(pallet_identity::RegistrarInfo::<BalanceOf<Runtime>, Runtime::AccountId>::max_encoded_len() * Runtime::MaxRegistrars::get() as usize)?;
 
 		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
 			.into_iter()
@@ -514,9 +522,9 @@ where
 			let v: pallet_identity::Data = v.try_into().map_err(|e| {
 				RevertReason::custom(e).in_field(alloc::format!("additional.{i}.value"))
 			})?;
-			additional.try_push((k, v)).map_err(|_| {
-				RevertReason::custom("out of bounds").in_field("additional".to_string())
-			})?;
+			additional
+				.try_push((k, v))
+				.map_err(|_| RevertReason::custom("out of bounds").in_field("additional"))?;
 		}
 
 		let pgp_fingerprint: Option<[u8; 20]> = if info.has_pgp_fingerprint {
@@ -533,32 +541,32 @@ where
 			display: info
 				.display
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("display".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("display"))?,
 			legal: info
 				.legal
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("legal".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("legal"))?,
 			web: info
 				.web
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("web".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("web"))?,
 			riot: info
 				.riot
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("riot".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("riot"))?,
 			email: info
 				.email
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("email".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("email"))?,
 			pgp_fingerprint,
 			image: info
 				.image
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("image".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("image"))?,
 			twitter: info
 				.twitter
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field("twitter".to_string()))?,
+				.map_err(|e| RevertReason::custom(e).in_field("twitter"))?,
 		};
 
 		Ok(Box::new(identity_info))
