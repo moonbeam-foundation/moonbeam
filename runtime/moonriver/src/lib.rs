@@ -377,8 +377,7 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
-/// The highest amount of new storage that can be created in a block (40KB).
-pub const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
+
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -406,8 +405,7 @@ parameter_types! {
 	/// )
 	pub const GasLimitPovSizeRatio: u64 = 4;
 	/// The amount of gas per storage (in bytes).
-	pub GasLimitStorageGrowthRatio: u64 =
-		BlockGasLimit::get().low_u64().saturating_div(BLOCK_STORAGE_LIMIT);
+	pub GasLimitStorageGrowthRatio: u64 = 0;
 }
 
 pub struct TransactionPaymentAsGasPrice;
