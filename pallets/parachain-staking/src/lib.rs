@@ -2059,7 +2059,7 @@ pub mod pallet {
 			// returned will be an over-estimate since the read was already performed on the first
 			// call and subsequent calls do not increase PoV size further.
 			if already_called_for_delegator {
-				actual_weight.set_proof_size(0);
+				actual_weight = actual_weight.set_proof_size(0);
 			}
 
 			let in_top = state
