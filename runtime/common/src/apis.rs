@@ -271,23 +271,23 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
+					// Estimated encoded transaction size must be based on the heaviest transaction
+					// type (EIP1559Transaction) to be compatible with all transaction types.
 					let mut estimated_transaction_len = data.len() +
-						// to: 20
-						// from: 20
-						// value: 32
-						// gas_limit: 32
+						// pallet ethereum index: 1
+						// transact call index: 1
+						// Transaction enum variant: 1
+						// chain_id 8 bytes
 						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
+						// max_priority_fee_per_gas: 32
+						// max_fee_per_gas: 32
+						// gas_limit: 32
+						// action: 21 (enum varianrt + call address)
+						// value: 32
+						// access_list: 1 (empty vec size)
 						// 65 bytes signature
-						210;
+						258;
 
-					if max_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
 					if access_list.is_some() {
 						estimated_transaction_len += access_list.encoded_size();
 					}
@@ -578,38 +578,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
-					use frame_system_benchmarking::Pallet as SystemBench;
-					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use pallet_parachain_staking::Pallet as ParachainStakingBench;
-					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
-					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
-					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					use pallet_author_inherent::Pallet as PalletAuthorInherent;
-					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-					use pallet_randomness::Pallet as RandomnessBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
-					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
-
-					list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
-					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
-					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
-					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
-					list_benchmark!(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::<Runtime>);
-					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
-					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
-					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
-					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
-					list_benchmark!(
-						list,
-						extra,
-						moonbeam_xcm_benchmarks_generic,
-						MoonbeamXcmGenericBench::<Runtime>
-					);
-					list_benchmark!(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::<Runtime>);
+					list_benchmarks!(list, extra);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -734,20 +706,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
-					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
-
-					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use pallet_parachain_staking::Pallet as ParachainStakingBench;
-					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
-					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
-					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					use pallet_author_inherent::Pallet as PalletAuthorInherent;
-					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-					use pallet_randomness::Pallet as RandomnessBench;
-					use pallet_conviction_voting::Pallet as PalletConvictionVotingBench;
-					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
-
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number
 						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
@@ -801,77 +759,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					let mut batches = Vec::<BenchmarkBatch>::new();
 					let params = (&config, &whitelist);
 
-					add_benchmark!(
-						params,
-						batches,
-						parachain_staking,
-						ParachainStakingBench::<Runtime>
-					);
-					add_benchmark!(
-					params,
-						batches,
-						pallet_crowdloan_rewards,
-						PalletCrowdloanRewardsBench::<Runtime>
-					);
-					add_benchmark!(
-						params,
-						batches,
-						pallet_author_mapping,
-						PalletAuthorMappingBench::<Runtime>
-					);
-					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-					add_benchmark!(
-						params,
-						batches,
-						pallet_author_slot_filter,
-						PalletAuthorSlotFilter::<Runtime>
-					);
-					add_benchmark!(
-						params,
-						batches,
-						pallet_moonbeam_orbiters,
-						PalletMoonbeamOrbiters::<Runtime>
-					);
-					add_benchmark!(
-						params,
-						batches,
-						pallet_author_inherent,
-						PalletAuthorInherent::<Runtime>
-					);
-					add_benchmark!(
-						params,
-						batches,
-						pallet_asset_manager,
-						PalletAssetManagerBench::<Runtime>
-					);
-					add_benchmark!(
-						params,
-						batches,
-						xcm_transactor,
-						XcmTransactorBench::<Runtime>
-					);
-
-					add_benchmark!(
-						params,
-						batches,
-						pallet_randomness,
-						RandomnessBench::<Runtime>
-					);
-
-					add_benchmark!(
-						params,
-						batches,
-						moonbeam_xcm_benchmarks_generic,
-						MoonbeamXcmGenericBench::<Runtime>
-					);
-
-					add_benchmark!(
-						params,
-						batches,
-						pallet_conviction_voting,
-						PalletConvictionVotingBench::<Runtime>
-					);
-
+					add_benchmarks!(params, batches);
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());

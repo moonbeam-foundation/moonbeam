@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
-  "defaultTestTimeout": 60000,
+  "defaultTestTimeout": 120000,
   "scriptsDir": "scripts/",
   "environments": [
     {
@@ -45,8 +45,15 @@
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -55,9 +62,27 @@
           "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moondev.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -72,8 +97,15 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -82,9 +114,27 @@
           "endpoints": ["wss://wss.moonriver.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.moonriver.moonbeam.network"]
+          "endpoints": ["wss://wss.moonriver.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -99,8 +149,15 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -109,9 +166,27 @@
           "endpoints": ["wss://wss.api.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -127,8 +202,15 @@
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html"],
       "envVars": ["DEBUG_COLORS=1"],
+      "multiThreads": false,
       "foundation": {
-        "type": "read_only"
+        "type": "read_only",
+        "launchSpec": {
+          "rateLimiter": {
+            "minTime": 150,
+            "maxConcurrent": 5
+          }
+        }
       },
       "connections": [
         {
@@ -137,9 +219,28 @@
           "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+        },
+        {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"],
+          "rpc": {
+            "moon": {
+              "isBlockFinalized": {
+                "description": "Just a test method",
+                "params": [
+                  {
+                    "name": "blockHash",
+                    "type": "Hash"
+                  }
+                ],
+                "type": "bool"
+              }
+            }
+          }
         },
         {
           "name": "relay",
@@ -173,12 +274,12 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev"],
+      "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
-      "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
@@ -188,15 +289,20 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "--dev",
+              "--execution=Native",
+              "--wasm-execution=interpreted-i-know-what-i-do",
+              "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",
               "--reserved-only",
-              "--rpc-cors=all",
               "--no-grandpa",
-              "--sealing=manual",
+              "--no-prometheus",
               "--force-authoring",
-              "--no-prometheus"
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbase-dev",
+              "--sealing=manual",
+              "--tmp"
             ]
           }
         ]
@@ -205,6 +311,8 @@
     {
       "name": "dev_moonbase_custom",
       "testFileDir": ["suites/dev/"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

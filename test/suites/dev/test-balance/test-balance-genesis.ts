@@ -17,7 +17,7 @@ describeSuite({
       id: "T01",
       title: "should be accessible through web3",
       test: async function () {
-        expect(await context.viem("public").getBalance({ address: ALITH_ADDRESS })).toBe(
+        expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).toBe(
           ALITH_GENESIS_TRANSFERABLE_BALANCE
         );
       },

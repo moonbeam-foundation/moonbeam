@@ -238,26 +238,6 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
-    /// @notice DEPRECATED use batch util with scheduleRevokeDelegation for all delegations
-    /// @dev Request to leave the set of delegators
-    /// @custom:selector f939dadb
-    function scheduleLeaveDelegators() external;
-
-    /// @notice DEPRECATED use batch util with executeDelegationRequest for all delegations
-    /// @dev Execute request to leave the set of delegators and revoke all delegations
-    /// @custom:selector fb1e2bf9
-    /// @param delegator The leaving delegator
-    /// @param delegatorDelegationCount The number of active delegations to be revoked by delegator
-    function executeLeaveDelegators(
-        address delegator,
-        uint256 delegatorDelegationCount
-    ) external;
-
-    /// @notice DEPRECATED use batch util with cancelDelegationRequest for all delegations
-    /// @dev Cancel request to leave the set of delegators
-    /// @custom:selector f7421284
-    function cancelLeaveDelegators() external;
-
     /// @dev Request to revoke an existing delegation
     /// @custom:selector 1a1c740c
     /// @param candidate The address of the collator candidate which will no longer be supported

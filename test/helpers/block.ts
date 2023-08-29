@@ -169,7 +169,7 @@ export const verifyBlockFees = async (
                 //   (await context.web3().eth.getBlock(number - 1)).baseFeePerGas!
                 // );
                 const baseFeePerGas = (
-                  await context.viem("public").getBlock({ blockNumber: BigInt(number - 1) })
+                  await context.viem().getBlock({ blockNumber: BigInt(number - 1) })
                 ).baseFeePerGas!;
                 let priorityFee;
 
@@ -385,10 +385,12 @@ export function extractPreimageDeposit(
       accountId: deposit.unwrap()[0].toHex(),
       amount: deposit.unwrap()[1],
     };
+  } else if ("isNone" in deposit && deposit.isNone) {
+    return undefined;
   }
 
   return {
-    accountId: deposit.isEmpty ? "" : (deposit as any)[0].toHex(),
-    amount: deposit.isEmpty ? 0n : (deposit as any)[1],
+    accountId: (deposit as any)[0].toHex(),
+    amount: (deposit as any)[1],
   };
 }

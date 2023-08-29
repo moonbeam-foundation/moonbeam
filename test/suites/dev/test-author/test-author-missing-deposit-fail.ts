@@ -31,7 +31,7 @@ describeSuite({
       id: "T01",
       title: "should not add the association",
       test: async function () {
-        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).toBeUndefined();
       },
     });
 

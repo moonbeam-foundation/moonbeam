@@ -66,7 +66,7 @@ mod tests;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 
 pub use auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
@@ -82,6 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -231,6 +232,7 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
+		RemovedCall,
 	}
 
 	#[pallet::event]
@@ -1220,42 +1222,25 @@ pub mod pallet {
 			)
 		}
 
-		/// DEPRECATED use batch util with schedule_revoke_delegation for all delegations
-		/// Request to leave the set of delegators. If successful, the caller is scheduled to be
-		/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.
-		/// Success forbids future delegation requests until the request is invoked or cancelled.
+		/// REMOVED, was schedule_leave_delegators
 		#[pallet::call_index(19)]
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators_worst(
-			T::MaxDelegationsPerDelegator::get()
-		))]
-		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			Self::delegator_schedule_revoke_all(delegator)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
-		/// DEPRECATED use batch util with execute_delegation_request for all delegations
-		/// Execute the right to exit the set of delegators and revoke all ongoing delegations.
+		/// REMOVED, was execute_leave_delegators
 		#[pallet::call_index(20)]
-		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators_worst(*delegation_count))]
-		pub fn execute_leave_delegators(
-			origin: OriginFor<T>,
-			delegator: T::AccountId,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?;
-			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
-		/// DEPRECATED use batch util with cancel_delegation_request for all delegations
-		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
-		/// request (thereby resetting the delay upon another `leave_delegators` call).
+		/// REMOVED, was cancel_leave_delegators
 		#[pallet::call_index(21)]
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators_worst(
-			T::MaxDelegationsPerDelegator::get()
-		))]
-		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			Self::delegator_cancel_scheduled_revoke_all(delegator)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled

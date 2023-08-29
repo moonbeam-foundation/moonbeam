@@ -6,7 +6,7 @@ import {
   deployCreateCompiledContract,
 } from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
-import { createEthersTxn } from "@moonwall/util";
+import { createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D0608",
@@ -37,12 +37,9 @@ describeSuite({
           id: `T${testNumber > 9 ? testNumber : "0" + testNumber}`,
           title: `should consume ${gas} for ${loop} loop for ${txnType}`,
           test: async function () {
-            const { abi, contractAddress, contract } = await deployCreateCompiledContract(
-              context,
-              "Looper"
-            );
+            const { abi, contractAddress } = await context.deployContract!("Looper");
 
-            const { rawSigned } = await createEthersTxn(context, {
+            const rawSigned = await createEthersTransaction(context, {
               to: contractAddress,
               data: encodeFunctionData({ abi, functionName: "incrementalLoop", args: [loop] }),
               gasLimit: 10_000_000,
@@ -51,8 +48,14 @@ describeSuite({
 
             await context.createBlock(rawSigned);
 
-            expect(await contract.read.count()).toBe(loop);
-            const block = await context.viem("public").getBlock();
+            expect(
+              await context.readContract!({
+                contractName: "Looper",
+                contractAddress,
+                functionName: "count",
+              })
+            ).toBe(loop);
+            const block = await context.viem().getBlock();
             expect(block.gasUsed).toBe(gas);
           },
         });

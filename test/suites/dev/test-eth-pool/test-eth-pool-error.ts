@@ -8,14 +8,12 @@ import {
   GOLIATH_ADDRESS,
   GOLIATH_PRIVATE_KEY,
   MIN_GAS_PRICE,
-  createEthersTxn,
-  createRawTransaction,
+  createEthersTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
-import { setTimeout } from "timers/promises";
 import { parseGwei } from "viem";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
 
 describeSuite({
   id: "D1102",
@@ -47,9 +45,9 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
-        const nonce = await context.viem("public").getTransactionCount({ address: ALITH_ADDRESS });
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
-        const { rawSigned: tx1 } = await createEthersTxn(context, {
+        const tx1 = await createEthersTransaction(context, {
           to: CHARLETH_ADDRESS,
           nonce,
           gasPrice: parseGwei("15"),
@@ -59,7 +57,7 @@ describeSuite({
 
         await customDevRpcRequest("eth_sendRawTransaction", [tx1]);
 
-        const { rawSigned: tx2 } = await createEthersTxn(context, {
+        const tx2 = await createEthersTransaction(context, {
           to: DOROTHY_ADDRESS,
           nonce,
           value: 200,
@@ -77,17 +75,16 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context
-          .viem("public")
-          .getTransactionCount({ address: CHARLETH_ADDRESS });
-        const tx1 = await createRawTransaction(context, {
+        const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
+        const tx1 = await context.createTxn!({
           to: BALTATHAR_ADDRESS,
           value: 1n,
           nonce,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
         await context.createBlock(tx1);
-        const tx2 = await createRawTransaction(context, {
+
+        const tx2 = await context.createTxn!({
           to: DOROTHY_ADDRESS,
           value: 2n,
           nonce: Math.max(nonce - 1, 0),

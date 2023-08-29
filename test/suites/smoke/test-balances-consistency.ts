@@ -10,9 +10,9 @@ import type {
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, extractPreimageDeposit, printTokens } from "@moonwall/util";
+import { TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
-import { rateLimiter } from "../../helpers/common.js";
+import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
 import { processAllStorage } from "../../helpers/storageQueries.js";
 
@@ -56,7 +56,6 @@ describeSuite({
     const expectedReserveMap = new Map<string, ReservedInfo>();
     const expectedLocksMap = new Map<string, LocksInfo>();
     const locksMap = new Map<string, { total: bigint }>();
-    const limiter = rateLimiter();
     let failedLocks: any[] = [];
     let failedReserved: any[] = [];
     let atBlockNumber: number = 0;
@@ -143,7 +142,7 @@ describeSuite({
     };
 
     beforeAll(async function () {
-      paraApi = context.polkadotJs({ apiName: "para", type: "moon" });
+      paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
         ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
@@ -462,9 +461,12 @@ describeSuite({
                       ? status[1].unwrap().asUnrequested
                       : status[1].unwrap().asRequested
                   );
-                  return { accountId: deposit.accountId, deposit: deposit.amount };
+                  return !!deposit
+                    ? { accountId: deposit.accountId, deposit: deposit.amount }
+                    : undefined;
                 })
-                .forEach(({ deposit, accountId }) => {
+                .filter((value) => typeof value !== "undefined")
+                .forEach(({ deposit, accountId }: any) => {
                   updateReserveMap(accountId, {
                     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
                   });
@@ -481,7 +483,8 @@ describeSuite({
       await new Promise((resolve, reject) => {
         if (
           (specVersion >= 1900 && runtimeName == "moonbase") ||
-          (specVersion >= 2100 && runtimeName == "moonriver")
+          (specVersion >= 2100 && runtimeName == "moonriver") ||
+          (specVersion >= 2300 && runtimeName == "moonbeam")
         ) {
           apiAt.query.referenda.referendumInfoFor
             .entries()
@@ -714,7 +717,8 @@ describeSuite({
       // Only applies to OpenGov
       if (
         (specVersion >= 1900 && runtimeName == "moonbase") ||
-        (specVersion >= 2100 && runtimeName == "moonriver")
+        (specVersion >= 2100 && runtimeName == "moonriver") ||
+        (specVersion >= 2300 && runtimeName == "moonbeam")
       ) {
         await new Promise((resolve, reject) => {
           apiAt.query.convictionVoting.votingFor
