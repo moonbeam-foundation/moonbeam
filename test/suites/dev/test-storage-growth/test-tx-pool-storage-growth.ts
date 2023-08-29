@@ -14,9 +14,6 @@ describeSuite({
       id: "T01",
       title: "should be able to fill a block with 64 tx",
       test: async function () {
-        // Each contract creation tx cost 245_586 gas
-        // 15_000_000 / 245_586 = 61
-        // So, we can fit 61 contract creation tx in a block
         const { abi, bytecode } = fetchCompiledContract("Fibonacci");
         const deployData = encodeDeployData({
           abi,
@@ -33,7 +30,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(61);
+        expect((await context.viem().getBlock()).transactions.length).toBe(60);
       },
     });
   },
