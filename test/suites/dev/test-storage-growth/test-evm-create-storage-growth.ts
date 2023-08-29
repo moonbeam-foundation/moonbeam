@@ -58,7 +58,7 @@ describeSuite({
           const callCode = (
             await context.viem().call({ data: contractData.bytecode, gas: 245_586n })
           ).data;
-          const { contractAddress } = await deployCreateCompiledContract(context, "Fibonacci");
+          const { contractAddress } = await context.deployContract!("Fibonacci");
           const deployedCode = await context
             .viem("public")
             .getBytecode({ address: contractAddress! });
