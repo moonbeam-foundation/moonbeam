@@ -502,7 +502,8 @@ describeSuite({
         // The account cannot be random otherwise the calldata might contain more
         // zero bytes and have a different gas cost
         const randomAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
-
+        // The gas cost of this transaction is 54168 (148 * 366 (Storage growth ratio))
+        const expected_gas = 54168n;
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "addProxy",
@@ -538,7 +539,7 @@ describeSuite({
         const { gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result2!.hash as `0x${string}` });
-        expect(gasUsed).to.equal(33344n);
+        expect(gasUsed).to.equal(expected_gas);
 
         expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
 
