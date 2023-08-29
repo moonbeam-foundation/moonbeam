@@ -23,25 +23,24 @@ describeSuite({
     // expected_gas = 148 * 366 = 54168
     const expectedGas = 54168n;
 
-    before(async () => {
-      const rawTxn = await context.writePrecompile!({
-        precompileName: "Proxy",
-        functionName: "addProxy",
-        args: [BALTATHAR_ADDRESS, CONTRACT_PROXY_TYPE_ANY, 0],
-        privateKey: FAITH_PRIVATE_KEY,
-        rawTxOnly: true,
-      });
-      const { result } = await context.createBlock(rawTxn);
-      expectEVMResult(result!.events, "Succeed");
-    });
-
     it({
       id: "T01",
       title: "should fail transfer due to insufficient gas required to cover the storage growth",
       test: async () => {
-        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const { abi: ierc20Abi } = fetchCompiledContract("IERC20");
 
+        const rawTxn = await context.writePrecompile!({
+          precompileName: "Proxy",
+          functionName: "addProxy",
+          args: [BALTATHAR_ADDRESS, CONTRACT_PROXY_TYPE_ANY, 0],
+          privateKey: FAITH_PRIVATE_KEY,
+          rawTxOnly: true,
+          gas: 1_000_000n,
+        });
+        const { result } = await context.createBlock(rawTxn);
+        expectEVMResult(result!.events, "Succeed");
+
+        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const rawTxn2 = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "proxy",
@@ -56,15 +55,15 @@ describeSuite({
           ],
           privateKey: BALTATHAR_PRIVATE_KEY,
           rawTxOnly: true,
-          gas: 40000n,
+          gas: 40_000n,
         });
 
-        const { result } = await context.createBlock(rawTxn2);
+        const { result: result2 } = await context.createBlock(rawTxn2);
         // Check that the transaction failed with an out of gas error
-        expectEVMResult(result!.events, "Error", "OutOfGas");
+        expectEVMResult(result2!.events, "Error", "OutOfGas");
 
         const balAfter = await context.viem().getBalance({ address: FAITH_ADDRESS });
-        expect(balAfter).toEqual(balBefore);
+        expect(balBefore - balAfter).to.equal(0n);
       },
     });
 

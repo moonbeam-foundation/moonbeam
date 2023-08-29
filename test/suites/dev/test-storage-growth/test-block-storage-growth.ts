@@ -5,14 +5,12 @@ import { Abi, encodeDeployData } from "viem";
 
 describeSuite({
   id: "D4003",
-  title: "TxPool - Stroage Growth Limit",
+  title: "Storage Block (40Kb) - Stroage Growth Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let storageLoopAddress: `0x${string}`;
-    let storageLoopAbi: Abi;
     it({
       id: "T01",
-      title: "should be able to fill a block with 64 tx",
+      title: "should fill a block with 60 tx at most",
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("Fibonacci");
         const deployData = encodeDeployData({
