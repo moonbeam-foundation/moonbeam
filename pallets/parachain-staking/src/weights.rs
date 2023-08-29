@@ -718,20 +718,20 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (395 ±0) + y * (156 ±0) + z * (41 ±0)`
-		//  Estimated: `124139 + x * (2591 ±130) + y * (2137 ±130) + z * (26 ±6)`
-		// Minimum execution time: 8_486_000 picoseconds.
-		Weight::from_parts(8_486_000, 124139)
-			// Standard Error: 35_093_196
-			.saturating_add(Weight::from_parts(748_558_381, 0).saturating_mul(x.into()))
-			// Standard Error: 35_093_196
-			.saturating_add(Weight::from_parts(455_475_687, 0).saturating_mul(y.into()))
+		//  Estimated: `125723 + x * (2591 ±1) + y * (2234 ±1) + z * (28 ±0)`
+		// Minimum execution time: 405_000 picoseconds.
+		Weight::from_parts(417_000, 125723)
+			// Standard Error: 820_303
+			.saturating_add(Weight::from_parts(79_076_895, 0).saturating_mul(x.into()))
+			// Standard Error: 820_303
+			.saturating_add(Weight::from_parts(46_332_465, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads((3_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(y.into())))
 			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(0, 2137).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 26).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(0, 2234).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(0, 28).saturating_mul(z.into()))
 	}
 	/// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	/// Proof Skipped: ParachainStaking DelayedPayouts (max_values: None, max_size: None, mode: Measured)
@@ -1500,20 +1500,20 @@ impl WeightInfo for () {
 	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (395 ±0) + y * (156 ±0) + z * (41 ±0)`
-		//  Estimated: `124139 + x * (2591 ±130) + y * (2137 ±130) + z * (26 ±6)`
-		// Minimum execution time: 8_486_000 picoseconds.
-		Weight::from_parts(8_486_000, 124139)
-			// Standard Error: 35_093_196
-			.saturating_add(Weight::from_parts(748_558_381, 0).saturating_mul(x.into()))
-			// Standard Error: 35_093_196
-			.saturating_add(Weight::from_parts(455_475_687, 0).saturating_mul(y.into()))
+		//  Estimated: `125723 + x * (2591 ±1) + y * (2234 ±1) + z * (28 ±0)`
+		// Minimum execution time: 405_000 picoseconds.
+		Weight::from_parts(417_000, 125723)
+			// Standard Error: 820_303
+			.saturating_add(Weight::from_parts(79_076_895, 0).saturating_mul(x.into()))
+			// Standard Error: 820_303
+			.saturating_add(Weight::from_parts(46_332_465, 0).saturating_mul(y.into()))
 			.saturating_add(RocksDbWeight::get().reads((3_u64).saturating_mul(x.into())))
 			.saturating_add(RocksDbWeight::get().reads((2_u64).saturating_mul(y.into())))
 			.saturating_add(RocksDbWeight::get().writes((2_u64).saturating_mul(x.into())))
 			.saturating_add(RocksDbWeight::get().writes((1_u64).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(0, 2137).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 26).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(0, 2234).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(0, 28).saturating_mul(z.into()))
 	}
 	/// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	/// Proof Skipped: ParachainStaking DelayedPayouts (max_values: None, max_size: None, mode: Measured)

@@ -1767,7 +1767,7 @@ pub mod pallet {
 			if let Some((collator, state)) =
 				<AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
-				// read and kill AtStakemint_and_compound
+				// read and kill AtStake
 				early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 1));
 
 				// Take the awarded points for the collator
@@ -2103,8 +2103,7 @@ pub mod pallet {
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-		) -> Weight {
-			let mut weight = T::WeightInfo::mint_collator_reward();
+		) {
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
@@ -2115,29 +2114,20 @@ pub mod pallet {
 
 				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				if compound_amount.is_zero() {
-					return weight;
+					return;
 				}
 
-				match Self::delegation_bond_more_without_event(
+				if let Err(err) = Self::delegation_bond_more_without_event(
 					delegator.clone(),
 					candidate.clone(),
 					compound_amount.clone(),
 				) {
-					Err(err) => {
-						log::debug!(
-									"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-									candidate,
-									delegator,
-									err
-								);
-						return weight.saturating_add(T::WeightInfo::delegator_bond_more(
-							T::MaxTopDelegationsPerCandidate::get()
-								+ T::MaxBottomDelegationsPerCandidate::get(),
-						));
-					}
-					Ok((_, weight_consumed)) => {
-						weight = weight.saturating_add(weight_consumed);
-					}
+					log::debug!(
+						"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+						candidate,
+						delegator,
+						err
+					);
 				};
 
 				Pallet::<T>::deposit_event(Event::Compounded {
@@ -2146,8 +2136,6 @@ pub mod pallet {
 					amount: compound_amount.clone(),
 				});
 			};
-
-			weight
 		}
 	}
 
