@@ -418,9 +418,9 @@ parameter_types! {
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	pub const GasLimitPovSizeRatio: u64 = 4;
-	/// The amount of gas per storage (in bytes).
-	pub GasLimitStorageGrowthRatio: u64 =
-		BlockGasLimit::get().low_u64().saturating_div(BLOCK_STORAGE_LIMIT);
+	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
+	/// (15_000_000 / 40kb)
+	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
 pub struct TransactionPaymentAsGasPrice;
@@ -1733,5 +1733,18 @@ mod tests {
 			.get(frame_support::dispatch::DispatchClass::Normal)
 			.base_extrinsic;
 		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight.ref_time());
+	}
+
+	#[test]
+	fn test_storage_growth_ratio_is_correct() {
+		let expected_storage_growth_ratio = BlockGasLimit::get()
+			.low_u64()
+			.saturating_div(BLOCK_STORAGE_LIMIT);
+		let actual_storage_growth_ratio =
+			<Runtime as pallet_evm::Config>::GasLimitStorageGrowthRatio::get();
+		assert_eq!(
+			expected_storage_growth_ratio, actual_storage_growth_ratio,
+			"Storage growth ratio is not correct"
+		);
 	}
 }
