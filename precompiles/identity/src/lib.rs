@@ -361,7 +361,8 @@ where
 		handle: &mut impl PrecompileHandle,
 		who: Address,
 	) -> EvmResult<Registration<Runtime::MaxAdditionalFields>> {
-		// Storage item: IdentityOf -> Registration<BalanceOf<T>, T::MaxRegistrars, T::MaxAdditionalFields>
+		// Storage item: IdentityOf ->
+		//		Registration<BalanceOf<T>, T::MaxRegistrars, T::MaxAdditionalFields>
 		handle.record_db_read::<Runtime>(pallet_identity::Registration::<
 			BalanceOf<Runtime>,
 			Runtime::MaxRegistrars,
@@ -423,8 +424,13 @@ where
 	#[precompile::public("registrars()")]
 	#[precompile::view]
 	fn registrars(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Registrar>> {
-		// Storage item: Registrars -> BoundedVec<Option<RegistrarInfo<BalanceOf<T>, T::AccountId>>, T::MaxRegistrars>,
-		handle.record_db_read::<Runtime>(pallet_identity::RegistrarInfo::<BalanceOf<Runtime>, Runtime::AccountId>::max_encoded_len() * Runtime::MaxRegistrars::get() as usize)?;
+		// Storage item: Registrars ->
+		// 		BoundedVec<Option<RegistrarInfo<BalanceOf<T>, T::AccountId>>, T::MaxRegistrars>
+		handle.record_db_read::<Runtime>(
+			pallet_identity::RegistrarInfo::<
+				BalanceOf<Runtime>, Runtime::AccountId
+			>::max_encoded_len() * Runtime::MaxRegistrars::get() as usize
+		)?;
 
 		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
 			.into_iter()
