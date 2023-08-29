@@ -2051,16 +2051,15 @@ pub mod pallet {
 				Error::<T>::PendingDelegationRevoke
 			);
 
-			let mut actual_weight = T::WeightInfo::delegator_bond_more(
-				<DelegationScheduledRequests<T>>::get(&candidate).len() as u32,
-			);
-
 			// If we have called delegator_bond_more for this candidate before, the weight
 			// returned will be an over-estimate since the read was already performed on the first
 			// call and subsequent calls do not increase PoV size further.
-			if already_called_for_candidate {
-				actual_weight = actual_weight.set_proof_size(0);
-			}
+			let actual_weight =
+				T::WeightInfo::delegator_bond_more(if already_called_for_candidate {
+					0
+				} else {
+					<DelegationScheduledRequests<T>>::get(&candidate).len() as u32
+				});
 
 			let in_top = state
 				.increase_delegation::<T>(candidate.clone(), more)
