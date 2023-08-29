@@ -1274,6 +1274,7 @@ pub mod pallet {
 				delegator.clone(),
 				candidate.clone(),
 				more.clone(),
+				false,
 			)?;
 			Pallet::<T>::deposit_event(Event::DelegationIncreased {
 				delegator,
@@ -1819,11 +1820,14 @@ pub mod pallet {
 						));
 
 					// pay delegators due portion
-					for BondWithAutoCompound {
-						owner,
-						amount,
-						auto_compound,
-					} in state.delegations
+					for (
+						i,
+						BondWithAutoCompound {
+							owner,
+							amount,
+							auto_compound,
+						},
+					) in state.delegations.into_iter().enumerate()
 					{
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
@@ -1833,6 +1837,7 @@ pub mod pallet {
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
+								!i.is_zero(),
 							));
 						}
 					}
@@ -2035,6 +2040,7 @@ pub mod pallet {
 			delegator: T::AccountId,
 			candidate: T::AccountId,
 			more: BalanceOf<T>,
+			already_called_for_delegator: bool,
 		) -> Result<
 			(bool, Weight),
 			DispatchErrorWithPostInfo<frame_support::dispatch::PostDispatchInfo>,
@@ -2048,6 +2054,15 @@ pub mod pallet {
 			let actual_weight = T::WeightInfo::delegator_bond_more(
 				<DelegationScheduledRequests<T>>::get(&candidate).len() as u32,
 			);
+
+			// Hotfix for MOON-2552
+			// If we have called delegator_bond_more for this deletagor before, the weight
+			// returned will be an over-estimate since the read was already performed on the first
+			// call and subsequent calls do not increase PoV size further.
+			if already_called_for_delegator {
+				actual_weight.set_proof_size(0);
+			}
+
 			let in_top = state
 				.increase_delegation::<T>(candidate.clone(), more)
 				.map_err(|err| DispatchErrorWithPostInfo {
@@ -2087,11 +2102,15 @@ pub mod pallet {
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
 		/// compounded. Emits the [Compounded] event.
+		/// already_called_for_delegator: bool is used to indicate if this function has already been
+		/// called for a given delegator by the callee. This is used to avoid over-estimating
+		/// weight, since subsequent calls to this function will not increase the pov size.
 		pub fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
+			already_called_for_delegator: bool,
 		) -> Weight {
 			let mut weight = T::WeightInfo::mint_collator_reward();
 			if let Ok(amount_transferred) =
@@ -2111,6 +2130,7 @@ pub mod pallet {
 					delegator.clone(),
 					candidate.clone(),
 					compound_amount.clone(),
+					already_called_for_delegator,
 				) {
 					Err(err) => {
 						log::debug!(
