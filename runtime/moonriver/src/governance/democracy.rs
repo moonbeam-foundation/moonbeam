@@ -68,7 +68,7 @@ impl pallet_democracy::Config for Runtime {
 	type Scheduler = Scheduler;
 	type MaxVotes = ConstU32<100>;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_democracy::WeightInfo<Runtime>;
 	type MaxProposals = ConstU32<100>;
 	type Preimages = Preimage;
 	type MaxDeposits = ConstU32<100>;

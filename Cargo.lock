@@ -1815,6 +1815,7 @@ version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/cumulus?branch=moonbeam-polkadot-v0.9.43#e3c7110a29df950e8ef1bc0a5c616332987f0725"
 dependencies = [
  "cumulus-primitives-core",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -5541,7 +5542,7 @@ dependencies = [
  "parity-scale-codec",
  "tokio",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -5906,7 +5907,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -6067,7 +6068,7 @@ dependencies = [
  "sp-std",
  "westend-runtime",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6371,7 +6372,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -6379,8 +6380,10 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -6388,21 +6391,34 @@ dependencies = [
  "log",
  "moonbeam-xcm-benchmarks",
  "pallet-asset-manager",
+ "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
+ "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum-xcm",
  "pallet-evm",
+ "pallet-identity",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
+ "pallet-multisig",
  "pallet-parachain-staking",
  "pallet-preimage",
+ "pallet-proxy",
  "pallet-randomness",
  "pallet-referenda",
  "pallet-scheduler",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-treasury",
+ "pallet-utility",
+ "pallet-whitelist",
+ "pallet-xcm",
  "pallet-xcm-transactor",
  "precompile-utils",
  "sp-core",
@@ -6410,7 +6426,7 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6578,7 +6594,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6727,7 +6743,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -7447,7 +7463,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -7915,7 +7931,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8102,7 +8118,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8234,7 +8250,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8437,7 +8453,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8490,7 +8506,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8521,7 +8537,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8554,7 +8570,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8692,7 +8708,7 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.0",
 ]
 
 [[package]]
@@ -8747,7 +8763,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.0",
 ]
 
 [[package]]
@@ -9426,7 +9442,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -17143,6 +17159,14 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#94ea27fcfa2f37ce4ccd7892002d7bd9926bb78b"
+dependencies = [
+ "sp-runtime",
+]
+
+[[package]]
+name = "xcm-primitives"
+version = "0.1.1"
 dependencies = [
  "cumulus-primitives-core",
  "ethereum",
@@ -17164,14 +17188,6 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
-]
-
-[[package]]
-name = "xcm-primitives"
-version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#94ea27fcfa2f37ce4ccd7892002d7bd9926bb78b"
-dependencies = [
- "sp-runtime",
 ]
 
 [[package]]

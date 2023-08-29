@@ -66,7 +66,7 @@ mod tests;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 
 pub use auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};

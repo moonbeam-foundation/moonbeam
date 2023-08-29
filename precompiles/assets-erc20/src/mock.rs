@@ -224,6 +224,19 @@ impl pallet_evm::Config for Runtime {
 type ForeignAssetInstance = pallet_assets::Instance1;
 type LocalAssetInstance = pallet_assets::Instance2;
 
+// Required for runtime benchmarks
+pallet_assets::runtime_benchmarks_enabled! {
+	pub struct BenchmarkHelper;
+	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
+	where
+		AssetIdParameter: From<u128>,
+	{
+		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
+			(id as u128).into()
+		}
+	}
+}
+
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
 parameter_types! {
@@ -254,6 +267,9 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 impl pallet_assets::Config<LocalAssetInstance> for Runtime {
@@ -275,6 +291,9 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	pallet_assets::runtime_benchmarks_enabled! {
+		type BenchmarkHelper = BenchmarkHelper;
+	}
 }
 
 // Configure a mock runtime to test the pallet.
