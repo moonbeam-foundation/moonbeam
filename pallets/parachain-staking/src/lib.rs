@@ -1819,21 +1819,39 @@ pub mod pallet {
 						));
 
 					// pay delegators due portion
-					for BondWithAutoCompound {
-						owner,
-						amount,
-						auto_compound,
-					} in state.delegations
+					for (
+						i,
+						BondWithAutoCompound {
+							owner,
+							amount,
+							auto_compound,
+						},
+					) in state.delegations.into_iter().enumerate()
 					{
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							extra_weight = extra_weight.saturating_add(Self::mint_and_compound(
+							let weight = Self::mint_and_compound(
 								due,
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
-							));
+							);
+							// hotfix for https://opslayer.atlassian.net/browse/MOON-2552
+							// the weight returned by mint_and_compound is not accurate when called
+							// repeatedly in a loop since only the first call will increase PoV, the
+							// rest will simply re-read the same data.
+							//
+							// todo: refactor mint_and_compound such that it does not re-read each
+							// time it is called
+							if i == 0 {
+								// in the first iteration of loop, add full weight
+								extra_weight = extra_weight.saturating_add(weight);
+							} else {
+								// in subsequent iterations, add only the cpu time
+								extra_weight = extra_weight
+									.saturating_add(Weight::from_parts(weight.ref_time(), 0u64));
+							}
 						}
 					}
 				}
