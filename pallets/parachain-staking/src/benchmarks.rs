@@ -1652,7 +1652,7 @@ benchmarks! {
 		let mut col_del_count = 0u32;
 		let initial_delegator_balance = T::MinDelegation::get() + 100u32.into();
 		for i in 0..x {
-			let auto_compound = if i+1 <= y { Percent::from_percent(100) } else { Percent::from_percent(0) };
+			let auto_compound = if i < y { Percent::from_percent(100) } else { Percent::from_percent(0) };
 			let delegator = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1666,7 +1666,7 @@ benchmarks! {
 				},
 			)?;
 			col_del_count += 1u32;
-			if i+1 <= z {
+			if i < z {
 				Pallet::<T>::schedule_delegator_bond_less(
 					RawOrigin::Signed(delegator.clone()).into(),
 					prime_candidate.clone(),
