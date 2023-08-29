@@ -1618,6 +1618,115 @@ benchmarks! {
 	verify {
 	}
 
+	pay_one_collator_reward_best {
+		// x controls number of delegations
+		let x in 0..(
+			T::MaxTopDelegationsPerCandidate::get()
+			+ T::MaxBottomDelegationsPerCandidate::get() - 1
+		);
+		// y controls the number of auto-compounding delegations
+		let y in 0..(
+			T::MaxTopDelegationsPerCandidate::get()
+			+ T::MaxBottomDelegationsPerCandidate::get() - 1
+		);
+		// z is the number of scheduled requests per collator
+		let z in 0..(
+			T::MaxTopDelegationsPerCandidate::get()
+			+ T::MaxBottomDelegationsPerCandidate::get() - 1
+		);
+
+		use crate::{
+			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, BondWithAutoCompound, Points,
+			AwardedPts,
+		};
+
+		let mut seed = Seed::new();
+		let prime_candidate = create_account::<T>(
+			"collator",
+			seed.take(),
+			AccountBalance::MinCandidateStake,
+			AccountAction::JoinCandidates{ amount: Amount::All, candidate_count: 1u32 },
+		)?;
+
+		let mut delegations = Vec::new();
+		let mut col_del_count = 0u32;
+		let initial_delegator_balance = T::MinDelegation::get() + 100u32.into();
+		for i in 0..x {
+			let auto_compound = if i+1 <= y { Percent::from_percent(100) } else { Percent::from_percent(0) };
+			let delegator = create_account::<T>(
+				"delegator",
+				seed.take(),
+				AccountBalance::Value(initial_delegator_balance),
+				AccountAction::Delegate{
+					collator: prime_candidate.clone(),
+					amount: Amount::All,
+					auto_compound,
+					collator_delegation_count: col_del_count,
+					collator_auto_compound_delegation_count: col_del_count,
+				},
+			)?;
+			col_del_count += 1u32;
+			if i+1 <= z {
+				Pallet::<T>::schedule_delegator_bond_less(
+					RawOrigin::Signed(delegator.clone()).into(),
+					prime_candidate.clone(),
+					5u32.into(),
+				)?;
+			}
+
+			delegations.push(BondWithAutoCompound {
+				owner: delegator.clone(),
+				amount: initial_delegator_balance,
+				auto_compound,
+			});
+		}
+
+		let total_staked =  min_candidate_stk::<T>() + Into::<BalanceOf<T>>::into(x) * initial_delegator_balance;
+		let round_for_payout = 5;
+		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
+			round_issuance: 1000u32.into(),
+			total_staking_reward: total_staked,
+			collator_commission: Perbill::from_rational(1u32, 100u32),
+		});
+
+		<AtStake<T>>::insert(round_for_payout, &prime_candidate, CollatorSnapshot {
+			bond: 1_000u32.into(),
+			delegations: delegations.clone(),
+			total: 1_000_000u32.into(),
+		});
+
+		<Points<T>>::insert(round_for_payout, 100);
+		<AwardedPts<T>>::insert(round_for_payout, &prime_candidate, 20);
+
+	}: {
+		for BondWithAutoCompound {
+			owner,
+			amount,
+			auto_compound,
+		} in &delegations
+		{
+			<Pallet<T>>::mint_and_compound(
+				100u32.into(),
+				auto_compound.clone(),
+				prime_candidate.clone(),
+				owner.clone(),
+			);
+		}
+	}
+	verify {
+		for BondWithAutoCompound {
+			owner,
+			amount,
+			auto_compound,
+		} in &delegations
+		{
+			assert!(
+				T::Currency::free_balance(&owner) > initial_delegator_balance,
+				"delegator should have been paid in pay_one_collator_reward"
+			);
+		}
+	}
+
 	pay_one_collator_reward {
 		// y controls number of delegations, its maximum per collator is the max top delegations
 		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
@@ -1643,7 +1752,7 @@ benchmarks! {
 		)?;
 		total_staked += initial_stake_amount;
 
-		// generate funded collator accounts
+		// generate funded delegator accounts
 		let mut delegators: Vec<T::AccountId> = Vec::new();
 		for i in 0..y {
 			let seed = USER_SEED + i;
