@@ -1681,7 +1681,8 @@ benchmarks! {
 			});
 		}
 
-		let total_staked =  min_candidate_stk::<T>() + Into::<BalanceOf<T>>::into(x) * initial_delegator_balance;
+		let total_staked =  min_candidate_stk::<T>()
+			+ (Into::<BalanceOf<T>>::into(x) * initial_delegator_balance);
 		let round_for_payout = 5;
 		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
 			round_issuance: 1000u32.into(),
