@@ -2040,7 +2040,7 @@ pub mod pallet {
 			delegator: T::AccountId,
 			candidate: T::AccountId,
 			more: BalanceOf<T>,
-			already_called_for_delegator: bool,
+			already_called_for_candidate: bool,
 		) -> Result<
 			(bool, Weight),
 			DispatchErrorWithPostInfo<frame_support::dispatch::PostDispatchInfo>,
@@ -2051,14 +2051,14 @@ pub mod pallet {
 				Error::<T>::PendingDelegationRevoke
 			);
 
-			let actual_weight = T::WeightInfo::delegator_bond_more(
+			let mut actual_weight = T::WeightInfo::delegator_bond_more(
 				<DelegationScheduledRequests<T>>::get(&candidate).len() as u32,
 			);
 
-			// If we have called delegator_bond_more for this deletagor before, the weight
+			// If we have called delegator_bond_more for this candidate before, the weight
 			// returned will be an over-estimate since the read was already performed on the first
 			// call and subsequent calls do not increase PoV size further.
-			if already_called_for_delegator {
+			if already_called_for_candidate {
 				actual_weight = actual_weight.set_proof_size(0);
 			}
 
@@ -2101,7 +2101,7 @@ pub mod pallet {
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
 		/// compounded. Emits the [Compounded] event.
-		/// already_called_for_delegator: bool is used to indicate if this function has already been
+		/// already_called_for_candidate: bool is used to indicate if this function has already been
 		/// called for a given delegator by the callee. This is used to avoid over-estimating
 		/// weight, since subsequent calls to this function will not increase the pov size.
 		pub fn mint_and_compound(
@@ -2109,7 +2109,7 @@ pub mod pallet {
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			already_called_for_delegator: bool,
+			already_called_for_candidate: bool,
 		) -> Weight {
 			let mut weight = T::WeightInfo::mint_collator_reward();
 			if let Ok(amount_transferred) =
@@ -2129,7 +2129,7 @@ pub mod pallet {
 					delegator.clone(),
 					candidate.clone(),
 					compound_amount.clone(),
-					already_called_for_delegator,
+					already_called_for_candidate,
 				) {
 					Err(err) => {
 						log::debug!(
