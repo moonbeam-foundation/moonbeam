@@ -1842,8 +1842,9 @@ pub mod pallet {
 							// repeatedly in a loop since only the first call will increase PoV, the
 							// rest will simply re-read the same data.
 							//
-							// todo: refactor mint_and_compound such that it does not re-read each
-							// time it is called
+							// todo: refactor mint_and_compound such that it does not rely on bond_more for 
+							// each auto-compound which re-read the collator delegations and performs
+							// a sort each time.
 							if i == 0 {
 								// in the first iteration of loop, add full weight
 								extra_weight = extra_weight.saturating_add(weight);
