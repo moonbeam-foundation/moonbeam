@@ -381,7 +381,8 @@ where
 	fn super_of(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<SuperOf> {
 		// Storage item: SuperOf -> (T::AccountId, Data)
 		handle.record_db_read::<Runtime>(
-			Runtime::AccountId::max_encoded_len() + pallet_identity::Data::max_encoded_len(),
+			Runtime::AccountId::max_encoded_len()
+				.saturating_add(pallet_identity::Data::max_encoded_len()),
 		)?;
 
 		let who: H160 = who.into();
@@ -402,8 +403,10 @@ where
 	fn subs_of(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<SubsOf> {
 		// Storage item: SubsOf -> (BalanceOf<T>, BoundedVec<T::AccountId, T::MaxSubAccounts>)
 		handle.record_db_read::<Runtime>(
-			BalanceOf::<Runtime>::max_encoded_len()
-				+ (Runtime::AccountId::max_encoded_len() * Runtime::MaxSubAccounts::get() as usize),
+			BalanceOf::<Runtime>::max_encoded_len().saturating_add(
+				Runtime::AccountId::max_encoded_len()
+					.saturating_mul(Runtime::MaxSubAccounts::get() as usize),
+			),
 		)?;
 
 		let who: H160 = who.into();
@@ -429,7 +432,7 @@ where
 		handle.record_db_read::<Runtime>(
 			pallet_identity::RegistrarInfo::<
 				BalanceOf<Runtime>, Runtime::AccountId
-			>::max_encoded_len() * Runtime::MaxRegistrars::get() as usize
+			>::max_encoded_len().saturating_mul(Runtime::MaxRegistrars::get() as usize)
 		)?;
 
 		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
