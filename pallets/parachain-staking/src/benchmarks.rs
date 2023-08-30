@@ -2240,7 +2240,7 @@ benchmarks! {
 		// Roll to round 2 and call to select_top_candidates.
 		// We do this to be able to have more than 66% of TotalSelected.
 		roll_to_and_author::<T>(2, caller.clone());
-		Pallet::<T>::select_top_candidates(1);
+		Pallet::<T>::select_top_candidates(2);
 
 		// Manually change these values for inactive_collator,
 		// so that it can be marked as inactive.
