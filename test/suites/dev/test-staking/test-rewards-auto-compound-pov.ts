@@ -110,7 +110,7 @@ describeSuite({
 
         expect(
           weights.mandatory.proofSize.toNumber(),
-          "estimated weight proofSize is over real proofSize, should never happen!"
+          "estimated weight proofSize is under real proofSize, should never happen!"
         ).to.be.at.least(block.proofSize!);
       },
     });
