@@ -1764,7 +1764,6 @@ pub mod pallet {
 
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
-
 			if let Some((collator, state)) =
 				<AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
@@ -1787,6 +1786,9 @@ pub mod pallet {
 				let mut amt_due = total_paid;
 
 				let num_delegators = state.delegations.len();
+				let mut num_paid_delegations = 0u32;
+				let mut num_auto_compounding = 0u32;
+				let num_scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator).len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					extra_weight = extra_weight
@@ -1828,15 +1830,24 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							extra_weight = extra_weight.saturating_add(Self::mint_and_compound(
+							num_auto_compounding += if auto_compound.is_zero() { 0 } else { 1 };
+							num_paid_delegations += 1u32;
+							Self::mint_and_compound(
 								due,
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
-							));
+							);
 						}
 					}
 				}
+
+				extra_weight =
+					extra_weight.saturating_add(T::WeightInfo::pay_one_collator_reward_best(
+						num_paid_delegations,
+						num_auto_compounding,
+						num_scheduled_requests as u32,
+					));
 
 				(
 					RewardPayment::Paid,
@@ -2092,8 +2103,7 @@ pub mod pallet {
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-		) -> Weight {
-			let mut weight = T::WeightInfo::mint_collator_reward();
+		) {
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
@@ -2104,29 +2114,21 @@ pub mod pallet {
 
 				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				if compound_amount.is_zero() {
-					return weight;
+					return;
 				}
 
-				match Self::delegation_bond_more_without_event(
+				if let Err(err) = Self::delegation_bond_more_without_event(
 					delegator.clone(),
 					candidate.clone(),
 					compound_amount.clone(),
 				) {
-					Err(err) => {
-						log::debug!(
-									"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-									candidate,
-									delegator,
-									err
-								);
-						return weight.saturating_add(T::WeightInfo::delegator_bond_more(
-							T::MaxTopDelegationsPerCandidate::get()
-								+ T::MaxBottomDelegationsPerCandidate::get(),
-						));
-					}
-					Ok((_, weight_consumed)) => {
-						weight = weight.saturating_add(weight_consumed);
-					}
+					log::debug!(
+						"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+						candidate,
+						delegator,
+						err
+					);
+					return;
 				};
 
 				Pallet::<T>::deposit_event(Event::Compounded {
@@ -2135,8 +2137,6 @@ pub mod pallet {
 					amount: compound_amount.clone(),
 				});
 			};
-
-			weight
 		}
 	}
 
