@@ -33,7 +33,7 @@ describeSuite({
           context
             .polkadotJs()
             .tx.sudo.sudo(context.polkadotJs().tx.parachainStaking.setBlocksPerRound(10))
-            .signAsync(alith)
+            .signAsync(alith),
         ],
         { allowFailures: false }
       );
@@ -84,21 +84,34 @@ describeSuite({
       id: "T01",
       title: "should be under the limit of 3_500_000",
       test: async () => {
-
         // Moves to the next payout block
         await jumpRounds(context, 1);
         const { block } = await context.createBlock();
 
         const weights = await context.pjsApi.query.system.blockWeight();
-        expect(weights.mandatory.proofSize.toNumber(), "proofSize is too low, probably missing payout in the block").to.be.at.least(100_000);
+        expect(
+          weights.mandatory.proofSize.toNumber(),
+          "proofSize is too low, probably missing payout in the block"
+        ).to.be.at.least(100_000);
 
-        // block could support ~5_000_000 proofSize but we consider it safer to error when reaching 2_500_000 which is already high for a payout
-        expect(weights.mandatory.proofSize.toNumber(), "proofSize is too high, this might lead to empty block").to.be.at.most(2_500_000);
+        // block could support ~5_000_000 proofSize but we consider it safer to error when reaching
+        // 2_500_000 which is already high for a payout
+        expect(
+          weights.mandatory.proofSize.toNumber(),
+          "proofSize is too high, this might lead to empty block"
+        ).to.be.at.most(2_500_000);
 
-        // block could support ~500ms refTime but we consider it safer to error when reaching over 200ms for the payout
-        expect(weights.mandatory.refTime.toNumber(), "refTime over 200ms, very high for a payout").to.be.at.most(200_000_000_000);
+        // block could support ~500ms refTime but we consider it safer to error when reaching
+        // over 200ms for the payout
+        expect(
+          weights.mandatory.refTime.toNumber(),
+          "refTime over 200ms, very high for a payout"
+        ).to.be.at.most(200_000_000_000);
 
-        expect(weights.mandatory.proofSize.toNumber(), "estimated weight proofSize is over real proofSize, should never happen !").to.be.at.least(block.proofSize!);
+        expect(
+          weights.mandatory.proofSize.toNumber(),
+          "estimated weight proofSize is over real proofSize, should never happen!"
+        ).to.be.at.least(block.proofSize!);
       },
     });
   },
