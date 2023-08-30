@@ -1,0 +1,1037 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          }
+        ],
+        "name": "IdentityCleared",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          }
+        ],
+        "name": "IdentitySet",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "registrar_index",
+            "type": "uint32"
+          }
+        ],
+        "name": "JudgementGiven",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "registrar_index",
+            "type": "uint32"
+          }
+        ],
+        "name": "JudgementRequested",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "registrar_index",
+            "type": "uint32"
+          }
+        ],
+        "name": "JudgementUnrequested",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "sub",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "main",
+            "type": "address"
+          }
+        ],
+        "name": "SubIdentityAdded",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "sub",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "main",
+            "type": "address"
+          }
+        ],
+        "name": "SubIdentityRemoved",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "sub",
+            "type": "address"
+          }
+        ],
+        "name": "SubIdentityRevoked",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "sub", "type": "address" },
+          {
+            "components": [
+              { "internalType": "bool", "name": "hasData", "type": "bool" },
+              { "internalType": "bytes", "name": "value", "type": "bytes" }
+            ],
+            "internalType": "struct Identity.Data",
+            "name": "data",
+            "type": "tuple"
+          }
+        ],
+        "name": "addSub",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" }
+        ],
+        "name": "cancelRequest",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "clearIdentity",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" }
+        ],
+        "name": "identity",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "bool", "name": "isValid", "type": "bool" },
+              {
+                "components": [
+                  {
+                    "internalType": "uint32",
+                    "name": "registrar_index",
+                    "type": "uint32"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "isUnknown",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isFeePaid",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "feePaidDeposit",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isReasonable",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isKnownGood",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isOutOfDate",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isLowQuality",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isErroneous",
+                        "type": "bool"
+                      }
+                    ],
+                    "internalType": "struct Identity.Judgement",
+                    "name": "judgement",
+                    "type": "tuple"
+                  }
+                ],
+                "internalType": "struct Identity.JudgementInfo[]",
+                "name": "judgements",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "uint256",
+                "name": "deposit",
+                "type": "uint256"
+              },
+              {
+                "components": [
+                  {
+                    "components": [
+                      {
+                        "components": [
+                          {
+                            "internalType": "bool",
+                            "name": "hasData",
+                            "type": "bool"
+                          },
+                          {
+                            "internalType": "bytes",
+                            "name": "value",
+                            "type": "bytes"
+                          }
+                        ],
+                        "internalType": "struct Identity.Data",
+                        "name": "key",
+                        "type": "tuple"
+                      },
+                      {
+                        "components": [
+                          {
+                            "internalType": "bool",
+                            "name": "hasData",
+                            "type": "bool"
+                          },
+                          {
+                            "internalType": "bytes",
+                            "name": "value",
+                            "type": "bytes"
+                          }
+                        ],
+                        "internalType": "struct Identity.Data",
+                        "name": "value",
+                        "type": "tuple"
+                      }
+                    ],
+                    "internalType": "struct Identity.Additional[]",
+                    "name": "additional",
+                    "type": "tuple[]"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "display",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "legal",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "web",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "riot",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "email",
+                    "type": "tuple"
+                  },
+                  {
+                    "internalType": "bool",
+                    "name": "hasPgpFingerprint",
+                    "type": "bool"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "pgpFingerprint",
+                    "type": "bytes"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "image",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "twitter",
+                    "type": "tuple"
+                  }
+                ],
+                "internalType": "struct Identity.IdentityInfo",
+                "name": "info",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Identity.Registration",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" },
+          { "internalType": "address", "name": "target", "type": "address" },
+          {
+            "components": [
+              { "internalType": "bool", "name": "isUnknown", "type": "bool" },
+              { "internalType": "bool", "name": "isFeePaid", "type": "bool" },
+              {
+                "internalType": "uint256",
+                "name": "feePaidDeposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isReasonable",
+                "type": "bool"
+              },
+              { "internalType": "bool", "name": "isKnownGood", "type": "bool" },
+              { "internalType": "bool", "name": "isOutOfDate", "type": "bool" },
+              {
+                "internalType": "bool",
+                "name": "isLowQuality",
+                "type": "bool"
+              },
+              { "internalType": "bool", "name": "isErroneous", "type": "bool" }
+            ],
+            "internalType": "struct Identity.Judgement",
+            "name": "judgement",
+            "type": "tuple"
+          },
+          { "internalType": "bytes32", "name": "identity", "type": "bytes32" }
+        ],
+        "name": "provideJudgement",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "quitSub",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "registrars",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "bool", "name": "isValid", "type": "bool" },
+              { "internalType": "uint32", "name": "index", "type": "uint32" },
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              { "internalType": "uint256", "name": "fee", "type": "uint256" },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "display", "type": "bool" },
+                  { "internalType": "bool", "name": "legal", "type": "bool" },
+                  { "internalType": "bool", "name": "web", "type": "bool" },
+                  { "internalType": "bool", "name": "riot", "type": "bool" },
+                  { "internalType": "bool", "name": "email", "type": "bool" },
+                  {
+                    "internalType": "bool",
+                    "name": "pgpFingerprint",
+                    "type": "bool"
+                  },
+                  { "internalType": "bool", "name": "image", "type": "bool" },
+                  { "internalType": "bool", "name": "twitter", "type": "bool" }
+                ],
+                "internalType": "struct Identity.IdentityFields",
+                "name": "fields",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Identity.Registrar[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "sub", "type": "address" }
+        ],
+        "name": "removeSub",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "sub", "type": "address" },
+          {
+            "components": [
+              { "internalType": "bool", "name": "hasData", "type": "bool" },
+              { "internalType": "bytes", "name": "value", "type": "bytes" }
+            ],
+            "internalType": "struct Identity.Data",
+            "name": "data",
+            "type": "tuple"
+          }
+        ],
+        "name": "renameSub",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" },
+          { "internalType": "uint256", "name": "maxFee", "type": "uint256" }
+        ],
+        "name": "requestJudgement",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" },
+          { "internalType": "address", "name": "newAccount", "type": "address" }
+        ],
+        "name": "setAccountId",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" }
+        ],
+        "name": "setFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "regIndex", "type": "uint32" },
+          {
+            "components": [
+              { "internalType": "bool", "name": "display", "type": "bool" },
+              { "internalType": "bool", "name": "legal", "type": "bool" },
+              { "internalType": "bool", "name": "web", "type": "bool" },
+              { "internalType": "bool", "name": "riot", "type": "bool" },
+              { "internalType": "bool", "name": "email", "type": "bool" },
+              {
+                "internalType": "bool",
+                "name": "pgpFingerprint",
+                "type": "bool"
+              },
+              { "internalType": "bool", "name": "image", "type": "bool" },
+              { "internalType": "bool", "name": "twitter", "type": "bool" }
+            ],
+            "internalType": "struct Identity.IdentityFields",
+            "name": "fields",
+            "type": "tuple"
+          }
+        ],
+        "name": "setFields",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              {
+                "components": [
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "key",
+                    "type": "tuple"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "bool",
+                        "name": "hasData",
+                        "type": "bool"
+                      },
+                      {
+                        "internalType": "bytes",
+                        "name": "value",
+                        "type": "bytes"
+                      }
+                    ],
+                    "internalType": "struct Identity.Data",
+                    "name": "value",
+                    "type": "tuple"
+                  }
+                ],
+                "internalType": "struct Identity.Additional[]",
+                "name": "additional",
+                "type": "tuple[]"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "display",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "legal",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "web",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "riot",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "email",
+                "type": "tuple"
+              },
+              {
+                "internalType": "bool",
+                "name": "hasPgpFingerprint",
+                "type": "bool"
+              },
+              {
+                "internalType": "bytes",
+                "name": "pgpFingerprint",
+                "type": "bytes"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "image",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "twitter",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Identity.IdentityInfo",
+            "name": "info",
+            "type": "tuple"
+          }
+        ],
+        "name": "setIdentity",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "data",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Identity.SubAccount[]",
+            "name": "subs",
+            "type": "tuple[]"
+          }
+        ],
+        "name": "setSubs",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" }
+        ],
+        "name": "subsOf",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "deposit",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address[]",
+                "name": "accounts",
+                "type": "address[]"
+              }
+            ],
+            "internalType": "struct Identity.SubsOf",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "who", "type": "address" }
+        ],
+        "name": "superOf",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "bool", "name": "isValid", "type": "bool" },
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "components": [
+                  { "internalType": "bool", "name": "hasData", "type": "bool" },
+                  { "internalType": "bytes", "name": "value", "type": "bytes" }
+                ],
+                "internalType": "struct Identity.Data",
+                "name": "data",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Identity.SuperOf",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000818",
+      "events": {
+        "IdentityCleared(address)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "An identity was cleared, and the given balance returned.",
+          "params": { "who": "Address of the target account" }
+        },
+        "IdentitySet(address)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "An identity was set or reset (which will remove all judgements).",
+          "params": { "who": "Address of the target account" }
+        },
+        "JudgementGiven(address,uint32)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A judgement was given by a registrar.",
+          "params": {
+            "registrar_index": "The registrar's index",
+            "target": "Address of the target account"
+          }
+        },
+        "JudgementRequested(address,uint32)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A judgement was asked from a registrar.",
+          "params": {
+            "registrar_index": "The registrar's index",
+            "who": "Address of the requesting account"
+          }
+        },
+        "JudgementUnrequested(address,uint32)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A judgement request was retracted.",
+          "params": {
+            "registrar_index": "The registrar's index",
+            "who": "Address of the target account."
+          }
+        },
+        "SubIdentityAdded(address,address)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A sub-identity was added to an identity and the deposit paid.",
+          "params": {
+            "main": "Address of the main account",
+            "sub": "Address of the sub account"
+          }
+        },
+        "SubIdentityRemoved(address,address)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A sub-identity was removed from an identity and the deposit freed.",
+          "params": {
+            "main": "Address of the main account",
+            "sub": "Address of the sub account"
+          }
+        },
+        "SubIdentityRevoked(address)": {
+          "custom:selector": "3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e",
+          "details": "A sub-identity was cleared and the given deposit repatriated from the main identity account to the sub-identity account",
+          "params": { "sub": "Address of the sub account" }
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "addSub(address,(bool,bytes))": {
+          "custom:selector": "98717196",
+          "details": "Add a \"sub\" identity account for the caller.",
+          "params": { "data": "The associated data", "sub": "The sub account" }
+        },
+        "cancelRequest(uint32)": {
+          "custom:selector": "c79934a5",
+          "details": "Cancels the caller's request for judgement from a registrar.",
+          "params": { "regIndex": "The registrar's index" }
+        },
+        "clearIdentity()": {
+          "custom:selector": "7a6a10c7",
+          "details": "Clears identity of the caller."
+        },
+        "identity(address)": {
+          "custom:selector": "f0eb5e54",
+          "details": "Retrieve identity information for an account.",
+          "params": { "who": "The requested account" }
+        },
+        "provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)": {
+          "custom:selector": "cd7663a4",
+          "details": "Provides judgement on an accounts identity.",
+          "params": {
+            "identity": "The hash of the identity info",
+            "judgement": "The judgement to provide",
+            "regIndex": "The registrar's index",
+            "target": "The target account to provide judgment for"
+          }
+        },
+        "quitSub()": {
+          "custom:selector": "d5a3c2c4",
+          "details": "Removes the sender as a sub-account."
+        },
+        "registrars()": {
+          "custom:selector": "e88e512e",
+          "details": "Retrieve the registrars."
+        },
+        "removeSub(address)": {
+          "custom:selector": "b0a323e0",
+          "details": "Removes a \"sub\" identity account of the caller.",
+          "params": { "sub": "The sub account" }
+        },
+        "renameSub(address,(bool,bytes))": {
+          "custom:selector": "452df561",
+          "details": "Rename a \"sub\" identity account of the caller.",
+          "params": {
+            "data": "The new assocaited data",
+            "sub": "The sub account"
+          }
+        },
+        "requestJudgement(uint32,uint256)": {
+          "custom:selector": "d523ceb9",
+          "details": "Requests registrar judgement on caller's identity.",
+          "params": {
+            "maxFee": "The maximum fee the caller is willing to pay",
+            "regIndex": "The registrar's index"
+          }
+        },
+        "setAccountId(uint32,address)": {
+          "custom:selector": "889bc198",
+          "details": "Sets the registrar's account. Caller must be the account at the index.",
+          "params": {
+            "newAccount": "The new account to set",
+            "regIndex": "The registrar's index"
+          }
+        },
+        "setFee(uint32,uint256)": {
+          "custom:selector": "a541b37d",
+          "details": "Sets the registrar's fee for providing a judgement. Caller must be the account at the index.",
+          "params": {
+            "fee": "The fee the registrar will charge",
+            "regIndex": "The registrar's index"
+          }
+        },
+        "setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))": {
+          "custom:selector": "05297450",
+          "details": "Sets the registrar's identity fields. Caller must be the account at the index.",
+          "params": {
+            "fields": "The identity fields",
+            "regIndex": "The registrar's index"
+          }
+        },
+        "setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))": {
+          "custom:selector": "7e08b4cb",
+          "details": "Set identity info for the caller.",
+          "params": { "info": "The identity info" }
+        },
+        "setSubs((address,(bool,bytes))[])": {
+          "custom:selector": "5a5a3591",
+          "details": "Set sub accounts for the caller.",
+          "params": { "subs": "The sub accounts" }
+        },
+        "subsOf(address)": {
+          "custom:selector": "3f08986b",
+          "details": "Retrieve sub accounts for an account.",
+          "params": { "who": "The requested account" }
+        },
+        "superOf(address)": {
+          "custom:selector": "c18110d6",
+          "details": "Retrieve super account for an account.",
+          "params": { "who": "The requested account" }
+        }
+      },
+      "title": "Pallet Identity InterfaceThe interface through which solidity contracts will interact with the Identity pallet",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "addSub(address,(bool,bytes))": "98717196",
+        "cancelRequest(uint32)": "c79934a5",
+        "clearIdentity()": "7a6a10c7",
+        "identity(address)": "f0eb5e54",
+        "provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)": "cd7663a4",
+        "quitSub()": "d5a3c2c4",
+        "registrars()": "e88e512e",
+        "removeSub(address)": "b0a323e0",
+        "renameSub(address,(bool,bytes))": "452df561",
+        "requestJudgement(uint32,uint256)": "d523ceb9",
+        "setAccountId(uint32,address)": "889bc198",
+        "setFee(uint32,uint256)": "a541b37d",
+        "setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))": "05297450",
+        "setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))": "7e08b4cb",
+        "setSubs((address,(bool,bytes))[])": "5a5a3591",
+        "subsOf(address)": "3f08986b",
+        "superOf(address)": "c18110d6"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"IdentityCleared\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"IdentitySet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"registrar_index\",\"type\":\"uint32\"}],\"name\":\"JudgementGiven\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"registrar_index\",\"type\":\"uint32\"}],\"name\":\"JudgementRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"registrar_index\",\"type\":\"uint32\"}],\"name\":\"JudgementUnrequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"main\",\"type\":\"address\"}],\"name\":\"SubIdentityAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"main\",\"type\":\"address\"}],\"name\":\"SubIdentityRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"}],\"name\":\"SubIdentityRevoked\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"data\",\"type\":\"tuple\"}],\"name\":\"addSub\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"}],\"name\":\"cancelRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"clearIdentity\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"identity\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isValid\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"registrar_index\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"isUnknown\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isFeePaid\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"feePaidDeposit\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isReasonable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isKnownGood\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOutOfDate\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isLowQuality\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isErroneous\",\"type\":\"bool\"}],\"internalType\":\"struct Identity.Judgement\",\"name\":\"judgement\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.JudgementInfo[]\",\"name\":\"judgements\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"deposit\",\"type\":\"uint256\"},{\"components\":[{\"components\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"key\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"value\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.Additional[]\",\"name\":\"additional\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"display\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"legal\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"web\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"riot\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"email\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"hasPgpFingerprint\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"pgpFingerprint\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"image\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"twitter\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.IdentityInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.Registration\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"isUnknown\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isFeePaid\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"feePaidDeposit\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isReasonable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isKnownGood\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOutOfDate\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isLowQuality\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isErroneous\",\"type\":\"bool\"}],\"internalType\":\"struct Identity.Judgement\",\"name\":\"judgement\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"identity\",\"type\":\"bytes32\"}],\"name\":\"provideJudgement\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"quitSub\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"registrars\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isValid\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"display\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"legal\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"web\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"riot\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"email\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"pgpFingerprint\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"image\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"twitter\",\"type\":\"bool\"}],\"internalType\":\"struct Identity.IdentityFields\",\"name\":\"fields\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.Registrar[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"}],\"name\":\"removeSub\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sub\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"data\",\"type\":\"tuple\"}],\"name\":\"renameSub\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"maxFee\",\"type\":\"uint256\"}],\"name\":\"requestJudgement\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"newAccount\",\"type\":\"address\"}],\"name\":\"setAccountId\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"regIndex\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"display\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"legal\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"web\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"riot\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"email\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"pgpFingerprint\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"image\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"twitter\",\"type\":\"bool\"}],\"internalType\":\"struct Identity.IdentityFields\",\"name\":\"fields\",\"type\":\"tuple\"}],\"name\":\"setFields\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"key\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"value\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.Additional[]\",\"name\":\"additional\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"display\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"legal\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"web\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"riot\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"email\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"hasPgpFingerprint\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"pgpFingerprint\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"image\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"twitter\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.IdentityInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"name\":\"setIdentity\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"data\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.SubAccount[]\",\"name\":\"subs\",\"type\":\"tuple[]\"}],\"name\":\"setSubs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"subsOf\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"deposit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"accounts\",\"type\":\"address[]\"}],\"internalType\":\"struct Identity.SubsOf\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"superOf\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"isValid\",\"type\":\"bool\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasData\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"struct Identity.Data\",\"name\":\"data\",\"type\":\"tuple\"}],\"internalType\":\"struct Identity.SuperOf\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000818\",\"events\":{\"IdentityCleared(address)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"An identity was cleared, and the given balance returned.\",\"params\":{\"who\":\"Address of the target account\"}},\"IdentitySet(address)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"An identity was set or reset (which will remove all judgements).\",\"params\":{\"who\":\"Address of the target account\"}},\"JudgementGiven(address,uint32)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A judgement was given by a registrar.\",\"params\":{\"registrar_index\":\"The registrar's index\",\"target\":\"Address of the target account\"}},\"JudgementRequested(address,uint32)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A judgement was asked from a registrar.\",\"params\":{\"registrar_index\":\"The registrar's index\",\"who\":\"Address of the requesting account\"}},\"JudgementUnrequested(address,uint32)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A judgement request was retracted.\",\"params\":{\"registrar_index\":\"The registrar's index\",\"who\":\"Address of the target account.\"}},\"SubIdentityAdded(address,address)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A sub-identity was added to an identity and the deposit paid.\",\"params\":{\"main\":\"Address of the main account\",\"sub\":\"Address of the sub account\"}},\"SubIdentityRemoved(address,address)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A sub-identity was removed from an identity and the deposit freed.\",\"params\":{\"main\":\"Address of the main account\",\"sub\":\"Address of the sub account\"}},\"SubIdentityRevoked(address)\":{\"custom:selector\":\"3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\",\"details\":\"A sub-identity was cleared and the given deposit repatriated from the main identity account to the sub-identity account\",\"params\":{\"sub\":\"Address of the sub account\"}}},\"kind\":\"dev\",\"methods\":{\"addSub(address,(bool,bytes))\":{\"custom:selector\":\"98717196\",\"details\":\"Add a \\\"sub\\\" identity account for the caller.\",\"params\":{\"data\":\"The associated data\",\"sub\":\"The sub account\"}},\"cancelRequest(uint32)\":{\"custom:selector\":\"c79934a5\",\"details\":\"Cancels the caller's request for judgement from a registrar.\",\"params\":{\"regIndex\":\"The registrar's index\"}},\"clearIdentity()\":{\"custom:selector\":\"7a6a10c7\",\"details\":\"Clears identity of the caller.\"},\"identity(address)\":{\"custom:selector\":\"f0eb5e54\",\"details\":\"Retrieve identity information for an account.\",\"params\":{\"who\":\"The requested account\"}},\"provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)\":{\"custom:selector\":\"cd7663a4\",\"details\":\"Provides judgement on an accounts identity.\",\"params\":{\"identity\":\"The hash of the identity info\",\"judgement\":\"The judgement to provide\",\"regIndex\":\"The registrar's index\",\"target\":\"The target account to provide judgment for\"}},\"quitSub()\":{\"custom:selector\":\"d5a3c2c4\",\"details\":\"Removes the sender as a sub-account.\"},\"registrars()\":{\"custom:selector\":\"e88e512e\",\"details\":\"Retrieve the registrars.\"},\"removeSub(address)\":{\"custom:selector\":\"b0a323e0\",\"details\":\"Removes a \\\"sub\\\" identity account of the caller.\",\"params\":{\"sub\":\"The sub account\"}},\"renameSub(address,(bool,bytes))\":{\"custom:selector\":\"452df561\",\"details\":\"Rename a \\\"sub\\\" identity account of the caller.\",\"params\":{\"data\":\"The new assocaited data\",\"sub\":\"The sub account\"}},\"requestJudgement(uint32,uint256)\":{\"custom:selector\":\"d523ceb9\",\"details\":\"Requests registrar judgement on caller's identity.\",\"params\":{\"maxFee\":\"The maximum fee the caller is willing to pay\",\"regIndex\":\"The registrar's index\"}},\"setAccountId(uint32,address)\":{\"custom:selector\":\"889bc198\",\"details\":\"Sets the registrar's account. Caller must be the account at the index.\",\"params\":{\"newAccount\":\"The new account to set\",\"regIndex\":\"The registrar's index\"}},\"setFee(uint32,uint256)\":{\"custom:selector\":\"a541b37d\",\"details\":\"Sets the registrar's fee for providing a judgement. Caller must be the account at the index.\",\"params\":{\"fee\":\"The fee the registrar will charge\",\"regIndex\":\"The registrar's index\"}},\"setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))\":{\"custom:selector\":\"05297450\",\"details\":\"Sets the registrar's identity fields. Caller must be the account at the index.\",\"params\":{\"fields\":\"The identity fields\",\"regIndex\":\"The registrar's index\"}},\"setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))\":{\"custom:selector\":\"7e08b4cb\",\"details\":\"Set identity info for the caller.\",\"params\":{\"info\":\"The identity info\"}},\"setSubs((address,(bool,bytes))[])\":{\"custom:selector\":\"5a5a3591\",\"details\":\"Set sub accounts for the caller.\",\"params\":{\"subs\":\"The sub accounts\"}},\"subsOf(address)\":{\"custom:selector\":\"3f08986b\",\"details\":\"Retrieve sub accounts for an account.\",\"params\":{\"who\":\"The requested account\"}},\"superOf(address)\":{\"custom:selector\":\"c18110d6\",\"details\":\"Retrieve super account for an account.\",\"params\":{\"who\":\"The requested account\"}}},\"title\":\"Pallet Identity InterfaceThe interface through which solidity contracts will interact with the Identity pallet\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"Identity.sol\":\"Identity\"},\"debug\":{\"revertStrings\":\"debug\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"Identity.sol\":{\"keccak256\":\"0x022980b630835e6b1240b89cc05b7c6cc8cf91cb2bf5e493163bb718fb9b7de4\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://7a4fe4e9bd75b42737cc43234d50fc2453cd5a4e1f3ffa29572ef65ad7945f06\",\"dweb:/ipfs/QmZPJLg6E7fmD3MVyWJ4gUEixoAvAkobkidjQBRFuWJjLC\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @dev The Identity contract's address.\naddress constant IDENTITY_ADDRESS = 0x0000000000000000000000000000000000000818;\n\n/// @dev The Identity contract's instance.\nIdentity constant IDENTITY_CONTRACT = Identity(IDENTITY_ADDRESS);\n\n/// @author The Moonbeam Team\n/// @title Pallet Identity Interface\n/// @title The interface through which solidity contracts will interact with the Identity pallet\n/// @custom:address 0x0000000000000000000000000000000000000818\ninterface Identity {\n    /// @dev Associated raw data.\n    struct Data {\n        /// Is `true` if it represents data, else the absense of data is represented by `false`.\n        bool hasData;\n        /// The contained value.\n        bytes value;\n    }\n\n    /// @dev The super-identity of an alternative \"sub\" identity.\n    struct SuperOf {\n        /// Is `true` if the struct is valid, `false` otherwise.\n        bool isValid;\n        /// The super account.\n        address account;\n        /// The associated data.\n        Data data;\n    }\n\n    /// @dev Alternative \"sub\" identities of an account.\n    struct SubsOf {\n        /// The deposit against this identity.\n        uint256 deposit;\n        /// The sub accounts\n        address[] accounts;\n    }\n\n    /// @dev Registrar judgements are limited to attestations on these fields.\n    struct IdentityFields {\n        /// Set to `true` if the display field is supported, `false` otherwise.\n        bool display;\n        /// Set to `true` if the legal field is supported, `false` otherwise.\n        bool legal;\n        /// Set to `true` if the web field is supported, `false` otherwise.\n        bool web;\n        /// Set to `true` if the riot field is supported, `false` otherwise.\n        bool riot;\n        /// Set to `true` if the email field is supported, `false` otherwise.\n        bool email;\n        /// Set to `true` if the PGP Fingerprint field is supported, `false` otherwise.\n        bool pgpFingerprint;\n        /// Set to `true` if the image field is supported, `false` otherwise.\n        bool image;\n        /// Set to `true` if the twitter field is supported, `false` otherwise.\n        bool twitter;\n    }\n\n    /// @dev Registrar info.\n    struct Registrar {\n        /// Is `true` if the struct is valid, `false` otherwise.\n        bool isValid;\n        /// The registrar's index.\n        uint32 index;\n        /// The account address.\n        address account;\n        /// Amount required to be given to the registrar for them to provide judgement.\n        uint256 fee;\n        /// Relevant fields for this registrar.\n        IdentityFields fields;\n    }\n\n    /// @dev Represents an additional field in identity info.\n    struct Additional {\n        /// The assciated key.\n        Data key;\n        /// The assciated value.\n        Data value;\n    }\n\n    /// @dev The identity information set for an account.\n    struct IdentityInfo {\n        /// Represents the additional fields for the identity.\n        Additional[] additional;\n        /// Represents the display info for the identity.\n        Data display;\n        /// Represents the legal info for the identity.\n        Data legal;\n        /// Represents the web info for the identity.\n        Data web;\n        /// Represents the riot info for the identity.\n        Data riot;\n        /// Represents the email info for the identity.\n        Data email;\n        /// Set to `true` if `pgpFingerprint` is set, `false` otherwise.\n        bool hasPgpFingerprint;\n        /// Represents a 20-byte the PGP fingerprint info for the identity.\n        bytes pgpFingerprint;\n        /// Represents the image info for the identity.\n        Data image;\n        /// Represents the twitter info for the identity.\n        Data twitter;\n    }\n\n    /// @dev Judgement provided by a registrar.\n    struct Judgement {\n        /// The default value; no opinion is held.\n        bool isUnknown;\n        /// No judgement is yet in place, but a deposit is reserved as payment for providing one.\n        bool isFeePaid;\n        /// The deposit reserved for providing a judgement.\n        uint256 feePaidDeposit;\n        /// The data appears to be reasonably acceptable in terms of its accuracy.\n        bool isReasonable;\n        /// The target is known directly by the registrar and the registrar can fully attest to it.\n        bool isKnownGood;\n        /// The data was once good but is currently out of date.\n        bool isOutOfDate;\n        /// The data is imprecise or of sufficiently low-quality to be problematic.\n        bool isLowQuality;\n        /// The data is erroneous. This may be indicative of malicious intent.\n        bool isErroneous;\n    }\n\n    /// @dev Judgement item provided by a registrar.\n    struct JudgementInfo {\n        /// The registrar's index that provided this judgement.\n        uint32 registrar_index;\n        /// The registrar's provided judgement.\n        Judgement judgement;\n    }\n\n    /// @dev Registrar info.\n    struct Registration {\n        /// Is `true` if the struct is valid, `false` otherwise.\n        bool isValid;\n        /// The judgments provided on this identity.\n        JudgementInfo[] judgements;\n        /// Amount required to be given to the registrar for them to provide judgement.\n        uint256 deposit;\n        /// The associated identity info.\n        IdentityInfo info;\n    }\n\n    /// @dev Alternative \"sub\" identity of an account.\n    struct SubAccount {\n        /// The account address.\n        address account;\n        /// The associated data.\n        Data data;\n    }\n\n    /// @dev Retrieve identity information for an account.\n    /// @custom:selector f0eb5e54\n    /// @param who The requested account\n    function identity(address who) external view returns (Registration memory);\n\n    /// @dev Retrieve super account for an account.\n    /// @custom:selector c18110d6\n    /// @param who The requested account\n    function superOf(address who) external view returns (SuperOf memory);\n\n    /// @dev Retrieve sub accounts for an account.\n    /// @custom:selector 3f08986b\n    /// @param who The requested account\n    function subsOf(address who) external view returns (SubsOf memory);\n\n    /// @dev Retrieve the registrars.\n    /// @custom:selector e88e512e\n    function registrars() external view returns (Registrar[] memory);\n\n    /// @dev Set identity info for the caller.\n    /// @custom:selector 7e08b4cb\n    /// @param info The identity info\n    function setIdentity(IdentityInfo memory info) external;\n\n    /// @dev Set sub accounts for the caller.\n    /// @custom:selector 5a5a3591\n    /// @param subs The sub accounts\n    function setSubs(SubAccount[] memory subs) external;\n\n    /// @dev Clears identity of the caller.\n    /// @custom:selector 7a6a10c7\n    function clearIdentity() external;\n\n    /// @dev Requests registrar judgement on caller's identity.\n    /// @custom:selector d523ceb9\n    /// @param regIndex The registrar's index\n    /// @param maxFee The maximum fee the caller is willing to pay\n    function requestJudgement(uint32 regIndex, uint256 maxFee) external;\n\n    /// @dev Cancels the caller's request for judgement from a registrar.\n    /// @custom:selector c79934a5\n    /// @param regIndex The registrar's index\n    function cancelRequest(uint32 regIndex) external;\n\n    /// @dev Sets the registrar's fee for providing a judgement. Caller must be the account at the index.\n    /// @custom:selector a541b37d\n    /// @param regIndex The registrar's index\n    /// @param fee The fee the registrar will charge\n    function setFee(uint32 regIndex, uint256 fee) external;\n\n    /// @dev Sets the registrar's account. Caller must be the account at the index.\n    /// @custom:selector 889bc198\n    /// @param regIndex The registrar's index\n    /// @param newAccount The new account to set\n    function setAccountId(uint32 regIndex, address newAccount) external;\n\n    /// @dev Sets the registrar's identity fields. Caller must be the account at the index.\n    /// @custom:selector 05297450\n    /// @param regIndex The registrar's index\n    /// @param fields The identity fields\n    function setFields(uint32 regIndex, IdentityFields memory fields) external;\n\n    /// @dev Provides judgement on an accounts identity.\n    /// @custom:selector cd7663a4\n    /// @param regIndex The registrar's index\n    /// @param target The target account to provide judgment for\n    /// @param judgement The judgement to provide\n    /// @param identity The hash of the identity info\n    function provideJudgement(\n        uint32 regIndex,\n        address target,\n        Judgement memory judgement,\n        bytes32 identity\n    ) external;\n\n    /// @dev Add a \"sub\" identity account for the caller.\n    /// @custom:selector 98717196\n    /// @param sub The sub account\n    /// @param data The associated data\n    function addSub(address sub, Data memory data) external;\n\n    /// @dev Rename a \"sub\" identity account of the caller.\n    /// @custom:selector 452df561\n    /// @param sub The sub account\n    /// @param data The new assocaited data\n    function renameSub(address sub, Data memory data) external;\n\n    /// @dev Removes a \"sub\" identity account of the caller.\n    /// @custom:selector b0a323e0\n    /// @param sub The sub account\n    function removeSub(address sub) external;\n\n    /// @dev Removes the sender as a sub-account.\n    /// @custom:selector d5a3c2c4\n    function quitSub() external;\n\n    /// @dev An identity was set or reset (which will remove all judgements).\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param who Address of the target account\n    event IdentitySet(address who);\n\n    /// @dev An identity was cleared, and the given balance returned.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param who Address of the target account\n    event IdentityCleared(address who);\n\n    /// @dev A judgement was asked from a registrar.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param who Address of the requesting account\n    /// @param registrar_index The registrar's index\n    event JudgementRequested(address who, uint32 registrar_index);\n\n    /// @dev A judgement request was retracted.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param who Address of the target account.\n    /// @param registrar_index The registrar's index\n    event JudgementUnrequested(address who, uint32 registrar_index);\n\n    /// @dev A judgement was given by a registrar.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param target Address of the target account\n    /// @param registrar_index The registrar's index\n    event JudgementGiven(address target, uint32 registrar_index);\n\n    /// @dev A sub-identity was added to an identity and the deposit paid.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param sub Address of the sub account\n    /// @param main Address of the main account\n    event SubIdentityAdded(address sub, address main);\n\n    /// @dev A sub-identity was removed from an identity and the deposit freed.\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param sub Address of the sub account\n    /// @param main Address of the main account\n    event SubIdentityRemoved(address sub, address main);\n\n    /// @dev A sub-identity was cleared and the given deposit repatriated from the main identity account to the sub-identity account\n    /// @custom:selector 3839f7832b2a6263aa1fd5040f37d10fd4f9e9c4a9ef07ec384cb1cef9fb4c0e\n    /// @param sub Address of the sub account\n    event SubIdentityRevoked(address sub);\n}\n"
+}

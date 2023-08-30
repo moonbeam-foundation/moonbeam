@@ -139,7 +139,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124880905088510n);
+        expect(baseFeePerGas).to.equal(124883240781855n);
 
         const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,
@@ -171,7 +171,7 @@ describeSuite({
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(12017789020287671340n);
+        expect(amount).to.equal(12018013793401034070n);
       },
     });
   },

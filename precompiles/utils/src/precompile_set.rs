@@ -476,8 +476,10 @@ impl<'a, H: PrecompileHandle> PrecompileHandle for RestrictiveHandle<'a, H> {
 		&mut self,
 		ref_time: Option<u64>,
 		proof_size: Option<u64>,
+		storage_growth: Option<u64>,
 	) -> Result<(), ExitError> {
-		self.handle.record_external_cost(ref_time, proof_size)
+		self.handle
+			.record_external_cost(ref_time, proof_size, storage_growth)
 	}
 
 	fn refund_external_cost(&mut self, ref_time: Option<u64>, proof_size: Option<u64>) {

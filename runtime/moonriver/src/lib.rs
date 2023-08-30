@@ -404,6 +404,8 @@ parameter_types! {
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	pub const GasLimitPovSizeRatio: u64 = 4;
+	/// The amount of gas per storage (in bytes).
+	pub GasLimitStorageGrowthRatio: u64 = 0;
 }
 
 pub struct TransactionPaymentAsGasPrice;
@@ -491,6 +493,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }

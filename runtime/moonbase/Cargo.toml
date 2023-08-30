@@ -54,6 +54,7 @@ pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
 pallet-evm-precompile-democracy = { workspace = true }
 pallet-evm-precompile-gmp = { workspace = true }
+pallet-evm-precompile-identity = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
@@ -292,7 +293,7 @@ evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 force-debug = [ "sp-debug-derive/force-debug" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = []
+runtime-wasm = [  ]
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
@@ -372,4 +373,4 @@ try-runtime = [
 	"pallet-xcm-transactor/try-runtime",
 ]
 
-moonbase-runtime-benchmarks = []
+moonbase-runtime-benchmarks = [  ]
