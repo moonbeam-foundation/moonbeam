@@ -133,7 +133,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 
@@ -287,7 +287,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::remove_vote { class, index };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 
@@ -331,7 +331,7 @@ where
 			index,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 
@@ -376,7 +376,12 @@ where
 			balance: amount,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			Some(origin).into(),
+			call,
+			SYSTEM_ACCOUNT_SIZE,
+		)?;
 
 		event.record(handle)?;
 
@@ -399,7 +404,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 
@@ -431,7 +436,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::unlock { class, target };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 

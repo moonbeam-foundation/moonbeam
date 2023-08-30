@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-mod moonbeam_xcm_benchmarks_fungible;
-mod moonbeam_xcm_benchmarks_generic;
+pub mod fungible;
+pub mod generic;
 
-use crate::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
+pub use crate::weights::generic::WeightInfo;
 use core::cmp::min;
 use frame_support::weights::Weight;
-use moonbeam_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
-use moonbeam_xcm_benchmarks_generic::SubstrateWeight as XcmGeneric;
+use fungible::WeightInfo as XcmFungibleWeight;
+use generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
 use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},

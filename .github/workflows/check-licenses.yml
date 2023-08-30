@@ -1,0 +1,15 @@
+name: Check licenses
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Verify Licenses
+        run: |
+          cargo install cargo-license
+          ./scripts/verify-licenses.sh
