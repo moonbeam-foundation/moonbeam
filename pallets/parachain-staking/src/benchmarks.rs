@@ -2204,7 +2204,7 @@ benchmarks! {
 		let mut seed = USER_SEED;
 
 		// Create 100 collators
-		for i in 1..100 {
+		for i in 0..100 {
 			seed += i;
 			let collator = create_funded_collator::<T>(
 				"collator",
@@ -2217,7 +2217,7 @@ benchmarks! {
 		}
 
 		// Create two collators more: the one that will be marked as inactive
-		// and the one that will act as the caller of the extrinsic
+		// and the one that will act as the caller of the extrinsic.
 		seed += 1;
 		let inactive_collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
@@ -2238,20 +2238,16 @@ benchmarks! {
 		)?;
 
 		// Roll to round 2 and call to select_top_candidates.
-		// We do this to be able to have more than 66% of TotalSelected
+		// We do this to be able to have more than 66% of TotalSelected.
 		roll_to_and_author::<T>(2, caller.clone());
 		Pallet::<T>::select_top_candidates(1);
 
 		// Manually change these values for inactive_collator,
-		// so that it can be marked as inactive
+		// so that it can be marked as inactive.
 		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
 		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
-	}: {
-		<Pallet<T>>::notify_inactive_collator(
-			RawOrigin::Signed(caller).into(),
-			inactive_collator.clone()
-		)?;
-	}
+
+	}: _(RawOrigin::Signed(caller), inactive_collator.clone())
 	verify {
 		assert!(!Pallet::<T>::candidate_info(&inactive_collator).expect("must exist").is_active());
 	}
