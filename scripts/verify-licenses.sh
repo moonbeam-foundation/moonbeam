@@ -38,6 +38,7 @@ AUTHORS=(
 )
 NAMES=(
     "webpki"
+    "rustls-webpki"
     "ring"
     "nimbus-consensus"
 )

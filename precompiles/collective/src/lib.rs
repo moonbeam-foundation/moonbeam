@@ -136,6 +136,7 @@ where
 				proposal,
 				length_bound: proposal_length,
 			},
+			SYSTEM_ACCOUNT_SIZE,
 		)?;
 
 		log.record(handle)?;
@@ -196,6 +197,7 @@ where
 					proposal,
 					length_bound: proposal_length,
 				},
+				SYSTEM_ACCOUNT_SIZE,
 			)?;
 		}
 
@@ -230,6 +232,7 @@ where
 				index: proposal_index,
 				approve,
 			},
+			SYSTEM_ACCOUNT_SIZE,
 		)?;
 
 		log.record(handle)?;
@@ -262,6 +265,7 @@ where
 				),
 				length_bound,
 			},
+			SYSTEM_ACCOUNT_SIZE,
 		)?;
 
 		// We can know if the proposal was executed or not based on the `pays_fee` in

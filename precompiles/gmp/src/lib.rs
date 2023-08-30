@@ -249,12 +249,16 @@ where
 		if let Some(call) = call {
 			log::debug!(target: "gmp-precompile", "sending xcm {:?}", call);
 			let origin = Runtime::AddressMapping::into_account_id(handle.code_address());
-			RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call).map_err(
-				|e| {
-					log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
-					e
-				},
-			)?;
+			RuntimeHelper::<Runtime>::try_dispatch(
+				handle,
+				Some(origin).into(),
+				call,
+				SYSTEM_ACCOUNT_SIZE,
+			)
+			.map_err(|e| {
+				log::debug!(target: "gmp-precompile", "error sending XCM: {:?}", e);
+				e
+			})?;
 		} else {
 			log::debug!(target: "gmp-precompile", "no call provided, no XCM transfer");
 		}
