@@ -18,6 +18,7 @@ members = [
 	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
 	"precompiles/gmp",
+	"precompiles/identity",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
 	"precompiles/precompile-registry",
@@ -75,6 +76,7 @@ pallet-evm-precompile-conviction-voting = { path = "precompiles/conviction-votin
 pallet-evm-precompile-crowdloan-rewards = { path = "precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-gmp = { path = "precompiles/gmp", default-features = false }
+pallet-evm-precompile-identity = { path = "precompiles/identity", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "precompiles/parachain-staking", default-features = false }
 pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-features = false }
 pallet-evm-precompile-proxy = { path = "precompiles/proxy", default-features = false }
@@ -444,7 +446,7 @@ opt-level = 3
 panic = "unwind"
 
 [profile.testnet]
-debug = 1 # debug symbols are useful for profilers
+debug = 1               # debug symbols are useful for profilers
 debug-assertions = true
 inherits = "release"
 overflow-checks = true
