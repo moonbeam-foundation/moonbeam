@@ -2128,6 +2128,7 @@ pub mod pallet {
 						delegator,
 						err
 					);
+					return;
 				};
 
 				Pallet::<T>::deposit_event(Event::Compounded {
