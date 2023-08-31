@@ -1,7 +1,7 @@
 # Functional testing for Moonbeam
 
-[!NOTE]\
-This folder contains a set of functional tests designed for Moonbeam network.
+> [!NOTE]\
+> This folder contains a set of functional tests designed for Moonbeam network.
 It is written in typescript, using the [Moonwall](https://moonsong-labs.github.io/moonwall/) framework.
 
 ## Test Categories
@@ -13,8 +13,8 @@ It is written in typescript, using the [Moonwall](https://moonsong-labs.github.i
 
 ## Installation
 
-[!NOTE]\
-PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
+> [!NOTE]\
+> PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
 There are [many](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
 
 Before running tests always install and update the package dependencies:
@@ -68,6 +68,6 @@ Running a particular smoke test:
 pnpm moonwall test smoke_moonbeam S100
 ```
 
-[!NOTE]\
-For a full list of test environments and suites available, inspect the `moonwall.config.json` file.
+> [!NOTE]\
+> For a full list of test environments and suites available, inspect the `moonwall.config.json` file.
 Alternatively, use the CLI to browse networks and tests available.

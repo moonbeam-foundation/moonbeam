@@ -135,8 +135,8 @@ Moonbeam has Rust unit tests as well as typescript integration tests. These test
 cargo test
 ```
 
-[!IMPORTANT]\
-If you do not have **pnpm**, you can install with: `npm install -g pnpm`
+> [!IMPORTANT]\
+> If you do not have **pnpm**, you can install with: `npm install -g pnpm`
 
 ```bash
 cd test
