@@ -398,7 +398,7 @@ jobs:
           cd ../typescript-api
           npm ci
 
-          cd ../tests
+          cd ../archived_tests
           npm ci
           #### Prepares and copies the typescript generated API to include in the tests
           npm run setup-typescript-api

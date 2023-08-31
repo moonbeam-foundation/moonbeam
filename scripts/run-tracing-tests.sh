@@ -28,7 +28,7 @@ cd ../typescript-api
 npm ci
 
 echo "Run tracing tests…"
-cd ../tests
+cd ../archived_tests
 npm ci
 npm run setup-typescript-api
 npm run build
