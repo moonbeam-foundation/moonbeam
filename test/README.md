@@ -19,7 +19,7 @@ There are [many](https://pnpm.io/installation) ways to install it, but perhaps t
 
 Before running tests always install and update the package dependencies:
 
-```typescript
+```bash
 cd test
 pnpm i 
 ```
@@ -28,43 +28,43 @@ pnpm i
 
 Launch the CLI:
 
-```typescript
+```bash
 pnpm moonwall
 ```
 
 Execute all dev tests:
 
-```typescript
+```bash
 pnpm moonwall test dev_moonbase
 ```
 
 Execute a single test:
 
-```typescript
+```bash
 pnpm moonwall test dev_moonbase <test_case_id>
 ```
 
 Execute a single test and keep node running:
 
-```typescript
+```bash
 pnpm moonwall run dev_moonbase <test_case_id>
 ```
 
 Downloading the latest polkadot binary:
 
-```typescript
+```bash
 pnpm moonwall download polkadot latest
 ```
 
 Running a chopsticks forked Moonbeam network:
 
-```typescript
+```bash
 pnpm moonwall run chopsticks_moonbeam
 ```
 
 Running a particular smoke test:
 
-```typescript
+```bash
 pnpm moonwall test smoke_moonbeam S100
 ```
 
