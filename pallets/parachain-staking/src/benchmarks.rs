@@ -2200,7 +2200,7 @@ benchmarks! {
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 
-		let mut candidate_count = 0u32;
+		let mut candidate_count = 1u32;
 		let mut seed = USER_SEED;
 
 		// Create 100 collators
@@ -2244,6 +2244,9 @@ benchmarks! {
 
 		// Manually change these values for inactive_collator,
 		// so that it can be marked as inactive.
+		<AtStake<T>>::insert(1, &inactive_collator, CollatorSnapshot::default());
+		<AwardedPts<T>>::insert(1, &inactive_collator, 0);
+
 		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
 		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
 
