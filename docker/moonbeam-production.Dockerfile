@@ -8,6 +8,8 @@ FROM docker.io/library/ubuntu:20.04 AS builder
 ARG COMMIT="master"
 ARG RUSTFLAGS=""
 ENV RUSTFLAGS=$RUSTFLAGS
+ENV DEBIAN_FRONTEND=noninteractive
+
 WORKDIR /
 
 RUN echo "*** Installing Basic dependencies ***"
