@@ -25,7 +25,7 @@
 pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
-use cumulus_client_consensus_common::ParachainConsensus;
+use cumulus_client_consensus_common::{ParachainBlockImport, ParachainConsensus};
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -423,10 +423,14 @@ pub fn new_partial<RuntimeApi, Executor>(
 		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
-			FrontierBlockImport<
+			ParachainBlockImport<
 				Block,
-				Arc<FullClient<RuntimeApi, Executor>>,
-				FullClient<RuntimeApi, Executor>,
+				FrontierBlockImport<
+					Block,
+					Arc<FullClient<RuntimeApi, Executor>>,
+					FullClient<RuntimeApi, Executor>,
+				>,
+				FullBackend,
 			>,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -522,11 +526,15 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
+	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
+		frontier_block_import,
+		backend.clone(),
+	);
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
 		client.clone(),
-		frontier_block_import.clone(),
+		parachain_block_import.clone(),
 		move |_, _| async move {
 			let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -546,7 +554,7 @@ where
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			frontier_block_import,
+			parachain_block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
