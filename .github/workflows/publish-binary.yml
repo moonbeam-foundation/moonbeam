@@ -32,24 +32,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Prepare docker image tags
+        id: prep
+        run: |
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
+          TAG="${DOCKER_IMAGE}:${{ github.event.inputs.to }}-rc"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build production moonbeam
         run: |
           # Build moonbeam
           # (we don't use volumes because of ownership/permissions issues)
           docker build \
-            --tag prod \
+            --tag ${{ steps.prep.outputs.tag }} \
             --build-arg="COMMIT=${{ github.event.inputs.to }}" \
             --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
             - < docker/moonbeam-production.Dockerfile
+          
+          # Pushes as a RC image of the release
+          docker push ${{ steps.prep.outputs.tag }}
 
           # Copy moonbeam binary 
           docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy prod bash
+          docker create -ti --name dummy ${{ steps.prep.outputs.tag }} bash
           docker cp dummy:/moonbeam/moonbeam moonbeam
           docker rm -f dummy
 
           # Cleanup
-          docker rmi prod
+          docker rmi ${{ steps.prep.outputs.tag }}
 
       - name: Save parachain binary
         if: ${{ matrix.cpu == '' }}
