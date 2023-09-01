@@ -23,17 +23,25 @@ async function main() {
   const newVersion = argv.to;
 
   const commonTemplate = `
-  - [ ] Start the github action Publish Binary Draft with ${previousVersion} => ${newVersion}
+- [ ] Start the github action Publish Binary Draft with ${previousVersion} => ${newVersion}
   (master branch).
-  - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft).
-  - [ ] Update moonbeam-networks stagenet (moonsama/moonlama) config.json to include sha-xxxxx
-  (matching your ${newVersion} tag) and increase the config version + 1.
-  - [ ] Test the new client on stagenet (moonsama/moonlama).
-  - [ ] Publish the client release draft.
-  - [ ] When everything is ok, publish the new docker image: start github action Publish Docker
-  with ${newVersion}.
-  - [ ] Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
-  Publish Docker with ${newVersion} and master.
+  - \`gh workflow run "Publish Binary Draft" -r 'master' ` +
+    `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
+- [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft).
+- [ ] Update moonbeam-networks stagenet (moonsama/moonlama) config.json to include:
+  - \`\`\`
+  "binaries": [
+		{"docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc", "path": "/moonbeam/moonbeam", "name": "moonbeam"},
+    {"docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc", "path": "/moonbeam/moonbeam-skylake", "name": "moonbeam-skylake"}
+	]
+  \`\`\`
+(matching your ${newVersion} tag) and increase the config version + 1.
+- [ ] Test the new client on stagenet (moonsama/moonlama).
+- [ ] Publish the client release draft.
+- [ ] When everything is ok, publish the new docker image: start github action Publish Docker
+with ${newVersion}.
+- [ ] Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
+Publish Docker with ${newVersion} and master.
 `;
 
   // Detect if it's a major release or hotfix
