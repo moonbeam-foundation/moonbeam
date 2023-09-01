@@ -44,6 +44,7 @@ jobs:
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+          registry: index.docker.io
       - name: Build production moonbeam
         run: |
           # Build moonbeam
