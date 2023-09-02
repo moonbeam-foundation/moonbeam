@@ -4,7 +4,7 @@ echo 'Make sure you have built moonbeam-types-bundle and run "npm install" in th
 
 BUILD_LAST_TRACING_RUNTIME="no"
 
-if [ -e tests/moonbase-overrides/moonbase-runtime-local-substitute-tracing.wasm ]; then
+if [ -e archived_tests/moonbase-overrides/moonbase-runtime-local-substitute-tracing.wasm ]; then
   if [[ "$1" == "-f" ]]; then
     BUILD_LAST_TRACING_RUNTIME="yes"
   fi
@@ -14,8 +14,8 @@ fi
 
 if [[ "$BUILD_LAST_TRACING_RUNTIME" == "yes" ]]; then
   ./scripts/build-last-tracing-runtime.sh
-  mkdir -p tests/moonbase-overrides/
-  mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
+  mkdir -p archived_tests/moonbase-overrides/
+  mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm archived_tests/moonbase-overrides/
 else
   echo "The tracing runtime is not rebuilt, if you want to rebuild it, use the option '-f'."
 fi
