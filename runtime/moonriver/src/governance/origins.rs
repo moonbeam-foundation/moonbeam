@@ -12,7 +12,6 @@
 // GNU General Public License for more details.
 
 //! Custom origins for governance interventions.
-#![cfg_attr(not(feature = "std"), no_std)]
 
 pub use custom_origins::*;
 

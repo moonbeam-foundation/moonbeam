@@ -6076,7 +6076,9 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
  "ethereum-types",
+ "fc-rpc-core",
  "futures 0.3.28",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",

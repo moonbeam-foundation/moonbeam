@@ -166,9 +166,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							&EthereumXcmTracingStatus::Block,
 						);
 
-						let mut config = <Runtime as pallet_evm::Config>::config().clone();
-						config.estimate = true;
-
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
@@ -187,6 +184,47 @@ macro_rules! impl_runtime_apis_plus_common {
 							};
 						}
 
+						Ok(())
+					}
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
+				}
+
+				fn trace_call(
+					from: H160,
+					to: H160,
+					data: Vec<u8>,
+					value: U256,
+					gas_limit: U256,
+					max_fee_per_gas: Option<U256>,
+					max_priority_fee_per_gas: Option<U256>,
+					nonce: Option<U256>,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
+				) -> Result<(), sp_runtime::DispatchError> {
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+
+						EvmTracer::new().trace(|| {
+							let is_transactional = false;
+							let validate = true;
+							let _ = <Runtime as pallet_evm::Config>::Runner::call(
+								from,
+								to,
+								data,
+								value,
+								gas_limit.low_u64(),
+								max_fee_per_gas,
+								max_priority_fee_per_gas,
+								nonce,
+								access_list.unwrap_or_default(),
+								is_transactional,
+								validate,
+								<Runtime as pallet_evm::Config>::config(),
+							);
+						});
 						Ok(())
 					}
 					#[cfg(not(feature = "evm-tracing"))]
