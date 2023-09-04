@@ -32,6 +32,7 @@ use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
+use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -43,7 +44,7 @@ use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::{
-	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
+	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
@@ -232,6 +233,16 @@ type MoonbasePrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
+	PrecompileAt<
+		AddressU64<2071>,
+		XcmTransactorPrecompileV3<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2072>,
+		IdentityPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 );
 
 /// The PrecompileSet installed in the Moonbase runtime.

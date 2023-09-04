@@ -365,7 +365,7 @@ dependencies = [
  "num-traits",
  "rusticata-macros",
  "thiserror",
- "time 0.3.27",
+ "time 0.3.28",
 ]
 
 [[package]]
@@ -381,7 +381,7 @@ dependencies = [
  "num-traits",
  "rusticata-macros",
  "thiserror",
- "time 0.3.27",
+ "time 0.3.28",
 ]
 
 [[package]]
@@ -512,7 +512,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "memchr",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
 ]
 
 [[package]]
@@ -600,9 +600,9 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.21.2"
+version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
+checksum = "414dcefbc63d77c526a76b3afcf6fbb9b5e2791c19c3aa2297733208750c6e53"
 
 [[package]]
 name = "base64ct"
@@ -872,7 +872,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6798148dccfbff0fae41c7574d2fa8f1ef3492fba0face179de5d8d447d67b05"
 dependencies = [
  "memchr",
- "regex-automata 0.3.6",
+ "regex-automata 0.3.7",
  "serde",
 ]
 
@@ -1124,9 +1124,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.0"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d5f1946157a96594eb2d2c10eb7ad9a2b27518cb3000209dec700c35df9197d"
+checksum = "7c8d502cbaec4595d2e7d5f61e318f05417bd2b66fdc3809498f0d3fdf0bea27"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1135,9 +1135,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.4.0"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78116e32a042dd73c2901f0dc30790d20ff3447f3e3472fad359e8c3d282bcd6"
+checksum = "5891c7bc0edb3e1c2204fc5e94009affabeb1821c9e5fdc3959536c5c0bb984d"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1815,6 +1815,7 @@ version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/cumulus?branch=moonbeam-polkadot-v0.9.43#e3c7110a29df950e8ef1bc0a5c616332987f0725"
 dependencies = [
  "cumulus-primitives-core",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -2061,7 +2062,7 @@ dependencies = [
  "curve25519-dalek-derive",
  "digest 0.10.7",
  "fiat-crypto",
- "platforms 3.0.2",
+ "platforms 3.1.2",
  "rustc_version",
  "subtle",
  "zeroize",
@@ -2667,9 +2668,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "errno"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b30f669a7961ef1631673d2766cc92f52d64f7ef354d4fe0ddfd30ed52f0f4f"
+checksum = "136526188508e25c6fef639d7927dfb3e0e3084488bf202267829cf7fc23dbdd"
 dependencies = [
  "errno-dragonfly",
  "libc",
@@ -2743,8 +2744,8 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "evm"
-version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=tgm-record-external-cost#53315e22da8494dbcb6b54a18e09775e956b7c73"
+version = "0.39.1"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2764,7 +2765,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=tgm-record-external-cost#53315e22da8494dbcb6b54a18e09775e956b7c73"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2775,7 +2776,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=tgm-record-external-cost#53315e22da8494dbcb6b54a18e09775e956b7c73"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2786,7 +2787,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.39.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=tgm-record-external-cost#53315e22da8494dbcb6b54a18e09775e956b7c73"
+source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2929,7 +2930,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -2945,7 +2946,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -2975,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -2998,7 +2999,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3048,7 +3049,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3061,7 +3062,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3241,7 +3242,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -3260,7 +3261,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3272,7 +3273,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3286,7 +3287,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "evm",
  "frame-support",
@@ -3301,7 +3302,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3318,7 +3319,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3330,7 +3331,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -3641,7 +3642,7 @@ version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2eeb4ed9e12f43b7fa0baae3f9cdda28352770132ef2e09a23760c29cae8bd47"
 dependencies = [
- "rustix 0.38.8",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -3728,7 +3729,7 @@ dependencies = [
  "futures-io",
  "memchr",
  "parking",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "waker-fn",
 ]
 
@@ -3750,7 +3751,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2411eed028cdf8c8034eaf21f9915f956b6c3abec4d4c7949ee67f0721127bd"
 dependencies = [
  "futures-io",
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "webpki 0.22.0",
 ]
 
@@ -3786,7 +3787,7 @@ dependencies = [
  "futures-sink",
  "futures-task",
  "memchr",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "pin-utils",
  "slab",
 ]
@@ -4018,9 +4019,9 @@ dependencies = [
 
 [[package]]
 name = "hashlink"
-version = "0.8.3"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "312f66718a2d7789ffef4f4b7b213138ed9f1eb3aa1d0d82fc99f88fb3ffd26f"
+checksum = "e8094feaf31ff591f651a2664fb9cfd92bba7a60ce3197265e9482ebe753c8f7"
 dependencies = [
  "hashbrown 0.14.0",
 ]
@@ -4149,7 +4150,7 @@ checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes",
  "http",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
 ]
 
 [[package]]
@@ -4192,7 +4193,7 @@ dependencies = [
  "httparse",
  "httpdate",
  "itoa",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "socket2 0.4.9",
  "tokio",
  "tower-service",
@@ -4209,7 +4210,7 @@ dependencies = [
  "http",
  "hyper",
  "log",
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "rustls-native-certs",
  "tokio",
  "tokio-rustls 0.23.4",
@@ -4225,7 +4226,7 @@ dependencies = [
  "http",
  "hyper",
  "log",
- "rustls 0.21.6",
+ "rustls 0.21.7",
  "rustls-native-certs",
  "tokio",
  "tokio-rustls 0.24.1",
@@ -4486,7 +4487,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
 dependencies = [
  "hermit-abi 0.3.2",
- "rustix 0.38.8",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -5132,7 +5133,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "quinn-proto",
  "rand 0.8.5",
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "thiserror",
  "tokio",
 ]
@@ -5213,7 +5214,7 @@ dependencies = [
  "libp2p-identity",
  "rcgen 0.10.0",
  "ring",
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "thiserror",
  "webpki 0.22.0",
  "x509-parser 0.14.0",
@@ -5541,7 +5542,7 @@ dependencies = [
  "parity-scale-codec",
  "tokio",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -5592,9 +5593,9 @@ dependencies = [
 
 [[package]]
 name = "memchr"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+checksum = "76fc44e2588d5b436dbc3c6cf62aef290f90dab6235744a93dfe1cc18f451e2c"
 
 [[package]]
 name = "memfd"
@@ -5836,6 +5837,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -5906,7 +5908,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -6067,7 +6069,7 @@ dependencies = [
  "sp-std",
  "westend-runtime",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6371,7 +6373,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -6379,8 +6381,10 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -6388,22 +6392,34 @@ dependencies = [
  "log",
  "moonbeam-xcm-benchmarks",
  "pallet-asset-manager",
+ "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
+ "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum-xcm",
  "pallet-evm",
- "pallet-evm-chain-id",
+ "pallet-identity",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
+ "pallet-multisig",
  "pallet-parachain-staking",
  "pallet-preimage",
+ "pallet-proxy",
  "pallet-randomness",
  "pallet-referenda",
  "pallet-scheduler",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-treasury",
+ "pallet-utility",
+ "pallet-whitelist",
+ "pallet-xcm",
  "pallet-xcm-transactor",
  "precompile-utils",
  "sp-core",
@@ -6411,7 +6427,7 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6579,7 +6595,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -6728,7 +6744,7 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives 0.1.0",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.1",
  "xcm-simulator",
 ]
 
@@ -7258,11 +7274,11 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "openssl"
-version = "0.10.56"
+version = "0.10.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "729b745ad4a5575dd06a3e1af1414bd330ee561c01b3899eb584baeaa8def17e"
+checksum = "bac25ee399abb46215765b1cb35bc0212377e58a061560d8b29b024fd0430e7c"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.4.0",
  "cfg-if",
  "foreign-types",
  "libc",
@@ -7290,9 +7306,9 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.91"
+version = "0.9.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "866b5f16f90776b9bb8dc1e1802ac6f0513de3a7a7465867bfbc563dc737faac"
+checksum = "db7e971c2c2bba161b2d2fdf37080177eff520b3bc044787c7f1f5f9e78d869b"
 dependencies = [
  "cc",
  "libc",
@@ -7448,7 +7464,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -7613,7 +7629,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -7855,7 +7871,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "environmental",
  "ethereum",
@@ -7905,13 +7921,13 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "environmental",
  "evm",
@@ -8030,7 +8046,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
 ]
@@ -8038,7 +8054,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -8103,7 +8119,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8194,7 +8210,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -8235,13 +8251,40 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
+]
+
+[[package]]
+name = "pallet-evm-precompile-identity"
+version = "0.1.0"
+dependencies = [
+ "enumflags2",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal 0.3.4",
+ "log",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-identity",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "num",
@@ -8438,13 +8481,13 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -8453,7 +8496,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#fcf08b47ac32d7ebd9e139e09eb78527862b1a92"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v0.9.43#a39b3011b9fb62b47931a199060c1b23926f34d8"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -8491,7 +8534,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8522,7 +8565,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8555,7 +8598,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -8693,7 +8736,7 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.0",
 ]
 
 [[package]]
@@ -8748,7 +8791,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm-primitives 0.1.0 (git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43)",
+ "xcm-primitives 0.1.0",
 ]
 
 [[package]]
@@ -9427,7 +9470,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -9716,9 +9759,9 @@ checksum = "257b64915a082f7811703966789728173279bdebb956b143dbcd23f6f970a777"
 
 [[package]]
 name = "pin-project-lite"
-version = "0.2.12"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12cc1b0bf1727a77a54b6654e7b5f1af8604923edc8b81885f8ec92f9e3f0a05"
+checksum = "8afb450f006bf6385ca15ef45d71d2288452bc3683ce2e2cacc0d18e4be60b58"
 
 [[package]]
 name = "pin-utils"
@@ -9760,9 +9803,9 @@ checksum = "e8d0eef3571242013a0d5dc84861c3ae4a652e56e12adf8bdc26ff5f8cb34c94"
 
 [[package]]
 name = "platforms"
-version = "3.0.2"
+version = "3.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3d7ddaed09e0eb771a79ab0fd64609ba0afb0a8366421957936ad14cbd13630"
+checksum = "4503fa043bf02cee09a9582e9554b4c6403b2ef55e4612e96561d294419429f8"
 
 [[package]]
 name = "polkadot-approval-distribution"
@@ -10935,7 +10978,7 @@ dependencies = [
  "concurrent-queue",
  "libc",
  "log",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "windows-sys 0.48.0",
 ]
 
@@ -10976,9 +11019,9 @@ dependencies = [
 
 [[package]]
 name = "portable-atomic"
-version = "1.4.2"
+version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f32154ba0af3a075eefa1eda8bb414ee928f62303a54ea85b8d6638ff1a6ee9e"
+checksum = "31114a898e107c51bb1609ffaf55a0e011cf6a4d7f1170d0015a165082c0338b"
 
 [[package]]
 name = "ppv-lite86"
@@ -11356,7 +11399,7 @@ dependencies = [
  "rand 0.8.5",
  "ring",
  "rustc-hash",
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "slab",
  "thiserror",
  "tinyvec",
@@ -11495,7 +11538,7 @@ checksum = "6413f3de1edee53342e6138e75b56d32e7bc6e332b3bd62d497b1929d4cfbcdd"
 dependencies = [
  "pem",
  "ring",
- "time 0.3.27",
+ "time 0.3.28",
  "x509-parser 0.13.2",
  "yasna",
 ]
@@ -11508,7 +11551,7 @@ checksum = "ffbe84efe2f38dea12e9bfc1f65377fdf03e53a18cb3b995faedf7934c7e785b"
 dependencies = [
  "pem",
  "ring",
- "time 0.3.27",
+ "time 0.3.28",
  "yasna",
 ]
 
@@ -11588,14 +11631,14 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.9.3"
+version = "1.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81bc1d4caf89fac26a70747fe603c130093b53c773888797a6329091246d651a"
+checksum = "12de2eff854e5fa4b1295edd650e227e9d8fb0c9e90b12e7f36d6a6811791a29"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.3.6",
- "regex-syntax 0.7.4",
+ "regex-automata 0.3.7",
+ "regex-syntax 0.7.5",
 ]
 
 [[package]]
@@ -11609,13 +11652,13 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fed1ceff11a1dddaee50c9dc8e4938bd106e9d89ae372f192311e7da498e3b69"
+checksum = "49530408a136e16e5b486e883fbb6ba058e8e4e8ae6621a77b048b314336e629"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-syntax 0.7.4",
+ "regex-syntax 0.7.5",
 ]
 
 [[package]]
@@ -11626,9 +11669,9 @@ checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
 name = "regex-syntax"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5ea92a5b6195c6ef2a0295ea818b312502c6fc94dde986c5553242e18fd4ce2"
+checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
 name = "resolv-conf"
@@ -11945,9 +11988,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.8"
+version = "0.38.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19ed4fa021d81c8392ce04db050a3da9a60299050b7ae1cf482d862b54a7218f"
+checksum = "ed6248e1caa625eb708e266e06159f135e8c26f2bb7ceb72dc4b2766d0340964"
 dependencies = [
  "bitflags 2.4.0",
  "errno",
@@ -11971,9 +12014,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.20.8"
+version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fff78fc74d175294f4e83b28343315ffcfb114b156f0185e9741cb5570f50e2f"
+checksum = "1b80e3dec595989ea8510028f30c408a4630db12c9cbb8de34203b89d6577e99"
 dependencies = [
  "log",
  "ring",
@@ -11983,9 +12026,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.21.6"
+version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d1feddffcfcc0b33f5c6ce9a29e341e4cd59c3f78e7ee45f4a40c038b1d6cbb"
+checksum = "cd8d6c9f025a446bc4d18ad9632e69aec8f287aa84499ee335599fabd20c3fd8"
 dependencies = [
  "log",
  "ring",
@@ -12011,7 +12054,27 @@ version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d3987094b1d07b653b7dfdc3f70ce9a1da9c51ac18c1b06b662e4f9a0e9f4b2"
 dependencies = [
- "base64 0.21.2",
+ "base64 0.21.3",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.100.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e98ff011474fa39949b7e5c0428f9b4937eda7da7848bbb947786b7be0b27dab"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.101.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d93931baf2d282fff8d3a532bbfd7653f734643161b87e3e01e59a04439bf0d"
+dependencies = [
+ "ring",
+ "untrusted",
 ]
 
 [[package]]
@@ -13453,18 +13516,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.186"
+version = "1.0.188"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f5db24220c009de9bd45e69fb2938f4b6d2df856aa9304ce377b3180f83b7c1"
+checksum = "cf9e0fcba69a370eed61bcf2b728575f726b50b55cba78064753d708ddc7549e"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.186"
+version = "1.0.188"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ad697f7e0b65af4983a4ce8f56ed5b357e8d3c36651bf6a7e13639c17b8e670"
+checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -15114,7 +15177,7 @@ dependencies = [
  "cfg-if",
  "fastrand 2.0.0",
  "redox_syscall 0.3.5",
- "rustix 0.38.8",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -15225,9 +15288,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.27"
+version = "0.3.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bb39ee79a6d8de55f48f2293a830e040392f1c5f16e336bdd1788cd0aadce07"
+checksum = "17f6bb557fd245c28e6411aa56b6403c689ad95061f50e4be16c274e70a17e48"
 dependencies = [
  "deranged",
  "itoa",
@@ -15244,9 +15307,9 @@ checksum = "7300fbefb4dadc1af235a9cef3737cea692a9d97e1b9cbcd4ebdae6f8868e6fb"
 
 [[package]]
 name = "time-macros"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "733d258752e9303d392b94b75230d07b0b9c489350c69b851fc6c065fde3e8f9"
+checksum = "1a942f44339478ef67935ab2bbaec2fb0322496cf3cbe84b261e06ac3814c572"
 dependencies = [
  "time-core",
 ]
@@ -15335,7 +15398,7 @@ dependencies = [
  "mio",
  "num_cpus",
  "parking_lot 0.12.1",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "signal-hook-registry",
  "socket2 0.5.3",
  "tokio-macros",
@@ -15370,7 +15433,7 @@ version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
- "rustls 0.20.8",
+ "rustls 0.20.9",
  "tokio",
  "webpki 0.22.0",
 ]
@@ -15381,7 +15444,7 @@ version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c28327cf380ac148141087fbfb9de9d7bd4e84ab5d2c28fbc911d753de8a7081"
 dependencies = [
- "rustls 0.21.6",
+ "rustls 0.21.7",
  "tokio",
 ]
 
@@ -15392,7 +15455,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "397c988d37662c7dda6d2208364a706264bf3d6138b11d436cbac0ad38832842"
 dependencies = [
  "futures-core",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "tokio",
  "tokio-util",
 ]
@@ -15407,7 +15470,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "futures-sink",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "tokio",
  "tracing",
 ]
@@ -15479,7 +15542,7 @@ dependencies = [
  "http",
  "http-body",
  "http-range-header",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "tower-layer",
  "tower-service",
 ]
@@ -15504,7 +15567,7 @@ checksum = "8ce8c33a8d48bd45d624a6e523445fd21ec13d3653cd51f681abf67418f54eb8"
 dependencies = [
  "cfg-if",
  "log",
- "pin-project-lite 0.2.12",
+ "pin-project-lite 0.2.13",
  "tracing-attributes",
  "tracing-core",
 ]
@@ -15907,9 +15970,9 @@ checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "url"
-version = "2.4.0"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50bff7831e19200a85b17131d085c25d7811bc4e186efdaf54bbd132994a88cb"
+checksum = "143b538f18257fac9cad154828a57c6bf5157e1aa604d4816b5995bf6de87ae5"
 dependencies = [
  "form_urlencoded",
  "idna 0.4.0",
@@ -16233,7 +16296,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c86437fa68626fe896e5afc69234bb2b5894949083586535f200385adfd71213"
 dependencies = [
  "anyhow",
- "base64 0.21.2",
+ "base64 0.21.3",
  "bincode",
  "directories-next",
  "file-per-thread-logger",
@@ -16464,7 +16527,7 @@ dependencies = [
  "sha2 0.10.7",
  "stun",
  "thiserror",
- "time 0.3.27",
+ "time 0.3.28",
  "tokio",
  "turn",
  "url",
@@ -17062,7 +17125,7 @@ dependencies = [
  "ring",
  "rusticata-macros",
  "thiserror",
- "time 0.3.27",
+ "time 0.3.28",
 ]
 
 [[package]]
@@ -17080,7 +17143,7 @@ dependencies = [
  "oid-registry 0.6.1",
  "rusticata-macros",
  "thiserror",
- "time 0.3.27",
+ "time 0.3.28",
 ]
 
 [[package]]
@@ -17144,6 +17207,14 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#94ea27fcfa2f37ce4ccd7892002d7bd9926bb78b"
+dependencies = [
+ "sp-runtime",
+]
+
+[[package]]
+name = "xcm-primitives"
+version = "0.1.1"
 dependencies = [
  "cumulus-primitives-core",
  "ethereum",
@@ -17165,14 +17236,6 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
-]
-
-[[package]]
-name = "xcm-primitives"
-version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v0.9.43#94ea27fcfa2f37ce4ccd7892002d7bd9926bb78b"
-dependencies = [
- "sp-runtime",
 ]
 
 [[package]]
@@ -17224,7 +17287,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e17bb3549cc1321ae1296b9cdc2698e2b6cb1992adfa19a8c72e5b7a738f44cd"
 dependencies = [
- "time 0.3.27",
+ "time 0.3.28",
 ]
 
 [[package]]

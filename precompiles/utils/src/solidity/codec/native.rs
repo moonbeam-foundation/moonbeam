@@ -378,3 +378,12 @@ impl<T, S> From<BoundedVec<T, S>> for Vec<T> {
 		value.inner
 	}
 }
+
+impl<T, S> Default for BoundedVec<T, S> {
+	fn default() -> Self {
+		Self {
+			inner: Default::default(),
+			_phantom: PhantomData,
+		}
+	}
+}

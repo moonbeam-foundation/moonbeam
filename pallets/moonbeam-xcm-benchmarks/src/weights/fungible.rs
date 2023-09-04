@@ -32,21 +32,22 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
 	pub(crate) fn withdraw_asset(asset: &MultiAsset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
-			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
+			
 		} else {
 			Weight::from_parts(200_000_000 as u64, ASSET_BURN_MAX_PROOF_SIZE)
 		}
 	}
 	pub(crate) fn transfer_asset(asset: &MultiAsset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
-			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 		} else {
 			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
 	pub(crate) fn transfer_reserve_asset(asset: &MultiAsset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
-			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer()
+			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 		} else {
 			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}

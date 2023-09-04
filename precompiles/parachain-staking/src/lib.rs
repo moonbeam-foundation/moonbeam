@@ -499,7 +499,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -519,7 +519,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -542,7 +542,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -561,7 +561,7 @@ where
 			pallet_parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -574,7 +574,7 @@ where
 		let call = pallet_parachain_staking::Call::<Runtime>::go_offline {};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -587,7 +587,7 @@ where
 		let call = pallet_parachain_staking::Call::<Runtime>::go_online {};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -602,7 +602,7 @@ where
 		let call = pallet_parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -617,7 +617,7 @@ where
 		let call = pallet_parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -636,7 +636,7 @@ where
 			pallet_parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -649,7 +649,7 @@ where
 		let call = pallet_parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -678,7 +678,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -722,7 +722,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -742,7 +742,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -763,7 +763,7 @@ where
 			pallet_parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -786,7 +786,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -809,7 +809,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -828,7 +828,7 @@ where
 			pallet_parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}
@@ -866,7 +866,7 @@ where
 		};
 
 		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(())
 	}

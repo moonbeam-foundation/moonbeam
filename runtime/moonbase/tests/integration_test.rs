@@ -1427,7 +1427,7 @@ fn asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(25729)
+				.expect_cost(24792)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1479,7 +1479,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(16213)
+				.expect_cost(15219)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1500,7 +1500,7 @@ fn asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(31549)
+				.expect_cost(29997)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1552,7 +1552,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 1000 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14906)
+				.expect_cost(14334)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1579,7 +1579,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						value: { 500 * UNIT }.into(),
 					},
 				)
-				.expect_cost(15152)
+				.expect_cost(14517)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1624,7 +1624,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(8797)
+				.expect_cost(8464)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1643,7 +1643,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						account: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(8789)
+				.expect_cost(8465)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1678,7 +1678,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::freeze_asset {},
 				)
-				.expect_cost(7633)
+				.expect_cost(7334)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1695,7 +1695,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					LocalAssetsPCall::thaw_asset {},
 				)
-				.expect_cost(7628)
+				.expect_cost(7333)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1727,7 +1727,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						owner: Address(BOB.into()),
 					},
 				)
-				.expect_cost(8701)
+				.expect_cost(8378)
 				.expect_no_logs()
 				.execute_returns(true);
 		});
@@ -1761,7 +1761,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						freezer: Address(BOB.into()),
 					},
 				)
-				.expect_cost(7652)
+				.expect_cost(7335)
 				.expect_no_logs()
 				.execute_returns(true);
 
@@ -1882,7 +1882,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24729)
+				.expect_cost(23792)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1946,7 +1946,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(15213)
+				.expect_cost(14219)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1967,7 +1967,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(30549)
+				.expect_cost(28997)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2610,7 +2610,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2630,7 +2631,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
-					}
+					},
+					false
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2717,7 +2719,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(18737)
+				.expect_cost(17185)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2757,7 +2759,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(18737)
+				.expect_cost(17185)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2839,7 +2841,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15595)
+				.expect_cost(14755)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2861,7 +2863,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15217)
+				.expect_cost(14517)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2882,7 +2884,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15631)
+				.expect_cost(14810)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2925,7 +2927,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16365)
+				.expect_cost(15839)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2950,7 +2952,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16365)
+				.expect_cost(15839)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -3083,7 +3085,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070,
+			2069, 2070, 2071, 2072,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

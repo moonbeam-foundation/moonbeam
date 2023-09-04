@@ -13,7 +13,7 @@ impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
-moonbeam-xcm-benchmarks = { workspace = true, optional = true }
+moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
@@ -26,16 +26,32 @@ precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
+cumulus-pallet-xcmp-queue = { workspace = true }
+frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-assets = { workspace = true }
+pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
+pallet-crowdloan-rewards = { workspace = true }
 pallet-democracy = { workspace = true }
+pallet-identity = { workspace = true }
+pallet-moonbeam-orbiters = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
+pallet-sudo = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-treasury = { workspace = true }
+pallet-utility = { workspace = true }
+pallet-whitelist = { workspace = true }
+pallet-xcm = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+
 
 # Frontier
 fp-ethereum = { workspace = true }
@@ -77,8 +93,37 @@ std = [
 	"xcm/std",
 ]
 runtime-benchmarks = [
+	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"pallet-asset-manager/runtime-benchmarks",
+	"pallet-assets/runtime-benchmarks",
+	"pallet-author-inherent/runtime-benchmarks",
+	"pallet-author-mapping/runtime-benchmarks",
+	"pallet-author-slot-filter/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-conviction-voting/runtime-benchmarks",
+	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"pallet-democracy/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
+	"pallet-evm/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-moonbeam-orbiters/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-preimage/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
+	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
+	"pallet-referenda/runtime-benchmarks",
+	"pallet-scheduler/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
+	"pallet-whitelist/runtime-benchmarks",
+	"pallet-xcm-transactor/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
+	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-support/try-runtime",

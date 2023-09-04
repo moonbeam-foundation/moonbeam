@@ -5,7 +5,7 @@ edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
 repository = { workspace = true }
-version = "0.1.0"
+version = "0.1.1"
 
 [package.metadata.docs.rs]
 targets = [ "x86_64-unknown-linux-gnu" ]
@@ -54,4 +54,8 @@ std = [
 	"xcm-builder/std",
 	"xcm/std",
 ]
-runtime-benchmarks = [ "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "xcm-builder/runtime-benchmarks" ]
+runtime-benchmarks = [
+	"frame-benchmarking",
+	"frame-benchmarking/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+]

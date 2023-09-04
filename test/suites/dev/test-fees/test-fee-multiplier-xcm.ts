@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
-import { BN, bnToHex, nToHex } from "@polkadot/util";
+import { BN, bnToHex } from "@polkadot/util";
 import { expectOk } from "../../../helpers/expect.js";
 import {
   RawXcmMessage,
@@ -14,7 +14,7 @@ import {
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 186_921_200;
+const TARGET_FILL_AMOUNT = 186_934_032;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -46,9 +46,9 @@ describeSuite({
       );
 
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
-      balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find((pallet) => {
-        return pallet.name === "Balances";
-      }).index;
+      balancesPalletIndex = metadata.asLatest.pallets
+        .find(({ name }) => name.toString() == "Balances")!
+        .index.toNumber();
     });
 
     beforeEach(async () => {

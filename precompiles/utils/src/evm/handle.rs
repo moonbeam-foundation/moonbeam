@@ -66,7 +66,7 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 	) -> Result<(), evm::ExitError> {
 		self.record_cost(crate::prelude::RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		// TODO: record ref time when precompile will be benchmarked
-		self.record_external_cost(None, Some(data_max_encoded_len as u64))
+		self.record_external_cost(None, Some(data_max_encoded_len as u64), None)
 	}
 
 	/// Record cost of a log manualy.
@@ -201,6 +201,7 @@ mod tests {
 			&mut self,
 			_ref_time: Option<u64>,
 			_proof_size: Option<u64>,
+			_storage_growth: Option<u64>,
 		) -> Result<(), fp_evm::ExitError> {
 			Ok(())
 		}
