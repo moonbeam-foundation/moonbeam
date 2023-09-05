@@ -201,9 +201,9 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "1.0.5"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c378d78423fdad8089616f827526ee33c19f2fddbd5de1629152c9593ba4783"
+checksum = "6748e8def348ed4d14996fa801f4122cd763fff530258cdc03f64b25f89d3a5a"
 dependencies = [
  "memchr",
 ]
@@ -426,7 +426,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88903cb14723e4d4003335bb7f8a14f27691649105346a0f0957466c096adfe6"
 dependencies = [
  "anstyle",
- "bstr 1.6.2",
+ "bstr 1.6.0",
  "doc-comment",
  "predicates 3.0.3",
  "predicates-core",
@@ -482,13 +482,13 @@ dependencies = [
 
 [[package]]
 name = "async-recursion"
-version = "1.0.5"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd55a5ba1179988837d24ab4c7cc8ed6efdeff578ede0416b4225a5fca35bd0"
+checksum = "0e97ce7de6cf12de5d7226c73f5ba9811622f4db3a5b91b55c53e987e5f91cba"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -499,7 +499,7 @@ checksum = "bc00ceb34980c03614e35a3a4e218276a0a824e911d07651cd0d858a51e8c0f0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -570,7 +570,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "miniz_oxide",
- "object 0.32.1",
+ "object 0.32.0",
  "rustc-demangle",
 ]
 
@@ -658,13 +658,13 @@ dependencies = [
  "lazy_static",
  "lazycell",
  "peeking_take_while",
- "prettyplease 0.2.14",
+ "prettyplease 0.2.12",
  "proc-macro2",
  "quote",
  "regex",
  "rustc-hash",
  "shlex",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -867,12 +867,12 @@ dependencies = [
 
 [[package]]
 name = "bstr"
-version = "1.6.2"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c2f7349907b712260e64b0afe2f84692af14a454be26187d9df565c7f69266a"
+checksum = "6798148dccfbff0fae41c7574d2fa8f1ef3492fba0face179de5d8d447d67b05"
 dependencies = [
  "memchr",
- "regex-automata 0.3.8",
+ "regex-automata 0.3.7",
  "serde",
 ]
 
@@ -1048,9 +1048,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.28"
+version = "0.4.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95ed24df0632f708f5f6d8082675bef2596f7084dee3dd55f632290bf35bfe0f"
+checksum = "ec837a71355b28f6556dbd569b37b3f363091c0bd4b2e735674521b4c5fd9bc5"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -1058,7 +1058,7 @@ dependencies = [
  "num-traits",
  "time 0.1.45",
  "wasm-bindgen",
- "windows-targets 0.48.5",
+ "winapi",
 ]
 
 [[package]]
@@ -1124,19 +1124,20 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.2"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a13b88d2c62ff462f88e4a121f17a82c1af05693a2f192b5c38d14de73c19f6"
+checksum = "7c8d502cbaec4595d2e7d5f61e318f05417bd2b66fdc3809498f0d3fdf0bea27"
 dependencies = [
  "clap_builder",
  "clap_derive",
+ "once_cell",
 ]
 
 [[package]]
 name = "clap_builder"
-version = "4.4.2"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bb9faaa7c2ef94b2743a21f5a29e6f0010dff4caa69ac8e9d6cf8b6fa74da08"
+checksum = "5891c7bc0edb3e1c2204fc5e94009affabeb1821c9e5fdc3959536c5c0bb984d"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1146,14 +1147,14 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.4.2"
+version = "4.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0862016ff20d69b84ef8247369fabf5c008a7417002411897d40ee1f4532b873"
+checksum = "c9fd1a5729c4548118d7d70ff234a44868d00489a4b6597b0b020918a0e91a1a"
 dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -1403,7 +1404,7 @@ dependencies = [
  "cranelift-codegen",
  "cranelift-entity",
  "cranelift-frontend",
- "itertools 0.10.5",
+ "itertools",
  "log",
  "smallvec",
  "wasmparser",
@@ -1789,7 +1790,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -2075,14 +2076,14 @@ checksum = "83fdaf97f4804dcebfa5862639bc9ce4121e82140bec2a987ac5140294865b5b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "cxx"
-version = "1.0.107"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbe98ba1789d56fb3db3bee5e032774d4f421b685de7ba703643584ba24effbe"
+checksum = "28403c86fc49e3401fdf45499ba37fad6493d9329449d6449d7f0e10f4654d28"
 dependencies = [
  "cc",
  "cxxbridge-flags",
@@ -2092,9 +2093,9 @@ dependencies = [
 
 [[package]]
 name = "cxx-build"
-version = "1.0.107"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4ce20f6b8433da4841b1dadfb9468709868022d829d5ca1f2ffbda928455ea3"
+checksum = "78da94fef01786dc3e0c76eafcd187abcaa9972c78e05ff4041e24fdf059c285"
 dependencies = [
  "cc",
  "codespan-reporting",
@@ -2102,24 +2103,24 @@ dependencies = [
  "proc-macro2",
  "quote",
  "scratch",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "cxxbridge-flags"
-version = "1.0.107"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20888d9e1d2298e2ff473cee30efe7d5036e437857ab68bbfea84c74dba91da2"
+checksum = "e2a6f5e1dfb4b34292ad4ea1facbfdaa1824705b231610087b00b17008641809"
 
 [[package]]
 name = "cxxbridge-macro"
-version = "1.0.107"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fa16a70dd58129e4dfffdff535fb1bce66673f7bbeec4a5a1765a504e1ccd84"
+checksum = "50c49547d73ba8dcfd4ad7325d64c6d5391ff4224d498fc39a6f3f49825a530d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -2395,7 +2396,7 @@ checksum = "487585f4d0c6655fe74905e2504d8ad6908e4db67f744eb140876906c2f3175d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -2626,18 +2627,18 @@ checksum = "5e9a1f9f7d83e59740248a6e14ecf93929ade55027844dfcea78beafccc15745"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "enumn"
-version = "0.1.12"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2ad8cef1d801a4686bfd8919f0b30eac4c8e48968c437a6405ded4fb5272d2b"
+checksum = "b893c4eb2dc092c811165f84dc7447fae16fb66521717968c34c509b39b1a5c5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -2865,7 +2866,7 @@ dependencies = [
  "fs-err",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -3224,7 +3225,7 @@ checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 [[package]]
 name = "fork-tree"
 version = "3.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
 ]
@@ -3345,7 +3346,7 @@ checksum = "6c2141d6d6c8512188a7891b4b01590a45f6dac67afb4f255c4124dbb86d4eaa"
 [[package]]
 name = "frame-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "frame-support",
  "frame-support-procedural",
@@ -3382,7 +3383,7 @@ dependencies = [
  "frame-system",
  "gethostname",
  "handlebars",
- "itertools 0.10.5",
+ "itertools",
  "lazy_static",
  "linked-hash-map",
  "log",
@@ -3422,7 +3423,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -3495,7 +3496,7 @@ dependencies = [
 [[package]]
 name = "frame-support"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "bitflags 1.3.2",
  "environmental",
@@ -3529,45 +3530,45 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "Inflector",
  "cfg-expr",
  "derive-syn-parse",
  "frame-support-procedural-tools",
- "itertools 0.10.5",
+ "itertools",
  "proc-macro-warning",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "frame-support-procedural-tools"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "3.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "frame-system"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "cfg-if",
  "frame-support",
@@ -3641,7 +3642,7 @@ version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2eeb4ed9e12f43b7fa0baae3f9cdda28352770132ef2e09a23760c29cae8bd47"
 dependencies = [
- "rustix 0.38.11",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -3740,7 +3741,7 @@ checksum = "89ca545a94061b6365f2c7355b4b32bd20df3ff95f02da9329b34ccc3bd6ee72"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -3751,7 +3752,7 @@ checksum = "d2411eed028cdf8c8034eaf21f9915f956b6c3abec4d4c7949ee67f0721127bd"
 dependencies = [
  "futures-io",
  "rustls 0.20.9",
- "webpki 0.22.1",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -3906,7 +3907,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "759c97c1e17c55525b57192c06a267cda0ac5210b222d6b82189a2338fa1c13d"
 dependencies = [
  "aho-corasick",
- "bstr 1.6.2",
+ "bstr 1.6.0",
  "fnv",
  "log",
  "regex",
@@ -3955,9 +3956,9 @@ dependencies = [
 
 [[package]]
 name = "handlebars"
-version = "4.4.0"
+version = "4.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c39b3bc2a8f715298032cf5087e58573809374b08160aa7d750582bdb82d2683"
+checksum = "83c3372087601b532857d332f5957cbae686da52bb7810bf038c3e3c3cc2fa0d"
 dependencies = [
  "log",
  "pest",
@@ -4117,15 +4118,6 @@ dependencies = [
  "digest 0.9.0",
  "generic-array 0.14.7",
  "hmac 0.8.1",
-]
-
-[[package]]
-name = "home"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5444c27eef6923071f7ebcc33e3444508466a76f7a2b93da00ed6e19f30c1ddb"
-dependencies = [
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -4495,7 +4487,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
 dependencies = [
  "hermit-abi 0.3.2",
- "rustix 0.38.11",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -4504,15 +4496,6 @@ name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
 dependencies = [
  "either",
 ]
@@ -5233,7 +5216,7 @@ dependencies = [
  "ring",
  "rustls 0.20.9",
  "thiserror",
- "webpki 0.22.1",
+ "webpki 0.22.0",
  "x509-parser 0.14.0",
  "yasna",
 ]
@@ -5426,9 +5409,9 @@ dependencies = [
 
 [[package]]
 name = "linregress"
-version = "0.5.3"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4de04dcecc58d366391f9920245b85ffa684558a5ef6e7736e754347c3aea9c2"
+checksum = "4de0b5f52a9f84544d268f5fabb71b38962d6aa3c6600b8bcd27d44ccf9c9c45"
 dependencies = [
  "nalgebra",
 ]
@@ -5610,9 +5593,9 @@ dependencies = [
 
 [[package]]
 name = "memchr"
-version = "2.6.3"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f232d6ef707e1956a43342693d2a31e72989554d58299d7a88738cc95b0d35c"
+checksum = "76fc44e2588d5b436dbc3c6cf62aef290f90dab6235744a93dfe1cc18f451e2c"
 
 [[package]]
 name = "memfd"
@@ -7224,7 +7207,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -7247,9 +7230,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.32.1"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cf5f9dd3933bd50a9e1f149ec995f39ae2c496d31fd772c1fd45ebc27e902b0"
+checksum = "77ac5bbd07aea88c60a577a1ce218075ffd59208b2d7ca97adf9bfc5aeb21ebe"
 dependencies = [
  "memchr",
 ]
@@ -7313,7 +7296,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -7358,7 +7341,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2871aadd82a2c216ee68a69837a526dfe788ecbe74c4c5038a6acdbff6653066"
 dependencies = [
  "expander 0.0.6",
- "itertools 0.10.5",
+ "itertools",
  "petgraph",
  "proc-macro-crate",
  "proc-macro2",
@@ -9228,7 +9211,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -9525,9 +9508,9 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec"
-version = "3.6.5"
+version = "3.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dec8a8073036902368c2cdc0387e85ff9a37054d7e7c98e592145e0c92cd4fb"
+checksum = "dd8e946cc0cc711189c0b0249fb8b599cbeeab9784d83c415719368bb8d4ac64"
 dependencies = [
  "arrayvec 0.7.4",
  "bitvec",
@@ -9540,9 +9523,9 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec-derive"
-version = "3.6.5"
+version = "3.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "312270ee71e1cd70289dacf597cab7b207aa107d2f28191c2ae45b2ece18a260"
+checksum = "2a296c3079b5fefbc499e1de58dc26c09b1b9a5952d26694ee89f04a43ebbb3e"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -9697,20 +9680,19 @@ checksum = "9b2a4787296e9989611394c33f193f676704af1686e70b8f8033ab5ba9a35a94"
 
 [[package]]
 name = "pest"
-version = "2.7.3"
+version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7a4d085fd991ac8d5b05a147b437791b4260b76326baf0fc60cf7c9c27ecd33"
+checksum = "1acb4a4365a13f749a93f1a094a7805e5cfa0955373a9de860d962eaa3a5fe5a"
 dependencies = [
- "memchr",
  "thiserror",
  "ucd-trie",
 ]
 
 [[package]]
 name = "pest_derive"
-version = "2.7.3"
+version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2bee7be22ce7918f641a33f08e3f43388c7656772244e2bbb2477f44cc9021a"
+checksum = "666d00490d4ac815001da55838c500eafb0320019bbaa44444137c48b443a853"
 dependencies = [
  "pest",
  "pest_generator",
@@ -9718,22 +9700,22 @@ dependencies = [
 
 [[package]]
 name = "pest_generator"
-version = "2.7.3"
+version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1511785c5e98d79a05e8a6bc34b4ac2168a0e3e92161862030ad84daa223141"
+checksum = "68ca01446f50dbda87c1786af8770d535423fa8a53aec03b8f4e3d7eb10e0929"
 dependencies = [
  "pest",
  "pest_meta",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "pest_meta"
-version = "2.7.3"
+version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b42f0394d3123e33353ca5e1e89092e533d2cc490389f2bd6131c43c634ebc5f"
+checksum = "56af0a30af74d0445c0bf6d9d051c979b516a1a5af790d251daee76005420a48"
 dependencies = [
  "once_cell",
  "pest",
@@ -9767,7 +9749,7 @@ checksum = "4359fd9c9171ec6e8c62926d6faaf553a8dc3f64e1507e76da7911b4f6a04405"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -10509,7 +10491,7 @@ dependencies = [
  "fatality",
  "futures 0.3.28",
  "futures-channel",
- "itertools 0.10.5",
+ "itertools",
  "kvdb",
  "lru 0.9.0",
  "parity-db",
@@ -11131,7 +11113,7 @@ checksum = "59230a63c37f3e18569bdb90e4a89cbf5bf8b06fea0b84e65ea10cc4df47addd"
 dependencies = [
  "difflib",
  "float-cmp",
- "itertools 0.10.5",
+ "itertools",
  "normalize-line-endings",
  "predicates-core",
  "regex",
@@ -11145,7 +11127,7 @@ checksum = "09963355b9f467184c04017ced4a2ba2d75cbcb4e7462690d388233253d4b1a9"
 dependencies = [
  "anstyle",
  "difflib",
- "itertools 0.10.5",
+ "itertools",
  "predicates-core",
 ]
 
@@ -11177,12 +11159,12 @@ dependencies = [
 
 [[package]]
 name = "prettyplease"
-version = "0.2.14"
+version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8832c0f9be7e3cae60727e6256cfd2cd3c3e2b6cd5dad4190ecb2fd658c9030b"
+checksum = "6c64d9ba0963cdcea2e1b2230fbae2bab30eb25a174be395c41e764bfb65dd62"
 dependencies = [
  "proc-macro2",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -11257,7 +11239,7 @@ checksum = "0e99670bafb56b9a106419397343bdbc8b8742c3cc449fec6345f86173f47cd4"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -11303,7 +11285,7 @@ checksum = "440f724eba9f6996b75d63681b0a92b06947f1457076d503a4d2e2c8f56442b8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -11324,7 +11306,7 @@ checksum = "119533552c9a7ffacc21e099c24a0ac8bb19c2a2a3f363de84cd9b844feab270"
 dependencies = [
  "bytes",
  "heck",
- "itertools 0.10.5",
+ "itertools",
  "lazy_static",
  "log",
  "multimap",
@@ -11345,7 +11327,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5d2d8d10f3c6ded6da8b05b5fb3b8a5082514344d56c9f871412d29b4e075b4"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -11423,7 +11405,7 @@ dependencies = [
  "thiserror",
  "tinyvec",
  "tracing",
- "webpki 0.22.1",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -11605,14 +11587,14 @@ dependencies = [
 
 [[package]]
 name = "reed-solomon-novelpoly"
-version = "1.0.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df0b8e056bbbda75b717e53c87f349936ef234bb84a8f665360ca4b3552a79e9"
+checksum = "3bd8f48b2066e9f69ab192797d66da804d1935bf22763204ed3675740cb0f221"
 dependencies = [
  "derive_more",
  "fs-err",
- "itertools 0.11.0",
- "static_init",
+ "itertools",
+ "static_init 0.5.2",
  "thiserror",
 ]
 
@@ -11633,7 +11615,7 @@ checksum = "7f7473c2cfcf90008193dd0e3e16599455cb601a9fce322b5bb55de799664925"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -11650,13 +11632,13 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.9.5"
+version = "1.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "697061221ea1b4a94a624f67d0ae2bfe4e22b8a17b6a192afb11046542cc8c47"
+checksum = "12de2eff854e5fa4b1295edd650e227e9d8fb0c9e90b12e7f36d6a6811791a29"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.3.8",
+ "regex-automata 0.3.7",
  "regex-syntax 0.7.5",
 ]
 
@@ -11671,9 +11653,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.3.8"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2f401f4955220693b56f8ec66ee9c78abffd8d1c4f23dc41a23839eb88f0795"
+checksum = "49530408a136e16e5b486e883fbb6ba058e8e4e8ae6621a77b048b314336e629"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -12007,9 +11989,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.11"
+version = "0.38.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0c3dde1fc030af041adc40e79c0e7fbcf431dd24870053d187d7c66e4b87453"
+checksum = "ed6248e1caa625eb708e266e06159f135e8c26f2bb7ceb72dc4b2766d0340964"
 dependencies = [
  "bitflags 2.4.0",
  "errno",
@@ -12040,7 +12022,7 @@ dependencies = [
  "log",
  "ring",
  "sct 0.7.0",
- "webpki 0.22.1",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -12140,7 +12122,7 @@ dependencies = [
 [[package]]
 name = "sc-allocator"
 version = "4.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "log",
  "sp-core",
@@ -12203,7 +12185,7 @@ dependencies = [
 [[package]]
 name = "sc-block-builder"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "sc-client-api",
@@ -12218,7 +12200,7 @@ dependencies = [
 [[package]]
 name = "sc-chain-spec"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "memmap2",
  "sc-chain-spec-derive",
@@ -12237,12 +12219,12 @@ dependencies = [
 [[package]]
 name = "sc-chain-spec-derive"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -12288,7 +12270,7 @@ dependencies = [
 [[package]]
 name = "sc-client-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "fnv",
  "futures 0.3.28",
@@ -12315,7 +12297,7 @@ dependencies = [
 [[package]]
 name = "sc-client-db"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "hash-db 0.16.0",
  "kvdb",
@@ -12341,7 +12323,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "futures 0.3.28",
@@ -12639,7 +12621,7 @@ dependencies = [
 [[package]]
 name = "sc-executor"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "lru 0.8.1",
  "parity-scale-codec",
@@ -12661,7 +12643,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-common"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "sc-allocator",
  "sp-maybe-compressed-blob",
@@ -12673,7 +12655,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-wasmtime"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -12691,7 +12673,7 @@ dependencies = [
 [[package]]
 name = "sc-informant"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "ansi_term",
  "futures 0.3.28",
@@ -12707,7 +12689,7 @@ dependencies = [
 [[package]]
 name = "sc-keystore"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "parking_lot 0.12.1",
@@ -12721,7 +12703,7 @@ dependencies = [
 [[package]]
 name = "sc-network"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "async-channel",
@@ -12766,7 +12748,7 @@ dependencies = [
 [[package]]
 name = "sc-network-bitswap"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-channel",
  "cid",
@@ -12787,7 +12769,7 @@ dependencies = [
 [[package]]
 name = "sc-network-common"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "async-trait",
@@ -12834,7 +12816,7 @@ dependencies = [
 [[package]]
 name = "sc-network-light"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "async-channel",
@@ -12857,7 +12839,7 @@ dependencies = [
 [[package]]
 name = "sc-network-sync"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "async-channel",
@@ -12892,7 +12874,7 @@ dependencies = [
 [[package]]
 name = "sc-network-transactions"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "futures 0.3.28",
@@ -12912,7 +12894,7 @@ dependencies = [
 [[package]]
 name = "sc-offchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "bytes",
@@ -12943,7 +12925,7 @@ dependencies = [
 [[package]]
 name = "sc-peerset"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "futures 0.3.28",
  "libp2p-identity",
@@ -12968,7 +12950,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "futures 0.3.28",
  "jsonrpsee",
@@ -12999,7 +12981,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc-api"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "jsonrpsee",
  "parity-scale-codec",
@@ -13018,7 +13000,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc-server"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "http",
  "jsonrpsee",
@@ -13033,7 +13015,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc-spec-v2"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "futures 0.3.28",
@@ -13059,7 +13041,7 @@ dependencies = [
 [[package]]
 name = "sc-service"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "directories",
@@ -13113,7 +13095,7 @@ dependencies = [
  "sp-transaction-storage-proof",
  "sp-trie",
  "sp-version",
- "static_init",
+ "static_init 1.0.3",
  "substrate-prometheus-endpoint",
  "tempfile",
  "thiserror",
@@ -13125,7 +13107,7 @@ dependencies = [
 [[package]]
 name = "sc-state-db"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -13136,7 +13118,7 @@ dependencies = [
 [[package]]
 name = "sc-storage-monitor"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "clap",
  "fs4",
@@ -13171,7 +13153,7 @@ dependencies = [
 [[package]]
 name = "sc-sysinfo"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "futures 0.3.28",
  "libc",
@@ -13190,7 +13172,7 @@ dependencies = [
 [[package]]
 name = "sc-telemetry"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "chrono",
  "futures 0.3.28",
@@ -13209,7 +13191,7 @@ dependencies = [
 [[package]]
 name = "sc-tracing"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "ansi_term",
  "atty",
@@ -13240,18 +13222,18 @@ dependencies = [
 [[package]]
 name = "sc-tracing-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sc-transaction-pool"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "futures 0.3.28",
@@ -13277,7 +13259,7 @@ dependencies = [
 [[package]]
 name = "sc-transaction-pool-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "futures 0.3.28",
@@ -13291,7 +13273,7 @@ dependencies = [
 [[package]]
 name = "sc-utils"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-channel",
  "futures 0.3.28",
@@ -13530,7 +13512,7 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -13843,7 +13825,7 @@ dependencies = [
 [[package]]
 name = "sp-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "hash-db 0.16.0",
  "log",
@@ -13863,7 +13845,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "Inflector",
  "blake2",
@@ -13871,13 +13853,13 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sp-application-crypto"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13890,7 +13872,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "6.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "integer-sqrt",
  "num-traits",
@@ -13917,7 +13899,7 @@ dependencies = [
 [[package]]
 name = "sp-block-builder"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -13929,7 +13911,7 @@ dependencies = [
 [[package]]
 name = "sp-blockchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "futures 0.3.28",
  "log",
@@ -13947,7 +13929,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "futures 0.3.28",
@@ -14020,7 +14002,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-grandpa"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "finality-grandpa",
  "log",
@@ -14050,7 +14032,7 @@ dependencies = [
 [[package]]
 name = "sp-core"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "array-bytes 4.2.0",
  "bitflags 1.3.2",
@@ -14094,7 +14076,7 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "blake2b_simd",
  "byteorder",
@@ -14108,18 +14090,18 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing-proc-macro"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "proc-macro2",
  "quote",
  "sp-core-hashing",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sp-database"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "kvdb",
  "parking_lot 0.12.1",
@@ -14128,17 +14110,17 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sp-externalities"
 version = "0.13.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -14149,7 +14131,7 @@ dependencies = [
 [[package]]
 name = "sp-inherents"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
@@ -14164,7 +14146,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "bytes",
  "ed25519 1.5.3",
@@ -14201,7 +14183,7 @@ dependencies = [
 [[package]]
 name = "sp-keystore"
 version = "0.13.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "futures 0.3.28",
  "parity-scale-codec",
@@ -14215,7 +14197,7 @@ dependencies = [
 [[package]]
 name = "sp-maybe-compressed-blob"
 version = "4.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "thiserror",
  "zstd 0.12.4",
@@ -14224,7 +14206,7 @@ dependencies = [
 [[package]]
 name = "sp-metadata-ir"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "frame-metadata",
  "parity-scale-codec",
@@ -14267,7 +14249,7 @@ dependencies = [
 [[package]]
 name = "sp-offchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "sp-api",
  "sp-core",
@@ -14277,7 +14259,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -14287,7 +14269,7 @@ dependencies = [
 [[package]]
 name = "sp-rpc"
 version = "6.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "rustc-hash",
  "serde",
@@ -14297,7 +14279,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "either",
  "hash256-std-hasher",
@@ -14319,7 +14301,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -14337,19 +14319,19 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "6.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "Inflector",
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sp-session"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -14363,7 +14345,7 @@ dependencies = [
 [[package]]
 name = "sp-staking"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -14376,7 +14358,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.13.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "hash-db 0.16.0",
  "log",
@@ -14396,7 +14378,7 @@ dependencies = [
 [[package]]
 name = "sp-statement-store"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -14414,12 +14396,12 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 
 [[package]]
 name = "sp-storage"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "impl-serde 0.4.0",
  "parity-scale-codec",
@@ -14447,7 +14429,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "6.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "sp-std",
@@ -14459,7 +14441,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-pool"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "sp-api",
  "sp-runtime",
@@ -14468,7 +14450,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-storage-proof"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "async-trait",
  "log",
@@ -14484,7 +14466,7 @@ dependencies = [
 [[package]]
 name = "sp-trie"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "ahash 0.8.3",
  "hash-db 0.16.0",
@@ -14507,7 +14489,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "impl-serde 0.4.0",
  "parity-scale-codec",
@@ -14524,18 +14506,18 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
 name = "sp-wasm-interface"
 version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -14549,7 +14531,7 @@ dependencies = [
 [[package]]
 name = "sp-weights"
 version = "4.0.0"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -14609,11 +14591,11 @@ dependencies = [
 
 [[package]]
 name = "sqlformat"
-version = "0.2.2"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b7b278788e7be4d0d29c0f39497a0eef3fba6bbc8e70d8bf7fde46edeaa9e85"
+checksum = "0c12bc9199d1db8234678b7051747c07f517cdcf019262d1847b94ec8b1aee3e"
 dependencies = [
- "itertools 0.11.0",
+ "itertools",
  "nom",
  "unicode_categories",
 ]
@@ -14757,6 +14739,18 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "static_init"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11b73400442027c4adedda20a9f9b7945234a5bd8d5f7e86da22bd5d0622369c"
+dependencies = [
+ "cfg_aliases",
+ "libc",
+ "parking_lot 0.11.2",
+ "static_init_macro 0.5.0",
+]
+
+[[package]]
+name = "static_init"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a2a1c578e98c1c16fc3b8ec1328f7659a500737d7a0c6d625e73e830ff9c1f6"
@@ -14766,8 +14760,21 @@ dependencies = [
  "libc",
  "parking_lot 0.11.2",
  "parking_lot_core 0.8.6",
- "static_init_macro",
+ "static_init_macro 1.0.2",
  "winapi",
+]
+
+[[package]]
+name = "static_init_macro"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2261c91034a1edc3fc4d1b80e89d82714faede0515c14a75da10cb941546bbf"
+dependencies = [
+ "cfg_aliases",
+ "memchr",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -14896,7 +14903,7 @@ dependencies = [
 [[package]]
 name = "substrate-prometheus-endpoint"
 version = "0.10.0-dev"
-source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#d1afa36361cdad96108aebe6e2fe8d3a429ef23d"
+source = "git+https://github.com/moonbeam-foundation/substrate?branch=moonbeam-polkadot-v0.9.43#fb7885d0002f63a0919dc3e7cf071695ef5e3a6c"
 dependencies = [
  "hyper",
  "log",
@@ -15088,9 +15095,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.31"
+version = "2.0.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "718fa2415bcb8d8bd775917a1bf12a7931b6dfa890753378538118181e0cb398"
+checksum = "c324c494eba9d92503e6f1ef2e6df781e78f6a7705a0202d9801b198807d518a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -15151,7 +15158,7 @@ dependencies = [
  "cfg-if",
  "fastrand 2.0.0",
  "redox_syscall 0.3.5",
- "rustix 0.38.11",
+ "rustix 0.38.10",
  "windows-sys 0.48.0",
 ]
 
@@ -15172,22 +15179,22 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "thiserror"
-version = "1.0.48"
+version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d6d7a740b8a666a7e828dd00da9c0dc290dff53154ea77ac109281de90589b7"
+checksum = "97a802ec30afc17eee47b2855fc72e0c4cd62be9b4efe6591edde0ec5bd68d8f"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.48"
+version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
+checksum = "6bb623b56e39ab7dcd4b1b98bb6c8f8d907ed255b18de254088016b27a8ee19b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -15387,7 +15394,7 @@ checksum = "630bdcf245f78637c13ec01ffae6187cca34625e8c63150d424b59e55af2675e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -15409,7 +15416,7 @@ checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
  "rustls 0.20.9",
  "tokio",
- "webpki 0.22.1",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -15505,9 +15512,9 @@ dependencies = [
 
 [[package]]
 name = "tower-http"
-version = "0.4.4"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61c5bb1d698276a2443e5ecfabc1008bf15a36c12e6a7176e7bf089ea9131140"
+checksum = "55ae70283aba8d2a8b411c695c437fe25b8b5e44e23e780662002fc72fb47a82"
 dependencies = [
  "bitflags 2.4.0",
  "bytes",
@@ -15554,7 +15561,7 @@ checksum = "5f4f31f56159e98206da9efd823404b79b6ef3143b4a7ab76e67b1751b25a4ab"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -15597,7 +15604,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -16074,7 +16081,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
  "wasm-bindgen-shared",
 ]
 
@@ -16108,7 +16115,7 @@ checksum = "54681b18a46765f095758388f2d0cf16eb8d4169b639ab575a8f5693af210c7b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -16443,9 +16450,9 @@ dependencies = [
 
 [[package]]
 name = "webpki"
-version = "0.22.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0e74f82d49d545ad128049b7e88f6576df2da6b02e9ce565c6f533be576957e"
+checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
 dependencies = [
  "ring",
  "untrusted",
@@ -16457,7 +16464,7 @@ version = "0.22.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c71e40d7d2c34a5106301fb632274ca37242cd0c9d3e64dbece371a40a2d87"
 dependencies = [
- "webpki 0.22.1",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -16792,14 +16799,13 @@ dependencies = [
 
 [[package]]
 name = "which"
-version = "4.4.2"
+version = "4.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ba24419a2078cd2b0f2ede2691b6c66d8e47836da3b6db8265ebad47afbfc7"
+checksum = "2441c784c52b289a054b7201fc93253e288f094e2f4be9058343127c4226a269"
 dependencies = [
  "either",
- "home",
+ "libc",
  "once_cell",
- "rustix 0.38.11",
 ]
 
 [[package]]
@@ -17221,7 +17227,7 @@ dependencies = [
  "Inflector",
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
@@ -17282,7 +17288,7 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.31",
+ "syn 2.0.29",
 ]
 
 [[package]]
