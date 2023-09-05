@@ -521,7 +521,6 @@ fn verify_reserved_indices() {
 		RuntimeMetadata::V14(metadata) => metadata,
 		_ => panic!("metadata has been bumped, test needs to be updated"),
 	};
-	// 9: EthereumChainId
 	// 35: BaseFee
 	let reserved = vec![35];
 	let existing = metadata

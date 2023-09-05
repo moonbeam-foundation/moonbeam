@@ -100,6 +100,7 @@ where
 		vec![Box::new(pallet_referenda_migrate_v0_to_v1)]
 	}
 }
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -115,7 +116,6 @@ where
 	Runtime: pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
-	Runtime: pallet_evm_chain_id::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {

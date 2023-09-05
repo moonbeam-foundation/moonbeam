@@ -512,7 +512,6 @@ fn verify_reserved_indices() {
 		_ => panic!("metadata has been bumped, test needs to be updated"),
 	};
 	// 40: Sudo
-	// 50: EthereumChainId
 	// 53: BaseFee
 	let reserved = vec![40, 53];
 	let existing = metadata
