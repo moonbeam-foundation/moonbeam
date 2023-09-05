@@ -121,7 +121,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonriver_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonriver_runtime::ParachainInfo>("ParachainInfo");
-	is_pallet_prefix::<moonriver_runtime::EvmChainId>("EvmChainId");
+	is_pallet_prefix::<moonriver_runtime::EthereumChainId>("EthereumChainId");
 	is_pallet_prefix::<moonriver_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonriver_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonriver_runtime::ParachainStaking>("ParachainStaking");
@@ -476,9 +476,9 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Migrations>(34);
 	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
 	// Ethereum compatibility
+	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
 	is_pallet_index::<moonriver_runtime::Ethereum>(52);
-	is_pallet_index::<moonriver_runtime::EvmChainId>(54);
 	// Governance
 	is_pallet_index::<moonriver_runtime::Scheduler>(60);
 	is_pallet_index::<moonriver_runtime::Democracy>(61);
@@ -514,7 +514,7 @@ fn verify_reserved_indices() {
 	// 40: Sudo
 	// 50: EthereumChainId
 	// 53: BaseFee
-	let reserved = vec![40, 50, 53];
+	let reserved = vec![40, 53];
 	let existing = metadata
 		.pallets
 		.iter()

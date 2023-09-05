@@ -27,11 +27,12 @@ use hex_literal::hex;
 use moonbase_runtime::EligibilityValue;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EthereumConfig,
-	EvmChainIdConfig, GenesisAccount, GenesisConfig, InflationInfo, MaintenanceModeConfig,
-	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
+	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
+	HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -261,7 +262,7 @@ pub fn testnet_genesis(
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
-		evm_chain_id: EvmChainIdConfig { chain_id },
+		ethereum_chain_id: EthereumChainIdConfig { chain_id },
 		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.

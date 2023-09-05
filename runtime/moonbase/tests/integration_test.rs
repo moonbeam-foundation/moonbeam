@@ -126,7 +126,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbase_runtime::TransactionPayment>("TransactionPayment");
 	is_pallet_prefix::<moonbase_runtime::ParachainInfo>("ParachainInfo");
-	is_pallet_prefix::<moonbase_runtime::EvmChainId>("EvmChainId");
+	is_pallet_prefix::<moonbase_runtime::EthereumChainId>("EthereumChainId");
 	is_pallet_prefix::<moonbase_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonbase_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonbase_runtime::ParachainStaking>("ParachainStaking");
@@ -479,6 +479,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
 	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
 	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);
+	is_pallet_index::<moonbase_runtime::EthereumChainId>(9);
 	is_pallet_index::<moonbase_runtime::EVM>(10);
 	is_pallet_index::<moonbase_runtime::Ethereum>(11);
 	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
@@ -510,7 +511,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
 	is_pallet_index::<moonbase_runtime::OpenTechCommitteeCollective>(46);
-	is_pallet_index::<moonbase_runtime::EvmChainId>(50);
 }
 
 #[test]
@@ -523,7 +523,7 @@ fn verify_reserved_indices() {
 	};
 	// 9: EthereumChainId
 	// 35: BaseFee
-	let reserved = vec![9, 35];
+	let reserved = vec![35];
 	let existing = metadata
 		.pallets
 		.iter()
