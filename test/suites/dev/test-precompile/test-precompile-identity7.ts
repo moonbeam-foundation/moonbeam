@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_PRIVATE_KEY, baltathar, charleth } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { toHex } from "viem";
-import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../../tests/util/constants.js";
+import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers/constants.ts";
 
 describeSuite({
   id: "D3406",

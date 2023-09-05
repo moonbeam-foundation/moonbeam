@@ -4,7 +4,7 @@ import { BALTATHAR_PRIVATE_KEY, baltathar } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { decodeEventLog, toHex } from "viem";
-import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../../tests/util/constants.js";
+import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers/constants.ts";
 
 describeSuite({
   id: "D3401",

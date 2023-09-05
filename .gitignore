@@ -13,12 +13,12 @@
 /build/
 
 # Generated test specs
-/tests/moonbeam-test-specs/*.json
-/tests/binaries
-/tests/runtimes
-/tests/specs
-/tests/build
-/tests/rococo*.json
+/archived_tests/moonbeam-test-specs/*.json
+/archived_tests/binaries
+/archived_tests/runtimes
+/archived_tests/specs
+/archived_tests/build
+/archived_tests/rococo*.json
 
 # Moonbeam-Launch
 *.log
