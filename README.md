@@ -6,7 +6,7 @@ Moonbeam repository has been migrated from purestake to the Moonbeam Foundation 
 https://github.com/moonbeam-foundation/moonbeam
 
 Github references/cloning as well as cargo build will keep working as expected. It is however
-recommended to change those references once the migration is done.
+recommended changing those references once the migration is done.
 
 # Information
 
@@ -44,7 +44,7 @@ For more information, see our detailed instructions to [run a development node](
 
 ### Sealing options
 
-The command above will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at a regular interval, or control authoring manually through the RPC.
+The command above will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at regular interval or control authoring manually through the RPC.
 
 ```bash
 # Author a block every 6 seconds.
@@ -101,7 +101,7 @@ Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hol
 - PrivKey: 0x94c49300a58d576011096bcb006aa06f5a91b34b4383891e8029c21dc39fbb8b
 ```
 
-Also, the prefunded default account for testing purposes is:
+Also, the pre-funded default account for testing purposes is:
 
 ```
 # Gerald:
@@ -136,7 +136,7 @@ cargo test
 ```
 
 > [!IMPORTANT]\
-> If you do not have **pnpm**, you can install with: `npm install -g pnpm`
+> If you do not have **pnpm**, you can install it with: `npm install -g pnpm`
 
 ```bash
 cd test
@@ -168,7 +168,7 @@ The Moonbeam Runtime is built using FRAME and consists of pallets from substrate
 
 From substrate:
 
-- _Utility_: Allows users to use derivative accounts, and batch calls
+- _Utility_: Allows users to use derivative accounts and batch calls
 - _Balances_: Tracks GLMR token balances
 - _Sudo_: Allows a privileged account to make arbitrary runtime changes - will be removed before
   launch
@@ -189,7 +189,6 @@ From cumulus:
 
 The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
-- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 
