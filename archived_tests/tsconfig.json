@@ -15,7 +15,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "tests/**/*.ts",
+    "*tests/**/*.ts",
     "util/*.ts",
     "tools/*.ts",
     "util/**/*.json",
