@@ -25,7 +25,9 @@
 pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
-use cumulus_client_consensus_common::{ParachainBlockImport, ParachainConsensus};
+use cumulus_client_consensus_common::{
+	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
+};
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -37,7 +39,7 @@ use cumulus_primitives_parachain_inherent::{
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
-use fc_consensus::FrontierBlockImport;
+use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
@@ -83,6 +85,32 @@ type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+
+type FrontierBlockImport<RuntimeApi, Executor> = TFrontierBlockImport<
+	Block,
+	Arc<FullClient<RuntimeApi, Executor>>,
+	FullClient<RuntimeApi, Executor>,
+>;
+type ParachainBlockImport<RuntimeApi, Executor> =
+	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi, Executor>, FullBackend>;
+type PartialComponentsResult<RuntimeApi, Executor, BlockImport> = Result<
+	PartialComponents<
+		FullClient<RuntimeApi, Executor>,
+		FullBackend,
+		MaybeSelectChain,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		(
+			BlockImport,
+			Option<FilterPool>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			fc_db::Backend<Block>,
+			FeeHistoryCache,
+		),
+	>,
+	ServiceError,
+>;
 
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
@@ -242,23 +270,6 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 		.config_dir(config.chain_spec.id())
 		.join("frontier")
 		.join(path)
-}
-
-pub struct CommonPartialComponents<Client, Backend, SelectChain, TransactionPool, Other> {
-	/// A shared client instance.
-	pub client: Arc<Client>,
-	/// A shared backend instance.
-	pub backend: Arc<Backend>,
-	/// The chain task manager.
-	pub task_manager: TaskManager,
-	/// A keystore container instance..
-	pub keystore_container: KeystoreContainer,
-	/// A chain selection algorithm instance.
-	pub select_chain: SelectChain,
-	/// A shared transaction pool.
-	pub transaction_pool: Arc<TransactionPool>,
-	/// Everything else that needs to be passed into the main build function.
-	pub other: Other,
 }
 
 // TODO This is copied from frontier. It should be imported instead after
@@ -429,32 +440,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> Result<
-	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
-		FullBackend,
-		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
-		(
-			ParachainBlockImport<
-				Block,
-				FrontierBlockImport<
-					Block,
-					Arc<FullClient<RuntimeApi, Executor>>,
-					FullClient<RuntimeApi, Executor>,
-				>,
-				FullBackend,
-			>,
-			Option<FilterPool>,
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
-			FeeHistoryCache,
-		),
-	>,
-	ServiceError,
->
+) -> PartialComponentsResult<RuntimeApi, Executor, ParachainBlockImport<RuntimeApi, Executor>>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -462,23 +448,22 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: ExecutorT + 'static,
 {
-	let CommonPartialComponents {
-		client,
+	let (
 		backend,
+		client,
 		keystore_container,
 		task_manager,
-		transaction_pool,
 		select_chain,
-		other:
-			(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
-		..
-	} = new_partial_common::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
+		transaction_pool,
+		(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
+	) = new_components(config, rpc_config, dev_service)?;
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
 		frontier_block_import,
 		backend.clone(),
 	);
+
 	let import_queue = nimbus_consensus::import_queue(
 		client.clone(),
 		parachain_block_import.clone(),
@@ -516,28 +501,7 @@ pub fn new_partial_dev<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> Result<
-	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
-		FullBackend,
-		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
-		(
-			FrontierBlockImport<
-				Block,
-				Arc<FullClient<RuntimeApi, Executor>>,
-				FullClient<RuntimeApi, Executor>,
-			>,
-			Option<FilterPool>,
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
-			FeeHistoryCache,
-		),
-	>,
-	ServiceError,
->
+) -> PartialComponentsResult<RuntimeApi, Executor, FrontierBlockImport<RuntimeApi, Executor>>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -545,17 +509,15 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: ExecutorT + 'static,
 {
-	let CommonPartialComponents {
-		client,
+	let (
 		backend,
+		client,
 		keystore_container,
 		task_manager,
-		transaction_pool,
 		select_chain,
-		other:
-			(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
-		..
-	} = new_partial_common::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
+		transaction_pool,
+		(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
+	) = new_components(config, rpc_config, dev_service)?;
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
@@ -591,21 +553,18 @@ where
 	})
 }
 
-/// Builds the PartialComponents for a parachain or development service
-///
-/// Use this function if you don't actually need the full service, but just the partial in order to
-/// be able to perform chain operations.
-#[allow(clippy::type_complexity)]
-pub fn new_partial_common<RuntimeApi, Executor>(
+fn new_components<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
 ) -> Result<
-	CommonPartialComponents<
-		FullClient<RuntimeApi, Executor>,
-		FullBackend,
+	(
+		Arc<FullBackend>,
+		Arc<FullClient<RuntimeApi, Executor>>,
+		KeystoreContainer,
+		TaskManager,
 		MaybeSelectChain,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
 		(
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -613,7 +572,7 @@ pub fn new_partial_common<RuntimeApi, Executor>(
 			fc_db::Backend<Block>,
 			FeeHistoryCache,
 		),
-	>,
+	),
 	ServiceError,
 >
 where
@@ -701,21 +660,21 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 
-	Ok(CommonPartialComponents {
+	Ok((
 		backend,
 		client,
 		keystore_container,
 		task_manager,
+		maybe_select_chain,
 		transaction_pool,
-		select_chain: maybe_select_chain,
-		other: (
+		(
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
 			frontier_backend,
 			fee_history_cache,
 		),
-	})
+	))
 }
 
 async fn build_relay_chain_interface(
