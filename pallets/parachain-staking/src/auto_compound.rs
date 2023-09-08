@@ -63,8 +63,7 @@ where
 		Self(sorted_delegations)
 	}
 
-	/// Retrieves the length of an instance of [AutoCompoundingDelegations] storage.
-	pub fn get_storage_len(candidate: &T::AccountId) -> usize {
+	pub fn get_auto_compounding_delegation_count(candidate: &T::AccountId) -> usize {
 		<AutoCompoundingDelegationsStorage<T>>::decode_len(candidate).unwrap_or_default()
 	}
 
@@ -210,7 +209,7 @@ where
 
 		if !auto_compound.is_zero() {
 			ensure!(
-				Self::get_storage_len(&candidate) as u32
+				Self::get_auto_compounding_delegation_count(&candidate) as u32
 					<= candidate_auto_compounding_delegation_count_hint,
 				<Error<T>>::TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 			);
