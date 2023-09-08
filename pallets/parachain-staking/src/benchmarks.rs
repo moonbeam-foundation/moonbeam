@@ -2029,6 +2029,8 @@ benchmarks! {
 	delegate_with_auto_compound_worst {
 		// We assume that the delegation bumps the bottom-most delegator, which has its scheduled requests
 		// from a maxed delegation requests
+		use crate::auto_compound::AutoCompoundDelegations;
+
 		let mut seed = Seed::new();
 		let mut candidate_count = 1u32;
 		let prime_candidate = create_account::<T>(
