@@ -435,6 +435,10 @@ fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceErro
 	Ok(())
 }
 
+/// Builds the PartialComponents for a parachain. Uses `ParachainBlockImport` as the block import.
+///
+/// Use this function if you don't actually need the full service, but just the partial in order to
+/// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
@@ -496,6 +500,7 @@ where
 	})
 }
 
+/// Builds the PartialComponents in dev mode. Uses `FrontierBlockImport` as the block import.
 #[allow(clippy::type_complexity)]
 pub fn new_partial_dev<RuntimeApi, Executor>(
 	config: &mut Configuration,
