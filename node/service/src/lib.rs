@@ -406,10 +406,6 @@ fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceErro
 	Ok(())
 }
 
-/// Builds the PartialComponents for a parachain or development service
-///
-/// Use this function if you don't actually need the full service, but just the partial in order to
-/// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
@@ -431,6 +427,99 @@ pub fn new_partial<RuntimeApi, Executor>(
 					FullClient<RuntimeApi, Executor>,
 				>,
 				FullBackend,
+			>,
+			Option<FilterPool>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			fc_db::Backend<Block>,
+			FeeHistoryCache,
+		),
+	>,
+	ServiceError,
+>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: ExecutorT + 'static,
+{
+	let PartialComponents {
+		client,
+		backend,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain,
+		other:
+			(
+				frontier_block_import,
+				filter_pool,
+				telemetry,
+				telemetry_worker_handle,
+				frontier_backend,
+				fee_history_cache,
+			),
+		..
+	} = new_partial_inner::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
+
+	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
+		frontier_block_import,
+		backend.clone(),
+	);
+	let import_queue = nimbus_consensus::import_queue(
+		client.clone(),
+		parachain_block_import.clone(),
+		move |_, _| async move {
+			let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+			Ok((time,))
+		},
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		!dev_service,
+	)?;
+
+	Ok(PartialComponents {
+		client,
+		backend,
+		import_queue,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain,
+		other: (
+			parachain_block_import,
+			filter_pool,
+			telemetry,
+			telemetry_worker_handle,
+			frontier_backend,
+			fee_history_cache,
+		),
+	})
+}
+
+/// Builds the PartialComponents for a parachain or development service
+///
+/// Use this function if you don't actually need the full service, but just the partial in order to
+/// be able to perform chain operations.
+#[allow(clippy::type_complexity)]
+pub fn new_partial_inner<RuntimeApi, Executor>(
+	config: &mut Configuration,
+	rpc_config: &RpcConfig,
+	dev_service: bool,
+) -> Result<
+	PartialComponents<
+		FullClient<RuntimeApi, Executor>,
+		FullBackend,
+		MaybeSelectChain,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		(
+			FrontierBlockImport<
+				Block,
+				Arc<FullClient<RuntimeApi, Executor>>,
+				FullClient<RuntimeApi, Executor>,
 			>,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -526,15 +615,11 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
-	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
-		frontier_block_import,
-		backend.clone(),
-	);
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
 		client.clone(),
-		parachain_block_import.clone(),
+		frontier_block_import.clone(),
 		move |_, _| async move {
 			let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -554,7 +639,7 @@ where
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			parachain_block_import,
+			frontier_block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -1036,7 +1121,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+	} = new_partial_inner::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 
