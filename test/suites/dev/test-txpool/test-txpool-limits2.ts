@@ -22,13 +22,13 @@ describeSuite({
           const rawTxn = await createEthersTransaction(context, {
             data: deployData,
             nonce: i,
-            gas: 400000n,
+            gasLimit: 400000n,
           });
           await sendRawTransaction(context, rawTxn);
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(95);
+        expect((await context.viem().getBlock()).transactions.length).toBe(69);
       },
     });
   },

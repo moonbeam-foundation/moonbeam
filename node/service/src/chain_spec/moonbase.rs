@@ -55,6 +55,12 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
 	)));
 
+	// Prefund the benchmark account for frontier, if compiling for benchmarks
+	#[cfg(feature = "runtime-benchmarks")]
+	accounts.push(AccountId::from(hex!(
+		"1000000000000000000000000000000000000001"
+	)));
+
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
 		"moonbase_dev",

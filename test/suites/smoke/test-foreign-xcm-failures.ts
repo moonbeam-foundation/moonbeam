@@ -7,7 +7,6 @@ import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js"
 import { ForeignChainsEndpoints, getEndpoints } from "../../helpers/foreign-chains.js";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : TEN_MINS;
-const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
 const limiter = rateLimiter();
 
 type BlockEventsRecord = {
@@ -58,9 +57,9 @@ describeSuite({
       });
 
       const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
-        let blockEvents: BlockEventsRecord[];
+        let blockEvents: BlockEventsRecord[] = [];
 
-        if (mutedUntil >= new Date().getTime()) {
+        if (mutedUntil && mutedUntil >= new Date().getTime()) {
           log(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }

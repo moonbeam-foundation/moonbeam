@@ -377,8 +377,8 @@ jobs:
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
-          mkdir -p tests/moonbase-overrides/
-          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
+          mkdir -p archived_tests/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm archived_tests/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
           BINARY_PATH: ../build/moonbeam
@@ -398,7 +398,7 @@ jobs:
           cd ../typescript-api
           npm ci
 
-          cd ../tests
+          cd ../archived_tests
           npm ci
           #### Prepares and copies the typescript generated API to include in the tests
           npm run setup-typescript-api

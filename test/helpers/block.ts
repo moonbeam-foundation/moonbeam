@@ -15,6 +15,8 @@ import { expect } from "@moonwall/cli";
 import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { ITuple } from "@polkadot/types-codec/types";
+import { Debugger } from "debug";
+import chalk from "chalk";
 
 const debug = require("debug")("test:blocks");
 
@@ -393,4 +395,35 @@ export function extractPreimageDeposit(
     accountId: (deposit as any)[0].toHex(),
     amount: (deposit as any)[1],
   };
+}
+
+export async function countExtrinsics(
+  context: DevModeContext,
+  method: string,
+  logger: Debugger
+): Promise<[number, number, number]> {
+  const block = await context.polkadotJs().rpc.chain.getBlock();
+  const extrinsicCount = block.block.extrinsics.reduce(
+    (acc, ext) =>
+      acc + (ext.method.section === "parachainStaking" && ext.method.method === method ? 1 : 0),
+    0
+  );
+
+  const maxBlockWeights = context.polkadotJs().consts.system.blockWeights;
+  const blockWeights = await context.polkadotJs().query.system.blockWeight();
+
+  const weightUtil =
+    blockWeights.normal.refTime.toNumber() /
+    maxBlockWeights.perClass.normal.maxTotal.unwrap().refTime.toNumber();
+  const proofUtil =
+    blockWeights.normal.proofSize.toNumber() /
+    maxBlockWeights.perClass.normal.maxTotal.unwrap().proofSize.toNumber();
+
+  logger(
+    `  ${chalk.yellow("○")} ${chalk.gray(method)} max ${chalk.green(
+      extrinsicCount
+    )} per block (w: ${(weightUtil * 100).toFixed(1)}%, p: ${(proofUtil * 100).toFixed(1)}%)`
+  );
+
+  return [extrinsicCount, weightUtil, proofUtil];
 }

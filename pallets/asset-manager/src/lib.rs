@@ -54,10 +54,11 @@ pub mod mock;
 pub mod tests;
 pub mod weights;
 
+pub use crate::weights::WeightInfo;
+
 #[pallet]
 pub mod pallet {
-
-	use crate::weights::WeightInfo;
+	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
 		traits::{Currency, ReservableCurrency},

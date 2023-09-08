@@ -30,12 +30,21 @@ pub struct XcmRoutingUserAction {
 	pub destination: VersionedMultiLocation,
 }
 
+// A user action which is the same as XcmRoutingUserAction but also allows a fee to be paid. The
+// fee is paid in the same asset being transferred, and must be <= the amount being sent.
+#[derive(Encode, Decode, Debug)]
+pub struct XcmRoutingUserActionWithFee {
+	pub destination: VersionedMultiLocation,
+	pub fee: U256,
+}
+
 // A simple versioning wrapper around the initial XcmRoutingUserAction use-case. This should make
 // future breaking changes easy to add in a backwards-compatible way.
 #[derive(Encode, Decode, Debug)]
 #[non_exhaustive]
 pub enum VersionedUserAction {
 	V1(XcmRoutingUserAction),
+	V2(XcmRoutingUserActionWithFee),
 }
 
 // Struct representing a Wormhole VM
