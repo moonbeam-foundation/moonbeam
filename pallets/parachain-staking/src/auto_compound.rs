@@ -63,6 +63,11 @@ where
 		Self(sorted_delegations)
 	}
 
+	/// Retrieves the length of an instance of [AutoCompoundingDelegations] storage.
+	pub fn get_storage_len(candidate: &T::AccountId) -> usize {
+		<AutoCompoundingDelegationsStorage<T>>::decode_len(candidate).unwrap_or_default()
+	}
+
 	/// Retrieves an instance of [AutoCompoundingDelegations] storage as [AutoCompoundDelegations].
 	pub fn get_storage(candidate: &T::AccountId) -> Self {
 		Self(<AutoCompoundingDelegationsStorage<T>>::get(candidate))
@@ -203,15 +208,12 @@ where
 			Error::<T>::TooLowCandidateDelegationCountToDelegate
 		);
 
-		// set auto-compound config if the percent is non-zero
-		let mut auto_compounding_state = None;
 		if !auto_compound.is_zero() {
-			let acs = Self::get_storage(&candidate);
 			ensure!(
-				acs.len() <= candidate_auto_compounding_delegation_count_hint,
+				Self::get_storage_len(&candidate) as u32
+					<= candidate_auto_compounding_delegation_count_hint,
 				<Error<T>>::TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 			);
-			auto_compounding_state = Some(acs);
 		}
 
 		// add delegation to candidate
@@ -235,7 +237,9 @@ where
 		};
 		let new_total_locked = <Total<T>>::get().saturating_add(net_total_increase);
 
-		if let Some(mut auto_compounding_state) = auto_compounding_state {
+		// set auto-compound config if the percent is non-zero
+		if !auto_compound.is_zero() {
+			let mut auto_compounding_state = Self::get_storage(&candidate);
 			auto_compounding_state.set_for_delegator(delegator.clone(), auto_compound.clone())?;
 			auto_compounding_state.set_storage(&candidate);
 		}
