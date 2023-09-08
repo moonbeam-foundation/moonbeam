@@ -62,6 +62,7 @@ use sc_executor::{
 };
 use sc_network::{config::FullNetworkConfiguration, NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
+use sc_service::KeystoreContainer;
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
 	TFullClient, TaskManager,
@@ -241,6 +242,23 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 		.config_dir(config.chain_spec.id())
 		.join("frontier")
 		.join(path)
+}
+
+pub struct CommonPartialComponents<Client, Backend, SelectChain, TransactionPool, Other> {
+	/// A shared client instance.
+	pub client: Arc<Client>,
+	/// A shared backend instance.
+	pub backend: Arc<Backend>,
+	/// The chain task manager.
+	pub task_manager: TaskManager,
+	/// A keystore container instance..
+	pub keystore_container: KeystoreContainer,
+	/// A chain selection algorithm instance.
+	pub select_chain: SelectChain,
+	/// A shared transaction pool.
+	pub transaction_pool: Arc<TransactionPool>,
+	/// Everything else that needs to be passed into the main build function.
+	pub other: Other,
 }
 
 // TODO This is copied from frontier. It should be imported instead after
@@ -444,7 +462,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: ExecutorT + 'static,
 {
-	let PartialComponents {
+	let CommonPartialComponents {
 		client,
 		backend,
 		keystore_container,
@@ -452,17 +470,11 @@ where
 		transaction_pool,
 		select_chain,
 		other:
-			(
-				frontier_block_import,
-				filter_pool,
-				telemetry,
-				telemetry_worker_handle,
-				frontier_backend,
-				fee_history_cache,
-			),
+			(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
 		..
-	} = new_partial_inner::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
+	} = new_partial_common::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
 
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
 		frontier_block_import,
 		backend.clone(),
@@ -499,12 +511,8 @@ where
 	})
 }
 
-/// Builds the PartialComponents for a parachain or development service
-///
-/// Use this function if you don't actually need the full service, but just the partial in order to
-/// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn new_partial_inner<RuntimeApi, Executor>(
+pub fn new_partial_dev<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
@@ -521,6 +529,84 @@ pub fn new_partial_inner<RuntimeApi, Executor>(
 				Arc<FullClient<RuntimeApi, Executor>>,
 				FullClient<RuntimeApi, Executor>,
 			>,
+			Option<FilterPool>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			fc_db::Backend<Block>,
+			FeeHistoryCache,
+		),
+	>,
+	ServiceError,
+>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: ExecutorT + 'static,
+{
+	let CommonPartialComponents {
+		client,
+		backend,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain,
+		other:
+			(filter_pool, telemetry, telemetry_worker_handle, frontier_backend, fee_history_cache),
+		..
+	} = new_partial_common::<RuntimeApi, Executor>(config, rpc_config, dev_service)?;
+
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
+
+	let import_queue = nimbus_consensus::import_queue(
+		client.clone(),
+		frontier_block_import.clone(),
+		move |_, _| async move {
+			let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+			Ok((time,))
+		},
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		!dev_service,
+	)?;
+
+	Ok(PartialComponents {
+		client,
+		backend,
+		import_queue,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain,
+		other: (
+			frontier_block_import,
+			filter_pool,
+			telemetry,
+			telemetry_worker_handle,
+			frontier_backend,
+			fee_history_cache,
+		),
+	})
+}
+
+/// Builds the PartialComponents for a parachain or development service
+///
+/// Use this function if you don't actually need the full service, but just the partial in order to
+/// be able to perform chain operations.
+#[allow(clippy::type_complexity)]
+pub fn new_partial_common<RuntimeApi, Executor>(
+	config: &mut Configuration,
+	rpc_config: &RpcConfig,
+	dev_service: bool,
+) -> Result<
+	CommonPartialComponents<
+		FullClient<RuntimeApi, Executor>,
+		FullBackend,
+		MaybeSelectChain,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		(
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -614,32 +700,15 @@ where
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
-	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
-	// Depending whether we are
-	let import_queue = nimbus_consensus::import_queue(
-		client.clone(),
-		frontier_block_import.clone(),
-		move |_, _| async move {
-			let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-			Ok((time,))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		!dev_service,
-	)?;
-
-	Ok(PartialComponents {
+	Ok(CommonPartialComponents {
 		backend,
 		client,
-		import_queue,
 		keystore_container,
 		task_manager,
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			frontier_block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -1121,7 +1190,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial_inner::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+	} = new_partial_dev::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 
