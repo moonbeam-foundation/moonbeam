@@ -5,15 +5,6 @@ import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
 import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
 
-export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-
-  return chunks;
-}
-
 export function rateLimiter(options?: Bottleneck.ConstructorOptions) {
   const settings =
     process.env.SKIP_RATE_LIMITER === "true"
@@ -118,4 +109,19 @@ export function signWith(
     .sign(pair);
 
   return signature as `0x${string}`; //TODO: fix this when type problem is fixed
+}
+
+/**
+ * Chunks a given array
+ *
+ * @param array - The array to chunk
+ * @param size - Size of a chunk
+ */
+export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+
+  return chunks;
 }

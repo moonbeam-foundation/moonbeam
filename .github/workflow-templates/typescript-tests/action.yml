@@ -47,7 +47,7 @@ runs:
         cd ../typescript-api
         npm ci
 
-        cd ../tests
+        cd ../archived_tests
         npm ci
 
         #### Prepares and copies the typescript generated API to include in the tests
@@ -58,7 +58,7 @@ runs:
       run: |
         #### Compile typescript tests into javascript (more stable for Mocha)
         #### This also better display typescript issues
-        cd ./tests
+        cd ./archived_tests
         npm run build
 
     - name: Execute tests
@@ -66,7 +66,7 @@ runs:
       env:
         NODE_OPTIONS: "--max-old-space-size=12288"
       run: |
-        cd ./tests
+        cd ./archived_tests
         node node_modules/.bin/mocha \
           --timeout ${{ inputs.timeout }} \
           --parallel -j $((CPUS / 4)) \
@@ -82,7 +82,7 @@ runs:
       env:
         NODE_OPTIONS: "--max-old-space-size=12288"
       run: |
-        cd ./tests
+        cd ./archived_tests
         # Log npm version to make sure it maches with local version
         npm -v
         # Make sure git is working, and if not abort early. When git is not working it looks like:

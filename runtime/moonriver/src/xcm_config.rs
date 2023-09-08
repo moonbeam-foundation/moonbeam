@@ -23,6 +23,7 @@ use super::{
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
+use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, PostDispatchInfoOf},
@@ -389,7 +390,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	// TODO pallet-xcm weights
-	type WeightInfo = pallet_xcm::TestWeightInfo;
+	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
 	type AdminOrigin = EnsureRoot<AccountId>;
@@ -408,7 +409,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Self>;
+	type WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type PriceForSiblingDelivery = ();
 }
 
@@ -645,7 +646,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }

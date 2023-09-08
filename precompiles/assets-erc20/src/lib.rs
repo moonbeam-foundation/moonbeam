@@ -277,6 +277,7 @@ where
 					id: asset_id.clone().into(),
 					delegate: Runtime::Lookup::unlookup(spender.clone()),
 				},
+				0,
 			)?;
 		}
 		// Dispatch call (if enough gas).
@@ -288,6 +289,7 @@ where
 				delegate: Runtime::Lookup::unlookup(spender),
 				amount,
 			},
+			0,
 		)?;
 
 		Ok(())
@@ -319,6 +321,7 @@ where
 					target: Runtime::Lookup::unlookup(to),
 					amount: value,
 				},
+				SYSTEM_ACCOUNT_SIZE,
 			)?;
 		}
 
@@ -366,6 +369,7 @@ where
 						destination: Runtime::Lookup::unlookup(to),
 						amount: value,
 					},
+					SYSTEM_ACCOUNT_SIZE,
 				)?;
 			} else {
 				// Dispatch call (if enough gas).
@@ -377,6 +381,7 @@ where
 						target: Runtime::Lookup::unlookup(to),
 						amount: value,
 					},
+					SYSTEM_ACCOUNT_SIZE,
 				)?;
 			}
 		}
@@ -551,6 +556,7 @@ where
 					beneficiary: Runtime::Lookup::unlookup(to),
 					amount: value,
 				},
+				SYSTEM_ACCOUNT_SIZE,
 			)?;
 		}
 
@@ -596,6 +602,7 @@ where
 					who: Runtime::Lookup::unlookup(from),
 					amount: value,
 				},
+				0,
 			)?;
 		}
 
@@ -636,6 +643,7 @@ where
 					id: asset_id.into(),
 					who: Runtime::Lookup::unlookup(account),
 				},
+				0,
 			)?;
 		}
 
@@ -667,6 +675,7 @@ where
 					id: asset_id.into(),
 					who: Runtime::Lookup::unlookup(account),
 				},
+				0,
 			)?;
 		}
 
@@ -694,6 +703,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::freeze_asset {
 					id: asset_id.into(),
 				},
+				0,
 			)?;
 		}
 
@@ -721,6 +731,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::thaw_asset {
 					id: asset_id.into(),
 				},
+				0,
 			)?;
 		}
 
@@ -754,6 +765,7 @@ where
 					id: asset_id.into(),
 					owner: Runtime::Lookup::unlookup(owner),
 				},
+				0,
 			)?;
 		}
 
@@ -794,6 +806,7 @@ where
 					admin: Runtime::Lookup::unlookup(admin),
 					freezer: Runtime::Lookup::unlookup(freezer),
 				},
+				0,
 			)?;
 		}
 
@@ -827,6 +840,7 @@ where
 					symbol: symbol.into(),
 					decimals,
 				},
+				0,
 			)?;
 		}
 
@@ -854,6 +868,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::clear_metadata {
 					id: asset_id.into(),
 				},
+				0,
 			)?;
 		}
 

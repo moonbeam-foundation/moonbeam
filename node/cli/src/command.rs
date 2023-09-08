@@ -742,8 +742,9 @@ pub fn run() -> Result<()> {
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
 				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-				let dev_service =
-					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service");
+				let dev_service = cli.run.dev_service
+					|| config.chain_spec.is_dev()
+					|| relay_chain_id == Some("dev-service");
 
 				if dev_service {
 					// When running the dev service, just use Alice's author inherent

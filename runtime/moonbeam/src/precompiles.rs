@@ -233,6 +233,12 @@ type MoonbeamPrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<AddressU64<2070>, GmpPrecompile<R>, SubcallWithMaxNesting<0>>,
+	// Address 2071 is reserved for XCM Transactor Precompile V3
+	/* PrecompileAt<
+		AddressU64<2071>,
+		XcmTransactorPrecompileV3<R>,
+		(CallableByContract, CallableByPrecompile),
+	>, */
 );
 
 /// The PrecompileSet installed in the Moonbeam runtime.

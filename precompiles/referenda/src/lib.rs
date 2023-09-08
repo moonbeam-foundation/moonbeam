@@ -287,7 +287,7 @@ where
 		}
 		.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		Ok(referendum_index)
 	}
@@ -563,7 +563,7 @@ where
 
 		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
 		let ongoing_referendum = Referenda::<Runtime>::ensure_ongoing(index).map_err(|_| {
@@ -616,7 +616,7 @@ where
 
 		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
@@ -652,7 +652,7 @@ where
 
 		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		let event = log1(
 			handle.context().address,

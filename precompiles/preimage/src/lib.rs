@@ -76,7 +76,7 @@ where
 
 		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 		Ok(hash)
@@ -102,7 +102,7 @@ where
 
 		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
 
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
 		event.record(handle)?;
 

@@ -1,7 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
-import { countExtrinsics, createAccounts } from "../../../helpers/weights.js";
+import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith } from "@moonwall/util";
+import { createAccounts } from "../../../helpers/accounts.js";
+import { countExtrinsics } from "../../../helpers/block.js";
+
+const INITIAL_AMOUNT = 12n * MIN_GLMR_STAKING + 50n * GLMR;
 
 describeSuite({
   id: "D2988",
@@ -13,7 +16,7 @@ describeSuite({
       title: "delegateWithAutoCompound",
       test: async () => {
         const maxTransactions = 350;
-        const randomAccounts = await createAccounts(context, maxTransactions);
+        const randomAccounts = await createAccounts(context, maxTransactions, INITIAL_AMOUNT);
 
         await context.createBlock(
           randomAccounts.map((account, index) =>
