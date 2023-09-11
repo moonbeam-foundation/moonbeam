@@ -95,7 +95,7 @@ describeSuite({
           feeResults.baseFeePerGas.length,
           "baseFeePerGas should always the requested block range + 1 (the next derived base fee)"
         ).toBe(block_count + 1);
-        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.042456));
+        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.04209));
         expect(
           feeResults.reward.length,
           "should return two-dimensional reward list for the requested block range"

@@ -18,15 +18,15 @@ describeSuite({
     const TestParameters = [
       {
         loop: 1n,
-        gas: 43779n,
+        gas: 43_774n,
       },
       {
         loop: 500n,
-        gas: 242393n,
+        gas: 241_390n,
       },
       {
         loop: 600n,
-        gas: 282193n,
+        gas: 280_990n,
       },
     ];
 

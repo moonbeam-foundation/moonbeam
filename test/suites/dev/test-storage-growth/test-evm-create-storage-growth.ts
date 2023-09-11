@@ -15,8 +15,9 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     // This is the gas cost of the transaction that deploys the Fibonacci contract:
-    // (Account Code Size (112) + Length of the bytecode (559)) * Storage Growth Gas Ratio (366)
-    const EXPECTED_STORAGE_GROWTH_GAS = 245_586;
+    // (Account Code Size (112) + Length of the bytecode (550)) * Storage Growth Gas Ratio (366)
+    // The length of the bytecode is in the generate Fibonacci.json file at 'contract.evm.deployedBytecode.object'
+    const EXPECTED_STORAGE_GROWTH_GAS = 242_292;
     for (const txnType of TransactionTypes) {
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
@@ -27,7 +28,7 @@ describeSuite({
           const rawSigned = await createEthersTransaction(context, {
             account: ALITH_ADDRESS,
             data: bytecode,
-            gasLimit: 245_585,
+            gasLimit: EXPECTED_STORAGE_GROWTH_GAS - 1,
           });
 
           const { result } = await context.createBlock(rawSigned);
@@ -46,7 +47,7 @@ describeSuite({
           });
 
           expect(estimatedGas).toBeGreaterThanOrEqual(EXPECTED_STORAGE_GROWTH_GAS);
-          expect(estimatedGas).toBe(267041n);
+          expect(estimatedGas).toBe(263644n);
         },
       });
 

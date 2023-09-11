@@ -139,7 +139,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124883240781855n);
+        expect(baseFeePerGas).to.equal(124_883_131_084_512n);
 
         const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,
@@ -148,7 +148,7 @@ describeSuite({
             functionName: "fib2",
             args: [370],
           }),
-          gasLimit: 96234, // Replace this if OPCODE prices change
+          gasLimit: 95132, // Replace this if OPCODE prices change
           gasPrice: baseFeePerGas,
           txnType: "legacy",
         });
@@ -163,7 +163,7 @@ describeSuite({
           ({ event }) => event.method == "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
-        expect(weight).to.equal(2396800000n);
+        expect(weight).to.equal(2_378_300_000n);
 
         const withdrawEvents = interactionResult?.events.filter(
           ({ event }) => event.method == "Withdraw"
@@ -171,7 +171,7 @@ describeSuite({
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(12018013793401034070n);
+        expect(amount).to.equal(11_880_382_026_331_795_584n);
       },
     });
   },
