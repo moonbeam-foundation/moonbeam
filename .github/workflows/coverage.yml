@@ -108,8 +108,6 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
-        with:
-          features: "evm-tracing"
       - name: Clean-up possible coverage generated during builds
         run: |
           rm default_*.profraw
