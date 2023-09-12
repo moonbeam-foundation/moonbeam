@@ -16,7 +16,8 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     // This is the gas cost of the transaction that deploys the Fibonacci contract:
     // (Account Code Size (112) + Length of the bytecode (550)) * Storage Growth Gas Ratio (366)
-    // The length of the bytecode is in the generate Fibonacci.json file at 'contract.evm.deployedBytecode.object'
+    // The length of the bytecode is in the generate Fibonacci.json
+    // file at 'contract.evm.deployedBytecode.object'
     const EXPECTED_STORAGE_GROWTH_GAS = 242_292;
     for (const txnType of TransactionTypes) {
       it({

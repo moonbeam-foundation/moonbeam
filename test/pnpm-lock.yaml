@@ -69,8 +69,8 @@ dependencies:
     specifier: ^7.5.4
     version: 7.5.4
   solc:
-    specifier: 0.8.19
-    version: 0.8.19(debug@4.3.4)
+    specifier: 0.8.21
+    version: 0.8.21(debug@4.3.4)
   viem:
     specifier: ^1.7.0
     version: 1.7.0(typescript@5.1.6)
@@ -8246,8 +8246,8 @@ packages:
       smart-buffer: 4.2.0
     optional: true
 
-  /solc@0.8.19(debug@4.3.4):
-    resolution: {integrity: sha512-yqurS3wzC4LdEvmMobODXqprV4MYJcVtinuxgrp61ac8K2zz40vXA0eSAskSHPgv8dQo7Nux39i3QBsHx4pqyA==}
+  /solc@0.8.21(debug@4.3.4):
+    resolution: {integrity: sha512-N55ogy2dkTRwiONbj4e6wMZqUNaLZkiRcjGyeafjLYzo/tf/IvhHY5P5wpe+H3Fubh9idu071i8eOGO31s1ylg==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:
