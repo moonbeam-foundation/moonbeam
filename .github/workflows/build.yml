@@ -277,25 +277,6 @@ jobs:
           name: moonbeam
           path: build
 
-  build-features:
-    runs-on:
-      labels: bare-metal
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Cargo build
-        uses: ./.github/workflow-templates/cargo-build
-        with:
-          features: "try-runtime"
-      - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: moonbeam-features
-          path: build
-
   rust-test:
     runs-on:
       labels: bare-metal
