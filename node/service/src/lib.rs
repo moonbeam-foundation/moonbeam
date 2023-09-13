@@ -120,7 +120,9 @@ pub type HostFunctions = (
 
 /// Block Import Pipeline used.
 pub enum BlockImportPipeline<T, E> {
+	/// Used in dev mode to import new blocks as best blocks.
 	Dev(T),
+	/// Used in parachain mode.
 	Parachain(E),
 }
 
@@ -1055,7 +1057,7 @@ where
 		transaction_pool,
 		other:
 			(
-				block_import,
+				block_import_pipeline,
 				filter_pool,
 				mut telemetry,
 				_telemetry_worker_handle,
@@ -1064,7 +1066,7 @@ where
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
 
-	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import {
+	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
 		return Err(ServiceError::Other(
