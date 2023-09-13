@@ -559,7 +559,7 @@ where
 		)
 	} else {
 		let parachain_block_import =
-			ParachainBlockImport::new(frontier_block_import.clone(), backend.clone());
+			ParachainBlockImport::new(frontier_block_import, backend.clone());
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
