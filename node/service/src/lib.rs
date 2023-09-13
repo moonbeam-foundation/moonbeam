@@ -118,8 +118,8 @@ pub type HostFunctions = (
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
-/// A Block import that is used to set the fork choice strategy to custom::true in dev mode. This
-/// is used to allow to import blocks as new best blocks.
+/// A Block import that is used to set the fork choice strategy to Longest Chain in dev mode. This
+/// is used to allow to import blocks as new best blocks in the longest chain.
 pub struct MaybeNewBestBlockImport<BI> {
 	dev_service: bool,
 	inner: BI,
@@ -163,7 +163,7 @@ where
 		mut params: sc_consensus::BlockImportParams<Block, Self::Transaction>,
 	) -> Result<sc_consensus::ImportResult, Self::Error> {
 		if self.dev_service {
-			params.fork_choice = Some(sc_consensus::ForkChoiceStrategy::Custom(true));
+			params.fork_choice = Some(sc_consensus::ForkChoiceStrategy::LongestChain);
 		}
 		self.inner.import_block(params).await
 	}
@@ -695,7 +695,7 @@ where
 
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
-		_frontier_block_import,
+		_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
