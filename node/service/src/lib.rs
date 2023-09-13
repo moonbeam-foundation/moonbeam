@@ -58,7 +58,7 @@ use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
 };
-use sc_consensus::{BlockImport, ImportQueue};
+use sc_consensus::ImportQueue;
 use sc_executor::{
 	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
 };
@@ -89,11 +89,8 @@ type FrontierBlockImport<RuntimeApi, Executor> = TFrontierBlockImport<
 	Arc<FullClient<RuntimeApi, Executor>>,
 	FullClient<RuntimeApi, Executor>,
 >;
-type ParachainBlockImport<RuntimeApi, Executor> = TParachainBlockImport<
-	Block,
-	MaybeNewBestBlockImport<FrontierBlockImport<RuntimeApi, Executor>>,
-	FullBackend,
->;
+type ParachainBlockImport<RuntimeApi, Executor> =
+	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi, Executor>, FullBackend>;
 type PartialComponentsResult<RuntimeApi, Executor> = Result<
 	PartialComponents<
 		FullClient<RuntimeApi, Executor>,
@@ -102,7 +99,10 @@ type PartialComponentsResult<RuntimeApi, Executor> = Result<
 		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
-			ParachainBlockImport<RuntimeApi, Executor>,
+			BlockImportPipeline<
+				FrontierBlockImport<RuntimeApi, Executor>,
+				ParachainBlockImport<RuntimeApi, Executor>,
+			>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -118,55 +118,10 @@ pub type HostFunctions = (
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
-/// A Block import that is used to set the fork choice strategy to Longest Chain in dev mode. This
-/// is used to allow to import blocks as new best blocks in the longest chain.
-pub struct MaybeNewBestBlockImport<BI> {
-	dev_service: bool,
-	inner: BI,
-}
-
-impl<BI> Clone for MaybeNewBestBlockImport<BI>
-where
-	BI: Clone,
-{
-	fn clone(&self) -> Self {
-		Self {
-			dev_service: self.dev_service,
-			inner: self.inner.clone(),
-		}
-	}
-}
-
-impl<BI> MaybeNewBestBlockImport<BI> {
-	pub fn new(dev_service: bool, inner: BI) -> Self {
-		Self { dev_service, inner }
-	}
-}
-
-#[async_trait::async_trait]
-impl<BI> BlockImport<Block> for MaybeNewBestBlockImport<BI>
-where
-	BI: BlockImport<Block> + Send + Sync,
-{
-	type Error = BI::Error;
-	type Transaction = BI::Transaction;
-
-	async fn check_block(
-		&mut self,
-		block: sc_consensus::BlockCheckParams<Block>,
-	) -> Result<sc_consensus::ImportResult, Self::Error> {
-		self.inner.check_block(block).await
-	}
-
-	async fn import_block(
-		&mut self,
-		mut params: sc_consensus::BlockImportParams<Block, Self::Transaction>,
-	) -> Result<sc_consensus::ImportResult, Self::Error> {
-		if self.dev_service {
-			params.fork_choice = Some(sc_consensus::ForkChoiceStrategy::LongestChain);
-		}
-		self.inner.import_block(params).await
-	}
+/// Block Import Pipeline used.
+pub enum BlockImportPipeline<T, E> {
+	Dev(T),
+	Parachain(E),
 }
 
 /// A trait that must be implemented by all moon* runtimes executors.
@@ -582,26 +537,39 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
-	let maybe_new_best_block_import =
-		MaybeNewBestBlockImport::new(dev_service, frontier_block_import);
-	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
-		maybe_new_best_block_import,
-		backend.clone(),
-	);
 
-	// Depending whether we are
-	let import_queue = nimbus_consensus::import_queue(
-		client.clone(),
-		parachain_block_import.clone(),
-		move |_, _| async move {
-			let time = sp_timestamp::InherentDataProvider::from_system_time();
+	let create_inherent_data_providers = move |_, _| async move {
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+		Ok((time,))
+	};
 
-			Ok((time,))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		!dev_service,
-	)?;
+	let (import_queue, block_import) = if dev_service {
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				frontier_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Dev(frontier_block_import),
+		)
+	} else {
+		let parachain_block_import =
+			ParachainBlockImport::new(frontier_block_import.clone(), backend.clone());
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				parachain_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Parachain(parachain_block_import),
+		)
+	};
 
 	Ok(PartialComponents {
 		backend,
@@ -612,7 +580,7 @@ where
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			parachain_block_import,
+			block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -1095,6 +1063,14 @@ where
 				fee_history_cache,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+
+	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import {
+		block_import
+	} else {
+		return Err(ServiceError::Other(
+			"Block import pipeline is not dev".to_string(),
+		));
+	};
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 
