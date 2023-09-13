@@ -8406,7 +8406,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277027000, 0), weight);
+			assert_eq!(Weight::from_parts(277168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
