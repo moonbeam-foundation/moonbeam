@@ -107,7 +107,7 @@ describeSuite({
 
     // destination used for xtoken transfers
     const versionedMultiLocation = {
-      v1: {
+      V3: {
         parents: 1,
         interior: {
           X1: {
@@ -311,7 +311,7 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .registry.createType("XcmVersionedMultiLocation", versionedMultiLocation);
 
         const userAction = new XcmRoutingUserAction({ destination });
         const versionedUserAction = new VersionedUserAction({ V1: userAction });
@@ -347,7 +347,7 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .registry.createType("XcmVersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 999n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -388,7 +388,7 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .registry.createType("XcmVersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -427,7 +427,7 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .registry.createType("XcmVersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -472,11 +472,11 @@ class VersionedUserAction extends Enum {
 }
 class XcmRoutingUserAction extends Struct {
   constructor(value?: any) {
-    super(registry, { destination: "VersionedMultiLocation" }, value);
+    super(registry, { destination: "XcmVersionedMultiLocation" }, value);
   }
 }
 class XcmRoutingUserActionWithFee extends Struct {
   constructor(value?: any) {
-    super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
+    super(registry, { destination: "XcmVersionedMultiLocation", fee: "U256" }, value);
   }
 }
