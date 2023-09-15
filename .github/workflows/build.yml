@@ -501,7 +501,7 @@ jobs:
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
-          mkdir -p test/tmp
+          mkdir -p test/tmp/node_logs
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
