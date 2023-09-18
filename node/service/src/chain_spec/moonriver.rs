@@ -334,7 +334,9 @@ pub fn testnet_genesis(
 		},
 		#[cfg(feature = "force-debug")]
 		sudo: moonriver_runtime::SudoConfig {
-			key: Some(AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"))),
+			key: Some(AccountId::from(hex!(
+				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+			))),
 		},
 	}
 }

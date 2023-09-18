@@ -176,7 +176,7 @@ pub mod opaque {
 /// changes which can be skipped.
 #[cfg(feature = "force-debug")]
 #[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {	
+pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver-debug"),
 	impl_name: create_runtime_str!("moonriver-debug"),
 	authoring_version: 3,
@@ -189,7 +189,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 
 #[cfg(not(feature = "force-debug"))]
 #[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {	
+pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
@@ -386,6 +386,7 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
 }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
