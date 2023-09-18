@@ -50,7 +50,7 @@ describeSuite({
         // }
 
         // This encoded message contains WithdrawAsset, ClearOrigin, BuyExecution, DepositAsset
-        // instructions and a data field inside GeneralKey of only 11 bytes, so it should be ignored.
+        // instructions and a data field inside GeneralKey of 11 bytes, so it should be ignored.
         const wrongGeneralKeyMessage = [
           0, 3, 16, 0, 8, 0, 0, 1, 4, 3, 0, 19, 0, 0, 138, 93, 120, 69, 99, 1, 0, 0, 3, 4, 48, 3, 0,
           92, 195, 7, 38, 138, 19, 147, 171, 154, 118, 74, 32, 218, 206, 132, 138, 184, 39, 92, 70,
