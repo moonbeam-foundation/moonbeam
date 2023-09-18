@@ -32,6 +32,8 @@ pub use xcm_holding_ext::XcmExecutorWrapper;
 #[pallet]
 pub mod pallet {
 
+	use core::mem::size_of;
+
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
 	use crate::xcm_holding_ext::*;
@@ -73,11 +75,14 @@ pub mod pallet {
 					ref data,
 				}) = multilocation.interior().into_iter().next_back()
 				{
-					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
-						if content == "gas_limit:" {
-							let mut bytes: [u8; 8] = Default::default();
-							bytes.copy_from_slice(&data[10..18]);
-							return u64::from_le_bytes(bytes);
+					// [u8; 10] for UTF8 "gas_limit:" + u64 for the limit
+					if data.len() >= size_of::<[u8; 10]>() + size_of::<u64>() {
+						if let Ok(content) = core::str::from_utf8(&data[0..10]) {
+							if content == "gas_limit:" {
+								let mut bytes: [u8; 8] = Default::default();
+								bytes.copy_from_slice(&data[10..18]);
+								return u64::from_le_bytes(bytes);
+							}
 						}
 					}
 				}
