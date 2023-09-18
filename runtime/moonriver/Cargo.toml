@@ -116,6 +116,7 @@ sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 
 # Frontier
+evm = { workspace = true }
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true }
@@ -287,7 +288,9 @@ std = [
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
 # Allow to print logs details (no wasm:stripped)
-force-debug = [ "sp-debug-derive/force-debug", "pallet-sudo" ]
+# TODO: change evm/force-debug to fp-evm/force-debug when this PR is merged
+# https://github.com/paritytech/frontier/pull/1192/files
+force-debug = [ "sp-debug-derive/force-debug", "pallet-sudo", "evm/force-debug" ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = [  ]

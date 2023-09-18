@@ -2767,6 +2767,7 @@ name = "evm-core"
 version = "0.39.0"
 source = "git+https://github.com/moonbeam-foundation/evm?rev=a33ac87ad7462b7e7029d12c385492b2a8311d1c#a33ac87ad7462b7e7029d12c385492b2a8311d1c"
 dependencies = [
+ "log",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -2781,6 +2782,7 @@ dependencies = [
  "environmental",
  "evm-core",
  "evm-runtime",
+ "log",
  "primitive-types",
 ]
 
@@ -5783,6 +5785,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "ethereum",
+ "evm",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -6621,6 +6624,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "ethereum",
+ "evm",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
