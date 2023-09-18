@@ -60,7 +60,21 @@ describeSuite({
         ];
 
         // Mock the reception of the encoded xcm message
-        await injectEncodedHrmpMessageAndSeal(context, paraId, wrongGeneralKeyMessage);
+        const result = await injectEncodedHrmpMessageAndSeal(
+          context,
+          paraId,
+          wrongGeneralKeyMessage
+        );
+
+        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
+          context.polkadotJs().events.system.ExtrinsicSuccess.is(event)
+        );
+
+        // Check the block was produced successfully
+        expect(events.length).toBeGreaterThanOrEqual(1);
+        expect(result.block.duration).toBeGreaterThanOrEqual(1);
+        expect(result.block.hash).to.not.be.undefined;
+        expect(result.block.proofSize).toBeGreaterThanOrEqual(7000n);
 
         // Charleth should have NOT received the tokens
         expect(
@@ -112,7 +126,21 @@ describeSuite({
         ];
 
         // Mock the reception of the encoded xcm message
-        await injectEncodedHrmpMessageAndSeal(context, paraId, wrongGeneralKeyMessage);
+        const result = await injectEncodedHrmpMessageAndSeal(
+          context,
+          paraId,
+          wrongGeneralKeyMessage
+        );
+
+        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
+          context.polkadotJs().events.system.ExtrinsicSuccess.is(event)
+        );
+
+        // Check the block was produced successfully
+        expect(events.length).toBeGreaterThanOrEqual(1);
+        expect(result.block.duration).toBeGreaterThanOrEqual(1);
+        expect(result.block.hash).to.not.be.undefined;
+        expect(result.block.proofSize).toBeGreaterThanOrEqual(7000n);
 
         // Charleth should have NOT received the tokens
         expect(
