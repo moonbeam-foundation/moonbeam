@@ -23,8 +23,8 @@ use crate::mock::{Erc20XcmBridge, Erc20XcmBridgeTransferGasLimit};
 #[test]
 fn general_key_data_size_32() {
 	let junction: Junction = (BoundedVec::new()).into();
-	println!("{:?}", junction);
 
+	// Assert that GeneralKey data length is 32 bytes
 	match junction {
 		Junction::GeneralKey { length: _, data } => {
 			let _: [u8; 32] = data;
