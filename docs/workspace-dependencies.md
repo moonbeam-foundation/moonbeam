@@ -5,7 +5,7 @@
 Features listed in the root-level `Cargo.toml` and in individual crates `Cargo.toml` are additive
 (union of all sets of features). Also note that features may be enabled by other crates built to the
 same target (wasm vs client have distinct feature sets however). Features listed in the root-level
-`Cargo.toml` are enabled for all targets (hense the need for `default-features = false` for crates
+`Cargo.toml` are enabled for all targets (hence the need for `default-features = false` for crates
 used in a runtime crate.
 
 Prefer adding features in individual crates, unless it is a security flag feature like
@@ -16,7 +16,7 @@ Note that `default-features = false` only have an effect inside the root-level C
 should be added to any dependency that defaults to std if it is used in at least one runtime/wasm
 crate.
 
-## How to add a dependency ?
+## How to add a dependency?
 1. Add `my-dependency = { workspace = true }` in your crate.
 2. Look at the root-level `Cargo.toml` to see if the dependency is listed in it :
   - If it is not, add it in the proper section (Substrate/Frontier/etc) and subsection
