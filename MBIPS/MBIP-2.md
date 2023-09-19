@@ -58,7 +58,7 @@ Deploying an heavy contract (24_000 bytes code + 68 bytes overhead) would lead t
 
 ## Storage changes
 
-A new "[named reserve](https://paritytech.github.io/substrate/master/pallet_balances/struct.ReserveData.html)"
+A new "[named reserve](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/struct.ReserveData.html)"
 is associated to EOA when they need to deposit tokens for storage data.
 
 ## Functions

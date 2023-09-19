@@ -25,7 +25,9 @@
 pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
-use cumulus_client_consensus_common::{ParachainBlockImport, ParachainConsensus};
+use cumulus_client_consensus_common::{
+	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
+};
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -37,7 +39,7 @@ use cumulus_primitives_parachain_inherent::{
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
-use fc_consensus::FrontierBlockImport;
+use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
@@ -82,11 +84,47 @@ type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+type FrontierBlockImport<RuntimeApi, Executor> = TFrontierBlockImport<
+	Block,
+	Arc<FullClient<RuntimeApi, Executor>>,
+	FullClient<RuntimeApi, Executor>,
+>;
+type ParachainBlockImport<RuntimeApi, Executor> =
+	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi, Executor>, FullBackend>;
+type PartialComponentsResult<RuntimeApi, Executor> = Result<
+	PartialComponents<
+		FullClient<RuntimeApi, Executor>,
+		FullBackend,
+		MaybeSelectChain,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		(
+			BlockImportPipeline<
+				FrontierBlockImport<RuntimeApi, Executor>,
+				ParachainBlockImport<RuntimeApi, Executor>,
+			>,
+			Option<FilterPool>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			fc_db::Backend<Block>,
+			FeeHistoryCache,
+		),
+	>,
+	ServiceError,
+>;
 
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
+
+/// Block Import Pipeline used.
+pub enum BlockImportPipeline<T, E> {
+	/// Used in dev mode to import new blocks as best blocks.
+	Dev(T),
+	/// Used in parachain mode.
+	Parachain(E),
+}
 
 /// A trait that must be implemented by all moon* runtimes executors.
 ///
@@ -415,32 +453,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> Result<
-	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
-		FullBackend,
-		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
-		(
-			ParachainBlockImport<
-				Block,
-				FrontierBlockImport<
-					Block,
-					Arc<FullClient<RuntimeApi, Executor>>,
-					FullClient<RuntimeApi, Executor>,
-				>,
-				FullBackend,
-			>,
-			Option<FilterPool>,
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
-			FeeHistoryCache,
-		),
-	>,
-	ServiceError,
->
+) -> PartialComponentsResult<RuntimeApi, Executor>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -526,24 +539,39 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
-	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
-		frontier_block_import,
-		backend.clone(),
-	);
 
-	// Depending whether we are
-	let import_queue = nimbus_consensus::import_queue(
-		client.clone(),
-		parachain_block_import.clone(),
-		move |_, _| async move {
-			let time = sp_timestamp::InherentDataProvider::from_system_time();
+	let create_inherent_data_providers = move |_, _| async move {
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+		Ok((time,))
+	};
 
-			Ok((time,))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		!dev_service,
-	)?;
+	let (import_queue, block_import) = if dev_service {
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				frontier_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Dev(frontier_block_import),
+		)
+	} else {
+		let parachain_block_import =
+			ParachainBlockImport::new(frontier_block_import, backend.clone());
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				parachain_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Parachain(parachain_block_import),
+		)
+	};
 
 	Ok(PartialComponents {
 		backend,
@@ -554,7 +582,7 @@ where
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			parachain_block_import,
+			block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -637,7 +665,7 @@ where
 
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
-		_frontier_block_import,
+		_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -1029,7 +1057,7 @@ where
 		transaction_pool,
 		other:
 			(
-				block_import,
+				block_import_pipeline,
 				filter_pool,
 				mut telemetry,
 				_telemetry_worker_handle,
@@ -1037,6 +1065,14 @@ where
 				fee_history_cache,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+
+	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+		block_import
+	} else {
+		return Err(ServiceError::Other(
+			"Block import pipeline is not dev".to_string(),
+		));
+	};
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 

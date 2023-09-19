@@ -177,6 +177,17 @@ export async function injectHrmpMessage(
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
+
+export async function injectEncodedHrmpMessageAndSeal(
+  context: DevModeContext,
+  paraId: number,
+  message?: number[]
+) {
+  // Send RPC call to inject XCM message
+  await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
+  return await context.createBlock();
+}
+
 // Weight a particular message using the xcm utils precompile
 export async function weightMessage(context: DevModeContext, message: XcmVersionedXcm) {
   return (await context.readPrecompile!({
