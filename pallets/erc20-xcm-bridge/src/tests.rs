@@ -43,7 +43,7 @@ fn gas_limit_override() {
 	let text = "gas_limit:".as_bytes();
 	let limit = 300_000u64;
 	let data = [text, &limit.to_le_bytes()].concat();
-	let vec = BoundedVec::try_from(data).expect("");
+	let vec = BoundedVec::try_from(data).expect("vec should convert");
 	let junction: Junction = (vec).into();
 	assert_eq!(
 		Erc20XcmBridge::gas_limit_of_erc20_transfer(&junction.into()),
@@ -56,7 +56,7 @@ fn gas_limit_override_typo() {
 	let text = "gaslimit:".as_bytes();
 	let limit = 300_000u64;
 	let data = [text, &limit.to_le_bytes()].concat();
-	let vec = BoundedVec::try_from(data).expect("");
+	let vec = BoundedVec::try_from(data).expect("vec should convert");
 	let junction: Junction = (vec).into();
 	assert_eq!(
 		Erc20XcmBridge::gas_limit_of_erc20_transfer(&junction.into()),
