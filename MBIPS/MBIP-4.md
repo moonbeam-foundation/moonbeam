@@ -63,7 +63,7 @@ given:
 
 ### `gasBaseFee`
 
-The `gasBaseFee` is the same as the `baseFee` defined before this MBIP. It simply represent the cost
+The `gasBaseFee` is the same as the `baseFee` defined before this MBIP. It simply represents the cost
 of executing 1 gas.
 
 ### Transaction payment
