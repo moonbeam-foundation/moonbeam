@@ -37,8 +37,6 @@ pub use xcm_holding_ext::XcmExecutorWrapper;
 #[pallet]
 pub mod pallet {
 
-	use core::mem::size_of;
-
 	use crate::erc20_matcher::*;
 	use crate::errors::*;
 	use crate::xcm_holding_ext::*;
@@ -80,14 +78,16 @@ pub mod pallet {
 					ref data,
 				}) = multilocation.interior().into_iter().next_back()
 				{
-					// [u8; 10] for UTF8 "gas_limit:" + u64 for the limit
-					if data.len() >= size_of::<[u8; 10]>() + size_of::<u64>() {
-						if let Ok(content) = core::str::from_utf8(&data[0..10]) {
-							if content == "gas_limit:" {
-								let mut bytes: [u8; 8] = Default::default();
-								bytes.copy_from_slice(&data[10..18]);
-								return u64::from_le_bytes(bytes);
-							}
+					// As GeneralKey definition might change in future versions of XCM, this is meant
+					// to throw a compile error as a warning that data type has changed.
+					// If that happens, a new check is needed to ensure that data has at least 18
+					// bytes (size of b"gas_limit:" + u64)
+					let data: &[u8; 32] = &data;
+					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
+						if content == "gas_limit:" {
+							let mut bytes: [u8; 8] = Default::default();
+							bytes.copy_from_slice(&data[10..18]);
+							return u64::from_le_bytes(bytes);
 						}
 					}
 				}
