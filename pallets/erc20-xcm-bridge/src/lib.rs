@@ -18,6 +18,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
