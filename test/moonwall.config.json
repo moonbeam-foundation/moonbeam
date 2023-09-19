@@ -279,6 +279,7 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "multiThreads": true,
+      "defaultFinalization": true,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
