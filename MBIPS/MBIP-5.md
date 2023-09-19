@@ -9,12 +9,12 @@ created: 2023-05-11
 
 ## Simple Summary
 
-Increases the used gas based on storage increase in transaction to deal wiuth storage congestion.
+Increases the used gas based on storage increase in transaction to deal with storage congestion.
 
 ## Abstract
 
 Introduce a new mechanism when executing a transaction that will increase the gas used when
-a transaction increases the storate stage.
+a transaction increases the storage stage.
 
 ## Motivation
 
@@ -38,7 +38,7 @@ possible to `25% * 40kB * 2628000 blocks => 26.2GB`
 Deploying a Smart Contract of 24kB using 3_300_000 gas would require:  
 `24_000 * 15_000_000 / 40_000 + 3_300_000 => 12_300_000 gas`
 
-Execution a transaction using 48_000 gas and adding 3 storage items (444 bytes) would require:  
+Execution of a transaction using 48_000 gas and adding 3 storage items (444 bytes) would require:  
 `444 * 15_000_000 / 40_000 + 48_000 => 214_500 gas`
 
 ## Impact
