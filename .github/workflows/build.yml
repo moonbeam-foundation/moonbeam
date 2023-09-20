@@ -407,6 +407,7 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
           chmod uog+x build/moonbeam
+          chmod uog+x target/release/moonbeam
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
