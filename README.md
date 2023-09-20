@@ -40,7 +40,7 @@ service.
 docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --dev
 ```
 
-For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
+For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
 
 ### Sealing options
 
@@ -111,7 +111,7 @@ Also, the prefunded default account for testing purposes is:
 
 ## Build the Moonbeam Node
 
-To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first.
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) docs first.
 
 If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
