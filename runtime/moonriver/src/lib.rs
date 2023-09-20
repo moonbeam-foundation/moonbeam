@@ -1351,7 +1351,27 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-construct_runtime! {
+/// Custom macro to enable some pallets only when compiled with `force-debug` feature
+#[macro_export]
+macro_rules! construct_moonriver_runtime {
+	{$($common_pallets:tt)*} => {
+		#[cfg(feature = "force-debug")]
+		construct_runtime! {
+			$($common_pallets)*
+
+			// Aditional pallets with `force-debug` feature:
+			// Sudo was previously index 40
+			Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+		}
+
+		#[cfg(not(feature = "force-debug"))]
+		construct_runtime! {
+			$($common_pallets)*
+		}
+	}
+}
+
+construct_moonriver_runtime! {
 	pub enum Runtime where
 		Block = Block,
 		NodeBlock = opaque::Block,
@@ -1384,10 +1404,6 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
-
-		// Sudo was previously index 40
-		#[cfg(feature = "force-debug")]
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
