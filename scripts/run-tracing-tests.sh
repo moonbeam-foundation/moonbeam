@@ -32,5 +32,6 @@ cd ../archived_tests
 npm ci
 npm run setup-typescript-api
 npm run build
-ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'build/tracing-tests/**/test-*.js' --timeout 30000
+# ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha -r ts-node/register 'build/tracing-tests/**/test-*.js' --timeout 30000
+DEBUG_MODE=true ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha -r ts-node/register 'build/tracing-tests/**/test-*.js' --timeout 30000
 cd ..
