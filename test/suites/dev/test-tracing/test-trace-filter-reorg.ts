@@ -84,8 +84,8 @@ describeSuite({
         });
 
         // Trace block 3a.
-        // With old tracer the nonce check was missing and thus the transaction was replayed, leading
-        // to a mismatch and a crash when mapping the Frontier data.
+        // With old tracer the nonce check was missing and thus the transaction was replayed,
+        // leading to a mismatch and a crash when mapping the Frontier data.
         await customDevRpcRequest("trace_filter", [
           {
             fromBlock: "0x01",
