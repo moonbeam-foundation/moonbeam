@@ -642,3 +642,11 @@ jobs:
       - name: Link To Report
         shell: bash
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
+        
+      - name: Upload to Moonscope
+        uses: moonsong-labs/moonscope/.github/workflows/send-report-action/action.yml@main
+        with:
+          moonscope: https://moonscope.kaki.dev
+          table: dev_reports
+          moonwallenv: dev_${{ matrix.chain }}
+          report_file_path: test/tmp/testResults.json" },
