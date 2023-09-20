@@ -27,7 +27,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --chain alphanet
 ```
 
-You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/full-node/)
+You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
 
 ## Run a local development node with Docker
 
@@ -152,7 +152,7 @@ because it takes 1284 milliseconds for a moonbeam to reach Earth.
 Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
 
 | Network Description                | Chain ID    |
-| ---------------------------------- | ----------- |
+|------------------------------------|-------------|
 | Local Parachain TestNet            | 1280        |
 | Local Development TestNet          | 1281        |
 | Reserved for other TestNets        | 1282 - 1283 |
