@@ -652,7 +652,7 @@ jobs:
         run: |
           curl --location 'https://moonscope.kaki.dev/insert' \
           --header 'moonwallenv: dev_${{ matrix.chain }}' \
-          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}'
+          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
           --header 'table: dev_reports' \
           --header 'Content-Type: application/json' \
           --data '${{ steps.read_file.outputs.data }}'
