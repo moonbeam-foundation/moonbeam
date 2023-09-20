@@ -179,6 +179,7 @@ From substrate:
 
 From frontier:
 
+- _EVM Chain Id_: A place to store the chain id for each Moonbeam network
 - _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
 - _Ethereum_: Ethereum-style data encoding and access for the EVM.
 
@@ -189,7 +190,6 @@ From cumulus:
 
 The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
-- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 

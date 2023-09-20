@@ -368,7 +368,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-impl pallet_ethereum_chain_id::Config for Runtime {}
+impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -1367,7 +1367,7 @@ construct_runtime! {
 		// Sudo was previously index 40
 
 		// Ethereum compatibility
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
+		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
 
@@ -1626,9 +1626,7 @@ mod tests {
 	// need to be Boxed.
 	fn call_max_size() {
 		const CALL_ALIGN: u32 = 1024;
-		assert!(
-			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
-		);
+		assert!(std::mem::size_of::<pallet_evm_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
