@@ -76,6 +76,8 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
+#[cfg(feature = "try-runtime")]
+use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -177,7 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2500,
+	spec_version: 2600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -366,7 +368,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-impl pallet_ethereum_chain_id::Config for Runtime {}
+impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -1176,6 +1178,12 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
 		AllPalletsWithSystem::on_runtime_upgrade()
 	}
+
+	#[cfg(feature = "try-runtime")]
+	fn try_on_runtime_upgrade(checks: bool) -> Result<Weight, TryRuntimeError> {
+		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
+	}
+
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		AllPalletsWithSystem::pre_upgrade()
@@ -1359,7 +1367,7 @@ construct_runtime! {
 		// Sudo was previously index 40
 
 		// Ethereum compatibility
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
+		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
 
@@ -1618,9 +1626,7 @@ mod tests {
 	// need to be Boxed.
 	fn call_max_size() {
 		const CALL_ALIGN: u32 = 1024;
-		assert!(
-			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
-		);
+		assert!(std::mem::size_of::<pallet_evm_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(

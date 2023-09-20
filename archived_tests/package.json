@@ -1,5 +1,5 @@
 {
-  "name": "ts-tests",
+  "name": "archived-ts-tests",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
         "../"
       ],
       "ignore": [
-        "../tests",
+        "../archived_tests",
         "../target",
         "../build"
       ],
@@ -21,7 +21,7 @@
     "test": {
       "patterns": [
         "../target/release/moonbeam",
-        "./tests/**"
+        "./archived_tests/**"
       ],
       "extensions": "ts,html,scss",
       "quiet": true,
@@ -31,17 +31,15 @@
   },
   "scripts": {
     "test-with-logs": "mocha --printlogs -r ts-node/register 'tests/**/test-*.ts'",
-    "setup-typescript-api": "rm -rf node_modules/@moonbeam-network/api-augment && cd ../typescript-api && npm run build && cp -r build ../tests/node_modules/@moonbeam-network/api-augment && echo 'Typescript API Local installed!'",
+    "setup-typescript-api": "rm -rf node_modules/@moonbeam-network/api-augment && cd ../typescript-api && npm run build && cp -r build ../archived_tests/node_modules/@moonbeam-network/api-augment && echo 'Typescript API Local installed!'",
     "pre-build-contracts": "ts-node tools/pre-build-contracts.ts && npx prettier --write ./contracts/compiled/",
-    "test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts' -- -j 4",
-    "test-seq": "mocha -r ts-node/register 'tests/**/test-*.ts'",
+    "deprecated-test": "mocha --parallel -r ts-node/register 'tests/**/test-*.ts' -- -j 4",
+    "deprecated-test-seq": "mocha -r ts-node/register 'tests/**/test-*.ts'",
     "tracing-test": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha --parallel -r ts-node/register 'tracing-tests/**/*.ts'",
     "tracing-test-single": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha -r ts-node/register 'tracing-tests/test-trace-erc20-xcm.ts'",
-    "watch": "npm-watch",
     "build": "tsc && cp -r contracts build/",
     "build-clean": "rm -r node_modules && npm i && npm run build",
-    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-relay-encoder.ts'",
-    "current-test": "mocha -r ts-node/register",
+    "deprecated-test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-relay-encoder.ts'",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "clean": "rimraf *.log binaries/* runtimes/* specs/*"
   },

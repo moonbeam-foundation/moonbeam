@@ -14,7 +14,7 @@ test/tsconfig.json
 /build/
 
 # Generated test specs
-/tests/moonbeam-test-specs/*.json
+/archived_tests/moonbeam-test-specs/*.json
 
 # Moonbeam-Launch
 *.log

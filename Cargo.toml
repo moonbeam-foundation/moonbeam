@@ -64,7 +64,6 @@ moonbeam-runtime-common = { path = "runtime/common", default-features = false }
 moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-features = false }
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
-pallet-ethereum-chain-id = { path = "pallets/ethereum-chain-id", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
 
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
@@ -233,6 +232,7 @@ pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", bra
 pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
+pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
 pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v0.9.43", default-features = false }
@@ -446,7 +446,7 @@ opt-level = 3
 panic = "unwind"
 
 [profile.testnet]
-debug = 1               # debug symbols are useful for profilers
+debug = 1 # debug symbols are useful for profilers
 debug-assertions = true
 inherits = "release"
 overflow-checks = true

@@ -8,7 +8,7 @@ on:
 jobs:
   deploy-docs:
     name: Deploy docs
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
 
     steps:
       - name: Install tooling
