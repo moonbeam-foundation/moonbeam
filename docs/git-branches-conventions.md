@@ -21,7 +21,7 @@ too many branches.
 
 ## Releases branches
 
-This kind of branch shoud be named `perm-TAG`, where `TAG` is the git tag of the corresponding
+This kind of branch should be named `perm-TAG`, where `TAG` is the git tag of the corresponding
 release.
 
 ## Hotfix workflow

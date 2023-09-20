@@ -27,6 +27,7 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      test_s3_dir: ${{ steps.check-git-ref.outputs.test_s3_dir }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
@@ -45,10 +46,13 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            echo "test_s3_dir=test-pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "test_s3_dir=test-pulls/${{ github.event.inputs.pull_request }}" >> $GITHUB_OUTPUT
             echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
           else
+            echo "test_s3_dir=test-branches/master" >> $GITHUB_OUTPUT
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
@@ -481,7 +485,10 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
-        chain: ["moonbase", "moonriver", "moonbeam"]
+        #chain: ["moonbase", "moonriver", "moonbeam"]
+        # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
+        # https://github.com/AcalaNetwork/chopsticks/issues/407
+        chain: ["moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -501,7 +508,7 @@ jobs:
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
-          mkdir -p test/tmp
+          mkdir -p test/tmp/node_logs
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
@@ -622,3 +629,16 @@ jobs:
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
+      - name: Upload HTML report to s3
+        uses: mario-sangar/upload-s3-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
+          source_dir: "test/html"
+          acl: "none"
+      - name: Link To Report
+        shell: bash
+        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
