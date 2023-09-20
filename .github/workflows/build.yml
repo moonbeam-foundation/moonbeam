@@ -641,12 +641,17 @@ jobs:
           acl: "none"
       - name: Link To Report
         shell: bash
-        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
-        
+        run: echo
+      - name: Read report file
+        id: read_file
+        run: echo "::set-output name=data::$(cat test/tmp/testResults.json)"
+        shell: bash
       - name: Upload to Moonscope
-        uses: moonsong-labs/moonscope/.github/workflows/send-report-action/action.yml@main
-        with:
-          moonscope: https://moonscope.kaki.dev
-          table: dev_reports
-          moonwallenv: dev_${{ matrix.chain }}
-          report_file_path: test/tmp/testResults.json" },
+        run: |
+          curl --location 'https://moonscope.kaki.dev/insert' \
+          --header 'moonwallenv: dev_${{ matrix.chain }}' \
+          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}'
+          --header 'table: dev_reports' \
+          --header 'Content-Type: application/json' \
+          --data '${{ steps.read_file.outputs.data }}'
+        shell: bash
