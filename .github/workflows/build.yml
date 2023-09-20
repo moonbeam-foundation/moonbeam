@@ -639,10 +639,6 @@ jobs:
           destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
           source_dir: "test/html"
           acl: "none"
-      - name: Read report file
-        if: always()
-        id: read_file
-        run: echo "data='$(cat test/tmp/testResults.json)'" >> $GITHUB_OUTPUT
       - name: Upload to Moonscope
         if: always()
         run: |
