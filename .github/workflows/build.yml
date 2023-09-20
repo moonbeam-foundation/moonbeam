@@ -650,7 +650,7 @@ jobs:
       - name: Upload to Moonscope
         if: always()
         run: |
-          curl --location 'https://moonscope.kaki.dev/insert' \
+          curl --location 'https://moonscope.kaki.dev/api/insert' \
           --header 'moonwallenv: dev_${{ matrix.chain }}' \
           --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
           --header 'table: dev_reports' \
