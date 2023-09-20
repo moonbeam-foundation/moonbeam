@@ -384,6 +384,13 @@ jobs:
           node-version: 20.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
