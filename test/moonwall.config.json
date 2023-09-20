@@ -310,7 +310,7 @@
     },
     {
       "name": "dev_moonbase_tracing",
-      "testFileDir": ["suites/dev/test-tracing"],
+      "testFileDir": ["suites/tracing-tests"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
