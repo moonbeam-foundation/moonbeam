@@ -64,7 +64,7 @@ use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use xcm_executor::traits::Convert as XcmConvert;
+use sp_runtime::traits::Convert as XcmConvert;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =

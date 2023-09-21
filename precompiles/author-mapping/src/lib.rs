@@ -20,7 +20,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
 use nimbus_primitives::NimbusId;
@@ -31,6 +31,7 @@ use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::{H160, H256};
 use sp_std::marker::PhantomData;
+use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;

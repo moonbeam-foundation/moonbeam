@@ -24,12 +24,12 @@
 
 pub mod rpc;
 
-use cumulus_client_cli::CollatorOptions;
+use cumulus_client_cli::{CollatorOptions, RelayChainMode};
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
 use cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams, CollatorSybilResistance,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -38,11 +38,11 @@ use cumulus_primitives_parachain_inherent::{
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
-use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
+use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
 use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
@@ -69,6 +69,7 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
+use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_keystore::KeystorePtr;
@@ -96,7 +97,7 @@ type PartialComponentsResult<RuntimeApi, Executor> = Result<
 		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			BlockImportPipeline<
@@ -146,6 +147,10 @@ pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
 
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;
+
+// #[cfg(feature = "moonbeam-native")]
+// impl sp_wasm_interface::HostFunctions for MoonbeamExecutor {
+// }
 
 #[cfg(feature = "moonbeam-native")]
 impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
@@ -356,7 +361,6 @@ where
 }
 
 use sp_runtime::{traits::BlakeTwo256, Percent};
-use sp_trie::PrefixedMemoryDB;
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
@@ -369,7 +373,7 @@ pub fn new_chain_ops(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block>,
 		TaskManager,
 	),
 	ServiceError,
@@ -403,7 +407,7 @@ fn new_chain_ops_inner<RuntimeApi, Executor>(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block>,
 		TaskManager,
 	),
 	ServiceError,
@@ -413,7 +417,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
@@ -458,7 +462,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	set_prometheus_registry(config)?;
@@ -603,11 +607,12 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	if !collator_options.relay_chain_rpc_urls.is_empty() {
-		build_minimal_relay_chain_node(
+	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
+		collator_options.relay_chain_mode {
+		build_minimal_relay_chain_node_with_rpc(
 			polkadot_config,
 			task_manager,
-			collator_options.relay_chain_rpc_urls,
+			rpc_target_urls,
 		)
 		.await
 	} else {
@@ -628,7 +633,7 @@ async fn build_relay_chain_interface(
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v4::Id,
+	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
@@ -637,7 +642,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
@@ -660,7 +665,7 @@ where
 	let mut parachain_config = prepare_node_config(parachain_config);
 
 	let collator_options = CollatorOptions {
-		relay_chain_rpc_urls: rpc_config.relay_chain_rpc_urls.clone(),
+		relay_chain_mode: RelayChainMode::ExternalRpc(rpc_config.relay_chain_rpc_urls.clone()),
 	};
 
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
@@ -705,6 +710,7 @@ where
 			para_id: id,
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
+			sybil_resistance_level: CollatorSybilResistance::Unresistant,
 		})
 		.await?;
 
@@ -932,7 +938,7 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v4::Id,
+	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -940,7 +946,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	start_node_impl(
@@ -1039,7 +1045,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	use async_io::Timer;
@@ -1089,11 +1095,25 @@ where
 		})?;
 
 	if config.offchain_worker.enabled {
-		sc_service::build_offchain_workers(
-			&config,
-			task_manager.spawn_handle(),
-			client.clone(),
-			network.clone(),
+		task_manager.spawn_handle().spawn(
+			"offchain-workers-runner",
+			"offchain-work",
+			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+				runtime_api_provider: client.clone(),
+				keystore: Some(keystore_container.keystore()),
+				offchain_db: backend.offchain_storage(),
+				transaction_pool: Some(OffchainTransactionPoolFactory::new(
+					transaction_pool.clone(),
+				)),
+				network_provider: network.clone(),
+				is_validator: config.role.is_authority(),
+				enable_http_requests: true,
+				custom_extensions: move |_| {
+					vec![]
+				},
+			})
+			.run(client.clone(), task_manager.spawn_handle())
+			.boxed(),
 		);
 	}
 

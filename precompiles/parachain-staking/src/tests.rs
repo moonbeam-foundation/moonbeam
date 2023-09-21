@@ -20,11 +20,12 @@ use crate::mock::{
 };
 use core::str::from_utf8;
 use frame_support::sp_runtime::Percent;
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::assert_ok;
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()

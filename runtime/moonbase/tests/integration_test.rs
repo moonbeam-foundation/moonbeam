@@ -52,7 +52,7 @@ use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use xcm_executor::traits::Convert as XcmConvert;
+use sp_runtime::traits::Convert as XcmConvert;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;

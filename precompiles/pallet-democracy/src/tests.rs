@@ -24,7 +24,6 @@ use crate::{
 };
 use frame_support::{
 	assert_ok,
-	dispatch::Dispatchable,
 	traits::{Currency, PreimageProvider, QueryPreimage, StorePreimage},
 };
 use pallet_balances::Event as BalancesEvent;
@@ -37,6 +36,7 @@ use pallet_democracy::{
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
+use sp_runtime::traits::Dispatchable;
 use std::{convert::TryInto, str::from_utf8};
 
 fn precompiles() -> Precompiles<Runtime> {

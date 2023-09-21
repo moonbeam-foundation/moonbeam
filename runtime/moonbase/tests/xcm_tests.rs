@@ -32,7 +32,7 @@ use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
-use xcm_executor::traits::Convert;
+use sp_runtime::traits::Convert;
 use xcm_mock::*;
 use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 use xcm_simulator::TestExt;

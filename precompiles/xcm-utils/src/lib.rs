@@ -19,21 +19,22 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::OriginTrait,
 };
 use pallet_evm::AddressMapping;
-use parity_scale_codec::{DecodeLimit, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeLimit, MaxEncodedLen};
 use precompile_utils::precompile_set::SelectorFilter;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
 use sp_std::vec;
 use sp_std::vec::Vec;
+use sp_weights::Weight;
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
@@ -118,7 +119,7 @@ where
 				})?;
 
 		let account: H160 = origin
-			.as_signed()
+			.into_signer()
 			.ok_or(
 				RevertReason::custom("Failed multilocation conversion").in_field("multilocation"),
 			)?
@@ -143,11 +144,13 @@ where
 
 		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();
 
+		let ctx = XcmContext { origin: Some(multilocation), message_id: XcmHash::default(), topic: None };
 		// buy_weight returns unused assets
 		let unused = trader
 			.buy_weight(
 				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
 				vec![multiasset.clone()].into(),
+				&ctx,
 			)
 			.map_err(|_| {
 				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")

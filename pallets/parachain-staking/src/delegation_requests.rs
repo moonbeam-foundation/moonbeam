@@ -27,11 +27,10 @@ use frame_support::traits::Get;
 use frame_support::BoundedVec;
 use frame_support::{
 	dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo},
-	RuntimeDebug,
 };
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-use sp_runtime::traits::Saturating;
+use sp_runtime::{RuntimeDebug, traits::Saturating};
 
 /// An action that can be performed upon a delegation
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]

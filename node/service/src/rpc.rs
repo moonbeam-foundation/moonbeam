@@ -187,7 +187,7 @@ where
 	C: CallApiAt<Block>,
 	C: Send + Sync + 'static,
 	A: ChainApi<Block = Block> + 'static,
-	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
+	C::Api: RuntimeApiCollection,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
@@ -242,6 +242,10 @@ where
 	}
 	let convert_transaction: Option<Never> = None;
 
+	let pending_create_inherent_data_providers = move |_, _| async move {
+		Ok(())
+	};
+
 	io.merge(
 		Eth::new(
 			Arc::clone(&client),
@@ -258,6 +262,8 @@ where
 			fee_history_limit,
 			10,
 			forced_parent_hashes,
+			pending_create_inherent_data_providers,
+			None,
 		)
 		.replace_config::<MoonbeamEthConfig<C, BE>>()
 		.into_rpc(),
@@ -268,7 +274,7 @@ where
 			EthFilter::new(
 				client.clone(),
 				frontier_backend.clone(),
-				fc_rpc::TxPool::new(client.clone(), graph.clone()),
+				graph.clone(),
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,

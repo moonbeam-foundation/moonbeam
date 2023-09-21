@@ -7,7 +7,7 @@ version = "3.0.0"
 
 [dependencies]
 log = { workspace = true }
-serde = { workspace = true, optional = true }
+serde = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -37,7 +37,7 @@ std = [
 	"nimbus-primitives/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
+	# "serde",
 	"sp-runtime/std",
 	"sp-std/std",
 ]
