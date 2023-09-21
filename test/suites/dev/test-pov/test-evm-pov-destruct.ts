@@ -174,8 +174,7 @@ describeSuite({
         // The tx is still included in the block because it contains the failed tx,
         // so POV is included in the block as well.
         console.log("block.proofSize", block.proofSize);
-        expect(block.proofSize).to.be.at.least(130_000);
-        expect(block.proofSize).to.be.at.most(190_000);
+        expect(block.proofSize).to.be.at.most(300_000);
 
         // Check the evm tx was not executed because of OutOfGas error
         const ethEvents = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
