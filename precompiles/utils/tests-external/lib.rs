@@ -34,23 +34,19 @@ mod tests {
 	use sp_core::{H256, U256};
 	use sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
-		Perbill,
+		BuildStorage, Perbill,
 	};
 
 	pub type AccountId = MockAccount;
 	pub type Balance = u128;
 	
-	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-	type Block = frame_system::mocking::MockBlock<Runtime>;
+	type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 	construct_runtime!(
-		pub enum Runtime where
-			Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
+		pub enum Runtime
 		{
 			System: frame_system,
-			Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
+			Balances: pallet_balances,
 			Evm: pallet_evm,
 			Timestamp: pallet_timestamp,
 		}
@@ -283,8 +279,8 @@ mod tests {
 	impl ExtBuilder {
 		#[cfg(test)]
 		fn build(self) -> sp_io::TestExternalities {
-			let t = frame_system::GenesisConfig::default()
-				.build_storage::<Runtime>()
+			let t = frame_system::GenesisConfig::<Runtime>::default()
+				.build_storage()
 				.expect("Frame system builds valid default genesis config");
 
 			let mut ext = sp_io::TestExternalities::new(t);

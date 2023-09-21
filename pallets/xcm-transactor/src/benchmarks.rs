@@ -18,7 +18,7 @@
 
 use crate::{Call, Config, Currency, CurrencyPayment, HrmpOperation, Pallet, TransactWeights};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
-use frame_support::dispatch::Weight;
+use frame_support::weights::Weight;
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use sp_std::vec;
@@ -287,8 +287,8 @@ mod tests {
 	use sp_io::TestExternalities;
 
 	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.unwrap();
 		TestExternalities::new(t)
 	}

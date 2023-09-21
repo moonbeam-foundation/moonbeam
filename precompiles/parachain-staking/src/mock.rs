@@ -18,9 +18,10 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{Everything, OnFinalize, OnInitialize},
 	weights::Weight,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use precompile_utils::{
@@ -31,26 +32,22 @@ use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, Percent,
+	Perbill, Percent, BuildStorage,
 };
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub enum Runtime	{
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ParachainStaking: pallet_parachain_staking,
 	}
 );
 
@@ -288,8 +285,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

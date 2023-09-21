@@ -20,9 +20,10 @@ use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing, ProcessMessage, ProcessMessageError},
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	traits::{ConstU32, IdentityLookup},
 	AccountId32,
 };
 
@@ -46,6 +47,7 @@ use xcm_builder::{
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
 pub type Balance = u128;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -281,7 +283,7 @@ where
 impl origin::Config for Runtime {}
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 parameter_types! {
 	pub MessageQueueServiceWeight: Weight = Weight::from_parts(1_000_000_000, 1_000_000);
@@ -323,21 +325,17 @@ impl pallet_message_queue::Config for Runtime {
 }
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+	pub enum Runtime	{
+		System: frame_system,
 		Balances: pallet_balances,
-		ParasOrigin: origin::{Pallet, Origin},
-		MessageQueue: pallet_message_queue::{Pallet, Event<T>},
-		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Hrmp: hrmp::{Pallet, Call, Storage, Event<T>, Config},
-		Dmp: dmp::{Pallet, Storage},
-		Paras: paras::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		Configuration: configuration::{Pallet, Call, Storage, Config<T>},
+		ParasOrigin: origin,
+		MessageQueue: pallet_message_queue,
+		XcmPallet: pallet_xcm,
+		Utility: pallet_utility,
+		Hrmp: hrmp,
+		Dmp: dmp,
+		Paras: paras,
+		Configuration: configuration,
 	}
 );
 

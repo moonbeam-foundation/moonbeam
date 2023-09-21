@@ -32,13 +32,12 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use sp_core::H256;
-use sp_runtime::traits::{BlakeTwo256, ConstU32, IdentityLookup};
+use sp_runtime::{traits::{BlakeTwo256, ConstU32, IdentityLookup}, BuildStorage};
 
 pub type AccountId = MockAccount;
 pub type AssetId = u128;
 pub type Balance = u128;
-pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-pub type Block = frame_system::mocking::MockBlock<Runtime>;
+pub type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 /// The foreign asset precompile address prefix. Addresses that match against this prefix will
 /// be routed to Erc20AssetsPrecompileSet being marked as foreign
@@ -300,10 +299,10 @@ construct_runtime!(
 	{
 		System: frame_system,
 		Balances: pallet_balances,
-		ForeignAssets: pallet_assets,
+		ForeignAssets: pallet_assets::<Instance1>,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		LocalAssets: pallet_assets
+		LocalAssets: pallet_assets::<Instance2>,
 	}
 );
 
@@ -325,8 +324,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

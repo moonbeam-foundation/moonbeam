@@ -20,7 +20,7 @@ pub mod statemint_like;
 
 use cumulus_primitives_core::ParaId;
 use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::AccountId32;
+use sp_runtime::{AccountId32, BuildStorage};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
 use polkadot_runtime_parachains::configuration::{
@@ -140,8 +140,8 @@ pub const INITIAL_EVM_NONCE: u32 = 1;
 pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	use parachain::{MsgQueue, Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
@@ -180,8 +180,8 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 	use statemint_like::{MsgQueue, Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
@@ -201,8 +201,8 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 	use relay_chain::{Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {

@@ -289,8 +289,8 @@ mod tests {
 	use parity_scale_codec::Encode;
 	use sp_io::TestExternalities;
 	pub fn new_test_ext() -> TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.unwrap();
 		let min_orbiter_deposit_prefix =
 			frame_support::storage::storage_prefix(b"MoonbeamOrbiters", b"MinOrbiterDeposit");

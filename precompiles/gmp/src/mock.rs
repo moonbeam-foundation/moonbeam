@@ -26,6 +26,7 @@ use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
 use sp_core::H256;
+use sp_runtime::BuildStorage;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
@@ -42,15 +43,10 @@ pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type AssetId = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub enum Runtime	{
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
@@ -197,6 +193,7 @@ impl xcm_executor::Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -230,7 +227,12 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(
+		&mut self,
+		_weight: Weight,
+		_payment: Assets,
+		_context: &XcmContext,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -427,8 +429,8 @@ impl ExtBuilder {
 
 	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

@@ -17,7 +17,6 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	codec::MaxEncodedLen,
 	construct_runtime,
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
@@ -29,9 +28,9 @@ use frame_support::{
 };
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
-use frame_system::{EnsureNever, EnsureRoot};
+use frame_system::{EnsureNever, EnsureRoot, pallet_prelude::BlockNumberFor};
 use orml_traits::parameter_type_with_key;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
@@ -67,6 +66,7 @@ use xcm_simulator::{
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
 pub type AssetId = u128;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -405,6 +405,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -1155,33 +1156,29 @@ impl pallet_ethereum_xcm::Config for Runtime {
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+	pub enum Runtime	{
+		System: frame_system,
 		Balances: pallet_balances,
-		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
-		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
+		MsgQueue: mock_msg_queue,
+		XcmVersioner: mock_version_changer,
 
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		PolkadotXcm: pallet_xcm,
+		Assets: pallet_assets,
+		CumulusXcm: cumulus_pallet_xcm,
+		XTokens: orml_xtokens,
+		AssetManager: pallet_asset_manager,
+		XcmTransactor: pallet_xcm_transactor,
 		Treasury: pallet_treasury,
-		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		LocalAssets: pallet_assets::<Instance1>,
+		Proxy: pallet_proxy,
 
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
-		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
+		Timestamp: pallet_timestamp,
+		EVM: pallet_evm,
+		Ethereum: pallet_ethereum,
+		EthereumXcm: pallet_ethereum_xcm,
 	}
 );
 

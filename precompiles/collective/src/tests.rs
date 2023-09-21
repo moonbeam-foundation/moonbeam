@@ -18,7 +18,8 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin},
 };
-use frame_support::{assert_ok, dispatch::Encode, instances::Instance1};
+use frame_support::{assert_ok, instances::Instance1};
+use parity_scale_codec::Encode;
 use precompile_utils::{solidity::codec::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;

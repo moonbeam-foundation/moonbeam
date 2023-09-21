@@ -26,6 +26,7 @@ use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
+use sp_runtime::BuildStorage;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	opaque, Error as XcmError, Instruction, InteriorMultiLocation,
@@ -43,7 +44,6 @@ use xcm_executor::{
 	traits::{TransactAsset, WeightBounds, WeightTrader},
 	Assets,
 };
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
@@ -182,7 +182,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: Weight, _payment: Assets, _context: &XcmContext) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -432,8 +432,8 @@ impl ExtBuilder {
 		self
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {

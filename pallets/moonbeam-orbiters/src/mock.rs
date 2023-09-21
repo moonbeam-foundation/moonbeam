@@ -20,19 +20,19 @@ use crate as pallet_moonbeam_orbiters;
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::Everything, weights::Weight,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, pallet_prelude::BlockNumberFor};
 use nimbus_primitives::{AccountLookup, NimbusId};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, BuildStorage,
 };
 
 pub type AccountId = u64;
 pub type Balance = u128;
+pub type BlockNumber = BlockNumberFor<Test>;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type Block = frame_system::mocking::MockBlockU32<Test>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -163,8 +163,8 @@ impl ExtBuilder {
 		self
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {

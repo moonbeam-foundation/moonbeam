@@ -19,21 +19,20 @@ use super::*;
 use crate as proxy_companion;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, InstanceFilter},
+	traits::{Everything, InstanceFilter},
 	weights::Weight,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, BuildStorage,
 };
 
 //TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)
 pub type AccountId = u64;
 pub type Balance = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
@@ -185,8 +184,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {
@@ -195,7 +194,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
-		let genesis_config = proxy_companion::GenesisConfig {
+		let genesis_config = proxy_companion::GenesisConfig::<Test> {
 			// Here we add the trivial proxy type and default duration.
 			// This saves the test writer from having to always specify this.
 			proxies: self

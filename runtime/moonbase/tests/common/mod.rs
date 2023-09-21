@@ -20,7 +20,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
+	traits::{OnFinalize, OnInitialize},
 };
 use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
@@ -228,8 +228,8 @@ impl ExtBuilder {
 	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
@@ -262,26 +262,32 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let genesis_config = pallet_evm_chain_id::GenesisConfig {
+		let genesis_config = pallet_evm_chain_id::GenesisConfig::<Runtime> {
 			chain_id: self.chain_id,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_evm::GenesisConfig {
+		let genesis_config = pallet_evm::GenesisConfig::<Runtime> {
 			accounts: self.evm_accounts,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_ethereum::GenesisConfig {};
+		let genesis_config = pallet_ethereum::GenesisConfig::<Runtime> {
+			..Default::default()
+		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_xcm::GenesisConfig {
+		let genesis_config = pallet_xcm::GenesisConfig::<Runtime> {
 			safe_xcm_version: self.safe_xcm_version,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_transaction_payment::GenesisConfig {
+		let genesis_config = pallet_transaction_payment::GenesisConfig::<Runtime> {
 			multiplier: Multiplier::from(8u128),
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 

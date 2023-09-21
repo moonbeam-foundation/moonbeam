@@ -29,16 +29,16 @@ use precompile_utils::{
 };
 use sp_core::{H256, U256};
 use sp_io;
-use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup, TryConvert};
+use sp_runtime::BuildStorage;
 use sp_std::borrow::Borrow;
 use xcm::latest::Error as XcmError;
 use xcm_builder::AllowUnpaidExecutionFrom;
 use xcm_builder::FixedWeightBounds;
 use xcm_builder::IsConcrete;
 use xcm_builder::SovereignSignedViaLocation;
-use sp_runtime::traits::Convert;
 use xcm_executor::{
-	traits::{TransactAsset, WeightTrader},
+	traits::{ConvertLocation, TransactAsset, WeightTrader},
 	Assets,
 };
 use Junctions::Here;
@@ -46,21 +46,16 @@ use Junctions::Here;
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub enum Runtime	{
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		PolkadotXcm: pallet_xcm,
 	}
 );
 
@@ -76,13 +71,13 @@ use frame_system::RawOrigin as SystemRawOrigin;
 use xcm::latest::Junction;
 pub struct MockAccountToAccountKey20<Origin, AccountId>(PhantomData<(Origin, AccountId)>);
 
-impl<Origin: OriginTrait + Clone, AccountId: Into<H160>> Convert<Origin, MultiLocation>
+impl<Origin: OriginTrait + Clone, AccountId: Into<H160>> TryConvert<Origin, MultiLocation>
 	for MockAccountToAccountKey20<Origin, AccountId>
 where
 	Origin::PalletsOrigin: From<SystemRawOrigin<AccountId>>
 		+ TryInto<SystemRawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
 {
-	fn convert(o: Origin) -> Result<MultiLocation, Origin> {
+	fn try_convert(o: Origin) -> Result<MultiLocation, Origin> {
 		o.try_with_caller(|caller| match caller.try_into() {
 			Ok(SystemRawOrigin::Signed(who)) => {
 				let account_h160: H160 = who.into();
@@ -99,44 +94,27 @@ where
 }
 
 pub struct MockParentMultilocationToAccountConverter;
-impl Convert<MultiLocation, AccountId> for MockParentMultilocationToAccountConverter {
-	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
-		match location.borrow() {
+impl ConvertLocation<AccountId> for MockParentMultilocationToAccountConverter {
+	fn convert_location(location: &MultiLocation) -> Option<AccountId> {
+		match location {
 			MultiLocation {
 				parents: 1,
 				interior: Here,
-			} => Ok(ParentAccount.into()),
-			_ => Err(()),
-		}
-	}
-
-	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
-		match who.borrow() {
-			a if a == &AccountId::from(ParentAccount) => Ok(MultiLocation::parent()),
-			_ => Err(()),
+			} => Some(ParentAccount.into()),
+			_ => None,
 		}
 	}
 }
 
 pub struct MockParachainMultilocationToAccountConverter;
-impl Convert<MultiLocation, AccountId> for MockParachainMultilocationToAccountConverter {
-	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
+impl ConvertLocation<AccountId> for MockParachainMultilocationToAccountConverter {
+	fn convert_location(location: &MultiLocation) -> Option<AccountId> {
 		match location.borrow() {
 			MultiLocation {
 				parents: 1,
 				interior: Junctions::X1(Parachain(id)),
-			} => Ok(SiblingParachainAccount(*id).into()),
-			_ => Err(()),
-		}
-	}
-
-	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
-		match who.borrow() {
-			a if a.has_prefix_u32(0xffffffff) => Ok(MultiLocation {
-				parents: 1,
-				interior: Junctions::X1(Parachain(a.without_prefix() as u32)),
-			}),
-			_ => Err(()),
+			} => Some(SiblingParachainAccount(*id).into()),
+			_ => None,
 		}
 	}
 }
@@ -399,7 +377,12 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(
+		&mut self,
+		weight: Weight,
+		payment: Assets,
+		_context: &XcmContext,
+	) -> Result<Assets, XcmError> {
 		let asset_to_charge: MultiAsset =
 			(MultiLocation::parent(), weight.ref_time() as u128).into();
 		let unused = payment
@@ -463,6 +446,7 @@ impl xcm_executor::Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 pub(crate) struct ExtBuilder {
@@ -483,8 +467,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

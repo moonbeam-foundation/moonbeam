@@ -27,7 +27,7 @@ use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-	DispatchError, Perbill,
+	DispatchError, Perbill, BuildStorage,
 };
 use sp_std::collections::btree_map::BTreeMap;
 
@@ -37,15 +37,10 @@ use frame_support::traits::VoteTally;
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub enum Runtime	{
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
@@ -180,7 +175,7 @@ parameter_types! {
 
 pub struct TestPolls;
 impl Polling<TallyOf<Runtime>> for TestPolls {
-	type Nonce = u8;
+	type Index = u8;
 	type Votes = u128;
 	type Moment = u64;
 	type Class = u8;
@@ -288,8 +283,8 @@ impl ExtBuilder {
 
 	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {
