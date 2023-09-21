@@ -181,7 +181,7 @@ describeSuite({
           context.polkadotJs().events.ethereum.Executed.is(event)
         );
         expect(ethEvents).to.have.lengthOf(1);
-        expectEVMResult(result!.events, "Succeed");
+        expectEVMResult(ethEvents, "Succeed");
       },
     });
   },
