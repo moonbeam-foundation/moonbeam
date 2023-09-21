@@ -647,5 +647,6 @@ jobs:
           --header 'moonwallenv: dev_${{ matrix.chain }}' \
           --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
           --header 'table: dev_reports' \
+          --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
           --header 'Content-Type: application/json' \
           -d@test/tmp/testResults.json
