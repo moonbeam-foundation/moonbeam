@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{dispatch::Weight, parameter_types, traits::ContainsPair};
+use frame_support::{weights::Weight, parameter_types, traits::ContainsPair};
 use xcm::latest::prelude::*;
 
 // An xcm sender/receiver akin to > /dev/null
@@ -51,7 +51,7 @@ impl xcm_executor::traits::OnResponse for DevNull {
 }
 
 pub struct AccountIdConverter;
-impl xcm_executor::traits::Convert<MultiLocation, u64> for AccountIdConverter {
+impl sp_runtime::traits::Convert<MultiLocation, Result<u64, MultiLocation>> for AccountIdConverter {
 	fn convert(ml: MultiLocation) -> Result<u64, MultiLocation> {
 		match ml {
 			MultiLocation {

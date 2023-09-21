@@ -17,10 +17,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{
 	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::AddressMapping;
 use pallet_referenda::{
 	Call as ReferendaCall, DecidingCount, Deposit, Pallet as Referenda, ReferendumCount,
@@ -30,6 +31,7 @@ use parity_scale_codec::{Encode, MaxEncodedLen};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
+use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;
@@ -43,7 +45,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_referenda::Config>::Currency as Cu
 >>::Balance;
 type TrackIdOf<Runtime> = <<Runtime as pallet_referenda::Config>::Tracks as TracksInfo<
 	BalanceOf<Runtime>,
-	<Runtime as frame_system::Config>::BlockNumber,
+	BlockNumberFor<Runtime>,
 >>::Id;
 type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::RuntimeCall>;
 
@@ -141,7 +143,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	<Runtime as frame_system::Config>::Hash: Into<H256>,
-	Runtime::BlockNumber: Into<U256>,
+	BlockNumberFor<Runtime>: Into<U256>,
 	Runtime::AccountId: Into<H160>,
 	TrackIdOf<Runtime>: TryFrom<u16> + TryInto<u16>,
 	BalanceOf<Runtime>: Into<U256>,
@@ -259,7 +261,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedCallOf<Runtime>,
-		enactment_moment: DispatchTime<Runtime::BlockNumber>,
+		enactment_moment: DispatchTime<BlockNumberFor<Runtime>>,
 	) -> EvmResult<u32> {
 		log::trace!(
 			target: "referendum-precompile",
@@ -402,7 +404,7 @@ where
 
 		let get_closed_ref_info =
 			|status,
-			 moment: Runtime::BlockNumber,
+			 moment: BlockNumberFor<Runtime>,
 			 submission_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>,
 			 decision_deposit: Option<Deposit<Runtime::AccountId, BalanceOf<Runtime>>>|
 			 -> ClosedReferendumInfo {

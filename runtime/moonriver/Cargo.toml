@@ -13,7 +13,7 @@ hex-literal = { workspace = true, optional = true }
 log = { workspace = true }
 num_enum = { workspace = true }
 rlp = { workspace = true, optional = true }
-serde = { workspace = true, optional = true, features = [ "derive" ] }
+serde = { workspace = true, features = [ "derive" ] }
 sha3 = { workspace = true, optional = true }
 smallvec = { workspace = true }
 strum = { workspace = true }
@@ -113,11 +113,12 @@ sp-session = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
+sp-weights = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
-fp-self-contained = { workspace = true }
+fp-self-contained = { workspace = true, features = [ "serde" ] }
 pallet-base-fee = { workspace = true }
 pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
@@ -262,7 +263,6 @@ std = [
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"scale-info/std",
-	"serde",
 	"session-keys-primitives/std",
 	"sp-api/std",
 	"sp-block-builder/std",

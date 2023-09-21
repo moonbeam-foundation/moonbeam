@@ -18,12 +18,14 @@
 //! - Substrate call dispatch.
 //! - Substrate DB read and write costs
 
+use sp_runtime::traits::Dispatchable;
+
 use {
 	crate::{evm::handle::using_precompile_handle, solidity::revert::revert},
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
-		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+		dispatch::{GetDispatchInfo, PostDispatchInfo},
 		pallet_prelude::*,
 		traits::Get,
 	},

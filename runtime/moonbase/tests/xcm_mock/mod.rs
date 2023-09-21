@@ -164,13 +164,10 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		},
 	);
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&pallet_evm::GenesisConfig {
-			accounts: evm_accounts,
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = pallet_evm::GenesisConfig {
+		accounts: evm_accounts,
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {
@@ -219,21 +216,15 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 		.map(|&para_id| (para_id.into(), mock_para_genesis_info()))
 		.collect();
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&ConfigurationGenesisConfig {
-			config: mock_relay_config(),
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = ConfigurationGenesisConfig {
+		config: mock_relay_config(),
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&ParasGenesisConfig {
-			paras: para_genesis,
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = ParasGenesisConfig {
+		paras: para_genesis,
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {

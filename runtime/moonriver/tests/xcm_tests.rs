@@ -28,7 +28,7 @@ use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
-use xcm_executor::traits::Convert;
+use sp_runtime::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;

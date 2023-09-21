@@ -106,9 +106,15 @@ pub struct ExportGenesisStateCommand {
 	#[clap(short, long)]
 	pub raw: bool,
 
-	/// The name of the chain for that the genesis state should be exported.
-	#[clap(long)]
-	pub chain: Option<String>,
+	#[allow(missing_docs)]
+	#[command(flatten)]
+	pub shared_params: sc_cli::SharedParams,
+}
+
+impl sc_cli::CliConfiguration for ExportGenesisStateCommand {
+	fn shared_params(&self) -> &sc_cli::SharedParams {
+		&self.shared_params
+	}
 }
 
 /// Command for exporting the genesis wasm file.

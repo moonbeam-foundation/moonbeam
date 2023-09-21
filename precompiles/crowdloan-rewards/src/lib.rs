@@ -20,7 +20,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
 };
 use pallet_evm::AddressMapping;
@@ -32,6 +32,7 @@ use sp_std::{
 	fmt::Debug,
 	marker::PhantomData,
 };
+use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;

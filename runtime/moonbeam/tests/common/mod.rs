@@ -20,7 +20,6 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
-	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
@@ -34,7 +33,7 @@ pub use moonbeam_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill, Percent};
+use sp_runtime::{traits::Dispatchable, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -266,35 +265,23 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_evm_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_evm_chain_id::GenesisConfig {
-				chain_id: self.chain_id,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_evm_chain_id::GenesisConfig {
+			chain_id: self.chain_id,
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_evm::GenesisConfig {
-				accounts: self.evm_accounts,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_evm::GenesisConfig {
+			accounts: self.evm_accounts,
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_ethereum::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_ethereum::GenesisConfig {},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_ethereum::GenesisConfig {};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_xcm::GenesisConfig {
-				safe_xcm_version: self.safe_xcm_version,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_xcm::GenesisConfig {
+			safe_xcm_version: self.safe_xcm_version,
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		let local_assets = self.local_assets.clone();

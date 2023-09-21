@@ -22,9 +22,10 @@ extern crate alloc;
 
 use fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
@@ -33,6 +34,7 @@ use pallet_randomness::{
 use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;
@@ -172,7 +174,7 @@ where
 	Runtime: pallet_randomness::Config + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_randomness::Call<Runtime>>,
-	<Runtime as frame_system::Config>::BlockNumber: TryInto<u32> + TryFrom<u32>,
+	BlockNumberFor<Runtime>: TryInto<u32> + TryFrom<u32>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
 	#[precompile::public("relayEpochIndex()")]

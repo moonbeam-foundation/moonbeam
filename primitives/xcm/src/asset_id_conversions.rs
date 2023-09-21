@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_std::{borrow::Borrow, marker::PhantomData};
+use sp_runtime::traits::MaybeEquivalence;
+use sp_std::marker::PhantomData;
 use xcm::latest::MultiLocation;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
@@ -25,30 +26,29 @@ use xcm::latest::MultiLocation;
 pub struct AsAssetType<AssetId, AssetType, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetType, AssetIdInfoGetter)>,
 );
-impl<AssetId, AssetType, AssetIdInfoGetter> xcm_executor::traits::Convert<MultiLocation, AssetId>
+impl<AssetId, AssetType, AssetIdInfoGetter> MaybeEquivalence<MultiLocation, AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
 	AssetId: Clone,
 	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(id.borrow().clone().into()) {
-			Ok(asset_id)
-		} else {
-			Err(())
-		}
+	fn convert(id: &MultiLocation) -> Option<AssetId> {
+		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(asset_type) = AssetIdInfoGetter::get_asset_type(what.borrow().clone()) {
-			if let Some(location) = asset_type.into() {
-				Ok(location)
-			} else {
-				Err(())
-			}
-		} else {
-			Err(())
-		}
+	fn convert_back(what: &AssetId) -> Option<MultiLocation> {
+		AssetIdInfoGetter::get_asset_type(what.clone()).map(Into::into).flatten()
+	}
+}
+impl<AssetId, AssetType, AssetIdInfoGetter> sp_runtime::traits::Convert<MultiLocation, Option<AssetId>>
+	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
+where
+	AssetId: Clone,
+	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
+	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
+{
+	fn convert(id: MultiLocation) -> Option<AssetId> {
+		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
 }
 

@@ -69,6 +69,7 @@ sc-informant = { workspace = true }
 sc-network = { workspace = true }
 sc-network-common = { workspace = true }
 sc-network-sync = { workspace = true }
+sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
@@ -99,7 +100,7 @@ substrate-prometheus-endpoint = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true, features = [ "sql" ] }
-fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
+fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate", "txpool" ] }
 fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
 fp-rpc = { workspace = true, features = [ "std" ] }

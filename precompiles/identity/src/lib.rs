@@ -22,7 +22,7 @@ extern crate alloc;
 
 use enumflags2::BitFlags;
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::StaticLookup;
 use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
@@ -32,6 +32,7 @@ use sp_core::{ConstU32, Get, H160, H256, U256};
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
 use sp_std::vec::Vec;
+use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;

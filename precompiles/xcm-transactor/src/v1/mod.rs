@@ -17,11 +17,12 @@
 //! Precompile to xcm transactor runtime methods via the EVM
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 
 use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::{convert::TryFrom, marker::PhantomData};
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
