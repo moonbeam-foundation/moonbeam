@@ -181,9 +181,7 @@ describeSuite({
           context.polkadotJs().events.ethereum.Executed.is(event)
         );
         expect(ethEvents).to.have.lengthOf(1);
-        expect((ethEvents[0].toHuman() as any).event["data"]["exitReason"]["Error"]).equals(
-          "OutOfGas"
-        );
+        expectEVMResult(result!.events, "Succeed");
       },
     });
   },
