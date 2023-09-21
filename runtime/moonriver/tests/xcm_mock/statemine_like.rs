@@ -25,7 +25,7 @@ use frame_system::{EnsureRoot, EnsureSigned};
 
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, Hash, IdentityLookup},
+	traits::{ConstU32, Hash, IdentityLookup},
 	AccountId32,
 };
 
@@ -537,20 +537,16 @@ impl mock_statemine_prefix::Config for Runtime {
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+	pub enum Runtime	{
+		System: frame_system,
 		Balances: pallet_balances,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
-		Assets: pallet_assets::{Pallet, Storage, Event<T>},
-		PrefixChanger: mock_statemine_prefix::{Pallet, Storage, Event<T>},
+		PolkadotXcm: pallet_xcm,
+		CumulusXcm: cumulus_pallet_xcm,
+		MsgQueue: mock_msg_queue,
+		Assets: pallet_assets,
+		PrefixChanger: mock_statemine_prefix,
 
 	}
 );

@@ -24,7 +24,7 @@ use common::*;
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
-	dispatch::{DispatchClass, Dispatchable},
+	dispatch::DispatchClass,
 	traits::{
 		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
 		StorageInfoTrait,
@@ -56,12 +56,12 @@ use precompile_utils::{
 };
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
-use sp_runtime::{traits::Convert, DispatchError, ModuleError};
+use sp_runtime::{traits::{Convert, Dispatchable}, DispatchError, ModuleError, BuildStorage};
+use xcm_executor::traits::ConvertLocation;
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use sp_runtime::traits::Convert as XcmConvert;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -504,7 +504,7 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_support::metadata::*;
+	use frame_metadata::*;
 	let metadata = moonriver_runtime::Runtime::metadata();
 	let metadata = match metadata.1 {
 		RuntimeMetadata::V14(metadata) => metadata,
@@ -1304,8 +1304,8 @@ fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
 	F: FnMut() -> (),
 {
-	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap()
 		.into();
 	t.execute_with(|| {
@@ -2308,7 +2308,7 @@ fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
-			ParentIsPreset::<AccountId>::convert_ref(MultiLocation::parent())
+			ParentIsPreset::<AccountId>::convert_location(&MultiLocation::parent())
 				.unwrap()
 				.into();
 
@@ -2326,8 +2326,8 @@ fn test_xcm_utils_ml_tp_account() {
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
-			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_ref(
-				parachain_2000_multilocation.clone(),
+			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_location(
+				&parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2355,8 +2355,8 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
-				alice_in_parachain_2000_multilocation.clone(),
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_location(
+				&alice_in_parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2647,8 +2647,8 @@ mod fee_tests {
 	where
 		F: FnMut() -> (),
 	{
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -2696,8 +2696,8 @@ mod fee_tests {
 			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_parts(extrinsic_len as u64, 1)))
 			+ tip;
 
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {

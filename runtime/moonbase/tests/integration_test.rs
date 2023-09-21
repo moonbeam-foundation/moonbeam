@@ -29,7 +29,7 @@ use precompile_utils::{
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
-	dispatch::{DispatchClass, Dispatchable},
+	dispatch::DispatchClass,
 	traits::{
 		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
 		StorageInfoTrait,
@@ -50,9 +50,10 @@ use moonbase_runtime::{
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
+use xcm_executor::traits::ConvertLocation;
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use sp_runtime::traits::Convert as XcmConvert;
+use sp_runtime::{traits::{Convert as XcmConvert, Dispatchable}, BuildStorage};
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -65,7 +66,7 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWe
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
-use sp_runtime::{traits::Convert, DispatchError, ModuleError};
+use sp_runtime::{DispatchError, ModuleError};
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -515,7 +516,7 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_support::metadata::*;
+	use frame_metadata::*;
 	let metadata = moonbase_runtime::Runtime::metadata();
 	let metadata = match metadata.1 {
 		RuntimeMetadata::V14(metadata) => metadata,
@@ -1720,8 +1721,8 @@ fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
 	F: FnMut() -> (),
 {
-	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap()
 		.into();
 	t.execute_with(|| {
@@ -2494,7 +2495,7 @@ fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
-			ParentIsPreset::<AccountId>::convert_ref(MultiLocation::parent())
+			ParentIsPreset::<AccountId>::convert_location(&MultiLocation::parent())
 				.unwrap()
 				.into();
 
@@ -2512,8 +2513,8 @@ fn test_xcm_utils_ml_tp_account() {
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
-			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_ref(
-				parachain_2000_multilocation.clone(),
+			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_location(
+				&parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2541,8 +2542,8 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
-				alice_in_parachain_2000_multilocation.clone(),
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_location(
+				&alice_in_parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2877,14 +2878,14 @@ mod fee_tests {
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
 		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
-	use sp_runtime::{FixedPointNumber, Perbill};
+	use sp_runtime::{FixedPointNumber, Perbill, BuildStorage};
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 	where
 		F: FnMut() -> (),
 	{
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -2935,8 +2936,8 @@ mod fee_tests {
 				)) + LengthToFeeImpl::weight_to_fee(&Weight::from_parts(extrinsic_len as u64, 1))
 				+ tip;
 
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -2962,8 +2963,8 @@ mod fee_tests {
 
 	#[test]
 	fn test_min_gas_price_is_deterministic() {
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -2980,8 +2981,8 @@ mod fee_tests {
 
 	#[test]
 	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -3003,8 +3004,8 @@ mod fee_tests {
 	#[test]
 	fn test_fee_scenarios() {
 		use sp_runtime::FixedU128;
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {

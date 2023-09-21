@@ -26,21 +26,16 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMappin
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
-use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
+use sp_runtime::{traits::{BlakeTwo256, IdentityLookup}, BuildStorage};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub enum Runtime	{
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
@@ -200,8 +195,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

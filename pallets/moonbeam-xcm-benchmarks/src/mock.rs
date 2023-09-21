@@ -61,10 +61,6 @@ impl sp_runtime::traits::Convert<MultiLocation, Result<u64, MultiLocation>> for 
 			_ => Err(ml),
 		}
 	}
-
-	fn reverse(acc: u64) -> Result<MultiLocation, u64> {
-		Err(acc)
-	}
 }
 
 parameter_types! {

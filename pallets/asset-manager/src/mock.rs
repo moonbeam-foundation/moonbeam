@@ -19,17 +19,16 @@ use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode};
 
 use frame_support::{
-	construct_runtime, parameter_types, traits::Everything, weights::Weight, RuntimeDebug,
+	construct_runtime, parameter_types, traits::Everything, weights::Weight,
 };
 use frame_system::EnsureRoot;
 use scale_info::TypeInfo;
-use sp_core::H256;
+use sp_core::{H256, RuntimeDebug};
 use sp_runtime::traits::Hash as THash;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use sp_runtime::DispatchError;
+use sp_runtime::{DispatchError, BuildStorage};
 use xcm::latest::prelude::*;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub type AccountId = u64;
@@ -228,8 +227,8 @@ impl ExtBuilder {
 		self
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {

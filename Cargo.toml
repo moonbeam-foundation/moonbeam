@@ -322,6 +322,7 @@ async-trait = { version = "0.1.42" }
 blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99"
 environmental = { version = "1.1.2", default-features = false }
+frame-metadata = { version = "16.0.0", default-features = false, features = ["current"] }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
 impl-serde = { version = "0.3.1", default-features = false }

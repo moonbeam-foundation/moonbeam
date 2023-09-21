@@ -18,7 +18,7 @@ use crate::mock::{
 	sent_xcm, AccountId, Balances, ExtBuilder, PCall, ParentAccount, Precompiles, PrecompilesValue,
 	Runtime, SiblingParachainAccount, System,
 };
-use frame_support::{dispatch::Weight, traits::PalletInfo};
+use frame_support::{weights::Weight, traits::PalletInfo};
 use parity_scale_codec::Encode;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};

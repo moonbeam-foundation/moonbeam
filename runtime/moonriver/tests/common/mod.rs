@@ -20,7 +20,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
+	traits::{OnFinalize, OnInitialize},
 };
 pub use moonriver_runtime::{
 	asset_config::AssetRegistrarMetadata,
@@ -33,7 +33,7 @@ pub use moonriver_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{traits::Dispatchable, Digest, DigestItem, Perbill, Percent};
+use sp_runtime::{traits::Dispatchable, Digest, DigestItem, Perbill, Percent, BuildStorage};
 
 use std::collections::BTreeMap;
 
@@ -232,8 +232,8 @@ impl ExtBuilder {
 	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
@@ -266,26 +266,32 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let genesis_config = pallet_evm_chain_id::GenesisConfig {
+		let genesis_config = pallet_evm_chain_id::GenesisConfig::<Runtime> {
 			chain_id: self.chain_id,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_evm::GenesisConfig {
+		let genesis_config = pallet_evm::GenesisConfig::<Runtime> {
 			accounts: self.evm_accounts,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_ethereum::GenesisConfig {};
+		let genesis_config = pallet_ethereum::GenesisConfig::<Runtime> {
+			..Default::default()
+		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_xcm::GenesisConfig {
+		let genesis_config = pallet_xcm::GenesisConfig::<Runtime> {
 			safe_xcm_version: self.safe_xcm_version,
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		let genesis_config = pallet_transaction_payment::GenesisConfig {
+		let genesis_config = pallet_transaction_payment::GenesisConfig::<Runtime> {
 			multiplier: Multiplier::from(10u128),
+			..Default::default()
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 

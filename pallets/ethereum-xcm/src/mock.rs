@@ -23,13 +23,13 @@ use frame_support::{
 	weights::Weight,
 	ConsensusEngineId, PalletId,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, pallet_prelude::BlockNumberFor};
 use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	AccountId32,
+	AccountId32, BuildStorage,
 };
 
 use super::*;
@@ -39,9 +39,8 @@ use sp_runtime::{
 	transaction_validity::{TransactionValidity, TransactionValidityError},
 };
 
-pub type SignedExtra = (frame_system::CheckSpecVersion<Test>,);
+pub type BlockNumber = BlockNumberFor<Test>;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test, (), SignedExtra>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime! {
@@ -365,8 +364,8 @@ fn address_build(seed: u8) -> AccountInfo {
 // our desired mockup.
 pub fn new_test_ext(accounts_len: usize) -> (Vec<AccountInfo>, sp_io::TestExternalities) {
 	// sc_cli::init_logger("");
-	let mut ext = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
+	let mut ext = frame_system::GenesisConfig::<Test>::default()
+		.build_storage()
 		.unwrap();
 
 	let pairs = (0..accounts_len)

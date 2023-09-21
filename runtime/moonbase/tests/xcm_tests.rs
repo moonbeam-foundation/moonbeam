@@ -19,7 +19,7 @@
 mod xcm_mock;
 use frame_support::{
 	assert_ok,
-	dispatch::Weight,
+	weights::Weight,
 	traits::{ConstU32, PalletInfo, PalletInfoAccess},
 	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	BoundedVec,
@@ -32,7 +32,6 @@ use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
-use sp_runtime::traits::Convert;
 use xcm_mock::*;
 use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 use xcm_simulator::TestExt;
