@@ -9,7 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "helpers/xcm";
-import { parseEther } from "viem";
+import { hexToNumber, parseEther } from "viem";
 
 describeSuite({
   id: "D3602",
@@ -140,11 +140,7 @@ describeSuite({
         // We traced the transaction, and the traced gas used should be greater* than or equal to the
         // one recorded in the ethereum transaction receipt.
         // *gasUsed on tracing does not take into account gas refund.
-        console.log(receipt);
-        console.log("trace", trace);
-        expect(Number(receipt.gasUsed)).lte(
-          Number(context.web3().utils.hexToNumber(trace.gasUsed))
-        );
+        expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
       },
     });
   },
