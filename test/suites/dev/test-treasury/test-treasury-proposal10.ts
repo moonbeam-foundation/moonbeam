@@ -17,6 +17,7 @@ describeSuite({
 
         const proposalCount = await context.polkadotJs().query.treasury.proposalCount();
         expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
+        console.log("proposalCount.toBigInt()", proposalCount.toBigInt())
 
         // Charleth proposed that the council reject the treasury proposal
         // (and therefore implicitly votes for)
@@ -32,8 +33,10 @@ describeSuite({
         );
 
         const councilProposalHash = proposalResult!.events
-          .find(({ event: { method } }) => method.toString() == "Proposed")
+          .find(({ event: { method } }) => method.toString() == "Proposed")!
           .event.data[2].toHex();
+        console.log("councilProposalHash", councilProposalHash)
+
 
         // Charleth & Dorothy vote for against proposal and close it
         await context.createBlock([
@@ -46,6 +49,7 @@ describeSuite({
             .tx.treasuryCouncilCollective.vote(councilProposalHash, 0, true)
             .signAsync(dorothy),
         ]);
+        console.log("Create block");
 
         const { result: closeResult } = await context.createBlock(
           context
@@ -69,16 +73,20 @@ describeSuite({
             ],
           }
         );
+        console.log("Create block 2");
+
         expect(
           closeResult!.events.find((evt) =>
             context.polkadotJs().events.treasuryCouncilCollective.Executed.is(evt.event)
           ).event.data.result.isOk
         ).toBe(true);
+        console.log("closeResult");
 
         expect((await context.polkadotJs().query.treasury.proposals(0)).toHuman()).to.equal(
           null,
           "The proposal must have been deleted"
         );
+        console.log("deleted done");
       },
     });
   },
