@@ -627,7 +627,7 @@ jobs:
           path: target/release
       - name: Enforce multi thread limit
         run: |
-          sed -i 's/"multiThreads": true/"multiThreads": 4/g' test/moonwall.config.json
+          sed -i 's/"multiThreads": true/"multiThreads": 3/g' test/moonwall.config.json
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
