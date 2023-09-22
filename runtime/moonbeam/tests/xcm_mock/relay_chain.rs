@@ -191,6 +191,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -261,6 +262,7 @@ impl paras::Config for Runtime {
 	type UnsignedPriority = ParasUnsignedPriority;
 	type NextSessionRotation = TestNextSessionRotation;
 	type QueueFootprinter = ();
+	type OnNewHead = ();
 }
 
 impl dmp::Config for Runtime {}
@@ -270,6 +272,7 @@ impl hrmp::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = TestHrmpWeightInfo;
+	type ChannelManager = frame_system::EnsureRoot<AccountId>;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -322,6 +325,7 @@ impl pallet_message_queue::Config for Runtime {
 	type MessageProcessor = MessageProcessor;
 	type QueueChangeHandler = ();
 	type WeightInfo = ();
+	type QueuePausedQuery = ();
 }
 
 construct_runtime!(
@@ -388,7 +392,7 @@ impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	fn clean_open_channel_requests(_: u32) -> Weight {
 		Weight::from_parts(1, 0)
 	}
-	fn force_open_hrmp_channel() -> Weight {
+	fn force_open_hrmp_channel(_: u32) -> Weight {
 		Weight::from_parts(1, 0)
 	}
 }

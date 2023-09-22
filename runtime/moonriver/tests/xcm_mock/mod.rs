@@ -164,8 +164,9 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		},
 	);
 
-	let genesis_config = pallet_evm::GenesisConfig {
+	let genesis_config = pallet_evm::GenesisConfig::<Runtime> {
 		accounts: evm_accounts,
+		..Default::default()
 	};
 	genesis_config.assimilate_storage(&mut t).unwrap();
 
@@ -216,13 +217,14 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 		.map(|&para_id| (para_id.into(), mock_para_genesis_info()))
 		.collect();
 
-	let genesis_config = ConfigurationGenesisConfig {
+	let genesis_config = ConfigurationGenesisConfig::<Runtime> {
 		config: mock_relay_config(),
 	};
 	genesis_config.assimilate_storage(&mut t).unwrap();
 
-	let genesis_config = ParasGenesisConfig {
+	let genesis_config = ParasGenesisConfig::<Runtime> {
 		paras: para_genesis,
+		..Default::default()
 	};
 	genesis_config.assimilate_storage(&mut t).unwrap();
 

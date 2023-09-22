@@ -301,6 +301,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -535,7 +536,6 @@ impl mock_statemint_prefix::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(
 	pub enum Runtime	{
