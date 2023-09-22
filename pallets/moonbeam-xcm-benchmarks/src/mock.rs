@@ -16,6 +16,7 @@
 
 use frame_support::{weights::Weight, parameter_types, traits::ContainsPair};
 use xcm::latest::prelude::*;
+use xcm_executor::traits::ConvertLocation;
 
 // An xcm sender/receiver akin to > /dev/null
 pub struct DevNull;
@@ -51,14 +52,14 @@ impl xcm_executor::traits::OnResponse for DevNull {
 }
 
 pub struct AccountIdConverter;
-impl sp_runtime::traits::Convert<MultiLocation, Result<u64, MultiLocation>> for AccountIdConverter {
-	fn convert(ml: MultiLocation) -> Result<u64, MultiLocation> {
+impl ConvertLocation<u64> for AccountIdConverter {
+	fn convert_location(ml: &MultiLocation) -> Option<u64> {
 		match ml {
 			MultiLocation {
 				parents: 0,
 				interior: X1(Junction::AccountId32 { id, .. }),
-			} => Ok(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap()),
-			_ => Err(ml),
+			} => Some(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap()),
+			_ => None,
 		}
 	}
 }

@@ -674,8 +674,8 @@ mod testing {
 			use xcm_primitives::AssetTypeGetter;
 
 			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Ok(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			let asset_id = if let Some(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_location(&location)
 			{
 				asset_id
 			} else {

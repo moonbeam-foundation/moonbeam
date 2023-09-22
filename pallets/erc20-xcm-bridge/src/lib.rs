@@ -51,7 +51,7 @@ pub mod pallet {
 		XcmContext,
 	};
 	use xcm_executor::traits::ConvertLocation;
-use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
+	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 	use xcm_executor::Assets;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount

@@ -17,6 +17,7 @@
 use sp_runtime::traits::MaybeEquivalence;
 use sp_std::marker::PhantomData;
 use xcm::latest::MultiLocation;
+use xcm_executor::traits::ConvertLocation;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -40,14 +41,14 @@ where
 		AssetIdInfoGetter::get_asset_type(what.clone()).map(Into::into).flatten()
 	}
 }
-impl<AssetId, AssetType, AssetIdInfoGetter> sp_runtime::traits::Convert<MultiLocation, Option<AssetId>>
+impl<AssetId, AssetType, AssetIdInfoGetter> ConvertLocation<AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
 	AssetId: Clone,
 	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert(id: MultiLocation) -> Option<AssetId> {
+	fn convert_location(id: &MultiLocation) -> Option<AssetId> {
 		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
 }

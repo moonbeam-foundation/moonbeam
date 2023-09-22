@@ -23,7 +23,6 @@ use frame_support::{
 use parity_scale_codec::Decode;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, TrailingZeroInput},
 	BuildStorage,
 };
@@ -126,6 +125,7 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = TestUniversalAliases;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
+	type Aliasers = ();
 }
 
 impl pallet_xcm_benchmarks::Config for Test {
@@ -189,13 +189,17 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 	fn unlockable_asset() -> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
 		Err(BenchmarkError::Skip)
 	}
+
+	fn alias_origin() -> Result<(MultiLocation, MultiLocation), BenchmarkError> {
+		Ok((Default::default(), Default::default()))
+	}
 }
 
 impl generic::Config for Test {}
 impl Config for Test {}
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let t = GenesisConfig {
+	let t = RuntimeGenesisConfig {
 		..Default::default()
 	}
 	.build_storage()

@@ -682,12 +682,11 @@ mod testing {
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
 	impl From<MultiLocation> for CurrencyId {
 		fn from(location: MultiLocation) -> CurrencyId {
-			use sp_runtime::traits::Convert as XConvert;
 			use xcm_primitives::AssetTypeGetter;
 
 			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Ok(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			let asset_id = if let Some(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_location(&location)
 			{
 				asset_id
 			} else {
