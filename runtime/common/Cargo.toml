@@ -66,6 +66,7 @@ pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
+xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
 [features]
