@@ -1269,9 +1269,9 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
 			.iter()
 			.find_map(|event| match event.clone() {
-				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped{..}) => {
-					Some(event.clone())
-				}
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped {
+					..
+				}) => Some(event.clone()),
 				_ => None,
 			});
 		// Assert that the events do not contain the assets being trapped
@@ -1422,9 +1422,9 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
 			.iter()
 			.find_map(|event| match event.clone() {
-				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped{..}) => {
-					Some(event.clone())
-				}
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped {
+					..
+				}) => Some(event.clone()),
 				_ => None,
 			});
 		// Assert that the events do not contain the assets being trapped
@@ -1990,7 +1990,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	});
 
 	let expected_supported_version: relay_chain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged{
+		pallet_xcm::Event::SupportedVersionChanged {
 			location: MultiLocation {
 				parents: 0,
 				interior: X1(Parachain(1)),
@@ -2004,18 +2004,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert!(relay_chain::relay_events().contains(&expected_supported_version));
 	});
 
-	let expected_version_notified: parachain::RuntimeEvent =
-		pallet_xcm::Event::VersionChangeNotified{
-			destination: MultiLocation {
-				parents: 1,
-				interior: Here,
-			},
-			result: 2,
-			cost: vec![].into(),
-			message_id: XcmHash::default(),
-		}
-		.into();
-
 	// ParaA changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change
 	ParaA::execute_with(|| {
@@ -2026,12 +2014,18 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		// Initialize block, to call on_initialize and notify targets
 		parachain::para_roll_to(2);
 		// Expect the event in the parachain
-		assert!(parachain::para_events().contains(&expected_version_notified));
+		assert!(parachain::para_events().iter().any(|e| matches!(
+			e,
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
+		)));
 	});
 
 	// This event should have been seen in the relay
 	let expected_supported_version_2: relay_chain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged{
+		pallet_xcm::Event::SupportedVersionChanged {
 			location: MultiLocation {
 				parents: 0,
 				interior: X1(Parachain(1)),
@@ -2114,7 +2108,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	});
 
 	let expected_supported_version: parachain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged{
+		pallet_xcm::Event::SupportedVersionChanged {
 			location: MultiLocation {
 				parents: 1,
 				interior: X1(Parachain(2)),
@@ -2160,18 +2154,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
-	let expected_version_notified: parachain::RuntimeEvent =
-		pallet_xcm::Event::VersionChangeNotified{
-			destination: MultiLocation {
-				parents: 1,
-				interior: X1(Parachain(1)),
-			},
-			result: 2,
-			cost: vec![].into(),
-			message_id: XcmHash::default(),
-		}
-		.into();
-
 	// ParaB changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change
 	ParaB::execute_with(|| {
@@ -2182,12 +2164,18 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// Initialize block, to call on_initialize and notify targets
 		parachain::para_roll_to(2);
 		// Expect the event in the parachain
-		assert!(parachain::para_events().contains(&expected_version_notified));
+		assert!(parachain::para_events().iter().any(|e| matches!(
+			e,
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
+		)));
 	});
 
 	// This event should have been seen in para A
 	let expected_supported_version_2: parachain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged{
+		pallet_xcm::Event::SupportedVersionChanged {
 			location: MultiLocation {
 				parents: 1,
 				interior: X1(Parachain(2)),

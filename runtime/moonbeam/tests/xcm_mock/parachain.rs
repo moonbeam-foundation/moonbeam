@@ -29,7 +29,9 @@ use frame_support::{
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use frame_system::{EnsureNever, EnsureRoot, pallet_prelude::BlockNumberFor};
+use moonbeam_runtime_common::xcm::AllowTopLevelPaidExecution;
 use orml_traits::parameter_type_with_key;
+use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
@@ -49,7 +51,7 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
+	AsPrefixedGeneralIndex, ConvertedConcreteId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
@@ -309,7 +311,7 @@ pub type XcmBarrier = (
 	WithComputedOrigin<
 		(
 			// If the message is one that immediately attemps to pay for execution, then allow it.
-			AllowTopLevelPaidExecutionFrom<Everything>,
+			AllowTopLevelPaidExecution,
 			// Subscriptions for version tracking are OK.
 			AllowSubscriptionsFrom<Everything>,
 		),
@@ -1191,7 +1193,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
-	PolkadotXcm::on_runtime_upgrade();
+	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }
 
 pub(crate) fn para_roll_to(n: BlockNumber) {
