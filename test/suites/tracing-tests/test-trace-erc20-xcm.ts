@@ -137,8 +137,8 @@ describeSuite({
           transactionHash,
           { tracer: "callTracer" },
         ]);
-        // We traced the transaction, and the traced gas used should be greater* than or equal to the
-        // one recorded in the ethereum transaction receipt.
+        // We traced the transaction, and the traced gas used should be greater* than or equal
+        // to the one recorded in the ethereum transaction receipt.
         // *gasUsed on tracing does not take into account gas refund.
         expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
       },
