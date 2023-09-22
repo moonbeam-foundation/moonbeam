@@ -407,7 +407,7 @@ parameter_types! {
 	/// )
 	pub const GasLimitPovSizeRatio: u64 = 4;
 	/// The amount of gas per storage (in bytes).
-	pub GasLimitStorageGrowthRatio: u64 = 0;
+	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
 pub struct TransactionPaymentAsGasPrice;
