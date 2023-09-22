@@ -171,6 +171,7 @@ cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 pallet-message-queue = { workspace = true }
+polkadot-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
@@ -333,6 +334,7 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"polkadot-runtime/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",

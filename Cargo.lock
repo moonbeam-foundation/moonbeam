@@ -7040,6 +7040,7 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-core-primitives 1.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=cem-upgrade-to-polkadot-1.1.0)",
  "polkadot-parachain-primitives 1.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=cem-upgrade-to-polkadot-1.1.0)",
+ "polkadot-runtime",
  "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
@@ -20199,6 +20200,22 @@ name = "orml-xcm"
 version = "0.4.1-dev"
 
 [[patch.unused]]
+name = "moonkit-template"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "moonkit-template-runtime"
+version = "0.9.0"
+
+[[patch.unused]]
+name = "pallet-aura-style-filter"
+version = "0.9.0"
+
+[[patch.unused]]
+name = "pallet-template"
+version = "0.1.0"
+
+[[patch.unused]]
 name = "fc-cli"
 version = "1.0.0-dev"
 
@@ -20241,19 +20258,3 @@ version = "1.0.0-dev"
 [[patch.unused]]
 name = "pallet-hotfix-sufficients"
 version = "1.0.0"
-
-[[patch.unused]]
-name = "moonkit-template"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "moonkit-template-runtime"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "pallet-aura-style-filter"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "pallet-template"
-version = "0.1.0"

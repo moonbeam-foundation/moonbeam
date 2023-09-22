@@ -25,8 +25,7 @@ use crate::{
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
-use sp_runtime::traits::Saturating;
-use sp_runtime::traits::StaticLookup;
+use sp_runtime::traits::{Saturating, StaticLookup};
 
 const MIN_ORBITER_DEPOSIT: u32 = 10_000;
 const USER_SEED: u32 = 999666;
@@ -288,6 +287,8 @@ mod tests {
 	use frame_support::assert_ok;
 	use parity_scale_codec::Encode;
 	use sp_io::TestExternalities;
+	use sp_runtime::BuildStorage;
+
 	pub fn new_test_ext() -> TestExternalities {
 		let mut t = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()

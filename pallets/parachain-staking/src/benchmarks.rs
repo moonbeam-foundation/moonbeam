@@ -24,7 +24,7 @@ use crate::{
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
-use frame_system::RawOrigin;
+use frame_system::{RawOrigin, pallet_prelude::BlockNumberFor};
 use sp_runtime::{Perbill, Percent};
 use sp_std::vec::Vec;
 
@@ -2265,6 +2265,7 @@ mod tests {
 	use crate::mock::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
+	use sp_runtime::BuildStorage;
 
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::<Test>::default()
