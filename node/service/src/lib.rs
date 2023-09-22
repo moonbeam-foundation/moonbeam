@@ -1644,7 +1644,6 @@ mod tests {
 			chain_spec: Box::new(spec),
 			wasm_method: Default::default(),
 			wasm_runtime_overrides: Default::default(),
-			execution_strategies: Default::default(),
 			rpc_id_provider: None,
 			rpc_max_connections: Default::default(),
 			rpc_cors: None,

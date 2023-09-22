@@ -31,7 +31,7 @@ use frame_system::{EnsureNever, EnsureRoot, pallet_prelude::BlockNumberFor};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
+	traits::{BlakeTwo256, Hash, IdentityLookup, Zero, MaybeEquivalence},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -440,7 +440,7 @@ pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomDat
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
 where
-	AssetXConverter: sp_runtime::traits::Convert<MultiLocation, AssetId>,
+	AssetXConverter: MaybeEquivalence<MultiLocation, AssetId>,
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
@@ -453,7 +453,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
@@ -1174,7 +1174,6 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
