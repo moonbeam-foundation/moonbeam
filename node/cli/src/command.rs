@@ -199,10 +199,6 @@ impl SubstrateCli for RelayChainCli {
 				.load_spec(id),
 		}
 	}
-
-	// fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-	// 	polkadot_cli::Cli::native_runtime_version(chain_spec)
-	// }
 }
 
 fn validate_trace_environment(cli: &Cli) -> Result<()> {
@@ -725,7 +721,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
-			runner.run_node_until_exit(|mut config| async move {
+			runner.run_node_until_exit(|config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
@@ -796,72 +792,13 @@ pub fn run() -> Result<()> {
 
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::v5::AccountId>::into_account_truncating(&id);
-				let spec = (
-					config.chain_spec.is_moonriver(),
-					config.chain_spec.is_moonbeam(),
-					config.chain_spec.is_moonbase()
-				);
-				let genesis_state = match spec {
-					#[cfg(feature = "moonriver-native")]
-					(true, false, false) => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonriver_runtime::RuntimeApi,
-							moonbeam_service::MoonriverExecutor,
-						>(&mut config, &rpc_config, false)?;
-		
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&config.chain_spec.build_storage()?,
-							pc.client.executor(),					
-						)?;
-
-						let block: moonbeam_service::moonriver_runtime::Block =
-							generate_genesis_block(&*config.chain_spec, state_version)?;
-						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-					}
-					#[cfg(feature = "moonbeam-native")]
-					(false, true, false) => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonbeam_runtime::RuntimeApi,
-							moonbeam_service::MoonbeamExecutor,
-						>(&mut config, &rpc_config, false)?;
-
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&config.chain_spec.build_storage()?,
-							pc.client.executor(),
-						)?;
-
-						let block: moonbeam_service::moonbeam_runtime::Block =
-							generate_genesis_block(&*config.chain_spec, state_version)?;
-						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-					}
-					#[cfg(feature = "moonbase-native")]
-					_ => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonbase_runtime::RuntimeApi,
-							moonbeam_service::MoonbaseExecutor,
-						>(&mut config, &rpc_config, false)?;
-
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&config.chain_spec.build_storage()?,
-							pc.client.executor(),
-						)?;
-
-						let block: moonbeam_service::moonbase_runtime::Block =
-							generate_genesis_block(&*config.chain_spec, state_version)?;
-						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-					}
-					#[cfg(not(feature = "moonbase-native"))]
-					_ => panic!("invalid chain spec"),
-				};
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
 					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, tokio_handle)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
-				info!("Parachain genesis state: {}", genesis_state);
 				info!(
 					"Is collating: {}",
 					if config.role.is_authority() {
