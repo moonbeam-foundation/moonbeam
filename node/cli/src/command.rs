@@ -28,7 +28,7 @@ use parity_scale_codec::Encode;
 use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, SharedParams, SubstrateCli,
+	NetworkParams, Result, SharedParams, SubstrateCli, RuntimeVersion,
 };
 use sc_client_api::ExecutorProvider;
 use sc_service::{
@@ -139,20 +139,24 @@ impl SubstrateCli for Cli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
-
-	// fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
-	// 	match spec {
-	// 		#[cfg(feature = "moonriver-native")]
-	// 		spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
-	// 		#[cfg(feature = "moonbeam-native")]
-	// 		spec if spec.is_moonbeam() => return &moonbeam_service::moonbeam_runtime::VERSION,
-	// 		#[cfg(feature = "moonbase-native")]
-	// 		_ => return &moonbeam_service::moonbase_runtime::VERSION,
-	// 		#[cfg(not(feature = "moonbase-native"))]
-	// 		_ => panic!("invalid chain spec"),
-	// 	}
-	// }
 }
+
+impl Cli {
+	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
+		match spec {
+			#[cfg(feature = "moonriver-native")]
+			spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
+			#[cfg(feature = "moonbeam-native")]
+			spec if spec.is_moonbeam() => return &moonbeam_service::moonbeam_runtime::VERSION,
+			#[cfg(feature = "moonbase-native")]
+			_ => return &moonbeam_service::moonbase_runtime::VERSION,
+			#[cfg(not(feature = "moonbase-native"))]
+			_ => panic!("invalid chain spec"),
+		}
+	}
+}
+
+
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
@@ -396,99 +400,68 @@ pub fn run() -> Result<()> {
 				_ => panic!("invalid chain spec"),
 			}
 		}
-		Some(Subcommand::ExportGenesisState(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			let rpc_config = cli.run.new_rpc_config();
-			runner.sync_run(|mut config| {
-				let mut builder = sc_cli::LoggerBuilder::new("");
-				builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
-				let _ = builder.init();
 
-				// Cumulus approach here, we directly call the generic load_spec func
-				let chain_spec = load_spec(
-					&cmd.shared_params.chain_id(cmd.shared_params.is_dev()),
-					cmd.parachain_id.unwrap_or(1000).into(),
-					&cli.run,
-				)?;
-				let output_buf = match chain_spec {
-					#[cfg(feature = "moonriver-native")]
-					chain_spec if chain_spec.is_moonriver() => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonriver_runtime::RuntimeApi,
-							moonbeam_service::MoonriverExecutor,
-						>(&mut config, &rpc_config, false)?;
+		Some(Subcommand::ExportGenesisState(params)) => {
+			let mut builder = sc_cli::LoggerBuilder::new("");
+			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
+			let _ = builder.init();
 
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&chain_spec.build_storage()?,
-							pc.client.executor(),
-						)?;
+			// Cumulus approach here, we directly call the generic load_spec func
+			let chain_spec = load_spec(
+				params.chain.as_deref().unwrap_or_default(),
+				params.parachain_id.unwrap_or(1000).into(),
+				&cli.run,
+			)?;
+			let state_version = Cli::native_runtime_version(&chain_spec).state_version();
 
-						let block: moonbeam_service::moonriver_runtime::Block =
-							generate_genesis_block(&*chain_spec, state_version)?;
-						let raw_header = block.header().encode();
-						let output_buf = if cmd.raw {
-							raw_header
-						} else {
-							format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-						};
-						output_buf
-					},
-					#[cfg(feature = "moonbeam-native")]
-					chain_spec if chain_spec.is_moonbeam() => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonbeam_runtime::RuntimeApi,
-							moonbeam_service::MoonbeamExecutor,
-						>(&mut config, &rpc_config, false)?;
-
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&chain_spec.build_storage()?,
-							pc.client.executor(),
-						)?;
-
-						let block: moonbeam_service::moonbeam_runtime::Block =
-							generate_genesis_block(&*chain_spec, state_version)?;
-						let raw_header = block.header().encode();
-						let output_buf = if cmd.raw {
-							raw_header
-						} else {
-							format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-						};
-						output_buf
-					}
-					#[cfg(feature = "moonbase-native")]
-					_ => {
-						let pc = moonbeam_service::new_partial::<
-							moonbeam_service::moonbase_runtime::RuntimeApi,
-							moonbeam_service::MoonbaseExecutor,
-						>(&mut config, &rpc_config, false)?;
-
-						let state_version = sc_chain_spec::resolve_state_version_from_wasm(
-							&chain_spec.build_storage()?,
-							pc.client.executor(),
-						)?;
-
-						let block: moonbeam_service::moonbase_runtime::Block =
-							generate_genesis_block(&*chain_spec, state_version)?;
-						let raw_header = block.header().encode();
-						let output_buf = if cmd.raw {
-							raw_header
-						} else {
-							format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-						};
-						output_buf
-					}
-					#[cfg(not(feature = "moonbase-native"))]
-					_ => panic!("invalid chain spec"),
-				};
-
-				if let Some(output) = &cmd.output {
-					std::fs::write(output, output_buf)?;
-				} else {
-					std::io::stdout().write_all(&output_buf)?;
+			let output_buf = match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				chain_spec if chain_spec.is_moonriver() => {
+					let block: moonbeam_service::moonriver_runtime::Block =
+						generate_genesis_block(&*chain_spec, state_version)?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
 				}
+				#[cfg(feature = "moonbeam-native")]
+				chain_spec if chain_spec.is_moonbeam() => {
+					let block: moonbeam_service::moonbeam_runtime::Block =
+						generate_genesis_block(&*chain_spec, state_version)?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
+				}
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					let block: moonbeam_service::moonbase_runtime::Block =
+						generate_genesis_block(&*chain_spec, state_version)?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			};
 
-				Ok(())
-			})
+			if let Some(output) = &params.output {
+				std::fs::write(output, output_buf)?;
+			} else {
+				std::io::stdout().write_all(&output_buf)?;
+			}
+
+			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
