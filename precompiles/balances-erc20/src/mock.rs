@@ -22,7 +22,10 @@ use frame_support::{construct_runtime, parameter_types, traits::Everything, weig
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
-use sp_runtime::{traits::{BlakeTwo256, IdentityLookup}, BuildStorage};
+use sp_runtime::{
+	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;

@@ -27,12 +27,12 @@ use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
 };
-use sp_runtime::traits::Dispatchable;
 
 #[cfg(test)]
 mod mock;

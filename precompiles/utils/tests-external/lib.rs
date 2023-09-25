@@ -39,7 +39,7 @@ mod tests {
 
 	pub type AccountId = MockAccount;
 	pub type Balance = u128;
-	
+
 	type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 	construct_runtime!(
@@ -71,7 +71,7 @@ mod tests {
 		type Hashing = BlakeTwo256;
 		type AccountId = AccountId;
 		type Lookup = IdentityLookup<Self::AccountId>;
-			type RuntimeEvent = RuntimeEvent;
+		type RuntimeEvent = RuntimeEvent;
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
 		type PalletInfo = PalletInfo;

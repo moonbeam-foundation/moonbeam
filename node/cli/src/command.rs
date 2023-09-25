@@ -28,7 +28,7 @@ use parity_scale_codec::Encode;
 use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, SharedParams, SubstrateCli, RuntimeVersion,
+	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
@@ -154,8 +154,6 @@ impl Cli {
 		}
 	}
 }
-
-
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {

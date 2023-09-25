@@ -27,7 +27,7 @@ use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-	DispatchError, Perbill, BuildStorage,
+	BuildStorage, DispatchError, Perbill,
 };
 use sp_std::collections::btree_map::BTreeMap;
 

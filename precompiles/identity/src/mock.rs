@@ -28,7 +28,7 @@ use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, BuildStorage,
+	BuildStorage, Perbill,
 };
 
 pub type AccountId = MockAccount;

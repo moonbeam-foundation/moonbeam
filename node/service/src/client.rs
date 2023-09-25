@@ -49,8 +49,7 @@ pub trait RuntimeApiCollection:
 {
 }
 
-impl<Api> RuntimeApiCollection for Api
-where
+impl<Api> RuntimeApiCollection for Api where
 	Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_block_builder::BlockBuilder<Block>
@@ -65,7 +64,7 @@ where
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
-		+ session_keys_primitives::VrfApi<Block>,
+		+ session_keys_primitives::VrfApi<Block>
 {
 }
 

@@ -20,12 +20,12 @@ use crate as pallet_moonbeam_orbiters;
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::Everything, weights::Weight,
 };
-use frame_system::{EnsureRoot, pallet_prelude::BlockNumberFor};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot};
 use nimbus_primitives::{AccountLookup, NimbusId};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, BuildStorage,
+	BuildStorage, Perbill,
 };
 
 pub type AccountId = u64;

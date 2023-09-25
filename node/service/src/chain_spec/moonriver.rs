@@ -28,9 +28,9 @@ use moonbase_runtime::EligibilityValue;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, RuntimeGenesisConfig, InflationInfo,
-	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SystemConfig,
 	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
 	HOURS, WASM_BINARY,
 };
@@ -264,7 +264,10 @@ pub fn testnet_genesis(
 			parachain_id: para_id,
 			..Default::default()
 		},
-		ethereum_chain_id: EthereumChainIdConfig { chain_id, ..Default::default() },
+		ethereum_chain_id: EthereumChainIdConfig {
+			chain_id,
+			..Default::default()
+		},
 		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
@@ -283,7 +286,9 @@ pub fn testnet_genesis(
 				.collect(),
 			..Default::default()
 		},
-		ethereum: EthereumConfig {..Default::default()},
+		ethereum: EthereumConfig {
+			..Default::default()
+		},
 		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates

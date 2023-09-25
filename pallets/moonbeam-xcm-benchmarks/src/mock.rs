@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{weights::Weight, parameter_types, traits::ContainsPair};
+use frame_support::{parameter_types, traits::ContainsPair, weights::Weight};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
 

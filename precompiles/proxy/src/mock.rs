@@ -32,8 +32,11 @@ use precompile_utils::{
 use scale_info::TypeInfo;
 use sp_core::{H160, H256, U256};
 use sp_io;
-use sp_runtime::{codec::{Decode, Encode, MaxEncodedLen}, BuildStorage};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
+use sp_runtime::{
+	codec::{Decode, Encode, MaxEncodedLen},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;

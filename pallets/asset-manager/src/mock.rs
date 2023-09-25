@@ -18,15 +18,13 @@ use super::*;
 use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode};
 
-use frame_support::{
-	construct_runtime, parameter_types, traits::Everything, weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::EnsureRoot;
 use scale_info::TypeInfo;
-use sp_core::{H256, RuntimeDebug};
+use sp_core::{RuntimeDebug, H256};
 use sp_runtime::traits::Hash as THash;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use sp_runtime::{DispatchError, BuildStorage};
+use sp_runtime::{BuildStorage, DispatchError};
 use xcm::latest::prelude::*;
 
 type Block = frame_system::mocking::MockBlock<Test>;

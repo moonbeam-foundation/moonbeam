@@ -36,8 +36,18 @@ fn rounds_per_year<T: Config>() -> u32 {
 
 // #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(
-	Eq, PartialEq, Clone, Copy, Encode, Decode, Default, Deserialize, RuntimeDebug, MaxEncodedLen,
-	Serialize, TypeInfo,
+	Eq,
+	PartialEq,
+	Clone,
+	Copy,
+	Encode,
+	Decode,
+	Default,
+	Deserialize,
+	RuntimeDebug,
+	MaxEncodedLen,
+	Serialize,
+	TypeInfo,
 )]
 pub struct Range<T> {
 	pub min: T,
@@ -100,7 +110,9 @@ pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf
 }
 
 // #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, Deserialize, RuntimeDebug, Serialize, TypeInfo)]
+#[derive(
+	Eq, PartialEq, Clone, Encode, Decode, Default, Deserialize, RuntimeDebug, Serialize, TypeInfo,
+)]
 pub struct InflationInfo<Balance> {
 	/// Staking expectations
 	pub expect: Range<Balance>,

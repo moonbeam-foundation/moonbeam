@@ -30,8 +30,8 @@ use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::{H160, H256};
-use sp_std::marker::PhantomData;
 use sp_runtime::traits::Dispatchable;
+use sp_std::marker::PhantomData;
 
 #[cfg(test)]
 mod mock;

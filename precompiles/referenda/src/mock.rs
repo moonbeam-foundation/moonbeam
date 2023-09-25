@@ -30,7 +30,7 @@ use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, BuildStorage,
+	BuildStorage, Perbill,
 };
 use sp_std::convert::{TryFrom, TryInto};
 

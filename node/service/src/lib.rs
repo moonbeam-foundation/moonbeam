@@ -29,7 +29,8 @@ use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
 use cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams, CollatorSybilResistance,
+	prepare_node_config, start_collator, start_full_node, CollatorSybilResistance,
+	StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -416,8 +417,7 @@ where
 	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
@@ -470,8 +470,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
@@ -617,13 +616,10 @@ async fn build_relay_chain_interface(
 	Option<CollatorPair>,
 )> {
 	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
-		collator_options.relay_chain_mode {
-		build_minimal_relay_chain_node_with_rpc(
-			polkadot_config,
-			task_manager,
-			rpc_target_urls,
-		)
-		.await
+		collator_options.relay_chain_mode
+	{
+		build_minimal_relay_chain_node_with_rpc(polkadot_config, task_manager, rpc_target_urls)
+			.await
 	} else {
 		build_inprocess_relay_chain(
 			polkadot_config,
@@ -650,8 +646,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
@@ -1053,8 +1048,7 @@ pub async fn new_dev<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	use async_io::Timer;
@@ -1117,9 +1111,7 @@ where
 				network_provider: network.clone(),
 				is_validator: config.role.is_authority(),
 				enable_http_requests: true,
-				custom_extensions: move |_| {
-					vec![]
-				},
+				custom_extensions: move |_| vec![],
 			})
 			.run(client.clone(), task_manager.spawn_handle())
 			.boxed(),

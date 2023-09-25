@@ -283,9 +283,9 @@ mod test {
 		// but not twice
 		let mut asset_two_payment = xcm_executor::Assets::new();
 		let multi_location = MultiLocation {
-				parents: 0u8,
-				interior: Junctions::X1(Junction::Parachain(1001)),
-			};
+			parents: 0u8,
+			interior: Junctions::X1(Junction::Parachain(1001)),
+		};
 		asset_two_payment.subsume(MultiAsset {
 			id: AssetId::Concrete(multi_location),
 			fun: Fungibility::Fungible(10_000u128),

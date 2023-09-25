@@ -21,9 +21,9 @@ use crate::pallet::{
 	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Total,
 };
 use crate::types::{Bond, BondAdjust, Delegator};
+use frame_support::dispatch::DispatchResultWithPostInfo;
 use frame_support::ensure;
 use frame_support::traits::Get;
-use frame_support::dispatch::DispatchResultWithPostInfo;
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
