@@ -6,7 +6,7 @@ import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
-const BREAKING_CHANGES_LABEL = "D2-breaksapi";
+const BREAKING_CHANGES_LABEL = "breaking";
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
 // `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
 const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
