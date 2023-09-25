@@ -30,7 +30,6 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, SharedParams, SubstrateCli, RuntimeVersion,
 };
-use sc_client_api::ExecutorProvider;
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	DatabaseSource,
