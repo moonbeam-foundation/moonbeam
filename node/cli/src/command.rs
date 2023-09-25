@@ -38,11 +38,6 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
 use std::{io::Write, net::SocketAddr};
 
-#[cfg(feature = "try-runtime")]
-use try_runtime_cli::block_building_info::substrate_info;
-#[cfg(feature = "try-runtime")]
-const SLOT_DURATION: u64 = 12;
-
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
@@ -635,86 +630,7 @@ pub fn run() -> Result<()> {
 				}
 			}
 		}
-		#[cfg(feature = "try-runtime")]
-		Some(Subcommand::TryRuntime(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-			match chain_spec {
-				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => runner.async_run(|config| {
-					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-					let task_manager =
-						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-							.map_err(|e| {
-								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-							})?;
-
-					let info_provider = substrate_info(SLOT_DURATION);
-					Ok((
-						cmd.run::<
-							moonbeam_service::moonriver_runtime::Block,
-							sp_wasm_interface::ExtendedHostFunctions<
-								sp_io::SubstrateHostFunctions,
-								<moonbeam_service::MoonriverExecutor
-									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>, _>(Some(info_provider)),
-						task_manager,
-					))
-				}),
-				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => runner.async_run(|config| {
-					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-					let task_manager =
-						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-							.map_err(|e| {
-								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-							})?;
-
-					let info_provider = substrate_info(SLOT_DURATION);
-					Ok((
-						cmd.run::<
-							moonbeam_service::moonbeam_runtime::Block,
-							sp_wasm_interface::ExtendedHostFunctions<
-								sp_io::SubstrateHostFunctions,
-								<moonbeam_service::MoonbeamExecutor
-									as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-						>, _>(Some(info_provider)),
-						task_manager,
-					))
-				}),
-				#[cfg(feature = "moonbase-native")]
-				_ => {
-					runner.async_run(|config| {
-						// we don't need any of the components of new_partial, just a runtime, or a task
-						// manager to do `async_run`.
-						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-						let task_manager =
-							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-								.map_err(|e| {
-									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-								})?;
-
-						let info_provider = substrate_info(SLOT_DURATION);
-						Ok((
-							cmd.run::<
-								moonbeam_service::moonbase_runtime::Block,
-								sp_wasm_interface::ExtendedHostFunctions<
-									sp_io::SubstrateHostFunctions,
-									<moonbeam_service::MoonbaseExecutor
-										as sc_service::NativeExecutionDispatch>::ExtendHostFunctions,
-							>, _>(Some(info_provider)),
-							task_manager,
-						))
-					})
-				}
-				#[cfg(not(feature = "moonbase-native"))]
-				_ => panic!("invalid chain spec"),
-			}
-		}
-		#[cfg(not(feature = "try-runtime"))]
-		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
-				You can enable it at build time with `--features try-runtime`."
-			.into()),
+		Some(Subcommand::TryRuntime) => Err("The `try-runtime` subcommand has been migrated to a standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer being maintained here and will be removed entirely some time after January 2024. Please remove this subcommand from your runtime and use the standalone CLI.".into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
