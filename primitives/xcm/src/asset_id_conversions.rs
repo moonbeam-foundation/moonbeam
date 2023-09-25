@@ -38,7 +38,7 @@ where
 		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
 	fn convert_back(what: &AssetId) -> Option<MultiLocation> {
-		AssetIdInfoGetter::get_asset_type(what.clone()).map(Into::into).flatten()
+		AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)
 	}
 }
 impl<AssetId, AssetType, AssetIdInfoGetter> ConvertLocation<AssetId>
