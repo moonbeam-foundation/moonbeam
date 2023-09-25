@@ -32,7 +32,10 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use sp_core::H256;
-use sp_runtime::{traits::{BlakeTwo256, ConstU32, IdentityLookup}, BuildStorage};
+use sp_runtime::{
+	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type AssetId = u128;

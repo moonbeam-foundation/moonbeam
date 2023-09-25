@@ -26,7 +26,7 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, BuildStorage,
+	BuildStorage, Perbill,
 };
 
 //TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)

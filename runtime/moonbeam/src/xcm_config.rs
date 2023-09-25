@@ -23,6 +23,10 @@ use super::{
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
+use frame_support::{
+	parameter_types,
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
+};
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -30,10 +34,6 @@ use sp_runtime::{
 	DispatchErrorWithPostInfo,
 };
 use sp_weights::Weight;
-use frame_support::{
-	parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
-};
 
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
@@ -48,7 +48,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{CallDispatcher, JustTry, ConvertLocation};
+use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -115,10 +115,8 @@ pub type LocationToAccountId = (
 pub struct LocationToH160;
 impl ConvertLocation<H160> for LocationToH160 {
 	fn convert_location(location: &MultiLocation) -> Option<H160> {
-		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(
-			location,
-		)
-		.map(Into::into)
+		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(location)
+			.map(Into::into)
 	}
 }
 

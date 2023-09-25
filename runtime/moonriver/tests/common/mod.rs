@@ -33,7 +33,7 @@ pub use moonriver_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{traits::Dispatchable, Digest, DigestItem, Perbill, Percent, BuildStorage};
+use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 

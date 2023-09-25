@@ -33,8 +33,8 @@ use pallet_randomness::{
 };
 use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
 use sp_runtime::traits::Dispatchable;
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;

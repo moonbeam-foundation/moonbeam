@@ -26,7 +26,10 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMappin
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
-use sp_runtime::{traits::{BlakeTwo256, IdentityLookup}, BuildStorage};
+use sp_runtime::{
+	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;

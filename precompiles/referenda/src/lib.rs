@@ -30,8 +30,8 @@ use pallet_referenda::{
 use parity_scale_codec::{Encode, MaxEncodedLen};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
-use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 use sp_runtime::traits::Dispatchable;
+use sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 #[cfg(test)]
 mod mock;

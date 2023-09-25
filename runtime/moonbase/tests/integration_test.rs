@@ -50,10 +50,13 @@ use moonbase_runtime::{
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
-use xcm_executor::traits::ConvertLocation;
+use sp_runtime::{
+	traits::{Convert as XcmConvert, Dispatchable},
+	BuildStorage,
+};
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use sp_runtime::{traits::{Convert as XcmConvert, Dispatchable}, BuildStorage};
+use xcm_executor::traits::ConvertLocation;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -3354,7 +3357,7 @@ mod fee_tests {
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
 		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
-	use sp_runtime::{FixedPointNumber, Perbill, BuildStorage};
+	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 	where

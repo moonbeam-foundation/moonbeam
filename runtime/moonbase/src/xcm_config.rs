@@ -25,7 +25,7 @@ use super::{
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
-	traits::{Hash as THash, PostDispatchInfoOf, MaybeEquivalence},
+	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
 
@@ -47,7 +47,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{CallDispatcher, JustTry, ConvertLocation};
+use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -117,10 +117,8 @@ pub type LocationToAccountId = (
 pub struct LocationToH160;
 impl ConvertLocation<H160> for LocationToH160 {
 	fn convert_location(location: &MultiLocation) -> Option<H160> {
-		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(
-			location,
-		)
-		.map(Into::into)
+		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(location)
+			.map(Into::into)
 	}
 }
 

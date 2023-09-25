@@ -32,7 +32,7 @@ use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, Percent, BuildStorage,
+	BuildStorage, Perbill, Percent,
 };
 
 pub type AccountId = MockAccount;

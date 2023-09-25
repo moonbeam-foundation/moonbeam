@@ -144,7 +144,11 @@ where
 
 		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();
 
-		let ctx = XcmContext { origin: Some(multilocation), message_id: XcmHash::default(), topic: None };
+		let ctx = XcmContext {
+			origin: Some(multilocation),
+			message_id: XcmHash::default(),
+			topic: None,
+		};
 		// buy_weight returns unused assets
 		let unused = trader
 			.buy_weight(

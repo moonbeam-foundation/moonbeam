@@ -1982,7 +1982,10 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		// Expect the event in the parachain
 		assert!(parachain::para_events().iter().any(|e| matches!(
 			e,
-			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {result: 2, .. })
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
 		)));
 	});
 
@@ -2129,7 +2132,10 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// Expect the event in the parachain
 		assert!(parachain::para_events().iter().any(|e| matches!(
 			e,
-			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {result: 2, .. })
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
 		)));
 	});
 

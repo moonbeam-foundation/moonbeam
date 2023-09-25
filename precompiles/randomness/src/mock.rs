@@ -16,11 +16,7 @@
 
 //! A minimal precompile runtime including the pallet-randomness pallet
 use super::*;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::Everything,
-	weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use nimbus_primitives::NimbusId;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
@@ -28,7 +24,7 @@ use session_keys_primitives::VrfId;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, BuildStorage,
+	BuildStorage, Perbill,
 };
 use sp_std::convert::{TryFrom, TryInto};
 

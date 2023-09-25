@@ -29,7 +29,7 @@ use frame_support::{
 use pallet_staking::RewardDestination;
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
-use sp_runtime::{AccountId32, Perbill, traits::Dispatchable};
+use sp_runtime::{traits::Dispatchable, AccountId32, Perbill};
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm_primitives::{HrmpAvailableCalls, HrmpEncodeCall};

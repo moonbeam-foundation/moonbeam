@@ -23,7 +23,10 @@ use precompile_utils::{prelude::*, testing::*};
 use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use sp_core::{H160, H256, U256};
-use sp_runtime::{traits::{Dispatchable, PostDispatchInfoOf}, DispatchResultWithInfo};
+use sp_runtime::{
+	traits::{Dispatchable, PostDispatchInfoOf},
+	DispatchResultWithInfo,
+};
 
 const ONGOING_POLL_INDEX: u32 = 3;
 

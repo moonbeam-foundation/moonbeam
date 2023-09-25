@@ -242,9 +242,7 @@ where
 	}
 	let convert_transaction: Option<Never> = None;
 
-	let pending_create_inherent_data_providers = move |_, _| async move {
-		Ok(())
-	};
+	let pending_create_inherent_data_providers = move |_, _| async move { Ok(()) };
 
 	io.merge(
 		Eth::new(

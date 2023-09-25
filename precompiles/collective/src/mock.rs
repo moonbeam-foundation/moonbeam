@@ -31,7 +31,7 @@ use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Replace},
-	Permill, BuildStorage,
+	BuildStorage, Permill,
 };
 
 pub type AccountId = MockAccount;
