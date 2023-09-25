@@ -12,7 +12,7 @@ import {
 import { hexToNumber, parseEther } from "viem";
 
 describeSuite({
-  id: "D3602",
+  id: "D3609",
   title: "Trace ERC20 xcm",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

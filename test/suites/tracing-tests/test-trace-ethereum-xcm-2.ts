@@ -9,7 +9,7 @@ import { alith } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D3606",
+  id: "D3611",
   title: "Trace ethereum xcm #2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
