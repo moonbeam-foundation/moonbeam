@@ -29,8 +29,8 @@ use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
 use cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, CollatorSybilResistance,
-	StartCollatorParams, StartFullNodeParams,
+	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
+	StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -38,7 +38,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
-use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
+use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
 use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
@@ -63,7 +63,8 @@ use sc_consensus::ImportQueue;
 use sc_executor::{
 	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
 };
-use sc_network::{config::FullNetworkConfiguration, NetworkBlock, NetworkService};
+use sc_network::{config::FullNetworkConfiguration, NetworkBlock};
+use sc_network_sync::SyncingService;
 use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
@@ -632,7 +633,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	build_consensus: BIC,
+	start_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -652,9 +653,13 @@ where
 				TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
 			>,
 		>,
-		Arc<NetworkService<Block, Hash>>,
+		Arc<SyncingService<Block>>,
 		KeystorePtr,
-		bool,
+		Duration,
+		ParaId,
+		CollatorPair,
+		OverseerHandle,
+		Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
@@ -672,7 +677,6 @@ where
 		frontier_backend,
 		fee_history_cache,
 	) = params.other;
-
 	let client = params.client.clone();
 	let backend = params.backend.clone();
 	let mut task_manager = params.task_manager;
@@ -688,7 +692,7 @@ where
 	.await
 	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
-	let force_authoring = parachain_config.force_authoring;
+	let validator = parachain_config.role.is_authority();
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
@@ -705,7 +709,7 @@ where
 			para_id: id,
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
-			sybil_resistance_level: CollatorSybilResistance::Unresistant,
+			sybil_resistance_level: CollatorSybilResistance::Resistant,
 		})
 		.await?;
 
@@ -871,55 +875,40 @@ where
 		.overseer_handle()
 		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
-	if collator {
-		let parachain_consensus = build_consensus(
+	start_relay_chain_tasks(StartRelayChainTasksParams {
+		client: client.clone(),
+		announce_block: announce_block.clone(),
+		para_id: id,
+		relay_chain_interface: relay_chain_interface.clone(),
+		task_manager: &mut task_manager,
+		da_recovery_profile: if validator {
+			DARecoveryProfile::Collator
+		} else {
+			DARecoveryProfile::FullNode
+		},
+		import_queue: import_queue_service,
+		relay_chain_slot_duration,
+		recovery_handle: Box::new(overseer_handle.clone()),
+		sync_service: sync_service.clone(),
+	})?;
+
+	if validator {
+		start_consensus(
 			client.clone(),
-			backend.clone(),
+			backend,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
 			relay_chain_interface.clone(),
 			transaction_pool,
-			network,
+			sync_service.clone(),
 			params.keystore_container.keystore(),
-			force_authoring,
+			relay_chain_slot_duration,
+			id,
+			collator_key.expect("Command line arguments do not allow this. qed"),
+			overseer_handle,
+			announce_block,
 		)?;
-
-		let spawner = task_manager.spawn_handle();
-
-		let params = StartCollatorParams {
-			para_id: id,
-			block_status: client.clone(),
-			announce_block,
-			client: client.clone(),
-			task_manager: &mut task_manager,
-			relay_chain_interface,
-			spawner,
-			parachain_consensus,
-			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle),
-			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
-				"Collator Key is None".to_string(),
-			))?,
-			relay_chain_slot_duration,
-			sync_service,
-		};
-
-		start_collator(params).await?;
-	} else {
-		let params = StartFullNodeParams {
-			client: client.clone(),
-			announce_block,
-			task_manager: &mut task_manager,
-			para_id: id,
-			relay_chain_interface,
-			relay_chain_slot_duration,
-			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle),
-			sync_service,
-		};
-
-		start_full_node(params)?;
 	}
 
 	start_network.start_network();
@@ -960,7 +949,11 @@ where
 			transaction_pool,
 			_sync_oracle,
 			keystore,
-			force_authoring
+			_relay_chain_slot_duration,
+			_para_id,
+			_collator_key,
+			_overseer_handle,
+			_announce_block,
 		| {
 			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),
@@ -1018,7 +1011,7 @@ where
 				backend,
 				parachain_client: client.clone(),
 				keystore,
-				skip_prediction: force_authoring,
+				skip_prediction: false,
 				create_inherent_data_providers: provider,
 				additional_digests_provider: maybe_provide_vrf_digest,
 			}))
