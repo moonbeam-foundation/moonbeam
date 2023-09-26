@@ -202,6 +202,25 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, Compact<u128>]
       >;
       /**
+       * Disallow further unprivileged transfers of an asset `id` to and from an account `who`.
+       *
+       * Origin must be Signed and the sender should be the Freezer of the asset `id`.
+       *
+       * - `id`: The identifier of the account's asset.
+       * - `who`: The account to be unblocked.
+       *
+       * Emits `Blocked`.
+       *
+       * Weight: `O(1)`
+       */
+      block: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
        * Reduce the balance of `who` by as much as possible up to `amount` assets of `id`.
        *
        * Origin must be Signed and the sender should be the Manager of the asset `id`.
@@ -510,7 +529,9 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
       >;
       /**
-       * Disallow further unprivileged transfers from an account.
+       * Disallow further unprivileged transfers of an asset `id` from an account `who`. `who` must
+       * already exist as an entry in `Account`s of the asset. If you want to freeze an account that
+       * does not have an entry, use `touch_other` first.
        *
        * Origin must be Signed and the sender should be the Freezer of the asset `id`.
        *
@@ -565,11 +586,11 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, Compact<u128>]
       >;
       /**
-       * Return the deposit (if any) of an asset account.
+       * Return the deposit (if any) of an asset account or a consumer reference (if any) of an account.
        *
        * The origin must be Signed.
        *
-       * - `id`: The identifier of the asset for the account to be created.
+       * - `id`: The identifier of the asset for which the caller would like the deposit refunded.
        * - `allow_burn`: If `true` then assets may be destroyed in order to complete the refund.
        *
        * Emits `Refunded` event when successful.
@@ -580,6 +601,25 @@ declare module "@polkadot/api-base/types/submittable" {
           allowBurn: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>, bool]
+      >;
+      /**
+       * Return the deposit (if any) of a target asset account. Useful if you are the depositor.
+       *
+       * The origin must be Signed and either the account owner, depositor, or asset `Admin`. In
+       * order to burn a non-zero balance of the asset, the caller must be the account and should
+       * use `refund`.
+       *
+       * - `id`: The identifier of the asset for the account holding a deposit.
+       * - `who`: The account to refund.
+       *
+       * Emits `Refunded` event when successful.
+       */
+      refundOther: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
       >;
       /**
        * Set the metadata for an asset.
@@ -667,7 +707,7 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>]
       >;
       /**
-       * Allow unprivileged transfers from an account again.
+       * Allow unprivileged transfers to and from an account again.
        *
        * Origin must be Signed and the sender should be the Admin of the asset `id`.
        *
@@ -713,6 +753,25 @@ declare module "@polkadot/api-base/types/submittable" {
       touch: AugmentedSubmittable<
         (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>]
+      >;
+      /**
+       * Create an asset account for `who`.
+       *
+       * A deposit will be taken from the signer account.
+       *
+       * - `origin`: Must be Signed by `Freezer` or `Admin` of the asset `id`; the signer account must
+       *   have sufficient funds for a deposit to be taken.
+       * - `id`: The identifier of the asset for the account to be created.
+       * - `who`: The account to be created.
+       *
+       * Emits `Touched` event when successful.
+       */
+      touchOther: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
       >;
       /**
        * Move some assets from the sender account to another.
@@ -893,12 +952,20 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     balances: {
       /**
-       * Exactly as `transfer`, except the origin must be root and the source account may be specified.
+       * Set the regular balance of a given account.
        *
-       * ## Complexity
-       *
-       * - Same as transfer, but additional read and write because the source account is not assumed
-       *   to be in the overlay.
+       * The dispatch origin for this call is `root`.
+       */
+      forceSetBalance: AugmentedSubmittable<
+        (
+          who: AccountId20 | string | Uint8Array,
+          newFree: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Compact<u128>]
+      >;
+      /**
+       * Exactly as `transfer_allow_death`, except the origin must be root and the source account
+       * may be specified.
        */
       forceTransfer: AugmentedSubmittable<
         (
@@ -921,45 +988,25 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, u128]
       >;
       /**
-       * Set the balances of a given account.
-       *
-       * This will alter `FreeBalance` and `ReservedBalance` in storage. it will also alter the
-       * total issuance of the system (`TotalIssuance`) appropriately. If the new free or reserved
-       * balance is below the existential deposit, it will reset the account nonce
-       * (`frame_system::AccountNonce`).
+       * Set the regular balance of a given account; it also takes a reserved balance but this must
+       * be the same as the account's current reserved balance.
        *
        * The dispatch origin for this call is `root`.
+       *
+       * WARNING: This call is DEPRECATED! Use `force_set_balance` instead.
        */
-      setBalance: AugmentedSubmittable<
+      setBalanceDeprecated: AugmentedSubmittable<
         (
           who: AccountId20 | string | Uint8Array,
           newFree: Compact<u128> | AnyNumber | Uint8Array,
-          newReserved: Compact<u128> | AnyNumber | Uint8Array
+          oldReserved: Compact<u128> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Compact<u128>, Compact<u128>]
       >;
       /**
-       * Transfer some liquid free balance to another account.
+       * Alias for `transfer_allow_death`, provided only for name-wise compatibility.
        *
-       * `transfer` will set the `FreeBalance` of the sender and receiver. If the sender's account
-       * is below the existential deposit as a result of the transfer, the account will be reaped.
-       *
-       * The dispatch origin for this call must be `Signed` by the transactor.
-       *
-       * ## Complexity
-       *
-       * - Dependent on arguments but not critical, given proper implementations for input config
-       *   types. See related functions below.
-       * - It contains a limited number of reads and writes internally and no complex computation.
-       *
-       * Related functions:
-       *
-       * - `ensure_can_withdraw` is always called internally but has a bounded complexity.
-       * - Transferring balances to accounts that did not exist before will cause
-       *   `T::OnNewAccount::on_new_account` to be called.
-       * - Removing enough funds from an account will trigger `T::DustRemoval::on_unbalanced`.
-       * - `transfer_keep_alive` works the same way as `transfer`, but has an additional check that
-       *   the transfer will not kill the origin account.
+       * WARNING: DEPRECATED! Will be released in approximately 3 months.
        */
       transfer: AugmentedSubmittable<
         (
@@ -982,8 +1029,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `keep_alive`: A boolean to determine if the `transfer_all` operation should send all of the
        *   funds the account has, causing the sender account to be killed (false), or transfer
        *   everything except at least the existential deposit, which will guarantee to keep the
-       *   sender account alive (true). ## Complexity
-       * - O(1). Just like transfer, but reading the user's transferable balance first.
+       *   sender account alive (true).
        */
       transferAll: AugmentedSubmittable<
         (
@@ -993,12 +1039,28 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, bool]
       >;
       /**
-       * Same as the [`transfer`][`transfer`] call, but with a check that the transfer will not kill
-       * the origin account.
+       * Transfer some liquid free balance to another account.
        *
-       * 99% of the time you want [`transfer`][`transfer`] instead.
+       * `transfer_allow_death` will set the `FreeBalance` of the sender and receiver. If the
+       * sender's account is below the existential deposit as a result of the transfer, the account
+       * will be reaped.
        *
-       * [`transfer`]: struct.Pallet.html#method.transfer
+       * The dispatch origin for this call must be `Signed` by the transactor.
+       */
+      transferAllowDeath: AugmentedSubmittable<
+        (
+          dest: AccountId20 | string | Uint8Array,
+          value: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Compact<u128>]
+      >;
+      /**
+       * Same as the [`transfer_allow_death`][`transfer_allow_death`] call, but with a check that
+       * the transfer will not kill the origin account.
+       *
+       * 99% of the time you want [`transfer_allow_death`][`transfer_allow_death`] instead.
+       *
+       * [`transfer_allow_death`]: struct.Pallet.html#method.transfer
        */
       transferKeepAlive: AugmentedSubmittable<
         (
@@ -1006,6 +1068,22 @@ declare module "@polkadot/api-base/types/submittable" {
           value: Compact<u128> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Compact<u128>]
+      >;
+      /**
+       * Upgrade a specified account.
+       *
+       * - `origin`: Must be `Signed`.
+       * - `who`: The account to be upgraded.
+       *
+       * This will waive the transaction fee if at least all but 10% of the accounts needed to be
+       * upgraded. (We let some not have to be upgraded just in order to allow for the possibililty
+       * of churn).
+       */
+      upgradeAccounts: AugmentedSubmittable<
+        (
+          who: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1220,41 +1298,6 @@ declare module "@polkadot/api-base/types/submittable" {
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
-      >;
-      /**
-       * Close a vote that is either approved, disapproved or whose voting period has ended.
-       *
-       * May be called by any signed account in order to finish voting and close the proposal.
-       *
-       * If called before the end of the voting period it will only close the vote if it is has
-       * enough votes to be approved or disapproved.
-       *
-       * If called after the end of the voting period abstentions are counted as rejections unless
-       * there is a prime member set and the prime member cast an approval.
-       *
-       * If the close operation completes successfully with disapproval, the transaction fee will be
-       * waived. Otherwise execution of the approved operation will be charged to the caller.
-       *
-       * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
-       * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
-       *
-       * ## Complexity
-       *
-       * - `O(B + M + P1 + P2)` where:
-       * - `B` is `proposal` size in bytes (length-fee-bounded)
-       * - `M` is members-count (code- and governance-bounded)
-       * - `P1` is the complexity of `proposal` preimage.
-       * - `P2` is proposal-count (code-bounded)
-       */
-      closeOldWeight: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless of its current state.
@@ -2404,6 +2447,25 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, Compact<u128>]
       >;
       /**
+       * Disallow further unprivileged transfers of an asset `id` to and from an account `who`.
+       *
+       * Origin must be Signed and the sender should be the Freezer of the asset `id`.
+       *
+       * - `id`: The identifier of the account's asset.
+       * - `who`: The account to be unblocked.
+       *
+       * Emits `Blocked`.
+       *
+       * Weight: `O(1)`
+       */
+      block: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
        * Reduce the balance of `who` by as much as possible up to `amount` assets of `id`.
        *
        * Origin must be Signed and the sender should be the Manager of the asset `id`.
@@ -2712,7 +2774,9 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
       >;
       /**
-       * Disallow further unprivileged transfers from an account.
+       * Disallow further unprivileged transfers of an asset `id` from an account `who`. `who` must
+       * already exist as an entry in `Account`s of the asset. If you want to freeze an account that
+       * does not have an entry, use `touch_other` first.
        *
        * Origin must be Signed and the sender should be the Freezer of the asset `id`.
        *
@@ -2767,11 +2831,11 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, Compact<u128>]
       >;
       /**
-       * Return the deposit (if any) of an asset account.
+       * Return the deposit (if any) of an asset account or a consumer reference (if any) of an account.
        *
        * The origin must be Signed.
        *
-       * - `id`: The identifier of the asset for the account to be created.
+       * - `id`: The identifier of the asset for which the caller would like the deposit refunded.
        * - `allow_burn`: If `true` then assets may be destroyed in order to complete the refund.
        *
        * Emits `Refunded` event when successful.
@@ -2782,6 +2846,25 @@ declare module "@polkadot/api-base/types/submittable" {
           allowBurn: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>, bool]
+      >;
+      /**
+       * Return the deposit (if any) of a target asset account. Useful if you are the depositor.
+       *
+       * The origin must be Signed and either the account owner, depositor, or asset `Admin`. In
+       * order to burn a non-zero balance of the asset, the caller must be the account and should
+       * use `refund`.
+       *
+       * - `id`: The identifier of the asset for the account holding a deposit.
+       * - `who`: The account to refund.
+       *
+       * Emits `Refunded` event when successful.
+       */
+      refundOther: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
       >;
       /**
        * Set the metadata for an asset.
@@ -2869,7 +2952,7 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>]
       >;
       /**
-       * Allow unprivileged transfers from an account again.
+       * Allow unprivileged transfers to and from an account again.
        *
        * Origin must be Signed and the sender should be the Admin of the asset `id`.
        *
@@ -2915,6 +2998,25 @@ declare module "@polkadot/api-base/types/submittable" {
       touch: AugmentedSubmittable<
         (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>]
+      >;
+      /**
+       * Create an asset account for `who`.
+       *
+       * A deposit will be taken from the signer account.
+       *
+       * - `origin`: Must be Signed by `Freezer` or `Admin` of the asset `id`; the signer account must
+       *   have sufficient funds for a deposit to be taken.
+       * - `id`: The identifier of the asset for the account to be created.
+       * - `who`: The account to be created.
+       *
+       * Emits `Touched` event when successful.
+       */
+      touchOther: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
       >;
       /**
        * Move some assets from the sender account to another.
@@ -3036,17 +3138,6 @@ declare module "@polkadot/api-base/types/submittable" {
        * - Three DB writes - 1 for the mode, 1 for resuming xcm execution, 1 for the event
        */
       resumeNormalOperation: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    migrations: {
-      migrateDemocracyPreimage: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          proposalLenUpperBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>]
-      >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -3299,41 +3390,6 @@ declare module "@polkadot/api-base/types/submittable" {
         [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
       >;
       /**
-       * Close a vote that is either approved, disapproved or whose voting period has ended.
-       *
-       * May be called by any signed account in order to finish voting and close the proposal.
-       *
-       * If called before the end of the voting period it will only close the vote if it is has
-       * enough votes to be approved or disapproved.
-       *
-       * If called after the end of the voting period abstentions are counted as rejections unless
-       * there is a prime member set and the prime member cast an approval.
-       *
-       * If the close operation completes successfully with disapproval, the transaction fee will be
-       * waived. Otherwise execution of the approved operation will be charged to the caller.
-       *
-       * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
-       * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
-       *
-       * ## Complexity
-       *
-       * - `O(B + M + P1 + P2)` where:
-       * - `B` is `proposal` size in bytes (length-fee-bounded)
-       * - `M` is members-count (code- and governance-bounded)
-       * - `P1` is the complexity of `proposal` preimage.
-       * - `P2` is proposal-count (code-bounded)
-       */
-      closeOldWeight: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
-      >;
-      /**
        * Disapprove a proposal, close, and remove it from the system, regardless of its current state.
        *
        * Must be called by the Root origin.
@@ -3469,12 +3525,6 @@ declare module "@polkadot/api-base/types/submittable" {
         (candidateCount: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u32]
       >;
-      /**
-       * DEPRECATED use batch util with cancel_delegation_request for all delegations Cancel a
-       * pending request to exit the set of delegators. Success clears the pending exit request
-       * (thereby resetting the delay upon another `leave_delegators` call).
-       */
-      cancelLeaveDelegators: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** Increase collator candidate self bond by `more` */
       candidateBondMore: AugmentedSubmittable<
         (more: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -3539,17 +3589,6 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, u32]
       >;
-      /**
-       * DEPRECATED use batch util with execute_delegation_request for all delegations Execute the
-       * right to exit the set of delegators and revoke all ongoing delegations.
-       */
-      executeLeaveDelegators: AugmentedSubmittable<
-        (
-          delegator: AccountId20 | string | Uint8Array,
-          delegationCount: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, u32]
-      >;
       /** Temporarily leave the set of collator candidates without unbonding */
       goOffline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** Rejoin the set of collator candidates if previously had called `go_offline` */
@@ -3569,6 +3608,12 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
       >;
+      /** REMOVED, was schedule_leave_delegators */
+      removedCall19: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** REMOVED, was execute_leave_delegators */
+      removedCall20: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** REMOVED, was cancel_leave_delegators */
+      removedCall21: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** Request by collator candidate to decrease self bond by `less` */
       scheduleCandidateBondLess: AugmentedSubmittable<
         (less: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -3594,13 +3639,6 @@ declare module "@polkadot/api-base/types/submittable" {
         (candidateCount: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u32]
       >;
-      /**
-       * DEPRECATED use batch util with schedule_revoke_delegation for all delegations Request to
-       * leave the set of delegators. If successful, the caller is scheduled to be allowed to exit
-       * via a [DelegationAction::Revoke] towards all existing delegations. Success forbids future
-       * delegation requests until the request is invoked or cancelled.
-       */
-      scheduleLeaveDelegators: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
        * Request to revoke an existing delegation. If successful, the delegation is scheduled to be
        * allowed to be revoked via the `execute_delegation_request` extrinsic. The delegation
@@ -4651,8 +4689,6 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Make some on-chain remark.
        *
-       * ## Complexity
-       *
        * - `O(1)`
        */
       remark: AugmentedSubmittable<
@@ -4664,24 +4700,12 @@ declare module "@polkadot/api-base/types/submittable" {
         (remark: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Bytes]
       >;
-      /**
-       * Set the new runtime code.
-       *
-       * ## Complexity
-       *
-       * - `O(C + S)` where `C` length of `code` and `S` complexity of `can_set_code`
-       */
+      /** Set the new runtime code. */
       setCode: AugmentedSubmittable<
         (code: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Bytes]
       >;
-      /**
-       * Set the new runtime code without doing any checks of the given `code`.
-       *
-       * ## Complexity
-       *
-       * - `O(C)` where `C` length of `code`
-       */
+      /** Set the new runtime code without doing any checks of the given `code`. */
       setCodeWithoutChecks: AugmentedSubmittable<
         (code: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Bytes]
@@ -4742,41 +4766,6 @@ declare module "@polkadot/api-base/types/submittable" {
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
-      >;
-      /**
-       * Close a vote that is either approved, disapproved or whose voting period has ended.
-       *
-       * May be called by any signed account in order to finish voting and close the proposal.
-       *
-       * If called before the end of the voting period it will only close the vote if it is has
-       * enough votes to be approved or disapproved.
-       *
-       * If called after the end of the voting period abstentions are counted as rejections unless
-       * there is a prime member set and the prime member cast an approval.
-       *
-       * If the close operation completes successfully with disapproval, the transaction fee will be
-       * waived. Otherwise execution of the approved operation will be charged to the caller.
-       *
-       * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
-       * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
-       *
-       * ## Complexity
-       *
-       * - `O(B + M + P1 + P2)` where:
-       * - `B` is `proposal` size in bytes (length-fee-bounded)
-       * - `M` is members-count (code- and governance-bounded)
-       * - `P1` is the complexity of `proposal` preimage.
-       * - `P2` is proposal-count (code-bounded)
-       */
-      closeOldWeight: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless of its current state.
@@ -5043,41 +5032,6 @@ declare module "@polkadot/api-base/types/submittable" {
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
-      >;
-      /**
-       * Close a vote that is either approved, disapproved or whose voting period has ended.
-       *
-       * May be called by any signed account in order to finish voting and close the proposal.
-       *
-       * If called before the end of the voting period it will only close the vote if it is has
-       * enough votes to be approved or disapproved.
-       *
-       * If called after the end of the voting period abstentions are counted as rejections unless
-       * there is a prime member set and the prime member cast an approval.
-       *
-       * If the close operation completes successfully with disapproval, the transaction fee will be
-       * waived. Otherwise execution of the approved operation will be charged to the caller.
-       *
-       * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
-       * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
-       *
-       * ## Complexity
-       *
-       * - `O(B + M + P1 + P2)` where:
-       * - `B` is `proposal` size in bytes (length-fee-bounded)
-       * - `M` is members-count (code- and governance-bounded)
-       * - `P1` is the complexity of `proposal` preimage.
-       * - `P2` is proposal-count (code-bounded)
-       */
-      closeOldWeight: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless of its current state.
@@ -5624,14 +5578,16 @@ declare module "@polkadot/api-base/types/submittable" {
             | PalletXcmTransactorTransactWeights
             | { transactRequiredWeightAtMost?: any; overallWeight?: any }
             | string
-            | Uint8Array
+            | Uint8Array,
+          refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
           MoonbaseRuntimeXcmConfigTransactors,
           u16,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
-          PalletXcmTransactorTransactWeights
+          PalletXcmTransactorTransactWeights,
+          bool
         ]
       >;
       /**
@@ -5654,13 +5610,15 @@ declare module "@polkadot/api-base/types/submittable" {
             | PalletXcmTransactorTransactWeights
             | { transactRequiredWeightAtMost?: any; overallWeight?: any }
             | string
-            | Uint8Array
+            | Uint8Array,
+          refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
           XcmVersionedMultiLocation,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
-          PalletXcmTransactorTransactWeights
+          PalletXcmTransactorTransactWeights,
+          bool
         ]
       >;
       /**
@@ -5690,7 +5648,8 @@ declare module "@polkadot/api-base/types/submittable" {
             | PalletXcmTransactorTransactWeights
             | { transactRequiredWeightAtMost?: any; overallWeight?: any }
             | string
-            | Uint8Array
+            | Uint8Array,
+          refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
           XcmVersionedMultiLocation,
@@ -5698,7 +5657,8 @@ declare module "@polkadot/api-base/types/submittable" {
           PalletXcmTransactorCurrencyPayment,
           Bytes,
           XcmV2OriginKind,
-          PalletXcmTransactorTransactWeights
+          PalletXcmTransactorTransactWeights,
+          bool
         ]
       >;
       /** Generic tx */

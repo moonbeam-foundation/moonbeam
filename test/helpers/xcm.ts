@@ -806,7 +806,7 @@ export class XcmFragment {
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
       .polkadotJs()
-      .createType("XcmVersionedXcm", this.as_v2()) as any;
+      .createType("StagingXcmVersionedXcm", this.as_v2()) as any;
 
     const instructions = message.asV2;
     for (var i = 0; i < instructions.length; i++) {
