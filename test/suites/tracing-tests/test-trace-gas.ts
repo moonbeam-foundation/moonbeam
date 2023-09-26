@@ -5,7 +5,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { numberToHex } from "@polkadot/util";
 
 describeSuite({
-  id: "D3613",
+  id: "D3614",
   title: "Trace filter - Gas Loop",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

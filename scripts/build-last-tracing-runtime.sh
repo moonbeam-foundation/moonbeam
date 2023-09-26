@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#TODO: Uncomment line 4 and delete line 5 before merging to master, this is only for the script to work locally
-#LOCAL_GIT_BRANCH="$(git symbolic-ref HEAD 2>/dev/null)"
-LOCAL_GIT_BRANCH="master"
+LOCAL_GIT_BRANCH="$(git symbolic-ref HEAD 2>/dev/null)"
 LOCAL_GIT_BRANCH=${LOCAL_GIT_BRANCH##refs/heads/}
 
 echo ${1:-"$LOCAL_GIT_BRANCH"}

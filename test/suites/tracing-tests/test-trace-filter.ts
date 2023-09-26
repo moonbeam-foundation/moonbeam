@@ -2,7 +2,7 @@ import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D3605",
+  id: "D3613",
   title: "Trace filter - Contract creation ",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
