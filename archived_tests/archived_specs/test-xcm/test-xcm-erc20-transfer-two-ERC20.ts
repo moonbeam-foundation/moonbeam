@@ -268,7 +268,7 @@ describeDevMoonbeam("Mock XCM - Receive two ERC20", (context) => {
 
     // Mock the reception of the xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     await context.createBlock();

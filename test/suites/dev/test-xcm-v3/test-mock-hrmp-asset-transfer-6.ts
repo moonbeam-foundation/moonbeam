@@ -127,7 +127,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
