@@ -398,11 +398,6 @@ jobs:
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
-          FORCE_WASM_EXECUTION: true
-          FORCE_COMPILED_WASM: true
-          WASM_RUNTIME_OVERRIDES: moonbase-overrides
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
         run: |

@@ -32,5 +32,5 @@ echo "Run tracing tests…"
 cd ../test
 pnpm install
 pnpm compile-solidity
-ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" pnpm moonwall test dev_moonbase_tracing
+pnpm moonwall test dev_moonbase_tracing
 cd ..
