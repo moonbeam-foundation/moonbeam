@@ -12818,6 +12818,7 @@ dependencies = [
  "sp-panic-handler",
  "sp-runtime",
  "sp-state-machine",
+ "sp-storage",
  "sp-version",
  "thiserror",
  "tiny-bip39 1.0.0",
