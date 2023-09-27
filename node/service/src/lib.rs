@@ -1621,6 +1621,7 @@ mod tests {
 			announce_block: true,
 			base_path: BasePath::new(Path::new("")),
 			informant_output_format: Default::default(),
+			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
 		}
 	}

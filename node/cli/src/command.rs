@@ -32,7 +32,7 @@ use sc_cli::{
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
-	DatabaseSource,
+	DatabaseSource, PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
@@ -636,6 +636,43 @@ pub fn run() -> Result<()> {
 			Please remove this subcommand from your runtime and use the standalone CLI."
 			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
+		Some(Subcommand::PrecompileWasm(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			let rpc_config = cli.run.new_rpc_config();
+			runner.async_run(|mut config| {
+				match &config.chain_spec {
+					#[cfg(feature = "moonriver-native")]
+					spec if spec.is_moonriver() => {
+						let PartialComponents { task_manager, backend, .. } = moonbeam_service::new_partial::<
+							moonbeam_service::moonriver_runtime::RuntimeApi,
+							moonbeam_service::MoonriverExecutor,
+						>(&mut config, &rpc_config, false)?;
+	
+						Ok((cmd.run(backend), task_manager))
+					},
+					#[cfg(feature = "moonbeam-native")]
+					spec if spec.is_moonbeam() => {
+						let PartialComponents { task_manager, backend, .. } = moonbeam_service::new_partial::<
+							moonbeam_service::moonbeam_runtime::RuntimeApi,
+							moonbeam_service::MoonbeamExecutor,
+						>(&mut config, &rpc_config, false)?;
+	
+						Ok((cmd.run(backend), task_manager))
+					},
+					#[cfg(feature = "moonbase-native")]
+					_ => {
+						let PartialComponents { task_manager, backend, .. } = moonbeam_service::new_partial::<
+							moonbeam_service::moonbase_runtime::RuntimeApi,
+							moonbeam_service::MoonbaseExecutor,
+						>(&mut config, &rpc_config, false)?;
+	
+						Ok((cmd.run(backend), task_manager))
+					},
+					#[cfg(not(feature = "moonbase-native"))]
+					_ => panic!("invalid chain spec"),
+				}
+			})
+		},
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
