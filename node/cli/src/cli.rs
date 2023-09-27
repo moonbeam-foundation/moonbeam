@@ -68,6 +68,9 @@ pub enum Subcommand {
 	/// Key management cli utilities
 	#[clap(subcommand)]
 	Key(KeyCmd),
+
+	/// Precompile the WASM runtime into native code
+	PrecompileWasm(sc_cli::PrecompileWasmCmd),
 }
 
 #[derive(Debug, Parser)]
