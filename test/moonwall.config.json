@@ -277,7 +277,10 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "runScripts": ["compile-contracts.ts compile", "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"],
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+      ],
       "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
