@@ -374,24 +374,35 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
-          mkdir -p archived_tests/moonbase-overrides/
-          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm archived_tests/moonbase-overrides/
+          mkdir -p test/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
-          FORCE_WASM_EXECUTION: true
-          FORCE_COMPILED_WASM: true
-          WASM_RUNTIME_OVERRIDES: moonbase-overrides
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
           chmod uog+x build/moonbeam
+          chmod uog+x target/release/moonbeam
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
@@ -402,17 +413,11 @@ jobs:
           cd ../typescript-api
           npm ci
 
-          cd ../archived_tests
-          npm ci
-          #### Prepares and copies the typescript generated API to include in the tests
-          npm run setup-typescript-api
-
-          #### Compile typescript tests into javascript (more stable for Mocha)
-          #### This also better display typescript issues
-          npm run build
-
-          #### Run tracing tests with mocha
-          node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
+          ####  Install and run dev tracing
+          cd ../test
+          pnpm install
+          pnpm compile-solidity
+          pnpm moonwall test dev_moonbase_tracing
 
   docker-moonbeam:
     runs-on: ubuntu-latest
