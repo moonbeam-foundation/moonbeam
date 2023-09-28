@@ -60,7 +60,9 @@ async function main(args: any) {
 
   const tmpDir = await fs.mkdtemp("base-path");
   try {
-    const command = `${binaryPath} precompile-wasm --log=wasmtime-runtime --base-path=${tmpDir} --chain ${args.argv.Chain} ${outputDirectory}`;
+    const command =
+      `${binaryPath} precompile-wasm --log=wasmtime-runtime --base-path=${tmpDir} ` +
+      `--chain ${args.argv.Chain} ${outputDirectory}`;
     console.log(`🗃️  ${command}`);
 
     child_process.execSync(`${command}`);
