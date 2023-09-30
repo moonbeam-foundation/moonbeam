@@ -31,8 +31,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
-		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -43,10 +43,10 @@ use moonbase_runtime::{
 	get,
 	xcm_config::{AssetType, SelfReserve},
 	AccountId, AssetId, AssetManager, Assets, Balances, CouncilCollective, CrowdloanRewards,
-	LocalAssets, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TechCommitteeCollective,
 	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -65,7 +65,7 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWe
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
-use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
+use sp_runtime::{traits::Convert, DispatchError, ModuleError};
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =

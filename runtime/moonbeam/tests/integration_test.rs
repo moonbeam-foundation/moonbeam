@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
-		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,7 +40,6 @@ use moonbeam_runtime::{
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
 	RuntimeEvent, System, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
 	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -59,7 +58,7 @@ use precompile_utils::{
 };
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
-use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
+use sp_runtime::{traits::Convert, DispatchError, ModuleError};
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
