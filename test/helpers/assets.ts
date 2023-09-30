@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment/moonbase";
 import { u128 } from "@polkadot/types";
 import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect, DevModeContext } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -105,66 +104,4 @@ export async function mockAssetBalance(
       .signAsync(sudoAccount)
   );
   return;
-}
-
-export interface RegisterLocalAssetOptions {
-  name?: string;
-  symbol?: string;
-  decimals?: number;
-  registrerAccount: KeyringPair;
-  mints?: { account: KeyringPair | string; amount: bigint }[];
-}
-
-export async function registerLocalAssetWithMeta(
-  context: DevModeContext,
-  sudoAccount: KeyringPair,
-  {
-    name = "Local",
-    symbol = "Local",
-    decimals = 12,
-    registrerAccount,
-    mints = [],
-  }: RegisterLocalAssetOptions
-): Promise<{ assetId: string; assetAddress: string }> {
-  const api = context.polkadotJs();
-  const { result } = await context.createBlock(
-    api.tx.sudo
-      .sudo(
-        api.tx.assetManager.registerLocalAsset(
-          registrerAccount.address,
-          registrerAccount.address,
-          true,
-          new BN(1)
-        )
-      )
-      .signAsync(sudoAccount)
-  );
-
-  // Look for assetId in events
-  const assetId = result?.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")!
-    .event.data[0].toHex()
-    .replace(/,/g, "");
-  const assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
-
-  // Set metadata
-  await context.createBlock(
-    api.tx.localAssets
-      .setMetadata(assetId, name, symbol, new BN(decimals))
-      .signAsync(registrerAccount)
-  );
-
-  // mint accounts
-  for (const { account, amount } of mints) {
-    await context.createBlock(
-      api.tx.localAssets
-        .mint(assetId, typeof account == "string" ? account : account.address, amount)
-        .signAsync(registrerAccount)
-    );
-  }
-
-  return {
-    assetId,
-    assetAddress,
-  };
 }

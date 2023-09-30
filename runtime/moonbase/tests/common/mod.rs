@@ -194,14 +194,6 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_local_assets(
-		mut self,
-		local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
-	) -> Self {
-		self.local_assets = local_assets;
-		self
-	}
-
 	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
 		self.xcm_assets = xcm_assets;
 		self
