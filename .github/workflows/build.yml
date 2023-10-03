@@ -27,6 +27,7 @@ jobs:
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      test_s3_dir: ${{ steps.check-git-ref.outputs.test_s3_dir }}
       image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
@@ -45,10 +46,13 @@ jobs:
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            echo "test_s3_dir=test-pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "test_s3_dir=test-pulls/${{ github.event.inputs.pull_request }}" >> $GITHUB_OUTPUT
             echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
           else
+            echo "test_s3_dir=test-branches/master" >> $GITHUB_OUTPUT
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
           fi
@@ -370,24 +374,35 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
-          mkdir -p tests/moonbase-overrides/
-          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
+          mkdir -p test/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
-          FORCE_WASM_EXECUTION: true
-          FORCE_COMPILED_WASM: true
-          WASM_RUNTIME_OVERRIDES: moonbase-overrides
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
           chmod uog+x build/moonbeam
+          chmod uog+x target/release/moonbeam
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
@@ -398,17 +413,11 @@ jobs:
           cd ../typescript-api
           npm ci
 
-          cd ../tests
-          npm ci
-          #### Prepares and copies the typescript generated API to include in the tests
-          npm run setup-typescript-api
-
-          #### Compile typescript tests into javascript (more stable for Mocha)
-          #### This also better display typescript issues
-          npm run build
-
-          #### Run tracing tests with mocha
-          node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
+          ####  Install and run dev tracing
+          cd ../test
+          pnpm install
+          pnpm compile-solidity
+          pnpm moonwall test dev_moonbase_tracing
 
   docker-moonbeam:
     runs-on: ubuntu-latest
@@ -481,7 +490,10 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
-        chain: ["moonbase", "moonriver", "moonbeam"]
+        #chain: ["moonbase", "moonriver", "moonbeam"]
+        # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
+        # https://github.com/AcalaNetwork/chopsticks/issues/407
+        chain: ["moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -501,7 +513,7 @@ jobs:
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
-          mkdir -p test/tmp
+          mkdir -p test/tmp/node_logs
       - name: "Download runtime"
         uses: actions/download-artifact@v3.0.2
         with:
@@ -622,3 +634,16 @@ jobs:
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
+      - name: Upload HTML report to s3
+        uses: mario-sangar/upload-s3-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
+          source_dir: "test/html"
+          acl: "none"
+      - name: Link To Report
+        shell: bash
+        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"

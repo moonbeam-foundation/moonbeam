@@ -11,8 +11,8 @@ In addition to `perf` itself, some tools like [speedscope](https://github.com/jl
 
 # Configuring moonbeam
 
-Moonbeam node built with `--release`, contains enough symbols to have meanigful report for perf.
-However it is suggest to also combine the build with additional frame pointers in order to capture the full stack:
+Moonbeam node built with `--release`, contains enough symbols to have meaningful report for perf.
+However it is suggested to also combine the build with additional frame pointers in order to capture the full stack:
 
 ```
 RUSTFLAGS="-C force-frame-pointers=yes" cargo build --release
@@ -114,7 +114,7 @@ You can also use the following command to retrieve all the threads of execute_in
 perf script --no-inline | awk -v RS='' '/execute_in_transaction/' | grep ' cycles:u:' | tr -s ' ' | sed 's/^[ \t]*//' | cut -d' ' -f2 | sort | uniq
 ```
 
-(Each thread is a different execution, except in dev mode. So if for exemple your node imported 3 blocks during the recording,
+(Each thread is a different execution, except in dev mode. So if for example your node imported 3 blocks during the recording,
 it will have 3 threads. You can select the one you want for a specific block based on the order)
 
 Finally, export the data (with my example):
@@ -166,7 +166,7 @@ You can generate the load in many different way, ex: sending a bunch of request 
 
 At this point you should have a `perf.data` file (and a `jit-xxxx.dump` if you used jitdump), follow the `Generating script for speedscope` part.
 
-## Exemple of debugging a wasm block production of a typescript-test
+## Example of debugging a wasm block production of a typescript-test
 
 1. Compile the node
 

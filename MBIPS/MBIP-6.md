@@ -13,12 +13,12 @@ gasometer and how parachains are required to provide state transition proofs.
 
 ## Motivation
 
-Proof-of-validity (POV) size is a concept native to Polkadot parachains. In order to proof that the
+Proof-of-validity (POV) size is a concept native to Polkadot parachains. In order to prove that the
 state transition of a parachain block is valid, the relay chain needs a merkle proof: a partial
-state containing only the required to data to execute all the extrinsics included in the parachain
+state containing only the required data to execute all the extrinsics included in the parachain
 block.
 
-Because there is a target relay block time and the POV has to be transfered between
+Because there is a target relay block time and the POV has to be transferred between
 collators and validators, the POV size must be restricted to a certain amount, currently measured
 to be 5MB. That's why Moonbeam is soon to introduce POV metering, so POV consumption can be measured
 within the EVM execution, correctly accounting for this block space metric and satisfy the relay
@@ -101,7 +101,7 @@ substantial difference on how refunds work in Moonbeam vs. Ethereum and, in some
 assumptions done purely on what the cost is supposed to be metered by the traditional gasometer when
 successfully exiting the EVM:
 
-- Prior to execution: the need of providing a `gas_limit` that is enough to pay for whaveter the most
+- Prior to execution: the need of providing a `gas_limit` that is enough to pay for whatever the most
   used metric will be during the EVM execution.
 - After the execution: the refund will be calculated over the most used metric on exiting the EVM.
 
@@ -109,4 +109,4 @@ successfully exiting the EVM:
 
 This is a necessary security-related change in any EVM-compatible parachain. If not
 introduced, it opens up for spam vectors like being able to abuse block space and even filling
-full blocks worth of POV for a fraction of a cost.
+full blocks worth of POV for a fraction of the cost.

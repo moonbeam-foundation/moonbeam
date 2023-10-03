@@ -80,6 +80,8 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
+#[cfg(feature = "try-runtime")]
+use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -182,7 +184,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 2500,
+	spec_version: 2600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -381,7 +383,7 @@ impl pallet_sudo::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_sudo::WeightInfo<Runtime>;
 }
 
-impl pallet_ethereum_chain_id::Config for Runtime {}
+impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -1186,6 +1188,12 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
 		AllPalletsWithSystem::on_runtime_upgrade()
 	}
+
+	#[cfg(feature = "try-runtime")]
+	fn try_on_runtime_upgrade(checks: bool) -> Result<Weight, TryRuntimeError> {
+		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
+	}
+
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		AllPalletsWithSystem::pre_upgrade()
@@ -1347,7 +1355,7 @@ construct_runtime! {
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
+		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
@@ -1596,9 +1604,7 @@ mod tests {
 	// need to be Boxed.
 	fn call_max_size() {
 		const CALL_ALIGN: u32 = 1024;
-		assert!(
-			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
-		);
+		assert!(std::mem::size_of::<pallet_evm_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(

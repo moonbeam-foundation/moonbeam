@@ -1594,11 +1594,11 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let ac_state = <AutoCompoundingDelegations<T>>::get(&candidate);
+			let actual_auto_compound_delegation_count =
+				<AutoCompoundingDelegations<T>>::decode_len(&candidate).unwrap_or_default() as u32;
 
 			// TODO use these to return actual weight used via `execute_leave_candidates_ideal`
 			let actual_delegation_count = state.delegation_count;
-			let actual_auto_compound_delegation_count = ac_state.len() as u32;
 			let actual_weight = T::WeightInfo::execute_leave_candidates_ideal(
 				actual_delegation_count,
 				actual_auto_compound_delegation_count,
@@ -1870,7 +1870,8 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				let mut num_paid_delegations = 0u32;
 				let mut num_auto_compounding = 0u32;
-				let num_scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator).len();
+				let num_scheduled_requests =
+					<DelegationScheduledRequests<T>>::decode_len(&collator).unwrap_or_default();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					extra_weight = extra_weight
@@ -2139,7 +2140,7 @@ pub mod pallet {
 			);
 
 			let actual_weight = T::WeightInfo::delegator_bond_more(
-				<DelegationScheduledRequests<T>>::get(&candidate).len() as u32,
+				<DelegationScheduledRequests<T>>::decode_len(&candidate).unwrap_or_default() as u32,
 			);
 			let in_top = state
 				.increase_delegation::<T>(candidate.clone(), more)

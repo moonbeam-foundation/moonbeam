@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { TARGET_FILL_PERMILL, WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
+import {
+  RUNTIME_CONSTANTS,
+  TARGET_FILL_PERMILL,
+  WEIGHT_FEE,
+  WEIGHT_PER_GAS,
+  getBlockArray,
+} from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic, u256 } from "@polkadot/types";
 import type { u128 } from "@polkadot/types-codec";
@@ -16,7 +22,6 @@ import {
 import { AnyTuple } from "@polkadot/types/types";
 import { BN, BN_MILLION } from "@polkadot/util";
 import { ethers } from "ethers";
-import { RUNTIME_CONSTANTS } from "../../../tests/util/constants.js"; // TODO: Remove on next mw ver
 import { checkTimeSliceForUpgrades, rateLimiter } from "../../helpers/common.js";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout

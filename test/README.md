@@ -1,12 +1,8 @@
 # Functional testing for Moonbeam
 
-## :construction: This folder is currently under W.I.P :construction:
-
-> :information_source: This folder is meant to eventually replace `/tests/` when it is feature complete.
-
-This folder contains a set of functional tests designed for Moonbeam network.
-
-It is written in typescript, using the [Moonwall](https://github.com/Moonsong-Labs/moonwall) framework.
+> [!NOTE]\
+> This folder contains a set of functional tests designed for Moonbeam network.
+It is written in typescript, using the [Moonwall](https://moonsong-labs.github.io/moonwall/) framework.
 
 ## Test Categories
 
@@ -17,47 +13,61 @@ It is written in typescript, using the [Moonwall](https://github.com/Moonsong-La
 
 ## Installation
 
-PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
+> [!NOTE]\
+> PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
 There are [many](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
 
-Once installed, install the package dependencies with `pnpm i`
+Before running tests always install and update the package dependencies:
 
-## Usage
+```bash
+cd test
+pnpm i 
+```
+
+## Usage Examples
 
 Launch the CLI:
-```
+
+```bash
 pnpm moonwall
 ```
 
-Run a network:
-```
-pnpm moonwall run <environment_name>
+Execute all dev tests:
+
+```bash
+pnpm moonwall test dev_moonbase
 ```
 
-Download from GitHub:
-```
-pnpm moonwall download <artifact>
+Execute a single test:
+
+```bash
+pnpm moonwall test dev_moonbase <test_case_id>
 ```
 
-Test an environment:
-```
-pnpm moonwall test <environment_name>
+Execute a single test and keep node running:
+
+```bash
+pnpm moonwall run dev_moonbase <test_case_id>
 ```
 
-If in doubt, use `--help` for available options for each command.
+Downloading the latest polkadot binary:
 
-## Examples
-
-```
-pnpm moonwall test chopsticks_moonbeam
+```bash
+pnpm moonwall download polkadot latest
 ```
 
-```
-pnpm moonwall run dev_moonbase
+Running a chopsticks forked Moonbeam network:
+
+```bash
+pnpm moonwall run chopsticks_moonbeam
 ```
 
-```
-pnpm moonwall download moonriver-runtime 2201
+Running a particular smoke test:
+
+```bash
+pnpm moonwall test smoke_moonbeam S100
 ```
 
-
+> [!NOTE]\
+> For a full list of test environments and suites available, inspect the `moonwall.config.json` file.
+Alternatively, use the CLI to browse networks and tests available.

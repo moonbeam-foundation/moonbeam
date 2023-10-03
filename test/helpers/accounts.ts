@@ -1,7 +1,5 @@
 import { DevModeContext } from "@moonwall/cli";
-import { KeyringPair } from "@moonwall/util";
-import { generateKeyringPair, alith } from "../../tests/util/accounts";
-import { MIN_GLMR_STAKING, GLMR } from "../../tests/util/constants";
+import { GLMR, KeyringPair, MIN_GLMR_STAKING, alith, generateKeyringPair } from "@moonwall/util";
 
 export async function createAccounts(
   context: DevModeContext,

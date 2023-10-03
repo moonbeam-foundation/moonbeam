@@ -58,7 +58,7 @@ Deploying an heavy contract (24_000 bytes code + 68 bytes overhead) would lead t
 
 ## Storage changes
 
-A new "[named reserve](https://paritytech.github.io/substrate/master/pallet_balances/struct.ReserveData.html)"
+A new "[named reserve](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/struct.ReserveData.html)"
 is associated to EOA when they need to deposit tokens for storage data.
 
 ## Functions
@@ -87,7 +87,7 @@ interact with a smart contract that is increasing the state storage size.
 
 A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 3](#addition-1---deposit-from-the-value) for a possible solution)
 
-Additionally some people might gamble that the deposit storage ratio (GLMR/bytes) will increase in the future and start to store more data on-chain in the hope to "resell" that storage in the future. However it is very unlikely for the storage to increase as the cost of storage becomes cheaper overtime.
+Additionally some people might gamble that the deposit storage ratio (GLMR/bytes) will increase in the future and start to store more data on-chain in the hope to "resell" that storage in the future. However it is very unlikely for the storage to increase as the cost of storage becomes cheaper over time.
 
 ## Addition 1 - Deposit from the "Value"
 
