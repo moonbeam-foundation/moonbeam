@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstBool, Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
