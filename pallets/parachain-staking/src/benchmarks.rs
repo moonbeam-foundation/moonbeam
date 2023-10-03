@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, Pallet, ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment,
-	Round, ScheduledRequest, Staked, TopDelegations,
+	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
+	Range, RewardPayment, Round, ScheduledRequest, Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -2249,6 +2249,9 @@ benchmarks! {
 
 		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
 		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
+
+		// Enable killswitch
+		<EnableMarkingOffline<T>>::set(true);
 
 	}: _(RawOrigin::Signed(caller), inactive_collator.clone())
 	verify {
