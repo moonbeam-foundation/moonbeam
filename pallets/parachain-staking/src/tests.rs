@@ -986,7 +986,7 @@ fn notify_inactive_collator_works() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
-			//Enable killswitch
+			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
 			// Round 2
@@ -1023,7 +1023,7 @@ fn notify_inactive_collator_fails_too_low_collator_count() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
 		.build()
 		.execute_with(|| {
-			//Enable killswitch
+			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
 			// Round 4
@@ -1045,7 +1045,7 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
-			//Enable killswitch
+			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
 			// Round 2
