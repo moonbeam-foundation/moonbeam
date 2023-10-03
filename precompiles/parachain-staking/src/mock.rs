@@ -211,7 +211,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnNewRound = ();
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
-	type EnableMarkingOffline = ConstBool<false>;
 }
 
 pub(crate) struct ExtBuilder {

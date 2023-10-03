@@ -30,8 +30,8 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded, Error, Event,
-	Range, DELEGATOR_LOCK_ID,
+	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
+	EnableMarkingOffline, Error, Event, Range, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -986,6 +986,9 @@ fn notify_inactive_collator_works() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
+			//Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
 			// Round 2
 			roll_to_round_begin(2);
 
@@ -1020,6 +1023,9 @@ fn notify_inactive_collator_fails_too_low_collator_count() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
 		.build()
 		.execute_with(|| {
+			//Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
 			// Round 4
 			roll_to_round_begin(4);
 			roll_blocks(1);
@@ -1039,6 +1045,9 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
+			//Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
 			// Round 2
 			roll_to_round_begin(2);
 

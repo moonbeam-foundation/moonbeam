@@ -177,9 +177,6 @@ pub mod pallet {
 		/// The default behavior is to mark the collator as offline.
 		/// If you need to use the default implementation, specify the type `()`.
 		type OnInactiveCollator: OnInactiveCollator<Self>;
-		// Killswitch to enable/disable marking offline feature.
-		#[pallet::constant]
-		type EnableMarkingOffline: Get<bool>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -657,6 +654,11 @@ pub mod pallet {
 		RewardPoint,
 		ValueQuery,
 	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn marking_offline)]
+	/// Killswitch to enable/disable marking offline feature.
+	pub type EnableMarkingOffline<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
@@ -1400,7 +1402,7 @@ pub mod pallet {
 			collator: T::AccountId,
 		) -> DispatchResult {
 			ensure!(
-				T::EnableMarkingOffline::get(),
+				<EnableMarkingOffline<T>>::get(),
 				<Error<T>>::MarkingOfflineNotEnabled
 			);
 			ensure_signed(origin)?;

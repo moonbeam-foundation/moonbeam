@@ -776,7 +776,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnNewRound = OnNewRound;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type EnableMarkingOffline = ConstBool<true>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
