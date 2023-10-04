@@ -3,6 +3,27 @@
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 120000,
   "scriptsDir": "scripts/",
+  "additionalRepos": [
+    {
+      "name": "polkadot-sdk",
+      "ghAuthor": "paritytech",
+      "ghRepo": "polkadot-sdk",
+      "binaries": [
+        {
+          "name": "polkadot",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-execute-worker",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-prepare-worker",
+          "defaultArgs": []
+        }
+      ]
+    }
+  ],
   "environments": [
     {
       "name": "zombie_moonbeam",
