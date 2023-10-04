@@ -24,11 +24,14 @@ use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::{ParaId, PersistedValidationData};
+use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
-	SchemaV2Override, SchemaV3Override, StorageOverride,
+	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, OverrideHandle,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
+	StorageOverride,
 };
 use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
@@ -176,6 +179,7 @@ pub fn create_full<C, P, BE, A>(
 			fc_mapping_sync::EthereumBlockNotification<Block>,
 		>,
 	>,
+	pending_consenus_data_provider: Box<dyn ConsensusDataProvider<Block>>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: Backend<Block> + 'static,
@@ -242,7 +246,28 @@ where
 	}
 	let convert_transaction: Option<Never> = None;
 
-	let pending_create_inherent_data_providers = move |_, _| async move { Ok(()) };
+	let pending_create_inherent_data_providers = move |_, _| async move {
+		let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+		// Create a dummy parachain inherent data provider which is required to pass
+		// the checks by the para chain system. We use dummy values because in the 'pending context'
+		// neither do we have access to the real values nor do we need them.
+		let (relay_parent_storage_root, relay_chain_state) =
+			RelayStateSproofBuilder::default().into_state_root_and_proof();
+		let vfp = PersistedValidationData {
+			// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
+			// happy. Relay parent number can't be bigger than u32::MAX.
+			relay_parent_number: u32::MAX,
+			relay_parent_storage_root,
+			..Default::default()
+		};
+		let parachain_inherent_data = ParachainInherentData {
+			validation_data: vfp,
+			relay_chain_state: relay_chain_state,
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		};
+		Ok((timestamp, parachain_inherent_data))
+	};
 
 	io.merge(
 		Eth::new(
@@ -261,7 +286,7 @@ where
 			10,
 			forced_parent_hashes,
 			pending_create_inherent_data_providers,
-			None,
+			Some(pending_consenus_data_provider),
 		)
 		.replace_config::<MoonbeamEthConfig<C, BE>>()
 		.into_rpc(),

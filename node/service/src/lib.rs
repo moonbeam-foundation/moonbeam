@@ -47,14 +47,16 @@ use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
+use moonbeam_runtime_common::AuthorInherentApi;
 use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
-use nimbus_consensus::NimbusManualSealConsensusDataProvider;
-use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use nimbus_primitives::NimbusId;
+use nimbus_consensus::{
+	BuildNimbusConsensusParams, NimbusConsensus, NimbusManualSealConsensusDataProvider,
+};
+use nimbus_primitives::{CompatibleDigestItem, DigestsProvider, NimbusId};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -74,7 +76,8 @@ use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerH
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_keystore::KeystorePtr;
+use sp_core::H256;
+use sp_keystore::{Keystore, KeystorePtr};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -149,10 +152,6 @@ pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
 
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;
-
-// #[cfg(feature = "moonbeam-native")]
-// impl sp_wasm_interface::HostFunctions for MoonbeamExecutor {
-// }
 
 #[cfg(feature = "moonbeam-native")]
 impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
@@ -362,7 +361,7 @@ where
 	Ok(frontier_backend)
 }
 
-use sp_runtime::{traits::BlakeTwo256, Percent};
+use sp_runtime::{traits::BlakeTwo256, Digest, Percent};
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
@@ -803,6 +802,7 @@ where
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
+		let keystore = params.keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
@@ -828,6 +828,10 @@ where
 				overrides: overrides.clone(),
 				forced_parent_hashes: None,
 			};
+			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
+				client.clone(),
+				keystore.clone(),
+			));
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
 					deps,
@@ -837,6 +841,7 @@ where
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			} else {
@@ -845,6 +850,7 @@ where
 					subscription_task_executor,
 					None,
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			}
@@ -1006,16 +1012,9 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
-			let client_clone = client.clone();
-			let keystore_clone = keystore.clone();
-			let maybe_provide_vrf_digest = move |nimbus_id: NimbusId, parent: Hash|
-				-> Option<sp_runtime::generic::DigestItem> {
-				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-					&client_clone,
-					&keystore_clone,
-					nimbus_id,
-					parent,
-				)
+			let maybe_provide_vrf_digest = DigestProvider {
+				client: client.clone(),
+				keystore: keystore.clone(),
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -1052,7 +1051,6 @@ where
 	use async_io::Timer;
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-	use sp_core::H256;
 
 	let sc_service::PartialComponents {
 		client,
@@ -1324,6 +1322,7 @@ where
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
+		let keystore = keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
@@ -1350,6 +1349,10 @@ where
 				forced_parent_hashes: None,
 			};
 
+			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
+				client.clone(),
+				keystore.clone(),
+			));
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
 					deps,
@@ -1359,6 +1362,7 @@ where
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			} else {
@@ -1367,6 +1371,7 @@ where
 					subscription_task_executor,
 					None,
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			}
@@ -1660,5 +1665,85 @@ mod tests {
 			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
 		}
+	}
+}
+
+struct DigestProvider<RuntimeApi, Executor>
+where
+	RuntimeApi: Send + Sync,
+	Executor: ExecutorT + 'static,
+{
+	client: Arc<FullClient<RuntimeApi, Executor>>,
+	keystore: Arc<dyn Keystore>,
+}
+
+impl<RuntimeApi, Executor> DigestsProvider<NimbusId, H256> for DigestProvider<RuntimeApi, Executor>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + 'static,
+{
+	type Digests = Option<sp_runtime::generic::DigestItem>;
+
+	fn provide_digests(&self, nimbus_id: NimbusId, parent: H256) -> Self::Digests {
+		moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+			&self.client,
+			&self.keystore,
+			nimbus_id,
+			parent,
+		)
+	}
+}
+
+struct PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi: Send + Sync,
+	Executor: ExecutorT + 'static,
+{
+	client: Arc<FullClient<RuntimeApi, Executor>>,
+	keystore: Arc<dyn Keystore>,
+}
+
+impl<RuntimeApi, Executor> PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + 'static,
+{
+	pub fn new(client: Arc<FullClient<RuntimeApi, Executor>>, keystore: Arc<dyn Keystore>) -> Self {
+		Self { client, keystore }
+	}
+}
+
+impl<RuntimeApi, Executor> fc_rpc::pending::ConsensusDataProvider<Block>
+	for PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + 'static,
+{
+	fn create_digest(
+		&self,
+		parent: &Header,
+		_data: &sp_inherents::InherentData,
+	) -> Result<sp_runtime::Digest, sp_inherents::Error> {
+		let hash = parent.hash();
+		let nimbus_id = self
+			.client
+			.runtime_api()
+			.get_author_nimbus_id(hash)
+			.expect("Failed to get last author nimbus id")
+			.expect("Last author nimbus id should be present");
+		let mut logs = vec![CompatibleDigestItem::nimbus_pre_digest(nimbus_id.clone())];
+		let vrf_digest = DigestProvider {
+			client: self.client.clone(),
+			keystore: self.keystore.clone(),
+		}
+		.provide_digests(nimbus_id, hash);
+		logs.extend(vrf_digest);
+		Ok(Digest { logs })
 	}
 }

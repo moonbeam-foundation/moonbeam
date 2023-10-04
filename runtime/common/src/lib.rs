@@ -25,3 +25,10 @@ mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod weights;
 pub mod xcm;
+
+sp_api::decl_runtime_apis! {
+	/// The runtime api used to predict whether a Nimbus author will be eligible in the given slot
+	pub trait AuthorInherentApi {
+		fn get_author_nimbus_id() -> Option<nimbus_primitives::NimbusId>;
+	}
+}

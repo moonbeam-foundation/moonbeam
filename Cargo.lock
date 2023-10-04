@@ -438,20 +438,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-scale"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51bd73bb6ddb72630987d37fa963e99196896c0d0ea81b7c894567e74a2f83af"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-serialize",
- "ark-std",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
 name = "ark-secret-scalar"
 version = "0.0.2"
 source = "git+https://github.com/w3f/ring-vrf?rev=3119f51#3119f51b54b69308abfb0671f6176cb125ae1bf1"
@@ -860,7 +846,7 @@ dependencies = [
  "ark-ec",
  "ark-ed-on-bls12-381-bandersnatch",
  "ark-ff",
- "ark-scale 0.0.11",
+ "ark-scale",
  "ark-serialize",
  "ark-std",
  "dleq_vrf",
@@ -2794,7 +2780,7 @@ source = "git+https://github.com/w3f/ring-vrf?rev=3119f51#3119f51b54b69308abfb06
 dependencies = [
  "ark-ec",
  "ark-ff",
- "ark-scale 0.0.10",
+ "ark-scale",
  "ark-secret-scalar",
  "ark-serialize",
  "ark-std",
@@ -6865,6 +6851,7 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "moonbeam-xcm-benchmarks",
+ "nimbus-primitives",
  "pallet-asset-manager",
  "pallet-assets",
  "pallet-author-inherent",
@@ -6897,6 +6884,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-transactor",
  "precompile-utils",
+ "sp-api",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -6959,6 +6947,7 @@ dependencies = [
  "moonbeam-rpc-trace",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
+ "moonbeam-runtime-common",
  "moonbeam-vrf",
  "moonriver-runtime",
  "nimbus-consensus",

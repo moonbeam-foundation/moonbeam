@@ -220,6 +220,16 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl moonbeam_runtime_common::AuthorInherentApi<Block> for Runtime {
+				fn get_author_nimbus_id() -> Option<nimbus_primitives::NimbusId> {
+					use nimbus_primitives::NimbusId;
+					use sp_core::crypto::ByteArray;
+					let author = <pallet_author_inherent::Pallet<Self>>::get();
+					log::info!("author: {:?}", author);
+					<pallet_author_mapping::Pallet<Self>>::nimbus_id_of(&author)
+				}
+			}
+
 			impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 				fn chain_id() -> u64 {
 					<Runtime as pallet_evm::Config>::ChainId::get()
