@@ -1760,4 +1760,19 @@ mod tests {
 			.base_extrinsic;
 		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight.ref_time());
 	}
+
+	#[test]
+	fn test_storage_growth_ratio_is_correct() {
+		// This is the highest amount of new storage that can be created in a block 40 KB
+		let block_storage_limit = 40 * 1024;
+		let expected_storage_growth_ratio = BlockGasLimit::get()
+			.low_u64()
+			.saturating_div(block_storage_limit);
+		let actual_storage_growth_ratio =
+			<Runtime as pallet_evm::Config>::GasLimitStorageGrowthRatio::get();
+		assert_eq!(
+			expected_storage_growth_ratio, actual_storage_growth_ratio,
+			"Storage growth ratio is not correct"
+		);
+	}
 }
