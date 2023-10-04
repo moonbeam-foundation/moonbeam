@@ -277,10 +277,7 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "runScripts": [
-        "compile-contracts.ts compile",
-        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
-      ],
+      "runScripts": ["compile-contracts.ts compile"],
       "multiThreads": true,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
@@ -292,7 +289,6 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "--wasmtime-precompiled=wasm",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",
