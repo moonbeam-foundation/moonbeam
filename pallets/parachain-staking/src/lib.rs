@@ -1395,7 +1395,9 @@ pub mod pallet {
 		#[pallet::call_index(29)]
 		#[pallet::weight(
 			// TODO: add the proper benchmark function once it is available
-			T::DbWeight::get().reads_writes(0 as u64, 0 as u64)
+			Weight::from_parts(20_000_000u64, 8_000u64)
+				.saturating_add(T::DbWeight::get().reads(5u64))
+				.saturating_add(T::DbWeight::get().writes(5u64))
 		)]
 		pub fn notify_inactive_collator(
 			origin: OriginFor<T>,
@@ -1456,6 +1458,18 @@ pub mod pallet {
 			}
 
 			Ok(().into())
+		}
+
+		/// Enable/Disable marking offline feature
+		#[pallet::call_index(30)]
+		#[pallet::weight(
+			Weight::from_parts(3_000_000u64, 4_000u64)
+				.saturating_add(T::DbWeight::get().writes(1u64))
+		)]
+		pub fn enable_marking_offline(origin: OriginFor<T>, value: bool) -> DispatchResult {
+			ensure_root(origin)?;
+			<EnableMarkingOffline<T>>::set(value);
+			Ok(())
 		}
 	}
 

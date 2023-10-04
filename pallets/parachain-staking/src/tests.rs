@@ -980,6 +980,40 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 }
 
 #[test]
+fn enable_marking_offline_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::enable_marking_offline(
+				RuntimeOrigin::root(),
+				true
+			));
+			assert!(ParachainStaking::marking_offline());
+
+			// Set to false now
+			assert_ok!(ParachainStaking::enable_marking_offline(
+				RuntimeOrigin::root(),
+				false
+			));
+			assert!(!ParachainStaking::marking_offline());
+		});
+}
+
+#[test]
+fn enable_marking_offline_fails_bad_origin() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::enable_marking_offline(RuntimeOrigin::signed(1), true),
+				sp_runtime::DispatchError::BadOrigin
+			);
+		});
+}
+
+#[test]
 fn notify_inactive_collator_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
