@@ -27,7 +27,7 @@ pub mod weights;
 pub mod xcm;
 
 sp_api::decl_runtime_apis! {
-	/// The runtime api used to predict whether a Nimbus author will be eligible in the given slot
+	/// The runtime api used to get the nimbus id of the author of the block.
 	pub trait AuthorInherentApi {
 		fn get_author_nimbus_id() -> Option<nimbus_primitives::NimbusId>;
 	}

@@ -47,10 +47,10 @@ use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_runtime_common::AuthorInherentApi;
 use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
+use moonbeam_runtime_common::AuthorInherentApi;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use nimbus_consensus::{
