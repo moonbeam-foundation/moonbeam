@@ -75,7 +75,7 @@ describeSuite({
     it({
       id: "T02",
       title: "check referendum is up",
-      timeout: 1000000,
+      timeout: 60_000,
       test: async function () {
         // After Launchperiod elapses, turn the proposal into a referendum
         // launchPeriod minus the 3 blocks that already elapsed

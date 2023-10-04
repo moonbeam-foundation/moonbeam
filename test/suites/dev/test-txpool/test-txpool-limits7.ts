@@ -11,7 +11,7 @@ describeSuite({
     it({
       id: "T01",
       title: "shouldn't work for 8193 - bigger tx",
-      timeout: 400_000,
+      timeout: 60_000,
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const deployData = encodeDeployData({

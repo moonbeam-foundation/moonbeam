@@ -13,7 +13,7 @@ describeSuite({
       title:
         "should be able to send 8192 tx to the pool and have them" +
         " all published within the following blocks - bigger tx",
-      timeout: 400_000,
+      timeout: 60_000,
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const deployData = encodeDeployData({

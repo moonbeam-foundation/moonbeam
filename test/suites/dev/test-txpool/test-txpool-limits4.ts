@@ -10,6 +10,7 @@ describeSuite({
     it({
       id: "T01",
       title: "shouldn't work for 8193",
+      timeout: 30_000,
       test: async function () {
         try {
           for (let i = 0; i < 8193; i++) {

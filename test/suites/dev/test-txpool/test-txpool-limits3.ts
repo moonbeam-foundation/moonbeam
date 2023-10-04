@@ -16,6 +16,7 @@ describeSuite({
     // before it throws an error and drops all tx
     it({
       id: "T01",
+      timeout: 30_000,
       title:
         "should be able to send 8192 tx to the pool " +
         "and have them all published within the following blocks",
