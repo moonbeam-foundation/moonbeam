@@ -1,19 +1,8 @@
-import { CompiledContract } from "@moonwall/cli";
-import chalk from "chalk";
 import fs from "fs/promises";
 import path from "path";
 import child_process from "child_process";
-import solc from "solc";
-import { Abi } from "viem";
-import crypto from "crypto";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-
-let sourceByReference = {} as { [ref: string]: string };
-let countByReference = {} as { [ref: string]: number };
-let refByContract = {} as { [contract: string]: string };
-let contractMd5 = {} as { [contract: string]: string };
-const solcVersion = solc.version();
 
 yargs(hideBin(process.argv))
   .usage("Usage: $0")
@@ -58,7 +47,8 @@ async function main(args: any) {
 
   child_process.execSync(`mkdir -p ${outputDirectory}`);
 
-  const tmpDir = await fs.mkdtemp("base-path");
+  await fs.mkdir("tmp", { recursive: true });
+  const tmpDir = await fs.mkdtemp("tmp/base-path");
   try {
     const command =
       `${binaryPath} precompile-wasm --log=wasmtime-runtime --base-path=${tmpDir} ` +

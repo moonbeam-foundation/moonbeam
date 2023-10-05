@@ -16,7 +16,7 @@
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2400.0",
     "@moonwall/cli": "^4.1.3",
-    "@moonwall/util": "^4.1.3",
+    "@moonwall/util": "^4.1.4",
     "@polkadot/api": "^10.9.1",
     "@polkadot/api-augment": "^10.9.1",
     "@polkadot/types": "^10.9.1",
