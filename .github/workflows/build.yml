@@ -591,6 +591,7 @@ jobs:
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
           # chmod uog+x tmp/polkadot
+          ls -al tmp
           DEBUG=* pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
