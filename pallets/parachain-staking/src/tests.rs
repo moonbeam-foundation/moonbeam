@@ -1104,6 +1104,28 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 }
 
 #[test]
+fn notify_inactive_collator_fails_round_too_low() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			// Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
+			// Round 1
+			roll_to_round_begin(1);
+			roll_blocks(1);
+
+			// Call 'notify_inactive_collator' extrinsic
+			assert_noop!(
+				ParachainStaking::notify_inactive_collator(RuntimeOrigin::signed(1), 1),
+				Error::<Test>::CurrentRoundTooLow
+			);
+		});
+}
+
+#[test]
 fn sufficient_leave_candidates_weight_hint_succeeds() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])

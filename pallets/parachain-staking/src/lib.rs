@@ -126,7 +126,8 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
-		/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive
+		/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive.
+		/// This value must be less than or equal to RewardPaymentDelay.
 		#[pallet::constant]
 		type MaxOfflineRounds: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
@@ -243,6 +244,7 @@ pub mod pallet {
 		CannotSetAboveMaxCandidates,
 		RemovedCall,
 		MarkingOfflineNotEnabled,
+		CurrentRoundTooLow,
 	}
 
 	#[pallet::event]
@@ -1427,8 +1429,14 @@ pub mod pallet {
 			let round_info = <Round<T>>::get();
 			let max_offline_rounds = T::MaxOfflineRounds::get();
 
-			// Take last round to have rounds_to_check = [7,8,9]
+			ensure!(
+				round_info.current > max_offline_rounds,
+				<Error<T>>::CurrentRoundTooLow
+			);
+
+			// Take last round to have rounds_to_check = [8,9]
 			// in case we are in round 10 for instance
+			// with MaxOfflineRounds = 2
 			let round = round_info.current.saturating_sub(1);
 
 			let mut rounds_to_check: Vec<RoundIndex> = vec![];
