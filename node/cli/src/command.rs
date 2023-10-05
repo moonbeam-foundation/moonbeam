@@ -685,6 +685,7 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
+			let collator_options = cli.run.collator_options();
 			runner.run_node_until_exit(|config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
@@ -785,7 +786,14 @@ pub fn run() -> Result<()> {
 					spec if spec.is_moonriver() => moonbeam_service::start_node::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverExecutor,
-					>(config, polkadot_config, id, rpc_config, hwbench)
+					>(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -793,7 +801,14 @@ pub fn run() -> Result<()> {
 					spec if spec.is_moonbeam() => moonbeam_service::start_node::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamExecutor,
-					>(config, polkadot_config, id, rpc_config, hwbench)
+					>(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -801,7 +816,14 @@ pub fn run() -> Result<()> {
 					_ => moonbeam_service::start_node::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseExecutor,
-					>(config, polkadot_config, id, rpc_config, hwbench)
+					>(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),

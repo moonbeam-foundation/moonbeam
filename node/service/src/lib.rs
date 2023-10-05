@@ -642,6 +642,7 @@ async fn build_relay_chain_interface(
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
+	collator_options: CollatorOptions,
 	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
@@ -675,10 +676,6 @@ where
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
-
-	let collator_options = CollatorOptions {
-		relay_chain_mode: RelayChainMode::ExternalRpc(rpc_config.relay_chain_rpc_urls.clone()),
-	};
 
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
@@ -941,6 +938,7 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
+	collator_options: CollatorOptions,
 	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
@@ -955,6 +953,7 @@ where
 	start_node_impl(
 		parachain_config,
 		polkadot_config,
+		collator_options,
 		id,
 		rpc_config,
 		hwbench,
