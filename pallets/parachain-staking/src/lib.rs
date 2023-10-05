@@ -1393,12 +1393,7 @@ pub mod pallet {
 
 		/// Notify a collator is inactive during MaxOfflineRounds
 		#[pallet::call_index(29)]
-		#[pallet::weight(
-			// TODO: add the proper benchmark function once it is available
-			Weight::from_parts(20_000_000u64, 8_000u64)
-				.saturating_add(T::DbWeight::get().reads(5u64))
-				.saturating_add(T::DbWeight::get().writes(5u64))
-		)]
+		#[pallet::weight(<T as Config>::WeightInfo::notify_inactive_collator())]
 		pub fn notify_inactive_collator(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
