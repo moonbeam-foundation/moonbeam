@@ -106,13 +106,6 @@ describeSuite({
       title: "should allow to vote",
       timeout: 120_000,
       test: async function () {
-        // After Launchperiod elapses, turn the proposal into a referendum
-        // launchPeriod minus the 3 blocks that already elapsed
-        log(`Creating ${launchPeriod - 3} blocks so that new referendum can be raised`);
-        for (let i = 0; i < launchPeriod - 3; i++) {
-          await context.createBlock();
-        }
-
         await context.createBlock(
           createViemTransaction(context, {
             to: PRECOMPILE_DEMOCRACY_ADDRESS,
