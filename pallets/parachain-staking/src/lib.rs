@@ -1409,14 +1409,18 @@ pub mod pallet {
 			);
 			ensure_signed(origin)?;
 
-			let collators = <SelectedCandidates<T>>::get();
+			let mut collators_len = 0usize;
 			let max_collators = <TotalSelected<T>>::get();
+
+			if let Some(len) = <SelectedCandidates<T>>::decode_len() {
+				collators_len = len;
+			};
 
 			// Check collators length is not below or eq to 66% of max_collators.
 			// We use saturating logic here with (2/3)
 			// as it is dangerous to use floating point numbers directly.
 			ensure!(
-				collators.len() * 3 > (max_collators * 2) as usize,
+				collators_len * 3 > (max_collators * 2) as usize,
 				<Error<T>>::TooLowCollatorCountToNotifyAsInactive
 			);
 

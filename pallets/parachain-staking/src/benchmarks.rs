@@ -2203,8 +2203,8 @@ benchmarks! {
 		let mut candidate_count = 1u32;
 		let mut seed = USER_SEED;
 
-		// Create 100 collators
-		for i in 0..100 {
+		// Create collators up to MaxCandidates
+		for i in 0..(T::MaxCandidates::get() - 2) {
 			seed += i;
 			let collator = create_funded_collator::<T>(
 				"collator",
