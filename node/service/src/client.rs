@@ -43,7 +43,6 @@ pub trait RuntimeApiCollection:
 	+ fp_rpc::EthereumRuntimeRPCApi<Block>
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
-	+ moonbeam_runtime_common::AuthorInherentApi<Block>
 	+ nimbus_primitives::NimbusApi<Block>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
 	+ session_keys_primitives::VrfApi<Block>
@@ -63,7 +62,6 @@ impl<Api> RuntimeApiCollection for Api where
 		+ fp_rpc::EthereumRuntimeRPCApi<Block>
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
-		+ moonbeam_runtime_common::AuthorInherentApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ session_keys_primitives::VrfApi<Block>

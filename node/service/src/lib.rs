@@ -50,13 +50,12 @@ pub use moonbase_runtime;
 use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
-use moonbeam_runtime_common::AuthorInherentApi;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use nimbus_consensus::{
 	BuildNimbusConsensusParams, NimbusConsensus, NimbusManualSealConsensusDataProvider,
 };
-use nimbus_primitives::{CompatibleDigestItem, DigestsProvider, NimbusId};
+use nimbus_primitives::{DigestsProvider, NimbusId};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -76,7 +75,7 @@ use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerH
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_core::H256;
+use sp_core::{ByteArray, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
@@ -361,7 +360,7 @@ where
 	Ok(frontier_backend)
 }
 
-use sp_runtime::{traits::BlakeTwo256, Digest, Percent};
+use sp_runtime::{traits::BlakeTwo256, DigestItem, Percent};
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
@@ -1731,19 +1730,46 @@ where
 		_data: &sp_inherents::InherentData,
 	) -> Result<sp_runtime::Digest, sp_inherents::Error> {
 		let hash = parent.hash();
-		let nimbus_id = self
+		// Get the digest from the best block header.
+		let mut digest = self
 			.client
-			.runtime_api()
-			.get_author_nimbus_id(hash)
-			.expect("Failed to get last author nimbus id")
-			.expect("Last author nimbus id should be present");
-		let mut logs = vec![CompatibleDigestItem::nimbus_pre_digest(nimbus_id.clone())];
+			.header(hash)
+			.map_err(|e| sp_inherents::Error::Application(Box::new(e)))?
+			.expect("Best block header should be present")
+			.digest;
+		// Get the nimbus id from the digest.
+		let nimbus_id = digest
+			.logs
+			.iter()
+			.find_map(|x| {
+				if let DigestItem::PreRuntime(nimbus_primitives::NIMBUS_ENGINE_ID, nimbus_id) = x {
+					Some(
+						NimbusId::from_slice(nimbus_id.as_slice())
+							.expect("Nimbus pre-runtime digest should be valid"),
+					)
+				} else {
+					None
+				}
+			})
+			.expect("Nimbus pre-runtime digest should be present");
+		// Remove the old VRF digest.
+		let pos = digest.logs.iter().position(|x| {
+			matches!(
+				x,
+				DigestItem::PreRuntime(session_keys_primitives::VRF_ENGINE_ID, _)
+			)
+		});
+		if let Some(pos) = pos {
+			digest.logs.remove(pos);
+		}
+		// Create the VRF digest.
 		let vrf_digest = DigestProvider {
 			client: self.client.clone(),
 			keystore: self.keystore.clone(),
 		}
 		.provide_digests(nimbus_id, hash);
-		logs.extend(vrf_digest);
-		Ok(Digest { logs })
+		// Append the VRF digest to the digest.
+		digest.logs.extend(vrf_digest);
+		Ok(digest)
 	}
 }
