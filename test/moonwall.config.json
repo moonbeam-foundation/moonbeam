@@ -29,7 +29,6 @@
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
-      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -42,7 +41,6 @@
       "name": "zombie_moonbase",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -55,7 +53,6 @@
       "name": "zombie_common",
       "testFileDir": ["suites/para"],
       "include": ["**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "type": "zombie",
         "zombieSpec": {
