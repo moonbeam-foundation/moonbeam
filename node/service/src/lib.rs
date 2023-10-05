@@ -24,7 +24,7 @@
 
 pub mod rpc;
 
-use cumulus_client_cli::{CollatorOptions, RelayChainMode};
+use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
