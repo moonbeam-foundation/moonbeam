@@ -151,7 +151,7 @@ describeSuite({
         // referendumInfo = await context
         //   .polkadotJs()
         //   .query.referenda.referendumInfoFor(referendumIndex);
-        // expect(referendumInfo.unwrap().isApproved, "Referenda should now be approved").to.be.true;
+        //expect(referendumInfo.unwrap().isApproved, "Referenda should now be approved").to.be.true;
 
         // log(`Waiting enactment time: ${trackInfo![1].minEnactmentPeriod.toNumber()}`);
         // await jumpBlocks(context, trackInfo![1].confirmPeriod.toNumber());

@@ -13,30 +13,30 @@ polkadot_release=1.1.0
 cd $(dirname $0)/..
 
 if [[ -f tmp/polkadot ]]; then
-	POLKADOT_VERSION=$(tmp/polkadot --version)
-	if [[ $POLKADOT_VERSION == *$polkadot_release* ]]; then
-		exit 0
-	else
-		echo "Updating polkadot binary..."
+  POLKADOT_VERSION=$(tmp/polkadot --version)
+  if [[ $POLKADOT_VERSION == *$polkadot_release* ]]; then
+    exit 0
+  else
+    echo "Updating polkadot binary..."
 
-		wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
-		chmod +x tmp/polkadot
+    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
+    chmod +x tmp/polkadot
 
-		pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
-		chmod +x tmp/polkadot-execute-worker
+    pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
+    chmod +x tmp/polkadot-execute-worker
 
-		pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
-		chmod +x tmp/polkadot-prepare-worker
+    pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
+    chmod +x tmp/polkadot-prepare-worker
 
-	fi
+  fi
 else
-	echo "Polkadot binary not found, downloading..."
-	wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
-	chmod +x tmp/polkadot
+  echo "Polkadot binary not found, downloading..."
+  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
+  chmod +x tmp/polkadot
 
-	pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
-	chmod +x tmp/polkadot-execute-worker
+  pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
+  chmod +x tmp/polkadot-execute-worker
 
-	pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
-	chmod +x tmp/polkadot-prepare-worker
+  pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
+  chmod +x tmp/polkadot-prepare-worker
 fi
