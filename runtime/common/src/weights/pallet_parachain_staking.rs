@@ -859,4 +859,30 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	/// Storage: ParachainStaking EnableMarkingOffline (r:1 w:0)
+	/// Proof Skipped: ParachainStaking EnableMarkingOffline (max_values: Some(1), max_size: None, mode: Measured)
+	/// Storage: ParachainStaking TotalSelected (r:1 w:0)
+	/// Proof Skipped: ParachainStaking TotalSelected (max_values: Some(1), max_size: None, mode: Measured)
+	/// Storage: ParachainStaking SelectedCandidates (r:1 w:0)
+	/// Proof Skipped: ParachainStaking SelectedCandidates (max_values: Some(1), max_size: None, mode: Measured)
+	/// Storage: ParachainStaking AtStake (r:2 w:0)
+	/// Proof Skipped: ParachainStaking AtStake (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking AwardedPts (r:2 w:0)
+	/// Proof Skipped: ParachainStaking AwardedPts (max_values: None, max_size: None, mode: Measured)
+	/// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:0)
+	/// Proof Skipped: MoonbeamOrbiters OrbiterPerRound (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidateInfo (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidateInfo (max_values: None, max_size: None, mode: Measured)
+	/// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	/// Proof Skipped: ParachainStaking CandidatePool (max_values: Some(1), max_size: None, mode: Measured)
+	fn notify_inactive_collator() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `11494`
+		//  Estimated: `17434`
+		// Minimum execution time: 41_130_000 picoseconds.
+		Weight::from_parts(41_130_000, 0)
+			.saturating_add(Weight::from_parts(0, 17434))
+			.saturating_add(T::DbWeight::get().reads(10_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+	}
 }
