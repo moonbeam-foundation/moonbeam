@@ -1361,8 +1361,9 @@ macro_rules! construct_moonriver_runtime {
 			$($common_pallets)*
 
 			// Aditional pallets with `force-debug` feature:
-			// Sudo was previously index 40
-			Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+			// Sudo was previously index 40, but we don't want to use that index because
+			// the storage was not cleared
+			Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 240,
 		}
 
 		#[cfg(not(feature = "force-debug"))]
