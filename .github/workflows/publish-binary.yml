@@ -42,7 +42,7 @@ jobs:
             --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
             - < docker/moonbeam-production.Dockerfile
 
-          # Copy moonbeam binary 
+          # Copy moonbeam binary
           docker rm -f dummy 2> /dev/null | true
           docker create -ti --name dummy prod bash
           docker cp dummy:/moonbeam/moonbeam moonbeam
@@ -148,8 +148,6 @@ jobs:
           asset_name: ${{matrix.node}}-${{matrix.cpu}}
           asset_content_type: application/octet-stream
 
-          
-
   ####### Publish Release Candidate Docker Image #######
 
   docker-release-candidate:
@@ -180,6 +178,6 @@ jobs:
             --build-arg SHA="$SHA" \
             -f docker/moonbeam-release.Dockerfile \
             -t "${DOCKER_IMAGE}:${TAG}" \
-            . 
+            .
 
           docker push "${DOCKER_IMAGE}:${TAG}"

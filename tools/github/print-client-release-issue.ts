@@ -22,7 +22,8 @@ async function main() {
   const previousVersion = argv.from;
   const newVersion = argv.to;
 
-  const commonTemplate = `
+  const commonTemplate =
+    `
 - [ ] Start the github action Publish Binary Draft with ${previousVersion} => ${newVersion}
   (master branch).
   - \`gh workflow run "Publish Binary Draft" -r 'master' ` +
@@ -31,9 +32,17 @@ async function main() {
 - [ ] Update moonbeam-networks stagenet (moonsama/moonlama) config.json to include:
   - \`\`\`
   "binaries": [
-		{"docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc", "path": "/moonbeam/moonbeam", "name": "moonbeam"},
-    {"docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc", "path": "/moonbeam/moonbeam-skylake", "name": "moonbeam-skylake"}
-	]
+    {
+      "docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc",
+      "path": "/moonbeam/moonbeam",
+      "name": "moonbeam"
+    },
+    {
+      "docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc",
+      "path": "/moonbeam/moonbeam-skylake",
+      "name": "moonbeam-skylake"
+    }
+  ]
   \`\`\`
 (matching your ${newVersion} tag) and increase the config version + 1.
 - [ ] Test the new client on stagenet (moonsama/moonlama).
