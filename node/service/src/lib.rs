@@ -433,12 +433,21 @@ where
 }
 
 // If we're using prometheus, use a registry with a prefix of `moonbeam`.
-fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
+fn set_prometheus_registry(
+	config: &mut Configuration,
+	skip_prefix: bool,
+) -> Result<(), ServiceError> {
 	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
 		let labels = hashmap! {
 			"chain".into() => config.chain_spec.id().into(),
 		};
-		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
+		let prefix = if skip_prefix {
+			None
+		} else {
+			Some("moonbeam".into())
+		};
+
+		*registry = Registry::new_custom(prefix, Some(labels))?;
 	}
 
 	Ok(())
@@ -461,7 +470,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: ExecutorT + 'static,
 {
-	set_prometheus_registry(config)?;
+	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
 	// Use ethereum style for subscription ids
 	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
@@ -1419,7 +1428,7 @@ mod tests {
 			..test_config("test")
 		};
 
-		set_prometheus_registry(&mut config).unwrap();
+		set_prometheus_registry(&mut config, false).unwrap();
 		// generate metric
 		let reg = config.prometheus_registry().unwrap();
 		reg.register(counter.clone()).unwrap();
@@ -1427,6 +1436,28 @@ mod tests {
 
 		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
 		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
+	}
+
+	#[test]
+	fn test_set_prometheus_registry_skips_moonbeam_prefix() {
+		let counter_name = "my_counter";
+		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config("test")
+		};
+
+		set_prometheus_registry(&mut config, true).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
+		assert_eq!(actual_metric_name.as_str(), counter_name);
 	}
 
 	#[test]
@@ -1447,7 +1478,7 @@ mod tests {
 			..test_config(input_chain_id)
 		};
 
-		set_prometheus_registry(&mut config).unwrap();
+		set_prometheus_registry(&mut config, false).unwrap();
 		// generate metric
 		let reg = config.prometheus_registry().unwrap();
 		reg.register(counter.clone()).unwrap();
