@@ -668,6 +668,7 @@ where
 		>,
 		Arc<SyncingService<Block>>,
 		KeystorePtr,
+		bool,
 		Duration,
 		ParaId,
 		CollatorPair,
@@ -701,7 +702,7 @@ where
 	.await
 	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
-	let validator = parachain_config.role.is_authority();
+	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
@@ -897,7 +898,7 @@ where
 		para_id: id,
 		relay_chain_interface: relay_chain_interface.clone(),
 		task_manager: &mut task_manager,
-		da_recovery_profile: if validator {
+		da_recovery_profile: if collator {
 			DARecoveryProfile::Collator
 		} else {
 			DARecoveryProfile::FullNode
@@ -908,7 +909,7 @@ where
 		sync_service: sync_service.clone(),
 	})?;
 
-	if validator {
+	if collator {
 		start_consensus(
 			client.clone(),
 			backend,
@@ -919,6 +920,7 @@ where
 			transaction_pool,
 			sync_service.clone(),
 			params.keystore_container.keystore(),
+			force_authoring,
 			relay_chain_slot_duration,
 			id,
 			collator_key.expect("Command line arguments do not allow this. qed"),
@@ -967,6 +969,7 @@ where
 			transaction_pool,
 			_sync_oracle,
 			keystore,
+			force_authoring,
 			_relay_chain_slot_duration,
 			_para_id,
 			_collator_key,
@@ -1022,7 +1025,7 @@ where
 				backend,
 				parachain_client: client.clone(),
 				keystore,
-				skip_prediction: false,
+				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
 				additional_digests_provider: maybe_provide_vrf_digest,
 			}))
