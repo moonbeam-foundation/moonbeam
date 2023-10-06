@@ -2,7 +2,6 @@
 
 # Exit on any error
 set -e
-set -x
 
 # Grab Polkadot version
 # branch=$(egrep -o '/polkadot.*#([^\"]*)' $(dirname $0)/../../Cargo.lock | head -1 | sed 's/.*release-//#')

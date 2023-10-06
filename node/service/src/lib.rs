@@ -28,9 +28,10 @@ use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
+#[allow(deprecated)]
 use cumulus_client_service::{
-	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
-	StartRelayChainTasksParams,
+	prepare_node_config, start_collator, start_full_node, CollatorSybilResistance,
+	StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -656,6 +657,7 @@ where
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
 		Arc<sc_client_db::Backend<Block>>,
+		ParachainBlockImport<RuntimeApi, Executor>,
 		Option<&Registry>,
 		Option<TelemetryHandle>,
 		&TaskManager,
@@ -680,7 +682,7 @@ where
 
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
-		_block_import,
+		block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -892,27 +894,15 @@ where
 		.overseer_handle()
 		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
-	start_relay_chain_tasks(StartRelayChainTasksParams {
-		client: client.clone(),
-		announce_block: announce_block.clone(),
-		para_id: id,
-		relay_chain_interface: relay_chain_interface.clone(),
-		task_manager: &mut task_manager,
-		da_recovery_profile: if collator {
-			DARecoveryProfile::Collator
-		} else {
-			DARecoveryProfile::FullNode
-		},
-		import_queue: import_queue_service,
-		relay_chain_slot_duration,
-		recovery_handle: Box::new(overseer_handle.clone()),
-		sync_service: sync_service.clone(),
-	})?;
-
+	let BlockImportPipeline::Parachain(block_import) = block_import else {
+			return Err(sc_service::Error::Other(
+				"Block import pipeline is not for parachain".into(),
+			))};
 	if collator {
-		start_consensus(
+		let parachain_consensus = start_consensus(
 			client.clone(),
 			backend,
+			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -923,10 +913,50 @@ where
 			force_authoring,
 			relay_chain_slot_duration,
 			id,
-			collator_key.expect("Command line arguments do not allow this. qed"),
-			overseer_handle,
-			announce_block,
+			collator_key
+				.clone()
+				.expect("Command line arguments do not allow this. qed"),
+			overseer_handle.clone(),
+			announce_block.clone(),
 		)?;
+
+		let spawner = task_manager.spawn_handle();
+
+		let params = StartCollatorParams {
+			para_id: id,
+			block_status: client.clone(),
+			announce_block,
+			client: client.clone(),
+			task_manager: &mut task_manager,
+			relay_chain_interface,
+			spawner,
+			parachain_consensus,
+			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
+			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
+				"Collator Key is None".to_string(),
+			))?,
+			relay_chain_slot_duration,
+			sync_service,
+		};
+
+		#[allow(deprecated)]
+		start_collator(params).await?;
+	} else {
+		let params = StartFullNodeParams {
+			client: client.clone(),
+			announce_block,
+			task_manager: &mut task_manager,
+			para_id: id,
+			relay_chain_interface,
+			relay_chain_slot_duration,
+			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
+			sync_service,
+		};
+
+		#[allow(deprecated)]
+		start_full_node(params)?;
 	}
 
 	start_network.start_network();
@@ -962,6 +992,7 @@ where
 		|
 			client,
 			backend,
+			block_import,
 			prometheus_registry,
 			telemetry,
 			task_manager,
@@ -1021,7 +1052,7 @@ where
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
 				proposer_factory,
-				block_import: client.clone(),
+				block_import,
 				backend,
 				parachain_client: client.clone(),
 				keystore,
