@@ -1081,6 +1081,106 @@ fn notify_inactive_collator_fails_too_low_collator_count() {
 }
 
 #[test]
+fn notify_inactive_collator_fails_candidate_is_not_collator() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 80), (2, 80), (3, 80), (4, 80), (5, 80), (6, 20)])
+		.with_candidates(vec![(1, 80), (2, 80), (3, 80), (4, 80), (5, 80)])
+		.build()
+		.execute_with(|| {
+			// Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
+			set_block_author(1);
+
+			roll_to_round_begin(2);
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 2,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 3,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 4,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 2,
+					collator_account: 5,
+					total_exposed_amount: 80,
+				},
+				Event::NewRound {
+					starting_block: 5,
+					round: 2,
+					selected_collators_number: 5,
+					total_balance: 400,
+				},
+			);
+			roll_blocks(1);
+
+			assert_ok!(ParachainStaking::join_candidates(
+				RuntimeOrigin::signed(6),
+				10,
+				100
+			));
+
+			// Round 6
+			roll_to_round_begin(6);
+			assert_events_eq!(
+				Event::CollatorChosen {
+					round: 6,
+					collator_account: 1,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 6,
+					collator_account: 2,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 6,
+					collator_account: 3,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 6,
+					collator_account: 4,
+					total_exposed_amount: 80,
+				},
+				Event::CollatorChosen {
+					round: 6,
+					collator_account: 5,
+					total_exposed_amount: 80,
+				},
+				Event::NewRound {
+					starting_block: 25,
+					round: 6,
+					selected_collators_number: 5,
+					total_balance: 400,
+				},
+			);
+			roll_blocks(1);
+
+			// A candidate cannot be notified as inactive if it hasn't been selected
+			// to produce blocks
+			assert_noop!(
+				ParachainStaking::notify_inactive_collator(RuntimeOrigin::signed(1), 6),
+				Error::<Test>::CannotBeNotifiedAsInactive
+			);
+		});
+}
+
+#[test]
 fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
