@@ -38,7 +38,7 @@ use account::AccountId20;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, GetDispatchInfo},
+	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -74,7 +74,7 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{InflationInfo, Range};
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -91,7 +91,8 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill,
+	ApplyExtrinsicResult, DispatchErrorWithPostInfo, FixedPointNumber, Perbill, Permill,
+	Perquintill,
 };
 use sp_std::{
 	convert::{From, Into},
@@ -714,6 +715,27 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 	}
 }
 
+pub struct OnInactiveCollator;
+impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollator {
+	fn on_inactive_collator(
+		collator_id: AccountId,
+		round: pallet_parachain_staking::RoundIndex,
+	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
+		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+			ParachainStaking::go_offline_inner(collator_id)?;
+			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
+				pallet_parachain_staking::MAX_CANDIDATES,
+			)
+		} else {
+			Weight::zero()
+		};
+
+		Ok(<Runtime as frame_system::Config>::DbWeight::get()
+			.reads(1)
+			.saturating_add(extra_weight))
+	}
+}
+
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
@@ -723,6 +745,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
+	/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive
+	type MaxOfflineRounds = ConstU32<2>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<2>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -750,6 +774,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = ();
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
+	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
@@ -1686,6 +1711,14 @@ mod tests {
 		assert_eq!(
 			get!(pallet_proxy, AnnouncementDepositFactor, u128),
 			Balance::from(5600 * MICROUNIT)
+		);
+	}
+
+	#[test]
+	fn max_offline_rounds_lower_or_eq_than_reward_payment_delay() {
+		assert!(
+			get!(pallet_parachain_staking, MaxOfflineRounds, u32)
+				<= get!(pallet_parachain_staking, RewardPaymentDelay, u32)
 		);
 	}
 

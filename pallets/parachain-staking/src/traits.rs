@@ -16,7 +16,9 @@
 
 //! traits for parachain-staking
 
-use frame_support::pallet_prelude::Weight;
+use crate::weights::WeightInfo;
+use frame_support::{dispatch::PostDispatchInfo, pallet_prelude::Weight};
+use sp_runtime::DispatchErrorWithPostInfo;
 
 pub trait OnCollatorPayout<AccountId, Balance> {
 	fn on_collator_payout(
@@ -62,5 +64,24 @@ impl<Runtime: crate::Config> PayoutCollatorReward<Runtime> for () {
 		amount: crate::BalanceOf<Runtime>,
 	) -> Weight {
 		crate::Pallet::<Runtime>::mint_collator_reward(for_round, collator_id, amount)
+	}
+}
+
+pub trait OnInactiveCollator<Runtime: crate::Config> {
+	fn on_inactive_collator(
+		collator_id: Runtime::AccountId,
+		round: crate::RoundIndex,
+	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>>;
+}
+
+impl<Runtime: crate::Config> OnInactiveCollator<Runtime> for () {
+	fn on_inactive_collator(
+		collator_id: <Runtime>::AccountId,
+		_round: crate::RoundIndex,
+	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
+		crate::Pallet::<Runtime>::go_offline_inner(collator_id)?;
+		Ok(<Runtime as crate::Config>::WeightInfo::go_offline(
+			crate::MAX_CANDIDATES,
+		))
 	}
 }
