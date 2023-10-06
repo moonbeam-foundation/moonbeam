@@ -1429,15 +1429,11 @@ pub mod pallet {
 				<Error<T>>::CurrentRoundTooLow
 			);
 
-			// Take last round to have rounds_to_check = [8,9]
+			// Have rounds_to_check = [8,9]
 			// in case we are in round 10 for instance
 			// with MaxOfflineRounds = 2
-			let round = round_info.current.saturating_sub(1);
-
-			let mut rounds_to_check: Vec<RoundIndex> = vec![];
-			for round_index in (0..max_offline_rounds).rev() {
-				rounds_to_check.push(round.saturating_sub(round_index));
-			}
+			let first_round_to_check = round_info.current.saturating_sub(max_offline_rounds);
+			let rounds_to_check = first_round_to_check..round_info.current;
 
 			// If this counter is eq to max_offline_rounds,
 			// the collator should be notified as inactive
@@ -1459,7 +1455,10 @@ pub mod pallet {
 			}
 
 			if inactive_counter == max_offline_rounds {
-				let _ = T::OnInactiveCollator::on_inactive_collator(collator.clone(), round);
+				let _ = T::OnInactiveCollator::on_inactive_collator(
+					collator.clone(),
+					round_info.current.saturating_sub(1),
+				);
 			} else {
 				return Err(<Error<T>>::CannotBeNotifiedAsInactive.into());
 			}
