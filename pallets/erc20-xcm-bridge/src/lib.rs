@@ -18,6 +18,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 mod erc20_matcher;
 mod erc20_trap;
 mod errors;
@@ -73,6 +78,11 @@ pub mod pallet {
 					ref data,
 				}) = multilocation.interior().into_iter().next_back()
 				{
+					// As GeneralKey definition might change in future versions of XCM, this is meant
+					// to throw a compile error as a warning that data type has changed.
+					// If that happens, a new check is needed to ensure that data has at least 18
+					// bytes (size of b"gas_limit:" + u64)
+					let data: &[u8; 32] = &data;
 					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
 						if content == "gas_limit:" {
 							let mut bytes: [u8; 8] = Default::default();

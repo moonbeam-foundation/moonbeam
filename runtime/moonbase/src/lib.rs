@@ -382,7 +382,7 @@ impl pallet_sudo::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_sudo::WeightInfo<Runtime>;
 }
 
-impl pallet_ethereum_chain_id::Config for Runtime {}
+impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -1330,7 +1330,7 @@ construct_runtime! {
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
+		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
@@ -1579,9 +1579,7 @@ mod tests {
 	// need to be Boxed.
 	fn call_max_size() {
 		const CALL_ALIGN: u32 = 1024;
-		assert!(
-			std::mem::size_of::<pallet_ethereum_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize
-		);
+		assert!(std::mem::size_of::<pallet_evm_chain_id::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(

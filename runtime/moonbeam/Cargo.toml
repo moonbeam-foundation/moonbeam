@@ -34,7 +34,7 @@ pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
 pallet-erc20-xcm-bridge = { workspace = true }
-pallet-ethereum-chain-id = { workspace = true }
+pallet-evm-chain-id = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }
 pallet-migrations = { workspace = true }
@@ -218,7 +218,7 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
 	"pallet-erc20-xcm-bridge/std",
-	"pallet-ethereum-chain-id/std",
+	"pallet-evm-chain-id/std",
 	"pallet-ethereum-xcm/std",
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-author-mapping/std",
