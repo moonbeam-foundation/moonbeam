@@ -1032,7 +1032,15 @@ fn notify_inactive_collator_works() {
 			// Finalize the first block of round 2
 			ParachainStaking::on_finalize(5);
 
-			// Round 6
+			// We don't produce blocks on round 3
+			roll_to_round_begin(3);
+			roll_blocks(1);
+
+			// We don't produce blocks on round 4
+			roll_to_round_begin(4);
+			roll_blocks(1);
+
+			// Round 6 - notify the collator as inactive
 			roll_to_round_begin(6);
 			roll_blocks(1);
 
@@ -1091,8 +1099,15 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 			// Finalize the first block of round 2
 			ParachainStaking::on_finalize(5);
 
-			// Round 4
+			// Round 3
 			roll_to_round_begin(3);
+			roll_blocks(1);
+
+			// Finalize a block of round 3
+			ParachainStaking::on_finalize(11);
+
+			// Round 4
+			roll_to_round_begin(4);
 			roll_blocks(1);
 
 			// Call 'notify_inactive_collator' extrinsic
