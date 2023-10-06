@@ -39,7 +39,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
-use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
+use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
 use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
@@ -647,7 +647,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	start_consensus: BIC,
+	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -671,11 +671,6 @@ where
 		Arc<SyncingService<Block>>,
 		KeystorePtr,
 		bool,
-		Duration,
-		ParaId,
-		CollatorPair,
-		OverseerHandle,
-		Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
@@ -689,6 +684,7 @@ where
 		frontier_backend,
 		fee_history_cache,
 	) = params.other;
+
 	let client = params.client.clone();
 	let backend = params.backend.clone();
 	let mut task_manager = params.task_manager;
@@ -899,7 +895,7 @@ where
 				"Block import pipeline is not for parachain".into(),
 			))};
 	if collator {
-		let parachain_consensus = start_consensus(
+		let parachain_consensus = build_consensus(
 			client.clone(),
 			backend,
 			block_import,
@@ -911,13 +907,6 @@ where
 			sync_service.clone(),
 			params.keystore_container.keystore(),
 			force_authoring,
-			relay_chain_slot_duration,
-			id,
-			collator_key
-				.clone()
-				.expect("Command line arguments do not allow this. qed"),
-			overseer_handle.clone(),
-			announce_block.clone(),
 		)?;
 
 		let spawner = task_manager.spawn_handle();
@@ -1001,11 +990,6 @@ where
 			_sync_oracle,
 			keystore,
 			force_authoring,
-			_relay_chain_slot_duration,
-			_para_id,
-			_collator_key,
-			_overseer_handle,
-			_announce_block,
 		| {
 			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),

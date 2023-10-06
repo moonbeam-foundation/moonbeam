@@ -388,7 +388,6 @@ pub fn run() -> Result<()> {
 				_ => panic!("invalid chain spec"),
 			}
 		}
-
 		Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
