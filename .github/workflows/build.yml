@@ -635,6 +635,10 @@ jobs:
         with:
           moonwall_environment: dev_${{ matrix.chain }}
       - name: Upload HTML report to s3
+        if: |
+          needs.set-tags.outputs.image_exists == 'false'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              || github.event_name == 'push')
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
@@ -645,5 +649,9 @@ jobs:
           source_dir: "test/html"
           acl: "none"
       - name: Link To Report
+        if: |
+          needs.set-tags.outputs.image_exists == 'false'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              || github.event_name == 'push')
         shell: bash
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
