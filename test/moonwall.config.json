@@ -428,6 +428,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonbeam.yml"
           }
         ]
@@ -450,6 +451,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonriver.yml"
           }
         ]
@@ -472,6 +474,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/alphanet.yml"
           }
         ]
