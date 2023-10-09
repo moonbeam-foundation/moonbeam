@@ -136,7 +136,7 @@ impl SubstrateCli for Cli {
 }
 
 impl Cli {
-	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
+	fn runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
 		match spec {
 			#[cfg(feature = "moonriver-native")]
 			spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
@@ -399,7 +399,7 @@ pub fn run() -> Result<()> {
 				params.parachain_id.unwrap_or(1000).into(),
 				&cli.run,
 			)?;
-			let state_version = Cli::native_runtime_version(&chain_spec).state_version();
+			let state_version = Cli::runtime_version(&chain_spec).state_version();
 
 			let output_buf = match chain_spec {
 				#[cfg(feature = "moonriver-native")]

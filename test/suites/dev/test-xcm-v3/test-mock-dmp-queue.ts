@@ -114,7 +114,6 @@ describeSuite({
 
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const apiAt = await context.polkadotJs().at(signedBlock.block.header.hash);
-        console.log("signedBlock", signedBlock.block.header.hash.toHex());
         const allRecords = await apiAt.query.system.events();
 
         // lets grab at which point the dmp queue was exhausted
@@ -146,7 +145,7 @@ describeSuite({
         expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
         expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
 
-        // NEW PART
+        // Repeat the test with different parameters
         {
           const xcmMessage = new XcmFragment(config)
             .withdraw_asset()
