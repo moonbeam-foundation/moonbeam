@@ -41,10 +41,15 @@ describeSuite({
             continue;
           }
           for (const fn of fns) {
-            if (moduleName == "evm" && ["accountStorages", "accountCodes"].includes(fn)) {
+            log(`🔎 checking ${moduleName}::${fn}`);
+            if (
+              moduleName == "evm" &&
+              ["accountStorages", "accountCodes", "accountCodesMetadata"].includes(fn)
+            ) {
               // This is just H256 entries and quite big
               continue;
             }
+
             if (
               moduleName == "parachainStaking" &&
               ["atStake"].includes(fn) &&
