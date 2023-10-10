@@ -17,9 +17,10 @@
 use crate::mock::*;
 use crate::*;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
-use frame_support::dispatch::{DispatchError, Weight};
+use frame_support::weights::Weight;
 use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 use sp_runtime::traits::Convert;
+use sp_runtime::DispatchError;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};

@@ -38,6 +38,7 @@ pallet-timestamp = { workspace = true, features = [ "std" ] }
 pallet-xcm = { workspace = true, features = [ "std" ] }
 parity-scale-codec = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
+sp-runtime = { workspace = true }
 
 [features]
 default = [ "std" ]

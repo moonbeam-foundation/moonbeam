@@ -258,7 +258,6 @@ describeSuite({
       test: async function () {
         const { abi, deployedBytecode } = fetchCompiledContract("MultiplyBy7");
 
-        console.log(deployedBytecode);
         const result = await customDevRpcRequest("eth_call", [
           {
             from: ALITH_ADDRESS,

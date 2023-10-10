@@ -42,13 +42,13 @@ pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
 impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
-	xcm_executor::traits::Convert<Origin, MultiLocation>
+	sp_runtime::traits::TryConvert<Origin, MultiLocation>
 	for SignedToAccountId20<Origin, AccountId, Network>
 where
 	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
 		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
 {
-	fn convert(o: Origin) -> Result<MultiLocation, Origin> {
+	fn try_convert(o: Origin) -> Result<MultiLocation, Origin> {
 		o.try_with_caller(|caller| match caller.try_into() {
 			Ok(frame_system::RawOrigin::Signed(who)) => Ok(AccountKey20 {
 				key: who.into(),

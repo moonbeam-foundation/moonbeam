@@ -63,7 +63,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -73,7 +73,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -89,7 +89,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -99,7 +99,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -115,7 +115,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -125,7 +125,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -141,7 +141,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -151,7 +151,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -167,7 +167,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -177,7 +177,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -193,7 +193,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -203,7 +203,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
 
@@ -219,7 +219,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessage(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         await context.createBlock();
@@ -229,7 +229,7 @@ describeSuite({
           context.polkadotJs().events.xcmpQueue.Fail.is(event)
         );
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[1].toString()).equals("WeightNotComputable");
+        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
       },
     });
   },

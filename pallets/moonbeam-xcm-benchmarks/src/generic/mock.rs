@@ -23,7 +23,6 @@ use frame_support::{
 use parity_scale_codec::Decode;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, TrailingZeroInput},
 	BuildStorage,
 };
@@ -37,18 +36,14 @@ use xcm_builder::{
 };
 use xcm_executor::traits::ConvertOrigin;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		PolkadotXcmBenchmarks: pallet_xcm_benchmarks::generic::{Pallet},
-		XcmGenericBenchmarks: generic::{Pallet},
+		System: frame_system,
+		PolkadotXcmBenchmarks: pallet_xcm_benchmarks::generic,
+		XcmGenericBenchmarks: generic,
 	}
 );
 
@@ -63,14 +58,13 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
-	type BlockNumber = u64;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type RuntimeCall = RuntimeCall;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -131,6 +125,7 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = TestUniversalAliases;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
+	type Aliasers = ();
 }
 
 impl pallet_xcm_benchmarks::Config for Test {
@@ -194,13 +189,17 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 	fn unlockable_asset() -> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
 		Err(BenchmarkError::Skip)
 	}
+
+	fn alias_origin() -> Result<(MultiLocation, MultiLocation), BenchmarkError> {
+		Ok((Default::default(), Default::default()))
+	}
 }
 
 impl generic::Config for Test {}
 impl Config for Test {}
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let t = GenesisConfig {
+	let t = RuntimeGenesisConfig {
 		..Default::default()
 	}
 	.build_storage()

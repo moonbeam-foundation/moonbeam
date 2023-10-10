@@ -3,11 +3,33 @@
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 120000,
   "scriptsDir": "scripts/",
+  "additionalRepos": [
+    {
+      "name": "polkadot-sdk",
+      "ghAuthor": "paritytech",
+      "ghRepo": "polkadot-sdk",
+      "binaries": [
+        {
+          "name": "polkadot",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-execute-worker",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-prepare-worker",
+          "defaultArgs": []
+        }
+      ]
+    }
+  ],
   "environments": [
     {
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -20,6 +42,7 @@
       "name": "zombie_moonbase",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -32,6 +55,7 @@
       "name": "zombie_common",
       "testFileDir": ["suites/para"],
       "include": ["**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "type": "zombie",
         "zombieSpec": {
@@ -281,8 +305,11 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "runScripts": ["compile-contracts.ts compile"],
-      "multiThreads": true,
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+      ],
+      "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": { "json": "./tmp/testResults.json" },
@@ -294,11 +321,10 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "--execution=Native",
-              "--wasm-execution=interpreted-i-know-what-i-do",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
               "--reserved-only",
               "--no-grandpa",
               "--no-prometheus",
@@ -407,6 +433,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonbeam.yml"
           }
         ]
@@ -429,6 +456,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonriver.yml"
           }
         ]
@@ -451,6 +479,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/alphanet.yml"
           }
         ]

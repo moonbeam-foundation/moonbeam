@@ -34,26 +34,21 @@ mod tests {
 	use sp_core::{H256, U256};
 	use sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
-		Perbill,
+		BuildStorage, Perbill,
 	};
 
 	pub type AccountId = MockAccount;
 	pub type Balance = u128;
-	pub type BlockNumber = u32;
 
-	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-	type Block = frame_system::mocking::MockBlock<Runtime>;
+	type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 	construct_runtime!(
-		pub enum Runtime where
-			Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
+		pub enum Runtime
 		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-			Balances: pallet_balances::{Pallet, Call, Storage, Event<T>},
-			Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
-			Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+			System: frame_system,
+			Balances: pallet_balances,
+			Evm: pallet_evm,
+			Timestamp: pallet_timestamp,
 		}
 	);
 
@@ -69,14 +64,13 @@ mod tests {
 		type BaseCallFilter = Everything;
 		type DbWeight = ();
 		type RuntimeOrigin = RuntimeOrigin;
-		type Index = u64;
-		type BlockNumber = BlockNumber;
+		type Nonce = u64;
+		type Block = Block;
 		type RuntimeCall = RuntimeCall;
 		type Hash = H256;
 		type Hashing = BlakeTwo256;
 		type AccountId = AccountId;
 		type Lookup = IdentityLookup<Self::AccountId>;
-		type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 		type RuntimeEvent = RuntimeEvent;
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
@@ -104,7 +98,7 @@ mod tests {
 		type ExistentialDeposit = ExistentialDeposit;
 		type AccountStore = System;
 		type WeightInfo = ();
-		type HoldIdentifier = ();
+		type RuntimeHoldReason = ();
 		type FreezeIdentifier = ();
 		type MaxHolds = ();
 		type MaxFreezes = ();
@@ -285,8 +279,8 @@ mod tests {
 	impl ExtBuilder {
 		#[cfg(test)]
 		fn build(self) -> sp_io::TestExternalities {
-			let t = frame_system::GenesisConfig::default()
-				.build_storage::<Runtime>()
+			let t = frame_system::GenesisConfig::<Runtime>::default()
+				.build_storage()
 				.expect("Frame system builds valid default genesis config");
 
 			let mut ext = sp_io::TestExternalities::new(t);

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{dispatch::Weight, parameter_types, traits::ContainsPair};
+use frame_support::{parameter_types, traits::ContainsPair, weights::Weight};
 use xcm::latest::prelude::*;
+use xcm_executor::traits::ConvertLocation;
 
 // An xcm sender/receiver akin to > /dev/null
 pub struct DevNull;
@@ -51,19 +52,15 @@ impl xcm_executor::traits::OnResponse for DevNull {
 }
 
 pub struct AccountIdConverter;
-impl xcm_executor::traits::Convert<MultiLocation, u64> for AccountIdConverter {
-	fn convert(ml: MultiLocation) -> Result<u64, MultiLocation> {
+impl ConvertLocation<u64> for AccountIdConverter {
+	fn convert_location(ml: &MultiLocation) -> Option<u64> {
 		match ml {
 			MultiLocation {
 				parents: 0,
 				interior: X1(Junction::AccountId32 { id, .. }),
-			} => Ok(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap()),
-			_ => Err(ml),
+			} => Some(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap()),
+			_ => None,
 		}
-	}
-
-	fn reverse(acc: u64) -> Result<MultiLocation, u64> {
-		Err(acc)
 	}
 }
 

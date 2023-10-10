@@ -55,16 +55,16 @@ declare module "@polkadot/api-base/types/errors" {
       NoDeposit: AugmentedError<ApiType>;
       /** The signing account has no permission to do the operation. */
       NoPermission: AugmentedError<ApiType>;
-      /**
-       * Unable to increment the consumer reference counters on the account. Either no provider
-       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or the maximum
-       * number of consumers has been reached.
-       */
-      NoProvider: AugmentedError<ApiType>;
       /** The asset should be frozen before the given operation. */
       NotFrozen: AugmentedError<ApiType>;
       /** No approval exists that would allow the transfer. */
       Unapproved: AugmentedError<ApiType>;
+      /**
+       * Unable to increment the consumer reference counters on the account. Either no provider
+       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one fewer
+       * then the maximum number of consumers has been reached.
+       */
+      UnavailableConsumer: AugmentedError<ApiType>;
       /** The given asset ID is unknown. */
       Unknown: AugmentedError<ApiType>;
       /** The operation would result in funds being burned. */
@@ -105,21 +105,25 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     balances: {
-      /** Beneficiary account must pre-exist */
+      /** Beneficiary account must pre-exist. */
       DeadAccount: AugmentedError<ApiType>;
-      /** Value too low to create account due to existential deposit */
+      /** Value too low to create account due to existential deposit. */
       ExistentialDeposit: AugmentedError<ApiType>;
-      /** A vesting schedule already exists for this account */
+      /** A vesting schedule already exists for this account. */
       ExistingVestingSchedule: AugmentedError<ApiType>;
+      /** Transfer/payment would kill account. */
+      Expendability: AugmentedError<ApiType>;
       /** Balance too low to send value. */
       InsufficientBalance: AugmentedError<ApiType>;
-      /** Transfer/payment would kill account */
-      KeepAlive: AugmentedError<ApiType>;
-      /** Account liquidity restrictions prevent withdrawal */
+      /** Account liquidity restrictions prevent withdrawal. */
       LiquidityRestrictions: AugmentedError<ApiType>;
-      /** Number of named reserves exceed MaxReserves */
+      /** Number of freezes exceed `MaxFreezes`. */
+      TooManyFreezes: AugmentedError<ApiType>;
+      /** Number of holds exceed `MaxHolds`. */
+      TooManyHolds: AugmentedError<ApiType>;
+      /** Number of named reserves exceed `MaxReserves`. */
       TooManyReserves: AugmentedError<ApiType>;
-      /** Vesting balance too high to send value */
+      /** Vesting balance too high to send value. */
       VestingBalance: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
@@ -405,16 +409,16 @@ declare module "@polkadot/api-base/types/errors" {
       NoDeposit: AugmentedError<ApiType>;
       /** The signing account has no permission to do the operation. */
       NoPermission: AugmentedError<ApiType>;
-      /**
-       * Unable to increment the consumer reference counters on the account. Either no provider
-       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or the maximum
-       * number of consumers has been reached.
-       */
-      NoProvider: AugmentedError<ApiType>;
       /** The asset should be frozen before the given operation. */
       NotFrozen: AugmentedError<ApiType>;
       /** No approval exists that would allow the transfer. */
       Unapproved: AugmentedError<ApiType>;
+      /**
+       * Unable to increment the consumer reference counters on the account. Either no provider
+       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one fewer
+       * then the maximum number of consumers has been reached.
+       */
+      UnavailableConsumer: AugmentedError<ApiType>;
       /** The given asset ID is unknown. */
       Unknown: AugmentedError<ApiType>;
       /** The operation would result in funds being burned. */
@@ -534,10 +538,12 @@ declare module "@polkadot/api-base/types/errors" {
       CandidateCannotLeaveYet: AugmentedError<ApiType>;
       CandidateDNE: AugmentedError<ApiType>;
       CandidateExists: AugmentedError<ApiType>;
+      CandidateLimitReached: AugmentedError<ApiType>;
       CandidateNotLeaving: AugmentedError<ApiType>;
       CannotDelegateIfLeaving: AugmentedError<ApiType>;
       CannotDelegateLessThanOrEqualToLowestBottomWhenFull: AugmentedError<ApiType>;
       CannotGoOnlineIfLeaving: AugmentedError<ApiType>;
+      CannotSetAboveMaxCandidates: AugmentedError<ApiType>;
       CannotSetBelowMin: AugmentedError<ApiType>;
       DelegationBelowMin: AugmentedError<ApiType>;
       DelegationDNE: AugmentedError<ApiType>;
@@ -560,6 +566,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
+      RemovedCall: AugmentedError<ApiType>;
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
@@ -567,9 +574,7 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHint: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
-      TooLowCandidateCountWeightHintCandidateBondMore: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintGoOffline: AugmentedError<ApiType>;
-      TooLowCandidateCountWeightHintGoOnline: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
@@ -621,7 +626,7 @@ declare module "@polkadot/api-base/types/errors" {
       FeesNotMet: AugmentedError<ApiType>;
       /** The message execution fails the filter. */
       Filtered: AugmentedError<ApiType>;
-      /** The unlock operation cannot succeed because there are still users of the lock. */
+      /** The unlock operation cannot succeed because there are still consumers of the lock. */
       InUse: AugmentedError<ApiType>;
       /** Invalid asset for the operation. */
       InvalidAsset: AugmentedError<ApiType>;
@@ -886,6 +891,7 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransfer: AugmentedError<ApiType>;
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       NotOwner: AugmentedError<ApiType>;
+      RefundNotSupportedWithTransactInfo: AugmentedError<ApiType>;
       SignedTransactNotAllowedForDestination: AugmentedError<ApiType>;
       TooMuchFeeUsed: AugmentedError<ApiType>;
       TransactorInfoNotSet: AugmentedError<ApiType>;
