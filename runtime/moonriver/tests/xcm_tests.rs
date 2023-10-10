@@ -3006,6 +3006,11 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
 	});
 
+	Statemine::execute_with(|| {
+		// Check that BOB's balance is empty before the transfer
+		assert_eq!(StatemineAssets::account_balances(RELAYBOB), vec![]);
+	});
+
 	// Transfer USDC from Parachain A to Statemine using Relay asset as fee
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer_multicurrencies(
@@ -3035,7 +3040,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 	});
 
 	Statemine::execute_with(|| {
-		// Check that BOB received 10 USDC on statemine
+		// Check that BOB received 100 USDC on statemine
 		assert_eq!(StatemineAssets::account_balances(RELAYBOB), vec![(10, 100)]);
 	});
 }
