@@ -6819,7 +6819,6 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
- "polkadot-runtime",
  "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
