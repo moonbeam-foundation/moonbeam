@@ -64,8 +64,6 @@ use sp_std::{
 	prelude::*,
 };
 
-use orml_traits::parameter_type_with_key;
-
 use crate::governance::referenda::GeneralAdminOrRoot;
 
 parameter_types! {
@@ -549,12 +547,6 @@ parameter_types! {
 
 }
 
-parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
-		Some(u128::MAX)
-	};
-}
-
 impl orml_xtokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -568,7 +560,7 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type UniversalLocation = UniversalLocation;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
-	type MinXcmFee = ParachainMinFee;
+	type MinXcmFee = orml_xcm_support::DisabledParachainFee;
 	type MultiLocationsFilter = Everything;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 }
