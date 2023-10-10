@@ -522,4 +522,3 @@ impl Precompile {
 		}
 	}
 }
-// TODO: Take precompile-utils from frontier

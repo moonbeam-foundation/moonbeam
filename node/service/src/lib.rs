@@ -51,6 +51,7 @@ pub use moonbase_runtime;
 use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
+use moonbeam_vrf::VrfDigestsProvider;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use nimbus_consensus::{
@@ -1028,10 +1029,7 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
-			let maybe_provide_vrf_digest = DigestProvider {
-				client: client.clone(),
-				keystore: keystore.clone(),
-			};
+			let maybe_provide_vrf_digest = VrfDigestsProvider::new(client.clone(), keystore.clone());
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
@@ -1684,34 +1682,6 @@ mod tests {
 	}
 }
 
-struct DigestProvider<RuntimeApi, Executor>
-where
-	RuntimeApi: Send + Sync,
-	Executor: ExecutorT + 'static,
-{
-	client: Arc<FullClient<RuntimeApi, Executor>>,
-	keystore: Arc<dyn Keystore>,
-}
-
-impl<RuntimeApi, Executor> DigestsProvider<NimbusId, H256> for DigestProvider<RuntimeApi, Executor>
-where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
-{
-	type Digests = Option<sp_runtime::generic::DigestItem>;
-
-	fn provide_digests(&self, nimbus_id: NimbusId, parent: H256) -> Self::Digests {
-		moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-			&self.client,
-			&self.keystore,
-			nimbus_id,
-			parent,
-		)
-	}
-}
-
 struct PendingConsensusDataProvider<RuntimeApi, Executor>
 where
 	RuntimeApi: Send + Sync,
@@ -1780,11 +1750,8 @@ where
 			digest.logs.remove(pos);
 		}
 		// Create the VRF digest.
-		let vrf_digest = DigestProvider {
-			client: self.client.clone(),
-			keystore: self.keystore.clone(),
-		}
-		.provide_digests(nimbus_id, hash);
+		let vrf_digest = VrfDigestsProvider::new(self.client.clone(), self.keystore.clone())
+			.provide_digests(nimbus_id, hash);
 		// Append the VRF digest to the digest.
 		digest.logs.extend(vrf_digest);
 		Ok(digest)
