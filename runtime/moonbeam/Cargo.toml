@@ -137,6 +137,7 @@ pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-parachain = { workspace = true }
+polkadot-runtime = { workspace = true, optional = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
@@ -335,6 +336,7 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"polkadot-runtime/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
