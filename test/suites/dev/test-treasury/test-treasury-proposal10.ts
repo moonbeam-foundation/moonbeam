@@ -17,7 +17,7 @@ describeSuite({
 
         const proposalCount = await context.polkadotJs().query.treasury.proposalCount();
         expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
-        console.log("proposalCount.toBigInt()", proposalCount.toBigInt())
+        console.log("proposalCount.toBigInt()", proposalCount.toBigInt());
 
         // Charleth proposed that the council reject the treasury proposal
         // (and therefore implicitly votes for)
@@ -35,8 +35,7 @@ describeSuite({
         const councilProposalHash = proposalResult!.events
           .find(({ event: { method } }) => method.toString() == "Proposed")!
           .event.data[2].toHex();
-        console.log("councilProposalHash", councilProposalHash)
-
+        console.log("councilProposalHash", councilProposalHash);
 
         // Charleth & Dorothy vote for against proposal and close it
         await context.createBlock([
