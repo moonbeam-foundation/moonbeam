@@ -15,9 +15,9 @@ describeSuite({
       blockNumber?: number;
       expectedGas: string;
     }[] = [
-      { count: 0, expectedGas: "0x53dd" },
-      { count: 100, expectedGas: "0x144ed" },
-      { count: 1000, expectedGas: "0x67965" },
+      { count: 0, expectedGas: "0x53da" },
+      { count: 100, expectedGas: "0x14422" },
+      { count: 1000, expectedGas: "0x67192" },
     ];
 
     let looperAddress: `0x${string}`;
