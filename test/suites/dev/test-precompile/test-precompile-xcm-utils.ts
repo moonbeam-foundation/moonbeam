@@ -9,7 +9,7 @@ import { descendOriginFromAddress20 } from "../../../helpers/xcm.js";
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 describeSuite({
-  id: "D2578",
+  id: "D2582",
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
