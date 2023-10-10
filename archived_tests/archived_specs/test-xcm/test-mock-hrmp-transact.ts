@@ -86,7 +86,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -170,7 +170,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact with two Descends", 
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -252,7 +252,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without withdraw", (
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -334,7 +334,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without buy executio
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 

@@ -18,13 +18,17 @@ describeSuite({
           bytecode,
         });
 
-        for (let i = 0; i < 120; i++) {
-          const rawTxn = await createEthersTransaction(context, {
-            data: deployData,
-            nonce: i,
-            gasLimit: 400000n,
-          });
-          await sendRawTransaction(context, rawTxn);
+        const txs = await Promise.all(
+          new Array(120).fill(0).map((_, i) =>
+            createEthersTransaction(context, {
+              data: deployData,
+              nonce: i,
+              gasLimit: 400000n,
+            })
+          )
+        );
+        for (const tx of txs) {
+          await context.viem().sendRawTransaction({ serializedTransaction: tx });
         }
 
         await context.createBlock();

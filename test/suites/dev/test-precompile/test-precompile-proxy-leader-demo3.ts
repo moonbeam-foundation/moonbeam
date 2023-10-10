@@ -19,6 +19,7 @@ describeSuite({
 
     beforeAll(async function () {
       leaderContractAddress = await setupPoolWithParticipants(context);
+
       const rawTx = context.writeContract!({
         contractName: "ProxyLeaderDemo",
         contractAddress: leaderContractAddress,

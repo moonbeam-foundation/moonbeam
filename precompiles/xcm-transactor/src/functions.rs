@@ -18,7 +18,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
@@ -27,12 +27,14 @@ use pallet_xcm_transactor::{
 };
 use precompile_utils::prelude::*;
 use sp_core::{MaxEncodedLen, H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 	vec::Vec,
 };
+use sp_weights::Weight;
 use xcm::latest::MultiLocation;
 use xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,

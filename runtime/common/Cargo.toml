@@ -48,6 +48,7 @@ pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
 pallet-xcm = { workspace = true }
+sp-api = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
@@ -61,11 +62,13 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-chain-id = { workspace = true }
 
 # Nimbus
+nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
+xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
 [features]

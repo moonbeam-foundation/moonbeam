@@ -20,8 +20,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
-	dispatch::Dispatchable,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
+	traits::{OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
 	asset_config::AssetRegistrarMetadata,
@@ -34,7 +33,7 @@ pub use moonbeam_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill, Percent};
+use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -232,8 +231,8 @@ impl ExtBuilder {
 	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
@@ -266,35 +265,28 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_evm_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_evm_chain_id::GenesisConfig {
-				chain_id: self.chain_id,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_evm_chain_id::GenesisConfig::<Runtime> {
+			chain_id: self.chain_id,
+			..Default::default()
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_evm::GenesisConfig {
-				accounts: self.evm_accounts,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_evm::GenesisConfig::<Runtime> {
+			accounts: self.evm_accounts,
+			..Default::default()
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_ethereum::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_ethereum::GenesisConfig {},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_ethereum::GenesisConfig::<Runtime> {
+			..Default::default()
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
-		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_xcm::GenesisConfig {
-				safe_xcm_version: self.safe_xcm_version,
-			},
-			&mut t,
-		)
-		.unwrap();
+		let genesis_config = pallet_xcm::GenesisConfig::<Runtime> {
+			safe_xcm_version: self.safe_xcm_version,
+			..Default::default()
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		let local_assets = self.local_assets.clone();

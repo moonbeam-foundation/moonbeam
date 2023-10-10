@@ -18,7 +18,7 @@ use crate::mock::{
 	RuntimeOrigin, TransactorV1, TransactorV2, TransactorV3, XcmTransactor,
 };
 
-use frame_support::{assert_ok, dispatch::Weight};
+use frame_support::{assert_ok, weights::Weight};
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;

@@ -153,6 +153,12 @@ declare module "@polkadot/api-base/types/events" {
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
       AssetThawed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** Some account `who` was blocked. */
+      Blocked: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20],
+        { assetId: u128; who: AccountId20 }
+      >;
       /** Some assets were destroyed. */
       Burned: AugmentedEvent<
         ApiType,
@@ -212,6 +218,12 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [assetId: u128, who: AccountId20],
         { assetId: u128; who: AccountId20 }
+      >;
+      /** Some account `who` was created with a deposit from `depositor`. */
+      Touched: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20, depositor: AccountId20],
+        { assetId: u128; who: AccountId20; depositor: AccountId20 }
       >;
       /** Some assets were transferred. */
       Transferred: AugmentedEvent<
@@ -296,8 +308,14 @@ declare module "@polkadot/api-base/types/events" {
       /** A balance was set by root. */
       BalanceSet: AugmentedEvent<
         ApiType,
-        [who: AccountId20, free: u128, reserved: u128],
-        { who: AccountId20; free: u128; reserved: u128 }
+        [who: AccountId20, free: u128],
+        { who: AccountId20; free: u128 }
+      >;
+      /** Some amount was burned from an account. */
+      Burned: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
       >;
       /** Some amount was deposited (e.g. for transaction fees). */
       Deposit: AugmentedEvent<
@@ -320,6 +338,28 @@ declare module "@polkadot/api-base/types/events" {
         [account: AccountId20, freeBalance: u128],
         { account: AccountId20; freeBalance: u128 }
       >;
+      /** Some balance was frozen. */
+      Frozen: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Total issuance was increased by `amount`, creating a credit to be balanced. */
+      Issued: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
+      /** Some balance was locked. */
+      Locked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some amount was minted into an account. */
+      Minted: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Total issuance was decreased by `amount`, creating a debt to be balanced. */
+      Rescinded: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
       /** Some balance was reserved (moved from free to reserved). */
       Reserved: AugmentedEvent<
         ApiType,
@@ -345,8 +385,26 @@ declare module "@polkadot/api-base/types/events" {
           destinationStatus: FrameSupportTokensMiscBalanceStatus;
         }
       >;
+      /** Some amount was restored into an account. */
+      Restored: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
       /** Some amount was removed from the account (e.g. for misbehavior). */
       Slashed: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some amount was suspended from an account (it can be restored later). */
+      Suspended: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some balance was thawed. */
+      Thawed: AugmentedEvent<
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
@@ -357,12 +415,20 @@ declare module "@polkadot/api-base/types/events" {
         [from: AccountId20, to: AccountId20, amount: u128],
         { from: AccountId20; to: AccountId20; amount: u128 }
       >;
+      /** Some balance was unlocked. */
+      Unlocked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
       /** Some balance was unreserved (moved from reserved to free). */
       Unreserved: AugmentedEvent<
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
       >;
+      /** An account was upgraded. */
+      Upgraded: AugmentedEvent<ApiType, [who: AccountId20], { who: AccountId20 }>;
       /** Some amount was withdrawn from the account (e.g. for transaction fees). */
       Withdraw: AugmentedEvent<
         ApiType,
@@ -715,6 +781,12 @@ declare module "@polkadot/api-base/types/events" {
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
       AssetThawed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** Some account `who` was blocked. */
+      Blocked: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20],
+        { assetId: u128; who: AccountId20 }
+      >;
       /** Some assets were destroyed. */
       Burned: AugmentedEvent<
         ApiType,
@@ -774,6 +846,12 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [assetId: u128, who: AccountId20],
         { assetId: u128; who: AccountId20 }
+      >;
+      /** Some account `who` was created with a deposit from `depositor`. */
+      Touched: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20, depositor: AccountId20],
+        { assetId: u128; who: AccountId20; depositor: AccountId20 }
       >;
       /** Some assets were transferred. */
       Transferred: AugmentedEvent<

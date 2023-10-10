@@ -58,6 +58,7 @@ import type {
   PalletAuthorMappingRegistrationInfo,
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
+  PalletBalancesIdAmount,
   PalletBalancesReserveData,
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
@@ -82,7 +83,7 @@ import type {
   PalletParachainStakingInflationInflationInfo,
   PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
-  PalletParachainStakingSetOrderedSet,
+  PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageRequestStatus,
   PalletProxyAnnouncement,
   PalletProxyProxyDefinition,
@@ -98,9 +99,9 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
-  PolkadotPrimitivesV2AbridgedHostConfiguration,
-  PolkadotPrimitivesV2PersistedValidationData,
-  PolkadotPrimitivesV2UpgradeRestriction,
+  PolkadotPrimitivesV4AbridgedHostConfiguration,
+  PolkadotPrimitivesV4PersistedValidationData,
+  PolkadotPrimitivesV4UpgradeRestriction,
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
@@ -298,6 +299,20 @@ declare module "@polkadot/api-base/types/storage" {
       account: AugmentedQuery<
         ApiType,
         (arg: AccountId20 | string | Uint8Array) => Observable<PalletBalancesAccountData>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /** Freeze locks on account balances. */
+      freezes: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<PalletBalancesIdAmount>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /** Holds on account balances. */
+      holds: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<PalletBalancesIdAmount>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1046,7 +1061,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       hostConfiguration: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV2AbridgedHostConfiguration>>,
+        () => Observable<Option<PolkadotPrimitivesV4AbridgedHostConfiguration>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1174,7 +1189,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       upgradeRestrictionSignal: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV2UpgradeRestriction>>,
+        () => Observable<Option<PolkadotPrimitivesV4UpgradeRestriction>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1191,7 +1206,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       validationData: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV2PersistedValidationData>>,
+        () => Observable<Option<PolkadotPrimitivesV4PersistedValidationData>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;

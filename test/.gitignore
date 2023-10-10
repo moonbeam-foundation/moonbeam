@@ -10,3 +10,4 @@ html
 
 contracts/cache
 contracts/out
+wasm/precompiled*

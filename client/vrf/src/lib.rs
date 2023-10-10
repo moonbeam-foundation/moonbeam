@@ -16,7 +16,9 @@
 
 //! VRF client primitives for client-side verification
 
-use nimbus_primitives::NimbusId;
+use std::sync::Arc;
+
+use nimbus_primitives::{DigestsProvider, NimbusId};
 use schnorrkel::PublicKey;
 use session_keys_primitives::{make_vrf_transcript, PreDigest, VrfApi, VrfId};
 use sp_application_crypto::{AppCrypto, ByteArray};
@@ -74,5 +76,34 @@ fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &KeystorePtr) -> Option
 	} else {
 		// VRF key not found in keystore or VRF signing failed
 		None
+	}
+}
+
+pub struct VrfDigestsProvider<B, C> {
+	client: Arc<C>,
+	keystore: Arc<dyn Keystore>,
+	_marker: std::marker::PhantomData<B>,
+}
+
+impl<B, C> VrfDigestsProvider<B, C> {
+	pub fn new(client: Arc<C>, keystore: Arc<dyn Keystore>) -> Self {
+		Self {
+			client,
+			keystore,
+			_marker: Default::default(),
+		}
+	}
+}
+
+impl<B, C> DigestsProvider<NimbusId, H256> for VrfDigestsProvider<B, C>
+where
+	B: sp_runtime::traits::Block<Hash = sp_core::H256>,
+	C: sp_api::ProvideRuntimeApi<B>,
+	C::Api: VrfApi<B>,
+{
+	type Digests = Option<sp_runtime::generic::DigestItem>;
+
+	fn provide_digests(&self, nimbus_id: NimbusId, parent: H256) -> Self::Digests {
+		vrf_pre_digest::<B, C>(&self.client, &self.keystore, nimbus_id, parent)
 	}
 }

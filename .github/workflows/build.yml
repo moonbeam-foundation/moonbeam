@@ -561,15 +561,6 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Retrieve polkadot binary from
-        run: |
-          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_ver }}
-          DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
-
-          docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/bin/polkadot test/tmp/polkadot
-          docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
@@ -592,7 +583,6 @@ jobs:
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
-          chmod uog+x tmp/polkadot
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
