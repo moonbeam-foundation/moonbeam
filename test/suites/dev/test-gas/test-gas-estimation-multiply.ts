@@ -32,7 +32,7 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -52,7 +52,7 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -67,11 +67,11 @@ describeSuite({
           functionName: "multiply",
           args: [3],
           //@ts-expect-error
-          gasLimit: 22364n,
+          gasLimit: 22363n,
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -87,11 +87,11 @@ describeSuite({
           maxPriorityFeePerGas: 0n,
           args: [3],
           //@ts-expect-error
-          gasLimit: 22364n,
+          gasLimit: 22363n,
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 

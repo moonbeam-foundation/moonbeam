@@ -230,6 +230,10 @@ pub struct RunCmd {
 	/// telemetry, if telemetry is enabled.
 	#[clap(long)]
 	pub no_hardware_benchmarks: bool,
+
+	/// Removes moonbeam prefix from Prometheus metrics
+	#[clap(long)]
+	pub no_prometheus_prefix: bool,
 }
 
 impl RunCmd {
@@ -254,6 +258,7 @@ impl RunCmd {
 					cache_size: self.frontier_sql_backend_cache_size,
 				},
 			},
+			no_prometheus_prefix: self.no_prometheus_prefix,
 		}
 	}
 }

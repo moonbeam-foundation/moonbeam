@@ -314,6 +314,44 @@
       }
     },
     {
+      "name": "dev_moonbase_tracing",
+      "testFileDir": ["suites/tracing-tests"],
+      "include": ["**/*test*"],
+      "contracts": "contracts/",
+      "runScripts": ["compile-contracts.ts compile"],
+      "multiThreads": true,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["html", "basic"],
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--execution=Wasm",
+              "--wasm-execution=compiled",
+              "--ethapi=txpool,debug,trace",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbase-dev",
+              "--sealing=manual",
+              "--tmp",
+              "--wasm-runtime-overrides=moonbase-overrides",
+              "--blocks-pruning=archive"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "dev_moonbase_custom",
       "testFileDir": ["suites/dev/"],
       "contracts": "contracts/",
