@@ -53,12 +53,12 @@ describeSuite({
         expect(response[0].action).to.include({
           creationMethod: "create",
           from: ALITH_ADDRESS.toLocaleLowerCase(),
-          gas: "0x9caba",
+          gas: "0x9a679",
           value: "0x0",
         });
         expect(response[0].result).to.include({
           address: ALITH_CONTRACT_ADDRESSES[0].toLocaleLowerCase(),
-          gasUsed: "0x1509b", // TODO : Compare with value from another (comparable) network.
+          gasUsed: "0x14fff", // TODO : Compare with value from another (comparable) network.
         });
 
         expect(response[0]).to.include({
@@ -87,7 +87,7 @@ describeSuite({
         expect(response.length).to.equal(1);
         expect(response[0].action.creationMethod).to.equal("create");
         expect(response[0].action.from).to.equal(ALITH_ADDRESS.toLocaleLowerCase());
-        expect(response[0].action.gas).to.equal("0x104b");
+        expect(response[0].action.gas).to.equal("0x10df");
         expect(response[0].action.init).to.be.a("string");
         expect(response[0].action.value).to.equal("0x0");
         expect(response[0].blockHash).to.be.a("string");
