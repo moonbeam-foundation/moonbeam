@@ -68,7 +68,8 @@
       "contracts": "contracts/",
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -120,7 +121,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -172,7 +174,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -224,7 +227,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "envVars": ["DEBUG_COLORS=1"],
       "multiThreads": false,
       "foundation": {
@@ -307,7 +311,8 @@
       ],
       "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
-      "reporters": ["html", "basic"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "foundation": {
         "type": "dev",
         "launchSpec": [
