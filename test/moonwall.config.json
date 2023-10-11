@@ -339,7 +339,10 @@
       "testFileDir": ["suites/tracing-tests"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "runScripts": ["compile-contracts.ts compile"],
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+      ],
       "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
@@ -351,11 +354,10 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "--execution=Wasm",
-              "--wasm-execution=compiled",
               "--ethapi=txpool,debug,trace",
               "--no-hardware-benchmarks",
               "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
               "--reserved-only",
               "--no-grandpa",
               "--no-prometheus",
