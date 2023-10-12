@@ -15,9 +15,9 @@ describeSuite({
       blockNumber?: number;
       expectedGas: string;
     }[] = [
-      { count: 0, expectedGas: "0x53dd" },
-      { count: 100, expectedGas: "0x144ed" },
-      { count: 1000, expectedGas: "0x67965" },
+      { count: 0, expectedGas: "0x53da" },
+      { count: 100, expectedGas: "0x14422" },
+      { count: 1000, expectedGas: "0x67192" },
     ];
 
     let looperAddress: `0x${string}`;
@@ -50,7 +50,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should return 21469 gasUsed for 0 loop",
+      title: "should return 21466 gasUsed for 0 loop",
       test: async function () {
         const trace = await customDevRpcRequest("trace_filter", [
           {
