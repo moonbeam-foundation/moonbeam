@@ -83,11 +83,11 @@ devDependencies:
     specifier: ^0.2400.0
     version: 0.2400.0
   '@moonwall/cli':
-    specifier: ^4.2.0
-    version: 4.2.0(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
+    specifier: ^4.2.1
+    version: 4.2.1(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
   '@moonwall/util':
-    specifier: ^4.2.0
-    version: 4.2.0(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
+    specifier: ^4.2.1
+    version: 4.2.1(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
   '@polkadot/api':
     specifier: ^10.9.1
     version: 10.9.1
@@ -187,11 +187,6 @@ packages:
       - ts-node
       - typeorm-aurora-data-api-driver
       - utf-8-validate
-    dev: false
-
-  /@acala-network/chopsticks-executor@0.7.3:
-    resolution: {integrity: sha512-sPAQst4/i8S5i3aGPz7YXgRHfoR71HxOdk30PXnuExkUpOKQH1BYD0wuQkoVstonTeBwis3BSW5CL9Xz/4ksjQ==}
-    dev: true
 
   /@acala-network/chopsticks-executor@0.8.2(@polkadot/util@12.5.1):
     resolution: {integrity: sha512-A3t/cexTtmzILBYaNY/gbsvFn4pbWAlwssW5EAFpnFeL69FGuDEGaDagICpKDlQeqA3WyhQHksObNOuFK4hx7Q==}
@@ -199,52 +194,6 @@ packages:
       '@polkadot/wasm-util': 7.2.2(@polkadot/util@12.5.1)
     transitivePeerDependencies:
       - '@polkadot/util'
-    dev: false
-
-  /@acala-network/chopsticks@0.7.3(debug@4.3.4):
-    resolution: {integrity: sha512-RYGFI1UQgNwc+rUwjoZEucLYesiG62IJXT9ABfs/KKEkvMx6JiJWwO37tObdGkUm4S8zezdRumEnOPOl+B65FQ==}
-    hasBin: true
-    dependencies:
-      '@acala-network/chopsticks-executor': 0.7.3
-      '@pnpm/npm-conf': 2.2.2
-      '@polkadot/api': 10.9.1
-      axios: 1.4.0(debug@4.3.4)
-      global-agent: 3.0.0
-      js-yaml: 4.1.0
-      jsondiffpatch: 0.4.1
-      lodash: 4.17.21
-      pino: 8.15.0
-      pino-pretty: 10.2.0
-      reflect-metadata: 0.1.13
-      sqlite3: 5.1.6
-      typeorm: 0.3.17(sql.js@1.8.0)(sqlite3@5.1.6)
-      ws: 8.13.0
-      yargs: 17.7.2
-      zod: 3.21.4
-    transitivePeerDependencies:
-      - '@google-cloud/spanner'
-      - '@sap/hana-client'
-      - better-sqlite3
-      - bluebird
-      - bufferutil
-      - debug
-      - encoding
-      - hdb-pool
-      - ioredis
-      - mongodb
-      - mssql
-      - mysql2
-      - oracledb
-      - pg
-      - pg-native
-      - pg-query-stream
-      - redis
-      - sql.js
-      - supports-color
-      - ts-node
-      - typeorm-aurora-data-api-driver
-      - utf-8-validate
-    dev: true
 
   /@acala-network/chopsticks@0.8.2(@polkadot/util@12.5.1)(debug@4.3.4):
     resolution: {integrity: sha512-m/5kMz1a4yeeBV0QQ+3u7vDVfNmjReld9/9C88XAYAjunI5c08m1xAGtWKukJfm2m0SjeL4TCU7hcI52jrW2MA==}
@@ -285,7 +234,6 @@ packages:
       - ts-node
       - typeorm-aurora-data-api-driver
       - utf-8-validate
-    dev: false
 
   /@acala-network/type-definitions@5.1.1(@polkadot/types@10.9.1):
     resolution: {integrity: sha512-QNhPwWePz/gFluSACKIhq0Z7rTntS21uIZUNpp9tsvc0zlJ20QjHJnv+ZfkdaKauFrL5upFfTgWqrLhN0jV0JQ==}
@@ -346,7 +294,7 @@ packages:
       '@babel/traverse': 7.23.2
       '@babel/types': 7.23.0
       convert-source-map: 2.0.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -608,7 +556,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.23.0
       '@babel/types': 7.23.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -1187,15 +1135,15 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonwall/cli@4.2.0(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2):
-    resolution: {integrity: sha512-rccfoz2y9CeVMVguRIp0NtccMO81b0E/a9bYjQKIydKIeqvqk6RfsQvrq7AIDinCnudjOfMSdEUW2XGd4+RRKA==}
+  /@moonwall/cli@4.2.1(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2):
+    resolution: {integrity: sha512-r9S4tQYAjVNLedvTKjcPPg8qj7IjE/S3L8h2rd1xv6vpBSDPEUg4GPTtiob5dfZVWDqaiDfx3Tz6nM4MPgK5tg==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     hasBin: true
     dependencies:
-      '@acala-network/chopsticks': 0.7.3(debug@4.3.4)
+      '@acala-network/chopsticks': 0.8.2(@polkadot/util@12.5.1)(debug@4.3.4)
       '@moonbeam-network/api-augment': 0.2400.0
-      '@moonwall/types': 4.2.0(@types/node@20.8.4)(typescript@5.2.2)
-      '@moonwall/util': 4.2.0(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
+      '@moonwall/types': 4.2.1(typescript@5.2.2)
+      '@moonwall/util': 4.2.1(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2)
       '@polkadot/api': 10.9.1
       '@polkadot/api-augment': 10.9.1
       '@polkadot/api-derive': 10.9.1
@@ -1211,7 +1159,7 @@ packages:
       clear: 0.1.0
       cli-progress: 3.12.0
       colors: 1.4.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       dotenv: 16.3.1
       ethers: 6.8.0
       inquirer: 9.2.11
@@ -1258,7 +1206,6 @@ packages:
       - redis
       - safaridriver
       - sass
-      - sql.js
       - stylus
       - sugarss
       - supports-color
@@ -1271,8 +1218,8 @@ packages:
       - zod
     dev: true
 
-  /@moonwall/types@4.2.0(@types/node@20.8.4)(typescript@5.2.2):
-    resolution: {integrity: sha512-AxqDRPvg7PNuU0ATelFt5zeaBPZDRuyXHzPvA5o9URQLLnPcSnoHHEiFh1PyUMyPnO7AwoaWKQ5yS5R21BMnWQ==}
+  /@moonwall/types@4.2.1(typescript@5.2.2):
+    resolution: {integrity: sha512-v5l3m9bfKqJ1RoTcpU/OSw8IB55NKZd8+Cfwclbxx29XI2xtVMnZ/5sF7ws+pJSAa37n65SlTcXgU4aDHkzFaw==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@polkadot/api': 10.9.1
@@ -1281,16 +1228,16 @@ packages:
       '@polkadot/types': 10.9.1
       '@polkadot/util': 12.5.1
       '@polkadot/util-crypto': 12.5.1(@polkadot/util@12.5.1)
+      '@types/node': 20.8.4
       '@zombienet/utils': 0.0.22(@types/node@20.8.4)(typescript@5.2.2)
       bottleneck: 2.19.5
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       ethers: 6.8.0
       viem: 1.16.4(typescript@5.2.2)
       web3: 4.0.3
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
-      - '@types/node'
       - bufferutil
       - chokidar
       - encoding
@@ -1300,12 +1247,12 @@ packages:
       - zod
     dev: true
 
-  /@moonwall/util@4.2.0(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2):
-    resolution: {integrity: sha512-38r7bAr0qdXsPVWkxikIUwH68B0hL1QedU56NUiMHGvmTme6OxpCsGrlmfnmGPHFk0jbfxu3gt1t+CmCwJHthQ==}
+  /@moonwall/util@4.2.1(@types/node@20.8.4)(@vitest/ui@0.31.4)(typescript@5.2.2):
+    resolution: {integrity: sha512-Xk0dAgJMBkCDJPAV68eIXK6vfBAlB9zd3Occ+qjigRZYSHJl8TP5dzFukMhrwsxgzI4UvP8YS6PhS4WmHAxTEw==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@moonbeam-network/api-augment': 0.2400.0
-      '@moonwall/types': 4.2.0(@types/node@20.8.4)(typescript@5.2.2)
+      '@moonwall/types': 4.2.1(typescript@5.2.2)
       '@polkadot/api': 10.9.1
       '@polkadot/api-augment': 10.9.1
       '@polkadot/api-derive': 10.9.1
@@ -1320,7 +1267,7 @@ packages:
       clear: 0.1.0
       cli-progress: 3.12.0
       colors: 1.4.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       dotenv: 16.3.1
       ethers: 6.8.0
       inquirer: 9.2.11
@@ -3489,7 +3436,7 @@ packages:
       '@zombienet/utils': 0.0.22(@types/node@20.8.4)(typescript@5.2.2)
       JSONStream: 1.3.5
       chai: 4.3.10
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       execa: 5.1.1
       fs-extra: 11.1.1
       jsdom: 22.1.0
@@ -3518,7 +3465,7 @@ packages:
     resolution: {integrity: sha512-dTU1orWPPMyGNi86nLLFEd3cK5n+DNbavAdiOOqu2rhem2m+AuycwYEGXKf+Y4j3Ofau2gnfdUllsfFjRWrj7A==}
     dependencies:
       cli-table3: 0.6.3
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       mocha: 10.2.0
       nunjucks: 3.2.4
       toml: 3.0.0
@@ -3537,7 +3484,7 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       cli-table3: 0.6.3
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       mocha: 10.2.0
       nunjucks: 3.2.4
       toml: 3.0.0
@@ -3640,7 +3587,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -3695,6 +3642,7 @@ packages:
     engines: {node: '>=4'}
     dependencies:
       color-convert: 1.9.3
+    dev: false
 
   /ansi-styles@4.3.0:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
@@ -3796,16 +3744,6 @@ packages:
     resolution: {integrity: sha512-NmWvPnx0F1SfrQbYwOi7OeaNGokp9XhzNioJ/CSBs8Qa4vxug81mhJEAVZwxXuBmYB5KDRfMq/F3RR0BIU7sWg==}
     dev: false
 
-  /axios@1.4.0(debug@4.3.4):
-    resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
-    dependencies:
-      follow-redirects: 1.15.2(debug@4.3.4)
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: true
-
   /axios@1.5.1(debug@4.3.4):
     resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
     dependencies:
@@ -3814,7 +3752,6 @@ packages:
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
-    dev: false
 
   /babel-plugin-styled-components@2.1.4(@babel/core@7.23.2)(styled-components@5.3.11):
     resolution: {integrity: sha512-Xgp9g+A/cG47sUyRwwYxGM4bR/jDRg5N6it/8+HxCnbT5XNKSKDT9xm4oag/osgqjC2It/vH0yXsomOG6k558g==}
@@ -4167,6 +4104,7 @@ packages:
       ansi-styles: 3.2.1
       escape-string-regexp: 1.0.5
       supports-color: 5.5.0
+    dev: false
 
   /chalk@3.0.0:
     resolution: {integrity: sha512-4D3B6Wf41KOYRFdszmDqMCGq5VV/uMAB273JILmO+3jAlh8X4qDtdtgCR3fxtbLEMzSx22QdhnDcJvu2u1fVwg==}
@@ -4174,7 +4112,6 @@ packages:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
-    dev: false
 
   /chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -4340,6 +4277,7 @@ packages:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
     dependencies:
       color-name: 1.1.3
+    dev: false
 
   /color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -4349,6 +4287,7 @@ packages:
 
   /color-name@1.1.3:
     resolution: {integrity: sha512-72fSenhMw2HZMTVHeCA9KCmpEIbzWiQsjN+BHcBbS9vr1mtt+vJjPdksIBNUmKAW8TFUDPJK5SUU3QhE9NEXDw==}
+    dev: false
 
   /color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
@@ -4605,6 +4544,17 @@ packages:
     dependencies:
       ms: 2.0.0
     dev: false
+
+  /debug@4.3.4:
+    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
 
   /debug@4.3.4(supports-color@5.5.0):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -4954,6 +4904,7 @@ packages:
   /escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
     engines: {node: '>=0.8.0'}
+    dev: false
 
   /escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
@@ -5298,7 +5249,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -5741,7 +5692,7 @@ packages:
     dependencies:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -5752,7 +5703,7 @@ packages:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5787,7 +5738,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -5827,7 +5778,6 @@ packages:
 
   /immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-    dev: false
 
   /immediate@3.2.3:
     resolution: {integrity: sha512-RrGCXRm/fRVqMIhqXrGEX9rRADavPiDFSoMb/k64i9XMk8uH4r/Omi5Ctierj6XzNecwDbO4WuFbDD1zmpl3Tg==}
@@ -6278,16 +6228,6 @@ packages:
   /jsonc-parser@3.2.0:
     resolution: {integrity: sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==}
 
-  /jsondiffpatch@0.4.1:
-    resolution: {integrity: sha512-t0etAxTUk1w5MYdNOkZBZ8rvYYN5iL+2dHCCx/DpkFm/bW28M6y5nUS83D4XdZiHy35Fpaw6LBb+F88fHZnVCw==}
-    engines: {node: '>=8.17.0'}
-    hasBin: true
-    dependencies:
-      chalk: 2.4.2
-      diff-match-patch: 1.0.5
-    dev: true
-    bundledDependencies: []
-
   /jsondiffpatch@0.5.0:
     resolution: {integrity: sha512-Quz3MvAwHxVYNXsOByL7xI5EB2WYOeFswqaHIA3qOK3isRWTxiplBEocmmru6XmxDB2L7jDNYtYA4FyimoAFEw==}
     engines: {node: '>=8.17.0'}
@@ -6295,7 +6235,6 @@ packages:
     dependencies:
       chalk: 3.0.0
       diff-match-patch: 1.0.5
-    dev: false
     bundledDependencies: []
 
   /jsonfile@4.0.0:
@@ -6441,7 +6380,6 @@ packages:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
     dependencies:
       immediate: 3.0.6
-    dev: false
 
   /local-pkg@0.4.3:
     resolution: {integrity: sha512-SFppqq5p42fe2qcZQqqEOiVRXl+WCP1MdT6k7BDEW1j++sp5fIY+/fdRQitvKgB5BrBcmrs5m/L0v2FrU5MY1g==}
@@ -6451,7 +6389,6 @@ packages:
     resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
     dependencies:
       lie: 3.1.1
-    dev: false
 
   /locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
@@ -7070,7 +7007,7 @@ packages:
     resolution: {integrity: sha512-CwbljitiWJhF1gL83NbanhoKs1l23TDlRioNraPTZrzZIEooPemrHRj5m0FZCPkB1ecdYCSWWGcHysJgX/ngnQ==}
     engines: {node: '>= 10.13'}
     dependencies:
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       json-stringify-safe: 5.0.1
       lodash: 4.17.21
       propagate: 2.0.1
@@ -8169,7 +8106,7 @@ packages:
     requiresBuild: true
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -8760,7 +8697,7 @@ packages:
       chalk: 4.1.2
       cli-highlight: 2.1.11
       date-fns: 2.30.0
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       dotenv: 16.3.1
       glob: 8.1.0
       mkdirp: 2.1.6
@@ -8960,7 +8897,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       mlly: 1.4.0
       pathe: 1.1.1
       picocolors: 1.0.0
@@ -8981,7 +8918,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       mlly: 1.4.2
       pathe: 1.1.1
       picocolors: 1.0.0
@@ -9113,7 +9050,7 @@ packages:
       cac: 6.7.14
       chai: 4.3.7
       concordance: 5.0.4
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       local-pkg: 0.4.3
       magic-string: 0.30.2
       pathe: 1.1.1
@@ -9179,7 +9116,7 @@ packages:
       acorn-walk: 8.2.0
       cac: 6.7.14
       chai: 4.3.10
-      debug: 4.3.4(supports-color@5.5.0)
+      debug: 4.3.4
       local-pkg: 0.4.3
       magic-string: 0.30.4
       pathe: 1.1.1
@@ -10111,10 +10048,6 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
-
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
-    dev: true
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
