@@ -15,8 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2400.0",
-    "@moonwall/cli": "^4.1.6",
-    "@moonwall/util": "^4.1.6",
+    "@moonwall/cli": "^4.2.0",
+    "@moonwall/util": "^4.2.0",
     "@polkadot/api": "^10.9.1",
     "@polkadot/api-augment": "^10.9.1",
     "@polkadot/types": "^10.9.1",
@@ -28,7 +28,7 @@
     "bottleneck": "^2.19.5",
     "bun-types": "^0.7.3",
     "debug": "^4.3.4",
-    "ethers": "^6.7.1",
+    "ethers": "^6.8.0",
     "prettier": "^2.8.8",
     "tsx": "^3.13.0",
     "typescript": "^5.2.2",
@@ -56,11 +56,11 @@
     "json-stable-stringify": "^1.0.2",
     "merkle-patricia-tree": "^4.2.4",
     "node-fetch": "^3.3.2",
-    "randomness": "^1.6.4",
+    "randomness": "^1.6.5",
     "rlp": "^3.0.0",
     "semver": "^7.5.4",
     "solc": "0.8.21",
-    "viem": "^1.16.2",
+    "viem": "^1.16.4",
     "vitest": "^0.31.4"
   }
 }

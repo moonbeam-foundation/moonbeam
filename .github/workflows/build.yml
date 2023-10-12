@@ -361,7 +361,6 @@ jobs:
           timeout: 30000
 
   typescript-tracing-tests:
-    if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
