@@ -646,4 +646,5 @@ jobs:
           --header 'table: dev_reports' \
           --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
           --header 'Content-Type: application/json' \
-          -d@test/tmp/testResults.json
+          --max-time 120 \
+          -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
