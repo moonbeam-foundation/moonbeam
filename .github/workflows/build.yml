@@ -534,8 +534,8 @@ jobs:
       labels: bare-metal
     needs: ["set-tags", "build"]
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
     env:
